@@ -44,8 +44,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-
 /**
  * DiscoveryHandler.
  */
@@ -142,7 +140,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
             if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())) {
-                discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+                discoveryUpstreamData.setNamespaceId(discoverySyncData.getNamespaceId());
             }
         });
         discoveryUpstreamDTOS = discoveryUpstreamDTOS.stream()

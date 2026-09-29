@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.divide.handler;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -34,6 +35,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,6 +76,7 @@ public class DivideUpstreamDataHandlerTest {
 
     @AfterEach
     public void tearDown() {
+        UpstreamCacheManager.getInstance().removeByKey("handler");
         mockCheckUtils.close();
     }
 
@@ -88,6 +91,36 @@ public class DivideUpstreamDataHandlerTest {
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorId(null);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+    }
+
+    /**
+     * Handler discovery upstream props metadata test.
+     */
+    @Test
+    public void handlerDiscoveryUpstreamDataWithPropsMetadataTest() {
+        Properties properties = new Properties();
+        properties.setProperty("warmup", "20");
+        properties.setProperty("gray", "true");
+        properties.setProperty("healthCheckEnabled", "false");
+        properties.setProperty("az", "az1");
+        properties.setProperty("version", "v2");
+        DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()
+                .url("mock-props")
+                .status(0)
+                .weight(10)
+                .props(GsonUtils.getInstance().toJson(properties))
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(discoveryUpstreamData));
+
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        assertEquals("az1", upstream.getMetadata().get("az"));
+        assertEquals("v2", upstream.getMetadata().get("version"));
+        assertEquals("20", upstream.getMetadata().get("warmup"));
+        assertEquals(20, upstream.getWarmup());
+        assertEquals(false, upstream.isHealthCheckEnabled());
     }
 
     /**

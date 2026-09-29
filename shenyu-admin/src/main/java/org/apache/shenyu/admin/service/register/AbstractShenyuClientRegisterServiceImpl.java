@@ -225,10 +225,13 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+        String errorMsg = String.format("%s plugin not enabled for current namespace or plugin not exist for namespaceId: %s", pluginName, namespaceId);
         PluginDO pluginDO = pluginMapper.selectByName(pluginName);
+        if (Objects.isNull(pluginDO)) {
+            throw new IllegalArgumentException(errorMsg);
+        }
         NamespacePluginVO namespacePluginRelation = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), namespaceId);
         if (Objects.isNull(namespacePluginRelation)) {
-            String errorMsg = String.format("%s plugin not enabled for current namespace or plugin not exist for namespaceId: %s", pluginName, namespaceId);
             throw new IllegalArgumentException(errorMsg);
         }
     }

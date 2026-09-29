@@ -31,8 +31,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * AbstractPathDataChangedListener.
@@ -112,12 +113,13 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            Optional<SelectorData> selectorDataOptional = changed.stream().findFirst();
-            if (selectorDataOptional.isPresent()) {
-                SelectorData firstData = selectorDataOptional.get();
-                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(firstData.getNamespaceId(), firstData.getPluginName());
-                deletePathRecursive(selectorParentPath);
-            }
+            changed.stream()
+                    .collect(Collectors.groupingBy(
+                            data -> DefaultPathConstants.buildSelectorParentPath(data.getNamespaceId(), data.getPluginName()),
+                            LinkedHashMap::new,
+                            Collectors.toList()))
+                    .keySet()
+                    .forEach(this::deletePathRecursive);
         }
         for (SelectorData data : changed) {
             String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getNamespaceId(), data.getPluginName(), data.getId());
@@ -157,12 +159,13 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            Optional<RuleData> ruleDataOptional = changed.stream().findFirst();
-            if (ruleDataOptional.isPresent()) {
-                RuleData firstData = ruleDataOptional.get();
-                String selectorParentPath = DefaultPathConstants.buildRuleParentPath(firstData.getNamespaceId(), firstData.getPluginName());
-                deletePathRecursive(selectorParentPath);
-            }
+            changed.stream()
+                    .collect(Collectors.groupingBy(
+                            data -> DefaultPathConstants.buildRuleParentPath(data.getNamespaceId(), data.getPluginName()),
+                            LinkedHashMap::new,
+                            Collectors.toList()))
+                    .keySet()
+                    .forEach(this::deletePathRecursive);
         }
         for (RuleData data : changed) {
             String ruleRealPath = DefaultPathConstants.buildRulePath(data.getNamespaceId(), data.getPluginName(), data.getSelectorId(), data.getId());

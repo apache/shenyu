@@ -17,33 +17,37 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
+import io.netty.util.AttributeKey;
 
 /**
  * Command messages.
  */
 public class MessageType implements AbstractMessageType {
 
-    private volatile boolean connected;
+    private static final AttributeKey<Boolean> CONNECTED = AttributeKey.valueOf("connected");
 
     /**
      * isConnected.
+     * @param channel channel
      * @return connected
      */
-    boolean isConnected() {
-        return connected;
+    protected boolean isConnected(final Channel channel) {
+        return Boolean.TRUE.equals(channel.attr(CONNECTED).get());
     }
 
     /**
      * set connected.
+     * @param channel channel
      * @param connected connected
      */
-    void setConnected(final boolean connected) {
-        this.connected = connected;
+    protected void setConnected(final Channel channel, final boolean connected) {
+        channel.attr(CONNECTED).set(connected);
     }
 
     @Override

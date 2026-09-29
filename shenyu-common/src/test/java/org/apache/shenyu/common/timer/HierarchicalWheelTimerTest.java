@@ -17,14 +17,19 @@
 
 package org.apache.shenyu.common.timer;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * HierarchicalWheelTimerTest .
@@ -53,6 +58,14 @@ public class HierarchicalWheelTimerTest {
     public void setUp() {
         timer = WheelTimerFactory.newWheelTimer();
         timerTaskList = new TimerTaskList(taskCount);
+    }
+
+    /**
+     * Tear down.
+     */
+    @AfterEach
+    public void tearDown() {
+        timer.shutdown();
     }
     
     /**
@@ -85,6 +98,34 @@ public class HierarchicalWheelTimerTest {
         assertEquals(timer.size(), 1);
         timerTask.cancel();
         assertEquals(timer.size(), 0);
+    }
+
+    /**
+     * Test shutdown.
+     *
+     * @throws Exception reflection exception
+     */
+    @Test
+    public void testShutdownStopsWorkerAndRejectsNewTasks() throws Exception {
+        timer.add(new TimerTask(TimeUnit.MINUTES.toMillis(1)) {
+            @Override
+            public void run(final TaskEntity taskEntity) {
+            }
+        });
+        Field workerThreadField = HierarchicalWheelTimer.class.getDeclaredField("workerThread");
+        workerThreadField.setAccessible(true);
+        Thread workerThread = (Thread) workerThreadField.get(timer);
+        assertTrue(workerThread.isAlive());
+
+        timer.shutdown();
+
+        workerThread.join(TimeUnit.SECONDS.toMillis(1));
+        assertFalse(workerThread.isAlive());
+        assertThrows(IllegalStateException.class, () -> timer.add(new TimerTask(1) {
+            @Override
+            public void run(final TaskEntity taskEntity) {
+            }
+        }));
     }
     
     /**

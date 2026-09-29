@@ -79,6 +79,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -133,10 +135,20 @@ public final class RuleServiceTest {
     public void testDelete() {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
-        given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
+        given(this.ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(ruleDO));
+        given(this.ruleMapper.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(ids.size());
         assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
+        verify(this.ruleConditionMapper).deleteByRuleIds(ids);
+    }
+
+    @Test
+    public void testDeleteWithNoRulesInNamespace() {
+        final List<String> ids = Collections.singletonList("123");
+        given(this.ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.emptyList());
+
+        assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), 0);
+        verify(this.ruleMapper, never()).deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test

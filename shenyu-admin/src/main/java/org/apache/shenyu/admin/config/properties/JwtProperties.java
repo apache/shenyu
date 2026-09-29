@@ -40,7 +40,8 @@ public class JwtProperties {
 
     @PostConstruct
     private void init() {
-        if (StringUtils.isBlank(secretKey) || AdminConstants.JWT_DEFAULT_SECRET_KEY.equals(this.secretKey)) {
+        if (StringUtils.isBlank(secretKey) || AdminConstants.JWT_DEFAULT_SECRET_KEY.equals(this.secretKey)
+                || AdminConstants.JWT_PUBLIC_SECRET_KEY.equals(this.secretKey)) {
             throw new IllegalStateException("shenyu.jwt.secretKey is not configured. "
                     + "In a multi-instance Admin cluster, each instance would generate a different key, "
                     + "causing token verification failures. "

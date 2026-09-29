@@ -68,9 +68,10 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
      * init elasticsearch client.
      *
      * @param config elasticsearch client config
+     * @return true if the client was initialized successfully
      */
     @Override
-    public void initClient0(@NonNull final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
+    public boolean initClient0(@NonNull final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
         RestClientBuilder builder = RestClient
                 .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
 
@@ -94,6 +95,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         LogUtils.info(LOG, "init ElasticSearchLogCollectClient success");
         
         createOrUpdateIndexAlias(indexName);
+        return true;
     }
 
     /**

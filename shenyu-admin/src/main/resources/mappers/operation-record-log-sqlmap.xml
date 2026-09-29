@@ -19,7 +19,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.shenyu.admin.mapper.OperationRecordLogMapper">
     <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.OperationRecordLog">
-        <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="id" jdbcType="BIGINT" property="id"/>
         <result column="color" jdbcType="VARCHAR" property="color"/>
         <result column="context" jdbcType="VARCHAR" property="context"/>

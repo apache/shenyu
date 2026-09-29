@@ -422,16 +422,21 @@ public class RuleServiceImpl implements RuleService {
      * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
+     * @param namespaceId namespace id.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
-        List<RuleDO> rules = ruleMapper.selectByIds(ids);
-        final int deleteCount = ruleMapper.deleteByIds(ids);
+        List<RuleDO> rules = ruleMapper.selectByIdsAndNamespaceId(ids, namespaceId);
+        if (CollectionUtils.isEmpty(rules)) {
+            return 0;
+        }
+        final List<String> ruleIds = map(rules, RuleDO::getId);
+        final int deleteCount = ruleMapper.deleteByIdsAndNamespaceId(ruleIds, namespaceId);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);
-            ruleConditionMapper.deleteByRuleIds(ids);
+            ruleConditionMapper.deleteByRuleIds(ruleIds);
         }
         return deleteCount;
     }

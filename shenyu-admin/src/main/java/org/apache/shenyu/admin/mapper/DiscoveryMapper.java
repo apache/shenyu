@@ -126,12 +126,13 @@ public interface DiscoveryMapper extends ExistProvider {
     int updateSelective(DiscoveryDO discoveryDO);
 
     /**
-     * delete discovery by id.
+     * delete discovery by id and namespace id.
      *
      * @param id primary key.
+     * @param namespaceId namespace id.
      * @return rows.
      */
-    int delete(String id);
+    int delete(@Param("id") String id, @Param("namespaceId") String namespaceId);
 
     /**
      * selectBySelectorNameAndPluginName.

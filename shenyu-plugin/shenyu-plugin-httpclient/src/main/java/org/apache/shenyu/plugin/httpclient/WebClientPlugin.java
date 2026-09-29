@@ -43,13 +43,29 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
     
     private final WebClient webClient;
 
+    private final int maxInMemorySize;
+
     /**
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
+     * @deprecated use {@link #WebClientPlugin(WebClient, long)} to specify the replay cache cap
      */
+    @Deprecated
     public WebClientPlugin(final WebClient webClient) {
+        this(webClient, Constants.BYTES_PER_MB);
+    }
+
+    /**
+     * Instantiates a new Web client plugin.
+     *
+     * @param webClient the web client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
+     */
+    public WebClientPlugin(final WebClient webClient, final long maxInMemorySize) {
+        super(maxInMemorySize);
         this.webClient = webClient;
+        this.maxInMemorySize = (int) Math.min(maxInMemorySize, Integer.MAX_VALUE);
     }
     
     @Override
@@ -80,7 +96,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     return outputMessage.writeWith(body);
                 }
                 // fix chinese garbled code
-                return outputMessage.writeWith(DataBufferUtils.join(body));
+                return outputMessage.writeWith(DataBufferUtils.join(body, maxInMemorySize));
             });
         }
         final WebClient.ResponseSpec responseSpec = requestHeadersSpec

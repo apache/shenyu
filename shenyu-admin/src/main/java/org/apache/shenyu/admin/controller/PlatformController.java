@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.model.dto.LoginDashboardUserDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
@@ -25,8 +26,11 @@ import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.service.SecretService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.validation.Valid;
 import java.util.Optional;
 
 /**
@@ -50,12 +54,34 @@ public class PlatformController {
     /**
      * login dashboard user.
      *
+     * @param loginDashboardUserDTO {@linkplain LoginDashboardUserDTO}
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("/login")
+    public ShenyuAdminResult loginDashboardUser(@RequestBody @Valid final LoginDashboardUserDTO loginDashboardUserDTO) {
+        LoginDashboardUserVO loginVO = dashboardUserService.login(
+                loginDashboardUserDTO.getUserName(), loginDashboardUserDTO.getPassword(), loginDashboardUserDTO.getClientId());
+        return Optional.ofNullable(loginVO)
+                .map(loginStatus -> {
+                    if (Boolean.TRUE.equals(loginStatus.getEnabled())) {
+                        return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+                    }
+                    return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
+                }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+    }
+
+    /**
+     * login dashboard user via query params. Kept for backward compatibility with clients
+     * that still call GET /platform/login; will be removed in a future release.
+     *
      * @param userName user name
      * @param password user password
      * @param clientId client id
      * @return {@linkplain ShenyuAdminResult}
+     * @deprecated use {@link #loginDashboardUser(LoginDashboardUserDTO)} (POST with JSON body) instead.
      */
     @GetMapping("/login")
+    @Deprecated
     public ShenyuAdminResult loginDashboardUser(final String userName, final String password, @RequestParam(required = false) final String clientId) {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password, clientId);
         return Optional.ofNullable(loginVO)

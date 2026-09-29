@@ -31,6 +31,7 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for JsonUtils.
@@ -47,6 +48,13 @@ public final class JsonUtilsTest {
             + "\"test_map_8\":\"test_value_8\",\"test_map_3\":\"test_value_3\",\"test_map_2\":\"test_value_2\",\"test_map_1\":\"test_value_1\","
             + "\"test_map_0\":\"test_value_0\",\"test_map_7\":\"test_value_7\","
             + "\"test_map_6\":\"test_value_6\",\"test_map_5\":\"test_value_5\",\"test_map_4\":\"test_value_4\"},\"testInt\":100}}";
+
+    @Test
+    public void tryJsonToMap() {
+        assertEquals("test object", JsonUtils.tryJsonToMap(EXPECTED_JSON).orElseThrow().get("name"));
+        assertTrue(JsonUtils.tryJsonToMap("plain text").isEmpty());
+        assertTrue(JsonUtils.tryJsonToMap("[1,2,3]").isEmpty());
+    }
 
     @Test
     public void toJson() {

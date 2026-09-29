@@ -46,7 +46,9 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -174,6 +176,18 @@ public final class PluginHandleServiceTest {
         assertThat(result.getDictOptions().size(), equalTo(1));
     }
 
+    @Test
+    public void testFindByIdWhenDataTypeIsNull() {
+        PluginHandleDO pluginHandleDO = buildPluginHandleDO();
+        pluginHandleDO.setDataType(null);
+        given(this.pluginHandleMapper.selectById("4")).willReturn(pluginHandleDO);
+
+        PluginHandleVO result = assertDoesNotThrow(() -> this.pluginHandleService.findById("4"));
+
+        assertThat(result, notNullValue());
+        assertNull(result.getDataType());
+    }
+
     private List<ShenyuDictDO> buildShenyuDictDOs() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         final ShenyuDictDO result = ShenyuDictDO.builder()
@@ -210,6 +224,18 @@ public final class PluginHandleServiceTest {
         final List<PluginHandleVO> result = pluginHandleService.list("4", 2);
         assertThat(result, notNullValue());
         assertEquals(pluginHandleDOs.size(), result.size());
+    }
+
+    @Test
+    public void testListWhenDataTypeIsNull() {
+        PluginHandleDO pluginHandleDO = buildPluginHandleDO();
+        pluginHandleDO.setDataType(null);
+        given(this.pluginHandleMapper.selectByQuery(any())).willReturn(Collections.singletonList(pluginHandleDO));
+
+        List<PluginHandleVO> result = assertDoesNotThrow(() -> this.pluginHandleService.list("4", 2));
+
+        assertEquals(1, result.size());
+        assertNull(result.get(0).getDataType());
     }
 
     @Test

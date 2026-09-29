@@ -290,6 +290,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<DiscoveryUpstreamDTO> discoveryUpstreamList, final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
@@ -305,7 +306,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
-                    .getOrDefault(discoveryHandlerId, Lists.newArrayList())
+                    .getOrDefault(discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId), Lists.newArrayList())
                     .stream()
                     .map(DiscoveryUpstreamDO::getUpstreamUrl)
                     .collect(Collectors.toSet());
@@ -317,7 +318,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             }
             discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
-            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.get(discoveryUpstreamDTO.getDiscoveryHandlerId()));
+            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.getOrDefault(discoveryUpstreamDTO.getDiscoveryHandlerId(), discoveryUpstreamDTO.getDiscoveryHandlerId()));
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
             successCount++;

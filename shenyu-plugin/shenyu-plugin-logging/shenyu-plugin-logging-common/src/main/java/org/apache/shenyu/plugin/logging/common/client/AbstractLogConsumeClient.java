@@ -45,8 +45,9 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig, L 
      * initClient0.
      *
      * @param config config
+     * @return true if the client was initialized successfully
      */
-    public abstract void initClient0(@NonNull T config);
+    public abstract boolean initClient0(@NonNull T config);
 
     /**
      * consume0.
@@ -72,10 +73,12 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig, L 
             LOG.error("{} config is null, client not init.", this.getClass().getSimpleName());
             return;
         }
-        this.initClient0(config);
-        isStarted.set(true);
-        closeThread.set(new Thread(this::close));
-        Runtime.getRuntime().addShutdownHook(closeThread.get());
+        boolean initialized = this.initClient0(config);
+        isStarted.set(initialized);
+        if (initialized) {
+            closeThread.set(new Thread(this::close));
+            Runtime.getRuntime().addShutdownHook(closeThread.get());
+        }
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
@@ -53,7 +54,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -89,6 +89,8 @@ public final class DividePluginTest {
     private SelectorData selectorData;
 
     private DiscoverySyncData discoverySyncData;
+
+    private DivideUpstreamDataHandler divideUpstreamDataHandler;
 
     private ServerWebExchange exchange;
 
@@ -163,6 +165,7 @@ public final class DividePluginTest {
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(null);
         dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        loadBalancerFactoryMockedStatic.close();
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
@@ -176,6 +179,33 @@ public final class DividePluginTest {
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testRetryBackOffSpecAttributeSet() {
+        DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setRetryBackOffSpec(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName());
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        assertEquals(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
+    }
+
+    @Test
+    public void testRetryBackOffSpecDefaultAttribute() {
+        DivideRuleHandle handle = new DivideRuleHandle();
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        dividePluginDataHandler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        assertEquals(HttpRetryBackoffSpecEnum.getDefault(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
     }
 
     /**
@@ -233,15 +263,12 @@ public final class DividePluginTest {
     @Test
     public void successResponseTriggerTest() throws Exception {
         dividePlugin = DividePlugin.class.newInstance();
-        Field field = DividePlugin.class.getDeclaredField("beginTime");
-        field.setAccessible(true);
-        field.set(dividePlugin, 0L);
-        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class);
+        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class, long.class);
         method.setAccessible(true);
         Upstream upstream = Upstream.builder()
                 .url("upstream")
                 .build();
-        method.invoke(dividePlugin, upstream);
+        method.invoke(dividePlugin, upstream, 0L);
         assertEquals(1, upstream.getSucceeded().get());
     }
 
@@ -258,7 +285,7 @@ public final class DividePluginTest {
         when(discoverySyncData.getUpstreamDataList()).thenReturn(divideUpstreamList);
         when(discoverySyncData.getSelectorId()).thenReturn("mock");
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
-        DivideUpstreamDataHandler divideUpstreamDataHandler = new DivideUpstreamDataHandler();
+        divideUpstreamDataHandler = new DivideUpstreamDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
         dividePluginDataHandler.handlerSelector(selectorData);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);

@@ -32,6 +32,10 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public final class RuleDataRefreshTest {
 
@@ -77,5 +81,16 @@ public final class RuleDataRefreshTest {
         ruleDataRefresh.refresh(ruleDataList);
         ruleDataList.add(ruleData);
         ruleDataRefresh.refresh(ruleDataList);
+    }
+
+    @Test
+    public void testRefreshWithNullData() {
+        final PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
+        final RuleDataRefresh ruleDataRefresh = new RuleDataRefresh(subscriber);
+        // data is null, should not throw NPE; cache is still refreshed unconditionally, then return early
+        ruleDataRefresh.refresh((List<RuleData>) null);
+        verify(subscriber).refreshRuleDataAll();
+        verify(subscriber, never()).unRuleSubscribe(any(RuleData.class));
+        verify(subscriber, never()).onRuleSubscribe(any(RuleData.class));
     }
 }

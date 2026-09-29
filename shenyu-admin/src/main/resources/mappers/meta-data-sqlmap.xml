@@ -155,6 +155,7 @@
         SElECT true
         FROM meta_data
         WHERE path = #{path}
+        AND namespace_id = #{namespaceId}
         AND id NOT IN
         <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
             #{id}
@@ -197,7 +198,7 @@
         #{parameterTypes,jdbcType=VARCHAR},
         #{rpcExt,jdbcType=VARCHAR},
         #{enabled,jdbcType=TINYINT},
-        #{namespaceId,jdbcType=TINYINT})
+        #{namespaceId,jdbcType=VARCHAR})
     </insert>
 
 

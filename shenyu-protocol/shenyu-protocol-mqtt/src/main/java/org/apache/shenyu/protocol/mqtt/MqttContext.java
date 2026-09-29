@@ -19,6 +19,8 @@ package org.apache.shenyu.protocol.mqtt;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
+
 /**
  * mqtt env.
  */
@@ -45,13 +47,13 @@ public class MqttContext {
      * @return true is correct, false unavailable.
      */
     public static boolean isValid(final String userName, final byte[] passwordInBytes) {
-        String password = new String(passwordInBytes);
+        String password = Objects.isNull(passwordInBytes) ? "" : new String(passwordInBytes);
 
         if (StringUtils.isEmpty(password) || StringUtils.isEmpty(userName)) {
             return false;
         }
 
-        return MqttContext.userName.equals(userName) && MqttContext.password.equals(password);
+        return Objects.equals(MqttContext.userName, userName) && Objects.equals(MqttContext.password, password);
     }
 
     /**

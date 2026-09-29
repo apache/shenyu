@@ -24,6 +24,8 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -188,6 +190,23 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = ruleMapper.delete(ruleDO.getId());
         assertThat(delete, equalTo(1));
+    }
+
+    @Test
+    public void deleteByIdsAndNamespaceId() {
+        RuleDO ruleInNamespace = buildRuleDO();
+        RuleDO ruleInAnotherNamespace = buildRuleDO();
+        ruleInAnotherNamespace.setNamespaceId("another-namespace");
+        assertThat(ruleMapper.insert(ruleInNamespace), equalTo(1));
+        assertThat(ruleMapper.insert(ruleInAnotherNamespace), equalTo(1));
+
+        List<String> ids = Arrays.asList(ruleInNamespace.getId(), ruleInAnotherNamespace.getId());
+        assertThat(ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID).size(), equalTo(1));
+        assertThat(ruleMapper.selectByIdsAndNamespaceId(Collections.singletonList(ruleInAnotherNamespace.getId()), SYS_DEFAULT_NAMESPACE_ID).isEmpty(), equalTo(true));
+        assertThat(ruleMapper.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), equalTo(1));
+        assertThat(ruleMapper.selectById(ruleInAnotherNamespace.getId()), equalTo(ruleInAnotherNamespace));
+
+        assertThat(ruleMapper.delete(ruleInAnotherNamespace.getId()), equalTo(1));
     }
 
     private RuleDO buildRuleDO() {

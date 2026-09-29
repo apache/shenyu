@@ -53,7 +53,7 @@ public class Subscribe extends MessageType {
     public void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
         Channel channel = ctx.channel();
 
-        if (isConnected()) {
+        if (!isConnected(channel)) {
             channel.close().addListener(FIRE_EXCEPTION_ON_FAILURE);
             return;
         }

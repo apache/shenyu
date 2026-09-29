@@ -148,6 +148,24 @@ public interface RuleMapper extends ExistProvider {
     int deleteByIds(List<String> ids);
 
     /**
+     * Select rules by ids and namespace id.
+     *
+     * @param ids primary keys
+     * @param namespaceId namespace id
+     * @return rule list
+     */
+    List<RuleDO> selectByIdsAndNamespaceId(@Param("ids") List<String> ids, @Param("namespaceId") String namespaceId);
+
+    /**
+     * Delete rules by ids and namespace id.
+     *
+     * @param ids primary keys
+     * @param namespaceId namespace id
+     * @return rows int
+     */
+    int deleteByIdsAndNamespaceId(@Param("ids") List<String> ids, @Param("namespaceId") String namespaceId);
+
+    /**
      * list all.
      *
      * @return {@linkplain List}

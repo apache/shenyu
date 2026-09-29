@@ -45,7 +45,7 @@ public final class RequestTemplate {
 
     private String contextId;
 
-    private String path;
+    private String path = "";
 
     private ShenyuRequest.HttpMethod httpMethod;
 

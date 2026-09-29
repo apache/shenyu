@@ -20,6 +20,9 @@ package org.apache.shenyu.plugin.huawei.lts.config;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 public class HuaweiLogCollectConfigTest {
     private final HuaweiLogCollectConfig.HuaweiLtsLogConfig huaweiLtsLogConfig = new HuaweiLogCollectConfig.HuaweiLtsLogConfig();
 
@@ -55,5 +58,27 @@ public class HuaweiLogCollectConfigTest {
         Assertions.assertEquals(huaweiLtsLogConfig.getRetries(), 1);
         Assertions.assertEquals(huaweiLtsLogConfig.getBaseRetryBackoffMs(), 100L);
         Assertions.assertEquals(huaweiLtsLogConfig.getMaxRetryBackoffMs(), 100L);
+    }
+
+    @Test
+    public void testGenericConfigFieldsParticipateInEquality() {
+        HuaweiLogCollectConfig.HuaweiLtsLogConfig first = new HuaweiLogCollectConfig.HuaweiLtsLogConfig();
+        HuaweiLogCollectConfig.HuaweiLtsLogConfig second = new HuaweiLogCollectConfig.HuaweiLtsLogConfig();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+
+        second.setSampleRate("0.5");
+        assertNotEquals(first, second);
+        second.setSampleRate(first.getSampleRate());
+        second.setBufferQueueSize(first.getBufferQueueSize() + 1);
+        assertNotEquals(first, second);
+        second.setBufferQueueSize(first.getBufferQueueSize());
+        second.setMaxRequestBody(first.getMaxRequestBody() + 1);
+        assertNotEquals(first, second);
+        second.setMaxRequestBody(first.getMaxRequestBody());
+        second.setMaxResponseBody(first.getMaxResponseBody() + 1);
+        assertNotEquals(first, second);
+        assertNotEquals(first.hashCode(), second.hashCode());
     }
 }

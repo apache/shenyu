@@ -181,7 +181,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
                 if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
                     discoveryProcessor.removeDiscovery(discoveryDO);
-                    discoveryMapper.delete(discoveryDO.getId());
+                    discoveryMapper.delete(discoveryDO.getId(), discoveryDO.getNamespaceId());
                 }
                 discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
                 discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
@@ -398,7 +398,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     public void fetchData(final String discoveryHandlerId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        if (Objects.isNull(discoveryDO)) {
+            return;
+        }
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         DiscoveryHandlerDTO discoveryHandlerDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO);
         if (Objects.nonNull(proxySelectorDO)) {

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceCreatedEvent;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceDeletedEvent;
 import org.apache.shenyu.admin.model.event.resource.ResourceChangedEvent;
@@ -108,6 +109,7 @@ class ResourceEventPublisherTest {
         assertNotNull(event);
         assertEquals(after, event.getAfter());
         assertEquals(before, event.getBefore());
+        assertEquals(EventTypeEnum.RESOURCE_UPDATE, event.getType());
     }
 
     @Test

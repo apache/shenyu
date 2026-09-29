@@ -21,15 +21,30 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.AbstractList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for BaseDataCache.
@@ -37,11 +52,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @SuppressWarnings("unchecked")
 public final class BaseDataCacheTest {
 
-    private final String pluginMapStr = "PLUGIN_MAP";
+    private final BaseDataCache cache = BaseDataCache.getInstance();
 
-    private final String selectorMapStr = "SELECTOR_MAP";
+    private final CountDownLatch preparing = new CountDownLatch(1);
 
-    private final String ruleMapStr = "RULE_MAP";
+    private final CountDownLatch publish = new CountDownLatch(1);
+
+    private final String pluginMapStr = "pluginMap";
+
+    private final String selectorMapStr = "selectorMap";
+
+    private final String ruleMapStr = "ruleMap";
 
     private final String mockName1 = "MOCK_NAME_1";
     
@@ -142,7 +163,7 @@ public final class BaseDataCacheTest {
         selectorMap.put(mockPluginName1, Lists.newArrayList(selectorData));
 
         BaseDataCache.getInstance().removeSelectData(selectorData);
-        assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
+        assertNull(selectorMap.get(mockPluginName1));
     }
 
     @Test
@@ -167,7 +188,7 @@ public final class BaseDataCacheTest {
         selectorMap.put(mockPluginName2, Lists.newArrayList(secondCachedSelectorData));
 
         BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(firstCachedSelectorData));
-        assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
+        assertNull(selectorMap.get(mockPluginName1));
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName2));
     }
 
@@ -179,6 +200,27 @@ public final class BaseDataCacheTest {
 
         List<SelectorData> selectorDataList = BaseDataCache.getInstance().obtainSelectorData(mockPluginName1);
         assertEquals(Lists.newArrayList(selectorData), selectorDataList);
+    }
+
+    @Test
+    public void testSelectorDataSnapshotRemainsStableAfterDelete() {
+        BaseDataCache.getInstance().cleanSelectorData();
+        SelectorData firstSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData secondSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
+        BaseDataCache.getInstance().cacheSelectData(firstSelectorData);
+        BaseDataCache.getInstance().cacheSelectData(secondSelectorData);
+
+        List<SelectorData> snapshot = BaseDataCache.getInstance().obtainSelectorData(mockPluginName1);
+        Iterator<SelectorData> iterator = snapshot.iterator();
+        assertEquals(firstSelectorData, iterator.next());
+
+        BaseDataCache.getInstance().removeSelectData(firstSelectorData);
+
+        assertDoesNotThrow(() -> iterator.forEachRemaining(selector -> assertNotNull(selector)));
+        assertEquals(Lists.newArrayList(firstSelectorData, secondSelectorData), snapshot);
+        assertEquals(Lists.newArrayList(secondSelectorData), BaseDataCache.getInstance().obtainSelectorData(mockPluginName1));
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.add(firstSelectorData));
+        BaseDataCache.getInstance().cleanSelectorData();
     }
 
     @Test
@@ -200,7 +242,7 @@ public final class BaseDataCacheTest {
         ruleMap.put(mockSelectorId1, Lists.newArrayList(ruleData));
 
         BaseDataCache.getInstance().removeRuleData(ruleData);
-        assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
+        assertNull(ruleMap.get(mockSelectorId1));
     }
 
     @Test
@@ -225,7 +267,7 @@ public final class BaseDataCacheTest {
         ruleMap.put(mockSelectorId2, Lists.newArrayList(secondCachedRuleData));
 
         BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(firstCachedRuleData));
-        assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
+        assertNull(ruleMap.get(mockSelectorId1));
         assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockSelectorId2));
     }
 
@@ -239,11 +281,190 @@ public final class BaseDataCacheTest {
         assertEquals(Lists.newArrayList(ruleData), ruleDataList);
     }
 
+    @Test
+    public void testRuleDataSnapshotRemainsStableAfterDelete() {
+        BaseDataCache.getInstance().cleanRuleData();
+        RuleData firstRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).sort(1).build();
+        RuleData secondRuleData = RuleData.builder().id("2").selectorId(mockSelectorId1).sort(2).build();
+        BaseDataCache.getInstance().cacheRuleData(firstRuleData);
+        BaseDataCache.getInstance().cacheRuleData(secondRuleData);
+
+        List<RuleData> snapshot = BaseDataCache.getInstance().obtainRuleData(mockSelectorId1);
+        Iterator<RuleData> iterator = snapshot.iterator();
+        assertEquals(firstRuleData, iterator.next());
+
+        BaseDataCache.getInstance().removeRuleData(firstRuleData);
+
+        assertDoesNotThrow(() -> iterator.forEachRemaining(rule -> assertNotNull(rule)));
+        assertEquals(Lists.newArrayList(firstRuleData, secondRuleData), snapshot);
+        assertEquals(Lists.newArrayList(secondRuleData), BaseDataCache.getInstance().obtainRuleData(mockSelectorId1));
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.add(firstRuleData));
+        BaseDataCache.getInstance().cleanRuleData();
+    }
+
     @SuppressWarnings("rawtypes")
     private ConcurrentHashMap getFieldByName(final String name) throws NoSuchFieldException, IllegalAccessException {
         BaseDataCache baseDataCache = BaseDataCache.getInstance();
         Field pluginMapField = baseDataCache.getClass().getDeclaredField(name);
         pluginMapField.setAccessible(true);
         return (ConcurrentHashMap) pluginMapField.get(baseDataCache);
+    }
+
+    @BeforeEach
+    @AfterEach
+    public void clearCaches() {
+        cache.cleanPluginData();
+        cache.cleanSelectorData();
+        cache.cleanRuleData();
+    }
+
+    @Test
+    public void pluginCandidateConstructionKeepsOldMapVisible() throws Exception {
+        final PluginData old = plugin("divide", 1);
+        final PluginData updated = plugin("divide", 2);
+        final PluginData added = plugin("rewrite", 3);
+        cache.cachePluginData(old);
+        final var previous = cache.getPluginMap();
+        assertAtomicRefresh(() -> cache.refreshPluginData(pauseBeforeLast(List.of(updated, added))), () -> {
+            assertSame(previous, cache.getPluginMap());
+            assertSame(old, cache.obtainPluginData("divide"));
+            assertNull(cache.obtainPluginData("rewrite"));
+        });
+        assertSame(updated, cache.obtainPluginData("divide"));
+        assertSame(added, cache.obtainPluginData("rewrite"));
+    }
+
+    @Test
+    public void selectorRefreshRetainsMissingDataAndPublishesSortedLists() throws Exception {
+        final SelectorData a = selector("a", 1);
+        final SelectorData old = selector("b", 2);
+        final SelectorData updated = selector("b", 4);
+        final SelectorData added = selector("c", 3);
+        cache.cacheSelectData(a);
+        cache.cacheSelectData(old);
+        final var previous = cache.getSelectorMap();
+        final var previousList = cache.obtainSelectorData("divide");
+        assertAtomicRefresh(() -> cache.refreshSelectorData(pauseBeforeLast(List.of(updated, added))), () -> {
+            assertSame(previous, cache.getSelectorMap());
+            assertEquals(List.of(a, old), cache.obtainSelectorData("divide"));
+        });
+        assertNotSame(previous, cache.getSelectorMap());
+        assertEquals(List.of(a, added, updated), cache.obtainSelectorData("divide"));
+        assertEquals(List.of(a, old), previousList);
+        assertThrows(UnsupportedOperationException.class, () -> cache.obtainSelectorData("divide").clear());
+    }
+
+    @Test
+    public void ruleRefreshRetainsMissingDataAndPublishesSortedLists() throws Exception {
+        final RuleData a = rule("a", 1);
+        final RuleData old = rule("b", 2);
+        final RuleData updated = rule("b", 4);
+        final RuleData added = rule("c", 3);
+        cache.cacheRuleData(a);
+        cache.cacheRuleData(old);
+        final var previous = cache.getRuleMap();
+        final var previousList = cache.obtainRuleData("selector");
+        assertAtomicRefresh(() -> cache.refreshRuleData(pauseBeforeLast(List.of(updated, added))), () -> {
+            assertSame(previous, cache.getRuleMap());
+            assertEquals(List.of(a, old), cache.obtainRuleData("selector"));
+        });
+        assertNotSame(previous, cache.getRuleMap());
+        assertEquals(List.of(a, added, updated), cache.obtainRuleData("selector"));
+        assertEquals(List.of(a, old), previousList);
+        assertThrows(UnsupportedOperationException.class, () -> cache.obtainRuleData("selector").clear());
+    }
+
+    @Test
+    public void invalidCandidatesDoNotPublish() {
+        cache.cachePluginData(plugin("divide", 1));
+        cache.cacheSelectData(selector("a", 1));
+        cache.cacheRuleData(rule("a", 1));
+        final var plugins = cache.getPluginMap();
+        final var selectors = cache.getSelectorMap();
+        final var rules = cache.getRuleMap();
+        assertThrows(NullPointerException.class, () -> cache.refreshPluginData(List.of(plugin("divide", 2), new PluginData())));
+        assertThrows(NullPointerException.class, () -> cache.refreshSelectorData(List.of(selector("b", 2), new SelectorData())));
+        assertThrows(NullPointerException.class, () -> cache.refreshRuleData(List.of(rule("b", 2), new RuleData())));
+        assertSame(plugins, cache.getPluginMap());
+        assertSame(selectors, cache.getSelectorMap());
+        assertSame(rules, cache.getRuleMap());
+    }
+
+    @Test
+    public void batchesKeepUnrelatedGroupsAndIncrementalListsImmutable() {
+        final SelectorData otherSelector = SelectorData.builder().id("other").pluginName("jwt").sort(1).build();
+        final RuleData otherRule = RuleData.builder().id("other").selectorId("other").pluginName("jwt").sort(1).build();
+        cache.cacheSelectData(otherSelector);
+        cache.cacheRuleData(otherRule);
+        cache.refreshSelectorData(List.of(selector("b", 2), selector("a", 1)));
+        cache.refreshRuleData(List.of(rule("b", 2), rule("a", 1)));
+        assertEquals(List.of(otherSelector), cache.obtainSelectorData("jwt"));
+        assertEquals(List.of(otherRule), cache.obtainRuleData("other"));
+        final var selectors = cache.obtainSelectorData("divide");
+        final var rules = cache.obtainRuleData("selector");
+        cache.cacheSelectData(selector("a", 3));
+        cache.cacheRuleData(rule("a", 3));
+        cache.removeSelectData(selector("b", 2));
+        cache.removeRuleData(rule("b", 2));
+        assertEquals(List.of(selector("a", 1), selector("b", 2)), selectors);
+        assertEquals(List.of(rule("a", 1), rule("b", 2)), rules);
+    }
+
+    private <T> List<T> pauseBeforeLast(final List<T> data) {
+        return new AbstractList<>() {
+            @Override
+            public T get(final int index) {
+                if (index == data.size() - 1) {
+                    try {
+                        pausePreparation();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException(e);
+                    }
+                }
+                return data.get(index);
+            }
+
+            @Override
+            public int size() {
+                return data.size();
+            }
+        };
+    }
+
+    private Object pausePreparation() throws InterruptedException {
+        preparing.countDown();
+        assertTrue(publish.await(10, TimeUnit.SECONDS));
+        return null;
+    }
+
+    private void assertAtomicRefresh(final Runnable refresh, final Runnable readOld) throws Exception {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            final Future<?> future = executor.submit(refresh);
+            assertTrue(preparing.await(10, TimeUnit.SECONDS));
+            for (int i = 0; i < 100; i++) {
+                readOld.run();
+            }
+            assertFalse(future.isDone());
+            publish.countDown();
+            future.get(10, TimeUnit.SECONDS);
+        } finally {
+            publish.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+        }
+    }
+
+    private PluginData plugin(final String name, final int sort) {
+        return PluginData.builder().name(name).sort(sort).enabled(true).build();
+    }
+
+    private SelectorData selector(final String id, final int sort) {
+        return SelectorData.builder().id(id).pluginName("divide").sort(sort).build();
+    }
+
+    private RuleData rule(final String id, final int sort) {
+        return RuleData.builder().id(id).pluginName("divide").selectorId("selector").sort(sort).build();
     }
 }

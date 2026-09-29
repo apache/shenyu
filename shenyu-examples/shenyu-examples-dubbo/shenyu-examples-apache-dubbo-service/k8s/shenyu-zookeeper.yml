@@ -68,7 +68,7 @@ metadata:
     app: shenyu-zk
     all: shenyu-examples-dubbo
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: shenyu-zk
     all: shenyu-examples-dubbo

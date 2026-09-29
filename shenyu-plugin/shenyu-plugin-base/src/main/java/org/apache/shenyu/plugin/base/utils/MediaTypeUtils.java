@@ -37,6 +37,7 @@ public class MediaTypeUtils {
                 //APPLICATION_STREAM_JSON is deprecated
                 || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
                 || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
-                || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType);
+                || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)
+                || MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType);
     }
 }

@@ -209,6 +209,16 @@
         </foreach>
     </select>
 
+    <select id="selectByIdsAndNamespaceId" resultType="org.apache.shenyu.admin.model.entity.RuleDO">
+        select *
+        from rule
+        where id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+        AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         INSERT INTO rule (id,
                          date_created,
@@ -380,5 +390,14 @@
                     <foreach item="id" collection="list" open="(" separator="," close=")">
                         #{id, jdbcType=VARCHAR}
                     </foreach>
+    </delete>
+
+    <delete id="deleteByIdsAndNamespaceId">
+        DELETE FROM rule
+              WHERE id IN
+                    <foreach item="id" collection="ids" open="(" separator="," close=")">
+                        #{id, jdbcType=VARCHAR}
+                    </foreach>
+              AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </delete>
 </mapper>

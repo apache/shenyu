@@ -137,7 +137,7 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
         ext.setServiceName(apiDefinition.getApiBean().getBeanClass().getName());
         ext.setMethodName(apiDefinition.getApiMethodName());
         ext.setParameterTypes(apiDefinition.getParameterTypes());
-        ext.setRpcExt(apiDefinition.getPropertiesValue("RpcExt"));
+        ext.setRpcExt(apiDefinition.getPropertiesValue("rpcExt"));
         ext.setAddPrefixed(addPrefixed);
         
         if (rpcTypeEnum == RpcTypeEnum.HTTP) {

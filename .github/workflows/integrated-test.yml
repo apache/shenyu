@@ -17,9 +17,51 @@ name: it
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -31,16 +73,19 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       integration: ${{ steps.filter.outputs.integration }}
+      run_integration: ${{ steps.cases.outputs.run_integration }}
+      integration_matrix: ${{ steps.cases.outputs.integration_matrix }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/paths-filter
         id: filter
         with:
+          list-files: "json"
           filters: |
             integration:
-              - '.github/workflows/integrated-test.yml'
               - 'shenyu-integrated-test/**'
               - 'shenyu-*/**'
+              - 'db/**'
               - 'pom.xml'
               - '**/pom.xml'
               - 'shenyu-examples/**'
@@ -52,26 +97,23 @@ jobs:
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
+              - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+      - name: Resolve integrated test cases
+        id: cases
+        if: steps.filter.outputs.integration == 'true'
+        env:
+          CHANGED_FILES_JSON: ${{ steps.filter.outputs.integration_files }}
+          CI_CASE_MODE: integration
+        run: bash .github/scripts/resolve-test-case-matrix.sh
 
   build:
     needs: changes
     strategy:
-      matrix:
-        case:
-          - shenyu-integrated-test-apache-dubbo
-          - shenyu-integrated-test-grpc
-          - shenyu-integrated-test-http
-          - shenyu-integrated-test-https
-          - shenyu-integrated-test-spring-cloud
-          - shenyu-integrated-test-websocket
-          - shenyu-integrated-test-rewrite
-          - shenyu-integrated-test-combination
-          - shenyu-integrated-test-sdk-apache-dubbo
-          - shenyu-integrated-test-sdk-http
+      matrix: ${{ fromJSON(needs.changes.outputs.integration_matrix || '{"include":[]}') }}
     runs-on: ubuntu-latest
-    if: github.repository == 'apache/shenyu' && needs.changes.outputs.integration == 'true'
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_integration == 'true'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -97,8 +139,8 @@ jobs:
       - name: Install mvnd
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
-          curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+          MVND_VERSION=1.0.6
+          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
           unzip -q mvnd.zip
           mkdir -p $HOME/.local
           mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd

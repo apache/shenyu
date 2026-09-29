@@ -43,11 +43,20 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The type shenyu websocket client.
@@ -58,22 +67,51 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-    
+
+    private static final int RECONNECT_EXECUTOR_CORE_POOL_SIZE = 1;
+
+    private static final int RECONNECT_EXECUTOR_MAX_POOL_SIZE = 8;
+
+    private static final long RECONNECT_EXECUTOR_KEEP_ALIVE_MS = TimeUnit.SECONDS.toMillis(60);
+
+    private static final ExecutorService RECONNECT_EXECUTOR = new ShenyuThreadPoolExecutor(
+            RECONNECT_EXECUTOR_CORE_POOL_SIZE,
+            RECONNECT_EXECUTOR_MAX_POOL_SIZE,
+            RECONNECT_EXECUTOR_KEEP_ALIVE_MS,
+            TimeUnit.MILLISECONDS,
+            new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+            ShenyuThreadFactory.create("websocket-reconnect", true),
+            new ThreadPoolExecutor.AbortPolicy());
+
+    private static final long MIN_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(1);
+
+    private static final long MAX_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(60);
+
     private volatile boolean alreadySync = Boolean.FALSE;
-    
+
     private final WebsocketDataHandler websocketDataHandler;
-    
+
     private final Timer timer;
-    
+
     private TimerTask timerTask;
-    
+
     private String runningMode;
-    
+
     private String masterUrl;
-    
+
     private volatile boolean isConnectedToMaster;
-    
+
     private final String namespaceId;
+
+    private final AtomicBoolean manuallyClosed = new AtomicBoolean(false);
+
+    private final AtomicBoolean reconnecting = new AtomicBoolean(false);
+
+    private volatile long lastReconnectAttemptTime;
+
+    private final AtomicInteger reconnectBackoff = new AtomicInteger(0);
+
+    private volatile Thread reconnectThread;
 
     /**
      * Instantiates a new shenyu websocket client.
@@ -190,19 +228,23 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         if (LOG.isDebugEnabled()) {
             LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
         }
-        
-        Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-        Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
-        if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-            LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
-            this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-            if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
-                return;
+
+        try {
+            Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+            Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+            if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+                LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
+                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    return;
+                }
+                this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
+                this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+            } else {
+                handleResult(result);
             }
-            this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
-            this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
-        } else {
-            handleResult(result);
+        } catch (RuntimeException ex) {
+            LOG.warn("Failed to handle websocket message from server[{}], the message will be ignored", this.getURI(), ex);
         }
     }
     
@@ -229,25 +271,77 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * now close. will cancel the task execution.
      */
     public void nowClose() {
-        this.close();
+        this.manuallyClosed.set(true);
         if (Objects.nonNull(timerTask)) {
             timerTask.cancel();
         }
+        Thread currentReconnectThread = this.reconnectThread;
+        if (Objects.nonNull(currentReconnectThread)) {
+            currentReconnectThread.interrupt();
+        }
+        this.close();
     }
     
     private void healthCheck() {
         try {
+            if (this.manuallyClosed.get()) {
+                return;
+            }
             if (!this.isOpen()) {
-                this.reconnectBlocking();
+                if (this.reconnecting.compareAndSet(false, true)) {
+                    RECONNECT_EXECUTOR.submit(this::doReconnect);
+                }
             } else {
+                this.reconnectBackoff.set(0);
                 this.sendPing();
                 send(getInstanceInfo());
-//                send(DataEventTypeEnum.RUNNING_MODE.name());
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
+    }
+
+    private void doReconnect() {
+        this.reconnectThread = Thread.currentThread();
+        try {
+            if (this.manuallyClosed.get()) {
+                return;
+            }
+            long backoff = calculateBackoff();
+            long since = System.currentTimeMillis() - lastReconnectAttemptTime;
+            long waitMs = backoff - since;
+            if (waitMs > 0) {
+                Thread.sleep(waitMs);
+            }
+            try {
+                this.reconnectBlocking();
+            } finally {
+                lastReconnectAttemptTime = System.currentTimeMillis();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            reconnectBackoff.set(Math.min(reconnectBackoff.get() + 1, 10));
+            LOG.error("websocket reconnect server[{}] error", this.getURI(), e);
+        } finally {
+            this.reconnectThread = null;
+            this.reconnecting.set(false);
+            if (this.manuallyClosed.get()) {
+                this.close();
+            }
+        }
+    }
+
+    private long calculateBackoff() {
+        int failures = reconnectBackoff.get();
+        if (failures <= 0) {
+            return 0;
+        }
+        long base = Math.min(
+                MIN_RECONNECT_BACKOFF_MS * (1L << Math.min(failures - 1, 10)),
+                MAX_RECONNECT_BACKOFF_MS);
+        return base + (long) (base * 0.5 * ThreadLocalRandom.current().nextDouble());
     }
 
     private String getInstanceInfo() {
