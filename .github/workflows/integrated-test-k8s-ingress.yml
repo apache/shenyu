@@ -76,8 +76,6 @@ jobs:
       k8s_ingress_matrix: ${{ steps.cases.outputs.k8s_ingress_matrix }}
     steps:
       - uses: actions/checkout@v3
-      - name: Test IT-K8s matrix resolver
-        run: bash .github/scripts/resolve-k8s-ingress-matrix-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -102,7 +100,7 @@ jobs:
               - '!.github/PULL_REQUEST_TEMPLATE'
               - '.github/workflows/integrated-test-k8s-ingress.yml'
               - '.github/scripts/resolve-test-case-matrix.sh'
-              - '.github/scripts/resolve-k8s-ingress-matrix-test.sh'
+              - '.github/scripts/resolve-test-case-matrix-test.sh'
       - name: Resolve k8s ingress cases
         id: cases
         if: steps.filter.outputs['k8s-ingress'] == 'true'
