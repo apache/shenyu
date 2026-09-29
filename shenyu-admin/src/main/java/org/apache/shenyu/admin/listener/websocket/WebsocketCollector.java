@@ -326,7 +326,12 @@ public class WebsocketCollector {
     }
     
     private void initialSync(final String requestId, final Session session) {
-        UUID.fromString(requestId);
+        try {
+            UUID.fromString(requestId);
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("Ignoring initial synchronization request with an invalid UUID");
+            return;
+        }
         ClusterProperties properties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
         if (properties.isEnabled()
                 && !SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster()) {

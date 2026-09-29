@@ -105,11 +105,13 @@ public final class InitialSyncState {
     }
 
     /**
-     * Include interleaved incremental application in the current attempt's completion boundary.
+     * Include incremental application received before the end frame in the current attempt.
+     * Failures in this window invalidate the attempt because increments can modify the same caches.
+     * Later increments retain legacy behavior and cannot extend the initial completion boundary.
      * @param action incremental callback
      */
     public synchronized void applyIncremental(final Runnable action) {
-        if (Objects.isNull(requestId) || failed) {
+        if (Objects.isNull(requestId) || failed || ended) {
             action.run();
             return;
         }

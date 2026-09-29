@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -150,6 +151,22 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testInvalidInitialSyncRequestIsIgnored() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        for (String id : new String[]{"", "not-a-uuid", "00000000-0000-0000-0000-00000000000z"}) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session));
+        }
+        verify(syncDataService, never()).syncAllByNamespaceId(any(), anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertNull(ThreadLocalUtils.get("sessionKey"));
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(async).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test

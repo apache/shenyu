@@ -53,6 +53,58 @@ class InitialSyncStateTest {
     }
 
     @Test
+    void testIncrementalFailureBeforeEndRequiresFreshAttempt() {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        String id = state.begin();
+        CompletableFuture<Void> incremental = new CompletableFuture<>();
+        state.applyIncremental(() -> InitialSyncApplication.register(incremental));
+        state.accept(new WebsocketSyncFrame(id, 0, null), value -> { });
+        incremental.completeExceptionally(new IllegalStateException("incremental application failed"));
+        assertFalse(ready.get());
+        assertTrue(state.needsReconnect());
+        String retry = state.begin();
+        state.accept(new WebsocketSyncFrame(retry, 0, null), value -> { });
+        assertTrue(ready.get());
+    }
+
+    @Test
+    void testSynchronousIncrementalFailureBeforeEndBlocksReadiness() {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        String id = state.begin();
+        assertThrows(IllegalStateException.class, () -> state.applyIncremental(() -> {
+            throw new IllegalStateException("incremental application failed");
+        }));
+        state.accept(new WebsocketSyncFrame(id, 0, null), value -> { });
+        assertFalse(ready.get());
+        assertTrue(state.needsReconnect());
+    }
+
+    @Test
+    void testIncrementsAfterEndCannotExtendPendingApplication() {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        String id = state.begin();
+        CompletableFuture<Void> initial = new CompletableFuture<>();
+        state.accept(new WebsocketSyncFrame(id, 0, "data"), value -> InitialSyncApplication.register(initial));
+        state.accept(new WebsocketSyncFrame(id, 1, null), value -> { });
+        CompletableFuture<Void> later = new CompletableFuture<>();
+        for (int i = 0; i < 100; i++) {
+            state.applyIncremental(() -> {
+                assertFalse(InitialSyncApplication.isActive());
+                InitialSyncApplication.register(later);
+            });
+        }
+        assertFalse(ready.get());
+        initial.complete(null);
+        assertTrue(ready.get());
+        later.completeExceptionally(new IllegalStateException("later update failed"));
+        assertTrue(ready.get());
+        assertFalse(state.needsReconnect());
+    }
+
+    @Test
     void testMultipleAdminsCannotCombinePartialAttempts() {
         AtomicBoolean ready = new AtomicBoolean();
         InitialSyncState first = new InitialSyncState(ready);
