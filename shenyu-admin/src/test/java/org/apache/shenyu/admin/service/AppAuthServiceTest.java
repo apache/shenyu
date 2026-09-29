@@ -260,7 +260,7 @@ public final class AppAuthServiceTest {
     @Test
     public void testListByPage() {
         PageImpl<AppAuthDO> page = new PageImpl<>(Collections.singletonList(appAuthDO));
-        given(this.appAuthRepository.selectByQuery(any(), any())).willReturn(page);
+        given(this.appAuthRepository.pageByQuery(any(), any())).willReturn(page);
         AppAuthQuery appAuthQuery = new AppAuthQuery();
         appAuthQuery.setPageParameter(new PageParameter());
         CommonPager<AppAuthVO> appAuthVOCommonPager = this.appAuthService.listByPage(appAuthQuery);

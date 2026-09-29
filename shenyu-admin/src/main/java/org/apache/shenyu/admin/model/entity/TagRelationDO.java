@@ -20,10 +20,20 @@ package org.apache.shenyu.admin.model.entity;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
+/**
+ * TagRelationDO.
+ */
+@DynamicUpdate
+@Entity
+@Table(name = "tag_relation")
 public final class TagRelationDO extends BaseDO {
 
     private static final long serialVersionUID = -2968123108441795604L;

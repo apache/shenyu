@@ -18,15 +18,13 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.ApiMapper;
-import org.apache.shenyu.admin.mapper.TagMapper;
-import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
@@ -37,28 +35,29 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
-import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
@@ -79,24 +78,24 @@ public class ApiServiceImpl implements ApiService {
 
     private final MetaDataService metaDataService;
 
-    private final ApiMapper apiMapper;
+    private final ApiRepository apiRepository;
 
-    private final TagRelationMapper tagRelationMapper;
+    private final TagRepository tagRepository;
 
-    private final TagMapper tagMapper;
+    private final TagRelationRepository tagRelationRepository;
 
     public ApiServiceImpl(final SelectorService selectorService,
                           final RuleService ruleService,
                           final MetaDataService metaDataService,
-                          final ApiMapper apiMapper,
-                          final TagRelationMapper tagRelationMapper,
-                          final TagMapper tagMapper) {
+                          final ApiRepository apiRepository,
+                          final TagRepository tagRepository,
+                          final TagRelationRepository tagRelationRepository) {
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.metaDataService = metaDataService;
-        this.apiMapper = apiMapper;
-        this.tagRelationMapper = tagRelationMapper;
-        this.tagMapper = tagMapper;
+        this.apiRepository = apiRepository;
+        this.tagRepository = tagRepository;
+        this.tagRelationRepository = tagRelationRepository;
     }
 
     @Override
@@ -113,11 +112,16 @@ public class ApiServiceImpl implements ApiService {
      */
     private String update(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
-        final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
-        if (updateRows > 0) {
+        final boolean updated = apiRepository.findById(apiDO.getId())
+                .map(persisted -> {
+                    copyNonNullFields(apiDO, persisted);
+                    return true;
+                })
+                .orElse(false);
+        if (updated) {
             if (Objects.nonNull(apiDTO.getTagIds())) {
                 List<String> tagIds = apiDTO.getTagIds();
-                tagRelationMapper.deleteByApiId(apiDO.getId());
+                tagRelationRepository.deleteByApiId(apiDO.getId());
                 if (CollectionUtils.isNotEmpty(tagIds)) {
                     Timestamp currentTime = new Timestamp(System.currentTimeMillis());
                     List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
@@ -127,11 +131,60 @@ public class ApiServiceImpl implements ApiService {
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build()).collect(Collectors.toList());
-                    tagRelationMapper.batchInsert(tags);
+                    tagRelationRepository.saveAll(tags);
                 }
             }
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    /**
+     * Copy non-null fields from source to target, null fields are skipped like the original selective update.
+     *
+     * @param source the source built from {@link ApiDTO}
+     * @param target the target managed entity
+     */
+    private void copyNonNullFields(final ApiDO source, final ApiDO target) {
+        if (Objects.nonNull(source.getContextPath())) {
+            target.setContextPath(source.getContextPath());
+        }
+        if (Objects.nonNull(source.getApiPath())) {
+            target.setApiPath(source.getApiPath());
+        }
+        if (Objects.nonNull(source.getHttpMethod())) {
+            target.setHttpMethod(source.getHttpMethod());
+        }
+        if (Objects.nonNull(source.getConsume())) {
+            target.setConsume(source.getConsume());
+        }
+        if (Objects.nonNull(source.getProduce())) {
+            target.setProduce(source.getProduce());
+        }
+        if (Objects.nonNull(source.getVersion())) {
+            target.setVersion(source.getVersion());
+        }
+        if (Objects.nonNull(source.getRpcType())) {
+            target.setRpcType(source.getRpcType());
+        }
+        if (Objects.nonNull(source.getState())) {
+            target.setState(source.getState());
+        }
+        if (Objects.nonNull(source.getExt())) {
+            target.setExt(source.getExt());
+        }
+        if (Objects.nonNull(source.getApiOwner())) {
+            target.setApiOwner(source.getApiOwner());
+        }
+        if (Objects.nonNull(source.getApiDesc())) {
+            target.setApiDesc(source.getApiDesc());
+        }
+        if (Objects.nonNull(source.getApiSource())) {
+            target.setApiSource(source.getApiSource());
+        }
+        if (Objects.nonNull(source.getDocument())) {
+            target.setDocument(source.getDocument());
+            target.setDocumentMd5(source.getDocumentMd5());
+        }
     }
 
     /**
@@ -142,7 +195,8 @@ public class ApiServiceImpl implements ApiService {
      */
     private String create(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
-        final int insertRows = apiMapper.insertSelective(apiDO);
+        apiRepository.save(apiDO);
+        final int insertRows = 1;
         if (insertRows > 0) {
             //create tag relation
             if (CollectionUtils.isNotEmpty(apiDTO.getTagIds())) {
@@ -155,7 +209,7 @@ public class ApiServiceImpl implements ApiService {
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build()).collect(Collectors.toList());
-                tagRelationMapper.batchInsert(tags);
+                tagRelationRepository.saveAll(tags);
             }
             register(apiDO);
         }
@@ -228,15 +282,15 @@ public class ApiServiceImpl implements ApiService {
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
         // select api id.
-        List<ApiDO> apis = this.apiMapper.selectByIds(ids);
+        List<ApiDO> apis = this.apiRepository.findAllById(ids);
         if (CollectionUtils.isEmpty(apis)) {
             return AdminConstants.SYS_API_ID_NOT_EXIST;
         }
         // delete apis.
         final List<String> apiIds = ListUtil.map(apis, ApiDO::getId);
-        final int deleteRows = this.apiMapper.deleteByIds(apiIds);
+        final int deleteRows = this.apiRepository.deleteByIds(apiIds);
         if (deleteRows > 0) {
-            tagRelationMapper.deleteByApiIds(apiIds);
+            tagRelationRepository.deleteByApiIds(apiIds);
             apis.forEach(this::removeRegister);
         }
         return StringUtils.EMPTY;
@@ -244,12 +298,12 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public ApiVO findById(final String id) {
-        return Optional.ofNullable(apiMapper.selectByPrimaryKey(id)).map(item -> {
-            List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
+        return apiRepository.findById(id).map(item -> {
+            List<TagRelationDO> tagRelations = tagRelationRepository.findByApiId(item.getId());
             List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
             List<TagVO> tagVOs = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(tagIds)) {
-                List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
+                List<TagDO> tagDOS = tagRepository.findAllById(tagIds);
                 tagVOs = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             ApiVO apiVO = ApiVO.buildApiVO(item, tagVOs);
@@ -268,34 +322,34 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    @Pageable
     public CommonPager<ApiVO> listByPage(final ApiQuery apiQuery) {
-        List<ApiDO> apis = apiMapper.selectByQuery(apiQuery);
+        Page<ApiDO> page = apiRepository.pageByQuery(apiQuery, PageResultUtils.of(apiQuery.getPageParameter()));
+        List<ApiDO> apis = page.getContent();
         if (apis.isEmpty()) {
             return PageResultUtils.result(apiQuery.getPageParameter(), Collections::emptyList);
         }
         List<String> apiIds = apis.stream().map(ApiDO::getId).collect(Collectors.toList());
-        List<TagRelationDO> relations = tagRelationMapper.selectByApiIds(apiIds);
+        List<TagRelationDO> relations = tagRelationRepository.findByApiIdIn(apiIds);
         List<String> tagIds = relations.stream().map(TagRelationDO::getTagId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
-        Map<String, TagVO> tags = tagIds.isEmpty() ? Collections.emptyMap() : tagMapper.selectByIds(tagIds).stream()
+        Map<String, TagVO> tags = tagIds.isEmpty() ? Collections.emptyMap() : tagRepository.findAllById(tagIds).stream()
                 .collect(Collectors.toMap(TagDO::getId, TagVO::buildTagVO));
         Map<String, List<TagRelationDO>> relationsByApi = relations.stream().collect(Collectors.groupingBy(TagRelationDO::getApiId));
-        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apis.stream().map(api -> {
+        return PageResultUtils.result(apiQuery.getPageParameter(), page, api -> {
             List<TagVO> apiTags = relationsByApi.getOrDefault(api.getId(), Collections.emptyList()).stream()
                     .map(TagRelationDO::getTagId).distinct().map(tags::get).filter(Objects::nonNull).collect(Collectors.toList());
             return ApiVO.buildApiVO(api, apiTags);
-        }).collect(Collectors.toList()));
+        });
     }
 
     @Override
     public int deleteByApiPathHttpMethodRpcType(final String apiPath, final Integer httpMethod, final String rpcType) {
-        List<ApiDO> apiDOs = apiMapper.selectByApiPathHttpMethodRpcType(apiPath, httpMethod, rpcType);
+        List<ApiDO> apiDOs = apiRepository.findByApiPathAndHttpMethodAndRpcType(apiPath, httpMethod, rpcType);
         // delete apis.
         if (CollectionUtils.isNotEmpty(apiDOs)) {
             final List<String> apiIds = ListUtil.map(apiDOs, ApiDO::getId);
-            final int deleteRows = this.apiMapper.deleteByIds(apiIds);
+            final int deleteRows = this.apiRepository.deleteByIds(apiIds);
             if (deleteRows > 0) {
-                tagRelationMapper.deleteByApiIds(apiIds);
+                tagRelationRepository.deleteByApiIds(apiIds);
                 apiDOs.forEach(this::removeRegister);
             }
             return deleteRows;
@@ -305,7 +359,7 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public String offlineByContextPath(final String contextPath) {
-        apiMapper.updateOfflineByContextPath(contextPath);
+        apiRepository.updateOfflineByContextPath(contextPath);
         return ShenyuResultMessage.SUCCESS;
     }
 }

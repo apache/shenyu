@@ -106,7 +106,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public Page<AppAuthVO> jpaSearchByCondition(final PageCondition<AppAuthQuery> pageCondition) {
         PageRequest pageRequest = PageResultUtils.of(pageCondition);
-        Page<AppAuthDO> page = appAuthRepository.selectByQuery(pageCondition.getCondition(), pageRequest);
+        Page<AppAuthDO> page = appAuthRepository.pageByQuery(pageCondition.getCondition(), pageRequest);
         return new PageImpl<>(page.stream().map(AppAuthTransfer.INSTANCE::mapToVO).toList(), pageRequest, page.getTotalElements());
     }
 
@@ -643,7 +643,7 @@ public class AppAuthServiceImpl implements AppAuthService {
      */
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
-        Page<AppAuthDO> page = appAuthRepository.selectByQuery(appAuthQuery, PageResultUtils.of(appAuthQuery.getPageParameter()));
+        Page<AppAuthDO> page = appAuthRepository.pageByQuery(appAuthQuery, PageResultUtils.of(appAuthQuery.getPageParameter()));
         return PageResultUtils.result(appAuthQuery.getPageParameter(), page, AppAuthTransfer.INSTANCE::mapToVO);
     }
 

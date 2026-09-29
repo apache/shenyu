@@ -19,11 +19,11 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
-import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
@@ -34,47 +34,56 @@ import org.springframework.stereotype.Service;
 @Service
 public class TagRelationServiceImpl implements TagRelationService {
 
-    private final TagRelationMapper tagRelationMapper;
+    private final TagRelationRepository tagRelationRepository;
 
-    public TagRelationServiceImpl(final TagRelationMapper tagRelationMapper) {
-        this.tagRelationMapper = tagRelationMapper;
+    public TagRelationServiceImpl(final TagRelationRepository tagRelationRepository) {
+        this.tagRelationRepository = tagRelationRepository;
     }
 
     @Override
     public int create(final TagRelationDTO tagRelationDTO) {
         TagRelationDO tagRelationDO = TagRelationDO.buildTagRelationDO(tagRelationDTO);
-        return tagRelationMapper.insert(tagRelationDO);
+        tagRelationRepository.save(tagRelationDO);
+        return 1;
     }
 
     @Override
     public int update(final TagRelationDTO tagRelationDTO) {
-        TagRelationDO before = tagRelationMapper.selectByPrimaryKey(tagRelationDTO.getId());
+        TagRelationDO before = tagRelationRepository.findById(tagRelationDTO.getId()).orElse(null);
         Assert.notNull(before, "the updated rule is not found");
         TagRelationDO tagRelationDO = TagRelationDO.buildTagRelationDO(tagRelationDTO);
-        return tagRelationMapper.updateByPrimaryKeySelective(tagRelationDO);
+        return tagRelationRepository.findById(tagRelationDTO.getId())
+                .map(persisted -> {
+                    if (Objects.nonNull(tagRelationDO.getApiId())) {
+                        persisted.setApiId(tagRelationDO.getApiId());
+                    }
+                    if (Objects.nonNull(tagRelationDO.getTagId())) {
+                        persisted.setTagId(tagRelationDO.getTagId());
+                    }
+                    persisted.setDateUpdated(tagRelationDO.getDateUpdated());
+                    tagRelationRepository.save(persisted);
+                    return 1;
+                })
+                .orElse(0);
     }
 
     @Override
     public int delete(final List<String> ids) {
-        return tagRelationMapper.deleteByIds(ids);
+        return tagRelationRepository.deleteByIds(ids);
     }
 
     @Override
     public TagRelationDO findById(final String id) {
-        return tagRelationMapper.selectByPrimaryKey(id);
+        return tagRelationRepository.findById(id).orElse(null);
     }
 
     @Override
     public List<TagRelationDO> findByTagId(final String tagId) {
-        TagRelationQuery tagRelationQuery = new TagRelationQuery();
-        tagRelationQuery.setTagId(tagId);
-        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
+        return Optional.ofNullable(tagRelationRepository.findByTagId(tagId)).orElse(Lists.newArrayList());
     }
 
     @Override
     public List<TagRelationDO> findApiId(final String apiId) {
-        TagRelationQuery tagRelationQuery = new TagRelationQuery();
-        tagRelationQuery.setApiId(apiId);
-        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
+        return Optional.ofNullable(tagRelationRepository.findByApiId(apiId)).orElse(Lists.newArrayList());
     }
 }

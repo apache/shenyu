@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.FieldMapper;
+import org.apache.shenyu.admin.jpa.repository.FieldRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +33,7 @@ public class FieldDTO implements Serializable {
 
     private static final long serialVersionUID = 7476131236434536366L;
 
-    @Existed(provider = FieldMapper.class, nullOfIgnore = true, message = "filed is not existed")
+    @Existed(provider = FieldRepository.class, nullOfIgnore = true, message = "filed is not existed")
     private String id;
 
     /**

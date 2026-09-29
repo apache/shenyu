@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.exception.ValidFailException;
-import org.apache.shenyu.admin.mapper.TagMapper;
-import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -37,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,10 +56,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 public class TagServiceTest {
 
     @Mock
-    private TagMapper tagMapper;
+    private TagRepository tagRepository;
 
     @Mock
-    private TagRelationMapper tagRelationMapper;
+    private TagRelationRepository tagRelationRepository;
 
     @InjectMocks
     private TagServiceImpl tagService;
@@ -70,12 +71,11 @@ public class TagServiceTest {
         list.add(buildParentTagDO());
         list.add(buildParentTagDO1());
         list.add(buildParentTagDO2());
-        given(this.tagMapper.insert(any())).willReturn(1);
-        given(this.tagMapper.selectByPrimaryKey("123")).willReturn(buildTagDO());
-        given(this.tagMapper.selectByPrimaryKey("456")).willReturn(buildParentTagDO());
-        given(this.tagMapper.selectByPrimaryKey("789")).willReturn(buildParentTagDO1());
-        given(this.tagMapper.selectByPrimaryKey("101112")).willReturn(buildParentTagDO2());
-        given(this.tagMapper.selectByQuery(any())).willReturn(list);
+        given(this.tagRepository.findById("123")).willReturn(java.util.Optional.ofNullable(buildTagDO()));
+        given(this.tagRepository.findById("456")).willReturn(java.util.Optional.ofNullable(buildParentTagDO()));
+        given(this.tagRepository.findById("789")).willReturn(java.util.Optional.ofNullable(buildParentTagDO1()));
+        given(this.tagRepository.findById("101112")).willReturn(java.util.Optional.ofNullable(buildParentTagDO2()));
+        given(this.tagRepository.selectByQuery(any())).willReturn(list);
         tagService.create(buildParentTagDTO());
         tagService.create(buildParentTagDTO1());
         tagService.create(buildTagDTO());
@@ -85,57 +85,57 @@ public class TagServiceTest {
 
     @Test
     public void testCreateWithNonExistentParentTag() {
-        given(this.tagMapper.selectByPrimaryKey("456")).willReturn(null);
+        given(this.tagRepository.findById("456")).willReturn(java.util.Optional.empty());
         assertThrows(ValidFailException.class, () -> tagService.create(buildTagDTO()));
     }
 
     @Test
     public void testUpdate() {
         TagDTO tagDTO = buildTagDTO();
-        given(this.tagMapper.updateByPrimaryKeySelective(any())).willReturn(1);
-        given(this.tagMapper.selectByPrimaryKey(any())).willReturn(buildTagDO());
+        given(this.tagRepository.findById(any())).willReturn(java.util.Optional.ofNullable(buildTagDO()));
         int cnt = tagService.update(tagDTO);
         assertEquals(cnt, 1);
     }
 
     @Test
     public void testDelete() {
-        given(this.tagMapper.deleteByIds(any())).willReturn(1);
+        given(this.tagRepository.deleteByIds(any())).willReturn(1);
         int cnt = tagService.delete(Lists.newArrayList("11111"));
         assertEquals(cnt, 1);
     }
 
     @Test
     public void testDeleteRejectsRemainingChildren() {
-        given(tagMapper.selectByParentTagIds(any())).willReturn(List.of(buildTagDO()));
+        given(tagRepository.findByParentTagIdIn(any())).willReturn(List.of(buildTagDO()));
         assertThrows(ValidFailException.class, () -> tagService.delete(List.of("parent")));
-        verifyNoInteractions(tagRelationMapper);
-        verify(tagMapper, never()).deleteByIds(any());
+        verifyNoInteractions(tagRelationRepository);
+        verify(tagRepository, never()).deleteByIds(any());
     }
 
     @Test
     public void testDeleteEmptyList() {
         assertEquals(0, tagService.delete(List.of()));
-        verifyNoInteractions(tagMapper, tagRelationMapper);
+        verifyNoInteractions(tagRepository, tagRelationRepository);
     }
 
     @Test
     public void testFindById() {
-        given(this.tagMapper.selectByPrimaryKey(any())).willReturn(buildTagDO());
+        given(this.tagRepository.findById(any())).willReturn(Optional.of(buildTagDO()));
         TagVO tagVO = tagService.findById("123");
         assertNotNull(tagVO);
     }
 
     @Test
     public void testFindByQuery() {
-        given(this.tagMapper.selectByQuery(any())).willReturn(Lists.newArrayList(buildTagDO()));
+        given(this.tagRepository.selectByQuery(any())).willReturn(Lists.newArrayList(buildTagDO()));
         List<TagVO> tagVOS = tagService.findByQuery("film");
         assertEquals(tagVOS.size(), 1);
     }
 
     @Test
     public void testFindByParentTagId() {
-        given(this.tagMapper.selectByQuery(any())).willReturn(Lists.newArrayList(buildTagDO()));
+        given(this.tagRepository.findByParentTagId(any())).willReturn(Lists.newArrayList(buildTagDO()));
+        given(this.tagRepository.findByParentTagIdIn(any())).willReturn(Lists.newArrayList(buildTagDO()));
         List<TagVO> tagVOList = tagService.findByParentTagId("111111");
         assertEquals(tagVOList.size(), 1);
     }

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.mapper.DetailMapper;
+import org.apache.shenyu.admin.jpa.repository.DetailRepository;
 import org.apache.shenyu.admin.model.dto.DetailDTO;
 import org.apache.shenyu.admin.model.entity.DetailDO;
 import org.apache.shenyu.admin.model.vo.DetailVO;
@@ -34,6 +34,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
@@ -47,17 +48,17 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class DetailServiceTest {
 
-    private final Integer resultInt = 0;
+    private final Integer resultInt = 1;
 
     @InjectMocks
     private DetailServiceImpl detailService;
 
     @Mock
-    private DetailMapper detailMapper;
+    private DetailRepository detailRepository;
 
     @BeforeEach
     public void setUp() {
-        detailService = new DetailServiceImpl(detailMapper);
+        detailService = new DetailServiceImpl(detailRepository);
     }
 
     @Test
@@ -69,7 +70,7 @@ public final class DetailServiceTest {
     @Test
     public void testDelete() {
         testCreate();
-        when(detailMapper.deleteByPrimaryKey("123")).thenReturn(1);
+        when(detailRepository.existsById("123")).thenReturn(true);
         assertEquals(1, detailService.delete("123"));
     }
 
@@ -82,9 +83,9 @@ public final class DetailServiceTest {
         detailDO.setFieldValue("field value");
         detailDO.setFieldId("field id");
 
-        when(detailMapper.selectByPrimaryKey("1")).thenReturn(detailDO);
+        when(detailRepository.findById("1")).thenReturn(Optional.of(detailDO));
 
-        DetailService detailService = new DetailServiceImpl(detailMapper);
+        DetailService detailService = new DetailServiceImpl(detailRepository);
 
         DetailVO detailVO = detailService.findById("1");
 
@@ -96,7 +97,7 @@ public final class DetailServiceTest {
         assertEquals(detailDO.getDateUpdated(), detailVO.getDateUpdated());
         assertEquals(detailDO.getDateCreated(), detailVO.getDateCreated());
 
-        verify(detailMapper, times(1)).selectByPrimaryKey("1");
+        verify(detailRepository, times(1)).findById("1");
     }
 
     private void testCreate() {
@@ -109,6 +110,7 @@ public final class DetailServiceTest {
         detailDTO.setId(id);
         detailDTO.setExample(Boolean.FALSE);
         detailDTO.setFieldId("testDocument");
+        when(detailRepository.findById(id)).thenReturn(Optional.of(DetailDO.builder().id(id).build()));
         assertEquals(resultInt, this.detailService.createOrUpdate(detailDTO));
     }
 

@@ -18,9 +18,9 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.ApiMapper;
-import org.apache.shenyu.admin.mapper.TagMapper;
-import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
+import org.apache.shenyu.admin.jpa.repository.TagRepository;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
@@ -43,12 +43,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -85,18 +88,18 @@ public final class ApiServiceTest {
     private MetaDataService metaDataService;
     
     @Mock
-    private ApiMapper apiMapper;
+    private ApiRepository apiRepository;
 
     @Mock
-    private TagRelationMapper tagRelationMapper;
+    private TagRelationRepository tagRelationRepository;
 
     @Mock
-    private TagMapper tagMapper;
+    private TagRepository tagRepository;
 
     @BeforeEach
     public void setUp() {
         apiService = new ApiServiceImpl(selectorService, ruleService,
-                metaDataService, apiMapper, tagRelationMapper, tagMapper);
+                metaDataService, apiRepository, tagRepository, tagRelationRepository);
     }
 
     @Test
@@ -109,28 +112,28 @@ public final class ApiServiceTest {
     public void testUpdateWithEmptyTagIdsClearsRelations() {
         ApiDTO apiDTO = buildApiDTO("123");
         apiDTO.setTagIds(Collections.emptyList());
-        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+        when(apiRepository.findById("123")).thenReturn(Optional.of(buildApiDO("123")));
 
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
-        verify(tagRelationMapper).deleteByApiId("123");
-        verify(tagRelationMapper, never()).batchInsert(anyList());
+        verify(tagRelationRepository).deleteByApiId("123");
+        verify(tagRelationRepository, never()).saveAll(anyList());
     }
 
     @Test
     public void testUpdateWithNullTagIdsKeepsRelations() {
         ApiDTO apiDTO = buildApiDTO("123");
-        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+        when(apiRepository.findById("123")).thenReturn(Optional.of(buildApiDO("123")));
 
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
-        verify(tagRelationMapper, never()).deleteByApiId("123");
-        verify(tagRelationMapper, never()).batchInsert(anyList());
+        verify(tagRelationRepository, never()).deleteByApiId("123");
+        verify(tagRelationRepository, never()).saveAll(anyList());
     }
 
     @Test
     public void testDelete() {
         List<ApiDO> apis = Collections.singletonList(buildApiDO("123"));
-        when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(apis);
-        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(apiRepository.findAllById(Collections.singletonList("123"))).thenReturn(apis);
+        when(apiRepository.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         assertEquals(StringUtils.EMPTY, apiService.delete(Collections.singletonList("123")));
     }
 
@@ -143,8 +146,8 @@ public final class ApiServiceTest {
         MetaDataDO metadata = new MetaDataDO();
         metadata.setId("metadata-1");
         ApiDO apiDO = buildApiDO("123");
-        when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
-        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(apiRepository.findAllById(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
+        when(apiRepository.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
         when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
                 .thenReturn(Collections.singletonList(selector));
@@ -160,7 +163,7 @@ public final class ApiServiceTest {
 
     @Test
     public void testDeleteWhenApiDoesNotExist() {
-        when(apiMapper.selectByIds(Collections.singletonList("missing"))).thenReturn(Collections.emptyList());
+        when(apiRepository.findAllById(Collections.singletonList("missing"))).thenReturn(Collections.emptyList());
 
         assertEquals(AdminConstants.SYS_API_ID_NOT_EXIST, apiService.delete(Collections.singletonList("missing")));
     }
@@ -169,7 +172,7 @@ public final class ApiServiceTest {
     public void testFindById() {
         String id = "123";
         final ApiDO apiDO = buildApiDO(id);
-        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        given(this.apiRepository.findById(eq(id))).willReturn(Optional.of(apiDO));
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
     }
@@ -195,7 +198,7 @@ public final class ApiServiceTest {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         apiDO.setDateCreated(now);
         apiDO.setDateUpdated(now);
-        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        given(this.apiRepository.findById(eq(id))).willReturn(java.util.Optional.of(apiDO));
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
         assertNotNull(byId.getRequestParameters());
@@ -223,7 +226,7 @@ public final class ApiServiceTest {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         apiDO.setDateCreated(now);
         apiDO.setDateUpdated(now);
-        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        given(this.apiRepository.findById(eq(id))).willReturn(java.util.Optional.of(apiDO));
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
     }
@@ -236,7 +239,7 @@ public final class ApiServiceTest {
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
         List<ApiDO> apiDOList = IntStream.range(0, 10).mapToObj(i -> buildApiDO(String.valueOf(i))).collect(Collectors.toList());
-        given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
+        given(this.apiRepository.pageByQuery(eq(apiQuery), any(Pageable.class))).willReturn(new PageImpl<>(apiDOList));
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
         verify(tagRelationMapper).selectByApiIds(apiDOList.stream().map(ApiDO::getId).collect(Collectors.toList()));

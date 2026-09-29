@@ -19,8 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.FieldMapper;
+import org.apache.shenyu.admin.jpa.repository.FieldRepository;
 import org.apache.shenyu.admin.model.dto.FieldDTO;
 import org.apache.shenyu.admin.model.entity.FieldDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -33,15 +32,14 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FieldServiceImpl implements FieldService {
 
-    private final FieldMapper fieldMapper;
+    private final FieldRepository fieldRepository;
 
-    public FieldServiceImpl(final FieldMapper fieldMapper) {
-        this.fieldMapper = fieldMapper;
+    public FieldServiceImpl(final FieldRepository fieldRepository) {
+        this.fieldRepository = fieldRepository;
     }
 
     @Override
@@ -51,17 +49,22 @@ public class FieldServiceImpl implements FieldService {
 
     @Override
     public int delete(final String id) {
-        return fieldMapper.deleteByPrimaryKey(id);
+        if (!fieldRepository.existsById(id)) {
+            return 0;
+        }
+        fieldRepository.deleteById(id);
+        return 1;
     }
 
     @Override
     public int deleteBatch(final List<String> ids) {
-        return fieldMapper.batchDelete(ids);
+        fieldRepository.deleteAllByIdInBatch(ids);
+        return ids.size();
     }
 
     @Override
     public FieldVO findById(final String id) {
-        FieldDO fieldDO = fieldMapper.selectByPrimaryKey(id);
+        FieldDO fieldDO = fieldRepository.findById(id).orElse(null);
         FieldVO.FieldVOBuilder builder = FieldVO.builder();
         if (Objects.nonNull(fieldDO)) {
             builder.id(fieldDO.getId())
@@ -78,10 +81,10 @@ public class FieldServiceImpl implements FieldService {
     }
 
     @Override
-    @Pageable
     public CommonPager<FieldVO> listByPage(final FieldQuery fieldQuery) {
-        List<FieldDO> list = fieldMapper.selectByQuery(fieldQuery);
-        return PageResultUtils.result(fieldQuery.getPageParameter(), () -> list.stream().map(FieldVO::buildFieldVO).collect(Collectors.toList()));
+        return PageResultUtils.result(fieldQuery.getPageParameter(),
+                fieldRepository.pageByQuery(fieldQuery, PageResultUtils.of(fieldQuery.getPageParameter())),
+                FieldVO::buildFieldVO);
     }
 
     private int create(final FieldDTO fieldDTO) {
@@ -103,24 +106,37 @@ public class FieldServiceImpl implements FieldService {
         if (StringUtils.isEmpty(fieldDO.getId())) {
             fieldDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
-        return fieldMapper.insert(fieldDO);
+        fieldRepository.save(fieldDO);
+        return 1;
     }
 
     private int update(final FieldDTO fieldDTO) {
         if (Objects.isNull(fieldDTO) || Objects.isNull(fieldDTO.getId())) {
             return 0;
         }
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        FieldDO fieldDO = FieldDO.builder()
-                .id(fieldDTO.getId())
-                .ext(fieldDTO.getExt())
-                .fieldDesc(fieldDTO.getFieldDesc())
-                .name(fieldDTO.getName())
-                .modelId(fieldDTO.getModelId())
-                .required(fieldDTO.getRequired())
-                .selfModelId(fieldDTO.getSelfModelId())
-                .dateUpdated(currentTime)
-                .build();
-        return fieldMapper.updateByPrimaryKeySelective(fieldDO);
+        return fieldRepository.findById(fieldDTO.getId())
+                .map(persisted -> {
+                    if (Objects.nonNull(fieldDTO.getModelId())) {
+                        persisted.setModelId(fieldDTO.getModelId());
+                    }
+                    if (Objects.nonNull(fieldDTO.getSelfModelId())) {
+                        persisted.setSelfModelId(fieldDTO.getSelfModelId());
+                    }
+                    if (Objects.nonNull(fieldDTO.getName())) {
+                        persisted.setName(fieldDTO.getName());
+                    }
+                    if (Objects.nonNull(fieldDTO.getFieldDesc())) {
+                        persisted.setFieldDesc(fieldDTO.getFieldDesc());
+                    }
+                    if (Objects.nonNull(fieldDTO.getRequired())) {
+                        persisted.setRequired(fieldDTO.getRequired());
+                    }
+                    if (Objects.nonNull(fieldDTO.getExt())) {
+                        persisted.setExt(fieldDTO.getExt());
+                    }
+                    fieldRepository.save(persisted);
+                    return 1;
+                })
+                .orElse(0);
     }
 }

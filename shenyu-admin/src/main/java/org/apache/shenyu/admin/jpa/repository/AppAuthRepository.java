@@ -49,7 +49,7 @@ public interface AppAuthRepository extends JpaRepository<AppAuthDO, String>, Exi
             AND (:#{#query.appKey} IS NULL OR :#{#query.appKey} = '' OR a.appKey = :#{#query.appKey})
             AND (:#{#query.phone} IS NULL OR :#{#query.phone} = '' OR a.phone = :#{#query.phone})
             """)
-    Page<AppAuthDO> selectByQuery(@Param("query") AppAuthQuery query, Pageable pageable);
+    Page<AppAuthDO> pageByQuery(@Param("query") AppAuthQuery query, Pageable pageable);
 
     Optional<AppAuthDO> findByAppKey(String appKey);
 

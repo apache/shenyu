@@ -22,7 +22,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.shenyu.admin.mapper.TagRelationMapper;
+import java.util.Optional;
+
+import org.apache.shenyu.admin.jpa.repository.TagRelationRepository;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.service.impl.TagRelationServiceImpl;
@@ -50,12 +52,11 @@ public class TagRelationServiceTest {
     private TagRelationServiceImpl tagRelationService;
 
     @Mock
-    private TagRelationMapper tagRelationMapper;
+    private TagRelationRepository tagRelationRepository;
 
     @Test
     public void testCreate() {
         TagRelationDTO tagRelationDTO = buildTagRelationDTO();
-        given(this.tagRelationMapper.insert(any())).willReturn(1);
         int cnt = tagRelationService.create(tagRelationDTO);
         assertEquals(cnt, 1);
     }
@@ -63,22 +64,21 @@ public class TagRelationServiceTest {
     @Test
     public void testUpdate() {
         TagRelationDTO tagRelationDTO = buildTagRelationDTO();
-        given(this.tagRelationMapper.updateByPrimaryKeySelective(any())).willReturn(1);
-        given(this.tagRelationMapper.selectByPrimaryKey(any())).willReturn(buildTagRelationDO());
+        given(this.tagRelationRepository.findById(any())).willReturn(java.util.Optional.ofNullable(buildTagRelationDO()));
         int cnt = tagRelationService.update(tagRelationDTO);
         assertEquals(cnt, 1);
     }
 
     @Test
     public void testDelete() {
-        given(this.tagRelationMapper.deleteByIds(any())).willReturn(1);
+        given(this.tagRelationRepository.deleteByIds(any())).willReturn(1);
         int cnt = tagRelationService.delete(Lists.newArrayList("11111"));
         assertEquals(cnt, 1);
     }
 
     @Test
     public void testFindId() {
-        given(this.tagRelationMapper.selectByPrimaryKey(any())).willReturn(buildTagRelationDO());
+        given(this.tagRelationRepository.findById(any())).willReturn(Optional.of(buildTagRelationDO()));
         TagRelationDO tagRelationDO = tagRelationService.findById("11111");
         assertNotNull(tagRelationDO);
     }
@@ -87,7 +87,7 @@ public class TagRelationServiceTest {
     public void testFindByTagId() {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
-        given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
+        given(this.tagRelationRepository.findByTagId(any())).willReturn(tagRelationDOList);
         List<TagRelationDO> tagRelationDOS = tagRelationService.findByTagId("123");
         assertEquals(tagRelationDOS.size(), 1);
     }
@@ -96,7 +96,7 @@ public class TagRelationServiceTest {
     public void testFindByApiId() {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
-        given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
+        given(this.tagRelationRepository.findByApiId(any())).willReturn(tagRelationDOList);
         List<TagRelationDO> tagRelationDOS = tagRelationService.findApiId("123456");
         assertEquals(tagRelationDOS.size(), 1);
     }

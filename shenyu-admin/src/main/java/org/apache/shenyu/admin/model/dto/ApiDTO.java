@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.jpa.repository.ApiRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import jakarta.validation.constraints.Max;
@@ -38,7 +38,7 @@ public class ApiDTO implements Serializable {
     /**
      * primary key id.
      */
-    @Existed(provider = ApiMapper.class, nullOfIgnore = true, message = "the api is not exited")
+    @Existed(provider = ApiRepository.class, nullOfIgnore = true, message = "the api is not exited")
     private String id;
 
     /**

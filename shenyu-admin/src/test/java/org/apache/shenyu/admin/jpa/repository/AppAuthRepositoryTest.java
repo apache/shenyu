@@ -70,7 +70,7 @@ class AppAuthRepositoryTest extends AbstractSpringIntegrationTest {
 
     @Test
     @Transactional
-    void selectByQueryAppliesOnlyNonNullConditions() {
+    void pageByQueryAppliesOnlyNonNullConditions() {
         AppAuthDO first = buildAppAuthDO("6138-query-a");
         AppAuthDO second = buildAppAuthDO("6138-query-b");
         second.setPhone("13800000000");
@@ -79,16 +79,16 @@ class AppAuthRepositoryTest extends AbstractSpringIntegrationTest {
 
         AppAuthQuery query = new AppAuthQuery();
         query.setNamespaceId(first.getNamespaceId());
-        assertEquals(2, appAuthRepository.selectByQuery(query, PageRequest.of(0, 10)).getTotalElements());
+        assertEquals(2, appAuthRepository.pageByQuery(query, PageRequest.of(0, 10)).getTotalElements());
 
         query.setAppKey(first.getAppKey());
-        assertEquals(1, appAuthRepository.selectByQuery(query, PageRequest.of(0, 10)).getTotalElements());
+        assertEquals(1, appAuthRepository.pageByQuery(query, PageRequest.of(0, 10)).getTotalElements());
 
         query.setPhone(second.getPhone());
-        assertEquals(0, appAuthRepository.selectByQuery(query, PageRequest.of(0, 10)).getTotalElements());
+        assertEquals(0, appAuthRepository.pageByQuery(query, PageRequest.of(0, 10)).getTotalElements());
 
         query.setAppKey(null);
-        assertEquals(1, appAuthRepository.selectByQuery(query, PageRequest.of(0, 10)).getTotalElements());
+        assertEquals(1, appAuthRepository.pageByQuery(query, PageRequest.of(0, 10)).getTotalElements());
     }
 
     @Test

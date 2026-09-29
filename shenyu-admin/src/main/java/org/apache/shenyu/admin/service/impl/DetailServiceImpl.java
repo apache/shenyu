@@ -19,8 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.DetailMapper;
+import org.apache.shenyu.admin.jpa.repository.DetailRepository;
 import org.apache.shenyu.admin.model.dto.DetailDTO;
 import org.apache.shenyu.admin.model.entity.DetailDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -33,15 +32,14 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DetailServiceImpl implements DetailService {
 
-    private final DetailMapper detailMapper;
+    private final DetailRepository detailRepository;
 
-    public DetailServiceImpl(final DetailMapper detailMapper) {
-        this.detailMapper = detailMapper;
+    public DetailServiceImpl(final DetailRepository detailRepository) {
+        this.detailRepository = detailRepository;
     }
 
     @Override
@@ -51,17 +49,22 @@ public class DetailServiceImpl implements DetailService {
 
     @Override
     public int delete(final String id) {
-        return detailMapper.deleteByPrimaryKey(id);
+        if (!detailRepository.existsById(id)) {
+            return 0;
+        }
+        detailRepository.deleteById(id);
+        return 1;
     }
 
     @Override
     public int deleteBatch(final List<String> ids) {
-        return detailMapper.batchDelete(ids);
+        detailRepository.deleteAllByIdInBatch(ids);
+        return ids.size();
     }
 
     @Override
     public DetailVO findById(final String id) {
-        DetailDO detailDO = detailMapper.selectByPrimaryKey(id);
+        DetailDO detailDO = detailRepository.findById(id).orElse(null);
         DetailVO.DetailVOBuilder builder = DetailVO.builder();
         if (Objects.nonNull(detailDO)) {
             builder.id(detailDO.getId())
@@ -76,12 +79,10 @@ public class DetailServiceImpl implements DetailService {
     }
 
     @Override
-    @Pageable
     public CommonPager<DetailVO> listByPage(final DetailQuery detailQuery) {
-        return PageResultUtils.result(detailQuery.getPageParameter(), () -> detailMapper.selectByQuery(detailQuery)
-                .stream()
-                .map(DetailVO::buildDetailVO)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(detailQuery.getPageParameter(),
+                detailRepository.pageByQuery(detailQuery, PageResultUtils.of(detailQuery.getPageParameter())),
+                DetailVO::buildDetailVO);
     }
 
     private int create(final DetailDTO detailDTO) {
@@ -101,23 +102,31 @@ public class DetailServiceImpl implements DetailService {
         if (StringUtils.isEmpty(detailDO.getId())) {
             detailDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
-        return detailMapper.insert(detailDO);
+        detailRepository.save(detailDO);
+        return 1;
     }
 
     private int update(final DetailDTO detailDTO) {
         if (Objects.isNull(detailDTO) || Objects.isNull(detailDTO.getId())) {
             return 0;
         }
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        DetailDO detailDO = DetailDO.builder()
-                .id(detailDTO.getId())
-                .example(detailDTO.getExample())
-                .valueDesc(detailDTO.getValueDesc())
-                .fieldValue(detailDTO.getFieldValue())
-                .fieldId(detailDTO.getFieldId())
-                .dateUpdated(currentTime)
-                .dateUpdated(currentTime)
-                .build();
-        return detailMapper.updateByPrimaryKeySelective(detailDO);
+        return detailRepository.findById(detailDTO.getId())
+                .map(persisted -> {
+                    if (Objects.nonNull(detailDTO.getFieldId())) {
+                        persisted.setFieldId(detailDTO.getFieldId());
+                    }
+                    if (Objects.nonNull(detailDTO.getExample())) {
+                        persisted.setExample(detailDTO.getExample());
+                    }
+                    if (Objects.nonNull(detailDTO.getFieldValue())) {
+                        persisted.setFieldValue(detailDTO.getFieldValue());
+                    }
+                    if (Objects.nonNull(detailDTO.getValueDesc())) {
+                        persisted.setValueDesc(detailDTO.getValueDesc());
+                    }
+                    detailRepository.save(persisted);
+                    return 1;
+                })
+                .orElse(0);
     }
 }
