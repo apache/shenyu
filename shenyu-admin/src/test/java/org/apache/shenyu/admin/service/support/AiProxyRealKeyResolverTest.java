@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -89,14 +90,14 @@ public final class AiProxyRealKeyResolverTest {
     public void testResolveRealKeysWithNullInput() {
         Map<String, String> result = resolver.resolveRealKeys(null);
         assertThat(result, is(Collections.emptyMap()));
-        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorMapper, never()).selectByIdSet(any(), eq(SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
     public void testResolveRealKeysWithEmptyInput() {
         Map<String, String> result = resolver.resolveRealKeys(Collections.emptySet());
         assertThat(result, is(Collections.emptyMap()));
-        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorMapper, never()).selectByIdSet(any(), eq(SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
@@ -115,7 +116,7 @@ public final class AiProxyRealKeyResolverTest {
         assertThat(result, hasKey(SELECTOR_ID_1));
         assertThat(result, hasEntry(SELECTOR_ID_1, API_KEY_1));
         // Should not query database for cached entries
-        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorMapper, never()).selectByIdSet(any(), eq(SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
