@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -244,6 +245,44 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         List<String> idList = Stream.of(metaDataDO.getId(), metaDataDO2.getId()).collect(Collectors.toList());
         int result = metaDataMapper.deleteByIdListAndNamespaceId(idList, SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result, comparesEqualTo(idList.size()));
+    }
+
+    @Test
+    public void pathExistedExclude() {
+        MetaDataDO metaDataDO = getMetaDataDO();
+        int count = metaDataMapper.insert(metaDataDO);
+        assertThat(count, comparesEqualTo(1));
+
+        // the own row id is excluded, the same path in the same namespace is ignored
+        Boolean excluded = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
+                SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(metaDataDO.getId()));
+        assertTrue(!Boolean.TRUE.equals(excluded));
+
+        // another row with the same path in the same namespace is detected
+        MetaDataDO sameNamespace = getMetaDataDO();
+        int sameNamespaceCount = metaDataMapper.insert(sameNamespace);
+        assertThat(sameNamespaceCount, comparesEqualTo(1));
+        Boolean existed = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
+                SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(metaDataDO.getId()));
+        assertTrue(Boolean.TRUE.equals(existed));
+    }
+
+    @Test
+    public void pathExistedExcludeIsNamespaceScoped() {
+        MetaDataDO metaDataDO = getMetaDataDO();
+        int count = metaDataMapper.insert(metaDataDO);
+        assertThat(count, comparesEqualTo(1));
+
+        // the same path in another namespace must not be reported
+        MetaDataDO otherNamespace = getMetaDataDO();
+        otherNamespace.setPath(metaDataDO.getPath());
+        otherNamespace.setNamespaceId("other-namespace");
+        int otherNamespaceCount = metaDataMapper.insert(otherNamespace);
+        assertThat(otherNamespaceCount, comparesEqualTo(1));
+
+        Boolean existed = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
+                "other-namespace", Collections.singletonList(otherNamespace.getId()));
+        assertTrue(!Boolean.TRUE.equals(existed));
     }
 
     private MetaDataDO getMetaDataDO() {

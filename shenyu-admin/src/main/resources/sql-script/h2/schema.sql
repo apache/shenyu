@@ -1691,3 +1691,4 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', null, 197, 0, '2026-09-21 00:00:00', '2026-09-21 00:00:00');
+CREATE INDEX IF NOT EXISTS `idx_meta_data_namespace_path` ON `meta_data` (`namespace_id`, `path`);
