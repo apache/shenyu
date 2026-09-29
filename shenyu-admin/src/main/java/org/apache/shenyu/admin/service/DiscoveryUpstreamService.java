@@ -70,6 +70,14 @@ public interface DiscoveryUpstreamService {
     List<DiscoverySyncData> listAll();
 
     /**
+     * listAll in one namespace without publishing events.
+     *
+     * @param namespaceId the namespaceId
+     * @return DiscoverySyncDataList
+     */
+    List<DiscoverySyncData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * list all data.
      *
      * @return DiscoveryUpstreamVO

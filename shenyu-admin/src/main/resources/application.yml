@@ -72,6 +72,14 @@ shenyu:
       messageMaxSize: 10240
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
+      # Reconciles gateway sessions connected to this admin node with the shared
+      # database, so gateways converge even when the change was written through
+      # another standalone admin node on the same database. Namespaces without
+      # connected gateway sessions are not polled; a larger interval reduces the
+      # database polling cost but increases the worst-case consistency delay.
+      reconciliation:
+        enabled: true
+        interval: 60s
 #    apollo:
 #      meta: http://localhost:8080
 #      appId: shenyu

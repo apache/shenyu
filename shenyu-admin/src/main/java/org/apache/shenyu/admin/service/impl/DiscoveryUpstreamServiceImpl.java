@@ -171,6 +171,45 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
 
     @Override
+    public List<DiscoverySyncData> listAllByNamespaceId(final String namespaceId) {
+        List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectAll();
+        return discoveryHandlerDOS.stream().map(d -> {
+            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
+            if (Objects.isNull(discoveryRelDO)) {
+                return null;
+            }
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
+            String resolvedNamespaceId;
+            if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
+                String selectorId = discoveryRelDO.getSelectorId();
+                discoverySyncData.setSelectorId(selectorId);
+                SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+                if (Objects.isNull(selectorDO)) {
+                    return null;
+                }
+                discoverySyncData.setSelectorName(selectorDO.getSelectorName());
+                resolvedNamespaceId = selectorDO.getNamespaceId();
+            } else {
+                String proxySelectorId = discoveryRelDO.getProxySelectorId();
+                discoverySyncData.setSelectorId(proxySelectorId);
+                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                if (Objects.isNull(proxySelectorDO)) {
+                    return null;
+                }
+                discoverySyncData.setSelectorName(proxySelectorDO.getName());
+                resolvedNamespaceId = proxySelectorDO.getNamespaceId();
+            }
+            discoverySyncData.setNamespaceId(resolvedNamespaceId);
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            return discoverySyncData;
+        }).filter(data -> Objects.nonNull(data) && Objects.equals(data.getNamespaceId(), namespaceId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<DiscoveryUpstreamVO> listAllData() {
         return discoveryUpstreamMapper
                 .selectAll()

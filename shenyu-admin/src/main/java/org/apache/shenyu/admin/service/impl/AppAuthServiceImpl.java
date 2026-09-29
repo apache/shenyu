@@ -274,6 +274,24 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
+    public List<AppAuthData> listAllByNamespaceId(final String namespaceId) {
+        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            return Collections.emptyList();
+        }
+        List<String> idList = appAuthDOList.stream().map(BaseDO::getId).collect(Collectors.toList());
+        Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(idList);
+        Map<String, List<AuthPathData>> pathMap = this.prepareAuthPathData(idList);
+        return appAuthDOList.stream()
+                .filter(Objects::nonNull)
+                .map(appAuthDO -> {
+                    String id = appAuthDO.getId();
+                    return buildByEntityWithParamAndPath(appAuthDO, paramMap.get(id), pathMap.get(id));
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<AppAuthDTO> authDataList) {
         if (CollectionUtils.isEmpty(authDataList)) {

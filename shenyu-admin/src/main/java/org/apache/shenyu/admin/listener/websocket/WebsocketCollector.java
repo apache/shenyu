@@ -223,6 +223,15 @@ public class WebsocketCollector {
     }
     
     /**
+     * Snapshot the namespace ids that currently have at least one registered session.
+     *
+     * @return the namespace ids with active sessions
+     */
+    public static Set<String> getActiveNamespaceIds() {
+        return Set.copyOf(NAMESPACE_SESSION_MAP.keySet());
+    }
+
+    /**
      * On close.
      *
      * @param session the session

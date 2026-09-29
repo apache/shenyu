@@ -184,6 +184,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    public List<MetaData> listAllByNamespaceId(final String namespaceId) {
+        List<MetaDataDO> all = metaDataMapper.findAllByNamespaceId(namespaceId);
+        return CollectionUtils.isEmpty(all) ? Collections.emptyList() : MetaDataTransfer.INSTANCE.mapToDataAll(all);
+    }
+
+    @Override
     public List<MetaDataVO> listAllData() {
         return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToVO);
     }

@@ -268,6 +268,26 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                 .resolveRealKeys(list.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet())));
     }
 
+    @Override
+    public List<ProxyApiKeyData> listAllByNamespaceId(final String namespaceId) {
+        final String target = NamespaceUtils.normalizeNamespace(namespaceId);
+        List<ProxyApiKeyDO> all = mapper.selectAll();
+        if (Objects.isNull(all) || all.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<ProxyApiKeyDO> list = all.stream()
+                .filter(e -> StringUtils.equals(NamespaceUtils.normalizeNamespace(e.getNamespaceId()), target))
+                .collect(Collectors.toList());
+        if (list.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        java.util.Map<String, String> realKeys = realKeyResolver
+                .resolveRealKeys(list.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet()));
+        return list.stream()
+                .map(e -> convert(e, realKeys.get(e.getSelectorId())))
+                .collect(Collectors.toList());
+    }
+
     // private utils
 
     private void publishChange(final DataEventTypeEnum type, final ProxyApiKeyDO entity) {
