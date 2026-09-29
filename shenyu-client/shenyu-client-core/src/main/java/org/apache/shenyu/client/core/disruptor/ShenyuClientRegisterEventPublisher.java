@@ -34,7 +34,9 @@ public class ShenyuClientRegisterEventPublisher {
 
     private static final ShenyuClientRegisterEventPublisher INSTANCE = new ShenyuClientRegisterEventPublisher();
 
-    private DisruptorProviderManage<DataTypeParent> providerManage;
+    private volatile DisruptorProviderManage<DataTypeParent> providerManage;
+
+    private boolean initialized;
 
     /**
      * Get instance.
@@ -50,14 +52,19 @@ public class ShenyuClientRegisterEventPublisher {
      *
      * @param shenyuClientRegisterRepository shenyuClientRegisterRepository
      */
-    public void start(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public synchronized void start(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        if (initialized) {
+            return;
+        }
         RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientMcpExecutorSubscriber(shenyuClientRegisterRepository));
-        providerManage = new DisruptorProviderManage<>(factory);
-        providerManage.startup();
+        DisruptorProviderManage<DataTypeParent> newProviderManage = new DisruptorProviderManage<>(factory);
+        newProviderManage.startup();
+        providerManage = newProviderManage;
+        initialized = true;
     }
 
     /**
