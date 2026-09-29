@@ -446,21 +446,49 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
-    void testPoisonDataGivesUpAfterBoundedFailures() {
+    void testPoisonDataKeepsConnectionAfterBoundedFailures() {
         ShenyuWebsocketClient client = createSyncTestClient();
         doNothing().when(client).close();
-        doNothing().when(client).nowClose();
-        doThrow(new RuntimeException("poison data")).when(getHandler(client))
-                .executor(any(), anyString(), anyString());
+        WebsocketDataHandler handler = getHandler(client);
+        doThrow(new RuntimeException("poison data")).when(handler).executor(any(), anyString(), anyString());
         String json = GsonUtils.getInstance().toJson(websocketData);
 
+        // failures 1 and 2 close the connection so the reconnect pulls a full snapshot
         client.onMessage(json);
         client.onMessage(json);
         verify(client, times(2)).close();
         verify(client, never()).nowClose();
 
+        // at the cap: stop closing, keep the connection and the health check alive
         client.onMessage(json);
-        verify(client, times(1)).nowClose();
+        verify(client, times(2)).close();
+        verify(client, never()).nowClose();
+
+        // a successful apply resets the counter and restores bounded recovery
+        doNothing().when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        doThrow(new RuntimeException("poison again")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        verify(client, times(3)).close();
+        verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testNonJsonFrameIsIgnoredWithoutClosingConnection() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        WebsocketDataHandler handler = getHandler(client);
+
+        // a frame the client cannot parse is ignored without dropping the connection
+        // and without consuming the bounded recovery budget
+        client.onMessage("{invalid json");
+        verify(client, never()).close();
+        verify(handler, never()).executor(any(), anyString(), anyString());
+
+        String json = GsonUtils.getInstance().toJson(websocketData);
+        doThrow(new RuntimeException("transient")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        verify(client, times(1)).close();
     }
 
     @Test

@@ -233,10 +233,19 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
         }
 
+        final Map<String, Object> jsonToMap;
         try {
-            Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
-            Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
-            if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+            jsonToMap = JsonUtils.jsonToMap(result);
+        } catch (RuntimeException ex) {
+            // a frame the client cannot even parse carries no recoverable config change,
+            // and closing the connection would not replay it: keep the pre-existing
+            // log-and-ignore behavior instead of dropping the connection
+            LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            return;
+        }
+        Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+        if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+            try {
                 LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
                 this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
                 if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
@@ -244,12 +253,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 }
                 this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                 this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
-            } else {
-                handleResult(result);
+            } catch (RuntimeException ex) {
+                LOG.warn("Failed to handle running mode message from server[{}], the message will be ignored", this.getURI(), ex);
             }
-        } catch (RuntimeException ex) {
-            handleSyncFailure(ex, "UNKNOWN", "UNKNOWN");
+            return;
         }
+        handleResult(result);
     }
     
     @Override
@@ -365,16 +374,24 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void handleResult(final String result) {
         LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
         WebsocketData<?> websocketData;
+        try {
+            websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
+        } catch (RuntimeException ex) {
+            // a frame that cannot be interpreted as a config message is a protocol-shape
+            // mismatch, not a recoverable config change: ignore it like the previous
+            // behavior instead of dropping the connection
+            LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            return;
+        }
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
         try {
-            websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
             groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
             eventType = websocketData.getEventType();
             json = GsonUtils.getInstance().toJson(websocketData.getData());
         } catch (RuntimeException ex) {
-            handleSyncFailure(ex, "UNKNOWN", "UNKNOWN");
+            LOG.warn("Failed to resolve websocket message group from server[{}], the message will be ignored", this.getURI(), ex);
             return;
         }
         try {
@@ -386,10 +403,13 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     }
 
     /**
-     * Handle a failure to parse or apply a configuration message. A single failure closes
-     * the connection so the reconnect triggers a full resynchronization (MYSELF); after
-     * {@code MAX_CONSECUTIVE_SYNC_FAILURES} consecutive failures (deterministic poison
-     * data) automatic recovery is stopped with a terminal error.
+     * Handle a failure to parse or apply a configuration message. The first
+     * {@code MAX_CONSECUTIVE_SYNC_FAILURES - 1} consecutive failures close the connection so
+     * the reconnect triggers a full resynchronization (MYSELF). At the cap the client stops
+     * closing the connection and only logs further failures, while the health check keeps
+     * running: a config fixed on the admin side is then picked up by the next reconnect or
+     * the next successful apply, which resets the counter and restores normal recovery.
+     * This bounds the reconnect storm on deterministic poison data without giving up.
      *
      * @param ex the failure
      * @param groupType the config group being processed, if known
@@ -399,13 +419,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         int failures = consecutiveSyncFailures.incrementAndGet();
         if (failures >= MAX_CONSECUTIVE_SYNC_FAILURES) {
             LOG.error("websocket sync from server[{}] failed {} consecutive times, group={}, eventType={};"
-                            + " giving up automatic recovery, restart the gateway or fix the configuration",
+                            + " keeping the connection and ignoring further failures until the next"
+                            + " successful sync; an admin-side fix will be picked up by the running health check",
                     this.getURI(), failures, groupType, eventType, ex);
-            nowClose();
             return;
         }
         LOG.warn("websocket sync from server[{}] failed, group={}, eventType={}, consecutiveFailures={};"
-                        + " closing the connection to trigger a full resynchronization",
+                        + " closing the connection to trigger a full resynchronization, which is a possible"
+                        + " sign of a bad config push on the admin side",
                 this.getURI(), groupType, eventType, failures, ex);
         this.close();
     }
