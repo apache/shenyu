@@ -89,9 +89,23 @@ public class ClusterDataChangedEventController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ShenyuAdminResult.error("this node is not the cluster master, data change event not accepted"));
         }
-        final ConfigGroupEnum groupKey = ConfigGroupEnum.valueOf(payload.getGroupKey());
-        final DataEventTypeEnum eventType = DataEventTypeEnum.valueOf(payload.getEventType());
-        final List<?> source = deserializeSource(groupKey, payload.getSource());
+        final ConfigGroupEnum groupKey;
+        final DataEventTypeEnum eventType;
+        try {
+            groupKey = ConfigGroupEnum.valueOf(payload.getGroupKey());
+            eventType = DataEventTypeEnum.valueOf(payload.getEventType());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ShenyuAdminResult.error("unknown data change event group or type: "
+                            + payload.getGroupKey() + "/" + payload.getEventType()));
+        }
+        final List<?> source;
+        try {
+            source = deserializeSource(groupKey, payload.getSource());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ShenyuAdminResult.error("unknown data change event group: " + groupKey.name()));
+        }
         eventPublisher.publishEvent(new DataChangedEvent(groupKey, eventType, source));
         return ResponseEntity.ok(ShenyuAdminResult.success());
     }
@@ -124,7 +138,7 @@ public class ClusterDataChangedEventController {
                 targetClass = DiscoverySyncData.class;
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + groupKey);
+                throw new IllegalArgumentException("Unexpected value: " + groupKey);
         }
         return GsonUtils.getInstance().fromList(sourceJson, targetClass);
     }

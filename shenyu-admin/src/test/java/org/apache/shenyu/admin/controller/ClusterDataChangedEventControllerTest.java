@@ -41,7 +41,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -106,15 +105,17 @@ public final class ClusterDataChangedEventControllerTest {
     }
 
     /**
-     * An unknown group key is rejected before publishing.
+     * An unknown group key is rejected with a debuggable 400 before publishing.
      */
     @Test
-    public void receiveWithUnknownGroupKeyThrowsTest() {
+    public void receiveWithUnknownGroupKeyReturnsBadRequestTest() {
         when(clusterSelectMasterService.isMaster()).thenReturn(true);
         ClusterDataChangedEventPayload payload =
                 new ClusterDataChangedEventPayload("UNKNOWN_GROUP", DataEventTypeEnum.UPDATE.name(), "[]");
 
-        assertThrows(IllegalArgumentException.class, () -> controller.receive(payload));
+        ResponseEntity<?> response = controller.receive(payload);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(eventPublisher, never()).publishEvent(any(DataChangedEvent.class));
     }
 
