@@ -21,9 +21,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 readonly RESOLVER="${SCRIPT_DIR}/resolve-test-case-matrix.sh"
 
-assert_k8s_output() {
+read_output() {
+  local output_file="$1"
+  local output_name="$2"
+
+  awk -F= -v name="${output_name}" '$1 == name { sub(/^[^=]*=/, ""); print }' "${output_file}"
+}
+
+assert_output() {
   local mode="$1"
-  local changed_file="$2"
+  local changed_files_json="$2"
   local output_name="$3"
   local expected="$4"
   local output_file
@@ -31,47 +38,131 @@ assert_k8s_output() {
 
   output_file="$(mktemp)"
   CI_CASE_MODE="${mode}" \
-    CHANGED_FILES_JSON="$(jq -cn --arg file "${changed_file}" '[ $file ]')" \
+    CHANGED_FILES_JSON="${changed_files_json}" \
     GITHUB_OUTPUT="${output_file}" \
     bash "${RESOLVER}" >/dev/null
 
-  actual="$(awk -F= -v name="${output_name}" '$1 == name { print $2 }' "${output_file}")"
+  actual="$(read_output "${output_file}" "${output_name}")"
   rm -f "${output_file}"
 
   if [[ "${actual}" != "${expected}" ]]; then
-    echo "Expected ${output_name}=${expected} for ${changed_file}, got ${actual}" >&2
+    echo "Expected ${output_name}=${expected} for ${mode}:${changed_files_json}, got ${actual}" >&2
     return 1
   fi
 }
 
-assert_k8s_output "k8s-ingress" \
+assert_file_output() {
+  local mode="$1"
+  local changed_file="$2"
+  local output_name="$3"
+  local expected="$4"
+  local changed_files_json
+
+  changed_files_json="$(jq -cn --arg file "${changed_file}" '[ $file ]')"
+  assert_output "${mode}" "${changed_files_json}" "${output_name}" "${expected}"
+}
+
+assert_ci_ignored() {
+  local changed_file="$1"
+  local output_file
+  local actual
+
+  output_file="$(mktemp)"
+  CHANGED_FILES_JSON="$(jq -cn --arg file "${changed_file}" '[ $file ]')" \
+    GITHUB_OUTPUT="${output_file}" \
+    bash "${SCRIPT_DIR}/resolve-ci-modules.sh" >/dev/null
+  actual="$(read_output "${output_file}" "has_code_changes")"
+  rm -f "${output_file}"
+
+  if [[ "${actual}" != "false" ]]; then
+    echo "Expected main CI to ignore ${changed_file}, got has_code_changes=${actual}" >&2
+    return 1
+  fi
+}
+
+assert_file_output "k8s-ingress" \
   "shenyu-client/shenyu-client-mcp/shenyu-client-mcp-common/pom.xml" \
   "run_k8s_ingress" "false"
-assert_k8s_output "k8s-ingress" \
+assert_file_output "k8s-ingress" \
   "shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-common/pom.xml" \
   "run_k8s_ingress" "false"
-assert_k8s_output "k8s-ingress" \
+assert_file_output "k8s-ingress" \
   "shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-grpc/pom.xml" \
   "run_k8s_ingress" "true"
-assert_k8s_output "k8s-ingress" \
+assert_file_output "k8s-ingress" \
   "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/pom.xml" \
   "run_k8s_ingress" "true"
-assert_k8s_output "k8s-ingress" "shenyu-common/pom.xml" "run_k8s_ingress" "true"
-assert_k8s_output "k8s-ingress" "pom.xml" "run_k8s_ingress" "true"
+assert_file_output "k8s-ingress" "shenyu-common/pom.xml" "run_k8s_ingress" "true"
+assert_file_output "k8s-ingress" "pom.xml" "run_k8s_ingress" "true"
 
-assert_k8s_output "k8s-examples-http" \
+assert_file_output "k8s-examples-http" \
   "shenyu-client/shenyu-client-mcp/shenyu-client-mcp-common/pom.xml" \
   "run_k8s_examples" "false"
-assert_k8s_output "k8s-examples-http" \
+assert_file_output "k8s-examples-http" \
   "shenyu-examples/shenyu-examples-grpc/pom.xml" \
   "run_k8s_examples" "false"
-assert_k8s_output "k8s-examples-http" \
+assert_file_output "k8s-examples-http" \
   "shenyu-examples/shenyu-examples-http/pom.xml" \
   "run_k8s_examples" "true"
-assert_k8s_output "k8s-examples-http" \
+assert_file_output "k8s-examples-http" \
   "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-divide/pom.xml" \
   "run_k8s_examples" "true"
-assert_k8s_output "k8s-examples-http" "shenyu-bootstrap/pom.xml" "run_k8s_examples" "true"
-assert_k8s_output "k8s-examples-http" "pom.xml" "run_k8s_examples" "true"
+assert_file_output "k8s-examples-http" "shenyu-bootstrap/pom.xml" "run_k8s_examples" "true"
+assert_file_output "k8s-examples-http" "pom.xml" "run_k8s_examples" "true"
 
-echo "resolve-test-case-matrix k8s tests passed"
+readonly E2E_GRPC="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-grpc/compose/script/e2e-grpc-sync-compose.sh"
+readonly IT_GRPC="shenyu-integrated-test/shenyu-integrated-test-grpc/src/test/java/GrpcPluginTest.java"
+readonly IT_K8S_GRPC="shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-grpc/script/healthcheck.sh"
+readonly PROD_GRPC="shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/pom.xml"
+readonly ALL_K8S_INGRESS_MATRIX='{"include":[{"case":"shenyu-integrated-test-k8s-ingress-http"},{"case":"shenyu-integrated-test-k8s-ingress-apache-dubbo"},{"case":"shenyu-integrated-test-k8s-ingress-websocket"},{"case":"shenyu-integrated-test-k8s-ingress-grpc"}]}'
+
+assert_ci_ignored "${E2E_GRPC}"
+assert_file_output "e2e" "${E2E_GRPC}" "e2e_matrix" \
+  '{"include":[{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"}]}'
+assert_file_output "integration" "${E2E_GRPC}" "run_integration" "false"
+assert_file_output "k8s-ingress" "${E2E_GRPC}" "run_k8s_ingress" "false"
+
+assert_ci_ignored "${IT_GRPC}"
+assert_file_output "integration" "${IT_GRPC}" "integration_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-grpc"}]}'
+assert_file_output "e2e" "${IT_GRPC}" "run_e2e" "false"
+assert_file_output "k8s-ingress" "${IT_GRPC}" "run_k8s_ingress" "false"
+
+assert_ci_ignored "${IT_K8S_GRPC}"
+assert_file_output "k8s-ingress" "${IT_K8S_GRPC}" "run_k8s_ingress" "true"
+assert_file_output "integration" "${IT_K8S_GRPC}" "run_integration" "false"
+assert_file_output "e2e" "${IT_K8S_GRPC}" "run_e2e" "false"
+
+assert_file_output "integration" "${PROD_GRPC}" "run_integration" "true"
+assert_file_output "e2e" "${PROD_GRPC}" "run_e2e" "true"
+assert_file_output "k8s-ingress" "${PROD_GRPC}" "run_k8s_ingress" "true"
+
+assert_file_output "k8s-ingress" "${PROD_GRPC}" "k8s_ingress_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-k8s-ingress-grpc"}]}'
+assert_file_output "k8s-ingress" \
+  "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-websocket/pom.xml" \
+  "k8s_ingress_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-k8s-ingress-websocket"}]}'
+assert_file_output "k8s-ingress" \
+  "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-divide/pom.xml" \
+  "k8s_ingress_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-k8s-ingress-http"}]}'
+assert_file_output "k8s-ingress" \
+  "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-dubbo/shenyu-plugin-apache-dubbo/pom.xml" \
+  "k8s_ingress_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-k8s-ingress-apache-dubbo"}]}'
+assert_output "k8s-ingress" \
+  '["shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/pom.xml","shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-websocket/pom.xml","shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/src/main/java/GrpcPlugin.java"]' \
+  "k8s_ingress_matrix" \
+  '{"include":[{"case":"shenyu-integrated-test-k8s-ingress-grpc"},{"case":"shenyu-integrated-test-k8s-ingress-websocket"}]}'
+assert_file_output "k8s-ingress" "shenyu-common/pom.xml" "k8s_ingress_matrix" \
+  "${ALL_K8S_INGRESS_MATRIX}"
+assert_file_output "k8s-ingress" \
+  "shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-common/pom.xml" \
+  "k8s_ingress_matrix" '{"include":[]}'
+assert_file_output "k8s-ingress" ".github/workflows/integrated-test-k8s-ingress.yml" \
+  "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix-test.sh" \
+  "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+
+echo "CI test routing tests passed"
