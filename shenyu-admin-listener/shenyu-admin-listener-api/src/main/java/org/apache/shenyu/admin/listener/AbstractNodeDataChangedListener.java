@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,8 +173,9 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        SelectorData selectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("selectorData is null"));
+        final String configKeyPrefix = StringUtils.defaultString(selectorData.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)
+                + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
         LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }

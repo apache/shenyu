@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+set -euo pipefail
+
 kind load docker-image "shenyu-examples-apache-dubbo-service:latest"
 kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-apache-dubbo:latest"
 kubectl apply -f ./shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service/k8s/shenyu-zookeeper.yml
