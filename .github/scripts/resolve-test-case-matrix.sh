@@ -391,9 +391,7 @@ while IFS= read -r file; do
 
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
-      .github/workflows/integrated-test-k8s-ingress.yml|\
-      .github/scripts/resolve-test-case-matrix.sh|\
-      .github/scripts/resolve-test-case-matrix-test.sh)
+      .github/workflows/integrated-test-k8s-ingress.yml)
         add_k8s_ingress_all
         continue
         ;;

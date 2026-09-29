@@ -166,8 +166,14 @@ assert_file_output "k8s-ingress" \
   "k8s_ingress_matrix" '{"include":[]}'
 assert_file_output "k8s-ingress" ".github/workflows/integrated-test-k8s-ingress.yml" \
   "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix.sh" \
+  "run_k8s_ingress" "false"
+assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix.sh" \
+  "k8s_ingress_matrix" '{"include":[]}'
 assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix-test.sh" \
-  "k8s_ingress_matrix" "${ALL_K8S_INGRESS_MATRIX}"
+  "run_k8s_ingress" "false"
+assert_file_output "k8s-ingress" ".github/scripts/resolve-test-case-matrix-test.sh" \
+  "k8s_ingress_matrix" '{"include":[]}'
 
 assert_file_output "e2e" "${ADMIN_REGISTER}" "full_required" "false"
 assert_file_output "e2e" "${ADMIN_REGISTER}" "run_storage" "false"
