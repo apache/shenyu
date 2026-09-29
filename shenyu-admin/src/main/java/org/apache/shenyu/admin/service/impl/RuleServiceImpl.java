@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.utils.NamespaceUtils;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -69,7 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -501,10 +502,7 @@ public class RuleServiceImpl implements RuleService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(RuleDO::getId, RuleDO::getSelectorId, (selectorId1, selectorId2) -> selectorId1));
 
-        Map<String, String> pluginIdMap = Optional.ofNullable(selectorMapper.selectByIdSet(new HashSet<>(ruleDOMap.values()))).orElseGet(ArrayList::new)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
+        Map<String, String> pluginIdMap = selectSelectorsByRuleNamespaceId(ruleDOList, ruleDOMap);
 
         Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(new ArrayList<>(pluginIdMap.values())))
                 .orElseGet(ArrayList::new)
@@ -548,10 +546,7 @@ public class RuleServiceImpl implements RuleService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(RuleDO::getId, RuleDO::getSelectorId, (selectorId1, selectorId2) -> selectorId1));
 
-        Map<String, String> pluginIdMap = Optional.ofNullable(selectorMapper.selectByIdSet(new HashSet<>(ruleDOMap.values()))).orElseGet(ArrayList::new)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
+        Map<String, String> pluginIdMap = selectSelectorsByRuleNamespaceId(ruleDOList, ruleDOMap);
 
         Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(new ArrayList<>(pluginIdMap.values())))
                 .orElseGet(ArrayList::new)
@@ -584,5 +579,33 @@ public class RuleServiceImpl implements RuleService {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Select the referenced selectors grouped by the namespaceId carried on each rule.
+     *
+     * <p>Rules can span namespaces, so the selector lookup has to be scoped per namespace instead of
+     * assuming a single one at this level. Without it the {@code namespace_id} predicate of
+     * {@link SelectorMapper#selectByIdSet(java.util.Set, String)} would either match no rows or leak
+     * selectors across namespaces.</p>
+     *
+     * @param ruleDOList the rules to resolve selectors for
+     * @param ruleDOMap rule id to selector id map
+     * @return selector id to plugin id map
+     */
+    private Map<String, String> selectSelectorsByRuleNamespaceId(final List<RuleDO> ruleDOList,
+                                                                final Map<String, String> ruleDOMap) {
+        Map<String, String> pluginIdMap = new HashMap<>();
+        ruleDOList.stream()
+                .filter(Objects::nonNull)
+                .filter(ruleDO -> StringUtils.isNotBlank(ruleDO.getSelectorId()))
+                .collect(Collectors.groupingBy(ruleDO -> NamespaceUtils.normalizeNamespace(ruleDO.getNamespaceId()),
+                        Collectors.mapping(RuleDO::getSelectorId, Collectors.toSet())))
+                .forEach((namespaceId, selectorIds) -> Optional.ofNullable(selectorMapper.selectByIdSet(selectorIds, namespaceId))
+                        .orElseGet(ArrayList::new)
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .forEach(selectorDO -> pluginIdMap.put(selectorDO.getId(), selectorDO.getPluginId())));
+        return pluginIdMap;
     }
 }
