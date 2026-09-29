@@ -20,8 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -37,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,22 +46,21 @@ import java.util.stream.Collectors;
 @Service
 public class ShenyuDictServiceImpl implements ShenyuDictService {
     
-    private final ShenyuDictMapper shenyuDictMapper;
-    
+    private final ShenyuDictRepository shenyuDictRepository;
+
     private final DictEventPublisher publisher;
-    
-    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper, final DictEventPublisher publisher) {
-        this.shenyuDictMapper = shenyuDictMapper;
+
+    public ShenyuDictServiceImpl(final ShenyuDictRepository shenyuDictRepository,
+                                  final DictEventPublisher publisher) {
+        this.shenyuDictRepository = shenyuDictRepository;
         this.publisher = publisher;
     }
     
     @Override
-    @Pageable
     public CommonPager<ShenyuDictVO> listByPage(final ShenyuDictQuery shenyuDictQuery) {
-        return PageResultUtils.result(shenyuDictQuery.getPageParameter(), () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
-                .stream()
-                .map(ShenyuDictVO::buildShenyuDictVO)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(shenyuDictQuery.getPageParameter(),
+                shenyuDictRepository.selectByQuery(shenyuDictQuery, PageResultUtils.of(shenyuDictQuery.getPageParameter())),
+                ShenyuDictVO::buildShenyuDictVO);
     }
     
     @Override
@@ -70,40 +69,60 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     }
     
     private int update(final ShenyuDictDTO shenyuDictDTO) {
-        final ShenyuDictDO before = shenyuDictMapper.selectById(shenyuDictDTO.getId());
-        Assert.notNull(before, "the dict is not existed");
         final ShenyuDictDO dict = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
-        final int changeCount = shenyuDictMapper.updateByPrimaryKeySelective(dict);
-        if (changeCount > 0) {
-            publisher.onUpdated(dict, before);
+        final ShenyuDictDO before = shenyuDictRepository.findById(shenyuDictDTO.getId()).orElse(null);
+        Assert.notNull(before, "the dict is not existed");
+        final ShenyuDictDO snapshot = copyOf(before);
+        if (Objects.nonNull(dict.getType())) {
+            before.setType(dict.getType());
         }
-        return changeCount;
+        if (Objects.nonNull(dict.getDictCode())) {
+            before.setDictCode(dict.getDictCode());
+        }
+        if (Objects.nonNull(dict.getDictName())) {
+            before.setDictName(dict.getDictName());
+        }
+        if (Objects.nonNull(dict.getDictValue())) {
+            before.setDictValue(dict.getDictValue());
+        }
+        if (Objects.nonNull(dict.getDesc())) {
+            before.setDesc(dict.getDesc());
+        }
+        if (Objects.nonNull(dict.getSort())) {
+            before.setSort(dict.getSort());
+        }
+        if (Objects.nonNull(dict.getEnabled())) {
+            before.setEnabled(dict.getEnabled());
+        }
+        before.setDateUpdated(dict.getDateUpdated());
+        shenyuDictRepository.save(before);
+        publisher.onUpdated(before, snapshot);
+        return 1;
     }
     
     private int create(final ShenyuDictDTO shenyuDictDTO) {
         final ShenyuDictDO dict = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
-        final int insertCount = shenyuDictMapper.insertSelective(dict);
-        if (insertCount > 0) {
-            publisher.onCreated(dict);
-        }
-        return insertCount;
+        shenyuDictRepository.save(dict);
+        publisher.onCreated(dict);
+        return 1;
     }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer deleteShenyuDicts(final List<String> ids) {
-        final List<ShenyuDictDO> dictList = shenyuDictMapper.selectByIds(ids);
-        final int deleteCount = shenyuDictMapper.deleteByIdList(ids);
-        if (deleteCount > 0) {
-            publisher.onDeleted(dictList);
+        final List<ShenyuDictDO> dictList = shenyuDictRepository.findAllById(ids);
+        if (dictList.isEmpty()) {
+            return 0;
         }
-        return deleteCount;
+        shenyuDictRepository.deleteAllByIdInBatch(ids);
+        publisher.onDeleted(dictList);
+        return dictList.size();
     }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer enabled(final List<String> ids, final Boolean enabled) {
-        return shenyuDictMapper.enabled(ids, enabled);
+        return shenyuDictRepository.enabled(ids, enabled);
     }
 
     @Override
@@ -145,29 +164,47 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
 
     @Override
     public ShenyuDictVO findById(final String id) {
-        return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectById(id));
+        return ShenyuDictVO.buildShenyuDictVO(shenyuDictRepository.findById(id).orElse(null));
     }
     
     @Override
     public ShenyuDictVO findByDictCodeName(final String dictCode, final String dictName) {
-        return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
+        return ShenyuDictVO.buildShenyuDictVO(shenyuDictRepository.findByDictCodeAndDictName(dictCode, dictName).orElse(null));
     }
     
     @Override
     public List<ShenyuDictVO> list(final String type) {
-        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
-        shenyuDictQuery.setType(type);
-        return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
+        return shenyuDictRepository.findByType(type).stream()
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ShenyuDictVO> listAllData() {
-        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
-        return shenyuDictMapper.selectByQuery(shenyuDictQuery).stream()
+        return shenyuDictRepository.findAll().stream()
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Detached snapshot of a managed entity, so change events keep a stable before-image.
+     *
+     * @param dictDO the managed entity
+     * @return the snapshot copy
+     */
+    private ShenyuDictDO copyOf(final ShenyuDictDO dictDO) {
+        ShenyuDictDO snapshot = new ShenyuDictDO();
+        snapshot.setId(dictDO.getId());
+        snapshot.setDateCreated(dictDO.getDateCreated());
+        snapshot.setDateUpdated(dictDO.getDateUpdated());
+        snapshot.setType(dictDO.getType());
+        snapshot.setDictCode(dictDO.getDictCode());
+        snapshot.setDictName(dictDO.getDictName());
+        snapshot.setDictValue(dictDO.getDictValue());
+        snapshot.setDesc(dictDO.getDesc());
+        snapshot.setSort(dictDO.getSort());
+        snapshot.setEnabled(dictDO.getEnabled());
+        return snapshot;
     }
 
 }

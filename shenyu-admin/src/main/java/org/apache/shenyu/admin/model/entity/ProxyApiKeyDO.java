@@ -17,11 +17,18 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+
 /**
  * ProxyApiKeyDO represents the mapping between a proxy API key and a real
  * upstream API key.
  * Table: proxy_api_key_mapping
  */
+@DynamicUpdate
+@Entity
+@Table(name = "proxy_api_key_mapping")
 public final class ProxyApiKeyDO extends BaseDO {
 
     private static final long serialVersionUID = 326583247188331223L;

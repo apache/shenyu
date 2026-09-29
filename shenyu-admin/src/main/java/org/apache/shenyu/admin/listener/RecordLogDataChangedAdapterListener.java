@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
-import org.apache.shenyu.admin.mapper.OperationRecordLogMapper;
+import org.apache.shenyu.admin.jpa.repository.OperationRecordLogRepository;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.springframework.context.ApplicationListener;
@@ -28,13 +28,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RecordLogDataChangedAdapterListener implements DataChangedListener, ApplicationListener<AdminDataModelChangedEvent> {
-    
-    private final OperationRecordLogMapper logMapper;
-    
-    public RecordLogDataChangedAdapterListener(final OperationRecordLogMapper logMapper) {
-        this.logMapper = logMapper;
+
+    private final OperationRecordLogRepository operationRecordLogRepository;
+
+    public RecordLogDataChangedAdapterListener(final OperationRecordLogRepository operationRecordLogRepository) {
+        this.operationRecordLogRepository = operationRecordLogRepository;
     }
-    
+
     @Override
     public void onApplicationEvent(final AdminDataModelChangedEvent event) {
         if (event.isConsumed()) {
@@ -46,8 +46,8 @@ public class RecordLogDataChangedAdapterListener implements DataChangedListener,
         log.setOperationTime(event.getDate());
         log.setOperationType(event.getType().getTypeName());
         log.setOperator(event.getOperator());
-        logMapper.insert(log);
+        operationRecordLogRepository.save(log);
         event.consumed();
     }
-    
+
 }

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
+import org.apache.shenyu.admin.jpa.repository.ScaleRuleRepository;
 import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.scale.monitor.subject.cache.ScaleRuleCache;
@@ -34,7 +34,6 @@ import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Test cases for ScaleRuleService.
@@ -43,7 +42,7 @@ import static org.mockito.Mockito.when;
 public final class ScaleRuleServiceTest {
 
     @Mock
-    private ScaleRuleMapper scaleRuleMapper;
+    private ScaleRuleRepository scaleRuleRepository;
 
     @Mock
     private ScaleRuleCache scaleRuleCache;
@@ -52,7 +51,7 @@ public final class ScaleRuleServiceTest {
 
     @BeforeEach
     public void setUp() {
-        scaleRuleService = new ScaleRuleServiceImpl(scaleRuleMapper, scaleRuleCache);
+        scaleRuleService = new ScaleRuleServiceImpl(scaleRuleRepository, scaleRuleCache);
     }
 
     @AfterEach
@@ -64,7 +63,6 @@ public final class ScaleRuleServiceTest {
 
     @Test
     public void testCreateUpdatesCacheAfterCommit() {
-        when(scaleRuleMapper.insertSelective(any(ScaleRuleDO.class))).thenReturn(1);
         TransactionSynchronizationManager.initSynchronization();
 
         scaleRuleService.create(new ScaleRuleDTO());
@@ -76,8 +74,6 @@ public final class ScaleRuleServiceTest {
 
     @Test
     public void testCreateUpdatesCacheImmediatelyWithoutTransaction() {
-        when(scaleRuleMapper.insertSelective(any(ScaleRuleDO.class))).thenReturn(1);
-
         scaleRuleService.create(new ScaleRuleDTO());
 
         verify(scaleRuleCache).addOrUpdateRuleToCache(any(ScaleRuleDO.class));

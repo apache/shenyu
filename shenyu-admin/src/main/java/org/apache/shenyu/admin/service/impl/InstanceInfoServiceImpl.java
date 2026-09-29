@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
+import org.apache.shenyu.admin.jpa.repository.InstanceInfoRepository;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -43,10 +42,10 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     private static final Logger LOG = LoggerFactory.getLogger(InstanceInfoServiceImpl.class);
 
-    private final InstanceInfoMapper instanceInfoMapper;
+    private final InstanceInfoRepository instanceInfoRepository;
 
-    public InstanceInfoServiceImpl(final InstanceInfoMapper instanceInfoMapper) {
-        this.instanceInfoMapper = instanceInfoMapper;
+    public InstanceInfoServiceImpl(final InstanceInfoRepository instanceInfoRepository) {
+        this.instanceInfoRepository = instanceInfoRepository;
     }
 
     @Override
@@ -56,12 +55,12 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceQuery.setInstancePort(instanceInfoVO.getInstancePort());
         instanceQuery.setInstanceType(instanceInfoVO.getInstanceType());
         instanceQuery.setNamespaceId(instanceInfoVO.getNamespaceId());
-        InstanceInfoDO infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
+        InstanceInfoDO infoDO = instanceInfoRepository.selectOneByQuery(instanceQuery).stream().findFirst().orElse(null);
         if (Objects.isNull(infoDO)) {
             LOG.debug("Register new instance info: {}", GsonUtils.getInstance().toJson(instanceQuery));
             InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoVO);
             try {
-                instanceInfoMapper.insert(instanceInfoDO);
+                instanceInfoRepository.save(instanceInfoDO);
             } catch (Exception e) {
                 LOG.error("Failed to register instance info", e);
             }
@@ -75,25 +74,23 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         infoDO.setDateUpdated(Timestamp.from(Instant.now()));
         infoDO.setInstanceState(instanceInfoVO.getInstanceState());
         infoDO.setLastHeartBeatTime(instanceInfoVO.getLastHeartBeatTime());
-        instanceInfoMapper.updateById(infoDO);
+        instanceInfoRepository.save(infoDO);
     }
 
-    @Pageable
     @Override
     public CommonPager<InstanceInfoVO> listByPage(final InstanceQuery instanceQuery) {
-        List<InstanceInfoDO> instanceInfoDOList = instanceInfoMapper.selectByQuery(instanceQuery);
+        List<InstanceInfoDO> instanceInfoDOList = instanceInfoRepository.selectByQuery(instanceQuery);
         return PageResultUtils.result(instanceQuery.getPageParameter(), () -> this.buildInstanceInfoVO(instanceInfoDOList));
     }
 
     @Override
     public List<InstanceInfoVO> list() {
-        return this.buildInstanceInfoVO(instanceInfoMapper.selectAll());
+        return this.buildInstanceInfoVO(instanceInfoRepository.findAll());
     }
 
     @Override
     public InstanceInfoVO findById(final String id) {
-        InstanceInfoDO instanceInfoDO = instanceInfoMapper.selectById(id);
-        return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
+        return instanceInfoRepository.findById(id).map(this::buildInstanceInfoVO).orElse(null);
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {

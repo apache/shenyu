@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -26,6 +30,9 @@ import java.util.Objects;
 /**
  * InstanceInfoDO.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "instance_info")
 public final class InstanceInfoDO extends BaseDO {
     
     private String instanceIp;
@@ -40,6 +47,7 @@ public final class InstanceInfoDO extends BaseDO {
     
     private String namespaceId;
 
+    @Transient
     private long lastHeartBeatTime;
     
     public InstanceInfoDO() {

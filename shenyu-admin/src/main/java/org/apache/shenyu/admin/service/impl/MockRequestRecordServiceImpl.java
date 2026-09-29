@@ -18,8 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
+import org.apache.shenyu.admin.jpa.repository.MockRequestRecordRepository;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -41,10 +40,10 @@ import java.util.stream.Collectors;
 @Service
 public class MockRequestRecordServiceImpl implements MockRequestRecordService {
 
-    private final MockRequestRecordMapper mockRequestRecordMapper;
+    private final MockRequestRecordRepository mockRequestRecordRepository;
 
-    public MockRequestRecordServiceImpl(final MockRequestRecordMapper mockRequestRecordMapper) {
-        this.mockRequestRecordMapper = mockRequestRecordMapper;
+    public MockRequestRecordServiceImpl(final MockRequestRecordRepository mockRequestRecordRepository) {
+        this.mockRequestRecordRepository = mockRequestRecordRepository;
 
     }
 
@@ -55,16 +54,17 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
 
     @Override
     public int delete(final String id) {
-        MockRequestRecordDO mockRequestRecordDO = mockRequestRecordMapper.queryById(id);
-        if (Objects.isNull(mockRequestRecordDO)) {
-            return 0;
-        }
-        return mockRequestRecordMapper.deleteById(id);
+        return mockRequestRecordRepository.findById(id)
+                .map(mockRequestRecordDO -> {
+                    mockRequestRecordRepository.delete(mockRequestRecordDO);
+                    return 1;
+                })
+                .orElse(0);
     }
 
     @Override
     public int batchDelete(final List<String> ids) {
-        return mockRequestRecordMapper.batchDelete(ids);
+        return mockRequestRecordRepository.deleteByIds(ids);
     }
 
     @Override
@@ -73,17 +73,16 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
         if (StringUtils.isBlank(id)) {
             return mockRequestRecordVO;
         }
-        MockRequestRecordDO mockRequestRecordDO = mockRequestRecordMapper.queryById(id);
+        MockRequestRecordDO mockRequestRecordDO = mockRequestRecordRepository.findById(id).orElse(null);
         if (Objects.isNull(mockRequestRecordDO)) {
             return mockRequestRecordVO;
         }
         return MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDO);
     }
 
-    @Pageable
     @Override
     public CommonPager<MockRequestRecordVO> listByPage(final MockRequestRecordQuery mockRequestRecordQuery) {
-        List<MockRequestRecordDO> list = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+        List<MockRequestRecordDO> list = mockRequestRecordRepository.selectByQuery(mockRequestRecordQuery);
         return PageResultUtils.result(mockRequestRecordQuery.getPageParameter(), () -> list.stream().map(MockRequestRecordVO::buildMockRequestRecordVO).collect(Collectors.toList()));
     }
 
@@ -91,20 +90,37 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
         if (Objects.isNull(mockRequestRecordDTO) || Objects.isNull(mockRequestRecordDTO.getId())) {
             return 0;
         }
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        MockRequestRecordDO mockRequestRecordDO = MockRequestRecordDO.builder()
-                .id(mockRequestRecordDTO.getId())
-                .apiId(mockRequestRecordDTO.getApiId())
-                .header(mockRequestRecordDTO.getHeader())
-                .host(mockRequestRecordDTO.getHost())
-                .port(mockRequestRecordDTO.getPort())
-                .query(mockRequestRecordDTO.getQuery())
-                .url(mockRequestRecordDTO.getUrl())
-                .pathVariable(mockRequestRecordDTO.getPathVariable())
-                .body(mockRequestRecordDTO.getBody())
-                .dateUpdated(currentTime)
-                .build();
-        return mockRequestRecordMapper.update(mockRequestRecordDO);
+        return mockRequestRecordRepository.findById(mockRequestRecordDTO.getId())
+                .map(mockRequestRecordDO -> {
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getApiId())) {
+                        mockRequestRecordDO.setApiId(mockRequestRecordDTO.getApiId());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getHeader())) {
+                        mockRequestRecordDO.setHeader(mockRequestRecordDTO.getHeader());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getHost())) {
+                        mockRequestRecordDO.setHost(mockRequestRecordDTO.getHost());
+                    }
+                    if (Objects.nonNull(mockRequestRecordDTO.getPort())) {
+                        mockRequestRecordDO.setPort(mockRequestRecordDTO.getPort());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getQuery())) {
+                        mockRequestRecordDO.setQuery(mockRequestRecordDTO.getQuery());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getUrl())) {
+                        mockRequestRecordDO.setUrl(mockRequestRecordDTO.getUrl());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getPathVariable())) {
+                        mockRequestRecordDO.setPathVariable(mockRequestRecordDTO.getPathVariable());
+                    }
+                    if (StringUtils.isNotBlank(mockRequestRecordDTO.getBody())) {
+                        mockRequestRecordDO.setBody(mockRequestRecordDTO.getBody());
+                    }
+                    mockRequestRecordDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                    mockRequestRecordRepository.save(mockRequestRecordDO);
+                    return 1;
+                })
+                .orElse(0);
     }
 
     private int create(final MockRequestRecordDTO mockRequestRecordDTO) {
@@ -125,14 +141,13 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
                 .dateUpdated(currentTime)
                 .dateCreated(currentTime)
                 .build();
-        return mockRequestRecordMapper.insert(mockRequestRecordDO);
+        mockRequestRecordRepository.save(mockRequestRecordDO);
+        return 1;
     }
 
     @Override
     public MockRequestRecordVO queryByApiId(final String apiId) {
-        MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
-        mockRequestRecordQuery.setApiId(apiId);
-        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordRepository.findByApiId(apiId);
         return mockRequestRecordDOList.isEmpty()
                 ? new MockRequestRecordVO()
                 : MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDOList.get(0));

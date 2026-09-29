@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import jakarta.validation.constraints.NotNull;
-import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
+import org.apache.shenyu.admin.jpa.repository.ScalePolicyRepository;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
@@ -36,7 +36,7 @@ public class ScalePolicyDTO implements Serializable {
     /**
      * primary key id.
      */
-    @Existed(provider = ScalePolicyMapper.class, nullOfIgnore = true, message = "scale policy is not existed")
+    @Existed(provider = ScalePolicyRepository.class, nullOfIgnore = true, message = "scale policy is not existed")
     private String id;
 
     /**

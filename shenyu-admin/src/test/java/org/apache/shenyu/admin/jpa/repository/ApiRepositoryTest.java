@@ -63,7 +63,7 @@ class ApiRepositoryTest extends AbstractSpringIntegrationTest {
         ApiQuery byPathAndTag = new ApiQuery();
         byPathAndTag.setApiPath("join/api/2");
         byPathAndTag.setTagId(tagDO.getId());
-        assertTrue(apiRepository.pageByQuery(byPathAndTag, Pageable.unpaged()).getContent().isEmpty());
+        assertTrue(apiRepository.pageByQuery(byPathAndTag, Pageable.unpaged()).isEmpty());
     }
 
     @Test
@@ -79,7 +79,7 @@ class ApiRepositoryTest extends AbstractSpringIntegrationTest {
 
         ApiQuery query = new ApiQuery();
         query.setTagId(tagA.getId());
-        assertEquals(1, apiRepository.pageByQuery(query, Pageable.unpaged()).getContent().size());
+        assertEquals(1, apiRepository.pageByQuery(query, Pageable.unpaged()).getTotalElements());
 
         assertEquals(2, tagRelationRepository.deleteByApiId(api.getId()));
         assertTrue(tagRelationRepository.findByApiId(api.getId()).isEmpty());

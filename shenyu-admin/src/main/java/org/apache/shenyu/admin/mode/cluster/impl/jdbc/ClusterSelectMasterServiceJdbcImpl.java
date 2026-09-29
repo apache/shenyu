@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.mode.cluster.impl.jdbc;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
-import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.jpa.repository.ClusterMasterRepository;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
@@ -48,7 +48,7 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     private final JdbcLockRegistry jdbcLockRegistry;
     
-    private final ClusterMasterMapper clusterMasterMapper;
+    private final ClusterMasterRepository clusterMasterRepository;
     
     private final Lock clusterMasterLock;
     
@@ -56,10 +56,10 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     public ClusterSelectMasterServiceJdbcImpl(final ClusterProperties clusterProperties,
                                               final JdbcLockRegistry jdbcLockRegistry,
-                                              final ClusterMasterMapper clusterMasterMapper) {
+                                              final ClusterMasterRepository clusterMasterRepository) {
         this.clusterProperties = clusterProperties;
         this.jdbcLockRegistry = jdbcLockRegistry;
-        this.clusterMasterMapper = clusterMasterMapper;
+        this.clusterMasterRepository = clusterMasterRepository;
         this.clusterMasterLock = jdbcLockRegistry.obtain(MASTER_LOCK_KEY);
     }
     
@@ -84,9 +84,16 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
                     .dateUpdated(now)
                     .build();
             try {
-                clusterMasterMapper.insert(masterDO);
+                clusterMasterRepository.save(masterDO);
             } catch (Exception e) {
-                clusterMasterMapper.updateSelective(masterDO);
+                // the master row already exists, refresh it instead
+                clusterMasterRepository.findById(MASTER_ID).ifPresent(persisted -> {
+                    persisted.setMasterHost(masterHost);
+                    persisted.setMasterPort(masterPort);
+                    persisted.setContextPath(contextPath);
+                    persisted.setDateUpdated(now);
+                    clusterMasterRepository.save(persisted);
+                });
             }
         }
         return masterFlag;
@@ -124,13 +131,13 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     
     @Override
     public ClusterMasterDTO getMaster() {
-        ClusterMasterDO masterDO = clusterMasterMapper.selectById(MASTER_ID);
+        ClusterMasterDO masterDO = clusterMasterRepository.findById(MASTER_ID).orElse(null);
         return Objects.isNull(masterDO) ? new ClusterMasterDTO() : ClusterMasterTransfer.INSTANCE.mapToDTO(masterDO);
     }
     
     @Override
     public String getMasterUrl() {
-        ClusterMasterDO master = clusterMasterMapper.selectById(MASTER_ID);
+        ClusterMasterDO master = clusterMasterRepository.findById(MASTER_ID).orElseThrow();
         String contextPath = master.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
             return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort();

@@ -20,7 +20,8 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
+import org.apache.shenyu.admin.jpa.repository.AlertReceiverRepository;
+import org.apache.shenyu.admin.transfer.AlertTransfer;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
 import org.apache.shenyu.common.dto.AlarmContent;
@@ -52,9 +53,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     private static final Logger log = LoggerFactory.getLogger(AlertDispatchServiceImpl.class);
     
     private final Map<Byte, AlertNotifyHandler> alertNotifyHandlerMap;
-    
-    private final AlertReceiverMapper alertReceiverMapper;
-    
+
     /**
      * Receivers cached per alert namespace. Values are scoped queries (namespace-local
      * receivers plus namespace-free receivers), so a refresh no longer loads the whole
@@ -63,9 +62,11 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     private final ConcurrentMap<String, List<AlertReceiverDTO>> alertReceiverCache;
 
     private final ThreadPoolExecutor workerExecutor;
+
+    private final AlertReceiverRepository alertReceiverRepository;
     
-    public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverMapper alertReceiverMapper) {
-        this.alertReceiverMapper = alertReceiverMapper;
+    public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverRepository alertReceiverRepository) {
+        this.alertReceiverRepository = alertReceiverRepository;
         this.alertReceiverCache = new ConcurrentHashMap<>();
         alertNotifyHandlerMap = Maps.newHashMapWithExpectedSize(alertNotifyHandlerList.size());
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
@@ -192,9 +193,15 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
             // alerts without a namespace can be matched by any namespace-scoped receiver,
             // so they keep loading the full list and rely on the in-memory namespace filter
             if (StringUtils.isBlank(namespaceId)) {
-                return alertReceiverMapper.selectAll();
+                return alertReceiverRepository.findAll()
+                        .stream()
+                        .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
+                        .collect(Collectors.toList());
             }
-            return alertReceiverMapper.selectByNamespaceId(namespaceId);
+            return alertReceiverRepository.selectByNamespaceId(namespaceId)
+                    .stream()
+                    .map(AlertTransfer.INSTANCE::mapToAlertReceiverDTO)
+                    .collect(Collectors.toList());
         }
     }
 }

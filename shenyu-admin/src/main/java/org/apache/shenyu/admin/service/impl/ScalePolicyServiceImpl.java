@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
+import org.apache.shenyu.admin.jpa.repository.ScalePolicyRepository;
 import org.apache.shenyu.admin.model.dto.ScalePolicyDTO;
 import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.apache.shenyu.admin.model.vo.ScalePolicyVO;
@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementation of ScalePolicyService.
@@ -38,16 +39,16 @@ import java.util.List;
 @Service
 public class ScalePolicyServiceImpl implements ScalePolicyService {
 
-    private final ScalePolicyMapper scalePolicyMapper;
+    private final ScalePolicyRepository scalePolicyRepository;
 
     private final ScalePolicyCache scalePolicyCache;
 
     private final ScaleService scaleService;
 
-    public ScalePolicyServiceImpl(final ScalePolicyMapper scalePolicyMapper,
+    public ScalePolicyServiceImpl(final ScalePolicyRepository scalePolicyRepository,
                                   final ScalePolicyCache scalePolicyCache,
                                   final ScaleService scaleService) {
-        this.scalePolicyMapper = scalePolicyMapper;
+        this.scalePolicyRepository = scalePolicyRepository;
         this.scalePolicyCache = scalePolicyCache;
         this.scaleService = scaleService;
     }
@@ -59,7 +60,7 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
      */
     @Override
     public List<ScalePolicyVO> selectAll() {
-        return ListUtil.map(scalePolicyMapper.selectAll(), ScalePolicyVO::buildScalePolicyVO);
+        return ListUtil.map(scalePolicyRepository.findAll(), ScalePolicyVO::buildScalePolicyVO);
     }
 
     /**
@@ -70,7 +71,7 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
      */
     @Override
     public ScalePolicyVO findById(final String id) {
-        return ScalePolicyVO.buildScalePolicyVO(scalePolicyMapper.selectByPrimaryKey(id));
+        return ScalePolicyVO.buildScalePolicyVO(scalePolicyRepository.findById(id).orElse(null));
     }
 
     /**
@@ -83,20 +84,41 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
     @Transactional(rollbackFor = Exception.class)
     public int update(final ScalePolicyDTO scalePolicyDTO) {
         final ScalePolicyDO scalePolicy = ScalePolicyDO.buildScalePolicyDO(scalePolicyDTO);
-        int rows = scalePolicyMapper.updateByPrimaryKeySelective(scalePolicy);
-        if (rows > 0) {
-            if (TransactionSynchronizationManager.isSynchronizationActive()) {
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        applyPolicy(scalePolicy);
-                    }
-                });
-            } else {
-                applyPolicy(scalePolicy);
-            }
+        if (Objects.isNull(scalePolicy)) {
+            return 0;
         }
-        return rows;
+        return scalePolicyRepository.findById(scalePolicy.getId())
+                .map(persisted -> {
+                    if (Objects.nonNull(scalePolicy.getSort())) {
+                        persisted.setSort(scalePolicy.getSort());
+                    }
+                    if (Objects.nonNull(scalePolicy.getStatus())) {
+                        persisted.setStatus(scalePolicy.getStatus());
+                    }
+                    if (Objects.nonNull(scalePolicy.getNum())) {
+                        persisted.setNum(scalePolicy.getNum());
+                    }
+                    if (Objects.nonNull(scalePolicy.getBeginTime())) {
+                        persisted.setBeginTime(scalePolicy.getBeginTime());
+                    }
+                    if (Objects.nonNull(scalePolicy.getEndTime())) {
+                        persisted.setEndTime(scalePolicy.getEndTime());
+                    }
+                    persisted.setDateUpdated(scalePolicy.getDateUpdated());
+                    scalePolicyRepository.save(persisted);
+                    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                            @Override
+                            public void afterCommit() {
+                                applyPolicy(persisted);
+                            }
+                        });
+                    } else {
+                        applyPolicy(persisted);
+                    }
+                    return 1;
+                })
+                .orElse(0);
     }
 
     private void applyPolicy(final ScalePolicyDO scalePolicy) {

@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
@@ -43,8 +44,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -239,30 +240,29 @@ public final class ApiServiceTest {
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
         List<ApiDO> apiDOList = IntStream.range(0, 10).mapToObj(i -> buildApiDO(String.valueOf(i))).collect(Collectors.toList());
-        given(this.apiRepository.pageByQuery(eq(apiQuery), any(Pageable.class))).willReturn(new PageImpl<>(apiDOList));
+        Page<ApiDO> page = new PageImpl<>(apiDOList, PageResultUtils.of(pageParameter), apiDOList.size());
+        given(this.apiRepository.pageByQuery(eq(apiQuery), any())).willReturn(page);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
-        verify(tagRelationMapper).selectByApiIds(apiDOList.stream().map(ApiDO::getId).collect(Collectors.toList()));
-        verify(tagRelationMapper, never()).selectByQuery(any());
-        verify(tagMapper, never()).selectByIds(any());
+        verify(tagRelationRepository).findByApiIdIn(apiDOList.stream().map(ApiDO::getId).collect(Collectors.toList()));
     }
 
     @Test
     public void testListByPageBatchesTags() {
         ApiQuery query = new ApiQuery(null, 0, "", new PageParameter());
-        given(apiMapper.selectByQuery(query)).willReturn(Arrays.asList(buildApiDO("first"), buildApiDO("second")));
-        given(tagRelationMapper.selectByApiIds(Arrays.asList("first", "second"))).willReturn(Arrays.asList(
+        List<ApiDO> apis = Arrays.asList(buildApiDO("first"), buildApiDO("second"));
+        given(apiRepository.pageByQuery(eq(query), any())).willReturn(new PageImpl<>(apis));
+        given(tagRelationRepository.findByApiIdIn(Arrays.asList("first", "second"))).willReturn(Arrays.asList(
                 TagRelationDO.builder().apiId("first").tagId("tag").build(), TagRelationDO.builder().apiId("second").tagId("tag").build()));
         TagDO tag = new TagDO();
         tag.setId("tag");
         tag.setDateCreated(new Timestamp(0));
         tag.setDateUpdated(new Timestamp(0));
-        given(tagMapper.selectByIds(Collections.singletonList("tag"))).willReturn(Collections.singletonList(tag));
+        given(tagRepository.findAllById(Collections.singletonList("tag"))).willReturn(Collections.singletonList(tag));
         List<ApiVO> result = apiService.listByPage(query).getDataList();
         assertEquals("tag", result.get(0).getTags().get(0).getId());
         assertEquals("tag", result.get(1).getTags().get(0).getId());
-        verify(tagMapper).selectByIds(Collections.singletonList("tag"));
-        verify(tagRelationMapper, never()).selectByQuery(any());
+        verify(tagRepository).findAllById(Collections.singletonList("tag"));
     }
 
     private ApiDO buildApiDO(final String id) {

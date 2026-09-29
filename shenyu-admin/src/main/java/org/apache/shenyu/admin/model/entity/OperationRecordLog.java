@@ -20,17 +20,28 @@ package org.apache.shenyu.admin.model.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Date;
 
 /**
  * operation_record_log.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "operation_record_log")
 public class OperationRecordLog {
     
     /**
      * id.
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     

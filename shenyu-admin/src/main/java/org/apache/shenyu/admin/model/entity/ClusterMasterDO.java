@@ -17,6 +17,16 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -24,6 +34,10 @@ import java.util.Date;
 /**
  * The type cluster master dto.
  */
+@DynamicUpdate
+@Entity
+@Table(name = "cluster_master")
+@EntityListeners(AuditingEntityListener.class)
 public class ClusterMasterDO implements Serializable {
 
     private static final long serialVersionUID = -7115137071311176280L;
@@ -31,6 +45,7 @@ public class ClusterMasterDO implements Serializable {
     /**
      * primary key id.
      */
+    @Id
     private String id;
 
     /**
@@ -51,11 +66,14 @@ public class ClusterMasterDO implements Serializable {
     /**
      * created time.
      */
+    @CreatedDate
+    @Column(updatable = false)
     private Timestamp dateCreated;
 
     /**
      * updated time.
      */
+    @LastModifiedDate
     private Timestamp dateUpdated;
 
     public ClusterMasterDO() {

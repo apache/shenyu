@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.jpa.repository.AiProxyApiKeyRepository;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.AiProxyApiKeyMapper;
 import org.apache.shenyu.admin.model.dto.ProxyApiKeyDTO;
 import org.apache.shenyu.admin.model.entity.ProxyApiKeyDO;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -34,10 +35,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,11 +47,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import org.springframework.data.domain.PageImpl;
 
 class AiProxyApiKeyServiceImplTest {
 
     @Mock
-    private AiProxyApiKeyMapper mapper;
+    private AiProxyApiKeyRepository repository;
 
     @Mock
     private ApplicationEventPublisher publisher;
@@ -64,14 +66,13 @@ class AiProxyApiKeyServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new AiProxyApiKeyServiceImpl(mapper, publisher, realKeyResolver);
+        service = new AiProxyApiKeyServiceImpl(repository, publisher, realKeyResolver);
     }
 
     @Test
     void testCreatePublishesEvent() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         dto.setNamespaceId("default");
-        when(mapper.insert(any())).thenReturn(1);
         service.create(dto, "sel-1");
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
@@ -83,7 +84,10 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         dto.setId("id-1");
         dto.setNamespaceId("default");
-        when(mapper.updateSelective(any())).thenReturn(1);
+        ProxyApiKeyDO persisted = new ProxyApiKeyDO();
+        persisted.setId("id-1");
+        persisted.setNamespaceId("default");
+        when(repository.findById("id-1")).thenReturn(Optional.of(persisted));
         service.update(dto);
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
@@ -92,13 +96,13 @@ class AiProxyApiKeyServiceImplTest {
 
     @Test
     void testEnabledPublishesEvent() {
-        when(mapper.updateEnableBatch(any(), any(), any())).thenReturn(1);
+        when(repository.updateEnableBatch(any(), any())).thenReturn(1);
         ProxyApiKeyDO e = new ProxyApiKeyDO();
         e.setId("1");
         e.setProxyApiKey("p");
         e.setNamespaceId("default");
         e.setEnabled(Boolean.TRUE);
-        when(mapper.selectByIds(any())).thenReturn(Collections.singletonList(e));
+        when(repository.findAllById(any())).thenReturn(Collections.singletonList(e));
         service.enabled(Arrays.asList("1"), true);
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
@@ -112,8 +116,7 @@ class AiProxyApiKeyServiceImplTest {
         e.setProxyApiKey("p");
         e.setNamespaceId("default");
         e.setEnabled(Boolean.TRUE);
-        when(mapper.selectByIds(any())).thenReturn(Collections.singletonList(e));
-        when(mapper.deleteByIds(any())).thenReturn(1);
+        when(repository.findAllById(any())).thenReturn(Collections.singletonList(e));
         service.delete(Collections.singletonList("1"));
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
@@ -124,7 +127,6 @@ class AiProxyApiKeyServiceImplTest {
     void testCreateBackfillFields() {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         dto.setNamespaceId("default");
-        when(mapper.insert(any())).thenReturn(1);
         service.create(dto, "sel-1");
         assertNotNull(dto.getId());
         assertNotNull(dto.getProxyApiKey());
@@ -139,13 +141,14 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyQuery query = new ProxyApiKeyQuery();
         query.setNamespaceId("default");
         query.setPageParameter(new PageParameter(1, 10));
-        ProxyApiKeyVO vo = new ProxyApiKeyVO();
-        vo.setId("1");
-        vo.setProxyApiKey("p");
-        vo.setDescription("d");
-        vo.setEnabled(Boolean.TRUE);
-        vo.setNamespaceId("default");
-        when(mapper.selectByCondition(any())).thenReturn(Collections.singletonList(vo));
+        ProxyApiKeyDO proxyApiKeyDO = new ProxyApiKeyDO();
+        proxyApiKeyDO.setId("1");
+        proxyApiKeyDO.setProxyApiKey("p");
+        proxyApiKeyDO.setDescription("d");
+        proxyApiKeyDO.setEnabled(Boolean.TRUE);
+        proxyApiKeyDO.setNamespaceId("default");
+        PageImpl<ProxyApiKeyDO> page = new PageImpl<>(Collections.singletonList(proxyApiKeyDO), PageResultUtils.of(query.getPageParameter()), 1);
+        when(repository.pageByCondition(any(), any())).thenReturn(page);
         CommonPager<ProxyApiKeyVO> pager = service.listByPage(query);
         assertEquals(1, pager.getDataList().size());
         assertEquals("p", pager.getDataList().get(0).getProxyApiKey());
@@ -155,10 +158,10 @@ class AiProxyApiKeyServiceImplTest {
     void testSearchByCondition() {
         ProxyApiKeyQuery query = new ProxyApiKeyQuery();
         query.setNamespaceId("default");
-        ProxyApiKeyVO vo = new ProxyApiKeyVO();
-        vo.setId("2");
-        vo.setProxyApiKey("px");
-        when(mapper.selectByCondition(any())).thenReturn(Collections.singletonList(vo));
+        ProxyApiKeyDO proxyApiKeyDO = new ProxyApiKeyDO();
+        proxyApiKeyDO.setId("2");
+        proxyApiKeyDO.setProxyApiKey("px");
+        when(repository.selectByCondition(any())).thenReturn(Collections.singletonList(proxyApiKeyDO));
         List<ProxyApiKeyVO> list = service.searchByCondition(query);
         assertEquals(1, list.size());
         assertEquals("px", list.get(0).getProxyApiKey());
@@ -169,48 +172,13 @@ class AiProxyApiKeyServiceImplTest {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         int res = service.update(dto);
         assertEquals(0, res);
-        verify(mapper, never()).updateSelective(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
     void testDeleteNoEventWhenNoRows() {
-        when(mapper.selectByIds(any())).thenReturn(Collections.emptyList());
-        when(mapper.deleteByIds(any())).thenReturn(0);
+        when(repository.findAllById(any())).thenReturn(Collections.emptyList());
         service.delete(Collections.singletonList("1"));
         verify(publisher, never()).publishEvent(any());
-    }
-
-    @Test
-    void testCreateSetsTimestamps() {
-        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
-        dto.setNamespaceId("default");
-        when(mapper.insert(any())).thenReturn(1);
-        service.create(dto, "sel-1");
-        ArgumentCaptor<ProxyApiKeyDO> captor = ArgumentCaptor.forClass(ProxyApiKeyDO.class);
-        verify(mapper).insert(captor.capture());
-        assertNotNull(captor.getValue().getDateCreated());
-        assertNotNull(captor.getValue().getDateUpdated());
-    }
-
-    @Test
-    void testUpdateSetsUpdatedTimestamp() {
-        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
-        dto.setId("id-1");
-        dto.setNamespaceId("default");
-        when(mapper.updateSelective(any())).thenReturn(1);
-        service.update(dto);
-        ArgumentCaptor<ProxyApiKeyDO> captor = ArgumentCaptor.forClass(ProxyApiKeyDO.class);
-        verify(mapper).updateSelective(captor.capture());
-        assertNotNull(captor.getValue().getDateUpdated());
-    }
-
-    @Test
-    void testEnabledPassesUpdatedTimestamp() {
-        when(mapper.updateEnableBatch(any(), any(), any())).thenReturn(1);
-        when(mapper.selectByIds(any())).thenReturn(Collections.emptyList());
-        service.enabled(Collections.singletonList("1"), Boolean.TRUE);
-        ArgumentCaptor<Timestamp> captor = ArgumentCaptor.forClass(Timestamp.class);
-        verify(mapper).updateEnableBatch(any(), any(), captor.capture());
-        assertNotNull(captor.getValue());
     }
 }

@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
+import org.apache.shenyu.admin.jpa.repository.ScaleRuleRepository;
 import org.apache.shenyu.admin.model.dto.ScaleRuleDTO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -35,7 +34,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of the ScaleRuleService.
@@ -43,12 +41,12 @@ import java.util.stream.Collectors;
 @Service
 public class ScaleRuleServiceImpl implements ScaleRuleService {
 
-    private final ScaleRuleMapper scaleRuleMapper;
+    private final ScaleRuleRepository scaleRuleRepository;
 
     private final ScaleRuleCache scaleRuleCache;
 
-    public ScaleRuleServiceImpl(final ScaleRuleMapper scaleRuleMapper, final ScaleRuleCache scaleRuleCache) {
-        this.scaleRuleMapper = scaleRuleMapper;
+    public ScaleRuleServiceImpl(final ScaleRuleRepository scaleRuleRepository, final ScaleRuleCache scaleRuleCache) {
+        this.scaleRuleRepository = scaleRuleRepository;
         this.scaleRuleCache = scaleRuleCache;
     }
 
@@ -60,7 +58,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public List<ScaleRuleVO> selectAll() {
-        return ListUtil.map(scaleRuleMapper.selectAll(), ScaleRuleVO::buildScaleRuleVO);
+        return ListUtil.map(scaleRuleRepository.findAll(), ScaleRuleVO::buildScaleRuleVO);
     }
 
     /**
@@ -70,12 +68,10 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      * @return {@linkplain CommonPager}
      */
     @Override
-    @Pageable
     public CommonPager<ScaleRuleVO> listByPage(final ScaleRuleQuery scaleRuleQuery) {
-        return PageResultUtils.result(scaleRuleQuery.getPageParameter(), () -> scaleRuleMapper.selectByQuery(scaleRuleQuery)
-                .stream()
-                .map(ScaleRuleVO::buildScaleRuleVO)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(scaleRuleQuery.getPageParameter(),
+                scaleRuleRepository.selectByQuery(scaleRuleQuery, PageResultUtils.of(scaleRuleQuery.getPageParameter())),
+                ScaleRuleVO::buildScaleRuleVO);
     }
 
     /**
@@ -86,7 +82,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public ScaleRuleVO findById(final String id) {
-        return ScaleRuleVO.buildScaleRuleVO(scaleRuleMapper.selectByPrimaryKey(id));
+        return ScaleRuleVO.buildScaleRuleVO(scaleRuleRepository.findById(id).orElse(null));
     }
 
     /**
@@ -110,11 +106,9 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     @Override
     public int create(final ScaleRuleDTO scaleRuleDTO) {
         final ScaleRuleDO scaleRuleDO = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        int rows = scaleRuleMapper.insertSelective(scaleRuleDO);
-        if (rows > 0) {
-            runAfterCommit(() -> scaleRuleCache.addOrUpdateRuleToCache(scaleRuleDO));
-        }
-        return rows;
+        scaleRuleRepository.save(scaleRuleDO);
+        runAfterCommit(() -> scaleRuleCache.addOrUpdateRuleToCache(scaleRuleDO));
+        return 1;
     }
 
     /**
@@ -125,19 +119,39 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
-        final ScaleRuleDO before = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
-        final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
-        int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
-        if (rows > 0) {
-            final ScaleRuleDO persisted = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
-            runAfterCommit(() -> {
-                if (Objects.nonNull(before) && !Objects.equals(before.getMetricName(), after.getMetricName())) {
-                    scaleRuleCache.removeRulesFromCache(List.of(before.getMetricName()));
-                }
-                scaleRuleCache.addOrUpdateRuleToCache(persisted);
-            });
+        final ScaleRuleDO persisted = scaleRuleRepository.findById(scaleRuleDTO.getId()).orElse(null);
+        if (Objects.isNull(persisted)) {
+            return 0;
         }
-        return rows;
+        final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
+        final String beforeMetricName = persisted.getMetricName();
+        if (Objects.nonNull(after.getMetricName())) {
+            persisted.setMetricName(after.getMetricName());
+        }
+        if (Objects.nonNull(after.getType())) {
+            persisted.setType(after.getType());
+        }
+        if (Objects.nonNull(after.getSort())) {
+            persisted.setSort(after.getSort());
+        }
+        if (Objects.nonNull(after.getStatus())) {
+            persisted.setStatus(after.getStatus());
+        }
+        if (Objects.nonNull(after.getMinimum())) {
+            persisted.setMinimum(after.getMinimum());
+        }
+        if (Objects.nonNull(after.getMaximum())) {
+            persisted.setMaximum(after.getMaximum());
+        }
+        persisted.setDateUpdated(after.getDateUpdated());
+        scaleRuleRepository.save(persisted);
+        runAfterCommit(() -> {
+            if (!Objects.equals(beforeMetricName, after.getMetricName())) {
+                scaleRuleCache.removeRulesFromCache(List.of(beforeMetricName));
+            }
+            scaleRuleCache.addOrUpdateRuleToCache(persisted);
+        });
+        return 1;
     }
 
     /**
@@ -148,7 +162,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public int delete(final List<String> ids) {
-        int rows = scaleRuleMapper.delete(ids);
+        int rows = scaleRuleRepository.deleteByIds(ids);
         if (rows > 0) {
             runAfterCommit(() -> scaleRuleCache.removeRulesByIdsFromCache(ids));
         }

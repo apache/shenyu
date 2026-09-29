@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.scale.scaler;
 
-import org.apache.shenyu.admin.mapper.ScalePolicyMapper;
-import org.apache.shenyu.admin.mapper.ScaleRuleMapper;
+import org.apache.shenyu.admin.jpa.repository.ScalePolicyRepository;
+import org.apache.shenyu.admin.jpa.repository.ScaleRuleRepository;
 import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.scale.monitor.subject.cache.ScaleRuleCache;
@@ -31,34 +31,34 @@ import java.util.List;
 @Component
 public class ScaleTaskInitializer implements CommandLineRunner {
 
-    private final ScalePolicyMapper scalePolicyMapper;
+    private final ScalePolicyRepository scalePolicyRepository;
 
     private final ScalePolicyCache scalePolicyCache;
 
-    private final ScaleRuleMapper scaleRuleMapper;
+    private final ScaleRuleRepository scaleRuleRepository;
 
     private final ScaleRuleCache scaleRuleCache;
 
     private final ScaleService scaleService;
 
-    public ScaleTaskInitializer(final ScalePolicyMapper scalePolicyMapper,
+    public ScaleTaskInitializer(final ScalePolicyRepository scalePolicyRepository,
                                 final ScalePolicyCache scalePolicyCache,
                                 final ScaleService scaleService,
-                                final ScaleRuleMapper scaleRuleMapper,
+                                final ScaleRuleRepository scaleRuleRepository,
                                 final ScaleRuleCache scaleRuleCache) {
-        this.scalePolicyMapper = scalePolicyMapper;
+        this.scalePolicyRepository = scalePolicyRepository;
         this.scalePolicyCache = scalePolicyCache;
         this.scaleService = scaleService;
-        this.scaleRuleMapper = scaleRuleMapper;
+        this.scaleRuleRepository = scaleRuleRepository;
         this.scaleRuleCache = scaleRuleCache;
     }
 
     @Override
     public void run(final String... args) {
-        List<ScalePolicyDO> policies = scalePolicyMapper.selectAll();
+        List<ScalePolicyDO> policies = scalePolicyRepository.findAll();
         scalePolicyCache.initialize(policies);
 
-        List<ScaleRuleDO> rules = scaleRuleMapper.selectAll();
+        List<ScaleRuleDO> rules = scaleRuleRepository.findAll();
         scaleRuleCache.initialize(rules);
 
         scaleService.executeScaling();

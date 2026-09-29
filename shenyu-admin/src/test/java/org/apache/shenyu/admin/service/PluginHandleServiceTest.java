@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
@@ -63,14 +63,14 @@ public final class PluginHandleServiceTest {
     private PluginHandleMapper pluginHandleMapper;
 
     @Mock
-    private ShenyuDictMapper shenyuDictMapper;
-    
+    private ShenyuDictRepository shenyuDictRepository;
+
     @Mock
     private PluginHandleEventPublisher eventPublisher;
 
     @BeforeEach
     public void setUp() {
-        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper, eventPublisher);
+        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictRepository, eventPublisher);
     }
 
     @Test
@@ -170,7 +170,7 @@ public final class PluginHandleServiceTest {
         PluginHandleDO pluginHandleDO = buildPluginHandleDO();
         pluginHandleDO.setDataType(3);
         given(this.pluginHandleMapper.selectById("4")).willReturn(pluginHandleDO);
-        given(this.shenyuDictMapper.findByType(any())).willReturn(buildShenyuDictDOs());
+        given(this.shenyuDictRepository.findByType(any())).willReturn(buildShenyuDictDOs());
         final PluginHandleVO result = this.pluginHandleService.findById("4");
         assertThat(result, notNullValue());
         assertThat(result.getDictOptions().size(), equalTo(1));
@@ -220,7 +220,7 @@ public final class PluginHandleServiceTest {
         final List<PluginHandleDO> pluginHandleDOs = buildPluginHandleDOList();
         final List<ShenyuDictDO> shenyuDictDOList = buildShenyuDictDOs();
         given(this.pluginHandleMapper.selectByQuery(any())).willReturn(pluginHandleDOs);
-        given(this.shenyuDictMapper.findByTypeBatch(any())).willReturn(shenyuDictDOList);
+        given(this.shenyuDictRepository.findByTypeIn(any())).willReturn(shenyuDictDOList);
         final List<PluginHandleVO> result = pluginHandleService.list("4", 2);
         assertThat(result, notNullValue());
         assertEquals(pluginHandleDOs.size(), result.size());
@@ -243,7 +243,7 @@ public final class PluginHandleServiceTest {
         final List<PluginHandleDO> pluginHandleDOs = buildPluginHandleDOList();
         final List<ShenyuDictDO> shenyuDictDOList = buildShenyuDictDOs();
         given(this.pluginHandleMapper.selectByQuery(any())).willReturn(pluginHandleDOs);
-        given(this.shenyuDictMapper.findByTypeBatch(any())).willReturn(shenyuDictDOList);
+        given(this.shenyuDictRepository.findByTypeIn(any())).willReturn(shenyuDictDOList);
         final List<PluginHandleVO> result = pluginHandleService.listAllData();
         assertThat(result, notNullValue());
         assertEquals(pluginHandleDOs.size(), result.size());

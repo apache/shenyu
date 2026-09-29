@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
-import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.jpa.repository.ClusterMasterRepository;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.admin.model.entity.ClusterMasterDO;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,11 +67,11 @@ public final class ClusterSelectMasterServiceJdbcImplTest {
     private Lock clusterMasterLock;
     
     @Mock
-    private ClusterMasterMapper clusterMasterMapper;
+    private ClusterMasterRepository clusterMasterRepository;
     
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
-        clusterSelectMasterServiceJdbc = new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterMapper);
+        clusterSelectMasterServiceJdbc = new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterRepository);
         given(clusterMasterLock.tryLock()).willReturn(true);
         Field clusterMasterLockField = ClusterSelectMasterServiceJdbcImpl.class.getDeclaredField("clusterMasterLock");
         clusterMasterLockField.setAccessible(true);
@@ -81,11 +81,9 @@ public final class ClusterSelectMasterServiceJdbcImplTest {
     @Test
     void testSetMaster() {
         
-        given(clusterMasterMapper.insert(any())).willReturn(1);
-        
         clusterSelectMasterServiceJdbc.selectMaster(HOST, PORT, CONTEXT_PATH);
         
-        verify(clusterMasterMapper, times(1)).insert(any());
+        verify(clusterMasterRepository, times(1)).save(any());
     }
     
     @Test
@@ -93,7 +91,7 @@ public final class ClusterSelectMasterServiceJdbcImplTest {
         
         ClusterMasterDO clusterMasterDO = buildClusterMasterDO();
         
-        given(clusterMasterMapper.selectById(any())).willReturn(clusterMasterDO);
+        given(clusterMasterRepository.findById(any())).willReturn(java.util.Optional.of(clusterMasterDO));
         
         ClusterMasterDTO actual = clusterSelectMasterServiceJdbc.getMaster();
         

@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
@@ -65,15 +65,15 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     private final PluginHandleMapper pluginHandleMapper;
 
-    private final ShenyuDictMapper shenyuDictMapper;
+    private final ShenyuDictRepository shenyuDictRepository;
 
     private final PluginHandleEventPublisher eventPublisher;
 
     public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper,
-                                   final ShenyuDictMapper shenyuDictMapper,
+                                   final ShenyuDictRepository shenyuDictRepository,
                                    final PluginHandleEventPublisher eventPublisher) {
         this.pluginHandleMapper = pluginHandleMapper;
-        this.shenyuDictMapper = shenyuDictMapper;
+        this.shenyuDictRepository = shenyuDictRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -207,7 +207,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {
         List<ShenyuDictVO> dictOptions = null;
         if (Objects.nonNull(pluginHandleDO) && Objects.equals(pluginHandleDO.getDataType(), SELECT_BOX_DATA_TYPE)) {
-            dictOptions = shenyuDictMapper.findByType(pluginHandleDO.getField())
+            dictOptions = shenyuDictRepository.findByType(pluginHandleDO.getField())
                     .stream()
                     .filter(item -> Objects.equals(item.getEnabled(), Boolean.TRUE))
                     .map(ShenyuDictVO::buildShenyuDictVO)
@@ -225,7 +225,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
                 .collect(Collectors.toList());
 
         Map<String, List<ShenyuDictVO>> shenyuDictMap = CollectionUtils.isNotEmpty(fieldList)
-                ? Optional.ofNullable(shenyuDictMapper.findByTypeBatch(fieldList))
+                ? Optional.ofNullable(shenyuDictRepository.findByTypeIn(fieldList))
                 .orElseGet(ArrayList::new)
                 .stream()
                 .filter(item -> Objects.equals(item.getEnabled(), Boolean.TRUE))

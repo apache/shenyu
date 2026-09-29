@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.jpa.repository.ShenyuDictRepository;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.service.publish.PluginHandleEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,14 +38,14 @@ public final class PluginHandleServiceImplTest {
     private PluginHandleMapper pluginHandleMapper;
 
     @Mock
-    private ShenyuDictMapper shenyuDictMapper;
+    private ShenyuDictRepository shenyuDictRepository;
 
     @Mock
     private PluginHandleEventPublisher eventPublisher;
 
     @Test
     public void findByIdShouldNotThrowForUnknownId() {
-        PluginHandleServiceImpl service = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper, eventPublisher);
+        PluginHandleServiceImpl service = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictRepository, eventPublisher);
         when(pluginHandleMapper.selectById("missing")).thenReturn(null);
         assertNull(service.findById("missing"));
     }

@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
 import org.apache.shenyu.admin.mode.cluster.impl.jdbc.ClusterSelectMasterServiceJdbcImpl;
-import org.apache.shenyu.admin.mode.cluster.impl.jdbc.mapper.ClusterMasterMapper;
+import org.apache.shenyu.admin.jpa.repository.ClusterMasterRepository;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.slf4j.Logger;
@@ -93,14 +93,14 @@ public class ClusterJdbcConfiguration {
      *
      * @param clusterProperties the cluster properties
      * @param jdbcLockRegistry the jdbc lock registry
-     * @param clusterMasterMapper the cluster master mapper
+     * @param clusterMasterRepository the cluster master repository
      * @return the shenyu select master service
      */
     @Bean
     public ClusterSelectMasterService clusterSelectMasterJdbcService(final ClusterProperties clusterProperties,
                                                                      final JdbcLockRegistry jdbcLockRegistry,
-                                                                     final ClusterMasterMapper clusterMasterMapper) {
-        return new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterMapper);
+                                                                     final ClusterMasterRepository clusterMasterRepository) {
+        return new ClusterSelectMasterServiceJdbcImpl(clusterProperties, jdbcLockRegistry, clusterMasterRepository);
     }
     
 }

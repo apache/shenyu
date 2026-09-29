@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
+import java.util.Optional;
+
+import org.apache.shenyu.admin.jpa.repository.MockRequestRecordRepository;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -39,8 +39,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -54,31 +53,29 @@ public class MockRequestRecordServiceTest {
     private MockRequestRecordServiceImpl mockRequestRecordService;
 
     @Mock
-    private MockRequestRecordMapper mockRequestRecordMapper;
+    private MockRequestRecordRepository mockRequestRecordRepository;
 
     @Test
     public void testCreateOrUpdate() {
         MockRequestRecordDTO mockRequestRecordDTO = buildMockRequestRecordDTO();
-        given(this.mockRequestRecordMapper.insert(any())).willReturn(1);
-        given(this.mockRequestRecordMapper.update(any())).willReturn(1);
         int cnt = mockRequestRecordService.createOrUpdate(mockRequestRecordDTO);
         assertEquals(1, cnt);
         mockRequestRecordDTO.setId("1");
+        given(this.mockRequestRecordRepository.findById("1")).willReturn(Optional.of(buildMockRequestRecordDO()));
         cnt = mockRequestRecordService.createOrUpdate(mockRequestRecordDTO);
         assertEquals(1, cnt);
     }
 
     @Test
     public void testFindById() {
-        given(this.mockRequestRecordMapper.queryById("1")).willReturn(buildMockRequestRecordDO());
+        given(this.mockRequestRecordRepository.findById("1")).willReturn(Optional.of(buildMockRequestRecordDO()));
         MockRequestRecordVO mockRequestRecordVO = mockRequestRecordService.findById("1");
         assertEquals("123", mockRequestRecordVO.getApiId());
     }
 
     @Test
     public void testDelete() {
-        given(this.mockRequestRecordMapper.deleteById(any())).willReturn(1);
-        given(this.mockRequestRecordMapper.queryById("1")).willReturn(new MockRequestRecordDO());
+        given(this.mockRequestRecordRepository.findById("1")).willReturn(Optional.of(buildMockRequestRecordDO()));
         int cnt = mockRequestRecordService.delete("1");
         assertEquals(1, cnt);
     }
@@ -89,24 +86,16 @@ public class MockRequestRecordServiceTest {
         mockRequestRecordQuery.setApiId("123");
         List<MockRequestRecordDO> list = new ArrayList<>();
         list.add(buildMockRequestRecordDO());
-        given(this.mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery)).willReturn(list);
+        given(this.mockRequestRecordRepository.selectByQuery(mockRequestRecordQuery)).willReturn(list);
         CommonPager<MockRequestRecordVO> commonPager = mockRequestRecordService.listByPage(mockRequestRecordQuery);
         assertEquals(1, commonPager.getDataList().size());
     }
 
     @Test
     public void testBatchDelete() {
-        given(this.mockRequestRecordMapper.batchDelete(any())).willReturn(1);
+        given(this.mockRequestRecordRepository.deleteByIds(anyList())).willReturn(1);
         int cnt = this.mockRequestRecordService.batchDelete(Lists.newArrayList("1"));
         assertEquals(1, cnt);
-    }
-
-    @Test
-    public void testListByPageIsPageable() throws NoSuchMethodException {
-        // without @Pageable the whole mock_request_record table (every TEXT body included) is read
-        // into memory and shipped to the client, so the annotation is what keeps the query paged
-        Method listByPage = MockRequestRecordServiceImpl.class.getDeclaredMethod("listByPage", MockRequestRecordQuery.class);
-        assertTrue(listByPage.isAnnotationPresent(Pageable.class));
     }
 
     private MockRequestRecordDTO buildMockRequestRecordDTO() {

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.admin.mapper.RegistryMapper;
+import org.apache.shenyu.admin.jpa.repository.RegistryRepository;
 import org.apache.shenyu.admin.model.dto.RegistryDTO;
 import org.apache.shenyu.admin.model.entity.RegistryDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -40,10 +40,10 @@ import java.util.stream.Collectors;
 @Service
 public class RegistryServiceImpl implements RegistryService {
 
-    private final RegistryMapper registryMapper;
+    private final RegistryRepository registryRepository;
 
-    public RegistryServiceImpl(final RegistryMapper registryMapper) {
-        this.registryMapper = registryMapper;
+    public RegistryServiceImpl(final RegistryRepository registryRepository) {
+        this.registryRepository = registryRepository;
     }
 
     @Override
@@ -54,37 +54,36 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public CommonPager<RegistryVO> listByPage(final RegistryQuery registryQuery) {
-        return PageResultUtils.result(registryQuery.getPageParameter(), () -> registryMapper.countByQuery(registryQuery), () -> registryMapper.selectByQuery(registryQuery)
-                .stream()
-                .map(RegistryTransfer.INSTANCE::mapToVo)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(registryQuery.getPageParameter(),
+                registryRepository.selectByQuery(registryQuery, PageResultUtils.of(registryQuery.getPageParameter())),
+                RegistryTransfer.INSTANCE::mapToVo);
     }
 
     @Override
     public String delete(final List<String> ids) {
-        registryMapper.deleteByIds(ids);
+        registryRepository.deleteAllByIdInBatch(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 
     @Override
     public RegistryVO findById(final String id) {
-        return RegistryTransfer.INSTANCE.mapToVo(registryMapper.selectById(id));
+        return RegistryTransfer.INSTANCE.mapToVo(registryRepository.findById(id).orElse(null));
     }
 
     @Override
     public RegistryVO findByRegistryId(final String registryId) {
-        return RegistryTransfer.INSTANCE.mapToVo(registryMapper.selectByRegistryId(registryId));
+        return RegistryTransfer.INSTANCE.mapToVo(registryRepository.findByRegistryId(registryId).orElse(null));
     }
 
     @Override
     public List<RegistryVO> listAll() {
-        List<RegistryDO> registryDOS = registryMapper.selectAll();
+        List<RegistryDO> registryDOS = registryRepository.findAll();
         return registryDOS.stream().map(RegistryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
     }
 
 
     private RegistryVO create(final RegistryDTO registryDTO) {
-        RegistryDO existRegistryDO = registryMapper.selectByRegistryId(registryDTO.getRegistryId());
+        RegistryDO existRegistryDO = registryRepository.findByRegistryId(registryDTO.getRegistryId()).orElse(null);
         if (Objects.nonNull(existRegistryDO)) {
             throw new ShenyuAdminException("registry_id is already exist");
         }
@@ -103,7 +102,7 @@ public class RegistryServiceImpl implements RegistryService {
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
-        registryMapper.insert(registryDO);
+        registryRepository.save(registryDO);
 
         return RegistryTransfer.INSTANCE.mapToVo(registryDO);
     }
@@ -112,23 +111,37 @@ public class RegistryServiceImpl implements RegistryService {
         if (Objects.isNull(registryDTO) || Objects.isNull(registryDTO.getId())) {
             throw new ShenyuAdminException("registry is not exist");
         }
-        RegistryDO existRegistryDO = registryMapper.selectByRegistryId(registryDTO.getRegistryId());
+        RegistryDO existRegistryDO = registryRepository.findByRegistryId(registryDTO.getRegistryId()).orElse(null);
         if (Objects.nonNull(existRegistryDO) && !existRegistryDO.getId().equals(registryDTO.getId())) {
             throw new ShenyuAdminException("registry_id is already exist");
         }
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        RegistryDO registryDO = RegistryDO.builder()
-                .id(registryDTO.getId())
-                .registryId(registryDTO.getRegistryId())
-                .protocol(registryDTO.getProtocol())
-                .address(registryDTO.getAddress())
-                .namespace(registryDTO.getNamespace())
-                .username(registryDTO.getUsername())
-                .password(registryDTO.getPassword())
-                .registryGroup(registryDTO.getGroup())
-                .dateUpdated(currentTime)
-                .build();
-        return registryMapper.updateSelective(registryDO) > 0
-                ? RegistryTransfer.INSTANCE.mapToVo(registryDO) : null;
+        return registryRepository.findById(registryDTO.getId())
+                .map(registryDO -> {
+                    if (Objects.nonNull(registryDTO.getRegistryId())) {
+                        registryDO.setRegistryId(registryDTO.getRegistryId());
+                    }
+                    if (Objects.nonNull(registryDTO.getProtocol())) {
+                        registryDO.setProtocol(registryDTO.getProtocol());
+                    }
+                    if (Objects.nonNull(registryDTO.getAddress())) {
+                        registryDO.setAddress(registryDTO.getAddress());
+                    }
+                    if (Objects.nonNull(registryDTO.getNamespace())) {
+                        registryDO.setNamespace(registryDTO.getNamespace());
+                    }
+                    if (Objects.nonNull(registryDTO.getUsername())) {
+                        registryDO.setUsername(registryDTO.getUsername());
+                    }
+                    if (Objects.nonNull(registryDTO.getPassword())) {
+                        registryDO.setPassword(registryDTO.getPassword());
+                    }
+                    if (Objects.nonNull(registryDTO.getGroup())) {
+                        registryDO.setRegistryGroup(registryDTO.getGroup());
+                    }
+                    registryDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                    RegistryDO saved = registryRepository.save(registryDO);
+                    return RegistryTransfer.INSTANCE.mapToVo(saved);
+                })
+                .orElse(null);
     }
 }
