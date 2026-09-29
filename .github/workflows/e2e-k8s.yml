@@ -387,6 +387,8 @@ jobs:
       #          detached: true
 
       - name: Run E2E Tests
+        env:
+          E2E_SYNC_TYPE: ${{ matrix.sync }}
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 

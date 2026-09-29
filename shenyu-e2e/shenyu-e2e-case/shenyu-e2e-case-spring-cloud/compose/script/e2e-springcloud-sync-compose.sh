@@ -24,7 +24,11 @@ bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper")
+if [[ -n "${E2E_SYNC_TYPE:-}" ]]; then
+  SYNC_ARRAY=("${E2E_SYNC_TYPE}")
+else
+  SYNC_ARRAY=("websocket" "http" "zookeeper")
+fi
 #SYNC_ARRAY=("websocket" "nacos")
 #MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 

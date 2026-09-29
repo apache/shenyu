@@ -461,7 +461,11 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
       }
     }[.];
 
-  {include: map(select(length > 0) | ({script: .} + case_config))}
+  {include: [
+    .[] | select(length > 0) as $script
+    | ["websocket", "http", "zookeeper"][] as $sync
+    | ({script: $script} + ($script | case_config) + {sync: $sync})
+  ]}
 ')"
 integration_matrix="$(printf '%s\n' "${integration_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:.})}')"
 k8s_ingress_matrix="$(printf '%s\n' "${k8s_ingress_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:.})}')"
