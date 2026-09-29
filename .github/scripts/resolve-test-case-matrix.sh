@@ -23,7 +23,7 @@ full_required=false
 storage_cases=()
 e2e_cases=()
 integration_cases=()
-run_k8s_ingress=false
+k8s_ingress_cases=()
 run_k8s_examples=false
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -76,6 +76,13 @@ add_integration_all() {
   add_unique integration_cases "shenyu-integrated-test-sdk-http"
 }
 
+add_k8s_ingress_all() {
+  add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-http"
+  add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-apache-dubbo"
+  add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-websocket"
+  add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-grpc"
+}
+
 is_ignored_change() {
   local file="$1"
 
@@ -88,22 +95,62 @@ is_ignored_change() {
   return 1
 }
 
+is_cross_domain_test_change() {
+  local file="$1"
+
+  case "${mode}" in
+    e2e)
+      [[ "${file}" == shenyu-integrated-test/* ]]
+      ;;
+    integration)
+      [[ "${file}" == shenyu-e2e/* || "${file}" == shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/* ]]
+      ;;
+    k8s-ingress)
+      if [[ "${file}" == shenyu-e2e/* ]]; then
+        return 0
+      fi
+      if [[ "${file}" == shenyu-integrated-test/* && "${file}" != shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/* ]]; then
+        return 0
+      fi
+      return 1
+      ;;
+    k8s-examples-http)
+      [[ "${file}" == shenyu-e2e/* || "${file}" == shenyu-integrated-test/* ]]
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 resolve_k8s_change() {
   local file="$1"
 
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
       pom.xml|mvnw|mvnw.cmd|.mvn/*|\
-      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/*|\
       shenyu-kubernetes-controller/*|\
       shenyu-common/*|shenyu-web/*|shenyu-bootstrap/*|shenyu-admin/*|\
       shenyu-admin-listener/*|shenyu-sync-data-center/*|\
       shenyu-loadbalancer/*|shenyu-protocol/*|shenyu-register-center/*|shenyu-registry/*|\
       shenyu-plugin/pom.xml|shenyu-plugin/shenyu-plugin-api/*|shenyu-plugin/shenyu-plugin-base/*|\
-      shenyu-spring-boot-starter/pom.xml|\
-      *apache-dubbo*|*shenyu-plugin-dubbo*|*grpc*|*websocket*|*divide*|*springmvc*|\
-      shenyu-examples/shenyu-examples-http*/*)
-        run_k8s_ingress=true
+      shenyu-plugin/shenyu-plugin-proxy/pom.xml|shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/pom.xml|\
+      shenyu-spring-boot-starter/pom.xml|shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/pom.xml)
+        add_k8s_ingress_all
+        ;;
+      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-http/*|\
+      *divide*|*springmvc*|*http*)
+        add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-http"
+        ;;
+      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/*|\
+      *apache-dubbo*|*shenyu-plugin-dubbo*|*shenyu-client-dubbo*|*shenyu-examples-dubbo*)
+        add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-apache-dubbo"
+        ;;
+      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-websocket/*|*websocket*)
+        add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-websocket"
+        ;;
+      shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-grpc/*|*grpc*)
+        add_unique k8s_ingress_cases "shenyu-integrated-test-k8s-ingress-grpc"
         ;;
     esac
     return 0
@@ -303,7 +350,22 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
+  if [[ "${mode}" == "k8s-ingress" ]]; then
+    case "${file}" in
+      .github/workflows/integrated-test-k8s-ingress.yml|\
+      .github/scripts/resolve-test-case-matrix.sh|\
+      .github/scripts/resolve-k8s-ingress-matrix-test.sh)
+        add_k8s_ingress_all
+        continue
+        ;;
+    esac
+  fi
+
   if is_ignored_change "${file}"; then
+    continue
+  fi
+
+  if is_cross_domain_test_change "${file}"; then
     continue
   fi
 
@@ -361,11 +423,13 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
   {include: map(select(length > 0) | ({script: .} + case_config))}
 ')"
 integration_matrix="$(printf '%s\n' "${integration_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:.})}')"
+k8s_ingress_matrix="$(printf '%s\n' "${k8s_ingress_cases[@]}" | jq -R . | jq -cs '{include: map(select(length > 0) | {case:.})}')"
 
 run_storage=$([[ "${#storage_cases[@]}" -gt 0 ]] && echo true || echo false)
 run_e2e_cases=$([[ "${#e2e_cases[@]}" -gt 0 ]] && echo true || echo false)
 run_e2e=$([[ "${run_storage}" == "true" || "${run_e2e_cases}" == "true" ]] && echo true || echo false)
 run_integration=$([[ "${#integration_cases[@]}" -gt 0 ]] && echo true || echo false)
+run_k8s_ingress=$([[ "${#k8s_ingress_cases[@]}" -gt 0 ]] && echo true || echo false)
 
 {
   echo "run_storage=${run_storage}"
@@ -375,6 +439,7 @@ run_integration=$([[ "${#integration_cases[@]}" -gt 0 ]] && echo true || echo fa
   echo "e2e_matrix=${e2e_matrix}"
   echo "run_integration=${run_integration}"
   echo "integration_matrix=${integration_matrix}"
+  echo "k8s_ingress_matrix=${k8s_ingress_matrix}"
   echo "full_required=${full_required}"
   echo "run_k8s_ingress=${run_k8s_ingress}"
   echo "run_k8s_examples=${run_k8s_examples}"
@@ -384,5 +449,6 @@ echo "Full required: ${full_required}"
 echo "Storage matrix: ${storage_matrix}"
 echo "E2E matrix: ${e2e_matrix}"
 echo "Integration matrix: ${integration_matrix}"
+echo "K8s ingress matrix: ${k8s_ingress_matrix}"
 echo "Run k8s ingress: ${run_k8s_ingress}"
 echo "Run k8s examples: ${run_k8s_examples}"
