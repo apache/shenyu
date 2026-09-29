@@ -42,6 +42,17 @@
         enabled
     </sql>
 
+    <sql id="List_Column_List">
+        id,
+        date_created,
+        date_updated,
+        name,
+        config,
+        role,
+        sort,
+        enabled
+    </sql>
+
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
@@ -86,7 +97,7 @@
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
             resultMap="BaseResultMap">
         SELECT
-               <include refid="Base_Column_List"/>
+               <include refid="List_Column_List"/>
           FROM plugin
         <where>
             <if test="name != null and name != ''">
