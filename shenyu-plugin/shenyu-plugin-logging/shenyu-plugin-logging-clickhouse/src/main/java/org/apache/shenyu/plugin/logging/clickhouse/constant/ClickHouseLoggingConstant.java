@@ -62,14 +62,21 @@ public class ClickHouseLoggingConstant {
     public static final String CREATE_DISTRIBUTED_TABLE_SQL = "create table if not exists `%s`.request_log_distributed\n"
             + " AS `%s`.request_log ENGINE = Distributed('%s', '%s', 'request_log', rand());";
 
-    /**
-     * The constant PRE_INSERT_SQL.
-     */
-    public static final String PRE_INSERT_SQL = "INSERT INTO `%s`.request_log_distributed"
+    private static final String INSERT_SQL_TEMPLATE = "INSERT INTO `%s`.%s"
             + "(timeLocal, clientIp, method, requestHeader, responseHeader, queryParams, "
             + "requestBody, requestUri, responseBody, responseContentLength, rpcType, status, upstreamIp, upstreamResponseTime, userAgent, host, module, traceId, path) "
             + "VALUES "
             + "(:timeLocal, :clientIp,:method, :requestHeader, :responseHeader, :queryParams,"
             + " :requestBody, :requestUri, :responseBody, :responseContentLength, :rpcType, :status, :upstreamIp, :upstreamResponseTime, :userAgent, :host, :module, :traceId, :path);";
+
+    /**
+     * Insert logs through the cluster's distributed table.
+     */
+    public static final String PRE_INSERT_SQL = String.format(INSERT_SQL_TEMPLATE, "%s", "request_log_distributed");
+
+    /**
+     * Insert logs directly into a standalone server's local table.
+     */
+    public static final String LOCAL_PRE_INSERT_SQL = String.format(INSERT_SQL_TEMPLATE, "%s", "request_log");
 
 }

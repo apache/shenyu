@@ -153,19 +153,13 @@
 
     <select id="pathExistedExclude" resultType="java.lang.Boolean">
         SElECT true
-        FROM meta_data m
-        WHERE m.path = #{path}
-        AND m.namespace_id = #{namespaceId}
-        AND NOT EXISTS
-        (
-            SELECT 1
-            FROM meta_data x
-            WHERE x.id = m.id
-            AND x.id IN
-            <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        )
+        FROM meta_data
+        WHERE path = #{path}
+        AND namespace_id = #{namespaceId}
+        AND id NOT IN
+        <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
         LIMIT 1
     </select>
 

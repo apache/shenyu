@@ -36,6 +36,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -247,42 +248,26 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         assertThat(result, comparesEqualTo(idList.size()));
     }
 
+    /**
+     * The path uniqueness check on update must be scoped to the namespace,
+     * otherwise a path that only exists in another namespace blocks the update.
+     */
     @Test
-    public void pathExistedExclude() {
+    public void pathExistedExcludeIsScopedByNamespace() {
         MetaDataDO metaDataDO = getMetaDataDO();
-        int count = metaDataMapper.insert(metaDataDO);
-        assertThat(count, comparesEqualTo(1));
+        metaDataDO.setPath("/namespace-scoped-path");
+        metaDataDO.setNamespaceId("namespace-a");
+        assertThat(metaDataMapper.insert(metaDataDO), comparesEqualTo(1));
 
-        // the own row id is excluded, the same path in the same namespace is ignored
-        Boolean excluded = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
-                SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(metaDataDO.getId()));
-        assertTrue(!Boolean.TRUE.equals(excluded));
-
-        // another row with the same path in the same namespace is detected
-        MetaDataDO sameNamespace = getMetaDataDO();
-        int sameNamespaceCount = metaDataMapper.insert(sameNamespace);
-        assertThat(sameNamespaceCount, comparesEqualTo(1));
-        Boolean existed = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
-                SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(metaDataDO.getId()));
-        assertTrue(Boolean.TRUE.equals(existed));
-    }
-
-    @Test
-    public void pathExistedExcludeIsNamespaceScoped() {
-        MetaDataDO metaDataDO = getMetaDataDO();
-        int count = metaDataMapper.insert(metaDataDO);
-        assertThat(count, comparesEqualTo(1));
-
-        // the same path in another namespace must not be reported
-        MetaDataDO otherNamespace = getMetaDataDO();
-        otherNamespace.setPath(metaDataDO.getPath());
-        otherNamespace.setNamespaceId("other-namespace");
-        int otherNamespaceCount = metaDataMapper.insert(otherNamespace);
-        assertThat(otherNamespaceCount, comparesEqualTo(1));
-
-        Boolean existed = metaDataMapper.pathExistedExclude(metaDataDO.getPath(),
-                "other-namespace", Collections.singletonList(otherNamespace.getId()));
-        assertTrue(!Boolean.TRUE.equals(existed));
+        // the same path inside the same namespace still collides (the row itself excluded)
+        assertThat(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-a",
+                Collections.singletonList("another-id")), comparesEqualTo(Boolean.TRUE));
+        // while the path merely existing in another namespace must not
+        assertNull(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-b",
+                Collections.singletonList("another-id")));
+        // and the row being updated is excluded from its own check
+        assertNull(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-a",
+                Collections.singletonList(metaDataDO.getId())));
     }
 
     private MetaDataDO getMetaDataDO() {
