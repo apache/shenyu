@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -197,6 +198,28 @@ public class DefaultDiscoveryProcessorTest {
         defaultDiscoveryProcessor.removeDiscovery(discoveryDO);
         verify(shenyuDiscoveryService).close();
 
+    }
+
+    @Test
+    public void testRemoveProxySelectorAfterDiscoveryRemoved() throws NoSuchFieldException, IllegalAccessException {
+        defaultDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
+        // simulate removeDiscovery: it drops only the discoveryServiceCache entry and leaves the
+        // listener-cache key registered by createProxySelector behind
+        final Field serviceCacheField = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField("discoveryServiceCache");
+        serviceCacheField.setAccessible(true);
+        Map<String, ShenyuInstanceRegisterRepository> serviceCache = (Map<String, ShenyuInstanceRegisterRepository>) serviceCacheField.get(defaultDiscoveryProcessor);
+        serviceCache.remove("id");
+        final Field listenerCacheField = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField("dataChangedEventListenerCache");
+        listenerCacheField.setAccessible(true);
+        Map<String, Set> listenerCache = (Map<String, Set>) listenerCacheField.get(defaultDiscoveryProcessor);
+        listenerCache.put("id", new HashSet<>(Collections.singleton("/shenyu/discovery")));
+
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setListenerNode("/shenyu/discovery");
+        defaultDiscoveryProcessor.removeProxySelector(discoveryHandlerDTO, new ProxySelectorDTO());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 
 }
