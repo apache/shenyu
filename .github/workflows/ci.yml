@@ -78,6 +78,10 @@ jobs:
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
+      - name: Test CI case resolver
+        run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test CI domain routing
+        run: bash .github/scripts/resolve-test-domain-routing-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -163,7 +167,7 @@ jobs:
           MODULE_ARGS=""
 
           if [[ "${{ needs.changes.outputs.full_build_required }}" != "true" && -n "${{ needs.changes.outputs.modules }}" ]]; then
-            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am -amd"
+            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am"
           fi
 
           if mvnd --version > /dev/null 2>&1; then

@@ -39,6 +39,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,8 +48,10 @@ import java.util.Objects;
  * The sensitive word plugin, it rejects the request when its body contains a word of the dictionary
  * configured for the matched rule.
  *
- * <p>The dictionary is read from a redis set, so it can be maintained outside of shenyu. A loaded
- * dictionary is reused for the refresh interval of the rule handle, see {@link SensitiveWordHandle}.
+ * <p>The dictionary is the union of the words configured on the rule itself and the redis set the
+ * rule points at, so a small list can be kept next to the rule and a large one outside of shenyu.
+ * A loaded dictionary is reused for the refresh interval of the rule handle, see
+ * {@link SensitiveWordHandle}.
  */
 public class SensitiveWordPlugin extends AbstractShenyuPlugin {
 
@@ -88,6 +92,13 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
             LOG.warn("sensitive word plugin: the redis template is not initialized, skip the sensitive word check");
             return chain.execute(exchange);
         }
+        // The declared size is checked before the body is buffered, so that an oversized body is
+        // never collected in memory. A body whose size is not declared (a chunked request) is
+        // checked again once it has been read, see check(...).
+        long declaredSize = exchange.getRequest().getHeaders().getContentLength();
+        if (isOversized(handle, declaredSize)) {
+            return oversized(exchange, chain, handle, declaredSize);
+        }
         return ServerWebExchangeUtils.rewriteRequestBody(exchange, readers,
                         body -> check(exchange, redisTemplate, handle, body))
                 .flatMap(chain::execute)
@@ -103,6 +114,18 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                                final ReactiveRedisTemplate<String, String> redisTemplate,
                                final SensitiveWordHandle handle,
                                final String body) {
+        // A body of n characters is at least n bytes, so this only ever matches a body that is
+        // oversized for sure: it catches the requests whose size was not declared up front.
+        if (isOversized(handle, body.length())) {
+            if (handle.isFailClosed()) {
+                LOG.warn("sensitive word plugin: the body of {} characters exceeds maxBodySize {} and failClosed"
+                        + " is set, the request is rejected", body.length(), handle.getMaxBodySize());
+                return Mono.error(new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
+            }
+            LOG.warn("sensitive word plugin: the body of {} characters exceeds maxBodySize {},"
+                    + " the body is not scanned", body.length(), handle.getMaxBodySize());
+            return Mono.just(body);
+        }
         return dictionary(exchange, redisTemplate, handle)
                 .map(automaton -> automaton.search(body))
                 .flatMap(matches -> {
@@ -118,10 +141,50 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
     }
 
     /**
-     * Get the dictionary of the rule, it is read from redis when the cached one is missing or
-     * expired. The request is never blocked by the dictionary: a dictionary that cannot be read
-     * is treated as empty, so that a broken redis never stops the traffic.
+     * Whether the request must not be scanned because of its size. The bound is expressed in bytes,
+     * like the declared size of a request; a size that is not declared (-1) and a bound of zero
+     * (unlimited) never match.
      *
+     * @param handle the rule handle
+     * @param size the size of the request or of its body
+     * @return true when the size exceeds the bound of the rule
+     */
+    private boolean isOversized(final SensitiveWordHandle handle, final long size) {
+        return handle.getMaxBodySize() > 0L && size > handle.getMaxBodySize();
+    }
+
+    /**
+     * An oversized request that has not been read yet: with failClosed it is rejected, because the
+     * gateway cannot tell whether it carries forbidden content, otherwise it is passed through
+     * without being buffered.
+     *
+     * @param exchange the current server exchange
+     * @param chain the plugin chain
+     * @param handle the rule handle
+     * @param size the declared size of the request
+     * @return the result of the request
+     */
+    private Mono<Void> oversized(final ServerWebExchange exchange,
+                                 final ShenyuPluginChain chain,
+                                 final SensitiveWordHandle handle,
+                                 final long size) {
+        if (handle.isFailClosed()) {
+            LOG.warn("sensitive word plugin: the request of {} bytes exceeds maxBodySize {}, failClosed is set,"
+                    + " the request is rejected", size, handle.getMaxBodySize());
+            return WebFluxResultUtils.failedResult(
+                    new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
+        }
+        LOG.warn("sensitive word plugin: the request of {} bytes exceeds maxBodySize {},"
+                + " the body is not scanned", size, handle.getMaxBodySize());
+        return chain.execute(exchange);
+    }
+
+    /**
+     * Get the dictionary of the rule, it is the union of the words of the rule and of the redis set
+     * it points at. The redis set is read when the cached automaton is missing or expired, and the
+     * words of the rule are enforced even when the redis set cannot be read.
+     *
+     * @param exchange the current server exchange
      * @param redisTemplate the redis template
      * @param handle the rule handle
      * @return the automaton of the dictionary
@@ -131,7 +194,9 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                                          final SensitiveWordHandle handle) {
         String redisKey = Objects.isNull(handle.getRedisKey())
                 ? SensitiveWordHandle.DEFAULT_REDIS_KEY : handle.getRedisKey();
-        CachedDictionary cached = SensitiveWordPluginDataHandler.DICTIONARIES.get().obtainHandle(redisKey);
+        String dictionaryKey = handle.dictionaryKey();
+        List<String> words = parseWords(handle.getWords());
+        CachedDictionary cached = SensitiveWordPluginDataHandler.DICTIONARIES.get().obtainHandle(dictionaryKey);
         Mono<AhoCorasick> automaton;
         if (Objects.nonNull(cached) && !cached.isExpired(handle.getRefreshIntervalSeconds())) {
             automaton = Mono.just(cached.getAutomaton());
@@ -140,14 +205,18 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                     .members(redisKey)
                     .collectList()
                     // building the automaton is cpu bound, keep it away from the event loop
-                    .map(AhoCorasick::of)
+                    .map(loaded -> AhoCorasick.of(merge(loaded, words)))
                     .subscribeOn(Schedulers.boundedElastic())
                     .doOnNext(loaded -> SensitiveWordPluginDataHandler.DICTIONARIES.get()
-                            .cachedHandle(redisKey, new CachedDictionary(loaded)))
+                            .cachedHandle(dictionaryKey, new CachedDictionary(loaded)))
                     .onErrorResume(error -> {
                         LOG.error("sensitive word plugin: cannot read the dictionary from redis key {}", redisKey, error);
                         if (Objects.nonNull(cached)) {
                             return Mono.just(cached.getAutomaton());
+                        }
+                        if (!words.isEmpty()) {
+                            // the words of the rule do not depend on redis, they are still enforced
+                            return Mono.just(AhoCorasick.of(words));
                         }
                         if (handle.isFailClosed()) {
                             LOG.warn("sensitive word plugin: no dictionary is available and failClosed is set,"
@@ -162,6 +231,36 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
         // The cached path emits on the thread that subscribes to it, which is the netty event loop
         // of the request being filtered: hop once here so that the scan below never runs on it.
         return automaton.publishOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * The words of the rule, separated by commas or by newlines, so that a word may contain spaces.
+     *
+     * @param words the words configured on the rule
+     * @return the distinct words, in the order they were configured
+     */
+    private List<String> parseWords(final String words) {
+        if (Objects.isNull(words) || words.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> parsed = new ArrayList<>();
+        for (String word : words.split("[,\\n\\r]+")) {
+            String trimmed = word.trim();
+            if (!trimmed.isEmpty() && !parsed.contains(trimmed)) {
+                parsed.add(trimmed);
+            }
+        }
+        return parsed;
+    }
+
+    private List<String> merge(final List<String> loaded, final List<String> words) {
+        if (words.isEmpty()) {
+            return loaded;
+        }
+        List<String> merged = new ArrayList<>(loaded.size() + words.size());
+        merged.addAll(loaded);
+        merged.addAll(words);
+        return merged;
     }
 
     @Override

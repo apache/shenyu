@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import java.util.Objects;
+
 /**
  * The sensitive word rule handle, it tells the plugin where the dictionary lives and how long a
  * loaded dictionary may be reused.
@@ -45,6 +47,19 @@ public class SensitiveWordHandle {
      * traffic down. Deployments with a hard compliance requirement can opt into blocking.
      */
     private boolean failClosed;
+
+    /**
+     * The words configured on the rule itself, separated by commas or by newlines. They are merged
+     * with the dictionary read from redis, so a small list is easier to keep next to the rule and a
+     * large one stays outside of shenyu.
+     */
+    private String words;
+
+    /**
+     * The largest request body that is scanned, in bytes. A body above it is not buffered: it is
+     * passed through unscanned, or rejected when {@link #failClosed} is set. Zero scans every body.
+     */
+    private long maxBodySize;
 
     /**
      * get redis key.
@@ -98,6 +113,54 @@ public class SensitiveWordHandle {
      */
     public void setFailClosed(final boolean failClosed) {
         this.failClosed = failClosed;
+    }
+
+    /**
+     * get the words configured on the rule.
+     *
+     * @return the words, separated by commas or by newlines
+     */
+    public String getWords() {
+        return words;
+    }
+
+    /**
+     * set the words configured on the rule.
+     *
+     * @param words the words, separated by commas or by newlines
+     */
+    public void setWords(final String words) {
+        this.words = words;
+    }
+
+    /**
+     * get the largest request body that is scanned.
+     *
+     * @return the maximum body size in bytes, zero means unlimited
+     */
+    public long getMaxBodySize() {
+        return maxBodySize;
+    }
+
+    /**
+     * set the largest request body that is scanned.
+     *
+     * @param maxBodySize the maximum body size in bytes, zero means unlimited
+     */
+    public void setMaxBodySize(final long maxBodySize) {
+        this.maxBodySize = maxBodySize;
+    }
+
+    /**
+     * The cache key of the automaton this rule scans with: the redis key plus the words of the rule,
+     * so that two rules reading the same redis set but adding different words never share one
+     * automaton, and so that a changed word list is compiled again.
+     *
+     * @return the cache key of the dictionary
+     */
+    public String dictionaryKey() {
+        String key = Objects.isNull(redisKey) || redisKey.trim().isEmpty() ? DEFAULT_REDIS_KEY : redisKey;
+        return Objects.isNull(words) || words.trim().isEmpty() ? key : key + '|' + words.trim();
     }
 
     /**
