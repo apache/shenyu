@@ -95,6 +95,34 @@ is_ignored_change() {
   return 1
 }
 
+is_cross_domain_test_change() {
+  local file="$1"
+
+  case "${mode}" in
+    e2e)
+      [[ "${file}" == shenyu-integrated-test/* ]]
+      ;;
+    integration)
+      [[ "${file}" == shenyu-e2e/* || "${file}" == shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/* ]]
+      ;;
+    k8s-ingress)
+      if [[ "${file}" == shenyu-e2e/* ]]; then
+        return 0
+      fi
+      if [[ "${file}" == shenyu-integrated-test/* && "${file}" != shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-*/* ]]; then
+        return 0
+      fi
+      return 1
+      ;;
+    k8s-examples-http)
+      [[ "${file}" == shenyu-e2e/* || "${file}" == shenyu-integrated-test/* ]]
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 resolve_k8s_change() {
   local file="$1"
 
@@ -334,6 +362,10 @@ while IFS= read -r file; do
   fi
 
   if is_ignored_change "${file}"; then
+    continue
+  fi
+
+  if is_cross_domain_test_change "${file}"; then
     continue
   fi
 
