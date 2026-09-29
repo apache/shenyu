@@ -55,6 +55,7 @@ public interface SelectorMapper extends ExistProvider {
      * Select selector by a list of ids.
      *
      * @param idSet a list of ids
+     * @param namespaceId the namespace id
      * @return a list of {@linkplain SelectorDO}
      */
     List<SelectorDO> selectByIdSet(@Param("idSet") Set<String> idSet, @Param("namespaceId") String namespaceId);
@@ -166,6 +167,7 @@ public interface SelectorMapper extends ExistProvider {
      * delete selector.
      *
      * @param ids primary keys.
+     * @param namespaceId the namespace id
      * @return rows int
      */
     int deleteByIds(@Param("list") List<String> ids, @Param("namespaceId") String namespaceId);

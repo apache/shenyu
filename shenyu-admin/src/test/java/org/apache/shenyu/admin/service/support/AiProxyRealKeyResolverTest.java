@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -88,14 +89,14 @@ public final class AiProxyRealKeyResolverTest {
     public void testResolveRealKeysWithNullInput() {
         Map<String, String> result = resolver.resolveRealKeys(null);
         assertThat(result, is(Collections.emptyMap()));
-        verify(selectorMapper, never()).selectByIdSet(any());
+        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
     public void testResolveRealKeysWithEmptyInput() {
         Map<String, String> result = resolver.resolveRealKeys(Collections.emptySet());
         assertThat(result, is(Collections.emptyMap()));
-        verify(selectorMapper, never()).selectByIdSet(any());
+        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -114,7 +115,7 @@ public final class AiProxyRealKeyResolverTest {
         assertThat(result, hasKey(SELECTOR_ID_1));
         assertThat(result, hasEntry(SELECTOR_ID_1, API_KEY_1));
         // Should not query database for cached entries
-        verify(selectorMapper, never()).selectByIdSet(any());
+        verify(selectorMapper, never()).selectByIdSet(any(), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -127,14 +128,14 @@ public final class AiProxyRealKeyResolverTest {
         selectorIds.add(SELECTOR_ID_1);
         selectorIds.add(SELECTOR_ID_2);
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(List.of(selector1, selector2));
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(List.of(selector1, selector2));
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
         assertThat(result.size(), is(2));
         assertThat(result, hasEntry(SELECTOR_ID_1, API_KEY_1));
         assertThat(result, hasEntry(SELECTOR_ID_2, API_KEY_2));
-        verify(selectorMapper, times(1)).selectByIdSet(selectorIds);
+        verify(selectorMapper, times(1)).selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -150,7 +151,7 @@ public final class AiProxyRealKeyResolverTest {
         selectorIds.add(SELECTOR_ID_1);
         selectorIds.add(SELECTOR_ID_2);
 
-        when(selectorMapper.selectByIdSet(Set.of(SELECTOR_ID_2))).thenReturn(List.of(selector2));
+        when(selectorMapper.selectByIdSet(Set.of(SELECTOR_ID_2), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(List.of(selector2));
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
@@ -158,7 +159,7 @@ public final class AiProxyRealKeyResolverTest {
         assertThat(result, hasEntry(SELECTOR_ID_1, API_KEY_1));
         assertThat(result, hasEntry(SELECTOR_ID_2, API_KEY_2));
         // Should only query for selector2
-        verify(selectorMapper, times(1)).selectByIdSet(Set.of(SELECTOR_ID_2));
+        verify(selectorMapper, times(1)).selectByIdSet(Set.of(SELECTOR_ID_2), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -167,20 +168,20 @@ public final class AiProxyRealKeyResolverTest {
         Set<String> selectorIds = new HashSet<>();
         selectorIds.add(SELECTOR_ID_NOT_EXIST);
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(Collections.emptyList());
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(Collections.emptyList());
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
         assertThat(result.size(), is(1));
         assertThat(result, hasKey(SELECTOR_ID_NOT_EXIST));
         assertThat(result.get(SELECTOR_ID_NOT_EXIST), is(nullValue()));
-        verify(selectorMapper, times(1)).selectByIdSet(selectorIds);
+        verify(selectorMapper, times(1)).selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
 
         // Verify null is cached - second call should not query database
         Map<String, String> result2 = resolver.resolveRealKeys(selectorIds);
         assertThat(result2, hasKey(SELECTOR_ID_NOT_EXIST));
         assertThat(result2.get(SELECTOR_ID_NOT_EXIST), is(nullValue()));
-        verify(selectorMapper, times(1)).selectByIdSet(selectorIds);
+        verify(selectorMapper, times(1)).selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Test
@@ -190,7 +191,7 @@ public final class AiProxyRealKeyResolverTest {
         Set<String> selectorIds = new HashSet<>();
         selectorIds.add(SELECTOR_ID_1);
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(List.of(selector));
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(List.of(selector));
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
@@ -206,7 +207,7 @@ public final class AiProxyRealKeyResolverTest {
         Set<String> selectorIds = new HashSet<>();
         selectorIds.add(SELECTOR_ID_1);
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(List.of(selector));
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(List.of(selector));
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
@@ -222,7 +223,7 @@ public final class AiProxyRealKeyResolverTest {
         selectorIds.add(SELECTOR_ID_NOT_EXIST);
         selectorIds.add("another-not-exist");
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(Collections.emptyList());
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(Collections.emptyList());
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 
@@ -239,7 +240,7 @@ public final class AiProxyRealKeyResolverTest {
         Set<String> selectorIds = new HashSet<>();
         selectorIds.add(SELECTOR_ID_1);
 
-        when(selectorMapper.selectByIdSet(selectorIds)).thenReturn(null);
+        when(selectorMapper.selectByIdSet(selectorIds, SYS_DEFAULT_NAMESPACE_ID)).thenReturn(null);
 
         Map<String, String> result = resolver.resolveRealKeys(selectorIds);
 

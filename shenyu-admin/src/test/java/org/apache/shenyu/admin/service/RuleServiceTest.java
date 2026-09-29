@@ -389,7 +389,7 @@ public final class RuleServiceTest {
         SelectorDO selectorDO = buildSelectorDO();
         given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
         given(this.pluginMapper.selectById("789")).willReturn(pluginDO);
-        given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
+        given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));
         given(this.ruleConditionMapper.selectByRuleIdSet(Sets.newHashSet("123"))).willReturn(Collections.singletonList(buildRuleConditionDO()));
     }
