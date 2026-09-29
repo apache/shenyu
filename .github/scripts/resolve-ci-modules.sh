@@ -82,7 +82,7 @@ is_ignored_change() {
   local file="$1"
 
   case "${file}" in
-    .github/*|*.md|*.txt|resources/static/*|.asf.yaml|.gitignore|.licenserc.yaml|LICENSE|NOTICE|*/LICENSE|*/NOTICE)
+    .github/*|shenyu-e2e/*|shenyu-integrated-test/*|*.md|*.txt|resources/static/*|.asf.yaml|.gitignore|.licenserc.yaml|LICENSE|NOTICE|*/LICENSE|*/NOTICE)
       return 0
       ;;
   esac
