@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -196,6 +197,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                         .ifPresent(data -> removeCacheData(classData));
             }
         } catch (Exception e) {
+            if (InitialSyncApplication.isActive()) {
+                throw new IllegalStateException("Initial configuration application failed", e);
+            }
             LOG.error("subscribe data handler error, classData: {}, dataType: {}", JsonUtils.toJson(classData), dataType, e);
         }
     }
