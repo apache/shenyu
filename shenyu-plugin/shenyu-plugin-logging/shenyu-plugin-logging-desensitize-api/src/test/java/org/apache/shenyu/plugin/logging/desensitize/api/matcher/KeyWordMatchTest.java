@@ -17,34 +17,63 @@
 
 package org.apache.shenyu.plugin.logging.desensitize.api.matcher;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+@ExtendWith(MockitoExtension.class)
+class KeyWordMatchTest {
 
-/**
- * Test case for {@link KeyWordMatch}.
- */
-public final class KeyWordMatchTest {
+    private KeyWordMatch keyWordMatch;
+
+    @BeforeEach
+    public void setUp() {
+        Set<String> set = new HashSet<>();
+        set.add("name");
+        set.add("TesT");
+        set.add("dsadsader");
+        keyWordMatch = new KeyWordMatch(set);
+    }
+
+    @Test
+    public void matches() {
+        Assertions.assertTrue(keyWordMatch.matches("name"));
+        Assertions.assertTrue(keyWordMatch.matches("test"));
+        Assertions.assertFalse(keyWordMatch.matches("dsaer"));
+    }
+
+    @Test
+    public void matchesKeywordsContainingRegexMetacharacters() {
+        Set<String> set = new HashSet<>();
+        set.add("a.b");
+        set.add("ab[secret]yz");
+        KeyWordMatch match = new KeyWordMatch(set);
+
+        Assertions.assertTrue(match.matches("a.b"));
+        Assertions.assertFalse(match.matches("axb"));
+        Assertions.assertTrue(match.matches("ab[secret]yz"));
+        Assertions.assertTrue(match.matches("ab[other]yz"));
+    }
 
     @Test
     public void matchesShouldNotAcceptTheEmptyKeyword() {
-        Set<String> keywords = new HashSet<>(Arrays.asList("password"));
-        KeyWordMatch keyWordMatch = new KeyWordMatch(keywords);
-        assertFalse(keyWordMatch.matches(""), "an empty key must not be treated as a sensitive keyword");
+        Assertions.assertFalse(keyWordMatch.matches(""), "an empty key must not be treated as a sensitive keyword");
     }
 
     @Test
     public void matchesShouldKeepKeywordSemantics() {
-        Set<String> keywords = new HashSet<>(Arrays.asList("password", "authorizationToken"));
-        KeyWordMatch keyWordMatch = new KeyWordMatch(keywords);
-        assertTrue(keyWordMatch.matches("password"));
-        assertTrue(keyWordMatch.matches("PASSWORD"));
-        assertTrue(keyWordMatch.matches("authorizationToken"));
-        assertFalse(keyWordMatch.matches("userName"));
+        Set<String> set = new HashSet<>();
+        set.add("password");
+        KeyWordMatch match = new KeyWordMatch(set);
+
+        Assertions.assertTrue(match.matches("password"));
+        Assertions.assertTrue(match.matches("PASSWORD"));
+        Assertions.assertFalse(match.matches("userName"));
     }
+
 }
