@@ -153,6 +153,10 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
             String serviceName = defaultBackend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for grpc default backend", serviceName);
+                return defaultUpstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
@@ -184,6 +188,10 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
             String serviceName = backend.getService().getName();
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Endpoints {} not found for grpc upstream", serviceName);
+                return upstreamList;
+            }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
 
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
@@ -252,8 +260,15 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                     SelectorData selectorData = createSelectorData(pathPath, conditionList, grpcUpstreamList);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<MetaData> metaDataList = new ArrayList<>();
+                    if (Objects.isNull(labels)) {
+                        return res;
+                    }
                     for (String label : labels.keySet()) {
-                        Map<String, String> metadataAnnotations = serviceLister.namespace(namespace).get(labels.get(label)).getMetadata().getAnnotations();
+                        V1Service service = serviceLister.namespace(namespace).get(labels.get(label));
+                        if (Objects.isNull(service)) {
+                            continue;
+                        }
+                        Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleConditionList, annotations);
                         MetaData metaData = parseMetaData(metadataAnnotations);

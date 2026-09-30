@@ -52,6 +52,8 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
 
     private String database;
 
+    private String insertSql;
+
     /**
      * consume logs.
      * @param logs logs
@@ -60,6 +62,9 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isNotEmpty(logs)) {
+            if (Objects.isNull(insertSql)) {
+                throw new IllegalStateException("ClickHouse log client must be initialized successfully before consuming logs");
+            }
             Object[][] datas = new Object[logs.size()][];
             for (int i = 0; i < logs.size(); i++) {
                 Object[] data = new Object[] {
@@ -85,7 +90,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
                 };
                 datas[i] = data;
             }
-            ClickHouseClient.send(endpoint, String.format(ClickHouseLoggingConstant.PRE_INSERT_SQL, database),
+            ClickHouseClient.send(endpoint, insertSql,
                     new ClickHouseValue[]{
                             ClickHouseOffsetDateTimeValue.ofNull(3, TimeZone.getTimeZone("Asia/Shanghai")),
                             ClickHouseStringValue.ofNull(),
@@ -112,6 +117,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
 
     @Override
     public void close0() {
+        insertSql = null;
         if (Objects.nonNull(client)) {
             client.close();
         }
@@ -129,6 +135,8 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
         final String password = config.getPassword();
         final String ttl = StringUtils.defaultIfBlank(config.getTtl(), "30");
         database = config.getDatabase();
+        boolean distributed = StringUtils.isNotBlank(config.getClusterName());
+        insertSql = null;
         endpoint = ClickHouseNode.builder()
             .host(config.getHost())
             .port(ClickHouseProtocol.HTTP, Integer.valueOf(config.getPort()))
@@ -139,12 +147,15 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
             ClickHouseRequest<?> request = client.connect(endpoint).format(ClickHouseFormat.TabSeparatedWithNamesAndTypes);
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DATABASE_SQL, database)).executeAndWait();
             request.query(String.format(ClickHouseLoggingConstant.CREATE_TABLE_SQL, database, config.getEngine(), ttl)).executeAndWait();
-            request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
+            if (distributed) {
+                request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
+            }
         } catch (Exception e) {
             LOG.error("inti ClickHouseLogClient error", e);
             close0();
             return false;
         }
+        insertSql = String.format(distributed ? ClickHouseLoggingConstant.PRE_INSERT_SQL : ClickHouseLoggingConstant.LOCAL_PRE_INSERT_SQL, database);
         return true;
     }
 }
