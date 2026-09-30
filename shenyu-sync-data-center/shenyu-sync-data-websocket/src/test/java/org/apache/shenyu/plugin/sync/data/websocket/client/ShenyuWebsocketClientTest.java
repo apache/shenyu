@@ -525,6 +525,44 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
+    void testUnknownEventDoesNotConsumeFailureBudget() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        client.onMessage("{\"groupType\":\"RULE\",\"eventType\":\"FUTURE_EVENT\",\"data\":[{}]}");
+        verify(getHandler(client), never()).executor(any(), anyString(), anyString());
+        verify(client, never()).close();
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(0L, getField(client, "nextSyncRetryAt"));
+    }
+
+    @Test
+    void testHealthCheckRetriesFullSyncAfterFailureCap() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        doNothing().when(client).send(anyString());
+        WebsocketDataHandler handler = getHandler(client);
+        doThrow(new RuntimeException("poison data")).when(handler).executor(any(), anyString(), anyString());
+        String json = GsonUtils.getInstance().toJson(websocketData);
+        client.onMessage(json);
+        client.onMessage(json);
+        client.onMessage(json);
+        long deadline = (long) getField(client, "nextSyncRetryAt");
+        assertTrue(deadline - System.nanoTime() > 0);
+        client.onMessage(json);
+        assertEquals(deadline, getField(client, "nextSyncRetryAt"));
+        invokePrivate(client, "healthCheck");
+        verify(client, times(2)).close();
+        setField(client, "nextSyncRetryAt", System.nanoTime() - 1);
+        invokePrivate(client, "healthCheck");
+        verify(client, times(3)).close();
+        client.onOpen(mock(ServerHandshake.class));
+        verify(client).send(DataEventTypeEnum.MYSELF.name());
+        doNothing().when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        verify(client, never()).nowClose();
+    }
+
+    @Test
     void testSuccessfulSyncResetsFailureCounter() {
         ShenyuWebsocketClient client = createSyncTestClient();
         doNothing().when(client).close();
