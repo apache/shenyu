@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -24,13 +25,13 @@ import com.google.common.cache.RemovalListener;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -48,11 +49,13 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboMethodParam;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
@@ -66,6 +69,13 @@ import org.slf4j.LoggerFactory;
 public final class ApacheDubboConfigCache extends DubboConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboConfigCache.class);
+
+    /**
+     * Separator of the reference cache key segments. Never occurs inside ids, paths,
+     * protocol, registry hash, version or group, so an id can be matched as a whole
+     * segment by wrapping it with this separator during cache invalidation.
+     */
+    private static final String KEY_SEPARATOR = "|";
 
     private ApplicationConfig applicationConfig;
 
@@ -91,6 +101,10 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                 }
             });
 
+    private final Cache<String, CachedUpstreams> upstreamCache = CacheBuilder.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build();
+
     /**
      * Gets instance.
      *
@@ -98,6 +112,33 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      */
     public static ApacheDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
+    }
+
+    /**
+     * Return the usable upstream list carried by the selector handle, reusing the cached
+     * parse while the handle stays unchanged. Dubbo routing runs on every request, so the
+     * JSON deserialization must not be repeated per request; entries are keyed by selector
+     * id and validated against the exact handle string, which makes stale reads impossible
+     * without an invalidation hook.
+     *
+     * @param selectorData the selector carrying the serialized upstream list
+     * @return the filtered upstream list, empty when the handle holds no usable upstream
+     */
+    public List<DubboUpstream> getOrParseUpstreams(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData) || StringUtils.isBlank(selectorData.getHandle())) {
+            return Collections.emptyList();
+        }
+        final CachedUpstreams cached = upstreamCache.getIfPresent(selectorData.getId());
+        if (Objects.nonNull(cached) && Objects.equals(cached.handle, selectorData.getHandle())) {
+            return cached.upstreams;
+        }
+        final List<DubboUpstream> parsed = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
+        final List<DubboUpstream> usable = CollectionUtils.isEmpty(parsed) ? Collections.emptyList()
+                : parsed.stream()
+                        .filter(u -> u.isStatus() && StringUtils.isNotBlank(u.getRegistry()))
+                        .collect(Collectors.toList());
+        upstreamCache.put(selectorData.getId(), new CachedUpstreams(selectorData.getHandle(), usable));
+        return usable;
     }
 
     /**
@@ -212,7 +253,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @return the reference config cache key
      */
     public String generateUpstreamCacheKey(final String selectorId, final String ruleId, final String metaDataId, final String namespace, final DubboUpstream dubboUpstream) {
-        StringJoiner stringJoiner = new StringJoiner(Constants.SEPARATOR_UNDERLINE);
+        StringJoiner stringJoiner = new StringJoiner(KEY_SEPARATOR);
         if (StringUtils.isNotBlank(namespace)) {
             stringJoiner.add(namespace);
         }
@@ -233,7 +274,8 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         if (StringUtils.isNotBlank(dubboUpstream.getGroup())) {
             stringJoiner.add(dubboUpstream.getGroup());
         }
-        return stringJoiner.toString();
+        // wrap with separators so that the first and the last segments are also matched as whole segments
+        return KEY_SEPARATOR + stringJoiner + KEY_SEPARATOR;
     }
 
     /**
@@ -529,10 +571,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param selectorId the selectorId
      */
     public void invalidateWithSelectorId(final String selectorId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(selectorId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(selectorId);
     }
 
     /**
@@ -541,10 +580,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param ruleId the ruleId
      */
     public void invalidateWithRuleId(final String ruleId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(ruleId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(ruleId);
     }
 
     /**
@@ -553,10 +589,15 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @param metadataId the metadataId
      */
     public void invalidateWithMetadataId(final String metadataId) {
-        ConcurrentMap<String, ReferenceConfig<GenericService>> map = cache.asMap();
-        Set<String> allKeys = map.keySet();
-        Set<String> needInvalidateKeys = allKeys.stream().filter(key -> key.contains(metadataId)).collect(Collectors.toSet());
-        needInvalidateKeys.forEach(cache::invalidate);
+        invalidateByWholeSegment(metadataId);
+    }
+
+    private void invalidateByWholeSegment(final String id) {
+        final String token = KEY_SEPARATOR + id + KEY_SEPARATOR;
+        cache.asMap().keySet().stream()
+                .filter(key -> key.contains(token))
+                .collect(Collectors.toSet())
+                .forEach(cache::invalidate);
     }
 
     /**
@@ -570,6 +611,22 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
 
         private ApplicationConfigCacheInstance() {
 
+        }
+    }
+
+    /**
+     * Cached parse result of one selector handle. Keeps the exact handle string so a
+     * changed selector handle invalidates the entry without an explicit hook.
+     */
+    private static final class CachedUpstreams {
+
+        private final String handle;
+
+        private final List<DubboUpstream> upstreams;
+
+        private CachedUpstreams(final String handle, final List<DubboUpstream> upstreams) {
+            this.handle = handle;
+            this.upstreams = upstreams;
         }
     }
 }

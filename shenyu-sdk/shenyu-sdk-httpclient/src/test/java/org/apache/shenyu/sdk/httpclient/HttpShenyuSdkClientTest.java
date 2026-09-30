@@ -22,6 +22,10 @@ import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.concurrent.FutureCallback;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -32,6 +36,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertNotSame;
 import static org.mockito.Mockito.mock;
@@ -81,6 +88,61 @@ public class HttpShenyuSdkClientTest {
         Field field = HttpShenyuSdkClient.class.getDeclaredField(name);
         field.setAccessible(true);
         field.set(client, value);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testTransportFailureThrowsIOException() throws Exception {
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient();
+        CloseableHttpAsyncClient httpAsyncClient = mock(CloseableHttpAsyncClient.class);
+        Future<HttpResponse> future = mock(Future.class);
+        when(httpAsyncClient.execute(Mockito.any(HttpUriRequest.class), Mockito.<FutureCallback<HttpResponse>>any())).thenReturn(future);
+        when(future.get()).thenThrow(new ExecutionException(new IOException("connection reset")));
+        setHttpAsyncClient(shenyuHttpClient, httpAsyncClient);
+
+        Assert.assertThrows(IOException.class, () -> shenyuHttpClient.doRequest(createRequest()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInterruptedFailureRestoresInterruptStatus() throws Exception {
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient();
+        CloseableHttpAsyncClient httpAsyncClient = mock(CloseableHttpAsyncClient.class);
+        Future<HttpResponse> future = mock(Future.class);
+        when(httpAsyncClient.execute(Mockito.any(HttpUriRequest.class), Mockito.<FutureCallback<HttpResponse>>any())).thenReturn(future);
+        when(future.get()).thenThrow(new InterruptedException("interrupted"));
+        setHttpAsyncClient(shenyuHttpClient, httpAsyncClient);
+
+        try {
+            Assert.assertThrows(IOException.class, () -> shenyuHttpClient.doRequest(createRequest()));
+            Assert.assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCancelledRequestThrowsIOException() throws Exception {
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient();
+        CloseableHttpAsyncClient httpAsyncClient = mock(CloseableHttpAsyncClient.class);
+        Future<HttpResponse> future = mock(Future.class);
+        when(httpAsyncClient.execute(Mockito.any(HttpUriRequest.class), Mockito.<FutureCallback<HttpResponse>>any())).thenReturn(future);
+        when(future.get()).thenThrow(new CancellationException("cancelled"));
+        setHttpAsyncClient(shenyuHttpClient, httpAsyncClient);
+
+        Assert.assertThrows(IOException.class, () -> shenyuHttpClient.doRequest(createRequest()));
+    }
+
+    private ShenyuRequest createRequest() {
+        return ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "http://localhost/test",
+                new HashMap<>(), null, null, null);
+    }
+
+    private void setHttpAsyncClient(final HttpShenyuSdkClient client, final CloseableHttpAsyncClient httpAsyncClient) throws Exception {
+        Field field = HttpShenyuSdkClient.class.getDeclaredField("httpAsyncClient");
+        field.setAccessible(true);
+        field.set(client, httpAsyncClient);
     }
 
 }

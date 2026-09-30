@@ -470,7 +470,11 @@ public class HuaweiLogCollectConfig {
                     && Objects.equals(getBaseRetryBackoffMs(), that.getBaseRetryBackoffMs())
                     && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs())
                     && Objects.equals(getEnableLocalTest(), that.getEnableLocalTest())
-                    && Objects.equals(getSetGiveUpExtraLongSingleLog(), that.getSetGiveUpExtraLongSingleLog());
+                    && Objects.equals(getSetGiveUpExtraLongSingleLog(), that.getSetGiveUpExtraLongSingleLog())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxResponseBody());
         }
 
         @Override
@@ -479,7 +483,8 @@ public class HuaweiLogCollectConfig {
                     regionName, totalSizeInBytes, maxBlockMs, ioThreadCount,
                     batchSizeThresholdInBytes, batchCountThreshold, lingerMs,
                     retries, baseRetryBackoffMs, maxRetryBackoffMs, enableLocalTest,
-                    setGiveUpExtraLongSingleLog);
+                    setGiveUpExtraLongSingleLog, getSampleRate(), getBufferQueueSize(),
+                    getMaxRequestBody(), getMaxResponseBody());
         }
     }
 }

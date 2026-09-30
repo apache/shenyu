@@ -89,6 +89,32 @@ public final class RewritePluginTest {
     }
 
     @Test
+    public void shouldRewritePathVariableWithCompleteValue() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"/shenyu/{id}\",\"replace\":\"/shenyu/{id}\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        ServerWebExchange rewriteExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/shenyu/123").build());
+        rewriteExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        when(chain.execute(rewriteExchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(rewriteExchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertEquals("/shenyu/123", rewriteExchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void shouldNotThrowWhenOnlyReplaceContainsPlaceholder() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"/shenyu/.*\",\"replace\":\"/new/{id}\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertEquals("/new/{id}", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
     public void testSkip() {
         final boolean result = rewritePlugin.skip(exchange);
         assertFalse(result);
