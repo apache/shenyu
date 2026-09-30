@@ -372,4 +372,40 @@ public final class DataChangedEventDispatcherTest {
         verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
         verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
     }
+
+    @Test
+    void testTransactionDefersForwardingUntilCommit() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(false);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
+            dataChangedEventDispatcher.onApplicationEvent(event);
+            verify(clusterDataChangedEventForwarder, never()).forward(any());
+            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any());
+            org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(org.springframework.transaction.support.TransactionSynchronization::afterCommit);
+            verify(clusterDataChangedEventForwarder).forward(event);
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clear();
+        }
+    }
+
+    @Test
+    void testRollbackDoesNotForwardOrUpdateCache() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            dataChangedEventDispatcher.onApplicationEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>()));
+            org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(sync -> sync.afterCompletion(org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK));
+            verify(clusterDataChangedEventForwarder, never()).forward(any());
+            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any());
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clear();
+        }
+    }
+
 }

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
@@ -72,8 +74,22 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
+        if (clusterProperties.isEnabled() && TransactionSynchronizationManager.isActualTransactionActive()
+                && TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    dispatch(event);
+                }
+            });
+            return;
+        }
+        dispatch(event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void dispatch(final DataChangedEvent event) {
         final boolean master = isMasterOrStandalone();
         if (!master) {
             forwardEventToMaster(event);

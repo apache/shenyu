@@ -121,6 +121,9 @@ shenyu:
     # secret-key: "your-secret-key-here"
     expired-seconds: 86400000
   cluster:
+    # Same high-entropy node-only credential on every Admin. Missing credentials fail closed.
+    # Use HTTPS (schema: https) or a trusted TLS service mesh to protect the credential in transit.
+    event-secret: ${SHENYU_CLUSTER_EVENT_SECRET:}
     enabled: false
     type: jdbc
     connectionTimeout: 15000

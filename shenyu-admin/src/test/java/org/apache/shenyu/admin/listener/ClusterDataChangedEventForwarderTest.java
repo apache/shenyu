@@ -78,6 +78,7 @@ public final class ClusterDataChangedEventForwarderTest {
 
     @BeforeEach
     public void setUp() {
+        when(clusterProperties.getEventSecret()).thenReturn("node-secret");
         forwarder = new ClusterDataChangedEventForwarder(restTemplate, clusterProperties, clusterSelectMasterService);
         when(clusterProperties.getSchema()).thenReturn("http");
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -91,7 +92,7 @@ public final class ClusterDataChangedEventForwarderTest {
     }
 
     /**
-     * Forward posts the serialized event, authenticated with the caller's admin token,
+     * Forward posts the serialized event, authenticated with the dedicated node credential,
      * to the master url built from the master dto.
      */
     @Test
@@ -112,7 +113,9 @@ public final class ClusterDataChangedEventForwarderTest {
         ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> captor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate).postForEntity(eq("http://10.0.0.2:9095/admin/cluster/data-change-event"),
                 captor.capture(), eq(String.class));
-        assertEquals(OPERATOR_TOKEN, captor.getValue().getHeaders().getFirst(Constants.X_ACCESS_TOKEN));
+        assertEquals("node-secret", captor.getValue().getHeaders().getFirst(
+                org.apache.shenyu.admin.shiro.bean.ClusterEventAuthFilter.HEADER));
+        org.junit.jupiter.api.Assertions.assertNull(captor.getValue().getHeaders().getFirst(Constants.X_ACCESS_TOKEN));
         assertEquals(ConfigGroupEnum.PLUGIN.name(), captor.getValue().getBody().getGroupKey());
         assertEquals(DataEventTypeEnum.UPDATE.name(), captor.getValue().getBody().getEventType());
         assertTrue(captor.getValue().getBody().getSource().startsWith("["));
@@ -134,23 +137,24 @@ public final class ClusterDataChangedEventForwarderTest {
     }
 
     /**
-     * An event published off a request thread has no credentials to authenticate the
-     * forward: the forward is skipped explicitly instead of sending a doomed request.
+     * An event published off a request thread uses the configured node credential.
      */
     @Test
-    public void forwardWithoutRequestContextSkipsExplicitlyTest() {
+    public void forwardWithoutRequestContextUsesNodeCredentialTest() {
         ClusterMasterDTO master = new ClusterMasterDTO();
         master.setMasterHost("10.0.0.2");
         master.setMasterPort("9095");
         when(clusterSelectMasterService.getMaster()).thenReturn(master);
         RequestContextHolder.resetRequestAttributes();
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
+                .thenReturn(ResponseEntity.ok("ok"));
 
         DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(new PluginData()));
         boolean forwarded = forwarder.forward(event);
 
-        assertFalse(forwarded);
-        verify(restTemplate, never()).postForEntity(any(String.class), any(Object.class), eq(String.class));
+        assertTrue(forwarded);
+        verify(restTemplate).postForEntity(any(String.class), any(Object.class), eq(String.class));
     }
 
     /**

@@ -89,12 +89,16 @@ public class ClusterDataChangedEventController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ShenyuAdminResult.error("this node is not the cluster master, data change event not accepted"));
         }
+        if (Objects.isNull(payload) || Objects.isNull(payload.getGroupKey())
+                || Objects.isNull(payload.getEventType()) || Objects.isNull(payload.getSource())) {
+            return ResponseEntity.badRequest().body(ShenyuAdminResult.error("event fields must not be null"));
+        }
         final ConfigGroupEnum groupKey;
         final DataEventTypeEnum eventType;
         try {
             groupKey = ConfigGroupEnum.valueOf(payload.getGroupKey());
             eventType = DataEventTypeEnum.valueOf(payload.getEventType());
-        } catch (IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ShenyuAdminResult.error("unknown data change event group or type: "
                             + payload.getGroupKey() + "/" + payload.getEventType()));
@@ -102,7 +106,10 @@ public class ClusterDataChangedEventController {
         final List<?> source;
         try {
             source = deserializeSource(groupKey, payload.getSource());
-        } catch (IllegalArgumentException ex) {
+            if (Objects.isNull(source) || source.stream().anyMatch(Objects::isNull)) {
+                return ResponseEntity.badRequest().body(ShenyuAdminResult.error("source must be an array of non-null records"));
+            }
+        } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ShenyuAdminResult.error("unknown data change event group: " + groupKey.name()));
         }

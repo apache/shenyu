@@ -17,23 +17,19 @@
 
 package org.apache.shenyu.admin.listener;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.admin.shiro.bean.ClusterEventAuthFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Objects;
 
@@ -45,14 +41,11 @@ import java.util.Objects;
  * listeners running on the master node (websocket push, long polling cache, registry
  * writers), so the change is handed over to the master over HTTP and re-published there.
  *
- * <p>The forward authenticates with the caller's own {@code X-Access-Token} (read from the
- * current request through {@link RequestContextHolder}), so the master's Shiro filter accepts
- * it exactly like a forwarded dashboard request. Events published off a request thread
- * (scheduled jobs, background sync) have no credentials on the thread: the forward is skipped
- * with an explicit log instead of sending a doomed unauthenticated request.
+ * <p>The forward authenticates with a dedicated node credential, independent of request
+ * context. Configure HTTPS to protect the credential in transit.
  *
  * <p>Forwarding runs synchronously on the publishing thread, so an unreachable master adds up
- * to the configured connect/read timeout to the calling write API; delivery is at-least-once
+ * to the configured connect/read timeout to the calling write API; delivery is best-effort
  * and failures are logged with the master identity and outcome.
  */
 public class ClusterDataChangedEventForwarder {
@@ -84,7 +77,7 @@ public class ClusterDataChangedEventForwarder {
 
     /**
      * Forward a committed data change event to the current master node, authenticated with
-     * the caller's admin token.
+     * the dedicated cluster credential.
      *
      * @param event the locally committed data change event
      * @return true if the master accepted the event
@@ -96,13 +89,9 @@ public class ClusterDataChangedEventForwarder {
                     event.getGroupKey(), event.getEventType(), sourceSize(event));
             return false;
         }
-        final String accessToken = currentAccessToken();
+        final String accessToken = clusterProperties.getEventSecret();
         if (StringUtils.isBlank(accessToken)) {
-            LOG.warn("no admin credentials on the current thread (event published outside a request thread),"
-                            + " cannot forward DataChangedEvent to master {}:{}, group={}, type={}, size={},"
-                            + " outcome=skipped; push listeners are skipped on this node",
-                    master.getMasterHost(), master.getMasterPort(),
-                    event.getGroupKey(), event.getEventType(), sourceSize(event));
+            LOG.warn("Cluster event credential is not configured; refusing to forward configuration");
             return false;
         }
         final String url = buildMasterUrl(master);
@@ -110,7 +99,7 @@ public class ClusterDataChangedEventForwarder {
                 event.getGroupKey().name(), event.getEventType().name(),
                 GsonUtils.getInstance().toJson(event.getSource()));
         final HttpHeaders headers = new HttpHeaders();
-        headers.set(Constants.X_ACCESS_TOKEN, accessToken);
+        headers.set(ClusterEventAuthFilter.HEADER, accessToken);
         try {
             final ResponseEntity<String> response =
                     restTemplate.postForEntity(url, new HttpEntity<>(payload, headers), String.class);
@@ -126,15 +115,6 @@ public class ClusterDataChangedEventForwarder {
                     event.getGroupKey(), event.getEventType(), sourceSize(event), ex);
             return false;
         }
-    }
-
-    private String currentAccessToken() {
-        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (attributes instanceof ServletRequestAttributes) {
-            HttpServletRequest request = ((ServletRequestAttributes) attributes).getRequest();
-            return request.getHeader(Constants.X_ACCESS_TOKEN);
-        }
-        return null;
     }
 
     private int sourceSize(final DataChangedEvent event) {

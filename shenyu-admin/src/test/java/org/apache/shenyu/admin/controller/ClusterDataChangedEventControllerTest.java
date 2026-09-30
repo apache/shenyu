@@ -134,4 +134,17 @@ public final class ClusterDataChangedEventControllerTest {
         }
         verify(eventPublisher, times(groups.size())).publishEvent(any(DataChangedEvent.class));
     }
+
+    @Test
+    public void testNullAndMalformedFieldsReturnBadRequest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(new ClusterDataChangedEventPayload()).getStatusCode());
+        for (String source : java.util.List.of("null", "[null]", "not-json", "{}")) {
+            assertEquals(HttpStatus.BAD_REQUEST,
+                    controller.receive(new ClusterDataChangedEventPayload("PLUGIN", "UPDATE", source)).getStatusCode());
+        }
+        org.mockito.Mockito.verifyNoInteractions(eventPublisher);
+    }
+
 }
