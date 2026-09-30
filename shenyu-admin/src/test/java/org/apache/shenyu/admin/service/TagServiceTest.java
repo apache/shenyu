@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.TagMapper;
+import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -42,6 +43,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test cases for TagService.
@@ -52,6 +56,9 @@ public class TagServiceTest {
 
     @Mock
     private TagMapper tagMapper;
+
+    @Mock
+    private TagRelationMapper tagRelationMapper;
 
     @InjectMocks
     private TagServiceImpl tagService;
@@ -96,6 +103,20 @@ public class TagServiceTest {
         given(this.tagMapper.deleteByIds(any())).willReturn(1);
         int cnt = tagService.delete(Lists.newArrayList("11111"));
         assertEquals(cnt, 1);
+    }
+
+    @Test
+    public void testDeleteRejectsRemainingChildren() {
+        given(tagMapper.selectByParentTagIds(any())).willReturn(List.of(buildTagDO()));
+        assertThrows(ValidFailException.class, () -> tagService.delete(List.of("parent")));
+        verifyNoInteractions(tagRelationMapper);
+        verify(tagMapper, never()).deleteByIds(any());
+    }
+
+    @Test
+    public void testDeleteEmptyList() {
+        assertEquals(0, tagService.delete(List.of()));
+        verifyNoInteractions(tagMapper, tagRelationMapper);
     }
 
     @Test

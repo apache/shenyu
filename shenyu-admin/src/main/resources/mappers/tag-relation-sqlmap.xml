@@ -155,6 +155,14 @@
         </foreach>
     </delete>
 
+    <delete id="deleteByTagIds">
+        DELETE FROM tag_relation
+        WHERE tag_id IN
+        <foreach item="id" collection="tagIds" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO tag_relation
         (id,
