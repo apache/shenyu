@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 import java.util.UUID;
 
 /**
@@ -84,5 +86,24 @@ public class TencentClsLogCollectClientTest {
         Assertions.assertEquals(tencentClsLogConfig,
                 TencentLogCollectConfig.INSTANCE.getTencentClsLogConfig());
         tencentClsLogCollectClient.close();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorAfterPartialInitialization() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(tencentClsLogCollectClient, "threadExecutor", executor);
+        tencentClsLogCollectClient.close0();
+        org.mockito.Mockito.verify(executor).shutdown();
+    }
+
+    @Test
+    public void testCloseShutsDownCallbackExecutorWhenProducerFails() throws Exception {
+        ThreadPoolExecutor executor = org.mockito.Mockito.mock(ThreadPoolExecutor.class);
+        ReflectionTestUtils.setField(tencentClsLogCollectClient, "threadExecutor", executor);
+        com.tencentcloudapi.cls.producer.AsyncProducerClient producer = org.mockito.Mockito.mock(com.tencentcloudapi.cls.producer.AsyncProducerClient.class);
+        ReflectionTestUtils.setField(tencentClsLogCollectClient, "client", producer);
+        org.mockito.Mockito.doThrow(new IllegalStateException("close failed")).when(producer).close();
+        Assertions.assertThrows(IllegalStateException.class, tencentClsLogCollectClient::close0);
+        org.mockito.Mockito.verify(executor).shutdown();
     }
 }

@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -44,6 +48,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,6 +58,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -59,6 +66,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -134,6 +145,24 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"handler", "selector", "plugin", "discovery"})
+    void rejectsMissingDiscoveryBindingsWithDomainErrors(final String missing) {
+        if (!"handler".equals(missing)) {
+            when(discoveryHandlerMapper.selectById("123")).thenReturn(buildDiscoveryHandlerDO());
+        }
+        if ("plugin".equals(missing) || "discovery".equals(missing)) {
+            when(selectorMapper.selectByDiscoveryHandlerId("123")).thenReturn(buildSelectorDO());
+        }
+        if ("discovery".equals(missing)) {
+            when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
+        }
+        ValidFailException error = Assertions.assertThrows(ValidFailException.class,
+                () -> ReflectionTestUtils.invokeMethod(discoveryUpstreamService, "fetchAll", "123"));
+        Assertions.assertTrue(error.getMessage().toLowerCase(Locale.ROOT).contains(missing));
+        verifyNoInteractions(discoveryProcessorHolder, discoveryProcessor);
     }
 
     @Test
@@ -229,6 +258,39 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         when(discoveryUpstreamMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(0);
         discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+        verify(discoveryProcessor).changeUpstream(any(), any());
+    }
+
+    @Test
+    public void testUpdateBatchPublishesOnlyAfterCommit() {
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
+        when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
+        when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
+        when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            verifyNoInteractions(discoveryProcessor);
+            verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+            verify(discoveryProcessor).changeUpstream(any(), any());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    public void testRolledBackBatchDoesNotPublish() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+            verifyNoInteractions(discoveryProcessor);
+            verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     private void testUpdate() {

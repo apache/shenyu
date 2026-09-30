@@ -68,7 +68,8 @@ public class NettyClientMessageWriter implements MessageWriter {
                     .inbound()
                     .receive()
                     .retain()
-                    .map(factory::wrap);
+                    .map(factory::wrap)
+                    .doOnDiscard(NettyDataBuffer.class, DataBufferUtils::release);
             MediaType contentType = response.getHeaders().getContentType();
 
             Mono<Void> responseMono = isStreamingMediaType(contentType)
@@ -78,7 +79,7 @@ public class NettyClientMessageWriter implements MessageWriter {
             // watcher httpStatus
             final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
             Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
-            return responseMono.onErrorResume(error -> releaseIfNotConsumed(body, error));
+            return responseMono.doOnError(error -> cleanup(exchange));
         })).doOnCancel(() -> cleanup(exchange));
     }
     
@@ -92,10 +93,6 @@ public class NettyClientMessageWriter implements MessageWriter {
         if (Objects.nonNull(connection)) {
             connection.dispose();
         }
-    }
-
-    private static <T> Mono<T> releaseIfNotConsumed(final Flux<NettyDataBuffer> dataBufferDody, final Throwable ex) {
-        return Objects.nonNull(dataBufferDody) ? dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex)) : Mono.error(ex);
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
