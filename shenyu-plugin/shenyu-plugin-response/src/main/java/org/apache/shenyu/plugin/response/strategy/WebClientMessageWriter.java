@@ -88,9 +88,9 @@ public class WebClientMessageWriter implements MessageWriter {
 
             Mono<Void> responseMono;
             if (Objects.nonNull(fluxResponseEntity.getBody())) {
-                responseMono = exchange.getResponse().writeWith(fluxResponseEntity.getBody())
-                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity.getBody(), error))
-                        .doOnCancel(() -> clean(exchange));
+                Flux<DataBuffer> body = fluxResponseEntity.getBody()
+                        .doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+                responseMono = exchange.getResponse().writeWith(body);
             } else {
                 responseMono = exchange.getResponse().writeWith(Mono.empty());
             }
@@ -127,10 +127,6 @@ public class WebClientMessageWriter implements MessageWriter {
             httpHeaders = temp;
         }
         response.getHeaders().putAll(httpHeaders);
-    }
-
-    private static <T> Mono<T> releaseIfNotConsumed(final Flux<DataBuffer> dataBufferDody, final Throwable ex) {
-        return dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex));
     }
 
     private void clean(final ServerWebExchange exchange) {
