@@ -107,6 +107,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<ShenyuDictDTO> dictList) {
         if (CollectionUtils.isEmpty(dictList)) {
             return ConfigImportResult.success();

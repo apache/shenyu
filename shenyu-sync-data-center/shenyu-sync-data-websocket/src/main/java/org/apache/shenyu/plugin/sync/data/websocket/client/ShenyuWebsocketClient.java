@@ -21,6 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
@@ -88,6 +89,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private static final long MAX_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(60);
 
     private volatile boolean alreadySync = Boolean.FALSE;
+
+    private InitialSyncState initialSyncState;
 
     private final WebsocketDataHandler websocketDataHandler;
 
@@ -170,7 +173,40 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
                                  final String namespaceId,
                                  final Integer port) {
+        this(serverUri, headers, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers,
+                namespaceId, port, null);
+    }
+
+    /**
+     * Create a client with an optional startup readiness latch.
+     * @param serverUri server URI
+     * @param headers headers
+     * @param pluginDataSubscriber plugin subscriber
+     * @param metaDataSubscribers metadata subscribers
+     * @param authDataSubscribers authorization subscribers
+     * @param proxySelectorDataSubscribers proxy selector subscribers
+     * @param discoveryUpstreamDataSubscribers discovery subscribers
+     * @param aiProxyApiKeyDataSubscribers API key subscribers
+     * @param namespaceId namespace
+     * @param port gateway port
+     * @param initialSyncReady startup latch, null for the legacy protocol
+     */
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final Map<String, String> headers,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
+                                 final Integer port,
+                                 final AtomicBoolean initialSyncReady) {
         super(serverUri, headers);
+        if (Objects.nonNull(initialSyncReady)) {
+            this.initialSyncState = new InitialSyncState(initialSyncReady);
+        }
         this.namespaceId = namespaceId;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
@@ -188,7 +224,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     }
     
     private void connection() {
-        this.connectBlocking();
+        if (Objects.nonNull(initialSyncState)) {
+            // Management endpoints must start even when Admin is unavailable.
+            this.connect();
+        } else {
+            this.connectBlocking();
+        }
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
@@ -218,7 +259,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
-            send(DataEventTypeEnum.MYSELF.name());
+            if (Objects.nonNull(initialSyncState)) {
+                send(WebsocketSyncFrame.REQUEST_PREFIX + initialSyncState.begin());
+            } else {
+                send(DataEventTypeEnum.MYSELF.name());
+            }
             alreadySync = true;
         }
     }
@@ -232,6 +277,10 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         try {
             Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
             Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
+            if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
+                initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
+                return;
+            }
             if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
                 LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
                 this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
@@ -240,10 +289,15 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 }
                 this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                 this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+            } else if (Objects.nonNull(initialSyncState)) {
+                initialSyncState.applyIncremental(() -> handleResult(result));
             } else {
                 handleResult(result);
             }
         } catch (RuntimeException ex) {
+            if (Objects.nonNull(initialSyncState)) {
+                initialSyncState.invalidate();
+            }
             LOG.warn("Failed to handle websocket message from server[{}], the message will be ignored", this.getURI(), ex);
         }
     }
@@ -260,6 +314,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void close() {
+        if (Objects.nonNull(initialSyncState)) {
+            initialSyncState.invalidate();
+        }
         alreadySync = false;
         if (this.isOpen()) {
             super.close();
@@ -285,6 +342,10 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void healthCheck() {
         try {
             if (this.manuallyClosed.get()) {
+                return;
+            }
+            if (Objects.nonNull(initialSyncState) && this.isOpen() && initialSyncState.needsReconnect()) {
+                close();
                 return;
             }
             if (!this.isOpen()) {
