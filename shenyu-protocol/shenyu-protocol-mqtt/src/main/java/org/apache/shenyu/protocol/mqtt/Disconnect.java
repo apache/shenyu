@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 /**
  * The DISCONNECT message is sent from the client to the server to indicate
@@ -45,5 +46,6 @@ public class Disconnect extends MessageType {
     private void cleanChannel(final Channel channel) {
         //// todo ttl
         Singleton.INST.get(ChannelRepository.class).remove(channel);
+        MqttPacketIdGenerator.remove(channel);
     }
 }

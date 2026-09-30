@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -24,7 +25,9 @@ import com.google.common.cache.RemovalListener;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,11 +49,13 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboMethodParam;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
@@ -96,6 +101,10 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                 }
             });
 
+    private final Cache<String, CachedUpstreams> upstreamCache = CacheBuilder.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build();
+
     /**
      * Gets instance.
      *
@@ -103,6 +112,33 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      */
     public static ApacheDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
+    }
+
+    /**
+     * Return the usable upstream list carried by the selector handle, reusing the cached
+     * parse while the handle stays unchanged. Dubbo routing runs on every request, so the
+     * JSON deserialization must not be repeated per request; entries are keyed by selector
+     * id and validated against the exact handle string, which makes stale reads impossible
+     * without an invalidation hook.
+     *
+     * @param selectorData the selector carrying the serialized upstream list
+     * @return the filtered upstream list, empty when the handle holds no usable upstream
+     */
+    public List<DubboUpstream> getOrParseUpstreams(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData) || StringUtils.isBlank(selectorData.getHandle())) {
+            return Collections.emptyList();
+        }
+        final CachedUpstreams cached = upstreamCache.getIfPresent(selectorData.getId());
+        if (Objects.nonNull(cached) && Objects.equals(cached.handle, selectorData.getHandle())) {
+            return cached.upstreams;
+        }
+        final List<DubboUpstream> parsed = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
+        final List<DubboUpstream> usable = CollectionUtils.isEmpty(parsed) ? Collections.emptyList()
+                : parsed.stream()
+                        .filter(u -> u.isStatus() && StringUtils.isNotBlank(u.getRegistry()))
+                        .collect(Collectors.toList());
+        upstreamCache.put(selectorData.getId(), new CachedUpstreams(selectorData.getHandle(), usable));
+        return usable;
     }
 
     /**
@@ -575,6 +611,22 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
 
         private ApplicationConfigCacheInstance() {
 
+        }
+    }
+
+    /**
+     * Cached parse result of one selector handle. Keeps the exact handle string so a
+     * changed selector handle invalidates the entry without an explicit hook.
+     */
+    private static final class CachedUpstreams {
+
+        private final String handle;
+
+        private final List<DubboUpstream> upstreams;
+
+        private CachedUpstreams(final String handle, final List<DubboUpstream> upstreams) {
+            this.handle = handle;
+            this.upstreams = upstreams;
         }
     }
 }

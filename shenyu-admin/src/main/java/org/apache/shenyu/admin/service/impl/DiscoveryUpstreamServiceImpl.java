@@ -48,9 +48,12 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,10 +104,30 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createOrUpdateBatch(final List<DiscoveryUpstreamDTO> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return;
+        }
+        Set<String> handlerIds = new LinkedHashSet<>();
+        for (DiscoveryUpstreamDTO upstream : upstreams) {
+            DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
+            if (StringUtils.hasLength(upstream.getId())) {
+                discoveryUpstreamMapper.update(entity);
+            } else {
+                discoveryUpstreamMapper.insert(entity);
+            }
+            handlerIds.add(upstream.getDiscoveryHandlerId());
+        }
+        handlerIds.forEach(this::fetchAll);
     }
 
     @Override
@@ -117,7 +140,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
-        this.fetchAll(discoveryHandlerId);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    fetchAll(discoveryHandlerId);
+                }
+            });
+        } else {
+            this.fetchAll(discoveryHandlerId);
+        }
         return 0;
     }
 
@@ -149,7 +181,15 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     public List<DiscoverySyncData> listAll() {
-        List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectAll();
+        return buildSyncData(discoveryHandlerMapper.selectAll());
+    }
+
+    @Override
+    public List<DiscoverySyncData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(discoveryHandlerMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> discoveryHandlerDOS) {
         return discoveryHandlerDOS.stream().map(d -> {
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
@@ -159,11 +199,13 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 discoverySyncData.setSelectorId(selectorId);
                 SelectorDO selectorDO = selectorMapper.selectById(selectorId);
                 discoverySyncData.setSelectorName(selectorDO.getSelectorName());
+                discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();
                 discoverySyncData.setSelectorId(proxySelectorId);
                 ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
                 discoverySyncData.setSelectorName(proxySelectorDO.getName());
+                discoverySyncData.setNamespaceId(proxySelectorDO.getNamespaceId());
             }
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
                     .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
