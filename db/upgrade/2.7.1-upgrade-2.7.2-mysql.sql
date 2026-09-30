@@ -79,3 +79,37 @@ INSERT INTO `permission` VALUES ('1960000000000001027', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1960000000000001028', '1346358560427216896', '1960000000000001018', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO `permission` VALUES ('1960000000000001029', '1346358560427216896', '1960000000000001019', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+
+-- Secondary indexes for namespace filtering, relation lookups and ordered listings.
+CREATE INDEX idx_selector_ns_plugin_name ON `selector` (namespace_id, plugin_id, selector_name);
+CREATE INDEX idx_rule_ns_selector_name ON `rule` (namespace_id, selector_id, rule_name);
+CREATE INDEX idx_metadata_path_ns ON `meta_data` (path, namespace_id);
+CREATE INDEX idx_metadata_ns_service ON `meta_data` (namespace_id, service_name);
+CREATE INDEX idx_metadata_ns_app ON `meta_data` (namespace_id, app_name);
+CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
+CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
+CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
+CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
+CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
+CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
+CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);
+CREATE INDEX idx_api_context ON `api` (context_path);
+CREATE INDEX idx_api_state_created ON `api` (state, date_created);
+CREATE INDEX idx_api_created ON `api` (date_created);
+CREATE INDEX idx_api_rule_api_rule ON `api_rule_relation` (api_id, rule_id);
+CREATE INDEX idx_ns_plugin_ns_plugin ON `namespace_plugin_rel` (namespace_id, plugin_id, enabled);
+CREATE INDEX idx_discovery_rel_proxy ON `discovery_rel` (proxy_selector_id);
+CREATE INDEX idx_discovery_rel_selector ON `discovery_rel` (selector_id);
+CREATE INDEX idx_discovery_rel_handler ON `discovery_rel` (discovery_handler_id);
+CREATE INDEX idx_discovery_handler_discovery ON `discovery_handler` (discovery_id);
+CREATE INDEX idx_discovery_ns_plugin ON `discovery` (namespace_id, plugin_name);
+CREATE INDEX idx_proxy_selector_ns ON `proxy_selector` (namespace_id);
+CREATE INDEX idx_operation_log_time ON `operation_record_log` (operation_time);
+CREATE INDEX idx_operation_log_operator_time ON `operation_record_log` (operator, operation_time);
+CREATE INDEX idx_instance_ns_ip ON `instance_info` (namespace_id, instance_ip);
+CREATE INDEX idx_mock_record_api ON `mock_request_record` (api_id);
+CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, user_id);
+CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
+CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
+CREATE INDEX idx_resource_parent ON `resource` (parent_id);
