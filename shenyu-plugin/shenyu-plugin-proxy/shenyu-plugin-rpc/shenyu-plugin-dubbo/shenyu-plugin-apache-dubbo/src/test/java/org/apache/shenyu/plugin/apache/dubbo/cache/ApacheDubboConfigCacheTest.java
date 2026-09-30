@@ -22,6 +22,7 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -34,10 +35,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
@@ -178,5 +182,65 @@ public final class ApacheDubboConfigCacheTest {
         Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
         return (LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache);
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsFiltersUnusableEntries() {
+        DubboUpstream active = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        active.setRegistry("dubbo://127.0.0.1:20880");
+        DubboUpstream disabled = DubboUpstream.builder().protocol("dubbo").status(false).build();
+        disabled.setRegistry("dubbo://127.0.0.1:20881");
+        String handle = GsonUtils.getInstance().toJson(List.of(active, disabled));
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-1");
+        selectorData.setHandle(handle);
+
+        List<DubboUpstream> result = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).isStatus());
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsReusesParseWhileHandleUnchanged() {
+        DubboUpstream active = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        active.setRegistry("dubbo://127.0.0.1:20880");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-2");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(active)));
+
+        List<DubboUpstream> first = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+        List<DubboUpstream> second = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertSame(first, second);
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsReparsesWhenHandleChanges() {
+        DubboUpstream first = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        first.setRegistry("dubbo://127.0.0.1:20880");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-3");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(first)));
+        assertEquals("dubbo://127.0.0.1:20880", apacheDubboConfigCache.getOrParseUpstreams(selectorData).get(0).getRegistry());
+
+        DubboUpstream second = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        second.setRegistry("dubbo://127.0.0.2:20880");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(second)));
+        List<DubboUpstream> reparsed = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertEquals(1, reparsed.size());
+        assertEquals("dubbo://127.0.0.2:20880", reparsed.get(0).getRegistry());
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsBlankHandleReturnsEmpty() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-4");
+        selectorData.setHandle(null);
+
+        assertTrue(apacheDubboConfigCache.getOrParseUpstreams(selectorData).isEmpty());
+        assertTrue(apacheDubboConfigCache.getOrParseUpstreams(null).isEmpty());
+        assertNotNull(apacheDubboConfigCache.getOrParseUpstreams(selectorData));
     }
 }

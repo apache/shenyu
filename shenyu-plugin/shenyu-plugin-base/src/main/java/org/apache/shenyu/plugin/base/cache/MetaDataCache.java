@@ -59,6 +59,8 @@ public final class MetaDataCache {
 
     private volatile Map<String, List<MetaData>> pathIndex = Collections.emptyMap();
 
+    private boolean indexDirty;
+
     private MetaDataCache() {
     }
 
@@ -85,7 +87,8 @@ public final class MetaDataCache {
             clean(oldMetaData.getPath());
         });
         META_DATA_MAP.put(data.getId(), data);
-        rebuildPathIndex();
+        indexDirty = true;
+        clean(DIVIDE_CACHE_KEY);
         final String path = data.getPath();
         clean(path);
         if (!path.contains("*")) {
@@ -101,7 +104,8 @@ public final class MetaDataCache {
      */
     public synchronized void remove(final MetaData data) {
         META_DATA_MAP.remove(data.getId());
-        rebuildPathIndex();
+        indexDirty = true;
+        clean(DIVIDE_CACHE_KEY);
         clean(data.getPath());
     }
 
@@ -126,22 +130,36 @@ public final class MetaDataCache {
     }
 
     private MetaData matchIndexedPath(final String path) {
+        // Called under the same monitor as mutations and cold-cache publication.
+        if (indexDirty) {
+            rebuildPathIndex();
+            indexDirty = false;
+        }
         Map<String, List<MetaData>> index = pathIndex;
         String segment = firstSegment(path);
         MetaData match = matchCandidates(index.getOrDefault(segment, Collections.emptyList()), path);
-        return Objects.nonNull(match) || segment.isEmpty() ? match : matchCandidates(index.getOrDefault("", Collections.emptyList()), path);
+        MetaData fallback = segment.isEmpty() ? null : matchCandidates(index.getOrDefault("", Collections.emptyList()), path);
+        if (Objects.isNull(match)) {
+            return fallback;
+        }
+        return Objects.isNull(fallback) || PathMatchUtils.compare(match.getPath(), fallback.getPath(), path) <= 0 ? match : fallback;
     }
 
     private MetaData matchCandidates(final List<MetaData> candidates, final String path) {
         return candidates.stream()
                 .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
-                .findFirst()
+                .min((left, right) -> PathMatchUtils.compare(left.getPath(), right.getPath(), path))
                 .orElse(null);
     }
 
     private void clean(final String key) {
+        if (key.contains("*")) {
+            CACHE.clear();
+            MAPPING.clear();
+            return;
+        }
         // springCloud and divide are needs to be cleaned
-        Optional.ofNullable(MAPPING.get(key))
+        Optional.ofNullable(MAPPING.remove(key))
                 .ifPresent(paths -> {
                     for (String path : paths) {
                         CACHE.remove(path);
@@ -152,7 +170,7 @@ public final class MetaDataCache {
     /**
      * clean cache for divide plugin.
      */
-    public void clean() {
+    public synchronized void clean() {
         clean(DIVIDE_CACHE_KEY);
     }
 
@@ -163,17 +181,20 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
-        final MetaData metaData = Optional.ofNullable(CACHE.get(path))
-                .orElseGet(() -> {
-                    final MetaData value = matchIndexedPath(path);
-                    final String metaPath = Optional.ofNullable(value)
-                            .map(MetaData::getPath)
-                            .orElse(DIVIDE_CACHE_KEY);
-                    // init cache
-                    initCache(path, value, metaPath);
-                    return value;
-                });
+        MetaData cached = CACHE.get(path);
+        final MetaData metaData = Objects.nonNull(cached) ? cached : loadPath(path);
         return NULL.equals(metaData) ? null : metaData;
+    }
+
+    private synchronized MetaData loadPath(final String path) {
+        MetaData cached = CACHE.get(path);
+        if (Objects.nonNull(cached)) {
+            return cached;
+        }
+        MetaData value = matchIndexedPath(path);
+        String metaPath = Objects.isNull(value) ? DIVIDE_CACHE_KEY : value.getPath();
+        initCache(path, value, metaPath);
+        return value;
     }
 
     /**
@@ -183,7 +204,7 @@ public final class MetaDataCache {
      * @param value    the MetaData
      * @param metaPath the metaPath
      */
-    public void initCache(final String path, final MetaData value, final String metaPath) {
+    public synchronized void initCache(final String path, final MetaData value, final String metaPath) {
         // The extreme case will lead to OOM, that's why use LRU
         CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
         // spring/** -> Collections 'spring/A', 'spring/B'

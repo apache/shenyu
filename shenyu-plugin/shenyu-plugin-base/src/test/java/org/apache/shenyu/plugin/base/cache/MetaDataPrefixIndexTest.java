@@ -24,12 +24,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.mockito.Mockito.times;
 
 /**
@@ -45,6 +48,38 @@ public class MetaDataPrefixIndexTest {
     public void cleanup() {
         registered.forEach(cache::remove);
         cache.clean();
+    }
+
+    @Test
+    public void testMutationBurstsRebuildOnlyOnColdLookup() {
+        Object initialIndex = ReflectionTestUtils.getField(cache, "pathIndex");
+        for (int i = 0; i < 10000; i++) {
+            register("burst-" + i, "/burst-" + i + "/**");
+        }
+        assertSame(initialIndex, ReflectionTestUtils.getField(cache, "pathIndex"));
+        assertEquals("burst-42", cache.obtain("/burst-42/first").getId());
+        Object rebuilt = ReflectionTestUtils.getField(cache, "pathIndex");
+        assertNotSame(initialIndex, rebuilt);
+        assertEquals("burst-43", cache.obtain("/burst-43/second").getId());
+        assertSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+        registered.forEach(cache::remove);
+        assertSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+        assertNull(cache.obtain("/burst-42/after-delete"));
+        assertNotSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+    }
+
+    @Test
+    public void testNewVariablePatternInvalidatesEarlierNegativeLookup() {
+        assertNull(cache.obtain("/tenant/new"));
+        register("new-variable", "/{tenant}/new");
+        assertEquals("new-variable", cache.obtain("/tenant/new").getId());
+    }
+
+    @Test
+    public void testSpecificityIsComparedAcrossPrefixAndFallbackBuckets() {
+        register("broad", "/api/**");
+        register("specific-fallback", "/{tenant}/users");
+        assertEquals("specific-fallback", cache.obtain("/api/users").getId());
     }
 
     @Test
