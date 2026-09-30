@@ -26,9 +26,11 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
+import org.apache.shenyu.web.loader.ShenyuExtPathPluginJarLoader.ExtPluginLoadResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -62,6 +64,9 @@ public class ShenyuLoaderService {
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
+            File extPluginPathDir = ShenyuPluginPathBuilder.getPluginFile(shenyuConfig.getExtPlugin().getPath());
+            LOG.info("shenyu extPlugin path: {}", extPluginPathDir.getAbsolutePath());
+
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
             executor.scheduleAtFixedRate(() -> loadExtOrUploadPlugins(null), config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
@@ -76,8 +81,9 @@ public class ShenyuLoaderService {
         try {
             ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
             if (Objects.isNull(uploadedJarResource)) {
-                List<PluginJarParser.PluginJar> uploadPluginJars = ShenyuExtPathPluginJarLoader.loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
-                for (PluginJarParser.PluginJar extPath : uploadPluginJars) {
+                ExtPluginLoadResult loadResult = ShenyuExtPathPluginJarLoader.loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
+                webHandler.removeExtPlugins(loadResult.getRemovedPluginNames());
+                for (PluginJarParser.PluginJar extPath : loadResult.getPluginJars()) {
                     LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
                     singleton.replacePluginClassLoader(extPath,
                             classLoader -> loaderPlugins(classLoader.loadUploadedJarPlugins()));

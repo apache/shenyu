@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.web.loader;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -78,18 +80,22 @@ public final class ShenyuPluginClassLoaderHolder {
      * removePluginClassLoader.
      *
      * @param jarKey jarKey
+     * @return removed plugin names
      */
-    public void removePluginClassLoader(final String jarKey) {
+    public Set<String> removePluginClassLoader(final String jarKey) {
         ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
         lock.lock();
         try {
             ShenyuPluginClassLoader classLoader = pluginCache.remove(jarKey);
             if (Objects.nonNull(classLoader)) {
+                Set<String> pluginNames = classLoader.getLoadedPluginNames();
                 classLoader.close();
+                return pluginNames;
             }
         } finally {
             lock.unlock();
         }
+        return Collections.emptySet();
     }
 
 }
