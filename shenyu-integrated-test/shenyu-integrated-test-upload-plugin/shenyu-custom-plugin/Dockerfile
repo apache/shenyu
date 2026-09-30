@@ -16,7 +16,14 @@
 
 FROM eclipse-temurin:17-centos7
 ENV APP_NAME shenyu-integrated-test-custom-plugin
+LABEL org.opencontainers.image.title="${APP_NAME}" \
+      org.opencontainers.image.source="https://github.com/apache/shenyu" \
+      org.opencontainers.image.licenses="Apache-2.0"
 
 ADD target/${APP_NAME}.jar /opt/shenyu-custom-plugin.jar
 
 RUN ls -l
+RUN groupadd --system shenyu && \
+    useradd --system --gid shenyu --create-home --home-dir /home/shenyu shenyu && \
+    chown shenyu:shenyu /opt/shenyu-custom-plugin.jar
+USER shenyu
