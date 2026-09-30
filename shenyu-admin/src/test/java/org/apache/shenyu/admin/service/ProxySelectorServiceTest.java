@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -41,6 +42,8 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,6 +60,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -64,6 +68,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.times;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.mockito.ArgumentCaptor;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -173,6 +182,59 @@ class ProxySelectorServiceTest {
     }
 
     @Test
+    void chunksEveryRelationQueryForLargePages() {
+        final ProxySelectorQuery query = new ProxySelectorQuery("test", new PageParameter(1, 1201), SYS_DEFAULT_NAMESPACE_ID);
+        List<ProxySelectorDO> selectors = IntStream.range(0, 1201).mapToObj(index -> {
+            ProxySelectorDO selector = new ProxySelectorDO();
+            selector.setId(String.valueOf(index));
+            return selector;
+        }).collect(Collectors.toList());
+        given(proxySelectorMapper.selectByQuery(query)).willReturn(selectors);
+        given(discoveryRelMapper.selectByProxySelectorIds(any())).willAnswer(invocation -> invocation.<List<String>>getArgument(0).stream().map(id -> {
+            DiscoveryRelDO relation = new DiscoveryRelDO();
+            relation.setProxySelectorId(id);
+            relation.setDiscoveryHandlerId(id);
+            return relation;
+        }).collect(Collectors.toList()));
+        given(discoveryHandlerMapper.selectByIds(any())).willAnswer(invocation -> invocation.<List<String>>getArgument(0).stream().map(id -> {
+            DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+            handler.setId(id);
+            handler.setDiscoveryId(id);
+            return handler;
+        }).collect(Collectors.toList()));
+        given(discoveryMapper.selectByIds(any())).willAnswer(invocation -> invocation.<List<String>>getArgument(0).stream().map(id -> {
+            DiscoveryDO discovery = new DiscoveryDO();
+            discovery.setId(id);
+            return discovery;
+        }).collect(Collectors.toList()));
+        given(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(any())).willAnswer(invocation -> invocation.<List<String>>getArgument(0).stream().map(id -> {
+            DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+            upstream.setId(id);
+            upstream.setDiscoveryHandlerId(id);
+            upstream.setDateCreated(new Timestamp(0));
+            upstream.setDateUpdated(new Timestamp(0));
+            return upstream;
+        }).collect(Collectors.toList()));
+        List<ProxySelectorVO> result = proxySelectorService.listByPage(query).getDataList();
+        assertEquals(1201, result.size());
+        for (int index = 0; index < result.size(); index++) {
+            String id = String.valueOf(index);
+            assertEquals(id, result.get(index).getId());
+            assertEquals(id, result.get(index).getDiscoveryHandlerId());
+            assertEquals(id, result.get(index).getDiscovery().getId());
+            assertEquals(id, result.get(index).getDiscoveryUpstreams().get(0).getId());
+        }
+        ArgumentCaptor<List<String>> batches = ArgumentCaptor.forClass(List.class);
+        verify(discoveryRelMapper, times(3)).selectByProxySelectorIds(batches.capture());
+        verify(discoveryHandlerMapper, times(3)).selectByIds(batches.capture());
+        verify(discoveryMapper, times(3)).selectByIds(batches.capture());
+        verify(discoveryUpstreamMapper, times(3)).selectByDiscoveryHandlerIds(batches.capture());
+        assertTrue(batches.getAllValues().stream().allMatch(batch -> !batch.isEmpty() && batch.size() <= 500));
+        assertEquals(4 * 1201, batches.getAllValues().stream().mapToInt(List::size).sum());
+        verifyNoMoreInteractions(discoveryRelMapper, discoveryHandlerMapper, discoveryMapper, discoveryUpstreamMapper);
+    }
+
+    @Test
     void testCreateOrUpdate() {
 
         ProxySelectorAddDTO proxySelectorDTO = new ProxySelectorAddDTO();
@@ -213,6 +275,48 @@ class ProxySelectorServiceTest {
 
         assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
         verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"configuration", "relation", "handler", "discovery"})
+    void validatesAllBindingsBeforeUpdatingAnyRecord(final String missing) {
+        ProxySelectorAddDTO dto = new ProxySelectorAddDTO();
+        dto.setId("proxy");
+        dto.setName("proxy");
+        dto.setPluginName("tcp");
+        dto.setForwardPort(8080);
+        dto.setHandler("new-handler");
+        if (!"configuration".equals(missing)) {
+            dto.setDiscovery(new ProxySelectorAddDTO.Discovery());
+        }
+        DiscoveryRelDO relation = new DiscoveryRelDO();
+        relation.setDiscoveryHandlerId("handler");
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler");
+        handler.setDiscoveryId("discovery");
+        handler.setHandler("original");
+        given(discoveryRelMapper.selectByProxySelectorId("proxy")).willReturn("relation".equals(missing) ? null : relation);
+        given(discoveryHandlerMapper.selectById("handler")).willReturn("handler".equals(missing) ? null : handler);
+        given(discoveryMapper.selectById("discovery")).willReturn("discovery".equals(missing) ? null : new DiscoveryDO());
+
+        assertThrows(ValidFailException.class, () -> proxySelectorService.update(dto));
+
+        verify(proxySelectorMapper, never()).update(any());
+        verify(discoveryHandlerMapper, never()).updateSelective(any());
+        verify(discoveryMapper, never()).updateSelective(any());
+        verifyNoInteractions(discoveryUpstreamMapper, discoveryProcessorHolder);
+        assertEquals("original", handler.getHandler());
+    }
+
+    @Test
+    void bindingRejectsMissingConfigurationBeforeLookingUpProcessorOrWriting() {
+        ProxySelectorAddDTO dto = new ProxySelectorAddDTO();
+        dto.setSelectorId("selector-without-discovery");
+
+        ValidFailException failure = assertThrows(ValidFailException.class, () -> proxySelectorService.bindingDiscoveryHandler(dto));
+
+        assertEquals("Discovery configuration is required for selector: selector-without-discovery", failure.getMessage());
+        verifyNoInteractions(discoveryProcessorHolder, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper, discoveryUpstreamMapper);
     }
 
     @Test

@@ -69,6 +69,17 @@
         from discovery_handler
     </select>
 
+    <select id="selectAllByNamespaceId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM discovery_handler
+        WHERE id IN (
+            SELECT discovery_handler_id FROM discovery_rel
+            WHERE selector_id IN (SELECT id FROM selector WHERE namespace_id = #{namespaceId})
+               OR ((selector_id IS NULL OR selector_id = '')
+                   AND proxy_selector_id IN (SELECT id FROM proxy_selector WHERE namespace_id = #{namespaceId}))
+        )
+    </select>
+
     <select id="selectByDiscoveryId" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
