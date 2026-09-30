@@ -37,8 +37,11 @@ on:
       - '.asf.yaml'
       - '.gitignore'
       - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
+      - '.github/**'
+      - 'actions/**'
+      - 'shenyu-e2e/**'
+      - 'shenyu-integrated-test/**'
+      - 'shenyu-examples/**'
       - '**/resources/static/**'
 
 env:

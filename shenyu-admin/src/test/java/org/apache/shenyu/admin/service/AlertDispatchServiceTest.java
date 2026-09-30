@@ -40,14 +40,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -130,7 +129,7 @@ public class AlertDispatchServiceTest {
     void testDispatchAlertSuccess() throws InterruptedException {
         final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -148,7 +147,7 @@ public class AlertDispatchServiceTest {
         
         // Verify handler was called
         Mockito.verify(emailHandler, times(1)).send(eq(receiver), eq(alarmContent));
-        verify(alertReceiverMapper, times(1)).selectAll();
+        verify(alertReceiverMapper, times(1)).selectByNamespaceId(TEST_NAMESPACE_ID);
     }
 
     @Test
@@ -164,7 +163,7 @@ public class AlertDispatchServiceTest {
         verify(emailHandler, never()).send(any(), any());
         verify(webhookHandler, never()).send(any(), any());
         verify(wechatHandler, never()).send(any(), any());
-        verify(alertReceiverMapper, never()).selectAll();
+        verify(alertReceiverMapper, never()).selectByNamespaceId(TEST_NAMESPACE_ID);
     }
 
     @Test
@@ -172,7 +171,7 @@ public class AlertDispatchServiceTest {
         final AlertReceiverDTO emailReceiver = createTestReceiver(EMAIL_TYPE, true, false);
         final AlertReceiverDTO webhookReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(emailReceiver, webhookReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(emailReceiver, webhookReceiver));
         
         final CountDownLatch latch = new CountDownLatch(2);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -201,7 +200,7 @@ public class AlertDispatchServiceTest {
     void testDispatchAlertWithHandlerException() throws InterruptedException {
         final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -221,7 +220,7 @@ public class AlertDispatchServiceTest {
     @Test
     void testClearCache() throws Exception {
         final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AlarmContent alarmContent = createTestAlarmContent();
@@ -234,12 +233,12 @@ public class AlertDispatchServiceTest {
         alertDispatchService.dispatchAlert(alarmContent);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         
-        final AtomicReference<List<AlertReceiverDTO>> cacheRef = getAlertReceiverReference();
-        assertNotNull(cacheRef.get());
+        final ConcurrentMap<String, List<AlertReceiverDTO>> cache = getAlertReceiverCache();
+        assertNotNull(cache.get(TEST_NAMESPACE_ID));
         
         alertDispatchService.clearCache();
         
-        assertNull(cacheRef.get());
+        assertTrue(cache.isEmpty());
     }
 
     @Test
@@ -293,7 +292,7 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         final AlertReceiverDTO matchAllReceiver = createTestReceiver(EMAIL_TYPE, true, true);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchAllReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(matchAllReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -312,7 +311,7 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         final AlertReceiverDTO disabledReceiver = createTestReceiver(EMAIL_TYPE, false, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(disabledReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(disabledReceiver));
         
         alertDispatchService.dispatchAlert(alarmContent);
         
@@ -332,7 +331,7 @@ public class AlertDispatchServiceTest {
         final AlertReceiverDTO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         nonMatchingReceiver.setNamespaceId("different-namespace");
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -359,7 +358,7 @@ public class AlertDispatchServiceTest {
         final AlertReceiverDTO nonMatchingReceiver = createTestReceiver(WEBHOOK_TYPE, true, false);
         nonMatchingReceiver.setLevels(Arrays.asList((byte) 0, (byte) 2));
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -393,7 +392,7 @@ public class AlertDispatchServiceTest {
         nonMatchingLabels.put("service", "api");
         nonMatchingReceiver.setLabels(nonMatchingLabels);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(matchingReceiver, nonMatchingReceiver));
         
         final CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -418,7 +417,7 @@ public class AlertDispatchServiceTest {
         requiredLabels.put("service", "gateway");
         receiverWithLabels.setLabels(requiredLabels);
 
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiverWithLabels));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(receiverWithLabels));
 
         alertDispatchService.dispatchAlert(alarmContent);
         
@@ -433,7 +432,7 @@ public class AlertDispatchServiceTest {
         final AlarmContent alarmContent = createTestAlarmContent();
         final AlertReceiverDTO receiver = createTestReceiver(EMAIL_TYPE, true, false);
         
-        when(alertReceiverMapper.selectAll()).thenReturn(Arrays.asList(receiver));
+        when(alertReceiverMapper.selectByNamespaceId(TEST_NAMESPACE_ID)).thenReturn(Arrays.asList(receiver));
         
         final CountDownLatch latch1 = new CountDownLatch(1);
         final CountDownLatch latch2 = new CountDownLatch(1);
@@ -455,7 +454,7 @@ public class AlertDispatchServiceTest {
         assertTrue(latch2.await(5, TimeUnit.SECONDS));
         
         // verify mapper is called only once (cache is used for second call)
-        verify(alertReceiverMapper, times(1)).selectAll();
+        verify(alertReceiverMapper, times(1)).selectByNamespaceId(TEST_NAMESPACE_ID);
         verify(emailHandler, times(2)).send(eq(receiver), eq(alarmContent));
     }
 
@@ -503,13 +502,13 @@ public class AlertDispatchServiceTest {
     }
 
     @SuppressWarnings("unchecked")
-    private AtomicReference<List<AlertReceiverDTO>> getAlertReceiverReference() {
+    private ConcurrentMap<String, List<AlertReceiverDTO>> getAlertReceiverCache() {
         try {
-            Field field = AlertDispatchServiceImpl.class.getDeclaredField("alertReceiverReference");
+            Field field = AlertDispatchServiceImpl.class.getDeclaredField("alertReceiverCache");
             field.setAccessible(true);
-            return (AtomicReference<List<AlertReceiverDTO>>) field.get(alertDispatchService);
+            return (ConcurrentMap<String, List<AlertReceiverDTO>>) field.get(alertDispatchService);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get alertReceiverReference field", e);
+            throw new RuntimeException("Failed to get alertReceiverCache field", e);
         }
     }
 

@@ -13,6 +13,7 @@
   with `Retry sequence took longer than timeout: ...`. Exhausting the retry
   count returns HTTP 408. The aggregate ceiling now also bounds a source that
   never completes; it does not replace the per-attempt response timeout.
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
 
 ## [v2.7.0]- 2024-12-23
 

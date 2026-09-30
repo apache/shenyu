@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.register.client.api.retry;
 
+import org.apache.shenyu.common.timer.TaskEntity;
+import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -31,8 +33,10 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link FailureRegistryTask}.
@@ -46,6 +50,12 @@ public final class FailureRegistryTaskTest {
 
     @Mock
     private TimerTask mockTimerTask;
+
+    @Mock
+    private TaskEntity mockTaskEntity;
+
+    @Mock
+    private Timer mockTimer;
 
     private FailureRegistryTask failureRegistryTask;
 
@@ -93,6 +103,21 @@ public final class FailureRegistryTaskTest {
         
         verify(mockRepository, times(3)).accept(TEST_KEY);
         verify(mockRepository, times(3)).remove(TEST_KEY);
+    }
+
+    @Test
+    public void testRemoveAfterRetriesExhausted() {
+        when(mockTaskEntity.getTimer()).thenReturn(mockTimer);
+        when(mockTaskEntity.getTimerTask()).thenReturn(mockTimerTask);
+        doThrow(new IllegalStateException("registration failed")).when(mockRepository).accept(TEST_KEY);
+
+        for (int i = 0; i < 19; i++) {
+            failureRegistryTask.run(mockTaskEntity);
+        }
+
+        verify(mockRepository, times(18)).accept(TEST_KEY);
+        verify(mockRepository).remove(TEST_KEY);
+        verify(mockTimer, times(18)).add(mockTimerTask);
     }
 
     @Test
