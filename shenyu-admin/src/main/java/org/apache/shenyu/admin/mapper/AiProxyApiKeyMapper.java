@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -66,7 +67,8 @@ public interface AiProxyApiKeyMapper extends ExistProvider {
 
     int updateSelective(ProxyApiKeyDO entity);
 
-    int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled);
+    int updateEnableBatch(@Param("idList") List<String> idList, @Param("enabled") Boolean enabled,
+                          @Param("dateUpdated") Timestamp dateUpdated);
 
     int delete(String id);
 

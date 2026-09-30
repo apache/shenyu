@@ -135,4 +135,23 @@ public class RedisRateLimiterScriptsTest {
                 .expectComplete()
                 .verify();
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowRemovesExpiredRequestsBeforeCounting() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        String tokenKey = "test-slidingWindow-expired";
+        long now = Instant.now().getEpochSecond();
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        redisTemplate.opsForZSet().add(tokenKey, "expired", now - 2).block();
+        List<String> keys = Arrays.asList(tokenKey, "current");
+        List<String> scriptArgs = Arrays.asList("1", "1", String.valueOf(now), "1");
+
+        Flux<List<Long>> resultFlux = redisTemplate.execute(script, keys, scriptArgs);
+
+        StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 1L))
+                .verifyComplete();
+    }
 }

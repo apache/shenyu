@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.model.ChatModel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -85,11 +86,14 @@ class AiRequestTransformerPluginHandlerTest {
         AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
         handle.setProvider("TEST_PROVIDER");
         ruleData.setHandle(GsonUtils.getInstance().toJson(handle));
+        chatClientCache.init(ruleData.getId(), mock(ChatModel.class));
+        assertNotNull(chatClientCache.getClient(ruleData.getId()));
 
         pluginHandler.removeRule(ruleData);
 
         CommonHandleCache<String, AiRequestTransformerHandle> cache = AiRequestTransformerPluginHandler.CACHED_HANDLE.get();
         assertNull(cache.obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        assertNull(chatClientCache.getClient(ruleData.getId()));
     }
 
     @Test

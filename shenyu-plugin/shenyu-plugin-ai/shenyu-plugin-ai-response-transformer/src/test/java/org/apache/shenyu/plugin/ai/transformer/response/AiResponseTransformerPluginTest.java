@@ -57,6 +57,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.zip.GZIPInputStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -203,6 +205,28 @@ class AiResponseTransformerPluginTest {
     }
 
     @Test
+    void testOriginalHeadersRemainWhenTransformedBodyIsInvalid() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().set("X-Original", "original");
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 200 OK\nX-New: transformed"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals("original", response.getHeaders().getFirst("X-Original"));
+        assertNull(response.getHeaders().getFirst("X-New"));
+    }
+
+    @Test
     void testExtractBodyFromAiResponse() {
         String aiResponse = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}";
         String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
@@ -323,5 +347,18 @@ class AiResponseTransformerPluginTest {
         String aiResponse = "```\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n[{\"id\":1,\"name\":\"test\"}]\n```";
         String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(aiResponse);
         assertEquals("[{\"id\":1,\"name\":\"test\"}]", body);
+    }
+
+    @Test
+    void testExtractBodyFromAiResponseReusesObjectMapper() {
+        // initialize the plugin class (and its static mapper) before the constructor instrumentation is installed
+        AiResponseTransformerPlugin.extractBodyFromAiResponse("{\"status\":\"success\"}");
+
+        try (MockedConstruction<ObjectMapper> mockedMappers = mockConstruction(ObjectMapper.class)) {
+            String body = AiResponseTransformerPlugin
+                    .extractBodyFromAiResponse("HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}");
+            assertEquals("{\"status\":\"success\"}", body);
+            assertEquals(0, mockedMappers.constructed().size());
+        }
     }
 }

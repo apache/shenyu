@@ -17,13 +17,25 @@
 
 package org.apache.shenyu.plugin.sofa.handler;
 
+import com.alipay.sofa.rpc.api.GenericService;
+import com.alipay.sofa.rpc.config.ConsumerConfig;
+import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.concurrent.ConcurrentMap;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * SofaMetaDataHandlerTest.
@@ -52,5 +64,41 @@ public class SofaMetaDataHandlerTest {
         final MetaData metaData = MetaData.builder().path("path").build();
         metaData.setServiceName("serviceName");
         assertDoesNotThrow(() -> sofaMetaDataHandler.handle(metaData));
+    }
+
+    @Test
+    @SuppressWarnings("all")
+    public void removeShouldInvalidateThePlainPathCacheEntry() throws IllegalAccessException {
+        final String path = "sofa/plain-path-entry";
+        final MetaData metaData = MetaData.builder().path(path).build();
+        final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
+        assertNotNull(cacheField);
+        final LoadingCache cache = (LoadingCache) cacheField.get(ApplicationConfigCache.getInstance());
+        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        when(consumerConfig.refer()).thenReturn(mock(GenericService.class));
+        cache.put(path, consumerConfig);
+
+        sofaMetaDataHandler.remove(metaData);
+
+        assertNull(cache.getIfPresent(path), "remove() must invalidate the reference cached under the bare metadata path");
+    }
+
+    @Test
+    @SuppressWarnings("all")
+    public void handleNullMetadataFieldsTest() throws IllegalAccessException {
+        final String path = "null-metadata-fields";
+        final MetaData metaData = MetaData.builder().path(path).build();
+        final Field metadataField = FieldUtils.getDeclaredField(SofaMetaDataHandler.class, "META_DATA", true);
+        assertNotNull(metadataField);
+        ((ConcurrentMap) metadataField.get(null)).put(path, metaData);
+        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        when(consumerConfig.refer()).thenReturn(mock(GenericService.class));
+        final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
+        assertNotNull(cacheField);
+        ((LoadingCache) cacheField.get(ApplicationConfigCache.getInstance())).put(path, consumerConfig);
+
+        assertDoesNotThrow(() -> sofaMetaDataHandler.handle(metaData));
+
+        sofaMetaDataHandler.remove(metaData);
     }
 }
