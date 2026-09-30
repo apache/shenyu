@@ -19,6 +19,8 @@ package org.apache.shenyu.web.filter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -26,8 +28,12 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -48,8 +54,16 @@ public final class CollapseSlashesFilterTest {
 
     @Test
     public void filter() {
-        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.post("http://localhost:8080///////test"));
+        ServerWebExchange webExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.method(HttpMethod.POST,
+                        URI.create("http://localhost:8080///////test?name=shenyu%20gateway#section")));
         Mono<Void> filter = collapseSlashesFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(filter).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> exchangeCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(webFilterChain).filter(exchangeCaptor.capture());
+        assertEquals("/test", exchangeCaptor.getValue().getRequest().getURI().getRawPath());
+        assertEquals("name=shenyu%20gateway", exchangeCaptor.getValue().getRequest().getURI().getRawQuery());
+        assertEquals("section", exchangeCaptor.getValue().getRequest().getURI().getRawFragment());
     }
 }
