@@ -58,9 +58,32 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
      */
     protected abstract void doDelete(List<T> dataList);
 
+    /**
+     * Apply an authoritative snapshot for the connection's namespace.
+     * @param json snapshot array, including an empty array
+     */
+    public void handleSnapshot(final String json) {
+        List<T> dataList = convert(json);
+        if (java.util.Objects.isNull(dataList)) {
+            throw new IllegalArgumentException("A snapshot must contain a data array");
+        }
+        doSnapshot(dataList);
+    }
+
+    /**
+     * Replace the complete group, not just rows present in the payload.
+     * @param dataList complete group
+     */
+    protected void doSnapshot(final List<T> dataList) {
+        doRefresh(dataList);
+    }
+
     @Override
     public void handle(final String json, final String eventType) {
         List<T> dataList = convert(json);
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
 
         DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
         switch (eventTypeEnum) {

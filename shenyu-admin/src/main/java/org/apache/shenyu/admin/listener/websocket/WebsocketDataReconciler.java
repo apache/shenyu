@@ -41,6 +41,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,9 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
     private void reconcileGroup(final String namespaceId, final ConfigGroupEnum group) {
         String cursorKey = namespaceId + ":" + group.name();
         try {
-            List<?> dataList = load(namespaceId, group);
+            List<?> dataList = load(namespaceId, group).stream()
+                    .sorted(Comparator.comparing(GsonUtils.getInstance()::toJson))
+                    .collect(Collectors.toList());
             String digest = DigestUtils.md5Hex(dataList.stream()
                     .map(GsonUtils.getInstance()::toJson)
                     .sorted()
@@ -212,6 +215,8 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
             }
             WebsocketData<?> websocketData =
                     new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), dataList);
+            websocketData.setNamespaceId(namespaceId);
+            websocketData.setFullSnapshot(true);
             push(namespaceId, GsonUtils.getInstance().toJson(websocketData));
             digestCursor.put(cursorKey, digest);
             LOG.info("websocket reconciliation pushed group {} for namespace {}, size: {}",

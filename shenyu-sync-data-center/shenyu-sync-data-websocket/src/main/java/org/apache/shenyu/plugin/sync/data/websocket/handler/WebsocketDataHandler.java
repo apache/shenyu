@@ -68,4 +68,20 @@ public class WebsocketDataHandler {
         handlers.get(type).handle(json, eventType);
     }
 
+    /**
+     * Apply a complete group snapshot after verifying the connection namespace.
+     * @param type configuration group
+     * @param json snapshot array
+     * @param snapshotNamespace namespace supplied by Admin
+     * @param connectionNamespace namespace configured on this connection
+     */
+    public void snapshot(final ConfigGroupEnum type, final String json,
+                         final String snapshotNamespace, final String connectionNamespace) {
+        if (java.util.Objects.isNull(snapshotNamespace) || snapshotNamespace.isEmpty()
+                || !snapshotNamespace.equals(connectionNamespace)) {
+            throw new IllegalArgumentException("Snapshot namespace does not match the connection");
+        }
+        ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json);
+    }
+
 }

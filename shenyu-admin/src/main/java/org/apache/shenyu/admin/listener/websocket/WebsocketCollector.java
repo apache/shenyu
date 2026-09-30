@@ -411,9 +411,9 @@ public class WebsocketCollector {
                 redactSensitive(map);
                 return JsonUtils.toJson(map);
             }
-            return json;
+            return "[unparseable websocket payload]";
         } catch (Exception e) {
-            return json;
+            return "[unparseable websocket payload]";
         }
     }
 
@@ -516,4 +516,3 @@ public class WebsocketCollector {
         }
     }
 }
-

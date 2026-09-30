@@ -233,6 +233,23 @@ public final class WebsocketDataReconcilerTest {
         }
     }
 
+    @Test
+    public void testReorderingDoesNotPushAgain() {
+        stubAllGroups();
+        RuleData first = new RuleData().setId("first");
+        RuleData second = new RuleData().setId("second");
+        when(ruleService.listAllByNamespaceId(NAMESPACE_1))
+                .thenReturn(List.of(first, second)).thenReturn(List.of(second, first));
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            reconciler.reconcileSafely();
+            reconciler.reconcileSafely();
+            mocked.verifySends(NAMESPACE_1, 8);
+            assertTrue(mocked.capturedMessages(NAMESPACE_1).stream()
+                    .allMatch(message -> message.contains("\"fullSnapshot\":true")
+                            && message.contains("\"namespaceId\":\"namespace-1\"")));
+        }
+    }
+
     private void stubAllGroups() {
         lenient().when(appAuthService.listAllByNamespaceId(anyString()))
                 .thenReturn(Collections.singletonList(new AppAuthData()));

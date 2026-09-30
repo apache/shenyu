@@ -214,8 +214,6 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }).collect(Collectors.toList());
     }
 
-
-
     @Override
     public List<DiscoveryUpstreamVO> listAllData() {
         return discoveryUpstreamMapper

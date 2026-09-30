@@ -98,10 +98,10 @@ public interface MetaDataService {
     List<MetaData> listAll();
 
     /**
-     * List all meta data in one namespace without publishing events.
+     * List synchronization data in a single namespace.
      *
-     * @param namespaceId the namespaceId
-     * @return the list
+     * @param namespaceId namespace id
+     * @return synchronization data
      */
     List<MetaData> listAllByNamespaceId(String namespaceId);
 

@@ -45,6 +45,12 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
     }
 
     @Override
+    protected void doSnapshot(final List<SelectorData> dataList) {
+        pluginDataSubscriber.refreshSelectorDataAll();
+        doUpdate(dataList);
+    }
+
+    @Override
     protected void doUpdate(final List<SelectorData> dataList) {
         dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
     }

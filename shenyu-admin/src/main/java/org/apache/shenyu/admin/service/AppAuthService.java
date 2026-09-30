@@ -140,10 +140,10 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
     List<AppAuthData> listAll();
 
     /**
-     * List all auth data in one namespace without publishing events.
+     * List synchronization data in a single namespace.
      *
-     * @param namespaceId the namespaceId
-     * @return the list
+     * @param namespaceId namespace id
+     * @return synchronization data
      */
     List<AppAuthData> listAllByNamespaceId(String namespaceId);
 

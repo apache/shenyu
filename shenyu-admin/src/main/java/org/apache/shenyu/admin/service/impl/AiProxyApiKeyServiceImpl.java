@@ -276,8 +276,6 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                 .resolveRealKeys(list.stream().map(ProxyApiKeyDO::getSelectorId).collect(Collectors.toSet())));
     }
 
-
-
     // private utils
 
     private void publishChange(final DataEventTypeEnum type, final ProxyApiKeyDO entity) {
