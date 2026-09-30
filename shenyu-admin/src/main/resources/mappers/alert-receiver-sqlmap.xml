@@ -60,6 +60,14 @@
         <include refid="Base_Column_List"/>
         from alert_receiver
     </select>
+    <select id="selectByNamespaceId" resultType="org.apache.shenyu.alert.model.AlertReceiverDTO">
+        select
+        <include refid="Base_Column_List"/>
+        from alert_receiver
+        where namespace_id = #{namespaceId,jdbcType=VARCHAR}
+           or namespace_id is null
+           or namespace_id = ''
+    </select>
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
         <!--@mbg.generated-->
         insert into alert_receiver (id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url,

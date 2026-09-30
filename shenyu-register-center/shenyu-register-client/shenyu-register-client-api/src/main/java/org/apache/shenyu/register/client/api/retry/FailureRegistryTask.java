@@ -54,4 +54,9 @@ public class FailureRegistryTask extends AbstractRetryTask {
     protected void doRetry(final String key, final TimerTask timerTask) {
         this.registerRepository.retry(key);
     }
+
+    @Override
+    protected void onRetryExhausted(final String key) {
+        this.registerRepository.remove(key);
+    }
 }

@@ -67,7 +67,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), requestHandle.getRequestHeaderUniqueStrategy());
             exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), requestHandle.getRequestUniqueHeaders());
         }
-        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
+        if (Objects.nonNull(requestHandle.getRespHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
             exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), requestHandle.getRespHeaderUniqueStrategy());
             exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), requestHandle.getRespUniqueHeaders());
         }

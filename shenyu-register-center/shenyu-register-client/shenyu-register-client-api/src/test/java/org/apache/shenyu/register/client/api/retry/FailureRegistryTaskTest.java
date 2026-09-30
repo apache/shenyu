@@ -19,6 +19,8 @@
 package org.apache.shenyu.register.client.api.retry;
 
 import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.TaskEntity;
+import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public final class FailureRegistryTaskTest {
 
@@ -67,5 +70,23 @@ public final class FailureRegistryTaskTest {
         verify(repository).retry("first");
         verify(repository).retry("second");
         verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    public void removesFailureAfterRetriesAreExhausted() {
+        final FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        final TimerTask timerTask = mock(TimerTask.class);
+        final Timer timer = mock(Timer.class);
+        TaskEntity entity = mock(TaskEntity.class);
+        when(entity.getTimer()).thenReturn(timer);
+        when(entity.getTimerTask()).thenReturn(timerTask);
+        doThrow(new IllegalStateException("registration failed")).when(repository).retry("key");
+        FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        for (int attempt = 0; attempt < 19; attempt++) {
+            task.run(entity);
+        }
+        verify(repository, times(18)).retry("key");
+        verify(repository).remove("key");
+        verify(timer, times(18)).add(timerTask);
     }
 }

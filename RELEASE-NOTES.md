@@ -1,3 +1,13 @@
+## Unreleased
+
+### Behavior Changes
+
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
+
+1. The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features
