@@ -280,7 +280,6 @@
            api.api_owner,
            api.api_desc,
            api.api_source,
-           api.document,
            api.document_md5,
            api.date_created,
            api.date_updated
@@ -297,7 +296,7 @@
         and state = #{state, jdbcType=TINYINT}
       </if>
     </where>
-    order by api.date_created desc
+    order by api.date_created desc, api.id desc
   </select>
 
   <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">

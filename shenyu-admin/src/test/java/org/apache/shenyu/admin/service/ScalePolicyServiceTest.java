@@ -32,6 +32,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,13 +59,23 @@ public final class ScalePolicyServiceTest {
 
     @Test
     public void testConcurrentDeleteDoesNotCacheNullOrSuppressScaling() {
-        ScalePolicyDTO partialPolicy = new ScalePolicyDTO("deleted-policy", 1, 1, null, null, null);
+        ScalePolicyCache cache = new ScalePolicyCache();
+        cache.updatePolicy(ScalePolicyDO.builder().id("deleted-policy").status(1).num(3).build());
+        cache.updatePolicy(ScalePolicyDO.builder().id("unrelated-policy").status(1).num(5).build());
+        final ScalePolicyService service = new ScalePolicyServiceImpl(scalePolicyMapper, cache, scaleService);
+        final ScalePolicyDTO partialPolicy = new ScalePolicyDTO("deleted-policy", 1, 1, null, null, null);
         when(scalePolicyMapper.updateByPrimaryKeySelective(any(ScalePolicyDO.class))).thenReturn(1);
         when(scalePolicyMapper.selectByPrimaryKey("deleted-policy")).thenReturn(null);
 
-        assertEquals(1, scalePolicyService.update(partialPolicy));
+        doAnswer(invocation -> {
+            assertNull(cache.getPolicyById("deleted-policy"));
+            assertNotNull(cache.getPolicyById("unrelated-policy"));
+            return null;
+        }).when(scaleService).executeScaling();
 
-        org.mockito.Mockito.verifyNoInteractions(scalePolicyCache);
+        assertEquals(1, service.update(partialPolicy));
+
+        assertNull(cache.getPolicyById("deleted-policy"));
         verify(scaleService).executeScaling();
     }
 
