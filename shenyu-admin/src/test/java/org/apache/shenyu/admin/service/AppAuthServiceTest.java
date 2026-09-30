@@ -76,6 +76,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Test cases for AppAuthService.
@@ -111,6 +113,25 @@ public final class AppAuthServiceTest {
         testApplyUpdateParameterError();
         testApplyUpdateAppKeyNotExist();
         testApplyUpdateSuccess();
+    }
+
+    @Test
+    public void testCreateOrUpdatePropagatesNamespace() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(appAuthMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, appAuthService.createOrUpdate(dto));
+        verify(appAuthMapper).updateSelective(argThat(auth -> SYS_DEFAULT_NAMESPACE_ID.equals(auth.getNamespaceId())));
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    public void testRejectedNamespaceUpdateDoesNotPublish() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId("other-namespace");
+        given(appAuthMapper.updateSelective(any())).willReturn(0);
+        assertEquals(0, appAuthService.createOrUpdate(dto));
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
