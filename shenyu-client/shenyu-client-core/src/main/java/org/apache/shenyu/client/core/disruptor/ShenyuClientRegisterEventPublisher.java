@@ -56,7 +56,7 @@ public class ShenyuClientRegisterEventPublisher {
         if (Objects.nonNull(providerManage)) {
             return;
         }
-        RegisterClientExecutorFactory<DataTypeParent> factory = new RegisterClientExecutorFactory<>();
+        RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
         ShenyuClientURIExecutorSubscriber uriSubscriber = createUriSubscriber(shenyuClientRegisterRepository);
         factory.addSubscribers(uriSubscriber);
