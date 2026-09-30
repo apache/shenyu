@@ -35,6 +35,9 @@ public class KeyWordMatch {
     public KeyWordMatch(final Set<String> keyWordSet) {
         StringBuilder sb = new StringBuilder();
         keyWordSet.forEach(tempKeyWord -> {
+            if (sb.length() > 0) {
+                sb.append("|");
+            }
             sb.append("(?i)");
             if (tempKeyWord.length() <= 6) {
                 sb.append(Pattern.quote(tempKeyWord));
@@ -42,7 +45,6 @@ public class KeyWordMatch {
                 sb.append("^").append(Pattern.quote(tempKeyWord.substring(0, 3))).append("(.*?)")
                         .append(Pattern.quote(tempKeyWord.substring(tempKeyWord.length() - 3))).append("$");
             }
-            sb.append("||");
         });
         p = Pattern.compile(sb.toString());
     }
