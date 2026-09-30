@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -133,12 +134,21 @@ public final class BaseDataCache {
      */
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
-            selectorMap.computeIfPresent(data.getPluginName(), (key, value) -> {
-                final List<SelectorData> result = value.stream()
-                        .filter(selector -> !Objects.equals(selector.getId(), data.getId()))
-                        .collect(Collectors.toList());
-                return result.isEmpty() ? null : List.copyOf(result);
-            });
+            if (StringUtils.isBlank(data.getPluginName())) {
+                // a dangling selector carries no plugin name, so its entry may live under any plugin bucket
+                selectorMap.keySet().forEach(pluginName -> removeSelectData(pluginName, data.getId()));
+            } else {
+                removeSelectData(data.getPluginName(), data.getId());
+            }
+        });
+    }
+
+    private void removeSelectData(final String pluginName, final String selectorId) {
+        selectorMap.computeIfPresent(pluginName, (key, value) -> {
+            final List<SelectorData> result = value.stream()
+                    .filter(selector -> !Objects.equals(selector.getId(), selectorId))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
         });
     }
     

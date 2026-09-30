@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.PluginData;
@@ -258,8 +259,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().removeSelectData(selectorData);
-            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
-                    .ifPresent(handler -> handler.removeSelector(selectorData));
+            // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
+            if (StringUtils.isNotBlank(selectorData.getPluginName())) {
+                Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                        .ifPresent(handler -> handler.removeSelector(selectorData));
+            }
             // remove match cache
             if (selectorMatchConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
@@ -272,8 +276,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
-            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
-                    .ifPresent(handler -> handler.removeRule(ruleData));
+            if (StringUtils.isNotBlank(ruleData.getPluginName())) {
+                Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                        .ifPresent(handler -> handler.removeRule(ruleData));
+            }
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
                 MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
