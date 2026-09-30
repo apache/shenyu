@@ -98,6 +98,14 @@ public interface MetaDataService {
     List<MetaData> listAll();
 
     /**
+     * List synchronization data in a single namespace.
+     *
+     * @param namespaceId namespace id
+     * @return synchronization data
+     */
+    List<MetaData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * List all vo list.
      *
      * @return the vo list

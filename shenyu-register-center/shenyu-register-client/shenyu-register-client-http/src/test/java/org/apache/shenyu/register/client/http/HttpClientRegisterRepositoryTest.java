@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.http;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -26,13 +27,12 @@ import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.jupiter.api.AfterEach;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -60,14 +60,8 @@ public final class HttpClientRegisterRepositoryTest {
     private HttpClientRegisterRepository repository;
 
     @BeforeEach
-    public void setUp() throws Exception {
-        resetStatics();
+    public void setUp() {
         repository = new HttpClientRegisterRepository(config(FIRST_SERVER));
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        resetStatics();
     }
 
     @Test
@@ -176,21 +170,54 @@ public final class HttpClientRegisterRepositoryTest {
     }
 
     @Test
-    public void closeRepositoryShouldUnregisterLastUriAndApiDoc() {
+    public void closeRepositoryShouldUnregisterEveryUriAndApiDoc() {
         try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
              MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
             runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
             registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
                     .thenReturn(Optional.of(TOKEN));
 
-            repository.persistURI(uriRegisterDTO());
-            repository.persistApiDoc(ApiDocRegisterDTO.builder().apiPath("/hello").build());
+            URIRegisterDTO firstUri = uriRegisterDTO();
+            URIRegisterDTO secondUri = URIRegisterDTO.builder().appName("demo").rpcType("http")
+                    .host("127.0.0.1").port(18081).build();
+            ApiDocRegisterDTO firstApiDoc = ApiDocRegisterDTO.builder().apiPath("/hello").build();
+            ApiDocRegisterDTO secondApiDoc = ApiDocRegisterDTO.builder().apiPath("/goodbye").build();
+            repository.persistURI(firstUri);
+            repository.persistURI(secondUri);
+            repository.persistApiDoc(firstApiDoc);
+            repository.persistApiDoc(secondApiDoc);
             repository.closeRepository();
 
             registerUtils.verify(() -> RegisterUtils.doRegister(anyString(),
-                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)), times(2));
+                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)), times(4));
             registerUtils.verify(() -> RegisterUtils.doRegister(anyString(),
-                    eq(FIRST_SERVER + Constants.API_DOC_PATH), eq(Constants.API_DOC_TYPE), eq(TOKEN)), times(2));
+                    eq(FIRST_SERVER + Constants.API_DOC_PATH), eq(Constants.API_DOC_TYPE), eq(TOKEN)), times(4));
+        }
+    }
+
+    @Test
+    public void repositoriesShouldTrackRegistrationsIndependently() {
+        HttpClientRegisterRepository secondRepository = new HttpClientRegisterRepository(config(FIRST_SERVER));
+        URIRegisterDTO firstUri = uriRegisterDTO();
+        URIRegisterDTO secondUri = URIRegisterDTO.builder().appName("demo").rpcType("http")
+                .host("127.0.0.1").port(18081).build();
+
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+             MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
+                    .thenReturn(Optional.of(TOKEN));
+            repository.persistURI(firstUri);
+            secondRepository.persistURI(secondUri);
+            registerUtils.clearInvocations();
+
+            repository.closeRepository();
+
+            firstUri.setEventType(EventType.DELETED);
+            registerUtils.verify(() -> RegisterUtils.doRegister(eq(GsonUtils.getInstance().toJson(firstUri)),
+                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
+            registerUtils.verify(() -> RegisterUtils.doRegister(eq(GsonUtils.getInstance().toJson(secondUri)),
+                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)), never());
         }
     }
 
@@ -254,12 +281,4 @@ public final class HttpClientRegisterRepositoryTest {
         return metaDataRegisterDTO;
     }
 
-    private void resetStatics() throws Exception {
-        Field uriField = HttpClientRegisterRepository.class.getDeclaredField("uriRegisterDTO");
-        uriField.setAccessible(true);
-        uriField.set(null, null);
-        Field apiDocField = HttpClientRegisterRepository.class.getDeclaredField("apiDocRegisterDTO");
-        apiDocField.setAccessible(true);
-        apiDocField.set(null, null);
-    }
 }
