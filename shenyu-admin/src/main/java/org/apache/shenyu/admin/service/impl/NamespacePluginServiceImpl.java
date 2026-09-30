@@ -98,8 +98,12 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
-        namespacePluginRelMapper.insertSelective(namespacePluginRelDO);
-        return namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) <= 0) {
+            return null;
+        }
+        NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        namespacePluginEventPublisher.onCreated(namespacePluginVO);
+        return namespacePluginVO;
     }
     
     @Override
