@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -47,11 +48,13 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -69,8 +72,16 @@ public class WebsocketCollector {
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
 
     private static final Map<Session, SessionSendQueue> SESSION_SEND_QUEUES = Maps.newConcurrentMap();
+
+    /**
+     * Namespace captured at registration. {@code Session#isOpen()} is already false when
+     * {@code @OnClose} runs, so the namespace cannot be read from the session at teardown.
+     */
+    private static final Map<Session, String> SESSION_NAMESPACE_IDS = Maps.newConcurrentMap();
     
     private static final String SESSION_KEY = "sessionKey";
+
+    private static final ThreadLocal<InitialSync> INITIAL_SYNC = new ThreadLocal<>();
     
     /**
      * On open.
@@ -82,14 +93,18 @@ public class WebsocketCollector {
         String clientIp = getClientIp(session);
         LOG.info("websocket on client[{}] open successful, maxTextMessageBufferSize: {}",
                 clientIp, session.getMaxTextMessageBufferSize());
-        SESSION_SET.add(session);
-        
         String namespaceId = getNamespaceId(session);
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("websocket on client open failed, namespaceId is null");
         }
+        SESSION_SET.add(session);
+        SESSION_NAMESPACE_IDS.put(session, namespaceId);
         LOG.info("websocket on client[{}] open successful, namespaceId: {}", clientIp, namespaceId);
-        NAMESPACE_SESSION_MAP.computeIfAbsent(namespaceId, k -> Sets.newConcurrentHashSet()).add(session);
+        NAMESPACE_SESSION_MAP.compute(namespaceId, (id, sessions) -> {
+            Set<Session> registered = Objects.isNull(sessions) ? Sets.newConcurrentHashSet() : sessions;
+            registered.add(session);
+            return registered;
+        });
     }
     
     private static String getClientIp(final Session session) {
@@ -144,6 +159,10 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
+        if (message.startsWith(WebsocketSyncFrame.REQUEST_PREFIX)) {
+            initialSync(message.substring(WebsocketSyncFrame.REQUEST_PREFIX.length()), session);
+            return;
+        }
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
                 && !Objects.equals(message, DataEventTypeEnum.RUNNING_MODE.name())
                 && !message.contains("bootstrapInstanceInfo")) {
@@ -251,12 +270,17 @@ public class WebsocketCollector {
                 if (session.isOpen()) {
                     sendMessageBySession(session, message);
                 } else {
-                    SESSION_SET.remove(session);
-                    removeSessionSendQueue(session);
+                    removeSessionIndexes(session);
                 }
             }
         } else {
-            SESSION_SET.forEach(session -> sendMessageBySession(session, message));
+            for (Session registered : new ArrayList<>(SESSION_SET)) {
+                if (registered.isOpen()) {
+                    sendMessageBySession(registered, message);
+                } else {
+                    removeSessionIndexes(registered);
+                }
+            }
         }
         
     }
@@ -282,19 +306,62 @@ public class WebsocketCollector {
                 if (session.isOpen()) {
                     sendMessageBySession(session, message);
                 } else {
-                    NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
-                    removeSessionSendQueue(session);
+                    removeSessionIndexes(session);
                 }
             }
         } else {
-            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet())
-                    .forEach(session -> sendMessageBySession(session, message));
+            Set<Session> sessions = NAMESPACE_SESSION_MAP.get(namespaceId);
+            if (Objects.isNull(sessions) || sessions.isEmpty()) {
+                return;
+            }
+            for (Session registered : new ArrayList<>(sessions)) {
+                if (registered.isOpen()) {
+                    sendMessageBySession(registered, message);
+                } else {
+                    removeSessionIndexes(registered);
+                }
+            }
         }
         
     }
     
+    private void initialSync(final String requestId, final Session session) {
+        try {
+            UUID.fromString(requestId);
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("Ignoring initial synchronization request with an invalid UUID");
+            return;
+        }
+        ClusterProperties properties = SpringBeanUtils.getInstance().getBean(ClusterProperties.class);
+        if (properties.isEnabled()
+                && !SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster()) {
+            return;
+        }
+        InitialSync sync = new InitialSync(session, requestId);
+        try {
+            INITIAL_SYNC.set(sync);
+            ThreadLocalUtils.put(SESSION_KEY, session);
+            boolean success = SpringBeanUtils.getInstance().getBean(SyncDataService.class)
+                    .syncAllByNamespaceId(DataEventTypeEnum.MYSELF, getNamespaceId(session));
+            if (success && (!properties.isEnabled()
+                    || SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster())) {
+                SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
+                        .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(requestId, sync.sequence, null)));
+            }
+        } finally {
+            INITIAL_SYNC.remove();
+            ThreadLocalUtils.clear();
+        }
+    }
+
     private static void sendMessageBySession(final Session session, final String message) {
-        SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
+        InitialSync sync = INITIAL_SYNC.get();
+        if (Objects.nonNull(sync) && sync.session == session) {
+            SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
+                    .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(sync.requestId, sync.sequence++, message)));
+        } else {
+            SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
+        }
     }
 
     private static void removeSessionSendQueue(final Session session) {
@@ -304,14 +371,24 @@ public class WebsocketCollector {
         }
     }
     
-    private void clearSession(final Session session) {
+    private static void clearSession(final Session session) {
+        removeSessionIndexes(session);
+        ThreadLocalUtils.clear();
+    }
+
+    private static void removeSessionIndexes(final Session session) {
         SESSION_SET.remove(session);
         removeSessionSendQueue(session);
-        String namespaceId = getNamespaceId(session);
+        String namespaceId = SESSION_NAMESPACE_IDS.remove(session);
         if (StringUtils.isNotBlank(namespaceId)) {
-            NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Sets.newConcurrentHashSet()).remove(session);
+            NAMESPACE_SESSION_MAP.compute(namespaceId, (id, sessions) -> {
+                if (Objects.isNull(sessions)) {
+                    return null;
+                }
+                sessions.remove(session);
+                return sessions.isEmpty() ? null : sessions;
+            });
         }
-        ThreadLocalUtils.clear();
     }
     
     private static String maskSensitive(final String json) {
@@ -332,6 +409,20 @@ public class WebsocketCollector {
             return json;
         } catch (Exception e) {
             return json;
+        }
+    }
+
+    private static final class InitialSync {
+
+        private final Session session;
+
+        private final String requestId;
+
+        private int sequence;
+
+        private InitialSync(final Session session, final String requestId) {
+            this.session = session;
+            this.requestId = requestId;
         }
     }
 

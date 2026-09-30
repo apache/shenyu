@@ -18,7 +18,7 @@ version: '3.9'
 
 services:
   shenyu-opengauss:
-    image: enmotech/opengauss:5.0.0
+    image: enmotech/opengauss-lite:5.0.1
     container_name: shenyu-opengauss
     environment:
       - GS_PASSWORD=ShenYuE2E@123
@@ -26,7 +26,7 @@ services:
     ports:
       - "30432:5432"
     volumes:
-      - /tmp/shenyu-e2e/opengauss/schema/create-table.sql:/docker-entrypoint-initdb.d
+      - /tmp/shenyu-e2e/opengauss/schema/create-table.sql:/docker-entrypoint-initdb.d/create-table.sql
     deploy:
       resources:
         limits:
@@ -36,7 +36,7 @@ services:
           cpus: '0.5'
           memory: 512M
     healthcheck:
-      test: [ "CMD-SHELL", "gsql -U gaussdb -h127.0.0.1 -p5432 -dshenyu -WShenYuE2E@123 -c \"SELECT 1\"" ]
+      test: [ "CMD-SHELL", "LD_LIBRARY_PATH=/usr/local/opengauss/lib /usr/local/opengauss/bin/gsql -U gaussdb --password $$GS_PASSWORD -h 127.0.0.1 -p 5432 -d shenyu -c \"SELECT 1\"" ]
       interval: 10s
       timeout: 5s
       retries: 3
