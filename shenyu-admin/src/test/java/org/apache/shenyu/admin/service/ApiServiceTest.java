@@ -25,6 +25,8 @@ import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.TagDO;
+import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
@@ -45,6 +47,7 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -236,6 +239,27 @@ public final class ApiServiceTest {
         given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
+        verify(tagRelationMapper).selectByApiIds(apiDOList.stream().map(ApiDO::getId).collect(Collectors.toList()));
+        verify(tagRelationMapper, never()).selectByQuery(any());
+        verify(tagMapper, never()).selectByIds(any());
+    }
+
+    @Test
+    public void testListByPageBatchesTags() {
+        ApiQuery query = new ApiQuery(null, 0, "", new PageParameter());
+        given(apiMapper.selectByQuery(query)).willReturn(Arrays.asList(buildApiDO("first"), buildApiDO("second")));
+        given(tagRelationMapper.selectByApiIds(Arrays.asList("first", "second"))).willReturn(Arrays.asList(
+                TagRelationDO.builder().apiId("first").tagId("tag").build(), TagRelationDO.builder().apiId("second").tagId("tag").build()));
+        TagDO tag = new TagDO();
+        tag.setId("tag");
+        tag.setDateCreated(new Timestamp(0));
+        tag.setDateUpdated(new Timestamp(0));
+        given(tagMapper.selectByIds(Collections.singletonList("tag"))).willReturn(Collections.singletonList(tag));
+        List<ApiVO> result = apiService.listByPage(query).getDataList();
+        assertEquals("tag", result.get(0).getTags().get(0).getId());
+        assertEquals("tag", result.get(1).getTags().get(0).getId());
+        verify(tagMapper).selectByIds(Collections.singletonList("tag"));
+        verify(tagRelationMapper, never()).selectByQuery(any());
     }
 
     private ApiDO buildApiDO(final String id) {

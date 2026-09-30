@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
-
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -79,8 +78,8 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoMapper.updateById(infoDO);
     }
 
-    @Override
     @Pageable
+    @Override
     public CommonPager<InstanceInfoVO> listByPage(final InstanceQuery instanceQuery) {
         List<InstanceInfoDO> instanceInfoDOList = instanceInfoMapper.selectByQuery(instanceQuery);
         return PageResultUtils.result(instanceQuery.getPageParameter(), () -> this.buildInstanceInfoVO(instanceInfoDOList));

@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import org.apache.shenyu.admin.aspect.annotation.Pageable;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
@@ -81,8 +80,8 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
         return MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDO);
     }
 
-    @Override
     @Pageable
+    @Override
     public CommonPager<MockRequestRecordVO> listByPage(final MockRequestRecordQuery mockRequestRecordQuery) {
         List<MockRequestRecordDO> list = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
         return PageResultUtils.result(mockRequestRecordQuery.getPageParameter(), () -> list.stream().map(MockRequestRecordVO::buildMockRequestRecordVO).collect(Collectors.toList()));

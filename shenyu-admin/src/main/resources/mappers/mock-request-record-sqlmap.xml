@@ -64,6 +64,7 @@
               and  `header` = #{header, jdbcType=VARCHAR}
             </if>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="queryAll" resultMap="MockRequestRecordMap">
@@ -295,4 +296,3 @@
     </delete>
 
 </mapper>
-

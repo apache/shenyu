@@ -28,16 +28,22 @@ import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.query.RegistryQuery;
+import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.BeanWrapperImpl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.IntFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mockStatic;
 
 @Transactional
@@ -72,8 +78,11 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             jdbcTemplate.update("INSERT INTO dashboard_user (id, user_name, role, enabled) VALUES (?, ?, 1, 1)", id, id);
             jdbcTemplate.update("INSERT INTO registry_config (id, registry_id, protocol, address, namespace) VALUES (?, ?, 'http', 'localhost', 'page-test')", id, id);
             jdbcTemplate.update("INSERT INTO instance_info (id, namespace_id, instance_ip, instance_port, instance_type, instance_info, instance_state)"
-                    + " VALUES (?, 'page-test', '127.0.0.1', '9195', 'gateway', '{}', 1)", id);
+                    + " VALUES (?, 'page-test', '127.0.0.1', '9195', 'gateway', ?, 1)", id, id);
             jdbcTemplate.update("INSERT INTO mock_request_record (id, api_id, host, port, url) VALUES (?, 'page-test', 'localhost', 80, '/')", id);
+        }
+        for (String table : List.of("app_auth", "dashboard_user", "registry_config", "instance_info", "mock_request_record")) {
+            jdbcTemplate.update("UPDATE " + table + " SET date_created = '2026-01-01 00:00:00' WHERE id LIKE 'page-test-%'");
         }
         assertPages(page -> {
             AppAuthQuery query = new AppAuthQuery();
@@ -110,6 +119,7 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             jdbcTemplate.update("INSERT INTO namespace_user_rel (id, namespace_id, user_id) VALUES (?, ?, 'page-user')", id, id);
         }
         try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            jdbcTemplate.update("UPDATE namespace SET date_created = '2026-01-01 00:00:00' WHERE id LIKE 'page-test-%'");
             session.when(SessionUtil::isAdmin).thenReturn(false);
             session.when(SessionUtil::visitorId).thenReturn("page-user");
             assertPages(page -> {
@@ -123,12 +133,18 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
     }
 
     private void assertPages(final IntFunction<CommonPager<?>> query) {
+        Set<Object> seen = new HashSet<>();
         for (int page = 1; page <= 3; page++) {
             CommonPager<?> result = query.apply(page);
             assertEquals(2, result.getPage().getTotalCount());
             assertEquals(page <= 2 ? 1 : 0, result.getDataList().size());
+            for (Object row : result.getDataList()) {
+                Object id = row instanceof InstanceInfoVO ? ((InstanceInfoVO) row).getInstanceInfo() : new BeanWrapperImpl(row).getPropertyValue("id");
+                assertEquals("page-test-" + (page - 1), id);
+                assertTrue(seen.add(id), "Page boundaries must not repeat rows");
+            }
             assertNull(PageHelper.getLocalPage());
         }
+        assertEquals(Set.of("page-test-0", "page-test-1"), seen);
     }
 }
-
