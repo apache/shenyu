@@ -70,7 +70,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
             return Pair.of(rpcType, new MetaData());
         }
         String upgrade = headers.getFirst(UPGRADE);
-        if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
+        // RFC 6455: the Upgrade header value is case-insensitive
+        if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equalsIgnoreCase(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
         MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getRawPath());

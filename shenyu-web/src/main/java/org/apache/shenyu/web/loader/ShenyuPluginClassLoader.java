@@ -64,6 +64,8 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     private final long generation = GENERATION.incrementAndGet();
 
+    private final Set<String> loadedPluginNames = ConcurrentHashMap.newKeySet();
+
     private final PluginJarParser.PluginJar pluginJar;
 
     public ShenyuPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
@@ -98,7 +100,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
             try {
                 instance = getOrCreateSpringBean(className);
                 if (Objects.nonNull(instance)) {
-                    results.add(buildResult(instance));
+                    ShenyuLoaderResult result = buildResult(instance);
+                    results.add(result);
+                    if (Objects.nonNull(result.getShenyuPlugin())) {
+                        loadedPluginNames.add(result.getShenyuPlugin().named());
+                    }
                     LOG.info("The class successfully loaded into a upload-Jar-plugin {} is registered as a spring bean", className);
                 }
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -231,6 +237,15 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      */
     public boolean compareVersion(final String version) {
         return pluginJar.getVersion().equals(version);
+    }
+
+    /**
+     * Get loaded plugin names.
+     *
+     * @return loaded plugin names
+     */
+    public Set<String> getLoadedPluginNames() {
+        return Set.copyOf(loadedPluginNames);
     }
 
 }
