@@ -34,6 +34,7 @@ import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -74,6 +75,7 @@ public final class PublishTest {
         topicRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, topicRepository);
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
