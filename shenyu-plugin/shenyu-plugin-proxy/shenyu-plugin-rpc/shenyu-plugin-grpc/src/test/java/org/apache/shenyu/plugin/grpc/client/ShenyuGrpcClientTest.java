@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.grpc.client;
 
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.common.util.concurrent.Futures;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
@@ -25,6 +26,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -32,10 +34,12 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for {@link ShenyuGrpcClient}.
@@ -78,5 +82,29 @@ public final class ShenyuGrpcClientTest {
         result.cancel(true);
 
         assertTrue(invocation.isCancelled());
+    }
+
+    @Test
+    public void testCallWithNullRequestCreatesDefaultMessage() {
+        assertDefaultRequest(null);
+    }
+
+    @Test
+    public void testCallWithEmptyRequestListCreatesDefaultMessage() {
+        assertDefaultRequest("{\"data\":[]}");
+    }
+
+    private void assertDefaultRequest(final String requestJsons) {
+        ShenyuGrpcClient client = spy(new ShenyuGrpcClient(mock(ManagedChannel.class)));
+        doReturn(Futures.immediateVoidFuture()).when(client).invoke(any(ShenyuGrpcCallRequest.class));
+        MetaData metaData = new MetaData();
+        metaData.setServiceName("service");
+        metaData.setMethodName("method");
+
+        client.call(metaData, CallOptions.DEFAULT, requestJsons, MethodDescriptor.MethodType.UNARY).join();
+
+        ArgumentCaptor<ShenyuGrpcCallRequest> requestCaptor = ArgumentCaptor.forClass(ShenyuGrpcCallRequest.class);
+        verify(client).invoke(requestCaptor.capture());
+        assertEquals(1, requestCaptor.getValue().getRequests().size());
     }
 }
