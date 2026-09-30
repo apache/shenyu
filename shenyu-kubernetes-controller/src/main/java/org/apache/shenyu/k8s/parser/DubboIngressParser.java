@@ -160,8 +160,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             // shenyu routes directly to the container
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             if (Objects.isNull(v1Endpoints)) {
-                LOG.info("Endpoints {} not found for dubbo default backend", serviceName);
-                return dubboUpstreamList;
+                throw new EndpointsUnavailableException(namespace, serviceName);
             }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
@@ -175,7 +174,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     for (V1EndpointAddress address : addresses) {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(defaultBackend.getService());
-                        if (Objects.nonNull(defaultPort)) {
+                        if (StringUtils.isNotBlank(upstreamIp) && Objects.nonNull(defaultPort)) {
                             DubboUpstream upstream = DubboUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
                                     .weight(100)
@@ -188,6 +187,9 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                         }
                     }
                 }
+            }
+            if (dubboUpstreamList.isEmpty()) {
+                throw new EndpointsUnavailableException(namespace, serviceName);
             }
         }
         return dubboUpstreamList;
@@ -348,8 +350,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
             String serviceName = path.getBackend().getService().getName();
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             if (Objects.isNull(v1Endpoints)) {
-                LOG.info("Endpoints {} not found for dubbo backend", serviceName);
-                return upstreamList;
+                throw new EndpointsUnavailableException(namespace, serviceName);
             }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocols = null;
@@ -369,7 +370,7 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                         V1EndpointAddress address = addresses.get(i);
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(path.getBackend().getService());
-                        if (Objects.nonNull(defaultPort)) {
+                        if (StringUtils.isNotBlank(upstreamIp) && Objects.nonNull(defaultPort)) {
                             String upstreamProtocol = Objects.isNull(protocols) || i >= protocols.length ? "dubbo://" : protocols[i];
                             DubboUpstream upstream = DubboUpstream.builder()
                                     .upstreamUrl(upstreamIp + ":" + defaultPort)
@@ -383,6 +384,9 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                         }
                     }
                 }
+            }
+            if (upstreamList.isEmpty()) {
+                throw new EndpointsUnavailableException(namespace, serviceName);
             }
         }
         return upstreamList;

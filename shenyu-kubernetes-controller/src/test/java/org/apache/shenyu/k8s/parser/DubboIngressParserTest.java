@@ -164,18 +164,16 @@ public class DubboIngressParserTest {
     }
 
     @Test
-    public void shouldIgnorePathWhenEndpointsAreMissing() {
+    public void shouldRetryPathWhenEndpointsAreMissing() {
         Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
         DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
 
-        ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> parser.parse(
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(
                 createIngress(null, Collections.emptyMap(), true), null));
-
-        Assertions.assertEquals("[]", config.getRouteConfigList().get(0).getSelectorData().getHandle());
     }
 
     @Test
-    public void shouldIgnoreDefaultBackendWhenEndpointsAreMissing() {
+    public void shouldRetryDefaultBackendWhenEndpointsAreMissing() {
         Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
         DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
         V1Ingress ingress = new V1IngressBuilder().withNewMetadata().withName("test-ingress").withNamespace(NAMESPACE)
@@ -185,9 +183,30 @@ public class DubboIngressParserTest {
                                 .port(new V1ServiceBackendPort().number(8080))))
                 .endSpec().build();
 
-        ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> parser.parse(ingress, null));
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+    }
 
-        Assertions.assertEquals("[]", config.getGlobalDefaultBackend().getRight().getSelectorData().getHandle());
+    @Test
+    public void shouldNotInheritDefaultWhenPathEndpointsAreUnavailable() {
+        V1Ingress ingress = createIngress(null, Collections.emptyMap(), true);
+        ingress.getSpec().setDefaultBackend(new V1IngressBackend().service(new V1IngressServiceBackend()
+                .name("ready-default").port(new V1ServiceBackendPort().number(8080))));
+        when(endpointsIndexer.getByKey(NAMESPACE + "/ready-default")).thenReturn(new V1EndpointsBuilder()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.2")).build()).build());
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, endpointsLister);
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+    }
+
+    @Test
+    public void shouldRetryUntilEndpointsHaveReadyAddresses() {
+        V1Ingress ingress = createIngress(null, Collections.emptyMap(), true);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, endpointsLister);
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(new V1Endpoints());
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(new V1EndpointsBuilder()
+                .withSubsets(new V1EndpointSubsetBuilder().withNotReadyAddresses(new V1EndpointAddress().ip("127.0.0.1")).build()).build());
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
     }
 
     @Test
