@@ -77,6 +77,14 @@ public interface DiscoveryUpstreamService {
     List<DiscoverySyncData> listAll();
 
     /**
+     * List synchronization data in a single namespace.
+     *
+     * @param namespaceId namespace id
+     * @return synchronization data
+     */
+    List<DiscoverySyncData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * list all data.
      *
      * @return DiscoveryUpstreamVO
