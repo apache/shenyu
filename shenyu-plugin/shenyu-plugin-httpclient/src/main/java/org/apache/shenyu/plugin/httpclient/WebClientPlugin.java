@@ -49,11 +49,23 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
      * Instantiates a new Web client plugin.
      *
      * @param webClient the web client
-     * @param maxInMemorySize the maximum number of bytes to buffer in memory
+     * @deprecated use {@link #WebClientPlugin(WebClient, long)} to specify the replay cache cap
      */
-    public WebClientPlugin(final WebClient webClient, final int maxInMemorySize) {
+    @Deprecated
+    public WebClientPlugin(final WebClient webClient) {
+        this(webClient, Constants.BYTES_PER_MB);
+    }
+
+    /**
+     * Instantiates a new Web client plugin.
+     *
+     * @param webClient the web client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
+     */
+    public WebClientPlugin(final WebClient webClient, final long maxInMemorySize) {
+        super(maxInMemorySize);
         this.webClient = webClient;
-        this.maxInMemorySize = maxInMemorySize;
+        this.maxInMemorySize = (int) Math.min(maxInMemorySize, Integer.MAX_VALUE);
     }
     
     @Override
@@ -63,13 +75,11 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         ServerHttpRequest request = exchange.getRequest();
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.addAll(request.getHeaders());
-        this.duplicateHeaders(exchange, httpHeaders, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
         HttpMethod method = HttpMethod.valueOf(httpMethod);
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(uri)
                 .headers(headers -> {
-                    headers.putAll(httpHeaders);
+                    headers.addAll(exchange.getRequest().getHeaders());
+                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.REQ_UNIQUE_HEADER);
                     headers.remove(HttpHeaders.HOST);
                     Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
                     if (preserveHost) {
@@ -99,10 +109,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.addAll(fluxResponseEntity.getHeaders());
+                    HttpHeaders headers = exchange.getResponse().getHeaders();
+                    headers.putAll(fluxResponseEntity.getHeaders());
                     this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
-                    exchange.getResponse().getHeaders().putAll(headers);
                     exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);

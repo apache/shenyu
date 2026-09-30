@@ -19,10 +19,12 @@ package org.apache.shenyu.plugin.context.path.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * ContextPathPluginDataHandler Test.
@@ -43,7 +45,13 @@ public class ContextPathPluginDataHandlerTest {
 
     @Test
     public void removeRuleTest() {
-        contextPathPluginDataHandler.removeRule(RuleData.builder().handle("{}").build());
+        RuleData ruleData = RuleData.builder().selectorId("selector").id("rule").handle("{}").build();
+        contextPathPluginDataHandler.handlerRule(ruleData);
+        ruleData.setHandle(null);
+
+        contextPathPluginDataHandler.removeRule(ruleData);
+
+        assertNull(ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test

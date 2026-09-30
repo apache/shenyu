@@ -40,7 +40,9 @@ public class SofaMetaDataHandler implements MetaDataHandler {
             // The first initialization
             ApplicationConfigCache.getInstance().initRef(metaData);
         } else {
-            if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+            if (!Objects.equals(exist.getServiceName(), metaData.getServiceName()) || !Objects.equals(exist.getRpcExt(), metaData.getRpcExt())) {
+                // mirror the dubbo handler's two-pronged invalidation: the bare-path key first, then the segment-based keys
+                ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
                 // remove old upstream reference
                 ApplicationConfigCache.getInstance().invalidateWithMetadataPath(metaData.getPath());
                 // update
@@ -52,6 +54,7 @@ public class SofaMetaDataHandler implements MetaDataHandler {
     
     @Override
     public void remove(final MetaData metaData) {
+        ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
         ApplicationConfigCache.getInstance().invalidateWithMetadataPath(metaData.getPath());
         META_DATA.remove(metaData.getPath());
     }
