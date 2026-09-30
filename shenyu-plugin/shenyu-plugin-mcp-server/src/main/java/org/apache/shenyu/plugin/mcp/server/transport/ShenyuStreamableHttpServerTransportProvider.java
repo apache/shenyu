@@ -838,7 +838,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                     ? transport.getLastSentMessage(messageId) : null;
             if (Objects.nonNull(messageId) && Objects.nonNull(correlatedResponse)) {
                 LOGGER.debug("Retrieved correlated response for message id {} on session: {}", messageId, sessionId);
-                return new MessageHandlingResult(200, correlatedResponse, sessionId);
+                return createMessageHandlingResult(200, correlatedResponse, sessionId);
             } else if (Objects.nonNull(transport) && transport.isResponseReady() && Objects.nonNull(transport.getLastSentMessage())) {
                 final McpSchema.JSONRPCMessage sentMessage = transport.getLastSentMessage();
                 LOGGER.debug("Retrieved captured response from transport for session: {}", sessionId);
