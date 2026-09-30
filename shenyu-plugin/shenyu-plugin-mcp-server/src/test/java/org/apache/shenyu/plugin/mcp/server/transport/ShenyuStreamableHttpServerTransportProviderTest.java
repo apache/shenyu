@@ -36,6 +36,7 @@ import org.springframework.web.reactive.result.view.ViewResolver;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -170,6 +173,43 @@ class ShenyuStreamableHttpServerTransportProviderTest {
         MockServerHttpResponse notificationResponse = performRequest(provider, postRequest(CANCELLED_NOTIFICATION_BODY, sessionId));
         assertEquals(HttpStatus.ACCEPTED, notificationResponse.getStatusCode());
         assertEquals("", notificationResponse.getBodyAsString().block());
+    }
+
+    /**
+     * A request carrying a session ID that no longer exists on the server must not
+     * leave the restore-created session, transport, or exchange mapping behind after
+     * the request completes.
+     */
+    @Test
+    void testStaleSessionRestoreCleansUpCreatedSession() throws Exception {
+        ShenyuStreamableHttpServerTransportProvider provider = providerWithRealSessions();
+
+        MockServerHttpResponse response = performRequest(provider, postRequest(TOOLS_LIST_REQUEST_BODY, "stale-session-1"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBodyAsString().block().contains("\"tools\""));
+        final String actualSessionId = response.getHeaders().getFirst(SESSION_ID_HEADER);
+        assertNotNull(actualSessionId);
+
+        assertEquals(0, readMap(provider, "sessions").size());
+        assertEquals(0, readMap(provider, "sessionTransports").size());
+        assertNull(ShenyuMcpExchangeHolder.get(actualSessionId));
+
+        // The restored session is not reusable, so a follow-up request with the
+        // returned session ID is handled by a fresh restore instead of the same session.
+        MockServerHttpResponse followUp = performRequest(provider, postRequest(TOOLS_LIST_REQUEST_BODY, actualSessionId));
+        assertEquals(HttpStatus.OK, followUp.getStatusCode());
+        assertTrue(followUp.getBodyAsString().block().contains("\"tools\""));
+        assertNotEquals(actualSessionId, followUp.getHeaders().getFirst(SESSION_ID_HEADER));
+        assertEquals(0, readMap(provider, "sessions").size());
+        assertEquals(0, readMap(provider, "sessionTransports").size());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> readMap(final ShenyuStreamableHttpServerTransportProvider provider, final String fieldName)
+            throws Exception {
+        final Field field = provider.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (Map<String, ?>) field.get(provider);
     }
 
     private ShenyuStreamableHttpServerTransportProvider providerWithRealSessions() {

@@ -58,10 +58,9 @@ public class ParamMappingPluginDataTest {
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId("test");
         ruleData.setName("test-param-mappin-plugin");
-        this.paramMappingPluginDataHandler.removeRule(this.ruleData);
-        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
+        ruleData.setId(this.ruleData.getId());
         this.paramMappingPluginDataHandler.removeRule(ruleData);
-        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
     }
 
     @Test

@@ -20,8 +20,29 @@ on:
     branches: ["master"]
     tags: ["v*.*.*"]
     paths-ignore:
-      - "**.md"
-      - "**/resources/static/"
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/**'
+      - 'actions/**'
+      - 'shenyu-e2e/**'
+      - 'shenyu-integrated-test/**'
+      - 'shenyu-examples/**'
+      - '**/resources/static/**'
 
 env:
   REGISTRY: ghcr.io
