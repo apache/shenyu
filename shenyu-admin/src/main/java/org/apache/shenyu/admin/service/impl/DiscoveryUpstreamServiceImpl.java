@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -99,10 +100,30 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createOrUpdateBatch(final List<DiscoveryUpstreamDTO> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return;
+        }
+        Set<String> handlerIds = new LinkedHashSet<>();
+        for (DiscoveryUpstreamDTO upstream : upstreams) {
+            DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
+            if (StringUtils.hasLength(upstream.getId())) {
+                discoveryUpstreamMapper.update(entity);
+            } else {
+                discoveryUpstreamMapper.insert(entity);
+            }
+            handlerIds.add(upstream.getDiscoveryHandlerId());
+        }
+        handlerIds.forEach(this::fetchAll);
     }
 
     @Override
