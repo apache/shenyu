@@ -130,14 +130,21 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     }
 
     private void discoveryUpstreamHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
-        String[] pathInfoArray2 = updatePath.split("/");
-        if (pathInfoArray2.length != 5) {
+        String[] pathInfoArray = updatePath.split("/");
+        if (pathInfoArray.length != 5) {
             return;
         }
-        if (!EventType.DELETE.equals(eventType)) {
-            Optional.ofNullable(updateData)
-                    .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
+        String pluginName = pathInfoArray[pathInfoArray.length - 2];
+        String selectorId = pathInfoArray[pathInfoArray.length - 1];
+        if (EventType.DELETE.equals(eventType)) {
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setPluginName(pluginName);
+            discoverySyncData.setSelectorId(selectorId);
+            unCacheDiscoveryUpstreamData(discoverySyncData);
+            return;
         }
+        Optional.ofNullable(updateData)
+                .ifPresent(e -> cacheDiscoveryUpstreamData(GsonUtils.getInstance().fromJson(updateData, DiscoverySyncData.class)));
     }
 
     private void ruleHandlerEvent(final String updatePath, final String updateData, final EventType eventType) {
@@ -278,6 +285,11 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
     protected void cacheDiscoveryUpstreamData(final DiscoverySyncData upstreamDataList) {
         Optional.ofNullable(discoveryUpstreamDataSubscribers)
                 .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
+    }
+
+    protected void unCacheDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
+        Optional.ofNullable(discoverySyncData)
+                .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(data)));
     }
 
     protected void unCacheMetaData(final MetaData metaData) {
