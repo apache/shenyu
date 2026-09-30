@@ -26,9 +26,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.SaslConfigs;
-import org.apache.kafka.common.errors.AuthorizationException;
-import org.apache.kafka.common.errors.OutOfOrderSequenceException;
-import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -96,25 +93,19 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
                             .format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";",
                                     config.getUserName(), config.getPassWord()));
         }
-        producer = new KafkaProducer<>(props);
-        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, StringSerializer.class.getName(), StringSerializer.class.getName());
         try {
-            producer.send(record);
-            LOG.info("init kafkaLogCollectClient success");
-        } catch (ProducerFencedException | OutOfOrderSequenceException | AuthorizationException e) {
-            // We can't recover from these exceptions, so our only option is to close the producer and exit.
-            LOG.error("Init kafkaLogCollectClient error, We can't recover from these exceptions, so our only option is to close the producer and exit", e);
-            producer.close();
-            return false;
+            producer = new KafkaProducer<>(props);
+            producer.partitionsFor(this.topic);
+            LOG.info("kafka topic metadata fetched successfully");
+            return true;
         } catch (KafkaException e) {
-            // For all other exceptions, just abort the transaction and try again.
-            LOG.error(
-                    "init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException"
-                            + ", just abort the transaction and try again", e);
-            producer.close();
+            LOG.error("Failed to initialize kafka producer", e);
+            if (Objects.nonNull(producer)) {
+                producer.close();
+                producer = null;
+            }
             return false;
         }
-        return true;
     }
 
     /**

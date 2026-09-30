@@ -98,7 +98,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             modifyResponseHeadersAndStatus();
-            if (!hasBodyModifications() || !isJsonResponse()) {
+            if (!hasBodyModifications()) {
                 return super.writeWith(body);
             }
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
@@ -106,7 +106,14 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
-                return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+                if (isJsonResponse()) {
+                    return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+                }
+                byte[] modifiedBody = tryModifyBody(bytes);
+                if (Objects.isNull(modifiedBody)) {
+                    return super.writeWith(Mono.just(this.getDelegate().bufferFactory().wrap(bytes)));
+                }
+                return WebFluxResultUtils.result(this.exchange, modifiedBody);
             });
         }
 
@@ -192,6 +199,17 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 this.ruleHandle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
+        }
+
+        private byte[] tryModifyBody(final byte[] responseBody) {
+            try {
+                String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
+                LOG.info("the body string {}", bodyStr);
+                return bodyStr.getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                LOG.debug("skip modify response body because response content type is not json", e);
+                return null;
+            }
         }
     }
 }

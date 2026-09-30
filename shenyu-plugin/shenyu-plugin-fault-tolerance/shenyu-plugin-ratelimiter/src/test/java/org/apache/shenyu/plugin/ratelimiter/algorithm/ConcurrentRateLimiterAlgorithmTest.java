@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -46,5 +47,12 @@ public final class ConcurrentRateLimiterAlgorithmTest {
     @Test
     public void getKeyNameTest() {
         assertThat("concurrent_request_rate_limiter", is(concurrentRateLimiterAlgorithm.getKeyName()));
+    }
+
+    @Test
+    public void scriptExpiresAndRemovesStaleEntriesTest() {
+        String script = concurrentRateLimiterAlgorithm.getScript().getScriptAsString();
+        assertThat(script, containsString("zremrangebyscore"));
+        assertThat(script, containsString("expire"));
     }
 }

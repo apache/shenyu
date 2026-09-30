@@ -105,9 +105,8 @@ public class SofaProxyService {
             if (Objects.isNull(result)) {
                 result = Constants.SOFA_RPC_RESULT_EMPTY;
             }
-            
-            GenericObject genericObject = (GenericObject) result;
-            exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
+            Object rpcResult = result instanceof GenericObject ? ((GenericObject) result).getFields() : result;
+            exchange.getAttributes().put(Constants.RPC_RESULT, rpcResult);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return result;
         })).onErrorMap(ShenyuException::new);
