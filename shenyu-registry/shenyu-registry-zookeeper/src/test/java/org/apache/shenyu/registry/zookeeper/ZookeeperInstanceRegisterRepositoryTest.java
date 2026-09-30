@@ -19,10 +19,13 @@ package org.apache.shenyu.registry.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.listen.Listenable;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -36,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -79,6 +84,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
                 .build();
         final Listenable listenable = mock(Listenable.class);
         final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
+        final boolean[] hasInstance = {true};
 
         try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
             final CuratorFramework curatorFramework = mock(CuratorFramework.class);
@@ -86,7 +92,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             when(mock.subscribeChildrenChanges(anyString(), any(CuratorWatcher.class))).thenAnswer(invocation -> {
                 Object[] args = invocation.getArguments();
                 watcherArr[0] = (CuratorWatcher) args[1];
-                return Collections.singletonList("shenyu-test");
+                return hasInstance[0] ? Collections.singletonList("shenyu-test") : Collections.emptyList();
             });
             when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
@@ -97,11 +103,42 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
             repository.init(config);
-            repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
+            String selectKey = InstancePathConstants.buildInstanceParentPath();
+            assertEquals(1, repository.selectInstances(selectKey).size());
             WatchedEvent mockEvent = mock(WatchedEvent.class);
-            when(mockEvent.getPath()).thenReturn(InstancePathConstants.buildInstanceParentPath());
+            when(mockEvent.getPath()).thenReturn(selectKey);
+            hasInstance[0] = false;
             watcherArr[0].process(mockEvent);
+            assertTrue(repository.selectInstances(selectKey).isEmpty());
+            hasInstance[0] = true;
+            watcherArr[0].process(mockEvent);
+            assertEquals(1, repository.selectInstances(selectKey).size());
             repository.close();
+        }
+    }
+
+    @Test
+    public void testWatchInstancesEmitsDeletedEventForEphemeralNode() {
+        final Listenable listenable = mock(Listenable.class);
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
+        })) {
+            final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
+            RegisterConfig config = new RegisterConfig();
+            repository.init(config);
+            ZookeeperClient client = construction.constructed().get(0);
+            org.mockito.ArgumentCaptor<CuratorCacheListener> captor = org.mockito.ArgumentCaptor.forClass(CuratorCacheListener.class);
+            ChangedEventListener changedEventListener = mock(ChangedEventListener.class);
+            repository.watchInstances("/shenyu/register/instance", changedEventListener);
+            org.mockito.Mockito.verify(client).addCache(org.mockito.ArgumentMatchers.eq("/shenyu/register/instance"), captor.capture());
+            org.apache.zookeeper.data.Stat stat = new org.apache.zookeeper.data.Stat();
+            stat.setEphemeralOwner(1L);
+            ChildData deletedNode = new ChildData("/shenyu/register/instance/app-host-9195", stat, "instance-data".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            // Curator delivers NODE_DELETED with a null new ChildData and the node in oldData
+            captor.getValue().event(CuratorCacheListener.Type.NODE_DELETED, deletedNode, null);
+            org.mockito.Mockito.verify(changedEventListener).onEvent("/shenyu/register/instance/app-host-9195", "instance-data", ChangedEventListener.Event.DELETED);
         }
     }
 

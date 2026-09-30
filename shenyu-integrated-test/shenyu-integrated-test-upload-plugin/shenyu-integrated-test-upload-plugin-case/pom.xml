@@ -28,6 +28,14 @@
     <artifactId>shenyu-integrated-test-upload-plugin-case</artifactId>
 
     <dependencies>
+        <!-- The Docker image copies the custom plugin image built by this module. -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-custom-plugin</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
