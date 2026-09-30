@@ -67,6 +67,18 @@ public final class BasicAuthPluginDataHandlerTest {
     }
 
     @Test
+    public void testHandlerRuleFallsBackToDefaultHandleJsonWhenRuleHandleIsBlank() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("basicAuthRuleBlank");
+        ruleData.setSelectorId("basicAuth");
+        ruleData.setHandle("");
+        basicAuthPluginDataHandler.handlerPlugin(new PluginData("pluginId", "pluginName", "{\"defaultHandleJson\":\"{\\\"authorization\\\":\\\"test:test123\\\"}\"}", "0", false, null));
+        basicAuthPluginDataHandler.handlerRule(ruleData);
+        DefaultBasicAuthRuleHandle cached = (DefaultBasicAuthRuleHandle) BasicAuthPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        assertEquals("test:test123", cached.getAuthorization());
+    }
+
+    @Test
     public void testPluginNamed() {
         final String result = basicAuthPluginDataHandler.pluginNamed();
         assertEquals(PluginEnum.BASIC_AUTH.getName(), result);

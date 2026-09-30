@@ -238,7 +238,8 @@ public class ApiBean {
     }
     
     /**
-     * deep copy.
+     * Copy API metadata for independent processing by another registrar.
+     * Bean and definition registration states intentionally restart at INIT; the bean instance and Methods are shared.
      *
      * @return ApiBean
      */
@@ -246,7 +247,7 @@ public class ApiBean {
         final ApiBean copy = new ApiBean(clientName, beanName, beanInstance, beanPath);
         beanProperties.forEach((k, v) -> copy.addProperties(k.toString(), Objects.toString(v)));
         for (ApiDefinition definition : apiDefinitions) {
-            final ApiDefinition newDefinition = new ApiDefinition(this, definition.apiMethod, definition.methodPath);
+            final ApiDefinition newDefinition = new ApiDefinition(copy, definition.apiMethod, definition.methodPath);
             definition.apiProperties.forEach((k, v) -> newDefinition.addProperties(k.toString(), Objects.toString(v)));
             copy.apiDefinitions.add(newDefinition);
         }
@@ -266,6 +267,7 @@ public class ApiBean {
         
         /**
          * The instance of the class in which the function resides.
+         * Assigned later when an initially unbound definition is supplied to the ApiBean list constructor.
          */
         private ApiBean apiBean;
         

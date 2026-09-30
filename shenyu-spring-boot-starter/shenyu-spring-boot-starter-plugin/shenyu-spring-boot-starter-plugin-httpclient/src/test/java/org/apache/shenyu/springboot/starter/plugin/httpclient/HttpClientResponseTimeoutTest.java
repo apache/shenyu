@@ -19,7 +19,6 @@
 package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
 import io.netty.handler.timeout.ReadTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,7 +31,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.server.HttpServer;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,9 +84,7 @@ class HttpClientResponseTimeoutTest {
             HttpClientProperties properties = new HttpClientProperties();
             properties.setResponseTimeout(0L);
             properties.setReadTimeout(readTimeout);
-            // Install explicitly: this pins the independent handler contract, not factory callback wiring.
-            HttpClient client = createClient(properties).doOnConnected(connection ->
-                    connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS)));
+            HttpClient client = createClient(properties);
             Mono<String> body = client.get().uri("http://127.0.0.1:" + server.port()).responseContent().aggregate().asString();
             if (readTimeout == 0) {
                 assertEquals("firstlast", body.block(Duration.ofSeconds(5)));

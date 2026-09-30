@@ -138,10 +138,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {
-        bufferSize = getLogCollectConfig().getBufferQueueSize();
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+        BlockingQueue<L> queue = new LinkedBlockingDeque<>(getLogCollectConfig().getBufferQueueSize());
         lastPushTimeS.put(selectorId, System.currentTimeMillis());
-        return bufferQueue;
+        return queue;
     }
 
     private void processBufferQueue(final BlockingQueue<L> bufferQueue, final int batchSize,

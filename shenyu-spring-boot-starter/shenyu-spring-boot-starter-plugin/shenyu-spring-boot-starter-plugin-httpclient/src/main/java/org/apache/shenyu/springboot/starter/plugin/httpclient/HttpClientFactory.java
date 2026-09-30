@@ -124,7 +124,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (StringUtils.isNotEmpty(proxy.getHost())) {
             httpClient = setHttpClientProxy(httpClient, proxy);
         }
-        httpClient.doOnConnected(connection -> {
+        httpClient = httpClient.doOnConnected(connection -> {
             connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
             connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
             connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
@@ -184,8 +184,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             throw new IllegalArgumentException("Acquire Timeout value must be positive");
         }
         builder.maxConnections(pool.getMaxConnections())
-                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
-                .pendingAcquireMaxCount(-1);
+                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
     }
 
     /**

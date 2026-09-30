@@ -2,14 +2,16 @@
 
 ### Behavior Changes
 
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
 - `shenyu.httpclient.responseTimeout` now configures Reactor Netty's response-read
   deadline (default 3000 ms). It limits gaps between reads throughout the response
   body, not just the wait for headers. Slow SSE, long-polling and token streams
   can therefore time out after headers have arrived.
 - A non-positive responseTimeout disables that deadline only. Independently
-  installed read-timeout handlers still apply; use `shenyu.httpclient.readTimeout=0`
+  configured read-timeout handlers still apply; use `shenyu.httpclient.readTimeout=0`
   to disable their deadline as well, and review route, retry and caller deadlines.
-  This change does not alter connection-handler installation.
+  The client factory now retains its connection-handler configuration, so configured
+  read, write and idle handlers are installed on new connections.
 
 ## [v2.7.0]- 2024-12-23
 
