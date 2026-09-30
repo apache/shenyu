@@ -37,9 +37,10 @@ public class KeyWordMatch {
         keyWordSet.forEach(tempKeyWord -> {
             sb.append("(?i)");
             if (tempKeyWord.length() <= 6) {
-                sb.append(tempKeyWord);
+                sb.append(Pattern.quote(tempKeyWord));
             } else {
-                sb.append("^").append(tempKeyWord.substring(0, 3)).append("(.*?)").append(tempKeyWord.substring(tempKeyWord.length() - 3)).append("$");
+                sb.append("^").append(Pattern.quote(tempKeyWord.substring(0, 3))).append("(.*?)")
+                        .append(Pattern.quote(tempKeyWord.substring(tempKeyWord.length() - 3))).append("$");
             }
             sb.append("||");
         });

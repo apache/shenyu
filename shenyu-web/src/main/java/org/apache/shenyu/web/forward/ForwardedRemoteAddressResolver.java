@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.forward;
 
+import com.google.common.net.InetAddresses;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
@@ -87,7 +88,11 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
         List<String> xForwardedValues = extractXForwardedValues(exchange);
         if (CollectionUtils.isNotEmpty(xForwardedValues)) {
             int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
-            return new InetSocketAddress(xForwardedValues.get(index), 0);
+            try {
+                return new InetSocketAddress(InetAddresses.forString(xForwardedValues.get(index)), 0);
+            } catch (IllegalArgumentException ex) {
+                LOG.warn("Invalid IP address in X-Forwarded-For header, falling back to remote address");
+            }
         }
         return defaultRemoteIpResolver.resolve(exchange);
     }
@@ -103,7 +108,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             return Collections.emptyList();
         }
         List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-        if (values.size() == 1 && StringUtils.isNotEmpty(values.get(0))) {
+        if (values.size() == 1 && StringUtils.isEmpty(values.get(0))) {
             return Collections.emptyList();
         }
         return values;

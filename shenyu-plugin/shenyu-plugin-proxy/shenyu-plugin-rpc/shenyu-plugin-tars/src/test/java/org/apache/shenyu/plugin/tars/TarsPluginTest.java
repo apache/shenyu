@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -53,7 +55,6 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -120,9 +121,14 @@ public class TarsPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":1,\"param2\":2}");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
+        // the plugin needs an upstream in the cache, otherwise it answers with a "no upstream" error
+        ApplicationConfigCache.getInstance().get(metaData.getPath()).getTarsInvokePrxList()
+                .add(new TarsInvokePrx(mock(Object.class), "127.0.0.1:8080"));
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
-        assertThrows(IllegalArgumentException.class, () -> StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
+        StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data))
+                .expectSubscription().verifyComplete();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
     }
 
     @Test
@@ -132,16 +138,25 @@ public class TarsPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":\"1\",\"param2\":\"1\"}");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
-        RuleData data = mock(RuleData.class);
-        SelectorData selectorData = mock(SelectorData.class);
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
         Method method = mock(Method.class);
         ExecutorService executorService = Executors.newFixedThreadPool(1,
                 ShenyuThreadFactory.create("long-polling", true));
         CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> "", executorService);
-        when(method.invoke(any(), any())).thenReturn(stringCompletableFuture);
+        // Method#invoke is varargs: the arguments array must be matched as a whole,
+        // otherwise the stub never applies and invoke() returns null
+        when(method.invoke(any(), any(Object[].class))).thenReturn(stringCompletableFuture);
         tarsInvokePrxList.setMethod(method);
-        assertThrows(IllegalArgumentException.class, () -> StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete());
+        tarsInvokePrxList.setParamTypes(new Class<?>[]{String.class, String.class});
+        tarsInvokePrxList.setParamNames(new String[]{"param1", "param2"});
+        // the plugin needs an upstream in the cache, otherwise it answers with a "no upstream" error
+        ApplicationConfigCache.getInstance().get(metaData.getPath()).getTarsInvokePrxList()
+                .add(new TarsInvokePrx(mock(Object.class), "127.0.0.1:8080"));
+        RuleData data = mock(RuleData.class);
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data))
+                .expectSubscription().verifyComplete();
+        assertEquals("", exchange.getAttributes().get(Constants.RPC_RESULT));
     }
 
     @Test
@@ -163,5 +178,21 @@ public class TarsPluginTest {
         exchange.getAttributes().put(Constants.CONTEXT, context);
         boolean result = tarsPluginUnderTest.skip(exchange);
         assertFalse(result);
+    }
+
+    @Test
+    public void testTarsPluginWithEmptyProxyList() {
+        ShenyuContext context = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        MetaData uninitialized = new MetaData("id", "127.0.0.1:8080", "contextPath",
+                "uninitializedPath", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
+                metaData.getParameterTypes(), metaData.getRpcExt(), false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        exchange.getAttributes().put(Constants.META_DATA, uninitialized);
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":\"1\",\"param2\":\"1\"}");
+        RuleData data = mock(RuleData.class);
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data))
+                .expectSubscription().verifyComplete();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
     }
 }

@@ -238,8 +238,15 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                     SelectorData selectorData = createSelectorData(pathPath, conditionList, upstreamList);
                     List<RuleData> ruleDataList = new ArrayList<>();
                     List<MetaData> metaDataList = new ArrayList<>();
+                    if (Objects.isNull(labels)) {
+                        return res;
+                    }
                     for (String label : labels.keySet()) {
-                        Map<String, String> metadataAnnotations = serviceLister.namespace(namespace).get(labels.get(label)).getMetadata().getAnnotations();
+                        V1Service service = serviceLister.namespace(namespace).get(labels.get(label));
+                        if (Objects.isNull(service)) {
+                            continue;
+                        }
+                        Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
                         DubboRuleHandle ruleHandle = createDubboRuleHandle(annotations);
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleHandle, ruleConditionList);
@@ -332,12 +339,14 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
 
     private List<DubboUpstream> parseUpstream(final V1HTTPIngressPath path, final String namespace, final Map<String, String> annotations) {
         List<DubboUpstream> upstreamList = new ArrayList<>();
-        if (Objects.nonNull(path) && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
+        if (Objects.nonNull(path) && Objects.nonNull(path.getBackend())
+                && Objects.nonNull(path.getBackend().getService()) && Objects.nonNull(path.getBackend().getService().getName())) {
             String serviceName = path.getBackend().getService().getName();
             V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
             String[] protocols = null;
-            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
+            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)
+                    && Objects.nonNull(annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY))) {
                 protocols = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
             }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {

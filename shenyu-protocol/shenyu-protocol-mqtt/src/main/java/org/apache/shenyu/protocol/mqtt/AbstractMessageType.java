@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
@@ -85,6 +86,15 @@ public interface AbstractMessageType {
      * @param ctx ctx
      */
     default void disconnect(final ChannelHandlerContext ctx) {
+
+    }
+
+    /**
+     * Publish Release, third message of the QoS 2 protocol flow.
+     * @param ctx ctx
+     * @param msg msg
+     */
+    default void pubRel(final ChannelHandlerContext ctx, final MqttMessage msg) {
 
     }
 

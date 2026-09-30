@@ -68,11 +68,13 @@ class AiRequestTransformerPluginTest {
     void testDoExecuteWithMissingConfigurations() {
 
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").build());
-        SelectorData selector = new SelectorData();
         RuleData rule = new RuleData();
+        rule.setId("test-request-rule-id");
+        rule.setSelectorId("test-selector-id");
 
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
+        SelectorData selector = new SelectorData();
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule))
                 .verifyComplete();
 
@@ -106,8 +108,10 @@ class AiRequestTransformerPluginTest {
         when(chatClientCache.getClient("default")).thenReturn(mockClient);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
-        SelectorData selector = new SelectorData();
         RuleData rule = new RuleData();
+        rule.setId("test-request-rule-id");
+        rule.setSelectorId("test-selector-id");
+        SelectorData selector = new SelectorData();
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule))
                 .verifyComplete();
 
