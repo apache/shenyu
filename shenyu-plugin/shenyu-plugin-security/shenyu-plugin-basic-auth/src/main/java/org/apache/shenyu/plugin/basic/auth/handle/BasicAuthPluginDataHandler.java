@@ -60,7 +60,7 @@ public class BasicAuthPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         BasicAuthConfig basicAuthConfig = Singleton.INST.get(BasicAuthConfig.class);
         Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
-            BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthRuleHandle.newInstance(StringUtils.defaultString(ruleHandle, basicAuthConfig.getDefaultHandleJson()));
+            BasicAuthRuleHandle basicAuthRuleHandle = BasicAuthRuleHandle.newInstance(StringUtils.defaultIfBlank(ruleHandle, basicAuthConfig.getDefaultHandleJson()));
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), basicAuthRuleHandle);
         });
     }
