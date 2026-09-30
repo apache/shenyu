@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -53,6 +56,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -66,6 +70,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -251,6 +256,32 @@ public final class DiscoveryUpstreamServiceTest {
         assertEquals("selector_1", data.get(0).getSelectorId());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchesNamespaceSyncAndRetainsNamespace(final boolean proxy) {
+        final DiscoveryRelDO relation = buildDiscoveryRelDO();
+        relation.setDiscoveryHandlerId("123");
+        when(discoveryHandlerMapper.selectAllByNamespaceId("tenant")).thenReturn(List.of(buildDiscoveryHandlerDO()));
+        if (proxy) {
+            relation.setSelectorId("");
+            relation.setProxySelectorId("selector_1");
+            ProxySelectorDO selector = buildProxySelectorDO();
+            selector.setNamespaceId("tenant");
+            when(proxySelectorMapper.selectByIds(List.of("selector_1"))).thenReturn(List.of(selector));
+        } else {
+            relation.setSelectorId("selector_1");
+            SelectorDO selector = buildSelectorDO();
+            selector.setNamespaceId("tenant");
+            when(selectorMapper.selectByIdSet(Set.of("selector_1"))).thenReturn(List.of(selector));
+        }
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(List.of("123"))).thenReturn(List.of(relation));
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAllByNamespaceId("tenant");
+        assertEquals(1, data.size());
+        assertEquals("tenant", data.get(0).getNamespaceId());
+        verify(discoveryHandlerMapper, never()).selectAll();
+        verify(discoveryRelMapper, never()).selectByDiscoveryHandlerId(any());
+    }
+
     @Test
     public void testListAllData() {
         List<DiscoveryUpstreamDO> list = Collections.singletonList(buildDiscoveryUpstreamDO(""));
@@ -333,6 +364,39 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         when(discoveryUpstreamMapper.deleteByDiscoveryHandlerId(anyString())).thenReturn(0);
         discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+        verify(discoveryProcessor).changeUpstream(any(), any());
+    }
+
+    @Test
+    public void testUpdateBatchPublishesOnlyAfterCommit() {
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
+        when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
+        when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
+        when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            verifyNoInteractions(discoveryProcessor);
+            verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+            verify(discoveryProcessor).changeUpstream(any(), any());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    public void testRolledBackBatchDoesNotPublish() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+            verifyNoInteractions(discoveryProcessor);
+            verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     private void testUpdate() {

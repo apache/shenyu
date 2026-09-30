@@ -76,23 +76,26 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
 
     @Override
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
-        String handleAdd;
         List<WebSocketUpstream> addList = buildWebSocketUpstreamList(uriList);
         List<WebSocketUpstream> canAddList = new CopyOnWriteArrayList<>();
         List<WebSocketUpstream> existList = GsonUtils.getInstance().fromCurrentList(selectorDO.getHandle(), WebSocketUpstream.class);
         if (CollectionUtils.isEmpty(existList)) {
-            handleAdd = GsonUtils.getInstance().toJson(addList);
             canAddList = addList;
         } else {
-            List<WebSocketUpstream> diffList = addList.stream().filter(divideUpstream -> !existList.contains(divideUpstream)).collect(Collectors.toList());
+            List<WebSocketUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
-            handleAdd = GsonUtils.getInstance().toJson(existList);
+            List<WebSocketUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
+                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(diffStatusList)) {
+                canAddList.addAll(diffStatusList);
+                syncUpstreamStatus(existList, diffStatusList);
+            }
         }
         doSubmit(selectorDO.getId(), canAddList);
-        return handleAdd;
+        return GsonUtils.getInstance().toJson(CollectionUtils.isEmpty(existList) ? canAddList : existList);
     }
 
     private List<WebSocketUpstream> buildWebSocketUpstreamList(final List<URIRegisterDTO> uriList) {

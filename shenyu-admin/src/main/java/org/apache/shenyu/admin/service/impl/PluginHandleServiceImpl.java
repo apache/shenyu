@@ -206,7 +206,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {
         List<ShenyuDictVO> dictOptions = null;
-        if (Objects.equals(pluginHandleDO.getDataType(), SELECT_BOX_DATA_TYPE)) {
+        if (Objects.nonNull(pluginHandleDO) && Objects.equals(pluginHandleDO.getDataType(), SELECT_BOX_DATA_TYPE)) {
             dictOptions = shenyuDictMapper.findByType(pluginHandleDO.getField())
                     .stream()
                     .filter(item -> Objects.equals(item.getEnabled(), Boolean.TRUE))

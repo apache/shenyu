@@ -48,10 +48,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -108,10 +111,30 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createOrUpdateBatch(final List<DiscoveryUpstreamDTO> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return;
+        }
+        Set<String> handlerIds = new LinkedHashSet<>();
+        for (DiscoveryUpstreamDTO upstream : upstreams) {
+            DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
+            if (StringUtils.hasLength(upstream.getId())) {
+                discoveryUpstreamMapper.update(entity);
+            } else {
+                discoveryUpstreamMapper.insert(entity);
+            }
+            handlerIds.add(upstream.getDiscoveryHandlerId());
+        }
+        handlerIds.forEach(this::fetchAll);
     }
 
     @Override
@@ -124,7 +147,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
-        this.fetchAll(discoveryHandlerId);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    fetchAll(discoveryHandlerId);
+                }
+            });
+        } else {
+            this.fetchAll(discoveryHandlerId);
+        }
         return 0;
     }
 
@@ -157,6 +189,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     public List<DiscoverySyncData> listAll() {
         return buildSyncData(discoveryHandlerMapper.selectAll());
+    }
+
+    @Override
+    public List<DiscoverySyncData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(discoveryHandlerMapper.selectAllByNamespaceId(namespaceId));
     }
 
     private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> handlers) {
@@ -196,6 +233,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                     }
                     data.setSelectorId(selector.getId());
                     data.setSelectorName(selector.getSelectorName());
+                    data.setNamespaceId(selector.getNamespaceId());
                 } else {
                     ProxySelectorDO proxy = proxies.get(relation.getProxySelectorId());
                     if (Objects.isNull(proxy)) {
@@ -204,6 +242,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                     }
                     data.setSelectorId(proxy.getId());
                     data.setSelectorName(proxy.getName());
+                    data.setNamespaceId(proxy.getNamespaceId());
                 }
                 data.setUpstreamDataList(upstreams.getOrDefault(handler.getId(), Collections.emptyList()));
                 result.add(data);
