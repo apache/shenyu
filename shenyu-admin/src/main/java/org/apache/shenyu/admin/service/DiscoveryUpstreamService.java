@@ -36,6 +36,13 @@ public interface DiscoveryUpstreamService {
      */
     String createOrUpdate(DiscoveryUpstreamDTO discoveryUpstreamDTO);
 
+    /**
+     * Create or update upstreams in one transaction.
+     *
+     * @param upstreams upstreams to create or update
+     */
+    void createOrUpdateBatch(List<DiscoveryUpstreamDTO> upstreams);
+
 
     /**
      * updateBatch.
@@ -68,6 +75,14 @@ public interface DiscoveryUpstreamService {
      * @return DiscoverySyncDataList
      */
     List<DiscoverySyncData> listAll();
+
+    /**
+     * List synchronization data in a single namespace.
+     *
+     * @param namespaceId namespace id
+     * @return synchronization data
+     */
+    List<DiscoverySyncData> listAllByNamespaceId(String namespaceId);
 
     /**
      * list all data.

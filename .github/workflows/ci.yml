@@ -16,28 +16,8 @@
 name: ci
 
 on:
+  # Required checks must report a result even for documentation-only PRs.
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
   push:
     branches:
       - master
@@ -78,6 +58,10 @@ jobs:
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
+      - name: Test CI case resolver
+        run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test storage Compose healthchecks
+        run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -114,6 +98,8 @@ jobs:
         env:
           CHANGED_FILES_JSON: ${{ steps.filter.outputs.code_files }}
         run: bash .github/scripts/resolve-ci-modules.sh
+      - name: Test GHCR publish routing
+        run: bash .github/scripts/resolve-ghcr-publish-test.sh
 
   pr_build:
     needs: changes
