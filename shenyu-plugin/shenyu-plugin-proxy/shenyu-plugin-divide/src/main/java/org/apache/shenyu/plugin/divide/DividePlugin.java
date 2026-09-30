@@ -131,8 +131,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
         if (ruleHandle.getLoadBalance().equals(P2C)) {
-            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
-            )).doOnError(throwable -> responseTrigger(upstream));
+            return chain.execute(exchange).doFinally(signalType -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
             return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream, beginTime
