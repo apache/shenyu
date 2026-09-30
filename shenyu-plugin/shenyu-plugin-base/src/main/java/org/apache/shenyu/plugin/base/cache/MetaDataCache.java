@@ -92,6 +92,10 @@ public final class MetaDataCache {
     }
 
     private void clean(final String key) {
+        if (key.contains("*")) {
+            CACHE.clear();
+            return;
+        }
         CACHE.entrySet().removeIf(entry -> Objects.equals(key, NULL.equals(entry.getValue())
                 ? DIVIDE_CACHE_KEY : entry.getValue().getPath()));
     }
@@ -115,7 +119,7 @@ public final class MetaDataCache {
                     final MetaData value = META_DATA_MAP.values()
                             .stream()
                             .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
-                            .findFirst()
+                            .min((left, right) -> PathMatchUtils.compare(left.getPath(), right.getPath(), path))
                             .orElse(null);
                     final String metaPath = Optional.ofNullable(value)
                             .map(MetaData::getPath)
