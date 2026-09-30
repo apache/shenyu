@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -298,6 +299,21 @@ public final class AppAuthServiceTest {
             appAuthService.syncData();
         }
         verify(eventPublisher, times(1)).publishEvent(any());
+    }
+
+    @Test
+    public void testSyncEmptyDataByNamespaceId() {
+        String namespaceId = "namespace-id";
+        when(appAuthMapper.selectAllByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
+
+        appAuthService.syncDataByNamespaceId(namespaceId);
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        DataChangedEvent event = eventCaptor.getValue();
+        assertEquals(ConfigGroupEnum.APP_AUTH, event.getGroupKey());
+        assertEquals(namespaceId, event.getNamespaceId());
+        assertEquals(Collections.emptyList(), event.getSource());
     }
 
     private void testApplyCreateParameterError() {
