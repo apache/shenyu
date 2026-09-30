@@ -20,6 +20,9 @@ package org.apache.shenyu.disruptor.thread;
 import com.google.common.hash.Hashing;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -93,6 +96,43 @@ public class OrderlyExecutor extends ThreadPoolExecutor {
             }
         }
         return virtualExecutors.get(select);
+    }
+
+    @Override
+    public void shutdown() {
+        new HashSet<>(virtualExecutors.values()).forEach(SingletonExecutor::shutdown);
+        super.shutdown();
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        List<Runnable> pending = new ArrayList<>();
+        new HashSet<>(virtualExecutors.values()).forEach(executor -> pending.addAll(executor.shutdownNow()));
+        pending.addAll(super.shutdownNow());
+        return pending;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return super.isTerminated() && virtualExecutors.values().stream().allMatch(SingletonExecutor::isTerminated);
+    }
+
+    @Override
+    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+        long remaining = unit.toNanos(timeout);
+        long start = System.nanoTime();
+        if (!super.awaitTermination(remaining, TimeUnit.NANOSECONDS)) {
+            return false;
+        }
+        remaining -= System.nanoTime() - start;
+        for (SingletonExecutor executor : new HashSet<>(virtualExecutors.values())) {
+            start = System.nanoTime();
+            if (!executor.awaitTermination(Math.max(0, remaining), TimeUnit.NANOSECONDS)) {
+                return false;
+            }
+            remaining -= System.nanoTime() - start;
+        }
+        return true;
     }
     
     /**
