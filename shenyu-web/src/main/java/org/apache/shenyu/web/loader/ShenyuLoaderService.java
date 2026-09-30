@@ -30,6 +30,7 @@ import org.apache.shenyu.web.loader.ShenyuExtPathPluginJarLoader.ExtPluginLoadRe
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -64,6 +65,9 @@ public class ShenyuLoaderService {
         this.shenyuConfig = shenyuConfig;
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
+            File extPluginPathDir = ShenyuPluginPathBuilder.getPluginFile(shenyuConfig.getExtPlugin().getPath());
+            LOG.info("shenyu extPlugin path: {}", extPluginPathDir.getAbsolutePath());
+
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
             executor.scheduleAtFixedRate(() -> loadExtOrUploadPlugins(null), config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
