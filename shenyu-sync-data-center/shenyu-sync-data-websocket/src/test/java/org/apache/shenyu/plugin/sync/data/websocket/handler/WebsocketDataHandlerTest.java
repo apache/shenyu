@@ -65,6 +65,8 @@ public final class WebsocketDataHandlerTest {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
         Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
+        List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
+        Mockito.verify(pluginDataSubscriber).onPluginRefresh(pluginDataList);
     }
 
     @Test
@@ -72,6 +74,8 @@ public final class WebsocketDataHandlerTest {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.MYSELF.name());
         Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
+        List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
+        Mockito.verify(pluginDataSubscriber).onPluginRefresh(pluginDataList);
     }
 
     @Test

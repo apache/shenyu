@@ -22,6 +22,8 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -31,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class RuleDataHandlerTest {
 
@@ -62,7 +65,27 @@ public final class RuleDataHandlerTest {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(3);
         ruleDataHandler.doRefresh(ruleDataList);
         verify(subscriber).refreshRuleDataAll();
-        ruleDataList.forEach(verify(subscriber)::onRuleSubscribe);
+        verify(subscriber).onRuleRefresh(ruleDataList);
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
+        List<RuleData> batch = createFakeRuleDateObjects(2);
+        ruleDataHandler.handle(new Gson().toJson(batch), eventType);
+        verify(subscriber).refreshRuleDataAll();
+        verify(subscriber).onRuleRefresh(batch);
+        verifyNoMoreInteractions(subscriber);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    void testEmptyRefreshClearsSnapshot(final String eventType) {
+        ruleDataHandler.handle("[]", eventType);
+        verify(subscriber).refreshRuleDataAll();
+        verify(subscriber).onRuleRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
     }
 
     @Test

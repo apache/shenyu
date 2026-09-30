@@ -116,4 +116,34 @@ public interface PluginDataSubscriber {
      */
     default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
     }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onPluginRefresh(List<PluginData> dataList) {
+        refreshPluginDataSelf(dataList);
+        dataList.forEach(this::onSubscribe);
+    }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onSelectorRefresh(List<SelectorData> dataList) {
+        refreshSelectorDataSelf(dataList);
+        dataList.forEach(this::onSelectorSubscribe);
+    }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onRuleRefresh(List<RuleData> dataList) {
+        refreshRuleDataSelf(dataList);
+        dataList.forEach(this::onRuleSubscribe);
+    }
 }
