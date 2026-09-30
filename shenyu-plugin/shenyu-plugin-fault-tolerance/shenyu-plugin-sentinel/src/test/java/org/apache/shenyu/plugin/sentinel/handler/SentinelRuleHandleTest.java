@@ -30,6 +30,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +51,8 @@ public final class SentinelRuleHandleTest {
 
     @BeforeEach
     public void setUp() {
+        FlowRuleManager.loadRules(Collections.emptyList());
+        DegradeRuleManager.loadRules(Collections.emptyList());
         sentinelRuleHandle = new SentinelRuleHandle();
     }
 
@@ -52,9 +63,53 @@ public final class SentinelRuleHandleTest {
 
     @Test
     public void removeRule() {
+        RuleData data = createRuleData("removeRule");
+        sentinelRuleHandle.handlerRule(data);
+        FlowRule flowRule = FlowRuleManager.getRules().get(0);
+        assertThat(flowRule.getCount(), is(10.0));
+        assertThat(flowRule.getResource(), is("sentinel_removeRule"));
+        DegradeRule degradeRule = DegradeRuleManager.getRules().get(0);
+        assertThat(degradeRule.getCount(), is(1.0));
+        assertThat(degradeRule.getResource(), is("sentinel_removeRule"));
+        sentinelRuleHandle.removeRule(data);
+        assertTrue(FlowRuleManager.getRules().isEmpty());
+        assertTrue(DegradeRuleManager.getRules().isEmpty());
+    }
+
+    @Test
+    public void handlerRuleShouldNotLoseConcurrentUpdates() throws Exception {
+        int ruleCount = 16;
+        ExecutorService executor = Executors.newFixedThreadPool(ruleCount);
+        CountDownLatch ready = new CountDownLatch(ruleCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<?>> futures = new ArrayList<>();
+        try {
+            for (int i = 0; i < ruleCount; i++) {
+                RuleData ruleData = createRuleData("concurrent-" + i);
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
+                    start.await();
+                    sentinelRuleHandle.handlerRule(ruleData);
+                    return null;
+                }));
+            }
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
+            start.countDown();
+            for (Future<?> future : futures) {
+                future.get(10, TimeUnit.SECONDS);
+            }
+
+            assertEquals(ruleCount, FlowRuleManager.getRules().size());
+            assertEquals(ruleCount, DegradeRuleManager.getRules().size());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private RuleData createRuleData(final String ruleId) {
         RuleData data = new RuleData();
         data.setSelectorId("sentinel");
-        data.setId("removeRule");
+        data.setId(ruleId);
         SentinelHandle sentinelHandle = new SentinelHandle();
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);
@@ -66,15 +121,6 @@ public final class SentinelRuleHandleTest {
         sentinelHandle.setDegradeRuleStatIntervals(10);
         sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
-        sentinelRuleHandle.handlerRule(data);
-        FlowRule flowRule = FlowRuleManager.getRules().get(0);
-        assertThat(flowRule.getCount(), is(10.0));
-        assertThat(flowRule.getResource(), is("sentinel_removeRule"));
-        DegradeRule degradeRule = DegradeRuleManager.getRules().get(0);
-        assertThat(degradeRule.getCount(), is(1.0));
-        assertThat(degradeRule.getResource(), is("sentinel_removeRule"));
-        sentinelRuleHandle.removeRule(data);
-        assertTrue(FlowRuleManager.getRules().isEmpty());
-        assertTrue(DegradeRuleManager.getRules().isEmpty());
+        return data;
     }
 }

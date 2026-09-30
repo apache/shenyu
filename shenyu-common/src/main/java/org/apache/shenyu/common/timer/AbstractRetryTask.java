@@ -126,9 +126,9 @@ public abstract class AbstractRetryTask extends TimerTask {
     protected abstract void doRetry(String key, TimerTask timerTask);
 
     /**
-     * Invoked when this task reaches its retry limit.
+     * Handle retry exhaustion.
      *
-     * @param key the task key
+     * @param key the key
      */
     protected void onRetryExhausted(final String key) {
     }

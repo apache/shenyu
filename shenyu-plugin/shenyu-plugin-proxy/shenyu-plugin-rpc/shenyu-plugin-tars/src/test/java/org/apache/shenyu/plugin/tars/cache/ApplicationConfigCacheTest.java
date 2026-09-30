@@ -30,14 +30,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -122,6 +128,30 @@ public final class ApplicationConfigCacheTest {
     }
 
     @Test
+    public void testInitPrxWaitsForInitializationLock() throws Exception {
+        final Field lockField = ApplicationConfigCache.class.getDeclaredField("LOCK");
+        lockField.setAccessible(true);
+        final ReentrantLock lock = (ReentrantLock) lockField.get(null);
+        final MetaData metaData = new MetaData("id", "appName", "contextPath", "waitingPath",
+                RpcTypeEnum.TARS.getName(), "serviceName", "methodName", "parameterTypes",
+                null, false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final Thread initThread = new Thread(() -> applicationConfigCacheUnderTest.initPrx(metaData));
+
+        lock.lock();
+        try {
+            initThread.start();
+            for (int i = 0; i < 100 && !lock.hasQueuedThread(initThread); i++) {
+                Thread.sleep(10L);
+            }
+            assertTrue(lock.hasQueuedThread(initThread));
+        } finally {
+            lock.unlock();
+        }
+        initThread.join(1000L);
+        assertFalse(initThread.isAlive());
+    }
+
+    @Test
     public void testInitPrx() {
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path6", RpcTypeEnum.TARS.getName(), "serviceName6", "method1",
@@ -143,5 +173,41 @@ public final class ApplicationConfigCacheTest {
     public void testGetInstance() {
         final ApplicationConfigCache result = ApplicationConfigCache.getInstance();
         assertNotNull(result);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInvalidateRemovesCompanionCaches() throws Exception {
+        final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "/demo", "/demo/test",
+                RpcTypeEnum.TARS.getName(), "service", "method", "", "", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final Map<String, List<MetaData>> ctxPathCache = (Map<String, List<MetaData>>) getField("ctxPathCache");
+        final Map<String, Class<?>> prxClassCache = (Map<String, Class<?>>) getField("prxClassCache");
+        final Map<String, ApplicationConfigCache.TarsParamInfo> prxParamCache =
+                (Map<String, ApplicationConfigCache.TarsParamInfo>) getField("prxParamCache");
+        final Map<String, List<?>> refreshUpstreamCache = (Map<String, List<?>>) getField("refreshUpstreamCache");
+        ctxPathCache.clear();
+        prxClassCache.clear();
+        prxParamCache.clear();
+        refreshUpstreamCache.clear();
+        ctxPathCache.put(metaData.getContextPath(), Collections.singletonList(metaData));
+        prxClassCache.put(metaData.getPath(), ApplicationConfigCacheTest.class);
+        final String paramKey = PrxInfoUtil.getPrxName(metaData) + "_" + metaData.getMethodName();
+        prxParamCache.put(paramKey, new ApplicationConfigCache.TarsParamInfo(new Class<?>[0], new String[0]));
+        refreshUpstreamCache.put(metaData.getContextPath(), Collections.emptyList());
+        final TarsInvokePrxList cached = applicationConfigCacheUnderTest.get(metaData.getPath());
+
+        applicationConfigCacheUnderTest.invalidate(metaData.getContextPath());
+
+        assertTrue(ctxPathCache.isEmpty());
+        assertTrue(prxClassCache.isEmpty());
+        assertTrue(prxParamCache.isEmpty());
+        assertTrue(refreshUpstreamCache.isEmpty());
+        assertNotSame(cached, applicationConfigCacheUnderTest.get(metaData.getPath()));
+    }
+
+    private Object getField(final String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        java.lang.reflect.Field field = ApplicationConfigCache.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(applicationConfigCacheUnderTest);
     }
 }

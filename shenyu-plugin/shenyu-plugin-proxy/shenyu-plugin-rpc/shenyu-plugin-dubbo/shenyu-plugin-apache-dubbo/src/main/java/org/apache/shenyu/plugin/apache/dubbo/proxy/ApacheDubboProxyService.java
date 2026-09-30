@@ -34,7 +34,6 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -126,9 +125,7 @@ public class ApacheDubboProxyService {
             namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
         }
 
-        List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
-        dubboUpstreams = CollectionUtils.isEmpty(dubboUpstreams) ? null
-                : dubboUpstreams.stream().filter(u -> u.isStatus() && StringUtils.isNotBlank(u.getRegistry())).collect(Collectors.toList());
+        List<DubboUpstream> dubboUpstreams = ApacheDubboConfigCache.getInstance().getOrParseUpstreams(selectorData);
         // if dubboUpstreams is empty, use default plugin config
         if (CollectionUtils.isEmpty(dubboUpstreams)) {
             referenceKey = StringUtils.isNotBlank(namespace) ? namespace + Constants.COLONS + referenceKey : referenceKey;
