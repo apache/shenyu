@@ -73,7 +73,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(1, insert);
 
         Set<String> idSet = Stream.of(selectorDO1.getId(), selectorDO.getId()).collect(Collectors.toSet());
-        List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet);
+        List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet, SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(selectorList);
         assertThat(selectorList, hasItems(selectorDO1, selectorDO));
 

@@ -179,7 +179,7 @@ public final class SelectorServiceTest {
         SelectorDO mockedSelectorDO = buildSelectorDO();
         PluginDO mockedPluginDO = buildPluginDO();
         given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
-        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
+        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(mockedSelectorDO));
 
         // mock for test if divide selector delete.
 //        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
@@ -195,8 +195,8 @@ public final class SelectorServiceTest {
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
-        given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(selectorService.deleteByNamespaceId(ids, any()), ids.size());
+        given(selectorMapper.deleteByIds(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(ids.size());
+        assertEquals(selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
     }
 
     @Test
