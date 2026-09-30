@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.mcp.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -37,12 +39,14 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 
@@ -162,6 +166,16 @@ class McpServerPluginTest {
         
         String rawPath = mcpServerPlugin.getRawPath(exchange);
         assertEquals("/test/path", rawPath);
+    }
+
+    @Test
+    void testMessageResponseIsEscapedAndUtf8Encoded() throws Exception {
+        final String message = "quoted \"value\" with slash \\ and 中文\nnext";
+
+        final byte[] response = ReflectionTestUtils.invokeMethod(mcpServerPlugin, "serializeMessageResponse", message);
+        final JsonNode json = new ObjectMapper().readTree(new String(response, StandardCharsets.UTF_8));
+
+        assertEquals(message, json.get("message").asText());
     }
 
     @Test

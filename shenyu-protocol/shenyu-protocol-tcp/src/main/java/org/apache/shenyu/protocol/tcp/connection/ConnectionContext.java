@@ -23,6 +23,7 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpClient;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -75,6 +76,15 @@ public class ConnectionContext {
                                 .observe(observer)
                                 .connect()
                 );
+    }
+
+    /**
+     * Dispose the connection pool.
+     */
+    public void dispose() {
+        if (Objects.nonNull(connectionProvider)) {
+            connectionProvider.dispose();
+        }
     }
 
 }

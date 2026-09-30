@@ -119,11 +119,17 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
 
     @Override
     public void close0() {
-        if (Objects.nonNull(client)) {
-            try {
-                client.close();
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+        try {
+            if (Objects.nonNull(client)) {
+                try {
+                    client.close();
+                } catch (InterruptedException | ProducerException e) {
+                    LOG.error("Close producer error.");
+                }
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
             }
         }
     }
@@ -170,7 +176,7 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
         }
         return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-tencent-cls", true),
-                new ThreadPoolExecutor.AbortPolicy());
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     /**

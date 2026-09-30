@@ -32,9 +32,11 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,11 @@ import static org.mockito.Mockito.when;
  * Test for DubboIngressParser upstream protocol parsing.
  */
 public class DubboIngressParserTest {
+
+    private static final String NAMESPACE = "test-namespace";
+
+    private static final String SERVICE_NAME = "backend-service";
+
 
     private Lister<V1Service> serviceLister;
 
@@ -151,5 +158,47 @@ public class DubboIngressParserTest {
         annotations.put(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "");
         List<DubboUpstream> upstreams = assertDoesNotThrow(() -> parseAndGetUpstreams(annotations));
         assertNotNull(upstreams);
+    }
+
+    @Test
+    public void shouldParseIngressWhenAnnotationsAreNull() {
+        ShenyuMemoryConfig config = assertDoesNotThrow(() -> createParser().parse(
+                createIngress(null, Collections.emptyMap(), true), null));
+
+        String handle = config.getRouteConfigList().get(0).getSelectorData().getHandle();
+        List<DubboUpstream> upstreams = GsonUtils.getInstance().fromList(handle, DubboUpstream.class);
+        assertEquals(1, upstreams.size());
+        assertEquals("dubbo://", upstreams.get(0).getProtocol());
+    }
+
+    @Test
+    public void shouldIgnorePathWithNullBackend() {
+        ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> createParser().parse(
+                createIngress(null, Collections.emptyMap(), false), null));
+
+        Assertions.assertEquals(1, config.getRouteConfigList().size());
+        Assertions.assertEquals("[]", config.getRouteConfigList().get(0).getSelectorData().getHandle());
+    }
+
+    private DubboIngressParser createParser() {
+        Indexer<V1Service> serviceIndexer = mock(Indexer.class);
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints endpoints = new V1EndpointsBuilder().withSubsets(new V1EndpointSubsetBuilder()
+                .withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build()).build();
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(endpoints);
+        return new DubboIngressParser(new Lister<>(serviceIndexer), new Lister<>(endpointsIndexer));
+    }
+
+    private V1Ingress createIngress(final Map<String, String> annotations, final Map<String, String> labels,
+                                    final boolean withBackend) {
+        V1HTTPIngressPathBuilder pathBuilder = new V1HTTPIngressPathBuilder().withPath("/test").withPathType("Prefix");
+        if (withBackend) {
+            pathBuilder.withNewBackend().withNewService().withName(SERVICE_NAME).withNewPort().withNumber(8080)
+                    .endPort().endService().endBackend();
+        }
+        return new V1IngressBuilder().withNewMetadata().withName("test-ingress").withNamespace(NAMESPACE)
+                .withAnnotations(annotations).withLabels(labels).endMetadata()
+                .withNewSpec().withRules(new V1IngressRuleBuilder().withNewHttp().withPaths(pathBuilder.build())
+                        .endHttp().build()).endSpec().build();
     }
 }

@@ -42,16 +42,16 @@ class ShenyuExtPathPluginJarLoaderTest {
     void shouldReloadJarWhenVersionChangesAtSamePath() throws IOException {
         Path jar = directory.resolve("plugin.jar");
         writePluginJar(jar, "1.0.0");
-        List<PluginJarParser.PluginJar> initial = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString());
+        List<PluginJarParser.PluginJar> initial = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars();
         ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
         String jarKey = jar.toFile().getAbsolutePath();
         try {
             holder.replacePluginClassLoader(initial.get(0), classLoader -> { });
 
-            assertEquals(0, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).size());
+            assertEquals(0, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars().size());
 
             writePluginJar(jar, "1.0.1");
-            List<PluginJarParser.PluginJar> replacement = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString());
+            List<PluginJarParser.PluginJar> replacement = ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars();
 
             assertEquals(1, replacement.size());
             assertEquals("1.0.1", replacement.get(0).getVersion());
@@ -61,7 +61,7 @@ class ShenyuExtPathPluginJarLoaderTest {
                         throw new IllegalStateException("load failed");
                     }));
             assertTrue(holder.hasPluginClassLoader(jarKey, "1.0.0"));
-            assertEquals(1, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).size());
+            assertEquals(1, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars().size());
         } finally {
             holder.removePluginClassLoader(jarKey);
         }
