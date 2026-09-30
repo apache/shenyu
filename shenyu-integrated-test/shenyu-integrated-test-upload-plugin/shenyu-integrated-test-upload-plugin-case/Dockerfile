@@ -16,6 +16,9 @@
 
 FROM eclipse-temurin:17-centos7
 ENV APP_NAME shenyu-integrated-test-upload-plugin-case
+LABEL org.opencontainers.image.title="${APP_NAME}" \
+      org.opencontainers.image.source="https://github.com/apache/shenyu" \
+      org.opencontainers.image.licenses="Apache-2.0"
 ENV LOCAL_PATH /opt/${APP_NAME}
 RUN mkdir -p ${LOCAL_PATH}
 
@@ -25,6 +28,11 @@ COPY --from=apache/shenyu-integrated-test-custom /opt/shenyu-custom-plugin.jar  
 RUN chmod 755 ${LOCAL_PATH}/shenyu-custom-plugin.jar
 
 WORKDIR ${LOCAL_PATH}
+RUN groupadd --system shenyu && \
+    useradd --system --gid shenyu --create-home --home-dir /home/shenyu shenyu && \
+    chown -R shenyu:shenyu ${LOCAL_PATH}
+USER shenyu
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["sh", "-c", "wget -q -O - http://127.0.0.1:9195/actuator/health | grep -q UP"]
 EXPOSE 9195
 
 CMD java -jar ${APP_NAME}.jar

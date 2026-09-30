@@ -84,30 +84,23 @@
         npr.date_created AS dateCreated,
         npr.date_updated AS dateUpdated,
         p.role AS role,
-        p.NAME AS NAME,
-        p.plugin_jar AS pluginJar
-        FROM
-        ( SELECT
-        <include refid="Base_Column_List"/>
-        FROM namespace_plugin_rel
-        <where>
-            <if test="enabled != null">
-                AND enabled = #{enabled, jdbcType=TINYINT}
-            </if>
-            <if test="namespaceId != null">
-                AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
-            </if>
-        </where>
-        ) npr
+        p.NAME AS NAME
+        FROM namespace_plugin_rel npr
         LEFT JOIN plugin p ON p.id = npr.plugin_id
         <where>
+            <if test="enabled != null">
+                AND npr.enabled = #{enabled, jdbcType=TINYINT}
+            </if>
+            <if test="namespaceId != null">
+                AND npr.namespace_id = #{namespaceId, jdbcType=VARCHAR}
+            </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND p.name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
         </where>
         ORDER BY
-        sort,
+        npr.sort,
         npr.id ASC
     </select>
 
@@ -167,8 +160,7 @@
         npr.date_created AS dateCreated,
         npr.date_updated AS dateUpdated,
         p.role AS role,
-        p.NAME AS NAME,
-        p.plugin_jar AS pluginJar
+        p.NAME AS NAME
         FROM namespace_plugin_rel npr LEFT JOIN plugin p ON npr.plugin_id = p.id
         <where>
             <if test="condition.keyword != null and condition.keyword != ''">

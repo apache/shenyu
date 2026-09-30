@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -33,6 +34,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -68,6 +75,43 @@ public class AbstractLogCollectorTest {
                 protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
                 }
             };
+
+    @Test
+    public void testSelectorQueueInitializationDoesNotReplaceGlobalQueue() throws Exception {
+        final GenericGlobalConfig config = new GenericGlobalConfig();
+        config.setBufferQueueSize(2);
+        final AbstractLogCollector<?, ShenyuRequestLog, GenericGlobalConfig> testCollector = new AbstractLogCollector<>() {
+            @Override
+            protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                return logConsumeClient;
+            }
+
+            @Override
+            protected GenericGlobalConfig getLogCollectConfig() {
+                return config;
+            }
+
+            @Override
+            protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+            }
+        };
+        final BlockingQueue<ShenyuRequestLog> global = new LinkedBlockingDeque<>(3);
+        setField(testCollector, "bufferQueue", global);
+        setField(testCollector, "bufferSize", 3);
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<BlockingQueue<ShenyuRequestLog>> first = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "first"));
+            Future<BlockingQueue<ShenyuRequestLog>> second = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "second"));
+            BlockingQueue<ShenyuRequestLog> firstQueue = first.get(2, TimeUnit.SECONDS);
+            BlockingQueue<ShenyuRequestLog> secondQueue = second.get(2, TimeUnit.SECONDS);
+            firstQueue.add(new ShenyuRequestLog());
+            assertEquals(2, secondQueue.remainingCapacity());
+            assertSame(global, ReflectionTestUtils.getField(testCollector, "bufferQueue"));
+            assertEquals(3, ReflectionTestUtils.getField(testCollector, "bufferSize"));
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 
     @Test
     public void testCollectAddsLogWhenBufferQueueHasCapacity() throws Exception {
@@ -126,6 +170,55 @@ public class AbstractLogCollectorTest {
 
         assertDoesNotThrow(() -> multiClientCollector.collect(log));
         assertSame(bufferedLog, bufferQueue.peek());
+    }
+
+    @Test
+    public void testMultiClientConsumeContinuesAfterSelectorFailure() throws Exception {
+        AbstractLogConsumeClient<?, ShenyuRequestLog> failingClient = mock(AbstractLogConsumeClient.class);
+        AbstractLogConsumeClient<?, ShenyuRequestLog> succeedingClient = mock(AbstractLogConsumeClient.class);
+        Map<String, AbstractLogConsumeClient<?, ShenyuRequestLog>> clients = new HashMap<>();
+        clients.put("failing", failingClient);
+        clients.put("succeeding", succeedingClient);
+        AbstractLogCollector<AbstractLogConsumeClient<?, ShenyuRequestLog>, ShenyuRequestLog, GenericGlobalConfig> multiClientCollector =
+                new AbstractLogCollector<>() {
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                        return logConsumeClient;
+                    }
+
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient(final String selectorId) {
+                        return clients.get(selectorId);
+                    }
+
+                    @Override
+                    protected boolean getMultiClient() {
+                        return true;
+                    }
+
+                    @Override
+                    protected GenericGlobalConfig getLogCollectConfig() {
+                        return null;
+                    }
+
+                    @Override
+                    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+                    }
+                };
+        BlockingQueue<ShenyuRequestLog> failingQueue = new LinkedBlockingDeque<>(1);
+        BlockingQueue<ShenyuRequestLog> succeedingQueue = new LinkedBlockingDeque<>(1);
+        failingQueue.add(new ShenyuRequestLog());
+        succeedingQueue.add(new ShenyuRequestLog());
+        getBufferQueues(multiClientCollector).put("failing", failingQueue);
+        getBufferQueues(multiClientCollector).put("succeeding", succeedingQueue);
+        getLastPushTimes(multiClientCollector).put("failing", System.currentTimeMillis());
+        getLastPushTimes(multiClientCollector).put("succeeding", System.currentTimeMillis());
+        doThrow(new Exception("backend unavailable")).when(failingClient).consume(anyList());
+
+        multiClientCollector.processMultiClientBufferQueues(1, 100);
+
+        verify(failingClient).consume(anyList());
+        verify(succeedingClient).consume(anyList());
     }
 
     @Test
@@ -237,6 +330,13 @@ public class AbstractLogCollectorTest {
         Field field = AbstractLogCollector.class.getDeclaredField("bufferQueueS");
         field.setAccessible(true);
         return (Map<String, BlockingQueue<ShenyuRequestLog>>) field.get(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Long> getLastPushTimes(final Object target) throws Exception {
+        Field field = AbstractLogCollector.class.getDeclaredField("lastPushTimeS");
+        field.setAccessible(true);
+        return (Map<String, Long>) field.get(target);
     }
 
     private static final class StaleSizeLinkedBlockingDeque extends LinkedBlockingDeque<ShenyuRequestLog> {
