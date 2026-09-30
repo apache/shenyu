@@ -9,6 +9,7 @@
   Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream idle timeout
   when using a fixed connection pool. If connection resets persist, restore
   the previous behavior with `shenyu.httpclient.keepAlive=false`.
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
 
 ## [v2.7.0]- 2024-12-23
 
