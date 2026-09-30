@@ -31,9 +31,9 @@ import org.apache.shenyu.disruptor.event.OrderlyDisruptorEventFactory;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.disruptor.thread.DisruptorThreadFactory;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
+import org.apache.shenyu.disruptor.thread.BlockWhenFullPolicy;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -112,8 +112,8 @@ public class DisruptorProviderManage<T> {
             return;
         }
         OrderlyExecutor executor = new OrderlyExecutor(isOrderly, consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(size),
+                DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new BlockWhenFullPolicy());
         int newConsumerSize = this.consumerSize;
         EventFactory<DataEvent<T>> eventFactory;
         if (isOrderly) {
