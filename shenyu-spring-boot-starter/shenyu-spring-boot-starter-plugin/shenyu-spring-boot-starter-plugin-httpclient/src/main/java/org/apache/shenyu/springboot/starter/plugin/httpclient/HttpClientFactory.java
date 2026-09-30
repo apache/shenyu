@@ -180,8 +180,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             throw new IllegalArgumentException("Acquire Timeout value must be positive");
         }
         builder.maxConnections(pool.getMaxConnections())
-                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
-                .pendingAcquireMaxCount(-1);
+                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
     }
 
     /**

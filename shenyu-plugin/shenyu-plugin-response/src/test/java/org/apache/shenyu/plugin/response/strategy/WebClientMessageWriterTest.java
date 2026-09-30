@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.response.strategy;
 
+import io.netty.buffer.PooledByteBufAllocator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
@@ -34,22 +35,30 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import org.reactivestreams.Publisher;
+
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -136,10 +145,42 @@ public class WebClientMessageWriterTest {
         assertEquals(List.of("first", "last", "last"), response.getHeaders().get("X-Duplicate"));
     }
 
+    @Test
+    public void testWriteErrorDoesNotResubscribeResponseBody() {
+        RuntimeException expected = new RuntimeException("write failed");
+        AtomicInteger subscriptions = new AtomicInteger();
+        NettyDataBufferFactory factory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        NettyDataBuffer consumed = factory.allocateBuffer(1);
+        NettyDataBuffer discarded = factory.allocateBuffer(1);
+        Flux<DataBuffer> body = Flux.defer(() -> {
+            subscriptions.incrementAndGet();
+            return Flux.<DataBuffer>just(consumed, discarded).publishOn(Schedulers.immediate(), 2);
+        });
+        ResponseEntity<Flux<DataBuffer>> clientResponse = ResponseEntity.ok(body);
+        ServerWebExchange exchange = mock(ServerWebExchange.class);
+        ServerHttpResponse response = mock(ServerHttpResponse.class);
+        when(exchange.getResponse()).thenReturn(response);
+        when(response.getHeaders()).thenReturn(new HttpHeaders());
+        when(exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR)).thenReturn(clientResponse);
+        when(response.writeWith(any())).thenAnswer(invocation -> Flux.from((Publisher<DataBuffer>) invocation.getArgument(0))
+                .take(1)
+                .doOnNext(DataBufferUtils::release)
+                .then(Mono.error(expected)));
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(webClientMessageWriter.writeWith(exchange, chain))
+                .expectErrorMatches(error -> error == expected)
+                .verify();
+
+        assertEquals(1, subscriptions.get());
+        assertEquals(0, consumed.getNativeBuffer().refCnt());
+        assertEquals(0, discarded.getNativeBuffer().refCnt());
+    }
+
     private ServerWebExchange generateServerWebExchange(final boolean haveResponse) {
         ResponseEntity mockResponse = mock(ResponseEntity.class);
         when(mockResponse.getHeaders()).thenReturn(mock(HttpHeaders.class));
-        when(mockResponse.getBody()).thenReturn(Mono.empty());
+        when(mockResponse.getBody()).thenReturn(Flux.empty());
 
         ServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
