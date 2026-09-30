@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.disruptor.thread;
 
+import org.apache.shenyu.disruptor.DisruptorProviderManage;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -29,8 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class SingletonExecutor extends ThreadPoolExecutor {
     
     public SingletonExecutor(final ThreadFactory factory) {
+        this(factory, DisruptorProviderManage.DEFAULT_SIZE);
+    }
+
+    public SingletonExecutor(final ThreadFactory factory, final int queueCapacity) {
         super(1, 1, 0L,
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), factory);
+                new LinkedBlockingQueue<>(queueCapacity), factory, new BlockWhenFullPolicy());
     }
 }

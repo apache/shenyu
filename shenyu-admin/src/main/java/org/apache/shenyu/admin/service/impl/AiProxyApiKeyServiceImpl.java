@@ -219,7 +219,15 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
 
     @Override
     public List<ProxyApiKeyData> listAll() {
-        List<ProxyApiKeyDO> all = mapper.selectAll();
+        return buildSyncData(mapper.selectAll());
+    }
+
+    @Override
+    public List<ProxyApiKeyData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(mapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    private List<ProxyApiKeyData> buildSyncData(final List<ProxyApiKeyDO> all) {
         if (CollectionUtils.isEmpty(all)) {
             return java.util.Collections.emptyList();
         }

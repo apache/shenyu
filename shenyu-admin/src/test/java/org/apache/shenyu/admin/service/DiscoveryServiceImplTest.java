@@ -25,6 +25,12 @@ import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.apache.shenyu.admin.service.impl.DiscoveryServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -46,6 +52,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.inOrder;
 
 /**
  * Test cases for DiscoveryServiceImpl.
@@ -78,13 +86,65 @@ public final class DiscoveryServiceImplTest {
     @Mock
     private DiscoveryProcessor discoveryProcessor;
 
+    @Mock
+    private PlatformTransactionManager transactionManager;
+
     private DiscoveryServiceImpl discoveryService;
 
     @BeforeEach
     public void setUp() {
         discoveryService = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, discoveryRelMapper,
-                discoveryHandlerMapper, selectorService, selectorMapper, discoveryProcessorHolder);
+                discoveryHandlerMapper, selectorService, selectorMapper, discoveryProcessorHolder, transactionManager);
         given(discoveryProcessorHolder.chooseProcessor(anyString())).willReturn(discoveryProcessor);
+    }
+
+    @Test
+    public void testBindingActivatesAfterCommit() {
+        given(transactionManager.getTransaction(any())).willReturn(new SimpleTransactionStatus());
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryService.registerDiscoveryConfig(bindingConfig());
+            verifyNoInteractions(discoveryProcessor);
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+            org.mockito.InOrder order = inOrder(discoveryProcessor);
+            order.verify(discoveryProcessor).createDiscovery(any());
+            order.verify(discoveryProcessor).createProxySelector(any(), any());
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    public void testRolledBackBindingDoesNotActivate() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            discoveryService.registerDiscoveryConfig(bindingConfig());
+            TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+            verifyNoInteractions(discoveryProcessor, transactionManager);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    public void testBindingWithoutTransactionActivatesImmediately() {
+        discoveryService.registerDiscoveryConfig(bindingConfig());
+        verify(discoveryProcessor).createDiscovery(any());
+        verify(discoveryProcessor).createProxySelector(any(), any());
+    }
+
+    private DiscoveryConfigRegisterDTO bindingConfig() {
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector");
+        selector.setSelectorName("test");
+        selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID)).willReturn(selector);
+        DiscoveryConfigRegisterDTO config = new DiscoveryConfigRegisterDTO();
+        config.setSelectorName("test");
+        config.setPluginName("divide");
+        config.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        config.setDiscoveryType("local");
+        return config;
     }
 
     @Test
