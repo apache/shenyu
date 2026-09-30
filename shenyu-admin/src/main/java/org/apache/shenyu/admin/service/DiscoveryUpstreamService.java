@@ -36,6 +36,13 @@ public interface DiscoveryUpstreamService {
      */
     String createOrUpdate(DiscoveryUpstreamDTO discoveryUpstreamDTO);
 
+    /**
+     * Create or update upstreams in one transaction.
+     *
+     * @param upstreams upstreams to create or update
+     */
+    void createOrUpdateBatch(List<DiscoveryUpstreamDTO> upstreams);
+
 
     /**
      * updateBatch.
