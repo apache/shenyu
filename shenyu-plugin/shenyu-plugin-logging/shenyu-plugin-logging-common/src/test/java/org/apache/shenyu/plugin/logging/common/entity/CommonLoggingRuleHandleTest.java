@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.logging.common.entity;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,5 +43,14 @@ public final class CommonLoggingRuleHandleTest {
         KeyWordMatch updated = handle.getKeyWordMatch();
         assertNotSame(first, updated);
         assertTrue(updated.matches("clientIp"));
+    }
+
+    @Test
+    public void testSetMaskTypeRoundTrip() {
+        CommonLoggingRuleHandle handle = new CommonLoggingRuleHandle();
+        handle.setMaskType("mask");
+        assertEquals("mask", handle.getMaskType());
+        handle.setMaskType(null);
+        assertEquals(null, handle.getMaskType());
     }
 }

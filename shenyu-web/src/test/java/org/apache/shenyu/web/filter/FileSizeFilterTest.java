@@ -24,6 +24,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -31,6 +34,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -39,6 +43,8 @@ import java.lang.reflect.Method;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
@@ -116,5 +122,34 @@ public final class FileSizeFilterTest {
         declaredMethod.setAccessible(true);
         ServerHttpRequestDecorator decorator = (ServerHttpRequestDecorator) declaredMethod.invoke(fileSizeFilterError, webExchangeTextPlain, cachedBodyOutputMessage);
         Assertions.assertEquals(decorator.getBody(), cachedBodyOutputMessage.getBody());
+    }
+
+    @Test
+    public void testFilterRejectsOversizedBodyWhileBuffering() {
+        final int fileMaxSize = 1;
+        final int bufferSize = 512 * 1024;
+        final int bufferCount = 4;
+        final int[] consumedBuffers = {0};
+        final Flux<DataBuffer> body = Flux.range(0, bufferCount)
+                .map(index -> (DataBuffer) new DefaultDataBufferFactory().allocateBuffer(bufferSize).write(new byte[bufferSize]))
+                .doOnNext(dataBuffer -> consumedBuffers[0]++);
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("http://localhost:8080")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .contentLength((long) bufferSize * bufferCount)
+                .body(body));
+
+        WebFilterChain webFilterChain = mock(WebFilterChain.class);
+        when(webFilterChain.filter(any())).thenReturn(Mono.empty());
+
+        FileSizeFilter fileSizeFilter = new FileSizeFilter(fileMaxSize);
+        Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
+        StepVerifier.create(voidMono).expectSubscription().verifyComplete();
+
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, webExchange.getResponse().getStatusCode());
+        // the body must not be buffered in full: the codec aborts as soon as the limit is exceeded
+        Assertions.assertTrue(consumedBuffers[0] < bufferCount,
+                "expected the oversized body to be rejected before being buffered in full, consumed buffers: " + consumedBuffers[0]);
+        verify(webFilterChain, never()).filter(any());
     }
 }
