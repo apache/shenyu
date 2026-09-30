@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,28 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
+    public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType,
+                                final String namespaceId) {
+        if (CollectionUtils.isEmpty(changed)) {
+            sendEmptySnapshot(ConfigGroupEnum.PLUGIN, eventType, namespaceId);
+            return;
+        }
+        onPluginChanged(changed, eventType);
+    }
+
+    @Override
     public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         sendByNamespace(selectorDataList, eventType, ConfigGroupEnum.SELECTOR, SelectorData::getNamespaceId);
+    }
+
+    @Override
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType,
+                                  final String namespaceId) {
+        if (CollectionUtils.isEmpty(changed)) {
+            sendEmptySnapshot(ConfigGroupEnum.SELECTOR, eventType, namespaceId);
+            return;
+        }
+        onSelectorChanged(changed, eventType);
     }
 
     @Override
@@ -69,8 +90,39 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
+    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType,
+                              final String namespaceId) {
+        if (CollectionUtils.isEmpty(changed)) {
+            sendEmptySnapshot(ConfigGroupEnum.RULE, eventType, namespaceId);
+            return;
+        }
+        onRuleChanged(changed, eventType);
+    }
+
+    @Override
     public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         sendByNamespace(appAuthDataList, eventType, ConfigGroupEnum.APP_AUTH, AppAuthData::getNamespaceId);
+    }
+
+    @Override
+    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType,
+                                 final String namespaceId) {
+        if (CollectionUtils.isEmpty(changed)) {
+            sendEmptySnapshot(ConfigGroupEnum.APP_AUTH, eventType, namespaceId);
+            return;
+        }
+        onAppAuthChanged(changed, eventType);
+    }
+
+    private void sendEmptySnapshot(final ConfigGroupEnum group, final DataEventTypeEnum eventType,
+                                   final String namespaceId) {
+        if (StringUtils.isBlank(namespaceId)
+                || (eventType != DataEventTypeEnum.REFRESH && eventType != DataEventTypeEnum.MYSELF)) {
+            return;
+        }
+        WebsocketData<Object> websocketData =
+                new WebsocketData<>(group.name(), eventType.name(), Collections.emptyList());
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
     }
 
     @Override
