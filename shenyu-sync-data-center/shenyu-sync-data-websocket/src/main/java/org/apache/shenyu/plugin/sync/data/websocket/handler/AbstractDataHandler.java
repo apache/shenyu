@@ -62,10 +62,6 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
     public void handle(final String json, final String eventType) {
         List<T> dataList = convert(json);
 
-        if (CollectionUtils.isEmpty(dataList)) {
-            return;
-        }
-
         DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
         switch (eventTypeEnum) {
             case REFRESH:

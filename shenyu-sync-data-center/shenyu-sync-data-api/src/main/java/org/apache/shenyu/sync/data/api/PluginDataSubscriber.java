@@ -123,8 +123,12 @@ public interface PluginDataSubscriber {
      * @param dataList the received data
      */
     default void onPluginRefresh(List<PluginData> dataList) {
-        refreshPluginDataSelf(dataList);
-        dataList.forEach(this::onSubscribe);
+        if (dataList.isEmpty()) {
+            refreshPluginDataAll();
+        } else {
+            refreshPluginDataSelf(dataList);
+            dataList.forEach(this::onSubscribe);
+        }
     }
 
     /**
@@ -133,8 +137,12 @@ public interface PluginDataSubscriber {
      * @param dataList the received data
      */
     default void onSelectorRefresh(List<SelectorData> dataList) {
-        refreshSelectorDataSelf(dataList);
-        dataList.forEach(this::onSelectorSubscribe);
+        if (dataList.isEmpty()) {
+            refreshSelectorDataAll();
+        } else {
+            refreshSelectorDataSelf(dataList);
+            dataList.forEach(this::onSelectorSubscribe);
+        }
     }
 
     /**
@@ -143,7 +151,11 @@ public interface PluginDataSubscriber {
      * @param dataList the received data
      */
     default void onRuleRefresh(List<RuleData> dataList) {
-        refreshRuleDataSelf(dataList);
-        dataList.forEach(this::onRuleSubscribe);
+        if (dataList.isEmpty()) {
+            refreshRuleDataAll();
+        } else {
+            refreshRuleDataSelf(dataList);
+            dataList.forEach(this::onRuleSubscribe);
+        }
     }
 }

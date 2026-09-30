@@ -41,6 +41,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -200,7 +202,10 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
         String cursorKey = namespaceId + ":" + group.name();
         try {
             List<?> dataList = load(namespaceId, group);
-            String digest = DigestUtils.md5Hex(GsonUtils.getInstance().toJson(dataList));
+            String digest = DigestUtils.md5Hex(dataList.stream()
+                    .map(GsonUtils.getInstance()::toJson)
+                    .sorted()
+                    .collect(Collectors.joining("\n")));
             if (digest.equals(digestCursor.get(cursorKey))) {
                 LOG.debug("websocket reconciliation group {} in namespace {} is unchanged, skip push",
                         group, namespaceId);

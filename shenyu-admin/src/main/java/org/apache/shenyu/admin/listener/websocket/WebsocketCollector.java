@@ -407,17 +407,31 @@ public class WebsocketCollector {
         try {
             Map<String, Object> map = JsonUtils.jsonToMap(json);
             if (Objects.nonNull(map)) {
-                if (map.containsKey("apiKey")) {
-                    map.put("apiKey", "******");
-                }
-                if (map.containsKey("realApiKey")) {
-                    map.put("realApiKey", "******");
-                }
+                redactSensitive(map);
                 return JsonUtils.toJson(map);
             }
             return json;
         } catch (Exception e) {
             return json;
+        }
+    }
+
+    private static void redactSensitive(final Object value) {
+        if (value instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) value;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() instanceof String
+                        && ("apiKey".equals(entry.getKey()) || "realApiKey".equals(entry.getKey())
+                        || "proxyApiKey".equals(entry.getKey()))) {
+                    ((Map<Object, Object>) map).put(entry.getKey(), "******");
+                } else {
+                    redactSensitive(entry.getValue());
+                }
+            }
+        } else if (value instanceof List) {
+            for (Object item : (List<?>) value) {
+                redactSensitive(item);
+            }
         }
     }
 
