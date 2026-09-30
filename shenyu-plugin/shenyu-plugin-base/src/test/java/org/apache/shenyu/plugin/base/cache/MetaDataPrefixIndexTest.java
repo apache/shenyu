@@ -28,6 +28,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -73,6 +75,33 @@ public class MetaDataPrefixIndexTest {
         assertNull(cache.obtain("/tenant/new"));
         register("new-variable", "/{tenant}/new");
         assertEquals("new-variable", cache.obtain("/tenant/new").getId());
+    }
+
+    @Test
+    public void testMutationBurstDefersBoundedNegativeCacheSweep() {
+        assertNull(cache.obtain("/negative/before"));
+        final Object miss = cache.getMetaDataCache().get("/negative/before");
+        for (int i = 0; i < 1000; i++) {
+            register("literal-burst-" + i, "/literal/" + i);
+            assertSame(miss, cache.getMetaDataCache().get("/negative/before"));
+        }
+        register("variable-after-miss", "/{tenant}/before");
+        assertSame(miss, cache.getMetaDataCache().get("/negative/before"));
+        assertEquals("variable-after-miss", cache.obtain("/negative/before").getId());
+        assertFalse((Boolean) ReflectionTestUtils.getField(cache, "negativeCacheDirty"));
+        assertNull(cache.obtain("/unmatched/one"));
+        assertNull(cache.obtain("/unmatched/two"));
+        Map<?, ?> mapping = (Map<?, ?>) ReflectionTestUtils.getField(cache, "MAPPING");
+        assertFalse(mapping.containsKey(""), "Negative paths must not accumulate outside the bounded cache");
+        cache.clean();
+        assertNull(cache.getMetaDataCache().get("/unmatched/one"));
+    }
+
+    @Test
+    public void testLiteralPathInvalidatesNormalizedNegativeLookup() {
+        assertNull(cache.obtain("/normalized//path"));
+        register("normalized", "/normalized/path");
+        assertEquals("normalized", cache.obtain("/normalized//path").getId());
     }
 
     @Test

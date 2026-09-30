@@ -59,7 +59,10 @@ public final class MetaDataCache {
 
     private volatile Map<String, List<MetaData>> pathIndex = Collections.emptyMap();
 
+    // Index state is read and written only while holding this cache's monitor.
     private boolean indexDirty;
+
+    private volatile boolean negativeCacheDirty;
 
     private MetaDataCache() {
     }
@@ -88,7 +91,7 @@ public final class MetaDataCache {
         });
         META_DATA_MAP.put(data.getId(), data);
         indexDirty = true;
-        clean(DIVIDE_CACHE_KEY);
+        negativeCacheDirty = true;
         final String path = data.getPath();
         clean(path);
         if (!path.contains("*")) {
@@ -105,7 +108,7 @@ public final class MetaDataCache {
     public synchronized void remove(final MetaData data) {
         META_DATA_MAP.remove(data.getId());
         indexDirty = true;
-        clean(DIVIDE_CACHE_KEY);
+        negativeCacheDirty = true;
         clean(data.getPath());
     }
 
@@ -172,6 +175,17 @@ public final class MetaDataCache {
      */
     public synchronized void clean() {
         clean(DIVIDE_CACHE_KEY);
+        negativeCacheDirty = true;
+        cleanNegativeCache();
+    }
+
+    private synchronized void cleanNegativeCache() {
+        if (negativeCacheDirty) {
+            // URI variables (/{tenant}/new) and normalized separators can turn earlier misses into hits.
+            // Sweep the bounded result cache once per mutation burst, never an unbounded reverse index.
+            CACHE.entrySet().removeIf(entry -> NULL.equals(entry.getValue()));
+            negativeCacheDirty = false;
+        }
     }
 
     /**
@@ -181,6 +195,9 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
+        if (negativeCacheDirty) {
+            cleanNegativeCache();
+        }
         MetaData cached = CACHE.get(path);
         final MetaData metaData = Objects.nonNull(cached) ? cached : loadPath(path);
         return NULL.equals(metaData) ? null : metaData;
@@ -207,6 +224,10 @@ public final class MetaDataCache {
     public synchronized void initCache(final String path, final MetaData value, final String metaPath) {
         // The extreme case will lead to OOM, that's why use LRU
         CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
+        if (Objects.isNull(value)) {
+            // Misses belong only to the bounded result cache, not the unbounded pattern-to-path index.
+            return;
+        }
         // spring/** -> Collections 'spring/A', 'spring/B'
         Set<String> paths = MAPPING.get(metaPath);
         if (Objects.isNull(paths)) {
