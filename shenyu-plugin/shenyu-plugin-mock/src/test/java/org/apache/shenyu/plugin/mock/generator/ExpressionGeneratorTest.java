@@ -189,7 +189,8 @@ public class ExpressionGeneratorTest {
         int minLength = 10;
         int maxLength = 20;
         String val = generator.generate(String.format("expression|#zh(%d,%d)", minLength, maxLength), mockRequest);
-        assertThat(val.length(), allOf(greaterThanOrEqualTo(minLength), lessThanOrEqualTo(maxLength)));
+        // same contract as testEnDataGenerate: the quoted content spans [min, max] inclusively
+        assertThat(val, matchesRegex("\"[\\u4e00-\\u9fa5]{" + minLength + "," + maxLength + "}\""));
     }
     
     @Test
