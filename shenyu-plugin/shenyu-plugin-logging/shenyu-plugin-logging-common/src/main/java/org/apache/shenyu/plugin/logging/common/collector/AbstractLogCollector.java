@@ -57,9 +57,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
-    private int bufferSize;
+    private volatile int bufferSize;
 
-    private BlockingQueue<L> bufferQueue;
+    private volatile BlockingQueue<L> bufferQueue;
 
     private final Map<String, BlockingQueue<L>> bufferQueueS = Maps.newConcurrentMap();
 
@@ -73,11 +73,12 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     @Override
     public synchronized void start() {
+        refreshBufferSize();
         if (started.get()) {
             return;
         }
-        bufferSize = getLogCollectConfig().getBufferQueueSize();
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+        // Admission is bounded in collect(), allowing live capacity changes without dropping queued logs.
+        bufferQueue = new LinkedBlockingDeque<>();
         ShenyuConfig config = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig());
         final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
         ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
@@ -96,6 +97,14 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         }
     }
 
+    private void refreshBufferSize() {
+        int configuredSize = getLogCollectConfig().getBufferQueueSize();
+        if (configuredSize <= 0) {
+            throw new IllegalArgumentException("bufferQueueSize must be positive");
+        }
+        bufferSize = configuredSize;
+    }
+
     @Override
     public void collect(final L log) {
         if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
@@ -106,7 +115,13 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
             bufferQueue.offer(log);
         } else {
-            bufferQueue.offer(log);
+            BlockingQueue<L> queue = bufferQueue;
+            synchronized (queue) {
+                // On shrink, retain the backlog but reject new logs until it falls below the new limit.
+                if (queue.size() < bufferSize) {
+                    queue.offer(log);
+                }
+            }
         }
     }
 
@@ -150,10 +165,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {
-        bufferSize = getLogCollectConfig().getBufferQueueSize();
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+        BlockingQueue<L> queue = new LinkedBlockingDeque<>(getLogCollectConfig().getBufferQueueSize());
         lastPushTimeS.put(selectorId, System.currentTimeMillis());
-        return bufferQueue;
+        return queue;
     }
 
     private void processBufferQueue(final BlockingQueue<L> bufferQueue, final int batchSize,

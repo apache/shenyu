@@ -32,9 +32,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.IntStream;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.mockito.MockedConstruction;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -48,6 +56,9 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * The Test Case For AbstractLogCollector.
@@ -55,6 +66,8 @@ import static org.mockito.Mockito.verify;
 public class AbstractLogCollectorTest {
 
     private final AbstractLogConsumeClient<?, ShenyuRequestLog> logConsumeClient = mock(AbstractLogConsumeClient.class);
+
+    private final GenericGlobalConfig collectorConfig = new GenericGlobalConfig();
 
     private final AbstractLogCollector<AbstractLogConsumeClient<?, ShenyuRequestLog>, ShenyuRequestLog, GenericGlobalConfig> collector =
             new AbstractLogCollector<>() {
@@ -65,7 +78,7 @@ public class AbstractLogCollectorTest {
 
                 @Override
                 protected GenericGlobalConfig getLogCollectConfig() {
-                    return new GenericGlobalConfig();
+                    return collectorConfig;
                 }
 
                 @Override
@@ -91,6 +104,93 @@ public class AbstractLogCollectorTest {
         }
         ThreadPoolExecutor last = (ThreadPoolExecutor) ReflectionTestUtils.getField(collector, "executor");
         assertTrue(last.awaitTermination(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testLiveCapacityChangesPreserveBacklogAndConsumer() throws Exception {
+        try (MockedConstruction<ShenyuThreadPoolExecutor> executors = mockConstruction(ShenyuThreadPoolExecutor.class)) {
+            collectorConfig.setBufferQueueSize(1);
+            collector.start();
+            final BlockingQueue<ShenyuRequestLog> queue = (BlockingQueue<ShenyuRequestLog>) ReflectionTestUtils.getField(collector, "bufferQueue");
+            final ShenyuRequestLog first = new ShenyuRequestLog();
+            final ShenyuRequestLog second = new ShenyuRequestLog();
+            final ShenyuRequestLog third = new ShenyuRequestLog();
+            first.setRequestUri("/first");
+            second.setRequestUri("/second");
+            third.setRequestUri("/third");
+            collector.collect(first);
+            collector.collect(second);
+            assertEquals(List.of(first), new ArrayList<>(queue));
+            collectorConfig.setBufferQueueSize(3);
+            collector.start();
+            collector.collect(second);
+            collector.collect(third);
+            collector.collect(new ShenyuRequestLog());
+            assertEquals(List.of(first, second, third), new ArrayList<>(queue));
+            collectorConfig.setBufferQueueSize(1);
+            collector.start();
+            collector.collect(new ShenyuRequestLog());
+            assertEquals(List.of(first, second, third), new ArrayList<>(queue));
+            queue.drainTo(new ArrayList<>());
+            collector.collect(first);
+            collector.collect(second);
+            assertEquals(List.of(first), new ArrayList<>(queue));
+            assertSame(queue, ReflectionTestUtils.getField(collector, "bufferQueue"));
+            assertEquals(1, executors.constructed().size());
+            verify(executors.constructed().get(0), times(1)).execute(any(Runnable.class));
+            collector.close();
+        }
+    }
+
+    @Test
+    public void testConcurrentProducersRespectLiveCapacity() throws Exception {
+        try (MockedConstruction<ShenyuThreadPoolExecutor> executors = mockConstruction(ShenyuThreadPoolExecutor.class)) {
+            collectorConfig.setBufferQueueSize(10);
+            collector.start();
+            IntStream.range(0, 1000).parallel().forEach(index -> collector.collect(new ShenyuRequestLog()));
+            BlockingQueue<?> queue = (BlockingQueue<?>) ReflectionTestUtils.getField(collector, "bufferQueue");
+            assertEquals(10, queue.size());
+            assertEquals(1, executors.constructed().size());
+            collector.close();
+        }
+    }
+
+    @Test
+    public void testSelectorQueueInitializationDoesNotReplaceGlobalQueue() throws Exception {
+        final GenericGlobalConfig config = new GenericGlobalConfig();
+        config.setBufferQueueSize(2);
+        final AbstractLogCollector<?, ShenyuRequestLog, GenericGlobalConfig> testCollector = new AbstractLogCollector<>() {
+            @Override
+            protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                return logConsumeClient;
+            }
+
+            @Override
+            protected GenericGlobalConfig getLogCollectConfig() {
+                return config;
+            }
+
+            @Override
+            protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+            }
+        };
+        final BlockingQueue<ShenyuRequestLog> global = new LinkedBlockingDeque<>(3);
+        setField(testCollector, "bufferQueue", global);
+        setField(testCollector, "bufferSize", 3);
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<BlockingQueue<ShenyuRequestLog>> first = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "first"));
+            Future<BlockingQueue<ShenyuRequestLog>> second = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "second"));
+            BlockingQueue<ShenyuRequestLog> firstQueue = first.get(2, TimeUnit.SECONDS);
+            BlockingQueue<ShenyuRequestLog> secondQueue = second.get(2, TimeUnit.SECONDS);
+            firstQueue.add(new ShenyuRequestLog());
+            assertEquals(2, secondQueue.remainingCapacity());
+            assertSame(global, ReflectionTestUtils.getField(testCollector, "bufferQueue"));
+            assertEquals(3, ReflectionTestUtils.getField(testCollector, "bufferSize"));
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
