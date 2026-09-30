@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sync.data.core;
 
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -97,6 +98,24 @@ public class AbstractPathDataSyncServiceTest {
         verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
         assertEquals("divide", captor.getValue().pluginName());
         assertEquals("selector-id", captor.getValue().selectorId());
+    }
+
+    @Test
+    public void testDiscoveryUpstreamHandlerEvent() {
+
+        String namespaceId = "/namespace";
+        String registerPath = namespaceId + DefaultPathConstants.DISCOVERY_UPSTREAM;
+        String updatePath = registerPath + "/divide/testSelectorId";
+        String jsonData = "{\"pluginName\":\"divide\",\"selectorId\":\"testSelectorId\",\"selectorName\":\"testSelector\"}";
+
+        pathDataSyncService.event(namespaceId, updatePath, jsonData, registerPath, AbstractPathDataSyncService.EventType.PUT);
+        verify(discoveryUpstreamDataSubscriber).onSubscribe(any());
+
+        pathDataSyncService.event(namespaceId, updatePath, null, registerPath, AbstractPathDataSyncService.EventType.DELETE);
+        ArgumentCaptor<DiscoveryUpstreamKey> captor = ArgumentCaptor.forClass(DiscoveryUpstreamKey.class);
+        verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("divide", captor.getValue().pluginName());
+        assertEquals("testSelectorId", captor.getValue().selectorId());
     }
 
     // Mock implementation

@@ -16,28 +16,8 @@
 name: e2e
 
 on:
+  # Required checks must report a result even for documentation-only PRs.
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
   push:
     branches:
       - master
@@ -156,13 +136,13 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
           else
             echo "Falling back to maven wrapper"
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             else
-              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             fi
           fi
 
@@ -398,15 +378,20 @@ jobs:
 
   requirement:
     name: e2e
-    if: ${{ always() && needs.changes.outputs.run_e2e == 'true' }}
+    if: ${{ always() }}
     needs:
       - changes
+      - build-docker-images
       - e2e-storage
       - e2e-case
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
+          [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
+          if [[ "${{ needs.changes.outputs.run_e2e }}" == "true" ]]; then
+            [[ "${{ needs.build-docker-images.result }}" == "success" ]] || exit 1
+          fi
           if [[ "${{ needs.changes.outputs.run_storage }}" == "true" ]]; then
             [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
           fi

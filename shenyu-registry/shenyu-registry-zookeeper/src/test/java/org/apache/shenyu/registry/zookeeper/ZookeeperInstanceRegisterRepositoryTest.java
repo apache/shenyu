@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -82,6 +84,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
                 .build();
         final Listenable listenable = mock(Listenable.class);
         final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
+        final boolean[] hasInstance = {true};
 
         try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
             final CuratorFramework curatorFramework = mock(CuratorFramework.class);
@@ -89,7 +92,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             when(mock.subscribeChildrenChanges(anyString(), any(CuratorWatcher.class))).thenAnswer(invocation -> {
                 Object[] args = invocation.getArguments();
                 watcherArr[0] = (CuratorWatcher) args[1];
-                return Collections.singletonList("shenyu-test");
+                return hasInstance[0] ? Collections.singletonList("shenyu-test") : Collections.emptyList();
             });
             when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
@@ -100,10 +103,16 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
             repository.init(config);
-            repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
+            String selectKey = InstancePathConstants.buildInstanceParentPath();
+            assertEquals(1, repository.selectInstances(selectKey).size());
             WatchedEvent mockEvent = mock(WatchedEvent.class);
-            when(mockEvent.getPath()).thenReturn(InstancePathConstants.buildInstanceParentPath());
+            when(mockEvent.getPath()).thenReturn(selectKey);
+            hasInstance[0] = false;
             watcherArr[0].process(mockEvent);
+            assertTrue(repository.selectInstances(selectKey).isEmpty());
+            hasInstance[0] = true;
+            watcherArr[0].process(mockEvent);
+            assertEquals(1, repository.selectInstances(selectKey).size());
             repository.close();
         }
     }

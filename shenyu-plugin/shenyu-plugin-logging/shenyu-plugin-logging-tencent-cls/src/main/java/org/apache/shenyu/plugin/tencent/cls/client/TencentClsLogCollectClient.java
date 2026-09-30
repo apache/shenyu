@@ -119,11 +119,17 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
 
     @Override
     public void close0() {
-        if (Objects.nonNull(client)) {
-            try {
-                client.close();
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+        try {
+            if (Objects.nonNull(client)) {
+                try {
+                    client.close();
+                } catch (InterruptedException | ProducerException e) {
+                    LOG.error("Close producer error.");
+                }
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
             }
         }
     }
