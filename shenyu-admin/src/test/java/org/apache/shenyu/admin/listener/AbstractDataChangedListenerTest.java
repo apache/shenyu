@@ -49,9 +49,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
 
@@ -123,19 +126,19 @@ public final class AbstractDataChangedListenerTest {
         aiProxyApiKeyServiceField.set(listener, aiProxyApiKeyService);
 
         List<AppAuthData> appAuthDatas = Lists.newArrayList(mock(AppAuthData.class));
-        when(appAuthService.listAll()).thenReturn(appAuthDatas);
+        when(appAuthService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(appAuthDatas);
         List<PluginData> pluginDatas = Lists.newArrayList(mock(PluginData.class));
         when(namespacePluginService.listAll(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(pluginDatas);
         List<RuleData> ruleDatas = Lists.newArrayList(mock(RuleData.class));
-        when(ruleService.listAll()).thenReturn(ruleDatas);
+        when(ruleService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(ruleDatas);
         List<SelectorData> selectorDatas = Lists.newArrayList(mock(SelectorData.class));
-        when(selectorService.listAll()).thenReturn(selectorDatas);
+        when(selectorService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(selectorDatas);
         List<MetaData> metaDatas = Lists.newArrayList(mock(MetaData.class));
-        when(metaDataService.listAll()).thenReturn(metaDatas);
+        when(metaDataService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metaDatas);
         List<ProxySelectorData> proxySelectorDatas = Lists.newArrayList(mock(ProxySelectorData.class));
-        when(proxySelectorService.listAll()).thenReturn(proxySelectorDatas);
+        when(proxySelectorService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(proxySelectorDatas);
         List<DiscoverySyncData> discoverySyncDatas = Lists.newArrayList(mock(DiscoverySyncData.class));
-        when(discoveryUpstreamService.listAll()).thenReturn(discoverySyncDatas);
+        when(discoveryUpstreamService.listAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(discoverySyncDatas);
         List<NamespaceVO> list = new ArrayList<>();
         NamespaceVO namespaceVO = new NamespaceVO();
         namespaceVO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
@@ -144,6 +147,37 @@ public final class AbstractDataChangedListenerTest {
 
         // clear first
         listener.getCache().clear();
+    }
+
+    @Test
+    void refreshesOnlyTheRequestedNamespaceForEverySyncGroup() {
+        for (String namespace : new String[]{"namespace-a", "namespace-b"}) {
+            when(selectorService.listAllByNamespaceId(namespace)).thenReturn(java.util.Collections.singletonList(
+                    SelectorData.builder().id(namespace).namespaceId(namespace).build()));
+            listener.updateSelectorCache(namespace);
+            listener.updateRuleCache(namespace);
+            listener.updateAppAuthCache(namespace);
+            listener.updateMetaDataCache(namespace);
+            listener.updateProxySelectorDataCache(namespace);
+            listener.updateDiscoveryUpstreamDataCache(namespace);
+            listener.updateAiProxyApiKeyCache(namespace);
+            verify(selectorService).listAllByNamespaceId(namespace);
+            verify(ruleService).listAllByNamespaceId(namespace);
+            verify(appAuthService).listAllByNamespaceId(namespace);
+            verify(metaDataService).listAllByNamespaceId(namespace);
+            verify(proxySelectorService).listAllByNamespaceId(namespace);
+            verify(discoveryUpstreamService).listAllByNamespaceId(namespace);
+            verify(aiProxyApiKeyService).listAllByNamespaceId(namespace);
+            SelectorData cached = (SelectorData) listener.fetchConfig(ConfigGroupEnum.SELECTOR, namespace).getData().get(0);
+            assertEquals(namespace, cached.getNamespaceId());
+        }
+        verify(selectorService, never()).listAll();
+        verify(ruleService, never()).listAll();
+        verify(appAuthService, never()).listAll();
+        verify(metaDataService, never()).listAll();
+        verify(proxySelectorService, never()).listAll();
+        verify(discoveryUpstreamService, never()).listAll();
+        verify(aiProxyApiKeyService, never()).listAll();
     }
 
     @AfterEach
