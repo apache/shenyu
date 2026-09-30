@@ -335,16 +335,24 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected void refreshLocalCache() {
         List<NamespaceVO> namespaceList = namespaceService.listAll();
         for (NamespaceVO namespace : namespaceList) {
-            String namespaceId = namespace.getNamespaceId();
-            this.updatePluginCache(namespaceId);
-            this.updateAppAuthCache(namespaceId);
-            this.updateRuleCache(namespaceId);
-            this.updateSelectorCache(namespaceId);
-            this.updateMetaDataCache(namespaceId);
-            this.updateProxySelectorDataCache(namespaceId);
-            this.updateDiscoveryUpstreamDataCache(namespaceId);
-            this.updateAiProxyApiKeyCache(namespaceId);
+            this.refreshLocalCache(namespace.getNamespaceId());
         }
+    }
+
+    /**
+     * Refresh local cache for one namespace.
+     *
+     * @param namespaceId namespace id
+     */
+    protected void refreshLocalCache(final String namespaceId) {
+        this.updatePluginCache(namespaceId);
+        this.updateAppAuthCache(namespaceId);
+        this.updateRuleCache(namespaceId);
+        this.updateSelectorCache(namespaceId);
+        this.updateMetaDataCache(namespaceId);
+        this.updateProxySelectorDataCache(namespaceId);
+        this.updateDiscoveryUpstreamDataCache(namespaceId);
+        this.updateAiProxyApiKeyCache(namespaceId);
     }
 
     /**
