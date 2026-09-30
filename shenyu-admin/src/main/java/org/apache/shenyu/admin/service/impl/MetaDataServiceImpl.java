@@ -129,7 +129,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         for (MetaDataDO metaDataDO : metaDataDoList) {
             metaDataDO.setEnabled(enabled);
         }
-        if (metaDataMapper.updateEnableBatch(ids, enabled) > 0) {
+        if (metaDataMapper.updateEnableBatch(ListUtil.map(metaDataDoList, MetaDataDO::getId), enabled) > 0) {
             publisher.onEnabled(metaDataDoList);
         }
         return StringUtils.EMPTY;
@@ -181,6 +181,11 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public List<MetaData> listAll() {
         return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToData);
+    }
+
+    @Override
+    public List<MetaData> listAllByNamespaceId(final String namespaceId) {
+        return ListUtil.map(metaDataMapper.findAllByNamespaceId(namespaceId), MetaDataTransfer.INSTANCE::mapToData);
     }
 
     @Override
@@ -298,7 +303,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     private String update(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), metaDataDTO.getNamespaceId(),
+                Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));

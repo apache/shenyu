@@ -17,22 +17,77 @@
 
 package org.apache.shenyu.plugin.sign.service;
 
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
+import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test cases for {@link ComposableSignService}.
+ * Test for ComposableSignService#skipSignExchange.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ComposableSignServiceTest {
+
+    private ComposableSignService signService;
+
+    @BeforeEach
+    public void setUp() {
+        this.signService = new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider());
+    }
+
+    private boolean skipSignExchange(final String module, final String rpcType) {
+        ShenyuContext context = new ShenyuContext();
+        context.setModule(module);
+        context.setRpcType(rpcType);
+        return Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(this.signService, "skipSignExchange", context));
+    }
+
+    @Test
+    public void testSkipSignExchangeForSupportedPlugins() {
+        assertTrue(skipSignExchange("divide-http", "http"));
+        assertTrue(skipSignExchange("springCloud-http", "http"));
+        assertTrue(skipSignExchange("websocket-ws", "ws"));
+    }
+
+    @Test
+    public void testSkipSignExchangeWithMismatchedRpcType() {
+        assertFalse(skipSignExchange("divide-http", "grpc"));
+        assertFalse(skipSignExchange("springCloud-grpc", "http"));
+    }
+
+    @Test
+    public void testSkipSignExchangeForUnsupportedPlugin() {
+        assertFalse(skipSignExchange("dubbo-http", "http"));
+        assertFalse(skipSignExchange("grpc-http", "http"));
+    }
+
+    @Test
+    public void testSkipSignExchangeWithMalformedModule() {
+        assertFalse(skipSignExchange("http", "http"));
+        assertFalse(skipSignExchange("divide-", ""));
+        assertFalse(skipSignExchange("", "http"));
+        assertFalse(skipSignExchange("divide-springCloud-http", "http"));
+        assertFalse(skipSignExchange("divide-null", null));
+        assertFalse(skipSignExchange("divide- ", " "));
+    }
 
     @Test
     public void testMatchesDefaultModule() {
         assertTrue(ComposableSignService.matchesDefaultModule("divide-http", "http", "divide"));
         assertTrue(ComposableSignService.matchesDefaultModule("springCloud-springCloud", "springCloud", "springCloud"));
-        assertTrue(ComposableSignService.matchesDefaultModule("divide-", "", "divide"));
-        assertTrue(ComposableSignService.matchesDefaultModule("divide-null", null, "divide"));
+        assertFalse(ComposableSignService.matchesDefaultModule("divide-", "", "divide"));
+        assertFalse(ComposableSignService.matchesDefaultModule("divide-null", null, "divide"));
+        assertFalse(ComposableSignService.matchesDefaultModule("divide- ", " ", "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule("divide-http", "dubbo", "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule("custom-http", "http", "divide"));
         assertFalse(ComposableSignService.matchesDefaultModule(null, "http", "divide"));

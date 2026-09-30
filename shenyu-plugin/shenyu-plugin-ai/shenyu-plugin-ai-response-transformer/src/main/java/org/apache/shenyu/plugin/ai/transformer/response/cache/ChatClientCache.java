@@ -20,15 +20,15 @@ package org.apache.shenyu.plugin.ai.transformer.response.cache;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * this is chatClient cache for ai response transformer.
  */
 public class ChatClientCache {
 
-    private static final Map<String, ChatClient> CHAT_CLIENT_MAP = new HashMap<>();
+    private static final Map<String, ChatClient> CHAT_CLIENT_MAP = new ConcurrentHashMap<>();
 
     /**
      * Init.

@@ -166,6 +166,10 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         return new StreamableHttpProviderBuilder();
     }
 
+    private MessageHandlingResult createMessageHandlingResult(final int statusCode, final Object responseBody, final String sessionId) {
+        return new MessageHandlingResult(statusCode, responseBody, sessionId, jsonMapper);
+    }
+
     @Override
     public void setSessionFactory(final McpServerSession.Factory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -289,11 +293,11 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                     } catch (IOException e) {
                         LOGGER.warn("Failed to parse JSON-RPC message: {}", e.getMessage());
                         final Object errorResponse = createJsonRpcError(null, -32700, "Parse error: Invalid JSON-RPC message");
-                        return Mono.just(new MessageHandlingResult(400, errorResponse, null));
+                        return Mono.just(createMessageHandlingResult(400, errorResponse, null));
                     } catch (Exception e) {
                         LOGGER.error("Unexpected error handling message: {}", e.getMessage(), e);
                         final Object errorResponse = createJsonRpcError(null, -32603, "Internal error: " + e.getMessage());
-                        return Mono.just(new MessageHandlingResult(500, errorResponse, null));
+                        return Mono.just(createMessageHandlingResult(500, errorResponse, null));
                     }
                 });
     }
@@ -340,17 +344,17 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 cleanupInvalidSession(newSessionId);
                 final Object errorResponse = createJsonRpcError(messageId, -32600,
                         "Unsupported protocol version. Supported versions: " + SUPPORTED_PROTOCOL_VERSIONS);
-                return Mono.just(new MessageHandlingResult(400, errorResponse, null));
+                return Mono.just(createMessageHandlingResult(400, errorResponse, null));
             }
             // Create initialize response
             final Object initializeResponse = createInitializeResponse(messageId, clientProtocolVersion, newSessionId);
             LOGGER.debug("Initialize request processed successfully for session: {}", newSessionId);
-            return Mono.just(new MessageHandlingResult(200, initializeResponse, newSessionId));
+            return Mono.just(createMessageHandlingResult(200, initializeResponse, newSessionId));
         } catch (Exception e) {
             LOGGER.error("Error handling initialize request: {}", e.getMessage(), e);
             final Object errorResponse = createJsonRpcError(extractMessageId(message), -32603,
                     "Internal error during initialization: " + e.getMessage());
-            return Mono.just(new MessageHandlingResult(500, errorResponse, null));
+            return Mono.just(createMessageHandlingResult(500, errorResponse, null));
         }
     }
 
@@ -395,7 +399,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 .map(result -> {
                     if (!requestedSessionId.equals(result.getSessionId())) {
                         LOGGER.info("Returning actual session ID {} instead of requested ID {}", result.getSessionId(), requestedSessionId);
-                        return new MessageHandlingResult(result.getStatusCode(), result.getResponseBody(), result.getSessionId());
+                        return createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), result.getSessionId());
                     }
                     return result;
                 });
@@ -438,12 +442,12 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                         removeSession(actualSessionId);
                         ShenyuMcpExchangeHolder.remove(actualSessionId);
                     })
-                    .map(result -> new MessageHandlingResult(result.getStatusCode(), result.getResponseBody(), null));
+                    .map(result -> createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), null));
         } catch (Exception e) {
             LOGGER.error("Error creating temporary session: {}", e.getMessage(), e);
             final Object errorResponse = createJsonRpcError(messageId, -32603,
                     "Internal error creating temporary session: " + e.getMessage());
-            return Mono.just(new MessageHandlingResult(500, errorResponse, null));
+            return Mono.just(createMessageHandlingResult(500, errorResponse, null));
         }
     }
 
@@ -452,10 +456,11 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * This method handles scenarios where a client provides a session ID that no longer
      * exists on the server (e.g., server restart, session timeout, network disconnection).
      * A new session is created using the MCP framework, which generates its own session ID.
-     * The client receives the new session ID for subsequent requests.
+     * The session is only used to process the current request and is cleaned up afterwards,
+     * so an unknown or stale session ID cannot leave orphaned sessions in the maps.
      * Important: The MCP framework generates its own session IDs, so the
      * client's requested session ID may differ from the actual session ID returned.
-     * The response includes the actual session ID that should be used for future requests.
+     * The response includes the actual session ID used to process this request.
      *
      * @param exchange           the server web exchange
      * @param message            the JSON-RPC message
@@ -479,10 +484,15 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             initializeSessionDirectly(newSession, actualSessionId);
             newTransport.resetCapturedMessage();
             return processWithExistingSession(newSession, actualSessionId, message, messageId)
+                    .doFinally(signalType -> {
+                        LOGGER.debug("Cleaning up restored session: {} (signal: {})", actualSessionId, signalType);
+                        removeSession(actualSessionId);
+                        ShenyuMcpExchangeHolder.remove(actualSessionId);
+                    })
                     .map(result -> {
                         if (!actualSessionId.equals(requestedSessionId)) {
                             LOGGER.info("Returning actual session ID {} instead of requested ID {}", actualSessionId, requestedSessionId);
-                            return new MessageHandlingResult(result.getStatusCode(), result.getResponseBody(), actualSessionId);
+                            return createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), actualSessionId);
                         }
                         return result;
                     });
@@ -490,7 +500,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             LOGGER.error("Error creating session with restored ID {}: {}", requestedSessionId, e.getMessage(), e);
             final Object errorResponse = createJsonRpcError(messageId, -32603,
                     "Internal error restoring session: " + e.getMessage());
-            return Mono.just(new MessageHandlingResult(500, errorResponse, requestedSessionId));
+            return Mono.just(createMessageHandlingResult(500, errorResponse, requestedSessionId));
         }
     }
 
@@ -528,12 +538,12 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             return session.handle(message)
                     .cast(Object.class)
                     .doOnSuccess(result -> LOGGER.debug("Successfully processed notification for session: {}", sessionId))
-                    .thenReturn(new MessageHandlingResult(HttpStatus.ACCEPTED.value(), null, sessionId))
+                    .thenReturn(createMessageHandlingResult(HttpStatus.ACCEPTED.value(), null, sessionId))
                     .onErrorResume(error -> {
                         LOGGER.error("Error processing notification for session {}: {}", sessionId, error.getMessage(), error);
                         final Object errorResponse = createJsonRpcError(null, -32603,
                                 "Internal error: " + error.getMessage());
-                        return Mono.just(new MessageHandlingResult(500, errorResponse, sessionId));
+                        return Mono.just(createMessageHandlingResult(500, errorResponse, sessionId));
                     });
         }
         // Let MCP framework handle the message - framework will send response through transport
@@ -542,18 +552,18 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 .doOnSuccess(result -> LOGGER.debug("Successfully processed message for session: {}", sessionId))
                 .then(waitForTransportResponse(transport, sessionId, messageId))
                 .doOnNext(result -> {
-                    // Clear the captured response after each completed message so that a
-                    // subsequent message on this session cannot observe a stale response
-                    // from a previous request.
+                    // Clear the response captured for this specific message id after it has
+                    // been delivered, so that a subsequent message on this session cannot
+                    // observe a stale response from a previous request.
                     if (Objects.nonNull(transport)) {
-                        transport.resetCapturedMessage();
+                        transport.resetCapturedMessage(messageId);
                     }
                 })
                 .onErrorResume(error -> {
                     LOGGER.error("Error processing message for session {}: {}", sessionId, error.getMessage(), error);
                     final Object errorResponse = createJsonRpcError(messageId, -32603,
                             "Internal error: " + error.getMessage());
-                    return Mono.just(new MessageHandlingResult(500, errorResponse, sessionId));
+                    return Mono.just(createMessageHandlingResult(500, errorResponse, sessionId));
                 });
     }
 
@@ -824,14 +834,19 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                                                                  final String sessionId,
                                                                  final Object messageId) {
         return Mono.fromCallable(() -> {
-            if (Objects.nonNull(transport) && transport.isResponseReady() && Objects.nonNull(transport.getLastSentMessage())) {
+            final McpSchema.JSONRPCMessage correlatedResponse = Objects.nonNull(transport)
+                    ? transport.getLastSentMessage(messageId) : null;
+            if (Objects.nonNull(messageId) && Objects.nonNull(correlatedResponse)) {
+                LOGGER.debug("Retrieved correlated response for message id {} on session: {}", messageId, sessionId);
+                return createMessageHandlingResult(200, correlatedResponse, sessionId);
+            } else if (Objects.nonNull(transport) && transport.isResponseReady() && Objects.nonNull(transport.getLastSentMessage())) {
                 final McpSchema.JSONRPCMessage sentMessage = transport.getLastSentMessage();
                 LOGGER.debug("Retrieved captured response from transport for session: {}", sessionId);
-                return new MessageHandlingResult(200, sentMessage, sessionId);
+                return createMessageHandlingResult(200, sentMessage, sessionId);
             } else {
                 LOGGER.debug("No response captured from transport, returning default success for session: {}", sessionId);
                 final Object successResponse = createJsonRpcResponse(messageId, new java.util.HashMap<>());
-                return new MessageHandlingResult(200, successResponse, sessionId);
+                return createMessageHandlingResult(200, successResponse, sessionId);
             }
         });
     }
@@ -1045,6 +1060,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
         private volatile boolean responseReady;
 
+        private final Map<String, McpSchema.JSONRPCMessage> messageResponses = new ConcurrentHashMap<>();
+
         /**
          * Creates a new session transport with auto-generated session ID.
          */
@@ -1075,6 +1092,20 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
 
         /**
+         * Gets the response message captured for the given message id, falling back
+         * to the last sent message when no id-based correlation is available.
+         *
+         * @param messageId the JSON-RPC message id to look up
+         * @return the correlated response, or null if none has been captured
+         */
+        public McpSchema.JSONRPCMessage getLastSentMessage(final Object messageId) {
+            if (Objects.nonNull(messageId)) {
+                return messageResponses.get(String.valueOf(messageId));
+            }
+            return lastSentMessage;
+        }
+
+        /**
          * Checks if a response is ready for retrieval.
          *
          * @return true if response is available
@@ -1088,6 +1119,12 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             if (!closed) {
                 this.lastSentMessage = message;
                 this.responseReady = true;
+                if (message instanceof McpSchema.JSONRPCResponse) {
+                    final Object responseId = ((McpSchema.JSONRPCResponse) message).id();
+                    if (Objects.nonNull(responseId)) {
+                        this.messageResponses.put(String.valueOf(responseId), message);
+                    }
+                }
                 LOGGER.debug("Captured response message for session: {}", sessionId);
             }
             return Mono.empty();
@@ -1126,6 +1163,18 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         public void resetCapturedMessage() {
             this.lastSentMessage = null;
             this.responseReady = false;
+        }
+
+        /**
+         * Clears the response captured for the given message id, leaving the
+         * last-sent-message slot used by the initialization handshake intact.
+         *
+         * @param messageId the JSON-RPC message id whose captured response should be removed
+         */
+        public void resetCapturedMessage(final Object messageId) {
+            if (Objects.nonNull(messageId)) {
+                this.messageResponses.remove(String.valueOf(messageId));
+            }
         }
     }
 

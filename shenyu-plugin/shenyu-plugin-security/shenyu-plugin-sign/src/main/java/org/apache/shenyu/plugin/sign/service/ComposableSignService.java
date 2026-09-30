@@ -237,14 +237,13 @@ public class ComposableSignService implements SignService {
     }
 
     static boolean matchesDefaultModule(final String module, final String rpcType, final String pluginName) {
-        if (StringUtils.isEmpty(module)) {
+        if (StringUtils.isBlank(module) || StringUtils.isBlank(rpcType)) {
             return false;
         }
-        String resolvedRpcType = String.valueOf(rpcType);
         int separatorIndex = pluginName.length();
-        return module.length() == separatorIndex + resolvedRpcType.length() + 1
+        return module.length() == separatorIndex + rpcType.length() + 1
                 && module.startsWith(pluginName)
                 && module.charAt(separatorIndex) == '-'
-                && module.regionMatches(separatorIndex + 1, resolvedRpcType, 0, resolvedRpcType.length());
+                && module.regionMatches(separatorIndex + 1, rpcType, 0, rpcType.length());
     }
 }

@@ -17,9 +17,14 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
+import com.google.common.cache.LoadingCache;
+import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,9 +35,14 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -129,5 +139,108 @@ public final class ApacheDubboConfigCacheTest {
     public void testInvalidate() {
         this.apacheDubboConfigCache.invalidate("/test");
         this.apacheDubboConfigCache.invalidateAll();
+    }
+
+    @Test
+    public void testInvalidateMatchesWholeKeySegmentOnly() throws Exception {
+        DubboUpstream dubboUpstream = DubboUpstream.builder().protocol("dubbo").build();
+        dubboUpstream.setRegistry("zookeeper://127.0.0.1:2181");
+        dubboUpstream.setVersion("1.0.0");
+        dubboUpstream.setGroup("g1");
+        // selector id of keyA is a plain substring of the rule id and of the other selector id
+        String keyA = apacheDubboConfigCache.generateUpstreamCacheKey("15123", "9001", "8001", "ns1", dubboUpstream);
+        String keyB = apacheDubboConfigCache.generateUpstreamCacheKey("91512390", "9151239", "8002", "ns1", dubboUpstream);
+        String keyC = apacheDubboConfigCache.generateUpstreamCacheKey("70000", "7001", "8003", "ns1", dubboUpstream);
+        // blank namespace: the selector id becomes the first key segment
+        String keyD = apacheDubboConfigCache.generateUpstreamCacheKey("15123", "9002", "8004", "", dubboUpstream);
+        String pathBasedKey = "ns1:/some/path";
+        LoadingCache<String, ReferenceConfig<GenericService>> cache = loadReferenceCache();
+        cache.invalidateAll();
+        cache.put(keyA, new ReferenceConfig<>());
+        cache.put(keyB, new ReferenceConfig<>());
+        cache.put(keyC, new ReferenceConfig<>());
+        cache.put(keyD, new ReferenceConfig<>());
+        cache.put(pathBasedKey, new ReferenceConfig<>());
+
+        apacheDubboConfigCache.invalidateWithSelectorId("15123");
+        assertFalse(cache.asMap().containsKey(keyA));
+        assertFalse(cache.asMap().containsKey(keyD));
+        assertTrue(cache.asMap().containsKey(keyB));
+        assertTrue(cache.asMap().containsKey(keyC));
+        assertTrue(cache.asMap().containsKey(pathBasedKey));
+
+        apacheDubboConfigCache.invalidateWithRuleId("9151239");
+        assertFalse(cache.asMap().containsKey(keyB));
+
+        apacheDubboConfigCache.invalidateWithMetadataId("8003");
+        assertFalse(cache.asMap().containsKey(keyC));
+        assertTrue(cache.asMap().containsKey(pathBasedKey));
+    }
+
+    @SuppressWarnings("unchecked")
+    private LoadingCache<String, ReferenceConfig<GenericService>> loadReferenceCache() throws Exception {
+        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
+        field.setAccessible(true);
+        return (LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache);
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsFiltersUnusableEntries() {
+        DubboUpstream active = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        active.setRegistry("dubbo://127.0.0.1:20880");
+        DubboUpstream disabled = DubboUpstream.builder().protocol("dubbo").status(false).build();
+        disabled.setRegistry("dubbo://127.0.0.1:20881");
+        String handle = GsonUtils.getInstance().toJson(List.of(active, disabled));
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-1");
+        selectorData.setHandle(handle);
+
+        List<DubboUpstream> result = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).isStatus());
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsReusesParseWhileHandleUnchanged() {
+        DubboUpstream active = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        active.setRegistry("dubbo://127.0.0.1:20880");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-2");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(active)));
+
+        List<DubboUpstream> first = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+        List<DubboUpstream> second = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertSame(first, second);
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsReparsesWhenHandleChanges() {
+        DubboUpstream first = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        first.setRegistry("dubbo://127.0.0.1:20880");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-3");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(first)));
+        assertEquals("dubbo://127.0.0.1:20880", apacheDubboConfigCache.getOrParseUpstreams(selectorData).get(0).getRegistry());
+
+        DubboUpstream second = DubboUpstream.builder().protocol("dubbo").status(true).build();
+        second.setRegistry("dubbo://127.0.0.2:20880");
+        selectorData.setHandle(GsonUtils.getInstance().toJson(List.of(second)));
+        List<DubboUpstream> reparsed = apacheDubboConfigCache.getOrParseUpstreams(selectorData);
+
+        assertEquals(1, reparsed.size());
+        assertEquals("dubbo://127.0.0.2:20880", reparsed.get(0).getRegistry());
+    }
+
+    @Test
+    public void testGetOrParseUpstreamsBlankHandleReturnsEmpty() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-4");
+        selectorData.setHandle(null);
+
+        assertTrue(apacheDubboConfigCache.getOrParseUpstreams(selectorData).isEmpty());
+        assertTrue(apacheDubboConfigCache.getOrParseUpstreams(null).isEmpty());
+        assertNotNull(apacheDubboConfigCache.getOrParseUpstreams(selectorData));
     }
 }

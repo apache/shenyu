@@ -21,10 +21,14 @@ import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * HashLoadBalancer unit test.
@@ -41,6 +45,31 @@ class HashLoadBalancerTest {
 
         Upstream upstream = hashLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         assertEquals(upstreamList.get(2).getUrl(), upstream.getUrl());
+    }
+
+    @Test
+    void shouldReuseRingWithoutReturningStaleUpstreamInstances() throws Exception {
+        final HashLoadBalancer hashLoadBalancer = new HashLoadBalancer();
+        final List<Upstream> first = upstreams();
+        final List<Upstream> refreshed = upstreams();
+
+        Upstream firstSelection = hashLoadBalancer.doSelect(first, new LoadBalanceData());
+        Upstream refreshedSelection = hashLoadBalancer.doSelect(refreshed, new LoadBalanceData());
+
+        assertEquals(first.indexOf(firstSelection), refreshed.indexOf(refreshedSelection));
+        assertNotSame(firstSelection, refreshedSelection);
+        assertSame(refreshed.get(refreshed.indexOf(refreshedSelection)), refreshedSelection);
+        Field ringCacheField = HashLoadBalancer.class.getDeclaredField("ringCache");
+        ringCacheField.setAccessible(true);
+        assertEquals(1, ((Map<?, ?>) ringCacheField.get(hashLoadBalancer)).size());
+    }
+
+    private List<Upstream> upstreams() {
+        final List<Upstream> result = new ArrayList<>();
+        result.add(Upstream.builder().url("http://1.1.1.1/api").build());
+        result.add(Upstream.builder().url("http://2.2.2.2/api").build());
+        result.add(Upstream.builder().url("http://3.3.3.3/api").build());
+        return result;
     }
 
 }
