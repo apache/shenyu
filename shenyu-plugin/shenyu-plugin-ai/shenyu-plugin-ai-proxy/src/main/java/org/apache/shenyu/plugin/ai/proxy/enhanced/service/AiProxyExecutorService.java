@@ -61,9 +61,9 @@ public class AiProxyExecutorService {
     public Flux<ChatCompletionChunk> executeDirectStream(final OpenAiApi mainApi,
             final Optional<FallbackContext> fallbackCtxOpt, final ChatCompletionRequest request,
             final String requestBody, final boolean stream) {
-        return Flux.defer(() -> {
+        return AiStreamCancellation.propagate(Flux.defer(() -> {
             AtomicBoolean emitted = new AtomicBoolean();
-            return mainApi.chatCompletionStream(request)
+            return Flux.defer(() -> mainApi.chatCompletionStream(request))
                     .doOnNext(chunk -> emitted.set(true))
                     .doOnError(e -> UpstreamErrorLogger.logUpstreamError(LOG, e, "direct stream"))
                     .retryWhen(Retry.max(1)
@@ -78,7 +78,7 @@ public class AiProxyExecutorService {
                     .onErrorResume(error -> emitted.get()
                             ? Flux.error(error)
                             : handleDirectFallbackStream(error, fallbackCtxOpt, requestBody, stream));
-        });
+        }));
     }
 
     /**
