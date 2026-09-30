@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
+import org.apache.shenyu.plugin.logging.console.entity.LoggingConsoleRuleHandle;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -34,13 +35,13 @@ import java.util.function.Supplier;
  */
 public class LoggingConsolePluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    public static final Supplier<CommonHandleCache<String, LoggingConsoleRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CommonLoggingRuleHandle commonLoggingRuleHandle = GsonUtils.getInstance().fromJson(s, CommonLoggingRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), commonLoggingRuleHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), new LoggingConsoleRuleHandle(commonLoggingRuleHandle));
         });
     }
 
@@ -53,4 +54,5 @@ public class LoggingConsolePluginDataHandler implements PluginDataHandler {
     public String pluginNamed() {
         return PluginEnum.LOGGING_CONSOLE.getName();
     }
+
 }
