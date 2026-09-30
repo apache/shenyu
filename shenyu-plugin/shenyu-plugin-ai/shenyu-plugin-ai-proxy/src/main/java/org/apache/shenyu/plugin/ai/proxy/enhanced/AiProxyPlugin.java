@@ -32,6 +32,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService.FallbackContext;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.UpstreamErrorLogger;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStreamCancellation;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -248,6 +250,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             throw new IllegalArgumentException("apiKey must not be empty");
         }
         return OpenAiApi.builder()
+                .webClientBuilder(WebClient.builder().filter(AiStreamCancellation.responseFilter()))
                 .baseUrl(config.getBaseUrl())
                 .apiKey(config.getApiKey())
                 .build();

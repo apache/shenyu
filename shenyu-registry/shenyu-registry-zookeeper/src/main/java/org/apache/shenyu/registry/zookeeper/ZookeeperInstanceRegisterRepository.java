@@ -156,9 +156,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                         String path = Objects.isNull(event.getPath()) ? selectKey : event.getPath();
                         List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
                                 : Collections.emptyList();
-                        if (!childrenList.isEmpty()) {
-                            watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
-                        }
+                        watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
                     } catch (Exception e) {
                         watcherInstanceRegisterMap.remove(selectKey);
                         LOGGER.error("zookeeper registry client subscribeChildrenChanges watch interrupt error:", e);

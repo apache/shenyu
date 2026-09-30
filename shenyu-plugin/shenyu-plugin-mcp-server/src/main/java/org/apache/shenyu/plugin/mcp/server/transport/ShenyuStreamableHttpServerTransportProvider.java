@@ -1094,6 +1094,20 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
 
         /**
+         * Gets the response message captured for the given message id, falling back
+         * to the last sent message when no id-based correlation is available.
+         *
+         * @param messageId the JSON-RPC message id to look up
+         * @return the correlated response, or null if none has been captured
+         */
+        public McpSchema.JSONRPCMessage getLastSentMessage(final Object messageId) {
+            if (Objects.nonNull(messageId)) {
+                return responses.get(messageId);
+            }
+            return lastSentMessage;
+        }
+
+        /**
          * Checks if a response is ready for retrieval.
          *
          * @return true if response is available
@@ -1159,8 +1173,16 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             this.responseReady = false;
         }
 
+        /**
+         * Clears the response captured for the given message id, leaving the
+         * last-sent-message slot used by the initialization handshake intact.
+         *
+         * @param messageId the JSON-RPC message id whose captured response should be removed
+         */
         public void resetCapturedMessage(final Object messageId) {
-            responses.remove(messageId);
+            if (Objects.nonNull(messageId)) {
+                this.responses.remove(messageId);
+            }
         }
     }
 

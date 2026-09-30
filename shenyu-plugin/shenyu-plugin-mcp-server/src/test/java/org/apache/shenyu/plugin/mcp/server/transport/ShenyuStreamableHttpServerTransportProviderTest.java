@@ -42,6 +42,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -207,6 +208,25 @@ class ShenyuStreamableHttpServerTransportProviderTest {
         assertNotEquals(actualSessionId, followUp.getHeaders().getFirst(SESSION_ID_HEADER));
         assertEquals(0, readMap(provider, "sessions").size());
         assertEquals(0, readMap(provider, "sessionTransports").size());
+    }
+
+    @Test
+    void testCompatibilityLookupSharesRequestResponseCleanup() throws Exception {
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithRealSessions();
+        final String sessionId = initialize(provider);
+        performRequest(provider, postRequest(TOOLS_LIST_REQUEST_BODY, sessionId));
+
+        final Object transport = readMap(provider, "sessionTransports").get(sessionId);
+        assertNotNull(transport);
+        final Method lookup = transport.getClass().getDeclaredMethod("getLastSentMessage", Object.class);
+        lookup.setAccessible(true);
+        assertNull(lookup.invoke(transport, "req-1"));
+
+        final Method reset = transport.getClass().getDeclaredMethod("resetCapturedMessage", Object.class);
+        reset.setAccessible(true);
+        reset.invoke(transport, new Object[] {null});
+        assertNull(lookup.invoke(transport, "req-1"));
+        provider.removeSession(sessionId);
     }
 
     @SuppressWarnings("unchecked")
