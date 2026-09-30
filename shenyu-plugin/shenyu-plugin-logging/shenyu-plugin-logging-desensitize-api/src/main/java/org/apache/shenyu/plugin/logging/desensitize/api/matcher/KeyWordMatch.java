@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.desensitize.api.matcher;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,8 @@ public class KeyWordMatch {
      */
     public KeyWordMatch(final Set<String> keyWordSet) {
         StringBuilder sb = new StringBuilder();
-        keyWordSet.forEach(tempKeyWord -> {
+        // callers pass keywords.split(";") straight through, so blank tokens must be filtered here
+        keyWordSet.stream().filter(keyword -> Objects.nonNull(keyword) && !keyword.isBlank()).forEach(tempKeyWord -> {
             if (sb.length() > 0) {
                 sb.append("|");
             }
@@ -46,7 +48,8 @@ public class KeyWordMatch {
                         .append(Pattern.quote(tempKeyWord.substring(tempKeyWord.length() - 3))).append("$");
             }
         });
-        p = Pattern.compile(sb.toString());
+        // an empty or all-blank keyword set must never match, not even the empty string
+        p = Pattern.compile(sb.length() > 0 ? sb.toString() : "(?!)");
     }
 
     /**
