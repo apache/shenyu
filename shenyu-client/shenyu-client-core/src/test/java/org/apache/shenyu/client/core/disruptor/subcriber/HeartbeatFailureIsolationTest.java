@@ -54,6 +54,7 @@ public final class HeartbeatFailureIsolationTest {
             uris.clear();
             uris.add(failing);
             uris.add(healthy);
+            subscriber.start();
             RunnableScheduledFuture<?> task = (RunnableScheduledFuture<?>) executor.getQueue().iterator().next();
             for (int tick = 0; tick < 2; tick++) {
                 executor.getQueue().remove(task);
