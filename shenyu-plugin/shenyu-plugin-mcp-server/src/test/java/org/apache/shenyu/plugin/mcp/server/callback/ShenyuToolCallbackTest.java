@@ -18,6 +18,10 @@
 package org.apache.shenyu.plugin.mcp.server.callback;
 
 import io.modelcontextprotocol.server.McpSyncServerExchange;
+import io.modelcontextprotocol.common.McpTransportContext;
+import org.springframework.test.util.ReflectionTestUtils;
+import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -281,6 +285,23 @@ class ShenyuToolCallbackTest {
         assertThrows(NullPointerException.class, () -> {
             new ShenyuToolCallback(null);
         });
+    }
+
+    @Test
+    void testRequestContextTakesPrecedenceOverSessionHolder() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(mcpSyncServerExchange.transportContext()).thenReturn(
+                McpTransportContext.create(Map.of(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY, exchange)));
+        assertSame(exchange, ReflectionTestUtils.invokeMethod(shenyuToolCallback, "getOriginExchange", mcpSyncServerExchange, "shared-session"));
+        exchangeHolderMock.verifyNoInteractions();
+    }
+
+    @Test
+    void testLegacySessionHolderFallback() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        exchangeHolderMock.when(() -> ShenyuMcpExchangeHolder.get("legacy-session")).thenReturn(exchange);
+        assertSame(exchange, ReflectionTestUtils.invokeMethod(shenyuToolCallback, "getOriginExchange", mcpSyncServerExchange, "legacy-session"));
+        exchangeHolderMock.verify(() -> ShenyuMcpExchangeHolder.get("legacy-session"));
     }
 
     @Test

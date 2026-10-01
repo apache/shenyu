@@ -276,6 +276,8 @@ create table meta_data
     enabled         NUMBER(3) default '0' not null,
     PRIMARY KEY (id)
 );
+
+create index idx_meta_data_namespace_path on meta_data (namespace_id, path);
 -- Add comments to the columns
 comment on column META_DATA.id
   is 'id';

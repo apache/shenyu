@@ -41,6 +41,7 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
 
     @Override
     protected void doRefresh(final List<SelectorData> dataList) {
+        pluginDataSubscriber.refreshSelectorDataAll();
         pluginDataSubscriber.onSelectorRefresh(dataList);
     }
 
