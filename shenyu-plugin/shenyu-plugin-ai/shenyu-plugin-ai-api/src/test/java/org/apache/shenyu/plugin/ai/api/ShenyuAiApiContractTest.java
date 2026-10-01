@@ -20,11 +20,22 @@ package org.apache.shenyu.plugin.ai.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.plugin.ai.api.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.api.model.AiUpstreamRequest;
+import org.apache.shenyu.plugin.ai.api.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.api.model.ShenyuAiResponse;
+import org.apache.shenyu.plugin.ai.api.model.ShenyuAiStreamEvent;
 import org.apache.shenyu.plugin.ai.api.spi.ShenyuAiProtocol;
 import org.apache.shenyu.plugin.ai.api.spi.ShenyuAiProvider;
 import org.apache.shenyu.plugin.ai.api.spi.ShenyuAiTransport;
+import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.spi.Join;
 import org.apache.shenyu.spi.SPI;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -52,5 +63,85 @@ public final class ShenyuAiApiContractTest {
         assertNotNull(ShenyuAiProtocol.class.getAnnotation(SPI.class));
         assertNotNull(ShenyuAiProvider.class.getAnnotation(SPI.class));
         assertNotNull(ShenyuAiTransport.class.getAnnotation(SPI.class));
+    }
+
+    @Test
+    public void testExtensionContractsLoadRegisteredImplementations() {
+        assertEquals("contractTestProtocol", ExtensionLoader.getExtensionLoader(ShenyuAiProtocol.class)
+                .getJoin("contractTest").getName());
+        assertEquals("contractTestProvider", ExtensionLoader.getExtensionLoader(ShenyuAiProvider.class)
+                .getJoin("contractTest").getName());
+        assertEquals("contractTestTransport", ExtensionLoader.getExtensionLoader(ShenyuAiTransport.class)
+                .getJoin("contractTest").getName());
+    }
+
+    /** Test protocol SPI implementation. */
+    @Join
+    public static final class TestShenyuAiProtocol implements ShenyuAiProtocol {
+
+        @Override
+        public String getName() {
+            return "contractTestProtocol";
+        }
+
+        @Override
+        public ShenyuAiRequest decodeRequest(final JsonNode payload) {
+            return new ShenyuAiRequest("test", null, false, null, payload);
+        }
+
+        @Override
+        public JsonNode encodeResponse(final ShenyuAiResponse response) {
+            return response.payload();
+        }
+
+        @Override
+        public Flux<JsonNode> encodeStream(final Flux<ShenyuAiStreamEvent> events) {
+            return Flux.empty();
+        }
+    }
+
+    /** Test provider SPI implementation. */
+    @Join
+    public static final class TestShenyuAiProvider implements ShenyuAiProvider {
+
+        @Override
+        public String getName() {
+            return "contractTestProvider";
+        }
+
+        @Override
+        public Set<String> getSupportedProtocols() {
+            return Set.of("test");
+        }
+
+        @Override
+        public AiUpstreamRequest createRequest(final ShenyuAiRequest request) {
+            return null;
+        }
+
+        @Override
+        public Mono<ShenyuAiResponse> decodeResponse(final AiUpstreamResponse response) {
+            return Mono.empty();
+        }
+
+        @Override
+        public Flux<ShenyuAiStreamEvent> decodeStream(final AiUpstreamResponse response) {
+            return Flux.empty();
+        }
+    }
+
+    /** Test transport SPI implementation. */
+    @Join
+    public static final class TestShenyuAiTransport implements ShenyuAiTransport {
+
+        @Override
+        public String getName() {
+            return "contractTestTransport";
+        }
+
+        @Override
+        public Mono<AiUpstreamResponse> execute(final AiUpstreamRequest request) {
+            return Mono.empty();
+        }
     }
 }
