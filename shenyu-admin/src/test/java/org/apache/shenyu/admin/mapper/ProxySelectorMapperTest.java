@@ -99,7 +99,7 @@ class ProxySelectorMapperTest extends AbstractSpringIntegrationTest {
     void deleteByIds() {
 
         proxySelectorMapper.deleteByIds(Collections.singletonList(proxySelectorDO.getId()));
-        Boolean b = proxySelectorMapper.existed(1);
+        Boolean b = proxySelectorMapper.existed(proxySelectorDO.getId());
         assertNull(b);
     }
 
