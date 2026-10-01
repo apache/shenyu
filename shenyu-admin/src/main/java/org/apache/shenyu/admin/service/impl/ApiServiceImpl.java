@@ -32,7 +32,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.ApiVO;

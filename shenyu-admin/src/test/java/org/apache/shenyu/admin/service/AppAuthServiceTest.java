@@ -189,7 +189,7 @@ public final class AppAuthServiceTest {
         assertThat(this.appAuthService.createOrUpdate(insertAppAuthDTO), greaterThan(0));
 
         AppAuthDTO updateAppAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
-        given(this.appAuthRepository.findById(any(String.class))).willReturn(Optional.of(appAuthDO));
+        given(this.appAuthRepository.findByIdAndNamespaceId(any(String.class), any())).willReturn(Optional.of(appAuthDO));
         assertThat(this.appAuthService.createOrUpdate(updateAppAuthDTO), greaterThan(0));
     }
 
@@ -414,8 +414,11 @@ public final class AppAuthServiceTest {
                 && authApplyDTO.getPhone().equals(updated.getPhone())
                 && authApplyDTO.getExtInfo().equals(updated.getExtInfo())
                 && Boolean.TRUE.equals(updated.getOpen())));
-        verify(authPathRepository).saveAll(argThat(paths -> paths.size() == 1
-                && authApplyDTO.getPathList().get(0).equals(paths.get(0).getPath())));
+        verify(authPathRepository).saveAll(argThat(paths -> {
+            List<AuthPathDO> pathList = Lists.newArrayList(paths);
+            return pathList.size() == 1
+                    && authApplyDTO.getPathList().get(0).equals(pathList.get(0).getPath());
+        }));
         ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);

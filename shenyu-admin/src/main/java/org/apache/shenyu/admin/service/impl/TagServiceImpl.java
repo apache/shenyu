@@ -192,8 +192,19 @@ public class TagServiceImpl implements TagService {
         List<TagDO> allData = tagRepository.findAll();
         Map<String, TagDO> allDataMap = allData.stream().collect(
                 Collectors.toMap(BaseDO::getId, Function.identity(), (a, b) -> b, ConcurrentHashMap::new));
-        TagDO update = TagDO.buildTagDO(tagDTO);
-        allDataMap.put(update.getId(), update);
+        // apply the pending update onto the loaded (managed) entity so recursion saves are UPDATEs, not INSERTs
+        TagDO update = allDataMap.get(tagDTO.getId());
+        if (Objects.nonNull(update)) {
+            if (Objects.nonNull(tagDTO.getTagName())) {
+                update.setName(tagDTO.getTagName());
+            }
+            if (Objects.nonNull(tagDTO.getTagDesc())) {
+                update.setTagDesc(tagDTO.getTagDesc());
+            }
+            if (Objects.nonNull(tagDTO.getParentTagId())) {
+                update.setParentTagId(tagDTO.getParentTagId());
+            }
+        }
         Map<String, List<String>> relationMap = new ConcurrentHashMap<>();
         allDataMap.keySet().stream().map(allDataMap::get).forEach(tagDO -> {
             if (CollectionUtils.isEmpty(relationMap.get(tagDO.getParentTagId()))) {
