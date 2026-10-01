@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -75,19 +76,28 @@ public final class MatchDataCache {
      * @param selectorId selector id
      */
     public void removeSelectorData(final String pluginName, final String selectorId) {
+        if (StringUtils.isBlank(pluginName)) {
+            // a dangling selector carries no plugin name, so its entries may live under any plugin bucket
+            SELECTOR_DATA_MAP.values().forEach(pathSelectorCache ->
+                    pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId())));
+            return;
+        }
         Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
         }
         pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId()));
     }
-    
+
     /**
      * remove empty selector data.
      *
      * @param pluginName plugin name
      */
     public void removeEmptySelectorData(final String pluginName) {
+        if (StringUtils.isBlank(pluginName)) {
+            return;
+        }
         Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
@@ -156,13 +166,19 @@ public final class MatchDataCache {
      * @param ruleId ruleId
      */
     public void removeRuleData(final String pluginName, final String ruleId) {
+        if (StringUtils.isBlank(pluginName)) {
+            // a rule of a deleted plugin carries no plugin name, so its entries may live under any plugin bucket
+            RULE_DATA_MAP.values().forEach(pathRuleDataCache ->
+                    pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId())));
+            return;
+        }
         Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
         pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId()));
     }
-    
+
     /**
      * remove rule data by selector.
      *
@@ -170,19 +186,28 @@ public final class MatchDataCache {
      * @param selectorId selectorId
      */
     public void removeRuleDataBySelector(final String pluginName, final String selectorId) {
+        if (StringUtils.isBlank(pluginName)) {
+            // a dangling selector carries no plugin name, so its rule entries may live under any plugin bucket
+            RULE_DATA_MAP.values().forEach(pathRuleDataCache ->
+                    pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId())));
+            return;
+        }
         Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
         pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId()));
     }
-    
+
     /**
      * remove empty rule data.
      *
      * @param pluginName plugin name
      */
     public void removeEmptyRuleData(final String pluginName) {
+        if (StringUtils.isBlank(pluginName)) {
+            return;
+        }
         Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;

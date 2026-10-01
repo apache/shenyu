@@ -17,15 +17,23 @@
 
 package org.apache.shenyu.plugin.grpc.client;
 
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.Futures;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
+import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -37,6 +45,44 @@ import static org.mockito.Mockito.verify;
  * Test cases for {@link ShenyuGrpcClient}.
  */
 public final class ShenyuGrpcClientTest {
+
+    @Test
+    public void testCallCompletesAsynchronously() {
+        ShenyuGrpcClient client = spy(new ShenyuGrpcClient(mock(ManagedChannel.class)));
+        SettableFuture<Void> invocation = SettableFuture.create();
+        doReturn(invocation).when(client).invoke(any(ShenyuGrpcCallRequest.class));
+        MetaData metaData = MetaData.builder()
+                .serviceName("echo.EchoService")
+                .methodName("echo")
+                .build();
+
+        CompletableFuture<ShenyuGrpcResponse> result = assertTimeoutPreemptively(Duration.ofSeconds(1),
+                () -> client.call(metaData, CallOptions.DEFAULT,
+                        "{\"data\":[{}]}", MethodDescriptor.MethodType.UNARY));
+
+        assertFalse(result.isDone());
+        invocation.set(null);
+        assertTrue(result.isDone());
+        assertFalse(result.isCompletedExceptionally());
+    }
+
+    @Test
+    public void testCancellationPropagatesToInvocation() {
+        ShenyuGrpcClient client = spy(new ShenyuGrpcClient(mock(ManagedChannel.class)));
+        SettableFuture<Void> invocation = SettableFuture.create();
+        doReturn(invocation).when(client).invoke(any(ShenyuGrpcCallRequest.class));
+        MetaData metaData = MetaData.builder()
+                .serviceName("echo.EchoService")
+                .methodName("echo")
+                .build();
+
+        CompletableFuture<ShenyuGrpcResponse> result = assertTimeoutPreemptively(Duration.ofSeconds(1),
+                () -> client.call(metaData, CallOptions.DEFAULT,
+                        "{\"data\":[{}]}", MethodDescriptor.MethodType.UNARY));
+        result.cancel(true);
+
+        assertTrue(invocation.isCancelled());
+    }
 
     @Test
     public void testCallWithNullRequestCreatesDefaultMessage() {

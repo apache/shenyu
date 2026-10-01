@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.websocket;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -27,6 +28,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
@@ -54,6 +56,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -146,6 +150,16 @@ public class WebSocketPluginTest {
     @Test
     public void namedTest() {
         assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
+    }
+
+    @Test
+    public void removeDiscoveryUpstreamDataTest() {
+        initMockInfo();
+        assertNotNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock"));
+
+        new WebSocketUpstreamDataHandler().removeDiscoveryUpstreamData(DiscoveryUpstreamKey.from(discoverySyncData));
+
+        assertNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock"));
     }
 
     /**
