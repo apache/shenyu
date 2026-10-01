@@ -1,3 +1,5 @@
+#!/bin/bash
+set -e
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,5 +17,12 @@
 # limitations under the License.
 #
 
-org.apache.shenyu.springboot.starter.k8s.IngressControllerConfiguration
-org.apache.shenyu.springboot.starter.k8s.GatewayApiControllerConfiguration
+kind load docker-image "shenyu-examples-http:latest"
+kind load docker-image "apache/shenyu-integrated-test-k8s-gateway-api-http:latest"
+
+# Install Gateway API CRD before creating Gateway/HTTPRoute resources
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+
+kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
+kubectl apply -f ./shenyu-integrated-test/shenyu-integrated-test-k8s-gateway-api-http/deploy/deploy-shenyu.yaml
+kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/gateway-api.yml
