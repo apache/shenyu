@@ -23,6 +23,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * ShenyuPluginClassLoaderHolder.
@@ -32,6 +34,8 @@ public final class ShenyuPluginClassLoaderHolder {
     private static final ShenyuPluginClassLoaderHolder HOLDER = new ShenyuPluginClassLoaderHolder();
 
     private final Map<String, ShenyuPluginClassLoader> pluginCache = new ConcurrentHashMap<>();
+
+    private final Map<String, ReentrantLock> pluginLocks = new ConcurrentHashMap<>();
 
     private ShenyuPluginClassLoaderHolder() {
     }
@@ -46,19 +50,30 @@ public final class ShenyuPluginClassLoaderHolder {
     }
 
     /**
-     * createPluginClassLoader.
+     * Load and activate a plugin before replacing its previous class loader.
      *
      * @param pluginJar pluginJar
-     * @return ShenyuPluginClassLoader
+     * @param activation plugin loading and activation callback
      */
-    public ShenyuPluginClassLoader createPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
-        ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
+    public void replacePluginClassLoader(final PluginJarParser.PluginJar pluginJar,
+                                         final Consumer<ShenyuPluginClassLoader> activation) {
         String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
-        if (pluginCache.containsKey(jarKey)) {
-            pluginCache.remove(jarKey).close();
+        ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
+        lock.lock();
+        ShenyuPluginClassLoader candidate = new ShenyuPluginClassLoader(pluginJar);
+        try {
+            activation.accept(candidate);
+            ShenyuPluginClassLoader previous = pluginCache.get(jarKey);
+            if (Objects.nonNull(previous)) {
+                previous.close();
+            }
+            pluginCache.put(jarKey, candidate);
+        } catch (RuntimeException ex) {
+            candidate.close();
+            throw ex;
+        } finally {
+            lock.unlock();
         }
-        pluginCache.put(jarKey, shenyuPluginClassLoader);
-        return shenyuPluginClassLoader;
     }
 
     /**
@@ -68,11 +83,17 @@ public final class ShenyuPluginClassLoaderHolder {
      * @return removed plugin names
      */
     public Set<String> removePluginClassLoader(final String jarKey) {
-        ShenyuPluginClassLoader classLoader = pluginCache.remove(jarKey);
-        if (Objects.nonNull(classLoader)) {
-            Set<String> pluginNames = classLoader.getLoadedPluginNames();
-            classLoader.close();
-            return pluginNames;
+        ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
+        lock.lock();
+        try {
+            ShenyuPluginClassLoader classLoader = pluginCache.remove(jarKey);
+            if (Objects.nonNull(classLoader)) {
+                Set<String> pluginNames = classLoader.getLoadedPluginNames();
+                classLoader.close();
+                return pluginNames;
+            }
+        } finally {
+            lock.unlock();
         }
         return Collections.emptySet();
     }
