@@ -24,6 +24,12 @@ trap 'rm -f "$TEST_TMP/eureka.log"; rmdir "$TEST_TMP"' EXIT
 cd "$TEST_TMP"
 
 curl() {
+    if [ "${WEBSOCKET_ENDPOINTS_ONLY:-0}" = 1 ]; then
+        case "${!#}" in
+            http://localhost:9095/actuator/health|http://localhost:9195/actuator/health) ;;
+            *) printf '000'; return 7 ;;
+        esac
+    fi
     printf '%s' "${HEALTH_STATUS:-200}"
     return "${HEALTH_EXIT:-0}"
 }
@@ -51,9 +57,11 @@ for module in apache-dubbo combination grpc http https rewrite sdk-apache-dubbo 
     fi
 done
 
+# Only the admin and gateway expose Actuator health endpoints in the WebSocket Compose stack.
+WEBSOCKET_ENDPOINTS_ONLY=1 bash "$TEST_ROOT/shenyu-integrated-test-websocket/script/healthcheck.sh" > /dev/null
+
 if EUREKA_READY=0 bash "$TEST_ROOT/shenyu-integrated-test-spring-cloud/script/healthcheck.sh" > /dev/null 2>&1; then
     echo "Spring Cloud accepted missing Eureka registrations" >&2
     exit 1
 fi
 echo "All 11 healthcheck scripts passed success, HTTP failure and transport failure checks."
-

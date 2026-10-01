@@ -48,6 +48,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  agent_gateway_migrations:
+    if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Agent Gateway upgrade and schema consistency
+        run: |
+          python3 .github/scripts/check-agent-gateway-migrations.py
+          python3 .github/scripts/test-agent-gateway-migrations.py
+
   changes:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
@@ -60,6 +70,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test storage Compose healthchecks
+        run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
