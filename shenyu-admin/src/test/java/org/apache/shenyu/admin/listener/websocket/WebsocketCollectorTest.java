@@ -571,6 +571,25 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
+    void testCloseCancelsInFlightWatchdog() {
+        WebsocketCollector.setSendTimeoutMillis(60000L);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stalled-message", DataEventTypeEnum.CREATE);
+        Map<?, ?> queues = (Map<?, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        Object queue = java.util.Objects.requireNonNull(queues).get(session);
+        java.util.concurrent.ScheduledFuture<?> future = (java.util.concurrent.ScheduledFuture<?>)
+                ReflectionTestUtils.getField(queue, "timeoutFuture");
+        org.junit.jupiter.api.Assertions.assertNotNull(future);
+        assertFalse(future.isCancelled());
+        websocketCollector.onClose(session);
+        assertTrue(future.isCancelled());
+        assertNull(ReflectionTestUtils.getField(queue, "timeoutFuture"));
+        WebsocketCollector.resetSendGuards();
+    }
+
+    @Test
     void testMissingSendCallbackTimesOutAndClosesSession() throws Exception {
         WebsocketCollector.setSendTimeoutMillis(150);
         final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);

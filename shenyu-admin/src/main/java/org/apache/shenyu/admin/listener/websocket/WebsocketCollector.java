@@ -521,6 +521,7 @@ public class WebsocketCollector {
 
         private void sendNext() {
             final String message;
+            final ScheduledFuture<?> future;
             synchronized (this) {
                 if (closed) {
                     sending = false;
@@ -533,9 +534,10 @@ public class WebsocketCollector {
                     return;
                 }
                 inFlightMessage = message;
+                future = SEND_WATCHDOG.schedule(
+                        () -> onSendTimeout(message), sendTimeoutMillis, TimeUnit.MILLISECONDS);
+                timeoutFuture = future;
             }
-            final ScheduledFuture<?> future = SEND_WATCHDOG.schedule(
-                    () -> onSendTimeout(message), sendTimeoutMillis, TimeUnit.MILLISECONDS);
             boolean submitted;
             try {
                 session.getAsyncRemote().sendText(message, result -> onSendResult(future, result));
@@ -555,6 +557,9 @@ public class WebsocketCollector {
             synchronized (this) {
                 if (closed) {
                     return;
+                }
+                if (timeoutFuture == future) {
+                    timeoutFuture = null;
                 }
                 inFlightMessage = null;
                 if (!result.isOK()) {
