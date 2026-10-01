@@ -6,6 +6,10 @@
 
 ### Behavior Changes
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a
