@@ -144,6 +144,14 @@ public final class MetaDataTransferTest {
     }
 
     @Test
+    public void testMapToVOKeepsNamespaceId() {
+        metaDataDTO.setNamespaceId("ns-1");
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        MetaDataVO metaDataVO = MetaDataTransfer.INSTANCE.mapToVO(metaDataDO);
+        assertEquals("ns-1", metaDataVO.getNamespaceId());
+    }
+
+    @Test
     public void testMapToDataAll() {
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         List<MetaDataDO> metaDataDOList = Collections.singletonList(metaDataDO);
