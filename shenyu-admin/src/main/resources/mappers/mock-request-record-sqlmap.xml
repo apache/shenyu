@@ -35,6 +35,22 @@
         id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
     </sql>
 
+    <sql id="ItemBodyComparison">
+        and body = #{item.body}
+    </sql>
+
+    <sql id="ItemBodyComparison" databaseId="oracle">
+        and dbms_lob.compare(body, to_clob(#{item.body})) = 0
+    </sql>
+
+    <sql id="BodyComparison">
+        and body = #{body}
+    </sql>
+
+    <sql id="BodyComparison" databaseId="oracle">
+        and dbms_lob.compare(body, to_clob(#{body})) = 0
+    </sql>
+
     <select id="queryById" resultMap="MockRequestRecordMap">
         select
         <include refid="Base_Column_List"/>
@@ -96,7 +112,7 @@
                 and header = #{item.header}
             </if>
             <if test="item.body != null and item.body != ''">
-                and body = #{item.body}
+                <include refid="ItemBodyComparison"/>
             </if>
             <if test="item.dateCreated != null">
                 and date_created = #{item.dateCreated}
@@ -136,7 +152,7 @@
                 and header = #{header}
             </if>
             <if test="body != null and body != ''">
-                and body = #{body}
+                <include refid="BodyComparison"/>
             </if>
             <if test="dateCreated != null">
                 and date_created = #{dateCreated}
@@ -154,7 +170,7 @@
         LIMIT 1
     </select>
 
-    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    <insert id="insert">
         insert into mock_request_record(
             id,
             api_id,
@@ -183,7 +199,7 @@
         )
     </insert>
 
-    <insert id="insertSelective" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+    <insert id="insertSelective">
         insert into mock_request_record
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,

@@ -79,7 +79,7 @@ public class OperationRecordLogMapperTest extends AbstractSpringIntegrationTest 
         assertEquals(list.get(0).getOperationType(), OPERATION_TYPE);
         assertEquals(list.get(0).getColor(), RED);
         assertEquals(list.get(0).getContext(), KEYWORD);
-        assertEquals(list.get(0).getId(), ID);
+        assertEquals(list.get(0).getId(), operationRecordLog.getId());
     }
 
     @AfterEach

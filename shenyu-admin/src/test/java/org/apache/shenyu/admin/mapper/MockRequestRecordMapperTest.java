@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Objects;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
@@ -59,9 +60,9 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         mockRequestRecordDO.setBody(null);
         assertEquals(mockRequestRecordMapper.insertSelective(mockRequestRecordDO), 1);
         MockRequestRecordDO queryResult = mockRequestRecordMapper.queryById(mockRequestRecordDO.getId());
-        assertEquals(queryResult.getPathVariable(), "");
-        assertEquals(queryResult.getQuery(), "");
-        assertEquals(queryResult.getHeader(), "");
+        assertTrue(Objects.isNull(queryResult.getPathVariable()) || queryResult.getPathVariable().isEmpty());
+        assertTrue(Objects.isNull(queryResult.getQuery()) || queryResult.getQuery().isEmpty());
+        assertTrue(Objects.isNull(queryResult.getHeader()) || queryResult.getHeader().isEmpty());
         assertNull(queryResult.getBody());
     }
 
