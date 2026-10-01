@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -33,12 +34,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -67,6 +75,43 @@ public class AbstractLogCollectorTest {
                 protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
                 }
             };
+
+    @Test
+    public void testSelectorQueueInitializationDoesNotReplaceGlobalQueue() throws Exception {
+        final GenericGlobalConfig config = new GenericGlobalConfig();
+        config.setBufferQueueSize(2);
+        final AbstractLogCollector<?, ShenyuRequestLog, GenericGlobalConfig> testCollector = new AbstractLogCollector<>() {
+            @Override
+            protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                return logConsumeClient;
+            }
+
+            @Override
+            protected GenericGlobalConfig getLogCollectConfig() {
+                return config;
+            }
+
+            @Override
+            protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+            }
+        };
+        final BlockingQueue<ShenyuRequestLog> global = new LinkedBlockingDeque<>(3);
+        setField(testCollector, "bufferQueue", global);
+        setField(testCollector, "bufferSize", 3);
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<BlockingQueue<ShenyuRequestLog>> first = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "first"));
+            Future<BlockingQueue<ShenyuRequestLog>> second = executor.submit(() -> ReflectionTestUtils.invokeMethod(testCollector, "initQueue", "second"));
+            BlockingQueue<ShenyuRequestLog> firstQueue = first.get(2, TimeUnit.SECONDS);
+            BlockingQueue<ShenyuRequestLog> secondQueue = second.get(2, TimeUnit.SECONDS);
+            firstQueue.add(new ShenyuRequestLog());
+            assertEquals(2, secondQueue.remainingCapacity());
+            assertSame(global, ReflectionTestUtils.getField(testCollector, "bufferQueue"));
+            assertEquals(3, ReflectionTestUtils.getField(testCollector, "bufferSize"));
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 
     @Test
     public void testCollectAddsLogWhenBufferQueueHasCapacity() throws Exception {
@@ -203,6 +248,75 @@ public class AbstractLogCollectorTest {
         assertEquals(1024, log.getResponseContentLength());
         assertEquals(200, log.getStatus());
         assertEquals(15L, log.getUpstreamResponseTime());
+    }
+
+    @Test
+    public void testCloseFlushesBufferedLogsBeforeClosingClient() throws Exception {
+        BlockingQueue<ShenyuRequestLog> bufferQueue = new LinkedBlockingDeque<>(2);
+        ShenyuRequestLog first = new ShenyuRequestLog();
+        ShenyuRequestLog second = new ShenyuRequestLog();
+        bufferQueue.add(first);
+        bufferQueue.add(second);
+        setField(collector, "bufferQueue", bufferQueue);
+
+        collector.close();
+
+        org.mockito.InOrder closeOrder = inOrder(logConsumeClient);
+        closeOrder.verify(logConsumeClient).consume(argThat(logs -> logs.size() == 2
+                && logs.get(0) == first && logs.get(1) == second));
+        closeOrder.verify(logConsumeClient).close();
+        assertTrue(bufferQueue.isEmpty());
+    }
+
+    @Test
+    public void testCloseFlushesEveryMultiClientBuffer() throws Exception {
+        AbstractLogConsumeClient<?, ShenyuRequestLog> firstClient = mock(AbstractLogConsumeClient.class);
+        AbstractLogConsumeClient<?, ShenyuRequestLog> secondClient = mock(AbstractLogConsumeClient.class);
+        Map<String, AbstractLogConsumeClient<?, ShenyuRequestLog>> clients = new HashMap<>();
+        clients.put("first", firstClient);
+        clients.put("second", secondClient);
+        AbstractLogCollector<AbstractLogConsumeClient<?, ShenyuRequestLog>, ShenyuRequestLog, GenericGlobalConfig> multiClientCollector =
+                new AbstractLogCollector<>() {
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient() {
+                        return logConsumeClient;
+                    }
+
+                    @Override
+                    protected AbstractLogConsumeClient<?, ShenyuRequestLog> getLogConsumeClient(final String selectorId) {
+                        return clients.get(selectorId);
+                    }
+
+                    @Override
+                    protected boolean getMultiClient() {
+                        return true;
+                    }
+
+                    @Override
+                    protected GenericGlobalConfig getLogCollectConfig() {
+                        return null;
+                    }
+
+                    @Override
+                    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+                    }
+                };
+        ShenyuRequestLog first = new ShenyuRequestLog();
+        ShenyuRequestLog second = new ShenyuRequestLog();
+        BlockingQueue<ShenyuRequestLog> firstQueue = new LinkedBlockingDeque<>(1);
+        BlockingQueue<ShenyuRequestLog> secondQueue = new LinkedBlockingDeque<>(1);
+        firstQueue.add(first);
+        secondQueue.add(second);
+        getBufferQueues(multiClientCollector).put("first", firstQueue);
+        getBufferQueues(multiClientCollector).put("second", secondQueue);
+
+        multiClientCollector.close();
+
+        verify(firstClient).consume(argThat(logs -> logs.size() == 1 && logs.get(0) == first));
+        verify(secondClient).consume(argThat(logs -> logs.size() == 1 && logs.get(0) == second));
+        verify(logConsumeClient).close();
+        assertTrue(firstQueue.isEmpty());
+        assertTrue(secondQueue.isEmpty());
     }
 
     private static void setField(final Object target, final String fieldName, final Object value) throws Exception {
