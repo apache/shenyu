@@ -51,6 +51,13 @@ public final class FailureRegistryTaskTest {
     }
 
     @Test
+    public void testRetryExhaustedRemovesFailure() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        new FailureRegistryTask("key", repository).onRetryExhausted("key");
+        verify(repository).remove("key");
+    }
+
+    @Test
     public void repeatedAttemptsKeepDelegatingToTheSameKey() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
         FailureRegistryTask task = new FailureRegistryTask("key", repository);
