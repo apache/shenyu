@@ -60,3 +60,5 @@ ALTER TABLE `permission` ADD INDEX `idx_permission_object_id` (`object_id`) USIN
 ALTER TABLE `permission` ADD INDEX `idx_permission_resource_id` (`resource_id`) USING BTREE;
 ALTER TABLE `resource` ADD INDEX `idx_resource_parent_id` (`parent_id`) USING BTREE;
 ALTER TABLE `user_role` ADD INDEX `idx_user_role_user_id` (`user_id`) USING BTREE;
+-- add index to speed up the meta data path uniqueness check
+ALTER TABLE `meta_data` ADD INDEX `idx_meta_data_namespace_path` (`namespace_id`, `path`) USING BTREE;

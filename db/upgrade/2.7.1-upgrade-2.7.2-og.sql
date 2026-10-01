@@ -60,3 +60,5 @@ CREATE INDEX "idx_permission_object_id" ON "public"."permission" USING btree ("o
 CREATE INDEX "idx_permission_resource_id" ON "public"."permission" USING btree ("resource_id");
 CREATE INDEX "idx_resource_parent_id" ON "public"."resource" USING btree ("parent_id");
 CREATE INDEX "idx_user_role_user_id" ON "public"."user_role" USING btree ("user_id");
+-- add index to speed up the meta data path uniqueness check
+CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree ("namespace_id","path");

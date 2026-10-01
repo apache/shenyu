@@ -2431,6 +2431,11 @@ ALTER TABLE "public"."data_permission" ADD CONSTRAINT "data_permission_pkey" PRI
 ALTER TABLE "public"."meta_data" ADD CONSTRAINT "meta_data_pkey" PRIMARY KEY ("id");
 
 -- ----------------------------
+-- Index structure for table meta_data
+-- ----------------------------
+CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree ("namespace_id","path");
+
+-- ----------------------------
 -- Primary Key structure for table operation_record_log
 -- ----------------------------
 ALTER TABLE "public"."operation_record_log" ADD CONSTRAINT "operation_record_log_pkey" PRIMARY KEY ("id");

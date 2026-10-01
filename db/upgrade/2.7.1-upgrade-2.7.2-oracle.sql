@@ -60,3 +60,5 @@ create index idx_permission_object_id on permission (object_id);
 create index idx_permission_resource_id on permission (resource_id);
 create index idx_resource_parent_id on "resource" (parent_id);
 create index idx_user_role_user_id on user_role (user_id);
+-- add index to speed up the meta data path uniqueness check
+create index idx_meta_data_namespace_path on meta_data (namespace_id, path);

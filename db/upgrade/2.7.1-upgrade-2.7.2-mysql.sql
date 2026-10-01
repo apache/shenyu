@@ -57,6 +57,8 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 -- add indexes to speed up the admin plugin snapshot and permission queries
 ALTER TABLE `selector` ADD INDEX `idx_selector_plugin_id` (`plugin_id`) USING BTREE;
 ALTER TABLE `permission` ADD INDEX `idx_permission_resource_id` (`resource_id`) USING BTREE;
+-- add index to speed up the meta data path uniqueness check
+ALTER TABLE `meta_data` ADD INDEX `idx_meta_data_namespace_path` (`namespace_id`, `path`) USING BTREE;
 -- Secondary indexes for namespace filtering, relation lookups and ordered listings.
 CREATE INDEX idx_selector_ns_plugin_name ON `selector` (namespace_id, plugin_id, selector_name);
 CREATE INDEX idx_rule_ns_selector_name ON `rule` (namespace_id, selector_id, rule_name);
