@@ -31,14 +31,18 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.timeout;
@@ -151,5 +155,42 @@ public final class ShenyuClusterServiceTest {
             Thread.sleep(50L);
         }
         assertTrue(attempts.get() >= expected, "election attempt did not happen in time");
+    }
+
+    @Test
+    public void testMasterSelectionContinuesAfterFailure() throws InterruptedException {
+        ClusterSelectMasterService localSelectMasterService = mock(ClusterSelectMasterService.class);
+        UpstreamCheckService localUpstreamCheckService = mock(UpstreamCheckService.class);
+        InstanceCheckService localInstanceCheckService = mock(InstanceCheckService.class);
+        ScaleLifecycleService localScaleLifecycleService = mock(ScaleLifecycleService.class);
+        ClusterProperties clusterProperties = new ClusterProperties();
+        clusterProperties.setSelectPeriod(1L);
+        ShenyuClusterService localClusterService = new ShenyuClusterService(localSelectMasterService, localUpstreamCheckService,
+                localInstanceCheckService, localScaleLifecycleService, clusterProperties);
+        AtomicInteger attempts = new AtomicInteger();
+        CountDownLatch attemptsFinished = new CountDownLatch(2);
+        when(localSelectMasterService.selectMaster("127.0.0.1", "9195", "/shenyu")).thenAnswer(invocation -> {
+            if (attempts.incrementAndGet() == 1) {
+                throw new IllegalStateException("temporary lock failure");
+            }
+            return false;
+        });
+        when(localSelectMasterService.releaseMaster()).thenAnswer(invocation -> {
+            attemptsFinished.countDown();
+            return true;
+        });
+
+        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionTestUtils.getField(localClusterService, "executorService");
+        try {
+            localClusterService.startSelectMasterTask("127.0.0.1", "9195", "/shenyu");
+
+            assertTrue(attemptsFinished.await(5, TimeUnit.SECONDS));
+            verify(localSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
+            verify(localSelectMasterService, times(2)).releaseMaster();
+            verify(localUpstreamCheckService, times(1)).close();
+            verify(localInstanceCheckService, times(1)).close();
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 }
