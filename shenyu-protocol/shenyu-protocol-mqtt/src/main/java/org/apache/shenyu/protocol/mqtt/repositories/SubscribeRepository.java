@@ -20,23 +20,19 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Topic and channel association.
@@ -130,18 +126,18 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
         Set<Channel> result = new LinkedHashSet<>();
 
         // fast path: exact subscription, no wildcard scan needed
-        List<Channel> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
+        Map<Channel, MqttQoS> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
         if (Objects.nonNull(exactMatch)) {
-            result.addAll(exactMatch);
+            result.addAll(exactMatch.keySet());
         }
 
-        for (Map.Entry<String, List<Channel>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
+        for (Map.Entry<String, Map<Channel, MqttQoS>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
             String filter = entry.getKey();
             if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
                 continue;
             }
             if (TopicMatcher.matches(filter, topic)) {
-                result.addAll(entry.getValue());
+                result.addAll(entry.getValue().keySet());
             }
         }
         return new ArrayList<>(result);
