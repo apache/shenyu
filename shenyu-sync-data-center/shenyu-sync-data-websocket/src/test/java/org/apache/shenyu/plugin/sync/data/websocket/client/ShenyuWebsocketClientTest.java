@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -61,6 +62,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.withSettings;
 
@@ -202,6 +204,14 @@ public class ShenyuWebsocketClientTest {
         setField(client, "reconnecting", new AtomicBoolean(false));
         setField(client, "reconnectBackoff", new AtomicInteger(0));
         setField(client, "lastReconnectAttemptTime", 0L);
+        setField(client, "consecutiveSyncFailures", new AtomicInteger(0));
+        setField(client, "websocketDataHandler", mock(WebsocketDataHandler.class));
+        return client;
+    }
+
+    private ShenyuWebsocketClient createSyncTestClient() {
+        ShenyuWebsocketClient client = createMockClient();
+        doReturn(URI.create("ws://localhost:9090")).when(client).getURI();
         return client;
     }
 
@@ -447,5 +457,126 @@ public class ShenyuWebsocketClientTest {
 
         assertTrue(Thread.interrupted(), "Interrupt status should be preserved after reconnect");
         assertFalse(((AtomicBoolean) getField(client, "reconnecting")).get());
+    }
+
+    // ---------- sync failure recovery tests ----------
+
+    private WebsocketDataHandler getHandler(final ShenyuWebsocketClient client) {
+        return (WebsocketDataHandler) getField(client, "websocketDataHandler");
+    }
+
+    @Test
+    void testSyncFailureClosesConnectionToTriggerResync() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        doThrow(new RuntimeException("transient handler failure")).when(getHandler(client))
+                .executor(any(), anyString(), anyString());
+        String json = GsonUtils.getInstance().toJson(websocketData);
+
+        client.onMessage(json);
+
+        verify(client, times(1)).close();
+    }
+
+    @Test
+    void testPoisonDataKeepsConnectionAfterBoundedFailures() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        WebsocketDataHandler handler = getHandler(client);
+        doThrow(new RuntimeException("poison data")).when(handler).executor(any(), anyString(), anyString());
+        String json = GsonUtils.getInstance().toJson(websocketData);
+
+        // failures 1 and 2 close the connection so the reconnect pulls a full snapshot
+        client.onMessage(json);
+        client.onMessage(json);
+        verify(client, times(2)).close();
+        verify(client, never()).nowClose();
+
+        // at the cap: stop closing, keep the connection and the health check alive
+        client.onMessage(json);
+        verify(client, times(2)).close();
+        verify(client, never()).nowClose();
+
+        // a successful apply resets the counter and restores bounded recovery
+        doNothing().when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        doThrow(new RuntimeException("poison again")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        verify(client, times(3)).close();
+        verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testNonJsonFrameIsIgnoredWithoutClosingConnection() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        WebsocketDataHandler handler = getHandler(client);
+
+        // a frame the client cannot parse is ignored without dropping the connection
+        // and without consuming the bounded recovery budget
+        client.onMessage("{invalid json");
+        verify(client, never()).close();
+        verify(handler, never()).executor(any(), anyString(), anyString());
+
+        String json = GsonUtils.getInstance().toJson(websocketData);
+        doThrow(new RuntimeException("transient")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        verify(client, times(1)).close();
+    }
+
+    @Test
+    void testUnknownEventDoesNotConsumeFailureBudget() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        client.onMessage("{\"groupType\":\"RULE\",\"eventType\":\"FUTURE_EVENT\",\"data\":[{}]}");
+        verify(getHandler(client), never()).executor(any(), anyString(), anyString());
+        verify(client, never()).close();
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(0L, getField(client, "nextSyncRetryAt"));
+    }
+
+    @Test
+    void testHealthCheckRetriesFullSyncAfterFailureCap() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        doNothing().when(client).send(anyString());
+        WebsocketDataHandler handler = getHandler(client);
+        doThrow(new RuntimeException("poison data")).when(handler).executor(any(), anyString(), anyString());
+        String json = GsonUtils.getInstance().toJson(websocketData);
+        client.onMessage(json);
+        client.onMessage(json);
+        client.onMessage(json);
+        long deadline = (long) getField(client, "nextSyncRetryAt");
+        assertTrue(deadline - System.nanoTime() > 0);
+        client.onMessage(json);
+        assertEquals(deadline, getField(client, "nextSyncRetryAt"));
+        invokePrivate(client, "healthCheck");
+        verify(client, times(2)).close();
+        setField(client, "nextSyncRetryAt", System.nanoTime() - 1);
+        invokePrivate(client, "healthCheck");
+        verify(client, times(3)).close();
+        client.onOpen(mock(ServerHandshake.class));
+        verify(client).send(DataEventTypeEnum.MYSELF.name());
+        doNothing().when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testSuccessfulSyncResetsFailureCounter() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doNothing().when(client).close();
+        WebsocketDataHandler handler = getHandler(client);
+        String json = GsonUtils.getInstance().toJson(websocketData);
+
+        doThrow(new RuntimeException("transient")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        doNothing().when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+        doThrow(new RuntimeException("transient again")).when(handler).executor(any(), anyString(), anyString());
+        client.onMessage(json);
+
+        verify(client, times(2)).close();
+        verify(client, never()).nowClose();
     }
 }

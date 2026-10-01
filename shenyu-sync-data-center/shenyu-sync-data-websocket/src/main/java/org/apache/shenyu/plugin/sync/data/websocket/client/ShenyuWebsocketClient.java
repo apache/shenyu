@@ -88,9 +88,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private static final long MAX_RECONNECT_BACKOFF_MS = TimeUnit.SECONDS.toMillis(60);
 
+    private static final int MAX_CONSECUTIVE_SYNC_FAILURES = 3;
+
     private volatile boolean alreadySync = Boolean.FALSE;
 
     private InitialSyncState initialSyncState;
+
+    private volatile long nextSyncRetryAt;
+
 
     private final WebsocketDataHandler websocketDataHandler;
 
@@ -109,6 +114,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private final AtomicBoolean manuallyClosed = new AtomicBoolean(false);
 
     private final AtomicBoolean reconnecting = new AtomicBoolean(false);
+
+    private final AtomicInteger consecutiveSyncFailures = new AtomicInteger(0);
 
     private volatile long lastReconnectAttemptTime;
 
@@ -270,25 +277,26 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("onMessage server[{}] result({})", this.getURI().toString(), result);
-        }
-
+        final Map<String, Object> jsonToMap;
         try {
-            Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
+            jsonToMap = JsonUtils.jsonToMap(result);
+            if (Objects.isNull(jsonToMap)) {
+                return;
+            }
+        } catch (RuntimeException ex) {
+            LOG.warn("Ignoring unparseable websocket frame from server[{}]", this.getURI());
+            return;
+        }
+        try {
             Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
             if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
-                return;
-            }
-            if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-                LOG.info("server[{}] handle running mode result({})", this.getURI().toString(), result);
+            } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
                 this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-                if (Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
-                    return;
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
+                    this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
                 }
-                this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
-                this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
             } else if (Objects.nonNull(initialSyncState)) {
                 initialSyncState.applyIncremental(() -> handleResult(result));
             } else {
@@ -298,10 +306,10 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (Objects.nonNull(initialSyncState)) {
                 initialSyncState.invalidate();
             }
-            LOG.warn("Failed to handle websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            LOG.warn("Failed to handle websocket frame from server[{}]", this.getURI(), ex);
         }
     }
-    
+
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
@@ -342,6 +350,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void healthCheck() {
         try {
             if (this.manuallyClosed.get()) {
+                return;
+            }
+            if (nextSyncRetryAt != 0) {
+                if (System.nanoTime() - nextSyncRetryAt < 0) {
+                    return;
+                }
+                nextSyncRetryAt = 0;
+                close();
                 return;
             }
             if (Objects.nonNull(initialSyncState) && this.isOpen() && initialSyncState.needsReconnect()) {
@@ -421,13 +437,59 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      */
     private void handleResult(final String result) {
         LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
-        WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
-        ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
-        String eventType = websocketData.getEventType();
-        String json = GsonUtils.getInstance().toJson(websocketData.getData());
-        websocketDataHandler.executor(groupEnum, json, eventType);
+        WebsocketData<?> websocketData;
+        try {
+            websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
+        } catch (RuntimeException ex) {
+            // a frame that cannot be interpreted as a config message is a protocol-shape
+            // mismatch, not a recoverable config change: ignore it like the previous
+            // behavior instead of dropping the connection
+            LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            return;
+        }
+        ConfigGroupEnum groupEnum;
+        String eventType;
+        String json;
+        try {
+            groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
+            eventType = websocketData.getEventType();
+            DataEventTypeEnum.acquireByName(eventType);
+            json = GsonUtils.getInstance().toJson(websocketData.getData());
+        } catch (RuntimeException ex) {
+            LOG.warn("Failed to resolve websocket message group from server[{}], the message will be ignored", this.getURI(), ex);
+            return;
+        }
+        try {
+            websocketDataHandler.executor(groupEnum, json, eventType);
+            consecutiveSyncFailures.set(0);
+        } catch (RuntimeException ex) {
+            handleSyncFailure(ex, groupEnum.name(), eventType);
+            if (org.apache.shenyu.common.utils.InitialSyncApplication.isActive()) {
+                throw ex;
+            }
+        }
     }
-    
+
+    /**
+     * Recover failed configuration application without abandoning the timer.
+     * @param ex application failure
+     * @param groupType configuration group
+     * @param eventType event type
+     */
+    private void handleSyncFailure(final RuntimeException ex, final String groupType, final String eventType) {
+        int failures = consecutiveSyncFailures.updateAndGet(value -> Math.min(value + 1, MAX_CONSECUTIVE_SYNC_FAILURES));
+        if (failures >= MAX_CONSECUTIVE_SYNC_FAILURES) {
+            if (nextSyncRetryAt == 0) {
+                nextSyncRetryAt = System.nanoTime() + MAX_RECONNECT_BACKOFF_MS * 1_000_000L;
+            }
+            LOG.warn("websocket sync failed, group={}, eventType={}; full resync scheduled after backoff", groupType, eventType, ex);
+            return;
+        }
+        LOG.warn("websocket sync failed, group={}, eventType={}, consecutiveFailures={}; reconnecting for full resync",
+                groupType, eventType, failures, ex);
+        this.close();
+    }
+
     /**
      * Gets the master url.
      *
