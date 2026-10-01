@@ -45,6 +45,7 @@ public final class HeartbeatFailureIsolationTest {
     public void failureDoesNotSuppressOtherUrisOrSubsequentTicks() {
         ShenyuClientRegisterRepository repository = mock(ShenyuClientRegisterRepository.class);
         ShenyuClientURIExecutorSubscriber subscriber = new ShenyuClientURIExecutorSubscriber(repository);
+        subscriber.start();
         ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(subscriber, "executor");
         List<URIRegisterDTO> uris = (List<URIRegisterDTO>) ReflectionTestUtils.getField(subscriber, "uris");
         URIRegisterDTO failing = URIRegisterDTO.builder().host("localhost").port(18080).build();
