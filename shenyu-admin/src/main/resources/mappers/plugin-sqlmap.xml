@@ -31,15 +31,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,
-        date_created,
-        date_updated,
-        name,
-        config,
-        role,
-        sort,
-        plugin_jar,
-        enabled
+        <include refid="List_Column_List"/>,
+        plugin_jar
     </sql>
 
     <sql id="List_Column_List">
