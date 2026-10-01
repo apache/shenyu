@@ -1726,3 +1726,7 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+-- Plugin snapshot and permission query indexes.
+CREATE INDEX IF NOT EXISTS `idx_selector_plugin_id` ON `selector` (`plugin_id`);
+CREATE INDEX IF NOT EXISTS `idx_permission_resource_id` ON `permission` (`resource_id`);

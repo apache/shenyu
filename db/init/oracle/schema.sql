@@ -129,6 +129,8 @@ create table selector
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 );
+
+create index idx_selector_plugin_id on selector (plugin_id);
 -- Add comments to the columns
 comment on column SELECTOR.id
   is 'primary key id varchar';
@@ -667,6 +669,8 @@ create table user_role
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+
+create index idx_user_role_user_id on user_role (user_id);
 -- Add comments to the table
 comment on table USER_ROLE
   is 'user and role bind table';
@@ -730,6 +734,9 @@ create table permission
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+
+create index idx_permission_object_id on permission (object_id);
+create index idx_permission_resource_id on permission (resource_id);
 -- Add comments to the table
 comment on table PERMISSION
   is 'permission table';
@@ -764,6 +771,8 @@ create table "resource"
     date_updated  timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+
+create index idx_resource_parent_id on "resource" (parent_id);
 -- Add comments to the table
 comment on table "resource"
   is 'resource table';

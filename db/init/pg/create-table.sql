@@ -2365,6 +2365,11 @@ COMMENT ON COLUMN "public"."user_role"."date_updated" IS 'update time';
 COMMENT ON TABLE "public"."user_role" IS 'user and role bind table';
 
 -- ----------------------------
+-- Index structure for table user_role
+-- ----------------------------
+CREATE INDEX "idx_user_role_user_id" ON "public"."user_role" USING btree ("user_id");
+
+-- ----------------------------
 -- Records of user_role
 -- ----------------------------
 INSERT INTO "public"."user_role" VALUES ('1351007709096976384', '1', '1346358560427216896', '2022-05-25 18:08:02', '2022-05-25 18:08:02');
@@ -2441,6 +2446,12 @@ ALTER TABLE "public"."operation_record_log" ADD CONSTRAINT "operation_record_log
 ALTER TABLE "public"."permission" ADD CONSTRAINT "permission_pkey" PRIMARY KEY ("id");
 
 -- ----------------------------
+-- Index structure for table permission
+-- ----------------------------
+CREATE INDEX "idx_permission_object_id" ON "public"."permission" USING btree ("object_id");
+CREATE INDEX "idx_permission_resource_id" ON "public"."permission" USING btree ("resource_id");
+
+-- ----------------------------
 -- Primary Key structure for table plugin
 -- ----------------------------
 ALTER TABLE "public"."plugin" ADD CONSTRAINT "plugin_pkey" PRIMARY KEY ("id");
@@ -2472,6 +2483,11 @@ ALTER TABLE "public"."plugin_handle" ADD CONSTRAINT "plugin_handle_pkey" PRIMARY
 ALTER TABLE "public"."resource" ADD CONSTRAINT "resource_pkey" PRIMARY KEY ("id");
 
 -- ----------------------------
+-- Index structure for table resource
+-- ----------------------------
+CREATE INDEX "idx_resource_parent_id" ON "public"."resource" USING btree ("parent_id");
+
+-- ----------------------------
 -- Primary Key structure for table role
 -- ----------------------------
 ALTER TABLE "public"."role" ADD CONSTRAINT "role_pkey" PRIMARY KEY ("id", "role_name");
@@ -2490,6 +2506,11 @@ ALTER TABLE "public"."rule_condition" ADD CONSTRAINT "rule_condition_pkey" PRIMA
 -- Primary Key structure for table selector
 -- ----------------------------
 ALTER TABLE "public"."selector" ADD CONSTRAINT "selector_pkey" PRIMARY KEY ("id");
+
+-- ----------------------------
+-- Index structure for table selector
+-- ----------------------------
+CREATE INDEX "idx_selector_plugin_id" ON "public"."selector" USING btree ("plugin_id");
 
 -- ----------------------------
 -- Rules structure for table shenyu_dict
