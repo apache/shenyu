@@ -114,6 +114,7 @@ jobs:
   pr_build:
     needs: changes
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     if: github.repository == 'apache/shenyu' && github.event_name == 'pull_request' && needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@v3
