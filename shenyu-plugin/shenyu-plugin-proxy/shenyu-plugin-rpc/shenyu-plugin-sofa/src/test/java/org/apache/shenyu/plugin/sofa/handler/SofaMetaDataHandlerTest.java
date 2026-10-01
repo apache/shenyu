@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentMap;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +64,23 @@ public class SofaMetaDataHandlerTest {
         final MetaData metaData = MetaData.builder().path("path").build();
         metaData.setServiceName("serviceName");
         assertDoesNotThrow(() -> sofaMetaDataHandler.handle(metaData));
+    }
+
+    @Test
+    @SuppressWarnings("all")
+    public void removeShouldInvalidateThePlainPathCacheEntry() throws IllegalAccessException {
+        final String path = "sofa/plain-path-entry";
+        final MetaData metaData = MetaData.builder().path(path).build();
+        final Field cacheField = FieldUtils.getDeclaredField(ApplicationConfigCache.class, "cache", true);
+        assertNotNull(cacheField);
+        final LoadingCache cache = (LoadingCache) cacheField.get(ApplicationConfigCache.getInstance());
+        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        when(consumerConfig.refer()).thenReturn(mock(GenericService.class));
+        cache.put(path, consumerConfig);
+
+        sofaMetaDataHandler.remove(metaData);
+
+        assertNull(cache.getIfPresent(path), "remove() must invalidate the reference cached under the bare metadata path");
     }
 
     @Test
