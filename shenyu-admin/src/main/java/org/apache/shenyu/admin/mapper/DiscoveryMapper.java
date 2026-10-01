@@ -56,6 +56,14 @@ public interface DiscoveryMapper extends ExistProvider {
     List<DiscoveryDO> selectAll();
 
     /**
+     * Select related rows for one page in a single query.
+     *
+     * @param ids identifiers to match
+     * @return matching rows
+     */
+    List<DiscoveryDO> selectByIds(@Param("ids") List<String> ids);
+
+    /**
      * selectAllByNamespaceId.
      *
      * @param namespaceId the namespaceId
