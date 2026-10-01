@@ -53,12 +53,12 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     List<DiscoveryUpstreamDO> selectAll();
 
     /**
-     * Select rows for a bounded batch of discovery handlers.
+     * Select related rows for one page in a single query.
      *
-     * @param handlerIds handler ids
+     * @param ids identifiers to match
      * @return matching rows
      */
-    List<DiscoveryUpstreamDO> selectByDiscoveryHandlerIds(@Param("handlerIds") List<String> handlerIds);
+    List<DiscoveryUpstreamDO> selectByDiscoveryHandlerIds(@Param("ids") List<String> ids);
 
     /**
      * selectByProxySelectorId.

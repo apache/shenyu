@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
+import org.apache.shenyu.admin.listener.ClusterDataChangedEventForwarder;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
@@ -81,5 +82,21 @@ public class ClusterConfiguration {
         factory.setReadTimeout(clusterProperties.getReadTimeout());
         return new ClusterForwardFilter(new RestTemplate(factory));
     }
-    
+
+    /**
+     * Shenyu cluster data changed event forwarder.
+     *
+     * @param clusterProperties          cluster properties
+     * @param clusterSelectMasterService the cluster select master service
+     * @return the Shenyu cluster data changed event forwarder
+     */
+    @Bean
+    public ClusterDataChangedEventForwarder clusterDataChangedEventForwarder(final ClusterProperties clusterProperties,
+                                                                             final ClusterSelectMasterService clusterSelectMasterService) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(clusterProperties.getConnectionTimeout());
+        factory.setReadTimeout(clusterProperties.getReadTimeout());
+        return new ClusterDataChangedEventForwarder(new RestTemplate(factory), clusterProperties, clusterSelectMasterService);
+    }
+
 }
