@@ -40,12 +40,16 @@ public class RuleDataHandler extends AbstractDataHandler<RuleData> {
 
     @Override
     protected void doRefresh(final List<RuleData> dataList) {
+        pluginDataSubscriber.refreshRuleDataAll();
         pluginDataSubscriber.onRuleRefresh(dataList);
     }
 
     @Override
-    protected void doSnapshot(final List<RuleData> dataList) {
-        pluginDataSubscriber.refreshRuleDataAll();
+    protected void doSnapshot(final List<RuleData> dataList, final String namespaceId) {
+        if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
+            throw new IllegalArgumentException("Snapshot row namespace does not match the connection");
+        }
+        pluginDataSubscriber.refreshRuleDataNamespace(namespaceId);
         doUpdate(dataList);
     }
 

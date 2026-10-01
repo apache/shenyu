@@ -41,7 +41,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Collections;
-import java.util.Comparator;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
@@ -61,10 +62,12 @@ import java.util.concurrent.TimeUnit;
  * sessions are local JVM state, so when several standalone admin nodes (cluster mode
  * disabled) share one database, a change written through one admin node never reaches
  * the gateway sessions connected to the other admin nodes. This task periodically
- * compares a digest of every configuration group per namespace with the database state
+ * compares a digest of the plugin, selector and rule groups per namespace with the database state
  * and pushes a full {@link DataEventTypeEnum#REFRESH} of the changed groups to the
  * gateway sessions connected to this admin node, so all gateways converge within the
- * configured interval without manual synchronization.</p>
+ * configured interval without manual synchronization. Reconciliation is opt-in;
+ * app auth, metadata, proxy selectors, discovery upstreams and AI proxy keys
+ * remain on their existing sync paths and are not reconciled by this task.</p>
  *
  * <p>Namespaces without connected gateway sessions are skipped, because there is
  * nothing to converge on this node. When cluster mode is enabled, non-master nodes
@@ -175,7 +178,7 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
         }
         Set<String> namespaceIds = activeNamespaceIds();
         for (String namespaceId : namespaceIds) {
-            for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+            for (ConfigGroupEnum group : List.of(ConfigGroupEnum.PLUGIN, ConfigGroupEnum.SELECTOR, ConfigGroupEnum.RULE)) {
                 reconcileGroup(namespaceId, group);
             }
         }
@@ -201,18 +204,17 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
     private void reconcileGroup(final String namespaceId, final ConfigGroupEnum group) {
         String cursorKey = namespaceId + ":" + group.name();
         try {
-            List<?> dataList = load(namespaceId, group).stream()
-                    .sorted(Comparator.comparing(GsonUtils.getInstance()::toJson))
-                    .collect(Collectors.toList());
-            String digest = DigestUtils.md5Hex(dataList.stream()
+            List<String> rows = load(namespaceId, group).stream()
                     .map(GsonUtils.getInstance()::toJson)
                     .sorted()
-                    .collect(Collectors.joining("\n")));
+                    .collect(Collectors.toList());
+            String digest = DigestUtils.md5Hex(String.join("\n", rows));
             if (digest.equals(digestCursor.get(cursorKey))) {
                 LOG.debug("websocket reconciliation group {} in namespace {} is unchanged, skip push",
                         group, namespaceId);
                 return;
             }
+            List<JsonElement> dataList = rows.stream().map(JsonParser::parseString).collect(Collectors.toList());
             WebsocketData<?> websocketData =
                     new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), dataList);
             websocketData.setNamespaceId(namespaceId);

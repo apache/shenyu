@@ -25,8 +25,13 @@ import java.util.Queue;
 public class DiscardOldestPolicy<E> implements Rejector<E> {
 
     @Override
+    @SuppressWarnings("unchecked")
     public void reject(final E e, final Queue<E> queue) {
         queue.poll();
+        if (queue instanceof MemorySafeLinkedBlockingQueue) {
+            ((MemorySafeLinkedBlockingQueue<E>) queue).offerWithoutMemoryCheck(e);
+            return;
+        }
         queue.offer(e);
     }
 }

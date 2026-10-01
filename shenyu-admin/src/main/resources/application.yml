@@ -77,8 +77,10 @@ shenyu:
       # another standalone admin node on the same database. Namespaces without
       # connected gateway sessions are not polled; a larger interval reduces the
       # database polling cost but increases the worst-case consistency delay.
+      # Opt in for shared-database standalone nodes. Only plugin/selector/rule
+      # groups support namespace-scoped replacement; other groups use normal sync.
       reconciliation:
-        enabled: true
+        enabled: false
         interval: 60s
 #    apollo:
 #      meta: http://localhost:8080

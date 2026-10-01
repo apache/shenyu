@@ -120,6 +120,21 @@ public final class WebsocketDataReconcilerTest {
     }
 
     @Test
+    public void testReconciliationDefaultsToDisabled() {
+        org.junit.jupiter.api.Assertions.assertFalse(properties.getReconciliation().isEnabled());
+    }
+
+    @Test
+    public void testUnsupportedGroupsAreNotPolled() {
+        stubAllGroups();
+        try (ReconciledCollector ignored = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            reconciler.reconcileSafely();
+            verifyNoInteractions(appAuthService, metaDataService, proxySelectorService,
+                    discoveryUpstreamService, aiProxyApiKeyService);
+        }
+    }
+
+    @Test
     public void testLifecycleMethodsDoNotThrow() {
         properties.getReconciliation().setEnabled(false);
         assertDoesNotThrow(() -> reconciler.afterPropertiesSet());
@@ -147,10 +162,10 @@ public final class WebsocketDataReconcilerTest {
         stubAllGroups();
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
             // unchanged state: the second cycle pushes nothing
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
         }
     }
 
@@ -161,7 +176,7 @@ public final class WebsocketDataReconcilerTest {
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             reconciler.reconcileSafely();
             List<String> messages = mocked.capturedMessages(NAMESPACE_1);
-            assertEquals(8, messages.size());
+            assertEquals(3, messages.size());
             String ruleMessage = messages.stream()
                     .filter(m -> m.contains("\"groupType\":\"RULE\""))
                     .findFirst()
@@ -180,10 +195,10 @@ public final class WebsocketDataReconcilerTest {
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             // the failed group is not pushed and does not fail the whole cycle
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 7);
+            mocked.verifySends(NAMESPACE_1, 2);
             // the cursor was not advanced, the next cycle retries the group
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
             assertEquals(1, mocked.capturedMessages(NAMESPACE_1).stream()
                     .filter(m -> m.contains("\"groupType\":\"RULE\""))
                     .count());
@@ -200,12 +215,12 @@ public final class WebsocketDataReconcilerTest {
                 .thenReturn(Collections.singletonList(new RuleData().setId("rule-ns2")));
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1, NAMESPACE_2))) {
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
-            mocked.verifySends(NAMESPACE_2, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
+            mocked.verifySends(NAMESPACE_2, 3);
             // only the changed group of namespace-1 is pushed in the second cycle
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 9);
-            mocked.verifySends(NAMESPACE_2, 8);
+            mocked.verifySends(NAMESPACE_1, 4);
+            mocked.verifySends(NAMESPACE_2, 3);
         }
     }
 
@@ -229,7 +244,7 @@ public final class WebsocketDataReconcilerTest {
         stubAllGroups();
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
         }
     }
 
@@ -243,7 +258,7 @@ public final class WebsocketDataReconcilerTest {
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             reconciler.reconcileSafely();
             reconciler.reconcileSafely();
-            mocked.verifySends(NAMESPACE_1, 8);
+            mocked.verifySends(NAMESPACE_1, 3);
             assertTrue(mocked.capturedMessages(NAMESPACE_1).stream()
                     .allMatch(message -> message.contains("\"fullSnapshot\":true")
                             && message.contains("\"namespaceId\":\"namespace-1\"")));

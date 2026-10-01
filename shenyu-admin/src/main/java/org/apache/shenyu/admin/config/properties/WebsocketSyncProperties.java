@@ -131,17 +131,17 @@ public class WebsocketSyncProperties {
 
     /**
      * Reconciliation settings for deployments where several standalone admin nodes
-     * share one database: each node periodically compares a digest of every
-     * configuration group with the database state and pushes a full refresh of the
+     * share one database: each node periodically compares a digest of plugin, selector and rule
+     * configuration groups with the database state and pushes a full refresh of the
      * changed groups to the gateway sessions connected to it, so gateways converge
      * even when the change was written by another admin node.
      */
     public static class Reconciliation {
 
         /**
-         * Whether reconciliation is enabled, default: true.
+         * Whether reconciliation is enabled, default: false.
          */
-        private boolean enabled = true;
+        private boolean enabled;
 
         /**
          * Fixed delay between reconciliation cycles, default: 60s.

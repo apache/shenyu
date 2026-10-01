@@ -81,7 +81,7 @@ public class WebsocketDataHandler {
                 || !snapshotNamespace.equals(connectionNamespace)) {
             throw new IllegalArgumentException("Snapshot namespace does not match the connection");
         }
-        ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json);
+        ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json, snapshotNamespace);
     }
 
 }

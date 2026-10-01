@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,42 +62,44 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
     /**
      * Apply an authoritative snapshot for the connection's namespace.
      * @param json snapshot array, including an empty array
+     * @param namespaceId namespace to replace
      */
-    public void handleSnapshot(final String json) {
+    public void handleSnapshot(final String json, final String namespaceId) {
         List<T> dataList = convert(json);
         if (java.util.Objects.isNull(dataList)) {
             throw new IllegalArgumentException("A snapshot must contain a data array");
         }
-        doSnapshot(dataList);
+        doSnapshot(dataList, namespaceId);
     }
 
     /**
      * Replace the complete group, not just rows present in the payload.
      * @param dataList complete group
+     * @param namespaceId namespace to replace
      */
-    protected void doSnapshot(final List<T> dataList) {
-        doRefresh(dataList);
+    protected void doSnapshot(final List<T> dataList, final String namespaceId) {
+        throw new IllegalArgumentException("Namespace snapshots are supported only for plugins, selectors and rules");
     }
 
     @Override
     public void handle(final String json, final String eventType) {
         List<T> dataList = convert(json);
-        if (CollectionUtils.isEmpty(dataList)) {
-            return;
-        }
-
         DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
         switch (eventTypeEnum) {
             case REFRESH:
             case MYSELF:
-                doRefresh(dataList);
+                doRefresh(CollectionUtils.isEmpty(dataList) ? Collections.emptyList() : dataList);
                 break;
             case UPDATE:
             case CREATE:
-                doUpdate(dataList);
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    doUpdate(dataList);
+                }
                 break;
             case DELETE:
-                doDelete(dataList);
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    doDelete(dataList);
+                }
                 break;
             default:
                 break;
