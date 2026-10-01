@@ -22,6 +22,7 @@ import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.List;
+import java.util.Collections;
 
 public abstract class AbstractApiRegistrar<D extends DataTypeParent> implements ApiRegistrar {
 
@@ -52,6 +53,16 @@ public abstract class AbstractApiRegistrar<D extends DataTypeParent> implements 
     }
 
     /**
+     * Parse all registrations for a bean while retaining the single-registration extension point.
+     *
+     * @param apiBean bean to register
+     * @return registrations to publish
+     */
+    protected List<D> preParseList(final ApiBean apiBean) {
+        return Collections.singletonList(preParse(apiBean));
+    }
+
+    /**
      * Determines whether apiDefinitions of apiBean can be filtered.
      *
      * @param apiBean apiBean to be registered
@@ -79,7 +90,7 @@ public abstract class AbstractApiRegistrar<D extends DataTypeParent> implements 
     public void register(final ApiBean apiBean) {
 
         if (preMatch(apiBean)) {
-            publisher.publishEvent(preParse(apiBean));
+            preParseList(apiBean).forEach(publisher::publishEvent);
             return;
         }
 

@@ -17,10 +17,22 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
+import org.apache.shenyu.admin.listener.websocket.WebsocketDataReconciler;
+import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.service.AiProxyApiKeyService;
+import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
+import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.apache.shenyu.admin.service.ProxySelectorService;
+import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -56,6 +68,41 @@ public class WebSocketSyncConfiguration {
     @ConditionalOnMissingBean(WebsocketCollector.class)
     public WebsocketCollector websocketCollector() {
         return new WebsocketCollector();
+    }
+
+    /**
+     * Websocket data reconciler, converges gateways connected to this admin node
+     * with configuration written through other admin nodes sharing the same database.
+     *
+     * @param websocketSyncProperties the websocket sync properties
+     * @param clusterProperties the cluster properties
+     * @param masterServiceProvider the cluster master service provider
+     * @param appAuthService the app auth service
+     * @param namespacePluginService the namespace plugin service
+     * @param selectorService the selector service
+     * @param ruleService the rule service
+     * @param metaDataService the meta data service
+     * @param proxySelectorService the proxy selector service
+     * @param discoveryUpstreamService the discovery upstream service
+     * @param aiProxyApiKeyService the ai proxy api key service
+     * @return the websocket data reconciler
+     */
+    @Bean
+    @ConditionalOnMissingBean(WebsocketDataReconciler.class)
+    public WebsocketDataReconciler websocketDataReconciler(final WebsocketSyncProperties websocketSyncProperties,
+                                                           final ClusterProperties clusterProperties,
+                                                           final ObjectProvider<ClusterSelectMasterService> masterServiceProvider,
+                                                           final AppAuthService appAuthService,
+                                                           final NamespacePluginService namespacePluginService,
+                                                           final SelectorService selectorService,
+                                                           final RuleService ruleService,
+                                                           final MetaDataService metaDataService,
+                                                           final ProxySelectorService proxySelectorService,
+                                                           final DiscoveryUpstreamService discoveryUpstreamService,
+                                                           final AiProxyApiKeyService aiProxyApiKeyService) {
+        return new WebsocketDataReconciler(websocketSyncProperties, clusterProperties, masterServiceProvider,
+                appAuthService, namespacePluginService, selectorService, ruleService, metaDataService,
+                proxySelectorService, discoveryUpstreamService, aiProxyApiKeyService);
     }
 
     /**

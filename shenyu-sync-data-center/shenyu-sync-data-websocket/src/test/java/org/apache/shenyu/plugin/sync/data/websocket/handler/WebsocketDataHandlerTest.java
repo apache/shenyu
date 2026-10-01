@@ -20,10 +20,16 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -64,6 +70,7 @@ public final class WebsocketDataHandlerTest {
     public void testPluginRefreshExecutor() {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
         List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
         Mockito.verify(pluginDataSubscriber).onPluginRefresh(pluginDataList);
     }
@@ -72,6 +79,7 @@ public final class WebsocketDataHandlerTest {
     public void testPluginMyselfExecutor() {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.MYSELF.name());
+        Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
         List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
         Mockito.verify(pluginDataSubscriber).onPluginRefresh(pluginDataList);
     }
@@ -100,11 +108,141 @@ public final class WebsocketDataHandlerTest {
         pluginDataList.forEach(verify(pluginDataSubscriber)::unSubscribe);
     }
 
+    @Test
+    public void testEmptySnapshotClearsOnlyItsGroup() {
+        websocketDataHandler.snapshot(ConfigGroupEnum.RULE, "[]", "namespace-a", "namespace-a");
+        verify(pluginDataSubscriber).refreshRuleDataNamespace("namespace-a");
+        Mockito.verifyNoMoreInteractions(pluginDataSubscriber);
+    }
+
+    @Test
+    public void testWrongNamespaceCannotClearCache() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-b", "namespace-a"));
+        Mockito.verifyNoInteractions(pluginDataSubscriber);
+    }
+
+    @Test
+    public void testNullSnapshotCannotClearCache() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "null", "namespace-a", "namespace-a"));
+        Mockito.verifyNoInteractions(pluginDataSubscriber);
+    }
+
+    @Test
+    public void testSnapshotReplacesStalePluginBeforeSubscribing() {
+        websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, getJson(), "namespace-a", "namespace-a");
+        org.mockito.InOrder order = Mockito.inOrder(pluginDataSubscriber);
+        order.verify(pluginDataSubscriber).refreshPluginDataNamespace("namespace-a");
+        order.verify(pluginDataSubscriber).onSubscribe(Mockito.any(PluginData.class));
+    }
+
+    @Test
+    public void testEmptySnapshotsRemoveStaleGatewayCache() {
+        BaseDataCache cache = BaseDataCache.getInstance();
+        PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        cache.cachePluginData(PluginData.builder().name("snapshot-plugin").namespaceId("namespace-a").build());
+        cache.cacheSelectData(SelectorData.builder().id("snapshot-selector").pluginName("snapshot-plugin").namespaceId("namespace-a").sort(1).build());
+        cache.cacheRuleData(RuleData.builder().id("snapshot-rule").selectorId("snapshot-selector").namespaceId("namespace-a").sort(1).build());
+        try {
+            handler.snapshot(ConfigGroupEnum.RULE, "[]", "namespace-a", "namespace-a");
+            org.junit.jupiter.api.Assertions.assertNull(cache.obtainRuleData("snapshot-selector"));
+            org.junit.jupiter.api.Assertions.assertNotNull(cache.obtainSelectorData("snapshot-plugin"));
+            handler.snapshot(ConfigGroupEnum.SELECTOR, "[]", "namespace-a", "namespace-a");
+            org.junit.jupiter.api.Assertions.assertNull(cache.obtainSelectorData("snapshot-plugin"));
+            org.junit.jupiter.api.Assertions.assertNotNull(cache.obtainPluginData("snapshot-plugin"));
+            handler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
+            org.junit.jupiter.api.Assertions.assertNull(cache.obtainPluginData("snapshot-plugin"));
+        } finally {
+            cache.cleanRuleData();
+            cache.cleanSelectorData();
+            cache.cleanPluginData();
+        }
+    }
+
+    @Test
+    public void testUnsupportedNamespaceSnapshotsDoNotTouchOtherGroups() {
+        MetaDataSubscriber metadata = mock(MetaDataSubscriber.class);
+        AuthDataSubscriber auth = mock(AuthDataSubscriber.class);
+        ProxySelectorDataSubscriber proxy = mock(ProxySelectorDataSubscriber.class);
+        DiscoveryUpstreamDataSubscriber discovery = mock(DiscoveryUpstreamDataSubscriber.class);
+        AiProxyApiKeyDataSubscriber apiKey = mock(AiProxyApiKeyDataSubscriber.class);
+        WebsocketDataHandler handler = new WebsocketDataHandler(pluginDataSubscriber, List.of(metadata), List.of(auth),
+                List.of(proxy), List.of(discovery), List.of(apiKey));
+        for (ConfigGroupEnum group : List.of(ConfigGroupEnum.META_DATA, ConfigGroupEnum.APP_AUTH,
+                ConfigGroupEnum.PROXY_SELECTOR, ConfigGroupEnum.DISCOVER_UPSTREAM, ConfigGroupEnum.AI_PROXY_API_KEY)) {
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> handler.snapshot(group, "[]", "namespace-a", "namespace-a"));
+        }
+        Mockito.verifyNoInteractions(metadata, auth, proxy, discovery, apiKey);
+    }
+
+    @Test
+    public void testEmptyNamespaceSnapshotPreservesOtherNamespaces() {
+        BaseDataCache cache = BaseDataCache.getInstance();
+        PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        PluginData other = PluginData.builder().name("other-plugin").namespaceId("namespace-b").build();
+        SelectorData selector = SelectorData.builder().id("other-selector").pluginName("other-plugin")
+                .namespaceId("namespace-b").sort(1).build();
+        RuleData rule = RuleData.builder().id("other-rule").selectorId("other-selector")
+                .namespaceId("namespace-b").sort(1).build();
+        cache.cachePluginData(other);
+        cache.cacheSelectData(selector);
+        cache.cacheRuleData(rule);
+        try {
+            for (ConfigGroupEnum group : List.of(ConfigGroupEnum.PLUGIN, ConfigGroupEnum.SELECTOR, ConfigGroupEnum.RULE)) {
+                handler.snapshot(group, "[]", "namespace-a", "namespace-a");
+            }
+            org.junit.jupiter.api.Assertions.assertEquals(other, cache.obtainPluginData("other-plugin"));
+            org.junit.jupiter.api.Assertions.assertEquals(List.of(selector), cache.obtainSelectorData("other-plugin"));
+            org.junit.jupiter.api.Assertions.assertEquals(List.of(rule), cache.obtainRuleData("other-selector"));
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> handler.snapshot(ConfigGroupEnum.PLUGIN, getJson(), "namespace-b", "namespace-b"));
+            org.junit.jupiter.api.Assertions.assertEquals(other, cache.obtainPluginData("other-plugin"));
+        } finally {
+            cache.cleanPluginData();
+            cache.cleanSelectorData();
+            cache.cleanRuleData();
+        }
+    }
+
+    @Test
+    public void testNonEmptySnapshotRemovesMissingRulesAndPreservesOtherNamespace() {
+        BaseDataCache cache = BaseDataCache.getInstance();
+        PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a")
+                .namespaceId("namespace-a").sort(1).build();
+        RuleData replacement = RuleData.builder().id("replacement-rule").selectorId("selector-a")
+                .namespaceId("namespace-a").sort(2).build();
+        RuleData other = RuleData.builder().id("other-rule").selectorId("selector-b")
+                .namespaceId("namespace-b").sort(1).build();
+        cache.cacheRuleData(stale);
+        cache.cacheRuleData(other);
+        try {
+            handler.snapshot(ConfigGroupEnum.RULE, GsonUtils.getInstance().toJson(List.of(replacement)),
+                    "namespace-a", "namespace-a");
+            org.junit.jupiter.api.Assertions.assertEquals(List.of(replacement), cache.obtainRuleData("selector-a"));
+            org.junit.jupiter.api.Assertions.assertEquals(List.of(other), cache.obtainRuleData("selector-b"));
+        } finally {
+            cache.cleanRuleData();
+        }
+    }
+
     private String getJson() {
         PluginData pluginData = new PluginData();
         pluginData.setId("1397952341475799040");
         pluginData.setName("plugin_test");
         pluginData.setConfig("config_test");
+        pluginData.setNamespaceId("namespace-a");
         pluginData.setEnabled(true);
         pluginData.setRole("1");
         LinkedList<PluginData> list = new LinkedList<>();

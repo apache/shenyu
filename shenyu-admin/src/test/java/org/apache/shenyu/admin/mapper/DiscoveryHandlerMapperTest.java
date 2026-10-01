@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,6 +71,14 @@ public class DiscoveryHandlerMapperTest extends AbstractSpringIntegrationTest {
         discoveryRelDO.setSelectorId("4444444444444");
         discoveryRelDO.setProxySelectorId("222222222222");
         return discoveryRelDO;
+    }
+
+    @Test
+    public void selectPageRelations() {
+        assertEquals(discoveryHandlerDO.getId(), discoveryHandlerMapper.selectByIds(Collections.singletonList(discoveryHandlerDO.getId())).get(0).getId());
+        assertEquals(0, discoveryHandlerMapper.selectByIds(Collections.emptyList()).size());
+        assertEquals(discoveryRelDO.getId(), discoveryRelMapper.selectByProxySelectorIds(Collections.singletonList(discoveryRelDO.getProxySelectorId())).get(0).getId());
+        assertEquals(0, discoveryRelMapper.selectByProxySelectorIds(Collections.emptyList()).size());
     }
 
     @BeforeEach
