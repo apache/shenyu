@@ -6,6 +6,9 @@
 
 ### Behavior Changes
 
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a

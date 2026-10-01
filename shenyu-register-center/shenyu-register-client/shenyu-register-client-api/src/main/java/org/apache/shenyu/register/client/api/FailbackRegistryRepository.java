@@ -184,6 +184,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     private void addToFail(final Holder t) {
+        // Update a pending payload atomically; a failure during an in-flight retry owns a new entry and timer.
         Holder oldObj = concurrentHashMap.put(t.getKey(), t);
         if (Objects.nonNull(oldObj)) {
             logger.debug("Updated failback registration payload, {}", t.getPath());
@@ -195,7 +196,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Remove.
+     * Unconditionally remove a pending registration, retained for compatibility with custom retry tasks.
+     * Do not pair this with {@link #accept(String)}: use {@link #retry(String)} to preserve concurrent failures.
      *
      * @param key the key
      */
@@ -204,7 +206,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Accpet.
+     * Attempt a pending registration without claiming it, retained for compatibility with custom retry tasks.
+     * New retry tasks should use {@link #retry(String)} instead of an accept/remove pair.
      *
      * @param key the key
      */
@@ -213,6 +216,30 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder)) {
             return;
         }
+        persist(holder);
+    }
+
+    /**
+     * Retry a pending registration without removing failures queued during the attempt.
+     *
+     * @param key the registration key
+     */
+    public void retry(final String key) {
+        Holder holder = concurrentHashMap.remove(key);
+        if (Objects.isNull(holder)) {
+            return;
+        }
+        try {
+            persist(holder);
+        } catch (RuntimeException ex) {
+            // A newer failure has its own timer task; otherwise retain this task's retry.
+            if (Objects.isNull(concurrentHashMap.putIfAbsent(key, holder))) {
+                throw ex;
+            }
+        }
+    }
+
+    private void persist(final Holder holder) {
         String type = holder.getType();
         switch (type) {
             case Constants.URI:
