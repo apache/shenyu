@@ -34,7 +34,6 @@ import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -43,6 +42,7 @@ import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
 import org.apache.shenyu.k8s.common.IngressConstants;
+import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -144,9 +144,9 @@ public final class IngressReconcilerTest {
 
         assertEquals(new Result(false), result);
         assertNotNull(IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
-        List<Pair<String, String>> ingressNames = ServiceIngressCache.getInstance().getIngressName(NAMESPACE, SERVICE_NAME);
-        assertNotNull(ingressNames);
-        assertTrue(ingressNames.contains(Pair.of(NAMESPACE, INGRESS_NAME)));
+        List<ServiceIngressRelation> ingressRelations = ServiceIngressCache.getInstance().getIngressName(NAMESPACE, SERVICE_NAME);
+        assertNotNull(ingressRelations);
+        assertTrue(ingressRelations.stream().anyMatch(relation -> relation.isSameIngress(NAMESPACE, INGRESS_NAME)));
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
 
         // the selector is first saved with the ingress backend port and then refreshed with the endpoints port
