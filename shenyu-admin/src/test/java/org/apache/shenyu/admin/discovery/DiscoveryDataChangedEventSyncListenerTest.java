@@ -49,9 +49,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -170,6 +168,8 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
         when(contextInfo.getDiscoveryHandlerId()).thenReturn("handler");
         when(contextInfo.getSelectorId()).thenReturn("selector");
+    }
+
     @Test
     public void testOnChangeIsSafeWhenListenerIsAddedConcurrently() throws Exception {
         DiscoverySyncData additionalContext = org.mockito.Mockito.mock(DiscoverySyncData.class);
@@ -203,8 +203,6 @@ public class DiscoveryDataChangedEventSyncListenerTest {
             continueProcessing.countDown();
             executor.shutdownNow();
         }
-
         verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));
     }
-
 }
