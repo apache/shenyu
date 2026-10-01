@@ -30,6 +30,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -129,6 +131,66 @@ public final class FailbackRegistryRepositoryTest {
         
         verify(repository, times(1)).doPersistMcpTools(registerDTO);
         assertEquals(1, getFailureMapSize());
+    }
+
+    @Test
+    public void testFailuresFromDifferentNamespacesDoNotCollide() {
+        MetaDataRegisterDTO first = createMetaDataRegisterDTO();
+        first.setNamespaceId("namespace-one");
+        MetaDataRegisterDTO second = createMetaDataRegisterDTO();
+        second.setNamespaceId("namespace-two");
+        doThrow(new RuntimeException("Test exception")).when(repository).doPersistInterface(any());
+
+        repository.persistInterface(first);
+        repository.persistInterface(second);
+
+        assertEquals(2, getFailureMapSize());
+    }
+
+    @Test
+    public void testTypeSpecificFailureIdentitiesDoNotCollide() {
+        URIRegisterDTO firstUri = createURIRegisterDTO();
+        firstUri.setNamespaceId("namespace-one");
+        URIRegisterDTO secondUri = createURIRegisterDTO();
+        secondUri.setNamespaceId("namespace-two");
+        ApiDocRegisterDTO firstApiDoc = createApiDocRegisterDTO();
+        firstApiDoc.setVersion("v1");
+        ApiDocRegisterDTO secondApiDoc = createApiDocRegisterDTO();
+        secondApiDoc.setVersion("v2");
+        McpToolsRegisterDTO firstMcp = createMcpToolsRegisterDTO();
+        firstMcp.setNamespaceId("namespace-one");
+        McpToolsRegisterDTO secondMcp = createMcpToolsRegisterDTO();
+        secondMcp.setNamespaceId("namespace-two");
+        doThrow(new RuntimeException("Test exception")).when(repository).doPersistURI(any());
+        doThrow(new RuntimeException("Test exception")).when(repository).doPersistApiDoc(any());
+        doThrow(new RuntimeException("Test exception")).when(repository).doPersistMcpTools(any());
+
+        repository.persistURI(firstUri);
+        repository.persistURI(secondUri);
+        repository.persistApiDoc(firstApiDoc);
+        repository.persistApiDoc(secondApiDoc);
+        repository.persistMcpTools(firstMcp);
+        repository.persistMcpTools(secondMcp);
+
+        assertEquals(6, getFailureMapSize());
+    }
+
+    @Test
+    public void testNewerFailureReplacesStalePayload() {
+        MetaDataRegisterDTO stale = createMetaDataRegisterDTO();
+        stale.setRpcExt("stale");
+        MetaDataRegisterDTO latest = createMetaDataRegisterDTO();
+        latest.setRpcExt("latest");
+        doThrow(new RuntimeException("Test exception")).when(repository).doPersistInterface(any());
+
+        repository.persistInterface(stale);
+        repository.persistInterface(latest);
+
+        assertEquals(1, getFailureMapSize());
+        doNothing().when(repository).doPersistInterface(any());
+        clearInvocations(repository);
+        repository.accept(getFirstKeyFromFailureMap());
+        verify(repository).doPersistInterface(latest);
     }
 
     @Test

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -268,6 +269,30 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         // and the row being updated is excluded from its own check
         assertNull(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-a",
                 Collections.singletonList(metaDataDO.getId())));
+    }
+
+    @Test
+    public void pathExistedExcludeHandlesEmptyAndNullExclusions() {
+        MetaDataDO metadata = getMetaDataDO();
+        assertThat(metaDataMapper.insert(metadata), comparesEqualTo(1));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                Collections.emptyList()), comparesEqualTo(Boolean.TRUE));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                null), comparesEqualTo(Boolean.TRUE));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                Collections.singletonList(null)), comparesEqualTo(Boolean.TRUE));
+    }
+
+    @Test
+    public void pathExistedExcludeStillDetectsOtherRows() {
+        MetaDataDO first = getMetaDataDO();
+        MetaDataDO second = getMetaDataDO();
+        assertThat(metaDataMapper.insert(first), comparesEqualTo(1));
+        assertThat(metaDataMapper.insert(second), comparesEqualTo(1));
+        assertThat(metaDataMapper.pathExistedExclude(first.getPath(), first.getNamespaceId(),
+                Collections.singletonList(first.getId())), comparesEqualTo(Boolean.TRUE));
+        assertNull(metaDataMapper.pathExistedExclude(first.getPath(), first.getNamespaceId(),
+                Arrays.asList(first.getId(), second.getId())));
     }
 
     private MetaDataDO getMetaDataDO() {

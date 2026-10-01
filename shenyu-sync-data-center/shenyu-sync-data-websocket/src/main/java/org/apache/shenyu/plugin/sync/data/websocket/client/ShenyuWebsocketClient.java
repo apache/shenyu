@@ -425,7 +425,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();
         String json = GsonUtils.getInstance().toJson(websocketData.getData());
-        websocketDataHandler.executor(groupEnum, json, eventType);
+        if (websocketData.isFullSnapshot()) {
+            if (!DataEventTypeEnum.REFRESH.name().equals(eventType) && !DataEventTypeEnum.MYSELF.name().equals(eventType)) {
+                throw new IllegalArgumentException("Snapshot requires a refresh event");
+            }
+            websocketDataHandler.snapshot(groupEnum, json, websocketData.getNamespaceId(), namespaceId);
+        } else {
+            websocketDataHandler.executor(groupEnum, json, eventType);
+        }
     }
     
     /**
