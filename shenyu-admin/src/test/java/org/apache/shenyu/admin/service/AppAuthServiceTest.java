@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -75,6 +76,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Test cases for AppAuthService.
@@ -110,6 +113,25 @@ public final class AppAuthServiceTest {
         testApplyUpdateParameterError();
         testApplyUpdateAppKeyNotExist();
         testApplyUpdateSuccess();
+    }
+
+    @Test
+    public void testCreateOrUpdatePropagatesNamespace() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(appAuthMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, appAuthService.createOrUpdate(dto));
+        verify(appAuthMapper).updateSelective(argThat(auth -> SYS_DEFAULT_NAMESPACE_ID.equals(auth.getNamespaceId())));
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    public void testRejectedNamespaceUpdateDoesNotPublish() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId("other-namespace");
+        given(appAuthMapper.updateSelective(any())).willReturn(0);
+        assertEquals(0, appAuthService.createOrUpdate(dto));
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -298,6 +320,21 @@ public final class AppAuthServiceTest {
             appAuthService.syncData();
         }
         verify(eventPublisher, times(1)).publishEvent(any());
+    }
+
+    @Test
+    public void testSyncEmptyDataByNamespaceId() {
+        String namespaceId = "namespace-id";
+        when(appAuthMapper.selectAllByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
+
+        appAuthService.syncDataByNamespaceId(namespaceId);
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        DataChangedEvent event = eventCaptor.getValue();
+        assertEquals(ConfigGroupEnum.APP_AUTH, event.getGroupKey());
+        assertEquals(namespaceId, event.getNamespaceId());
+        assertEquals(Collections.emptyList(), event.getSource());
     }
 
     private void testApplyCreateParameterError() {

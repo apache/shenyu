@@ -17,25 +17,40 @@
 
 package org.apache.shenyu.plugin.logging.common.entity;
 
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test case for CommonLoggingRuleHandle.
+ * Test cases for {@link CommonLoggingRuleHandle}.
  */
-public class CommonLoggingRuleHandleTest {
+public final class CommonLoggingRuleHandleTest {
+
+    @Test
+    public void testKeyWordMatchIsCachedUntilKeywordChanges() {
+        CommonLoggingRuleHandle handle = new CommonLoggingRuleHandle();
+        handle.setKeyword("requestBody;responseBody");
+
+        KeyWordMatch first = handle.getKeyWordMatch();
+        assertSame(first, handle.getKeyWordMatch());
+        assertTrue(first.matches("requestBody"));
+
+        handle.setKeyword("clientIp");
+        KeyWordMatch updated = handle.getKeyWordMatch();
+        assertNotSame(first, updated);
+        assertTrue(updated.matches("clientIp"));
+    }
 
     @Test
     public void testSetMaskTypeRoundTrip() {
         CommonLoggingRuleHandle handle = new CommonLoggingRuleHandle();
-
-        // setMaskType used to assign the field to itself and silently drop the value
         handle.setMaskType("mask");
-        assertThat(handle.getMaskType(), is("mask"));
-
+        assertEquals("mask", handle.getMaskType());
         handle.setMaskType(null);
-        assertThat(handle.getMaskType(), is((String) null));
+        assertEquals(null, handle.getMaskType());
     }
 }
