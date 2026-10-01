@@ -90,7 +90,10 @@ public class IngressParserTest {
 
     @Test
     public void testDispatchAddsContextPathConfigForPrefixPath() {
-        List<ShenyuMemoryConfig> configs = parse(new HashMap<>(), "Prefix");
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "/test");
+
+        List<ShenyuMemoryConfig> configs = parse(annotations, "Prefix");
 
         assertEquals(2, configs.size());
         List<String> pluginNames = pluginNames(configs);
