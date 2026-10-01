@@ -66,6 +66,10 @@ public class EmailAlertNotifyStrategyTest {
 
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
+    private static Method buildAlertHtmlTemplateMethod;
+
+    private static EmailAlertNotifyStrategy strategy;
+
     @Mock
     private JavaMailSender javaMailSender;
 
@@ -76,10 +80,6 @@ public class EmailAlertNotifyStrategyTest {
     private AlertReceiverDTO receiver;
 
     private final AtomicReference<Context> capturedContext = new AtomicReference<>();
-
-    private static Method buildAlertHtmlTemplateMethod;
-
-    private static EmailAlertNotifyStrategy strategy;
 
     @BeforeEach
     public void setUp() throws Exception {
