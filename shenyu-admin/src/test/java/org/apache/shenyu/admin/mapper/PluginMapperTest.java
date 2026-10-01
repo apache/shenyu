@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * Test cases for PluginMapper.
@@ -46,11 +47,14 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
     public void selectById() {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        final byte[] pluginJar = new byte[] {0, 1, 2, -1};
+        pluginDO.setPluginJar(pluginJar);
         final int insertResult = pluginMapper.insert(pluginDO);
         assertThat(insertResult, equalTo(1));
 
         final PluginDO resultPluginDO = pluginMapper.selectById(pluginDO.getId());
         assertThat(pluginDO, equalTo(resultPluginDO));
+        assertArrayEquals(pluginJar, resultPluginDO.getPluginJar());
 
         final int deleteResult = pluginMapper.delete(pluginDO.getId());
         assertThat(deleteResult, equalTo(1));
