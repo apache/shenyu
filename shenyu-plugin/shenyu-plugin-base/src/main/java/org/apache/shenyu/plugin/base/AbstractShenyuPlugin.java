@@ -41,12 +41,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
@@ -231,32 +227,26 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, SelectorData> matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        List<SelectorData> filterCollectors = selectors.stream()
-                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-                .distinct()
-                .collect(Collectors.toList());
-        if (filterCollectors.size() > 1) {
-            return Pair.of(Boolean.FALSE, manyMatchSelector(filterCollectors));
-        } else {
-            return Pair.of(Boolean.TRUE, filterCollectors.stream().findFirst().orElse(null));
+        SelectorData best = null;
+        int bestSpecificity = -1;
+        boolean unique = true;
+        for (SelectorData selector : selectors) {
+            if (!selector.getEnabled() || !filterSelector(selector, exchange)) {
+                continue;
+            }
+            if (Objects.nonNull(best)) {
+                if (best.equals(selector)) {
+                    continue;
+                }
+                unique = false;
+            }
+            int specificity = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(selector.getConditionList()) : 0;
+            if (Objects.isNull(best) || specificity > bestSpecificity || specificity == bestSpecificity && selector.getSort() < best.getSort()) {
+                best = selector;
+                bestSpecificity = specificity;
+            }
         }
-    }
-
-    private SelectorData manyMatchSelector(final List<SelectorData> filterCollectors) {
-        //What needs to be dealt with here is the and condition. If the number of and conditions is the same and is matched at the same time,
-        // it will be sorted by the sort field.
-        Map<Integer, List<Pair<Integer, SelectorData>>> collect =
-                filterCollectors.stream().map(selector -> {
-                    boolean match = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND);
-                    int sort = 0;
-                    if (match) {
-                        sort = selector.getConditionList().size();
-                    }
-                    return Pair.of(sort, selector);
-                }).collect(Collectors.groupingBy(Pair::getLeft));
-        Integer max = Collections.max(collect.keySet());
-        List<Pair<Integer, SelectorData>> pairs = collect.get(max);
-        return pairs.stream().map(Pair::getRight).min(Comparator.comparing(SelectorData::getSort)).orElse(null);
+        return Pair.of(unique, best);
     }
 
     private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
@@ -270,30 +260,26 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
-        List<RuleData> filterRuleData = rules.stream()
-                .filter(rule -> filterRule(rule, exchange))
-                .distinct()
-                .collect(Collectors.toList());
-        if (filterRuleData.size() > 1) {
-            return Pair.of(Boolean.FALSE, manyMatchRule(filterRuleData));
-        } else {
-            return Pair.of(Boolean.TRUE, filterRuleData.stream().findFirst().orElse(null));
+        RuleData best = null;
+        int bestSpecificity = -1;
+        boolean unique = true;
+        for (RuleData rule : rules) {
+            if (!filterRule(rule, exchange)) {
+                continue;
+            }
+            if (Objects.nonNull(best)) {
+                if (best.equals(rule)) {
+                    continue;
+                }
+                unique = false;
+            }
+            int specificity = MatchModeEnum.match(rule.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(rule.getConditionDataList()) : 0;
+            if (Objects.isNull(best) || specificity > bestSpecificity || specificity == bestSpecificity && rule.getSort() < best.getSort()) {
+                best = rule;
+                bestSpecificity = specificity;
+            }
         }
-    }
-
-    private RuleData manyMatchRule(final List<RuleData> filterRuleData) {
-        Map<Integer, List<Pair<Integer, RuleData>>> collect =
-                filterRuleData.stream().map(rule -> {
-                    boolean match = MatchModeEnum.match(rule.getMatchMode(), MatchModeEnum.AND);
-                    int sort = 0;
-                    if (match) {
-                        sort = rule.getConditionDataList().size();
-                    }
-                    return Pair.of(sort, rule);
-                }).collect(Collectors.groupingBy(Pair::getLeft));
-        Integer max = Collections.max(collect.keySet());
-        List<Pair<Integer, RuleData>> pairs = collect.get(max);
-        return pairs.stream().map(Pair::getRight).min(Comparator.comparing(RuleData::getSort)).orElse(null);
+        return Pair.of(unique, best);
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {

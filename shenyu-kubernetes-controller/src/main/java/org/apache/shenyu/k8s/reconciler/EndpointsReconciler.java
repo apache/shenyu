@@ -34,10 +34,11 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressBackendPort;
+import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class EndpointsReconciler implements Reconciler {
      */
     @Override
     public Result reconcile(final Request request) {
-        List<Pair<String, String>> ingressList = ServiceIngressCache.getInstance().getIngressName(request.getNamespace(), request.getName());
+        List<ServiceIngressRelation> ingressList = ServiceIngressCache.getInstance().getIngressName(request.getNamespace(), request.getName());
         if (CollectionUtils.isEmpty(ingressList)) {
             return new Result(false);
         }
@@ -105,14 +106,14 @@ public class EndpointsReconciler implements Reconciler {
             return new Result(false);
         }
 
-        updateSelectors(ingressList, PluginEnum.DIVIDE.getName(), getDivideUpstreamFromEndpoints(v1Endpoints));
-        updateSelectors(ingressList, PluginEnum.WEB_SOCKET.getName(), getWebSocketUpstreamFromEndpoints(v1Endpoints));
+        updateSelectors(ingressList, v1Endpoints, PluginEnum.DIVIDE.getName());
+        updateSelectors(ingressList, v1Endpoints, PluginEnum.WEB_SOCKET.getName());
         LOG.info("Update selector for endpoint {}", request);
 
         return new Result(false);
     }
 
-    private void updateSelectors(final List<Pair<String, String>> ingressList, final String pluginName, final String handle) {
+    private void updateSelectors(final List<ServiceIngressRelation> ingressList, final V1Endpoints v1Endpoints, final String pluginName) {
         if (!ENDPOINT_UPSTREAM_PLUGINS.contains(pluginName)) {
             return;
         }
@@ -120,39 +121,59 @@ public class EndpointsReconciler implements Reconciler {
         if (CollectionUtils.isEmpty(totalSelectors)) {
             return;
         }
-        Set<String> needUpdateSelectorId = new HashSet<>();
-        ingressList.forEach(item -> {
-            List<String> selectorIdList = IngressSelectorCache.getInstance().get(item.getLeft(), item.getRight(), pluginName);
-            if (CollectionUtils.isNotEmpty(selectorIdList)) {
-                needUpdateSelectorId.addAll(selectorIdList);
+        for (ServiceIngressRelation relation : ingressList) {
+            List<String> selectorIdList = IngressSelectorCache.getInstance()
+                    .get(relation.getIngressNamespace(), relation.getIngressName(), pluginName);
+            if (CollectionUtils.isEmpty(selectorIdList)) {
+                continue;
             }
-        });
-        if (needUpdateSelectorId.isEmpty()) {
-            return;
+            // each ingress selects its own service port, so the upstream handle of an ingress must
+            // be rebuilt with the endpoints of that port
+            String handle = getUpstreamHandle(endpointAddresses(v1Endpoints, relation.getPort()), pluginName);
+            if (Objects.isNull(handle)) {
+                LOG.info("Cannot find endpoint addresses of the backend port {} for ingress {}/{}",
+                        relation.getPort(), relation.getIngressNamespace(), relation.getIngressName());
+                continue;
+            }
+            totalSelectors.forEach(selectorData -> {
+                if (selectorIdList.contains(selectorData.getId())) {
+                    SelectorData newSelectorData = SelectorData.builder().id(selectorData.getId())
+                            .pluginId(selectorData.getPluginId())
+                            .pluginName(selectorData.getPluginName())
+                            .name(selectorData.getName())
+                            .matchMode(selectorData.getMatchMode())
+                            .type(selectorData.getType())
+                            .sort(selectorData.getSort())
+                            .enabled(selectorData.getEnabled())
+                            .logged(selectorData.getLogged())
+                            .continued(selectorData.getContinued())
+                            .handle(handle)
+                            .conditionList(selectorData.getConditionList())
+                            .matchRestful(selectorData.getMatchRestful()).build();
+                    shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
+                }
+            });
         }
-        totalSelectors.forEach(selectorData -> {
-            if (needUpdateSelectorId.contains(selectorData.getId())) {
-                SelectorData newSelectorData = SelectorData.builder().id(selectorData.getId())
-                        .pluginId(selectorData.getPluginId())
-                        .pluginName(selectorData.getPluginName())
-                        .name(selectorData.getName())
-                        .matchMode(selectorData.getMatchMode())
-                        .type(selectorData.getType())
-                        .sort(selectorData.getSort())
-                        .enabled(selectorData.getEnabled())
-                        .logged(selectorData.getLogged())
-                        .continued(selectorData.getContinued())
-                        .handle(handle)
-                        .conditionList(selectorData.getConditionList())
-                        .matchRestful(selectorData.getMatchRestful()).build();
-                shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
-            }
-        });
     }
 
-    private String getDivideUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
+    private String getUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses, final String pluginName) {
+        if (CollectionUtils.isEmpty(addresses)) {
+            return null;
+        }
+        if (PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
+            List<WebSocketUpstream> res = new ArrayList<>();
+            addresses.forEach(pair -> res.add(WebSocketUpstream.builder()
+                    .upstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight())
+                    .weight(100)
+                    .protocol("ws://")
+                    .warmup(0)
+                    .status(true)
+                    .host("")
+                    .build()));
+            return GsonUtils.getInstance().toJson(res);
+        }
         List<DivideUpstream> res = new ArrayList<>();
-        endpointAddresses(v1Endpoints).forEach(pair -> {
+        addresses.forEach(pair -> {
             DivideUpstream upstream = new DivideUpstream();
             upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
             upstream.setWeight(100);
@@ -166,20 +187,7 @@ public class EndpointsReconciler implements Reconciler {
         return GsonUtils.getInstance().toJson(res);
     }
 
-    private String getWebSocketUpstreamFromEndpoints(final V1Endpoints v1Endpoints) {
-        List<WebSocketUpstream> res = new ArrayList<>();
-        endpointAddresses(v1Endpoints).forEach(pair -> res.add(WebSocketUpstream.builder()
-                .upstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight())
-                .weight(100)
-                .protocol("ws://")
-                .warmup(0)
-                .status(true)
-                .host("")
-                .build()));
-        return GsonUtils.getInstance().toJson(res);
-    }
-
-    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints) {
+    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints, final IngressBackendPort backendPort) {
         List<Pair<V1EndpointAddress, String>> res = new ArrayList<>();
         List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
         if (CollectionUtils.isNotEmpty(subsets)) {
@@ -189,10 +197,10 @@ public class EndpointsReconciler implements Reconciler {
                 if (CollectionUtils.isEmpty(ports) || CollectionUtils.isEmpty(addresses)) {
                     continue;
                 }
-                CoreV1EndpointPort endpointPort = ports.stream()
-                        .filter(coreV1EndpointPort -> "TCP".equals(coreV1EndpointPort.getProtocol()))
-                        .findFirst()
-                        .orElseThrow(() -> new ShenyuException("Can't find port from endpoints"));
+                CoreV1EndpointPort endpointPort = IngressBackendPort.selectEndpointPort(ports, backendPort);
+                if (Objects.isNull(endpointPort)) {
+                    continue;
+                }
                 String port = null;
                 if (endpointPort.getPort() > 0) {
                     port = String.valueOf(endpointPort.getPort());
