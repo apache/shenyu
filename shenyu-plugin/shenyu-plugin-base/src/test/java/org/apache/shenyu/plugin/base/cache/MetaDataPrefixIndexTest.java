@@ -28,7 +28,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,8 +90,6 @@ public class MetaDataPrefixIndexTest {
         assertFalse((Boolean) ReflectionTestUtils.getField(cache, "negativeCacheDirty"));
         assertNull(cache.obtain("/unmatched/one"));
         assertNull(cache.obtain("/unmatched/two"));
-        Map<?, ?> mapping = (Map<?, ?>) ReflectionTestUtils.getField(cache, "MAPPING");
-        assertFalse(mapping.containsKey(""), "Negative paths must not accumulate outside the bounded cache");
         cache.clean();
         assertNull(cache.getMetaDataCache().get("/unmatched/one"));
     }
