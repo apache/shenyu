@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,23 +62,22 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
     @Override
     public void handle(final String json, final String eventType) {
         List<T> dataList = convert(json);
-
-        if (CollectionUtils.isEmpty(dataList)) {
-            return;
-        }
-
         DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
         switch (eventTypeEnum) {
             case REFRESH:
             case MYSELF:
-                doRefresh(dataList);
+                doRefresh(CollectionUtils.isEmpty(dataList) ? Collections.emptyList() : dataList);
                 break;
             case UPDATE:
             case CREATE:
-                doUpdate(dataList);
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    doUpdate(dataList);
+                }
                 break;
             case DELETE:
-                doDelete(dataList);
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    doDelete(dataList);
+                }
                 break;
             default:
                 break;

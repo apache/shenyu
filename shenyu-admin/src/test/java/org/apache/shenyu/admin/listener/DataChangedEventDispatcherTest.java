@@ -123,10 +123,10 @@ public final class DataChangedEventDispatcherTest {
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.APP_AUTH;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onAppAuthChanged(anyList(), any());
-        verify(nacosDataChangedListener, times(1)).onAppAuthChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onAppAuthChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onAppAuthChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
     }
 
     /**
@@ -139,10 +139,10 @@ public final class DataChangedEventDispatcherTest {
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.PLUGIN;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
     }
 
     /**
@@ -155,10 +155,10 @@ public final class DataChangedEventDispatcherTest {
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.RULE;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onRuleChanged(anyList(), any());
-        verify(nacosDataChangedListener, times(1)).onRuleChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onRuleChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onRuleChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
     }
 
     /**
@@ -171,10 +171,10 @@ public final class DataChangedEventDispatcherTest {
         ConfigGroupEnum configGroupEnum = ConfigGroupEnum.SELECTOR;
         DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onSelectorChanged(anyList(), any());
-        verify(nacosDataChangedListener, times(1)).onSelectorChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onSelectorChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onSelectorChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onSelectorChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, times(1)).onSelectorChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onSelectorChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onSelectorChanged(anyList(), any(), any());
     }
 
     /**
@@ -274,10 +274,10 @@ public final class DataChangedEventDispatcherTest {
         when(clusterProperties.isEnabled()).thenReturn(false);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
     }
 
     /**
@@ -292,7 +292,7 @@ public final class DataChangedEventDispatcherTest {
         ReflectionTestUtils.setField(dataChangedEventDispatcher, "listeners", Collections.unmodifiableList(orderedListeners));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any());
+        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
     }
 
     /**
@@ -306,9 +306,9 @@ public final class DataChangedEventDispatcherTest {
         field.set(dataChangedEventDispatcher, null);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
-        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(nacosDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(zookeeperDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
     }
 }

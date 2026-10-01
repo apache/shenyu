@@ -124,7 +124,7 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
                 try {
                     client.close();
                 } catch (InterruptedException | ProducerException e) {
-                    LOG.error("Close producer error.");
+                    LOG.error("Close producer error.", e);
                 }
             }
         } finally {
