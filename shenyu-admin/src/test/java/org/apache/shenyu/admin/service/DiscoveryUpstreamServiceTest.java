@@ -304,6 +304,45 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testListAllSkipsOrphansAndKeepsValidBindings() {
+        DiscoveryHandlerDO noRelation = buildDiscoveryHandlerDO();
+        noRelation.setId("no-relation");
+        DiscoveryHandlerDO missingSelector = buildDiscoveryHandlerDO();
+        missingSelector.setId("missing-selector");
+        DiscoveryHandlerDO missingProxy = buildDiscoveryHandlerDO();
+        missingProxy.setId("missing-proxy");
+        DiscoveryHandlerDO validSelector = buildDiscoveryHandlerDO();
+        validSelector.setId("valid-selector");
+        DiscoveryHandlerDO validProxy = buildDiscoveryHandlerDO();
+        validProxy.setId("valid-proxy");
+        when(discoveryHandlerMapper.selectAll()).thenReturn(List.of(noRelation, missingSelector, validSelector, missingProxy, validProxy));
+        DiscoveryRelDO staleSelectorRel = buildDiscoveryRelDO();
+        staleSelectorRel.setSelectorId("deleted-selector");
+        staleSelectorRel.setDiscoveryHandlerId("missing-selector");
+        DiscoveryRelDO staleProxyRel = buildDiscoveryRelDO();
+        staleProxyRel.setProxySelectorId("deleted-proxy");
+        staleProxyRel.setDiscoveryHandlerId("missing-proxy");
+        DiscoveryRelDO selectorRel = buildDiscoveryRelDO();
+        selectorRel.setSelectorId("selector_1");
+        selectorRel.setDiscoveryHandlerId("valid-selector");
+        when(selectorMapper.selectByIdSet(Set.of("selector_1", "deleted-selector"))).thenReturn(List.of(buildSelectorDO()));
+        DiscoveryRelDO proxyRel = buildDiscoveryRelDO();
+        proxyRel.setProxySelectorId("proxy_1");
+        proxyRel.setDiscoveryHandlerId("valid-proxy");
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(List.of(staleSelectorRel, staleProxyRel, selectorRel, proxyRel));
+        ProxySelectorDO proxy = buildProxySelectorDO();
+        proxy.setId("proxy_1");
+        when(proxySelectorMapper.selectByIds(List.of("deleted-proxy", "proxy_1"))).thenReturn(List.of(proxy));
+        List<DiscoverySyncData> result = discoveryUpstreamService.listAll();
+        assertEquals(2, result.size());
+        assertEquals("selector_1", result.get(0).getSelectorId());
+        assertEquals("proxy_1", result.get(1).getSelectorId());
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("no-relation");
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("missing-selector");
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId("missing-proxy");
+    }
+
+    @Test
     public void testListAllData() {
         List<DiscoveryUpstreamDO> list = Collections.singletonList(buildDiscoveryUpstreamDO(""));
         when(discoveryUpstreamMapper.selectAll()).thenReturn(list);

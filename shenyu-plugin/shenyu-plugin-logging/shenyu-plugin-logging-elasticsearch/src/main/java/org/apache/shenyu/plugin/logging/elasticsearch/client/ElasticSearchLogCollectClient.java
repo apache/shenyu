@@ -150,7 +150,12 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
      */
     public void createIndex(final String indexName) {
         try {
-            client.indices().create(c -> c.index(indexName));
+            client.indices().create(c -> c.index(indexName).mappings(mapping -> mapping
+                    // Desensitized values remain in _source without rejecting the entire log document.
+                    .properties("timeLocal", property -> property.date(date -> date.format("yyyy-MM-dd HH:mm:ss.SSS").ignoreMalformed(true)))
+                    .properties("responseContentLength", property -> property.integer(number -> number.ignoreMalformed(true)))
+                    .properties("status", property -> property.integer(number -> number.ignoreMalformed(true)))
+                    .properties("upstreamResponseTime", property -> property.long_(number -> number.ignoreMalformed(true)))));
         } catch (IOException e) {
             LogUtils.error(LOG, "create index error:", e);
         }
