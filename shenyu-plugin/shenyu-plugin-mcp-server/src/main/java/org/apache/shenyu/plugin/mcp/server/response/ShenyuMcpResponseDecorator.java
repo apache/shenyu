@@ -56,25 +56,17 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     @Override
     public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
         LOG.debug("Writing response data for session: {}", sessionId);
-        return super.writeWith(Flux.from(body).doOnNext(buffer -> {
-            byte[] bytes = new byte[buffer.readableByteCount()];
-            buffer.read(bytes);
-            String chunk = new String(bytes, StandardCharsets.UTF_8);
-            if (isFirstChunk) {
-                LOG.debug("First response chunk received for session: {}", sessionId);
-                isFirstChunk = false;
-            }
-            LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunk.length());
-            synchronized (this.body) {
-                this.body.append(chunk);
-            }
-        }).doOnComplete(() -> completeFuture()));
+        return super.writeWith(Flux.from(body).doOnNext(this::appendChunk))
+                .doOnSuccess(unused -> completeFuture());
     }
 
     @Override
     public Mono<Void> writeAndFlushWith(final Publisher<? extends Publisher<? extends DataBuffer>> body) {
         LOG.debug("Writing and flushing response data for session: {}", sessionId);
-        return super.writeAndFlushWith(body);
+        final Flux<Publisher<? extends DataBuffer>> capturedBody = Flux.from(body)
+                .map(inner -> Flux.from(inner).doOnNext(this::appendChunk));
+        return super.writeAndFlushWith(capturedBody)
+                .doOnSuccess(unused -> completeFuture());
     }
 
     @Override
@@ -96,6 +88,18 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
                     future.complete(applyResponseTemplate(responseBody));
                 }
             }
+        }
+    }
+
+    private void appendChunk(final DataBuffer buffer) {
+        final String chunk = buffer.toString(StandardCharsets.UTF_8);
+        if (isFirstChunk) {
+            LOG.debug("First response chunk received for session: {}", sessionId);
+            isFirstChunk = false;
+        }
+        LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunk.length());
+        synchronized (this.body) {
+            this.body.append(chunk);
         }
     }
 

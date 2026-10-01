@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mcp.server.response;
 
+import org.reactivestreams.Publisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -28,6 +29,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +51,12 @@ class ShenyuMcpResponseDecoratorTest {
 
     @Test
     void testWriteWithCompletesFutureWithAllChunks() throws Exception {
-        when(delegate.writeWith(any())).thenAnswer(invocation -> Flux.from(invocation.getArgument(0)).then());
+        final List<String> forwardedChunks = new ArrayList<>();
+        when(delegate.writeWith(any())).thenAnswer(invocation -> Flux
+                .from(invocation.<Publisher<? extends DataBuffer>>getArgument(0))
+                .map(this::readBuffer)
+                .doOnNext(forwardedChunks::add)
+                .then());
 
         final CompletableFuture<String> future = new CompletableFuture<>();
         final ShenyuMcpResponseDecorator decorator =
@@ -57,6 +65,30 @@ class ShenyuMcpResponseDecoratorTest {
         decorator.writeWith(Flux.just(buffer("part-1,"), buffer("part-2"))).block();
 
         assertEquals("part-1,part-2", future.get(5, TimeUnit.SECONDS));
+        assertEquals(List.of("part-1,", "part-2"), forwardedChunks);
+    }
+
+    @Test
+    void testWriteAndFlushWithCompletesFutureAndPreservesFlushes() throws Exception {
+        final List<List<String>> forwardedFlushes = new ArrayList<>();
+        when(delegate.writeAndFlushWith(any())).thenAnswer(invocation -> Flux
+                .from(invocation.<Publisher<? extends Publisher<? extends DataBuffer>>>getArgument(0))
+                .concatMap(flush -> Flux.from(flush)
+                        .map(this::readBuffer)
+                        .collectList()
+                        .doOnNext(forwardedFlushes::add))
+                .then());
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final ShenyuMcpResponseDecorator decorator =
+                new ShenyuMcpResponseDecorator(delegate, "session-1", future, null);
+
+        decorator.writeAndFlushWith(Flux.just(
+                Flux.just(buffer("part-1,")),
+                Flux.just(buffer("part-2")))).block();
+
+        assertEquals("part-1,part-2", future.get(5, TimeUnit.SECONDS));
+        assertEquals(List.of(List.of("part-1,"), List.of("part-2")), forwardedFlushes);
     }
 
     @Test
@@ -74,5 +106,11 @@ class ShenyuMcpResponseDecoratorTest {
 
     private DataBuffer buffer(final String content) {
         return bufferFactory.wrap(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String readBuffer(final DataBuffer dataBuffer) {
+        final byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }
