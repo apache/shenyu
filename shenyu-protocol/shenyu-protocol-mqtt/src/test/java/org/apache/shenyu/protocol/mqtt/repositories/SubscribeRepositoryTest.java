@@ -20,19 +20,25 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.shenyu.common.utils.Singleton;
+import org.awaitility.core.ThrowingRunnable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -41,86 +47,180 @@ import static org.mockito.Mockito.mock;
  */
 public final class SubscribeRepositoryTest {
 
-    private static final String EXISTING_TOPIC = "test/existing-topic";
-    private static final String TOPIC = "test/subscribe";
-
-    private static final String MULTI_TOPIC_A = "test/subscribe-a";
-
     private static final String ABSENT_TOPIC = "test/absent-topic";
-    private static final String MULTI_TOPIC_B = "test/subscribe-b";
-    private static final String KEPT_TOPIC = "test/kept-topic";
-    private static final String CONCURRENT_TOPIC = "test/concurrent-subscribe";
 
-    private static final String CONCURRENT_TOPICS_TOPIC = "test/concurrent-subscribe-topics";
+    private static final String TOPIC = "test/topic";
 
-    private static final int SUBSCRIBER_COUNT = 50;
+    private static final String OTHER_TOPIC = "test/other-topic";
+
+    private static final List<String> ALL_TOPICS = Arrays.asList(ABSENT_TOPIC, TOPIC, OTHER_TOPIC);
+
+    private static final Duration TIMEOUT = Duration.ofSeconds(5);
+
+    private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
 
     private SubscribeRepository repository;
 
+    private Channel channel;
+
+    private Channel otherChannel;
+
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         repository = new SubscribeRepository();
+        channel = mock(Channel.class);
+        otherChannel = mock(Channel.class);
+        Singleton.INST.single(SubscribeRepository.class, repository);
+        clearAllTopics();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        clearAllTopics();
     }
 
     @Test
-    public void removeRemovesChannelFromExistingTopic() {
-        SubscribeRepository repository = new SubscribeRepository();
-        Channel channel = mock(Channel.class);
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXISTING_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).contains(channel));
-
-        repository.remove(Collections.singletonList(EXISTING_TOPIC), channel);
-
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(EXISTING_TOPIC).isEmpty());
+    public void testAddStoresGrantedQosPerTopic() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE)));
+        awaitAssert(() -> assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(channel)));
     }
 
     @Test
-    public void removeAbsentTopicDoesNotThrow() {
-        SubscribeRepository repository = new SubscribeRepository();
-        Channel channel = mock(Channel.class);
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(KEPT_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(KEPT_TOPIC).contains(channel));
+    public void testAddRegistersEverySubscribedTopic() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(OTHER_TOPIC, MqttQoS.EXACTLY_ONCE)));
+        awaitAssert(() -> {
+            assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
+            assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(OTHER_TOPIC).get(channel));
+        });
+    }
+
+    @Test
+    public void testAddKeepsMaxQosForOverlappingSubscription() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE),
+                new MqttTopicSubscription(TOPIC, MqttQoS.EXACTLY_ONCE)));
+        awaitAssert(() -> assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(TOPIC).get(channel)));
+
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
+        awaitRepositoryIdle();
+        assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(TOPIC).get(channel));
+    }
+
+    @Test
+    public void testAddIgnoresFailureSubscription() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.FAILURE)));
+        awaitRepositoryIdle();
+        assertTrue(repository.get(TOPIC).isEmpty());
+        assertTrue(repository.get(ALL_TOPICS).isEmpty());
+    }
+
+    @Test
+    public void testAddTopicsWithChannelQosMap() {
+        Map<Channel, MqttQoS> channelQos = new ConcurrentHashMap<>();
+        channelQos.put(channel, MqttQoS.AT_MOST_ONCE);
+        channelQos.put(otherChannel, MqttQoS.EXACTLY_ONCE);
+        repository.add(Arrays.asList(TOPIC, OTHER_TOPIC), channelQos);
+        awaitAssert(() -> {
+            assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
+            assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(TOPIC).get(otherChannel));
+            assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(OTHER_TOPIC).get(channel));
+            assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(OTHER_TOPIC).get(otherChannel));
+        });
+    }
+
+    @Test
+    public void testGetMergesSubscribersOfEveryTopic() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(OTHER_TOPIC, MqttQoS.EXACTLY_ONCE)));
+        repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(OTHER_TOPIC, MqttQoS.AT_LEAST_ONCE)));
+        awaitAssert(() -> {
+            Map<Channel, MqttQoS> subscribers = repository.get(Arrays.asList(TOPIC, OTHER_TOPIC));
+            assertEquals(2, subscribers.size());
+            assertEquals(MqttQoS.EXACTLY_ONCE, subscribers.get(channel));
+            assertEquals(MqttQoS.AT_LEAST_ONCE, subscribers.get(otherChannel));
+        });
+    }
+
+    @Test
+    public void testGetAbsentTopicReturnsNoSubscribers() {
+        assertTrue(repository.get(Collections.singletonList(ABSENT_TOPIC)).isEmpty());
+    }
+
+    @Test
+    public void testRemoveChannelFromTopic() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(OTHER_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE)));
+        awaitAssert(() -> {
+            assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
+            assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(otherChannel));
+        });
+
+        repository.remove(Collections.singletonList(TOPIC), channel);
+
+        awaitAssert(() -> {
+            assertFalse(repository.get(TOPIC).containsKey(channel));
+            assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(otherChannel));
+            assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(OTHER_TOPIC).get(channel));
+        });
+    }
+
+    @Test
+    public void testRemoveChannelFromEveryTopic() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(OTHER_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE)));
+        awaitAssert(() -> assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(otherChannel)));
+
+        repository.remove(channel);
+
+        awaitAssert(() -> {
+            assertFalse(repository.get(TOPIC).containsKey(channel));
+            assertTrue(repository.get(OTHER_TOPIC).isEmpty());
+            assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(otherChannel));
+        });
+    }
+
+    @Test
+    public void testRemoveAbsentTopicDoesNotThrow() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
+        awaitAssert(() -> assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel)));
 
         assertDoesNotThrow(() -> repository.remove(Collections.singletonList(ABSENT_TOPIC), channel));
-        await().atMost(Duration.ofSeconds(5))
-                .until(() -> ForkJoinPool.commonPool().awaitQuiescence(1, TimeUnit.SECONDS));
+        awaitRepositoryIdle();
 
         assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
-        assertTrue(repository.get(KEPT_TOPIC).contains(channel));
+        assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
     }
 
-    @Test
-    public void addChannelSubscribesChannelToTopic() {
-        Channel channel = mock(Channel.class);
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
-        await().atMost(Duration.ofSeconds(5)).until(() -> repository.get(TOPIC).contains(channel));
+    /**
+     * The repository mutates its state asynchronously on the common pool,
+     * so assertions have to be retried until the mutation becomes visible.
+     *
+     * @param assertion assertion to retry
+     */
+    private void awaitAssert(final ThrowingRunnable assertion) {
+        await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).untilAsserted(assertion);
     }
 
-    @Test
-    public void addTopicsRegistersChannelsForEachTopic() {
-        Channel channel = mock(Channel.class);
-        repository.add(List.of(MULTI_TOPIC_A, MULTI_TOPIC_B), Collections.singletonList(channel));
-        await().atMost(Duration.ofSeconds(5)).until(() ->
-                repository.get(MULTI_TOPIC_A).contains(channel) && repository.get(MULTI_TOPIC_B).contains(channel));
+    /**
+     * Waits until the repository finished all pending asynchronous mutations.
+     * Required to assert that a mutation did <em>not</em> change the shared state.
+     */
+    private void awaitRepositoryIdle() {
+        assertTrue(ForkJoinPool.commonPool().awaitQuiescence(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS));
     }
 
-    @Test
-    public void concurrentAddsToSameTopicDoNotLoseSubscribers() {
-        List<Channel> channels = IntStream.range(0, SUBSCRIBER_COUNT)
-                .mapToObj(i -> mock(Channel.class))
-                .collect(Collectors.toList());
-        channels.parallelStream().forEach(channel -> repository.add(channel,
-                Collections.singletonList(new MqttTopicSubscription(CONCURRENT_TOPIC, MqttQoS.AT_MOST_ONCE))));
-        await().atMost(Duration.ofSeconds(10)).until(() -> repository.get(CONCURRENT_TOPIC).size() == SUBSCRIBER_COUNT);
-    }
-
-    @Test
-    public void concurrentAddsForTopicsDoNotLoseChannels() {
-        List<Channel> channels = IntStream.range(0, SUBSCRIBER_COUNT)
-                .mapToObj(i -> mock(Channel.class))
-                .collect(Collectors.toList());
-        channels.parallelStream().forEach(channel -> repository.add(
-                Collections.singletonList(CONCURRENT_TOPICS_TOPIC), Collections.singletonList(channel)));
-        await().atMost(Duration.ofSeconds(10)).until(() -> repository.get(CONCURRENT_TOPICS_TOPIC).size() == SUBSCRIBER_COUNT);
+    /**
+     * The repository keeps its state in a static map which is shared by every instance and
+     * by the other test classes of this module, so the topics used here are released around every test.
+     */
+    private void clearAllTopics() {
+        repository.remove(ALL_TOPICS);
+        awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
     }
 }

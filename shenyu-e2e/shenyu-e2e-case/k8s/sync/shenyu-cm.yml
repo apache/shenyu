@@ -519,9 +519,21 @@ data:
             secretKey:
 
   application-bootstrap-sync-websocket.yml: |
+    management:
+      endpoint:
+        health:
+          probes:
+            enabled: true
+          group:
+            readiness:
+              include: readinessState,websocketSync
+            liveness:
+              include: livenessState
     shenyu:
       sync:
         websocket:
+          # Requires an Admin supporting the initial synchronization protocol.
+          initial-sync-readiness: true
           urls: ws://shenyu-admin:9095/websocket
           token: shenyu-sync-token
           allowOrigin: ws://localhost:9195

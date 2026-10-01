@@ -31,9 +31,9 @@ import org.apache.shenyu.disruptor.event.OrderlyDisruptorEventFactory;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.disruptor.thread.DisruptorThreadFactory;
 import org.apache.shenyu.disruptor.thread.OrderlyExecutor;
+import org.apache.shenyu.disruptor.thread.BlockWhenFullPolicy;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -54,7 +54,9 @@ public class DisruptorProviderManage<T> {
     
     private final QueueConsumerFactory<T> consumerFactory;
     
-    private DisruptorProvider<T> provider;
+    private volatile DisruptorProvider<T> provider;
+
+    private boolean started;
     
     /**
      * Instantiates a new Disruptor provider manage.
@@ -100,14 +102,18 @@ public class DisruptorProviderManage<T> {
     }
     
     /**
-     * start disruptor..
+     * Start disruptor once. Subsequent calls retain the provider and execution mode
+     * from the first successful startup.
      *
      * @param isOrderly the orderly Whether to execute sequentially.
      */
-    public void startup(final boolean isOrderly) {
+    public synchronized void startup(final boolean isOrderly) {
+        if (started) {
+            return;
+        }
         OrderlyExecutor executor = new OrderlyExecutor(isOrderly, consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(size),
+                DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new BlockWhenFullPolicy());
         int newConsumerSize = this.consumerSize;
         EventFactory<DataEvent<T>> eventFactory;
         if (isOrderly) {
@@ -131,6 +137,7 @@ public class DisruptorProviderManage<T> {
         disruptor.start();
         RingBuffer<DataEvent<T>> ringBuffer = disruptor.getRingBuffer();
         provider = new DisruptorProvider<>(ringBuffer, disruptor, isOrderly, executor);
+        started = true;
     }
     
     /**
