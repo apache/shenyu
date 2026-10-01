@@ -22,6 +22,8 @@ import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -205,6 +207,17 @@ public final class WebClientPluginTest {
         assertEquals(Collections.singletonList("last"), captor.getValue().headers().get(headerName));
     }
 
+    @Test
+    public void testServerErrorTriggersFailover() {
+        WebClientPlugin plugin = new WebClientPlugin(mockWebClientError(), Constants.BYTES_PER_MB);
+        ServerWebExchange exchange = generateServerWebExchange();
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+
+        StepVerifier.create(plugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
+                .expectError(ShenyuUpstreamStatusException.class)
+                .verify();
+    }
+
     @ParameterizedTest
     @EnumSource(HeaderUniqueStrategyEnum.class)
     public void testOutboundHeaderDeduplication(final HeaderUniqueStrategyEnum strategy) {
@@ -268,15 +281,8 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
-        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
-        
-        final ClientResponse mockResponse = mock(ClientResponse.class);
-        when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-        when(mockResponse.headers()).thenReturn(headers);
-        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
-        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
-        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
+        final ClientResponse response = ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(response));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)
                 .apply(consumer -> consumer.defaultHeader("Accept", "application/json")

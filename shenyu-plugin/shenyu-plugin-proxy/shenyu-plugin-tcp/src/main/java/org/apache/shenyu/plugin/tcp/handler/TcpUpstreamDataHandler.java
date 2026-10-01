@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.UpstreamProvider;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +44,40 @@ public class TcpUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
 
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
-        List<DiscoveryUpstreamData> removed = UpstreamProvider.getSingleton().refreshCache(discoverySyncData.getSelectorName(), discoverySyncData.getUpstreamDataList());
-        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().getCache(discoverySyncData.getSelectorName());
+        if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorName())) {
+            return;
+        }
+        final String selectorName = discoverySyncData.getSelectorName();
+        UpstreamProvider upstreamProvider = UpstreamProvider.getSingleton();
+        List<DiscoveryUpstreamData> removed = upstreamProvider.refreshCache(selectorName, discoverySyncData.getUpstreamDataList());
+        if (upstreamProvider.inCache(selectorName)) {
+            upstreamProvider.registerSelector(discoverySyncData.getSelectorId(), selectorName);
+        }
+        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().getCache(selectorName);
         if (Objects.nonNull(bootstrapServer)) {
             bootstrapServer.removeCommonUpstream(removed);
-            LOG.info("shenyu update TcpBootstrapServer [{}] success upstream is {}", discoverySyncData.getSelectorName(), discoverySyncData.getUpstreamDataList());
+            LOG.info("shenyu update TcpBootstrapServer [{}] success upstream is {}", selectorName, discoverySyncData.getUpstreamDataList());
         } else {
-            LOG.warn("shenyu update TcpBootstrapServer don't find name is {}", discoverySyncData.getSelectorName());
+            LOG.warn("shenyu update TcpBootstrapServer don't find name is {}", selectorName);
+        }
+    }
+
+    @Override
+    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        if (Objects.isNull(key)) {
+            return;
+        }
+        final String selectorId = key.selectorId();
+        final String localSelectorName = UpstreamProvider.getSingleton().getSelectorName(selectorId);
+        final String selectorName = Objects.nonNull(localSelectorName) ? localSelectorName : key.selectorName();
+        if (Objects.isNull(selectorName)) {
+            LOG.warn("shenyu remove TcpBootstrapServer upstreams don't find selectorName by selectorId {}", selectorId);
+            return;
+        }
+        List<DiscoveryUpstreamData> removed = UpstreamProvider.getSingleton().removeUpstreams(selectorName);
+        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().getCache(selectorName);
+        if (Objects.nonNull(bootstrapServer)) {
+            bootstrapServer.removeCommonUpstream(removed);
         }
     }
 

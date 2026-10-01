@@ -19,10 +19,10 @@ package org.apache.shenyu.sync.data.core;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -90,6 +90,17 @@ public class AbstractPathDataSyncServiceTest {
     }
 
     @Test
+    public void testUnCacheDiscoveryUpstreamData() {
+        pathDataSyncService.event("/default", "/default/shenyu/discoveryUpstream/divide/selector-id", null,
+                "/default/shenyu/discoveryUpstream", AbstractPathDataSyncService.EventType.DELETE);
+
+        ArgumentCaptor<DiscoveryUpstreamKey> captor = ArgumentCaptor.forClass(DiscoveryUpstreamKey.class);
+        verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
+        assertEquals("divide", captor.getValue().pluginName());
+        assertEquals("selector-id", captor.getValue().selectorId());
+    }
+
+    @Test
     public void testDiscoveryUpstreamHandlerEvent() {
 
         String namespaceId = "/namespace";
@@ -101,10 +112,10 @@ public class AbstractPathDataSyncServiceTest {
         verify(discoveryUpstreamDataSubscriber).onSubscribe(any());
 
         pathDataSyncService.event(namespaceId, updatePath, null, registerPath, AbstractPathDataSyncService.EventType.DELETE);
-        ArgumentCaptor<DiscoverySyncData> captor = ArgumentCaptor.forClass(DiscoverySyncData.class);
+        ArgumentCaptor<DiscoveryUpstreamKey> captor = ArgumentCaptor.forClass(DiscoveryUpstreamKey.class);
         verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
-        assertEquals("divide", captor.getValue().getPluginName());
-        assertEquals("testSelectorId", captor.getValue().getSelectorId());
+        assertEquals("divide", captor.getValue().pluginName());
+        assertEquals("testSelectorId", captor.getValue().selectorId());
     }
 
     // Mock implementation
