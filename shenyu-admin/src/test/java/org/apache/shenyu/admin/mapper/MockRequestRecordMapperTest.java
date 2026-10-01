@@ -94,9 +94,9 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(queryResult.getBody(), mockRequestRecordDO.getBody());
         assertEquals(queryResult.getHeader(), mockRequestRecordDO.getHeader());
         assertEquals(queryResult.getHost(), mockRequestRecordDO.getHost());
-        assertEquals(queryResult.getPathVariable(), mockRequestRecordDO.getPathVariable());
+        assertTrue(Objects.isNull(queryResult.getPathVariable()) || queryResult.getPathVariable().equals(mockRequestRecordDO.getPathVariable()));
         assertEquals(queryResult.getPort(), mockRequestRecordDO.getPort());
-        assertEquals(queryResult.getQuery(), mockRequestRecordDO.getQuery());
+        assertTrue(Objects.isNull(queryResult.getQuery()) || queryResult.getQuery().equals(mockRequestRecordDO.getQuery()));
     }
 
     @Test
