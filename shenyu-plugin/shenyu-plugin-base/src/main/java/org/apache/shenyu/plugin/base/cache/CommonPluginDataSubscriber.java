@@ -120,6 +120,32 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     @Override
+    public void refreshPluginDataNamespace(final String namespaceId) {
+        List<PluginData> stale = BaseDataCache.getInstance().getPluginMap().values().stream()
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .collect(Collectors.toList());
+        stale.forEach(this::unSubscribe);
+    }
+
+    @Override
+    public void refreshSelectorDataNamespace(final String namespaceId) {
+        List<SelectorData> stale = BaseDataCache.getInstance().getSelectorMap().values().stream()
+                .flatMap(List::stream)
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .collect(Collectors.toList());
+        stale.forEach(this::unSelectorSubscribe);
+    }
+
+    @Override
+    public void refreshRuleDataNamespace(final String namespaceId) {
+        List<RuleData> stale = BaseDataCache.getInstance().getRuleMap().values().stream()
+                .flatMap(List::stream)
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .collect(Collectors.toList());
+        stale.forEach(this::unRuleSubscribe);
+    }
+
+    @Override
     public void refreshPluginDataAll() {
         BaseDataCache.getInstance().cleanPluginData();
     }

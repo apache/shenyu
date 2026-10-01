@@ -59,6 +59,28 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
      */
     protected abstract void doDelete(List<T> dataList);
 
+    /**
+     * Apply an authoritative snapshot for the connection's namespace.
+     * @param json snapshot array, including an empty array
+     * @param namespaceId namespace to replace
+     */
+    public void handleSnapshot(final String json, final String namespaceId) {
+        List<T> dataList = convert(json);
+        if (java.util.Objects.isNull(dataList)) {
+            throw new IllegalArgumentException("A snapshot must contain a data array");
+        }
+        doSnapshot(dataList, namespaceId);
+    }
+
+    /**
+     * Replace the complete group, not just rows present in the payload.
+     * @param dataList complete group
+     * @param namespaceId namespace to replace
+     */
+    protected void doSnapshot(final List<T> dataList, final String namespaceId) {
+        throw new IllegalArgumentException("Namespace snapshots are supported only for plugins, selectors and rules");
+    }
+
     @Override
     public void handle(final String json, final String eventType) {
         List<T> dataList = convert(json);

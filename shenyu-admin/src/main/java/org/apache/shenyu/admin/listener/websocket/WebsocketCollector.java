@@ -50,6 +50,7 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -255,6 +256,15 @@ public class WebsocketCollector {
     }
     
     /**
+     * Snapshot the namespace ids that currently have at least one registered session.
+     *
+     * @return the namespace ids with active sessions
+     */
+    public static Set<String> getActiveNamespaceIds() {
+        return Set.copyOf(NAMESPACE_SESSION_MAP.keySet());
+    }
+
+    /**
      * On close.
      *
      * @param session the session
@@ -422,17 +432,31 @@ public class WebsocketCollector {
         try {
             Map<String, Object> map = JsonUtils.jsonToMap(json);
             if (Objects.nonNull(map)) {
-                if (map.containsKey("apiKey")) {
-                    map.put("apiKey", "******");
-                }
-                if (map.containsKey("realApiKey")) {
-                    map.put("realApiKey", "******");
-                }
+                redactSensitive(map);
                 return JsonUtils.toJson(map);
             }
-            return json;
+            return "[unparseable websocket payload]";
         } catch (Exception e) {
-            return json;
+            return "[unparseable websocket payload]";
+        }
+    }
+
+    private static void redactSensitive(final Object value) {
+        if (value instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) value;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() instanceof String
+                        && ("apiKey".equals(entry.getKey()) || "realApiKey".equals(entry.getKey())
+                        || "proxyApiKey".equals(entry.getKey()))) {
+                    ((Map<Object, Object>) map).put(entry.getKey(), "******");
+                } else {
+                    redactSensitive(entry.getValue());
+                }
+            }
+        } else if (value instanceof List) {
+            for (Object item : (List<?>) value) {
+                redactSensitive(item);
+            }
         }
     }
 

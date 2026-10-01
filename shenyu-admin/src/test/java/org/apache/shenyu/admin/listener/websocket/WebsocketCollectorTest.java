@@ -147,6 +147,17 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
+    public void testNestedApiKeysAreRedacted() {
+        String message = "{\"data\":[{\"proxyApiKey\":\"proxy-secret\","
+                + "\"nested\":{\"realApiKey\":\"real-secret\",\"apiKey\":\"api-secret\"}}]}";
+        String masked = ReflectionTestUtils.invokeMethod(WebsocketCollector.class, "maskSensitive", message);
+        assertFalse(masked.contains("proxy-secret"));
+        assertFalse(masked.contains("real-secret"));
+        assertFalse(masked.contains("api-secret"));
+        assertTrue(masked.contains("******"));
+    }
+
+    @Test
     void testOnOpen() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());

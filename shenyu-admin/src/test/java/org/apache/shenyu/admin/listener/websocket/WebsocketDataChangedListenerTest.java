@@ -84,7 +84,7 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnPluginChanged() {
         String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\","
-                + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
                 .thenAnswer(invocation -> null);
@@ -172,7 +172,7 @@ public final class WebsocketDataChangedListenerTest {
         String message = "{\"groupType\":\"APP_AUTH\",\"eventType\":\"UPDATE\",\"data\":[{\"appKey\":"
                 + "\"D9FD95F496C9495DB5604778A13C3D08\",\"appSecret\":\"02D25048AA1E466F8920E68B08E668DE\","
                 + "\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}]"
-                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE))
                 .thenAnswer((Answer<Void>) invocation -> null);
@@ -226,7 +226,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnMetaDataChanged() {
         String message = "{\"groupType\":\"META_DATA\",\"eventType\":\"CREATE\",\"data\":[{\"appName\":\"axiba\","
                 + "\"path\":\"/test/execute\",\"rpcType\":\"http\",\"serviceName\":\"execute\",\"methodName\":"
-                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
                 .thenAnswer(invocation -> null);
@@ -392,7 +392,7 @@ public final class WebsocketDataChangedListenerTest {
     private void verifyEmptySnapshot(final MockedStatic<WebsocketCollector> mockedStatic, final String namespaceId,
                                      final String groupType, final DataEventTypeEnum eventType) {
         String message = String.format(
-                "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[]}", groupType, eventType.name());
+                "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[],\"fullSnapshot\":false}", groupType, eventType.name());
         mockedStatic.verify(() -> WebsocketCollector.send(
                 eq(namespaceId), argThat(actualMsg -> jsonEquals(message, actualMsg)), eq(eventType)));
     }
