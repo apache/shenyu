@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -48,6 +49,21 @@ public class PostgreSqlUpdateInterceptorTest {
         when(invocation.getArgs()).thenReturn(args);
         when(executor.update(any(), any())).thenReturn(1);
         Assertions.assertDoesNotThrow(() -> postgreSqlUpdateInterceptor.intercept(invocation));
+    }
+
+    @Test
+    public void interceptNullParameterTest() throws SQLException {
+        final PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor = new PostgreSqlUpdateInterceptor();
+        final Invocation invocation = mock(Invocation.class);
+        final MappedStatement mappedStatement = mock(MappedStatement.class);
+        final Object[] args = new Object[] {mappedStatement, null};
+        final Executor executor = mock(Executor.class);
+        when(invocation.getTarget()).thenReturn(executor);
+        when(invocation.getArgs()).thenReturn(args);
+        when(executor.update(mappedStatement, null)).thenReturn(1);
+
+        Assertions.assertDoesNotThrow(() -> postgreSqlUpdateInterceptor.intercept(invocation));
+        verify(executor).update(mappedStatement, null);
     }
 
     @Test
