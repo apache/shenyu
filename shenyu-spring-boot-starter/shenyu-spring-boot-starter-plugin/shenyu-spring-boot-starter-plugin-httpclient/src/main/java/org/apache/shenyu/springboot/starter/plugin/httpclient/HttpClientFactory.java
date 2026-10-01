@@ -143,8 +143,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-        // set to false, fix java.io.IOException: Connection reset by peer
-        // see https://github.com/reactor/reactor-netty/issues/388
+        // Reuse connections by default. Tune the fixed pool's maxIdleTime below the upstream idle limit;
+        // keepAlive=false remains an escape hatch for stale-connection resets (reactor-netty#388).
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 

@@ -6,6 +6,13 @@
 
 ### Behavior Changes
 
+- `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
+  upstream connections and reducing connection setup overhead. It previously
+  defaulted to `false` as a workaround for stale pooled connections being reset
+  by the peer (Reactor Netty issue #388).
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream idle timeout
+  when using a fixed connection pool. If connection resets persist, restore
+  the previous behavior with `shenyu.httpclient.keepAlive=false`.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a
