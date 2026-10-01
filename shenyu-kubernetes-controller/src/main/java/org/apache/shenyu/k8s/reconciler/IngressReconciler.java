@@ -391,6 +391,11 @@ public class IngressReconciler implements Reconciler {
     /**
      * Parse the backend services referenced by the ingress, mapped to the service port selected by the ingress.
      *
+     * <p>The result is keyed by service name, so when an ingress routes several paths to the same service
+     * with different service ports, only the port of the first path that references the service is kept.
+     * The relation cached for the ingress is therefore per service rather than per path, and an endpoint
+     * update rebuilds the upstream handle of that single port for every selector of the ingress.
+     *
      * @param ingress ingress resource
      * @return the backend service names mapped to the service port selected by the ingress
      */
