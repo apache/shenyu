@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.scale.monitor.subject.cache;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -54,6 +56,20 @@ public class ScaleRuleCache {
      */
     public void removeRulesFromCache(final List<String> metricNames) {
         metricNames.forEach(ruleCache::remove);
+    }
+
+    /**
+     * Removes rules from cache by their primary keys.
+     *
+     * @param ids rule primary keys
+     */
+    public void removeRulesByIdsFromCache(final List<String> ids) {
+        final Set<String> idSet = new HashSet<>(ids);
+        ruleCache.forEach((metricName, rule) -> {
+            if (idSet.contains(rule.getId())) {
+                ruleCache.remove(metricName, rule);
+            }
+        });
     }
 
     /**

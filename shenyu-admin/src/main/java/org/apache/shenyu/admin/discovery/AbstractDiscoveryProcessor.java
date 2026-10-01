@@ -132,7 +132,13 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         Optional.ofNullable(dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId())).ifPresent(cacheKey -> {
             cacheKey.remove(key);
-            shenyuDiscoveryService.unWatchInstances(key);
+            if (cacheKey.isEmpty()) {
+                // converge the map instead of leaving an empty tombstone set behind forever
+                dataChangedEventListenerCache.remove(discoveryHandlerDTO.getDiscoveryId());
+            }
+            // removeDiscovery drops the service entry but leaves the listener-cache key behind;
+            // with the service already closed there is nothing to unwatch, but the delete event must still fire
+            Optional.ofNullable(shenyuDiscoveryService).ifPresent(service -> service.unWatchInstances(key));
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
             eventPublisher.publishEvent(dataChangedEvent);
@@ -286,7 +292,8 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @return set
      */
     public Set<String> getCacheKey(final String discoveryId) {
-        return dataChangedEventListenerCache.get(discoveryId);
+        // computeIfAbsent keeps re-registration safe after removeProxySelector dropped an emptied set
+        return dataChangedEventListenerCache.computeIfAbsent(discoveryId, k -> new HashSet<>());
     }
 
     /**
