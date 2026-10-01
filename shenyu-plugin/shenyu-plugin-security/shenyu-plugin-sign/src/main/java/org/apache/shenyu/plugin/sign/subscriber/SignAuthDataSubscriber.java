@@ -35,4 +35,9 @@ public class SignAuthDataSubscriber implements AuthDataSubscriber {
     public void unSubscribe(final AppAuthData appAuthData) {
         SignAuthDataCache.getInstance().removeAuthData(appAuthData);
     }
+
+    @Override
+    public void refresh() {
+        SignAuthDataCache.getInstance().cleanAuthData();
+    }
 }

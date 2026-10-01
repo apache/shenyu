@@ -152,13 +152,20 @@
     </select>
 
     <select id="pathExistedExclude" resultType="java.lang.Boolean">
-        SElECT true
-        FROM meta_data
-        WHERE path = #{path}
-        AND id NOT IN
-        <foreach collection="exclude" item="id" index="index" open="(" separator="," close=")">
-            #{id}
-        </foreach>
+        SELECT true
+        FROM meta_data candidate
+        WHERE candidate.path = #{path}
+        AND candidate.namespace_id = #{namespaceId}
+        <if test="exclude != null and exclude.size() > 0">
+            AND NOT EXISTS (
+                SELECT 1 FROM meta_data excluded
+                WHERE excluded.id = candidate.id
+                AND excluded.id IN
+                <foreach collection="exclude" item="id" open="(" separator="," close=")">
+                    #{id,jdbcType=VARCHAR}
+                </foreach>
+            )
+        </if>
         LIMIT 1
     </select>
 

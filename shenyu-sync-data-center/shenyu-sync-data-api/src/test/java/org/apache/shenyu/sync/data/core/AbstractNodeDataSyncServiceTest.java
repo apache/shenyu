@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -60,8 +61,10 @@ public class AbstractNodeDataSyncServiceTest {
 
     private List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
 
-    @Mock
     private List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers;
+
+    @Mock
+    private DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber;
 
     @Mock
     private ShenyuConfig shenyuConfig;
@@ -88,6 +91,8 @@ public class AbstractNodeDataSyncServiceTest {
         metaDataSubscribers.add(metaDataSubscriber);
         proxySelectorDataSubscribers = new ArrayList<>();
         proxySelectorDataSubscribers.add(proxySelectorDataSubscriber);
+        discoveryUpstreamDataSubscribers = new ArrayList<>();
+        discoveryUpstreamDataSubscribers.add(discoveryUpstreamDataSubscriber);
 
         nodeDataSyncService = new AbstractNodeDataSyncServiceImpl(
                 changeData,
@@ -159,6 +164,13 @@ public class AbstractNodeDataSyncServiceTest {
         verify(proxySelectorDataSubscriber).unSubscribe(captor.capture());
         assertEquals("tcp", captor.getValue().getPluginName());
         assertEquals("selectorName", captor.getValue().getName());
+    }
+
+    @Test
+    public void testUnCacheDiscoveryUpstreamData() {
+        nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discoveryUpstream.divide.selector-id");
+
+        verify(discoveryUpstreamDataSubscriber).unSubscribe(new DiscoveryUpstreamKey("divide", "selector-id", null));
     }
 
     @Test

@@ -1,3 +1,24 @@
+## Unreleased
+
+### API Changes
+
+- `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
+
+### Behavior Changes
+
+- HTTP retry strategies budget the entire sequence separately from each attempt:
+  `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
+  With a 3-second attempt timeout and 3 retries, the `current` strategy has a
+  conservative 72-second ceiling (20-second maximum backoff), fixed delay has
+  an 18-second ceiling (2-second delay), and exponential backoff has a 27-second
+  ceiling (5-second maximum backoff). Actual retry delays may be shorter.
+  Include this envelope when configuring caller and ingress deadlines.
+- For the `current` strategy, exceeding the aggregate budget returns HTTP 504
+  with `Retry sequence took longer than timeout: ...`. Exhausting the retry
+  count returns HTTP 408. The aggregate ceiling now also bounds a source that
+  never completes; it does not replace the per-attempt response timeout.
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features
