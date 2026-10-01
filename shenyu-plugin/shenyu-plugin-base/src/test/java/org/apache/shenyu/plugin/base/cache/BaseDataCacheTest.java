@@ -167,6 +167,20 @@ public final class BaseDataCacheTest {
     }
 
     @Test
+    public void testRemoveSelectDataSweepsAllBucketsWhenPluginNameIsMissing() {
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).sort(1).build();
+        cache.cacheSelectData(firstCachedSelectorData);
+        cache.cacheSelectData(secondCachedSelectorData);
+
+        // the deletion event of a dangling selector carries no plugin name
+        cache.removeSelectData(SelectorData.builder().id("1").build());
+
+        assertNull(cache.obtainSelectorData(mockPluginName1));
+        assertEquals(Lists.newArrayList(secondCachedSelectorData), cache.obtainSelectorData(mockPluginName2));
+    }
+
+    @Test
     public void testCleanSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
         SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
