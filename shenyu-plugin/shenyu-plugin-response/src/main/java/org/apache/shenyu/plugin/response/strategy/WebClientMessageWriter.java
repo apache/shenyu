@@ -27,6 +27,8 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +55,8 @@ import java.util.regex.Pattern;
  */
 public class WebClientMessageWriter implements MessageWriter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebClientMessageWriter.class);
+
     /**
      * the common binary media type regex.
      */
@@ -72,7 +76,11 @@ public class WebClientMessageWriter implements MessageWriter {
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return chain.execute(exchange).then(Mono.defer(() -> {
+        // Invoke the chain on subscription, converting synchronous failures into cleanable error signals.
+        Mono<Void> chainResult = Mono.defer(() -> chain.execute(exchange))
+                .doOnError(error -> clean(exchange))
+                .doOnCancel(() -> clean(exchange));
+        return chainResult.then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
 
             ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
@@ -152,6 +160,14 @@ public class WebClientMessageWriter implements MessageWriter {
                 default:
                     throw new IllegalStateException("Unexpected header strategy: " + strategy);
             }
+        }
+    }
+
+    private void clean(final ServerWebExchange exchange) {
+        ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (Objects.nonNull(fluxResponseEntity) && Objects.nonNull(fluxResponseEntity.getBody())) {
+            fluxResponseEntity.getBody().map(DataBufferUtils::release).then()
+                    .subscribe(ignored -> { }, error -> LOG.debug("Unable to drain upstream response body during cleanup", error));
         }
     }
 

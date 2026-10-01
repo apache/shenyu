@@ -62,7 +62,7 @@ public final class LoggingServerHttpResponseStatusTest {
             AtomicReference<ShenyuRequestLog> collectedLog = new AtomicReference<>();
             LogCollector<ShenyuRequestLog> logCollector = new RecordingLogCollector(collectedLog);
             LoggingServerHttpResponse<ShenyuRequestLog> response = new LoggingServerHttpResponse<>(exchange.getResponse(),
-                    new ShenyuRequestLog(), logCollector, false, Collections.emptySet(), "dataMaskByCharReplace");
+                    new ShenyuRequestLog(), logCollector, false, new KeyWordMatch(Collections.emptySet()), "dataMaskByCharReplace");
             response.setExchange(exchange);
 
             response.logError(new ResponseStatusException(HttpStatusCode.valueOf(599), "error"));

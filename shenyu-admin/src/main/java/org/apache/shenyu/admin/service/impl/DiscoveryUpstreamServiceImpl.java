@@ -46,6 +46,8 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -62,6 +64,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryUpstreamServiceImpl.class);
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -192,18 +196,30 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> discoveryHandlerDOS) {
         return discoveryHandlerDOS.stream().map(d -> {
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
+            if (Objects.isNull(discoveryRelDO)) {
+                LOG.warn("Skipping discovery handler {} without a relation", d.getId());
+                return null;
+            }
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
             if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
                 String selectorId = discoveryRelDO.getSelectorId();
                 discoverySyncData.setSelectorId(selectorId);
                 SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+                if (Objects.isNull(selectorDO)) {
+                    LOG.warn("Skipping discovery handler {} with missing selector {}", d.getId(), selectorId);
+                    return null;
+                }
                 discoverySyncData.setSelectorName(selectorDO.getSelectorName());
                 discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();
                 discoverySyncData.setSelectorId(proxySelectorId);
                 ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                if (Objects.isNull(proxySelectorDO)) {
+                    LOG.warn("Skipping discovery handler {} with missing proxy selector {}", d.getId(), proxySelectorId);
+                    return null;
+                }
                 discoverySyncData.setSelectorName(proxySelectorDO.getName());
                 discoverySyncData.setNamespaceId(proxySelectorDO.getNamespaceId());
             }
@@ -211,7 +227,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                     .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
             return discoverySyncData;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override
