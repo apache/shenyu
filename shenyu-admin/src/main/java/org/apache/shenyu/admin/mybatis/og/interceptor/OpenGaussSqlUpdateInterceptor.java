@@ -52,10 +52,12 @@ public class OpenGaussSqlUpdateInterceptor implements Interceptor {
         MappedStatement ms = (MappedStatement) args[0];
         Object parameter = args[1];
         Executor executor = (Executor) invocation.getTarget();
-        for (Class<?> superClass = parameter.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
-            Arrays.stream(superClass.getDeclaredFields())
-                    .filter(f -> matchParam(parameter, f))
-                    .forEach(f -> ReflectUtils.setFieldValue(parameter, f.getName(), new Timestamp(System.currentTimeMillis())));
+        if (Objects.nonNull(parameter)) {
+            for (Class<?> superClass = parameter.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
+                Arrays.stream(superClass.getDeclaredFields())
+                        .filter(f -> matchParam(parameter, f))
+                        .forEach(f -> ReflectUtils.setFieldValue(parameter, f.getName(), new Timestamp(System.currentTimeMillis())));
+            }
         }
 
         return executor.update(ms, parameter);

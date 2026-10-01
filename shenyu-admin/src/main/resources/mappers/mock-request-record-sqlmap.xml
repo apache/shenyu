@@ -245,6 +245,18 @@
         </foreach>
     </insert>
 
+    <insert id="insertBatch" databaseId="oracle">
+        insert into mock_request_record(
+            id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
+        )
+        <foreach collection="list" item="item" separator=" UNION ALL ">
+            SELECT #{item.id}, #{item.apiId}, #{item.host}, #{item.port}, #{item.url},
+                   #{item.pathVariable}, #{item.query}, #{item.header}, #{item.body},
+                   #{item.dateCreated}, #{item.dateUpdated}
+            FROM dual
+        </foreach>
+    </insert>
+
     <update id="update">
         update mock_request_record
         <set>
@@ -295,4 +307,3 @@
     </delete>
 
 </mapper>
-

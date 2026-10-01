@@ -15,6 +15,9 @@
 -- limitations under the License.
 
 -- this file works for Oracle, can not use "`" syntax.
+ALTER TABLE mock_request_record MODIFY (path_variable NULL, query NULL, header NULL);
+ALTER TABLE tag MODIFY (tag_desc NULL);
+
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated) VALUES ('67', 'sensitiveWord', NULL, 'Ai', 197, 0, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{"required":"0","rule":""}', sysdate, sysdate);

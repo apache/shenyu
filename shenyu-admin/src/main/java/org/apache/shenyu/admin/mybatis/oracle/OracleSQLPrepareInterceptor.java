@@ -72,7 +72,7 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
                     .replace("update resource", "update \"resource\"");
         }
         // replace batch insert into
-        if (replaceSql.contains("insert into") && replaceSql.split("\\(").length > 3) {
+        if (replaceSql.contains("insert into") && replaceSql.contains("values") && replaceSql.split("\\(").length > 3) {
             replaceSql = replaceSql.replaceAll("\r|\n|\\s", "")
                     .replace("insertinto", "insert into ")
                     .replace("values", " SELECT * FROM (")

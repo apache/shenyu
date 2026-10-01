@@ -313,9 +313,9 @@ create table mock_request_record
     host VARCHAR2(32) not null,
     port NUMBER(5) not null,
     url VARCHAR2(1024) not null,
-    path_variable VARCHAR2(255) default '' not null,
-    query VARCHAR2(1024) default '' not null,
-    header VARCHAR2(1024) default '' not null,
+    path_variable VARCHAR2(255),
+    query VARCHAR2(1024),
+    header VARCHAR2(1024),
     body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
@@ -2593,7 +2593,7 @@ create table tag
 (
     id            VARCHAR2(128) not null,
     tag_name      VARCHAR2(255) not null,
-    tag_desc      VARCHAR2(255) not null,
+    tag_desc      VARCHAR2(255),
     parent_tag_id VARCHAR2(128) not null,
     ext           VARCHAR2(1024) not null,
     date_created  timestamp(3) default SYSDATE not null,

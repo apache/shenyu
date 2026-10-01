@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,13 +43,25 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
     @MethodSource("indexes")
     void testLookupIndexColumnOrder(final String table, final String index, final String columns) throws Exception {
         List<String> actual = new ArrayList<>();
-        try (Connection connection = dataSource.getConnection();
-                ResultSet indexes = connection.getMetaData().getIndexInfo(null, null, metadataTableName(connection, table), false, false)) {
+        try (Connection connection = dataSource.getConnection()) {
             String expectedIndex = "Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())
                     ? oracleIndexName(index) : index;
-            while (indexes.next()) {
-                if (expectedIndex.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
-                    actual.add(indexes.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
+            if ("Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())) {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT column_name FROM user_ind_columns WHERE table_name = ? AND index_name = ? ORDER BY column_position")) {
+                    statement.setString(1, metadataTableName(connection, table));
+                    statement.setString(2, expectedIndex.toUpperCase(Locale.ROOT));
+                    ResultSet indexes = statement.executeQuery();
+                    while (indexes.next()) {
+                        actual.add(indexes.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
+                    }
+                }
+            } else {
+                try (ResultSet indexes = connection.getMetaData().getIndexInfo(null, null, metadataTableName(connection, table), false, false)) {
+                    while (indexes.next()) {
+                        if (expectedIndex.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
+                            actual.add(indexes.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
+                        }
+                    }
                 }
             }
         }
