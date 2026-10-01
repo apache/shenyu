@@ -22,7 +22,6 @@ import org.apache.shenyu.plugin.ai.common.spring.ai.factory.DeepSeekModelFactory
 import org.apache.shenyu.plugin.ai.common.spring.ai.factory.OpenAiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
@@ -48,42 +47,30 @@ public class AiProxyPluginConfiguration {
     /**
      * Ai proxy plugin.
      *
-     * @param aiModelFactoryRegistry the aiModelFactoryRegistry
      * @param aiProxyConfigService the aiProxyConfigService
      * @param aiProxyExecutorService the aiProxyExecutorService
-     * @param chatClientCache the chatClientCache
      * @param aiProxyPluginHandler the aiProxyPluginHandler
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
-            final AiModelFactoryRegistry aiModelFactoryRegistry,
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyExecutorService aiProxyExecutorService,
-            final ChatClientCache chatClientCache,
             final AiProxyPluginHandler aiProxyPluginHandler) {
         return new AiProxyPlugin(
-                aiModelFactoryRegistry,
                 aiProxyConfigService,
                 aiProxyExecutorService,
-                chatClientCache,
                 aiProxyPluginHandler);
     }
 
     /**
      * Ai proxy plugin handler.
      *
-     * @param chatClientCache the chatClientCache
      * @return the shenyu plugin handler
      */
     @Bean
-    public AiProxyPluginHandler aiProxyPluginHandler(final ChatClientCache chatClientCache) {
-        return new AiProxyPluginHandler(chatClientCache);
-    }
-
-    @Bean
-    public ChatClientCache chatClientCache() {
-        return new ChatClientCache();
+    public AiProxyPluginHandler aiProxyPluginHandler() {
+        return new AiProxyPluginHandler();
     }
 
     @Bean
@@ -131,11 +118,10 @@ public class AiProxyPluginConfiguration {
     /**
      * Ai proxy api key data subscriber.
      *
-     * @param chatClientCache the chatClientCache
      * @return the subscriber
      */
     @Bean
-    public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber(final ChatClientCache chatClientCache) {
-        return new CommonAiProxyApiKeyDataSubscriber(chatClientCache);
+    public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber() {
+        return new CommonAiProxyApiKeyDataSubscriber();
     }
 }

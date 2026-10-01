@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.InstanceInfoMapper;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -77,6 +78,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoMapper.updateById(infoDO);
     }
 
+    @Pageable
     @Override
     public CommonPager<InstanceInfoVO> listByPage(final InstanceQuery instanceQuery) {
         List<InstanceInfoDO> instanceInfoDOList = instanceInfoMapper.selectByQuery(instanceQuery);
@@ -109,9 +111,11 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
         instanceInfoVO.setInstanceInfo(instanceInfoDO.getInstanceInfo());
+        instanceInfoVO.setInstanceState(instanceInfoDO.getInstanceState());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());
         instanceInfoVO.setDateUpdated(instanceInfoDO.getDateUpdated());
+        instanceInfoVO.setLastHeartBeatTime(instanceInfoDO.getLastHeartBeatTime());
         return instanceInfoVO;
     }
 }

@@ -29,6 +29,8 @@ import java.util.Optional;
  * The type WebSocket shenyu context decorator.
  */
 public class WebSocketShenyuContextDecorator implements ShenyuContextDecorator {
+
+    private static final String DEFAULT_MODULE = PluginEnum.WEB_SOCKET.getName() + "-" + RpcTypeEnum.WEB_SOCKET.getName();
     
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
@@ -37,7 +39,7 @@ public class WebSocketShenyuContextDecorator implements ShenyuContextDecorator {
         shenyuContext.setRealUrl(path);
         shenyuContext.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
         shenyuContext.setModule(Optional.ofNullable(metaData).map(MetaData::getAppName)
-                .orElse(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), shenyuContext.getRpcType())));
+                .orElse(DEFAULT_MODULE));
         return shenyuContext;
     }
     

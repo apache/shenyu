@@ -75,6 +75,13 @@ public class TtlScheduler {
         this.serviceHeartbeats.remove(instanceId);
     }
 
+    /**
+     * Shutdown the scheduler.
+     */
+    public void shutdown() {
+        this.scheduler.shutdownNow();
+    }
+
     private class ConsulHeartbeatTask implements Runnable {
 
         private String checkId;

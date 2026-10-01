@@ -57,6 +57,10 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         final HystrixHandle hystrixHandle = HystrixPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(hystrixHandle)) {
+            LOG.error("hystrix handler is null, rule: {}", rule);
+            return chain.execute(exchange);
+        }
         String groupKey = hystrixHandle.getGroupKey();
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
             groupKey = Objects.requireNonNull(shenyuContext).getModule();

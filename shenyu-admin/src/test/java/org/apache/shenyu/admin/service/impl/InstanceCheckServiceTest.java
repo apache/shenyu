@@ -25,6 +25,7 @@ import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -73,6 +74,16 @@ public final class InstanceCheckServiceTest {
         InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(key);
         assertNotNull(cached);
         assertEquals(vo.getInstanceIp(), cached.getInstanceIp());
+    }
+
+    @Test
+    void testFetchInstanceDataNormalizesNullState() {
+        vo.setInstanceState(null);
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(vo));
+
+        instanceCheckService.fetchInstanceData();
+
+        assertEquals(0, vo.getInstanceState());
     }
 
     @Test
@@ -160,6 +171,25 @@ public final class InstanceCheckServiceTest {
         InstanceDataVisualVO nsAData = instanceCheckService.getInstanceDataVisual("nsA");
         assertNotNull(nsAData);
         assertThat(nsAData.getPieData(), hasSize(1));
+    }
+
+    @Test
+    void testGetInstanceDataVisualIgnoresNullState() {
+        InstanceBeatInfoDTO dto = buildDTO("3.3.3.3", "8083", "grpc", "nsC");
+        instanceCheckService.handleBeatInfo(dto);
+        instanceCheckService.getInstanceHealthBeatInfo(dto).setInstanceState(null);
+
+        assertDoesNotThrow(() -> instanceCheckService.getInstanceDataVisual(""));
+    }
+
+    @Test
+    void testDoCheckWithNullStateDoesNotThrow() {
+        InstanceBeatInfoDTO dto = buildDTO("4.4.4.4", "8084", "grpc", "nsD");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(null);
+
+        assertDoesNotThrow(() -> ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck"));
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {

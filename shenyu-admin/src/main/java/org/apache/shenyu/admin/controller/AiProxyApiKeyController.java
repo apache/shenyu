@@ -76,9 +76,10 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
             @Valid @RequestBody final ProxyApiKeyDTO dto) {
         // derive namespaceId from selector to avoid mismatch
         final SelectorDO selector = selectorMapper.selectById(selectorId);
-        if (Objects.nonNull(selector)) {
-            dto.setNamespaceId(selector.getNamespaceId());
+        if (Objects.isNull(selector)) {
+            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
         }
+        dto.setNamespaceId(selector.getNamespaceId());
         int rows = aiProxyApiKeyService.create(dto, selectorId);
         if (rows > 0) {
             final ProxyApiKeyVO vo = aiProxyApiKeyService.findById(dto.getId());
@@ -132,7 +133,7 @@ public class AiProxyApiKeyController implements PagedController<ProxyApiKeyQuery
     @RequiresPermissions("system:aiProxyApiKey:edit")
     public ShenyuAdminResult update(
             @PathVariable("selectorId") final String selectorId,
-            @PathVariable("id") final String id, @RequestBody final ProxyApiKeyDTO dto) {
+            @PathVariable("id") final String id, @Valid @RequestBody final ProxyApiKeyDTO dto) {
         final ProxyApiKeyVO exist = aiProxyApiKeyService.findById(id);
         if (Objects.isNull(exist)) {
             return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);

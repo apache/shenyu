@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 
 import java.util.List;
 
@@ -38,7 +39,8 @@ public class DiscoveryUpstreamDataHandler extends AbstractDataHandler<DiscoveryS
 
     @Override
     protected void doRefresh(final List<DiscoverySyncData> dataList) {
-        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.onSubscribe(data)));
+        discoveryUpstreamDataSubscribers.forEach(DiscoveryUpstreamDataSubscriber::refresh);
+        doUpdate(dataList);
     }
 
     @Override
@@ -48,7 +50,7 @@ public class DiscoveryUpstreamDataHandler extends AbstractDataHandler<DiscoveryS
 
     @Override
     protected void doDelete(final List<DiscoverySyncData> dataList) {
-        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.unSubscribe(data)));
+        dataList.forEach(data -> discoveryUpstreamDataSubscribers.forEach(p -> p.unSubscribe(DiscoveryUpstreamKey.from(data))));
     }
 
 }

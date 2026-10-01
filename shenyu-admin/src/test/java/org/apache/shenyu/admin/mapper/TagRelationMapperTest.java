@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import com.google.common.collect.Lists;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
@@ -37,6 +38,19 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private TagRelationMapper tagRelationMapper;
+
+    @Test
+    public void testSelectByApiIds() {
+        TagRelationDO record = buildTagRelationDO();
+        record.setApiId(UUIDUtils.getInstance().generateShortUuid());
+        tagRelationMapper.insert(record);
+        try {
+            assertEquals(record.getId(), tagRelationMapper.selectByApiIds(Collections.singletonList(record.getApiId())).get(0).getId());
+            assertEquals(0, tagRelationMapper.selectByApiIds(Collections.emptyList()).size());
+        } finally {
+            tagRelationMapper.deleteByPrimaryKey(record.getId());
+        }
+    }
 
     @Test
     public void testInsert() {
@@ -84,6 +98,23 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
         tagRelationMapper.updateByPrimaryKey(record);
         TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
         assertThat(tagRelationDO.getTagId().equals("2222222"), equalTo(true));
+    }
+
+    @Test
+    public void testUpdateByPrimaryKeySelective() {
+        TagRelationDO record = buildTagRelationDO();
+        int count = tagRelationMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+
+        record.setApiId("456");
+        int updateCount = tagRelationMapper.updateByPrimaryKeySelective(record);
+        assertThat(updateCount, greaterThan(0));
+
+        TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
+        assertThat(tagRelationDO.getApiId(), equalTo("456"));
+
+        int delete = tagRelationMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
     }
 
     @Test

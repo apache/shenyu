@@ -33,6 +33,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -216,9 +217,14 @@ public abstract class AbstractNodeDataSyncService {
                 .flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
     }
 
-    protected void unCachePluginData(final String pluginName) {
+    protected void unCachePluginData(final String removeKey) {
+        final String[] pluginKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(pluginKeys) || pluginKeys.length < 3) {
+            LOG.warn("AbstractNodeDataSyncService invalid plugin data remove key: {}", removeKey);
+            return;
+        }
         final PluginData data = new PluginData();
-        data.setName(pluginName);
+        data.setName(pluginKeys[2]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
     }
 
@@ -315,11 +321,9 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheDiscoveryUpstreamData(final String removeKey) {
-        DiscoverySyncData proxySelectorData = new DiscoverySyncData();
         final String[] proxySelectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        proxySelectorData.setPluginName(proxySelectorKeys[2]);
-        proxySelectorData.setSelectorId(proxySelectorKeys[3]);
-        discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
+        DiscoveryUpstreamKey key = new DiscoveryUpstreamKey(proxySelectorKeys[2], proxySelectorKeys[3], null);
+        discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(key));
         removeListener(removeKey);
     }
 

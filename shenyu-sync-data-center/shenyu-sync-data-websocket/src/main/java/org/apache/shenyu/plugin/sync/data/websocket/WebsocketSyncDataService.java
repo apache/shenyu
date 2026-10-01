@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Websocket sync data service. */
 public class WebsocketSyncDataService implements SyncDataService {
@@ -61,6 +62,9 @@ public class WebsocketSyncDataService implements SyncDataService {
     private static final String ORIGIN_HEADER_NAME = "Origin";
     
     private final WebsocketConfig websocketConfig;
+
+    private final AtomicBoolean initialSyncReady = new AtomicBoolean();
+
     
     private final PluginDataSubscriber pluginDataSubscriber;
     
@@ -81,6 +85,8 @@ public class WebsocketSyncDataService implements SyncDataService {
     private final Timer timer;
     
     private TimerTask timerTask;
+
+    private boolean closed;
 
     private final ServerProperties serverProperties;
 
@@ -107,7 +113,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber>
                     aiProxyApiKeyDataSubscribers,
             final ServerProperties serverProperties) {
-        this.timer = WheelTimerFactory.getSharedTimer();
+        this.timer = WheelTimerFactory.newWheelTimer();
         this.websocketConfig = websocketConfig;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
@@ -131,7 +137,10 @@ public class WebsocketSyncDataService implements SyncDataService {
         });
     }
 
-    private void masterCheck() {
+    private synchronized void masterCheck() {
+        if (closed) {
+            return;
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug("master checking task start...");
         }
@@ -165,18 +174,25 @@ public class WebsocketSyncDataService implements SyncDataService {
     }
     
     @Override
-    public void close() {
-        if (CollectionUtils.isNotEmpty(clients)) {
-            for (ShenyuWebsocketClient client : clients) {
-                if (Objects.nonNull(client)) {
-                    client.close();
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        try {
+            if (Objects.nonNull(timerTask)) {
+                timerTask.cancel();
+            }
+            if (CollectionUtils.isNotEmpty(clients)) {
+                for (ShenyuWebsocketClient client : clients) {
+                    if (Objects.nonNull(client)) {
+                        client.nowClose();
+                    }
                 }
             }
+        } finally {
+            timer.shutdown();
         }
-        if (Objects.nonNull(timerTask)) {
-            timerTask.cancel();
-        }
-        timer.shutdown();
     }
 
     private ShenyuWebsocketClient createClient(final String url) {
@@ -197,7 +213,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                 discoveryUpstreamDataSubscribers,
                 this.aiProxyApiKeyDataSubscribers,
                 namespaceId,
-                serverProperties.getPort());
+                serverProperties.getPort(),
+                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null);
     }
     
     /**
@@ -207,6 +224,14 @@ public class WebsocketSyncDataService implements SyncDataService {
      */
     public WebsocketConfig getWebsocketConfig() {
         return websocketConfig;
+    }
+
+    /**
+     * Whether initial configuration callbacks have completed successfully.
+     * @return startup readiness
+     */
+    public boolean isInitialSyncReady() {
+        return initialSyncReady.get();
     }
     
     /**

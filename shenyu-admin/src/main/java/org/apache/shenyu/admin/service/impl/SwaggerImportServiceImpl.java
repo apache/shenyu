@@ -26,6 +26,7 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
@@ -58,6 +59,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SwaggerImportService}.
@@ -126,7 +129,8 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
 
             String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl());
 
-            List<McpToolsRegisterDTO> mcpToolsRegisterDTOList = buildMcpToolRegisterDTO(swaggerJson, request.getNamespaceId());
+            String namespaceId = StringUtils.defaultIfEmpty(request.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+            List<McpToolsRegisterDTO> mcpToolsRegisterDTOList = buildMcpToolRegisterDTO(swaggerJson, namespaceId);
 
             mcpToolsRegisterDTOList.forEach(mcpToolsRegisterDTO -> {
                 shenyuClientRegisterMcpService.registerMcpTools(mcpToolsRegisterDTO);
@@ -180,7 +184,6 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                     .orElse("default");
 
             List<Map<String, ShenyuMcpTool>> maps = result.computeIfAbsent(mainPath, k -> new ArrayList<>());
-            Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
 
             Map<PathItem.HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
             for (Map.Entry<PathItem.HttpMethod, Operation> opEntry : operationsMap.entrySet()) {
@@ -197,9 +200,11 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                 PathItem.HttpMethod httpMethod = opEntry.getKey();
                 tool.setMethod(httpMethod.name().toLowerCase());
 
+                // one entry per operation: a shared path-keyed map would keep only the last HTTP method
+                Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
                 toolMap.put(fullPath, tool);
+                maps.add(toolMap);
             }
-            maps.add(toolMap);
         }
         return result;
     }

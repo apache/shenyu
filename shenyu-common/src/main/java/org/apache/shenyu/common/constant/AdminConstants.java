@@ -308,5 +308,11 @@ public final class AdminConstants {
     public static final long TEN_SECONDS_MILLIS_TIME = 10 * 1000L;
 
     public static final String JWT_DEFAULT_SECRET_KEY = "defaultSecretKey";
+
+    /**
+     * The publicly-known JWT secret key that was previously distributed in the official docker-compose.yaml.
+     * Any token signed with it can be forged by anyone who reads the repository, so it must be rejected.
+     */
+    public static final String JWT_PUBLIC_SECRET_KEY = "please-replace-with-your-own-secret-key";
 }
 

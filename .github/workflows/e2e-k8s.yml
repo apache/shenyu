@@ -16,10 +16,32 @@
 name: e2e
 
 on:
+  # Required checks must report a result even for documentation-only PRs.
   pull_request:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '**.png'
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.gif'
+      - '**.svg'
+      - '**.ico'
+      - '**.pdf'
+      - '**.doc'
+      - '**.docx'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'DISCLAIMER'
+      - '.asf.yaml'
+      - '.gitignore'
+      - '.licenserc.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE'
+      - '**/resources/static/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,18 +52,27 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       e2e: ${{ steps.filter.outputs.e2e }}
+      run_e2e: ${{ steps.cases.outputs.run_e2e }}
+      run_storage: ${{ steps.cases.outputs.run_storage }}
+      run_e2e_cases: ${{ steps.cases.outputs.run_e2e_cases }}
+      storage_matrix: ${{ steps.cases.outputs.storage_matrix }}
+      e2e_matrix: ${{ steps.cases.outputs.e2e_matrix }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Test conditional disk cleanup
+        run: bash .github/scripts/free-disk-space-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
+          list-files: "json"
           filters: |
             e2e:
               - 'shenyu-e2e/**'
               - '**/e2e/**'
               - 'shenyu-*/**'
+              - 'db/**'
               - 'pom.xml'
               - '**/pom.xml'
               - '!**/*.md'
@@ -52,26 +83,27 @@ jobs:
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
+              - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+      - name: Resolve E2E cases
+        id: cases
+        if: steps.filter.outputs.e2e == 'true'
+        env:
+          CHANGED_FILES_JSON: ${{ steps.filter.outputs.e2e_files }}
+          CI_CASE_MODE: e2e
+        run: bash .github/scripts/resolve-test-case-matrix.sh
 
   build-docker-images:
     needs: changes
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.run_e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+      - name: Free disk space when needed
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Set up JDK 17 for Building ShenYu
         uses: ./actions/setup-java-with-retry
@@ -82,16 +114,16 @@ jobs:
       - name: Install mvnd
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
+          MVND_VERSION=1.0.6
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
+            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
             unzip -q mvnd.zip
             mkdir -p $HOME/.local
             mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
             echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
             echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
           else
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
             unzip -q mvnd.zip
             mkdir -p $HOME/.local
             mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
@@ -104,13 +136,13 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
           else
             echo "Falling back to maven wrapper"
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             else
-              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -B -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests package -T1C
+              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             fi
           fi
 
@@ -142,38 +174,35 @@ jobs:
           path: /tmp/apache-shenyu-*.tar
           retention-days: 1
 
+      - name: Stage ShenYu local Maven repository
+        run: |
+          mkdir -p /tmp/shenyu-m2/org/apache
+          cp -R "${HOME}/.m2/repository/org/apache/shenyu" /tmp/shenyu-m2/org/apache/shenyu
+
+      - name: Upload ShenYu local Maven repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+          retention-days: 1
+
   e2e-storage:
     runs-on: ubuntu-latest
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_storage == 'true'
     #    if: (github.repository == 'apache/shenyu')
     strategy:
-      matrix:
-        include:
-          - case: shenyu-e2e-case-storage
-            script: e2e-h2-compose
-          - case: shenyu-e2e-case-storage
-            script: e2e-mysql-compose
-          - case: shenyu-e2e-case-storage
-            script: e2e-postgres-compose
-          - case: shenyu-e2e-case-storage
-            script: e2e-opengauss-compose
+      matrix: ${{ fromJSON(needs.changes.outputs.storage_matrix || '{"include":[]}') }}
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Free disk space
+      - name: Free disk space when needed
         run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+          bash .github/scripts/free-disk-space.sh
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
@@ -231,44 +260,19 @@ jobs:
     needs:
       - changes
       - build-docker-images
-    if: (github.repository == 'apache/shenyu' && ${{ needs.changes.outputs.e2e == 'true' }})
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_e2e_cases == 'true'
     #    if: (github.repository == 'apache/shenyu')
     strategy:
-      matrix:
-        include:
-          - case: shenyu-e2e-case-http
-            script: e2e-http-sync-compose
-          - case: shenyu-e2e-case-spring-cloud
-            script: e2e-springcloud-sync-compose
-          - case: shenyu-e2e-case-apache-dubbo
-            script: e2e-apache-dubbo-sync-compose
-          - case: shenyu-e2e-case-grpc
-            script: e2e-grpc-sync-compose
-          - case: shenyu-e2e-case-websocket
-            script: e2e-websocket-sync-compose
-          # - case: shenyu-e2e-case-cluster
-          #   script: e2e-cluster-jdbc-compose
-          # - case: shenyu-e2e-case-cluster
-          #   script: e2e-cluster-zookeeper-compose
-          - case: shenyu-e2e-case-logging-rocketmq
-            script: e2e-logging-rocketmq-compose
-          # - case: shenyu-e2e-case-logging-kafka
-          #   script: e2e-logging-kafka-compose
+      matrix: ${{ fromJSON(needs.changes.outputs.e2e_matrix || '{"include":[]}') }}
 
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Free disk space
+      - name: Free disk space when needed
         run: |
-          df --human-readable
-          sudo apt clean
-          for image in $(docker image ls --all --quiet); do
-            docker rmi $image
-          done
-          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-          df --human-readable
+          bash .github/scripts/free-disk-space.sh
           rm -rf /tmp/shenyu
           mkdir -p /tmp/shenyu
 
@@ -297,16 +301,16 @@ jobs:
       - name: Install mvnd
         shell: bash
         run: |
-          MVND_VERSION=1.0.2
+          MVND_VERSION=1.0.6
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
+            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
             unzip -q mvnd.zip
             mkdir -p $HOME/.local
             mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
             echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
             echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
           else
-            curl -sL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
+            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
             unzip -q mvnd.zip
             mkdir -p $HOME/.local
             mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
@@ -319,28 +323,30 @@ jobs:
           name: shenyu-images
           path: /tmp/shenyu/
 
-      #      - name: Restore ShenYu E2E Maven Repos
-      #        uses: actions/cache/restore@v3
-      #        with:
-      #          path: ~/.m2/repository
-      #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
-      #          restore-keys: |
-      #            ${{ runner.os }}-e2e-maven-
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+
+      - name: Restore ShenYu local Maven repository
+        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
 
       - name: Build examples with Maven
         shell: bash
+        env:
+          EXAMPLE_PROJECTS: ${{ matrix.example_projects }}
         run: |
-          echo "Falling back to maven wrapper for examples"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+          if mvnd --version > /dev/null 2>&1; then
+            echo "Using mvnd to build ${EXAMPLE_PROJECTS}"
+            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
           else
-            ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            echo "Falling back to maven wrapper to build ${EXAMPLE_PROJECTS}"
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+            else
+              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+            fi
           fi
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: shenyu-images
-          path: /tmp/shenyu/
 
       - name: Load ShenYu Docker Images
         run: |
@@ -372,14 +378,23 @@ jobs:
 
   requirement:
     name: e2e
-    if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ always() }}
     needs:
       - changes
+      - build-docker-images
       - e2e-storage
       - e2e-case
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
-          [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
-          [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
+          [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
+          if [[ "${{ needs.changes.outputs.run_e2e }}" == "true" ]]; then
+            [[ "${{ needs.build-docker-images.result }}" == "success" ]] || exit 1
+          fi
+          if [[ "${{ needs.changes.outputs.run_storage }}" == "true" ]]; then
+            [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
+          fi
+          if [[ "${{ needs.changes.outputs.run_e2e_cases }}" == "true" ]]; then
+            [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
+          fi

@@ -23,12 +23,18 @@ import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.MetaDataDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.TagDO;
+import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
+import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.ApiServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,14 +47,22 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,11 +106,63 @@ public final class ApiServiceTest {
     }
 
     @Test
+    public void testUpdateWithEmptyTagIdsClearsRelations() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        apiDTO.setTagIds(Collections.emptyList());
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+        verify(tagRelationMapper).deleteByApiId("123");
+        verify(tagRelationMapper, never()).batchInsert(anyList());
+    }
+
+    @Test
+    public void testUpdateWithNullTagIdsKeepsRelations() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+        verify(tagRelationMapper, never()).deleteByApiId("123");
+        verify(tagRelationMapper, never()).batchInsert(anyList());
+    }
+
+    @Test
     public void testDelete() {
         List<ApiDO> apis = Collections.singletonList(buildApiDO("123"));
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(apis);
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         assertEquals(StringUtils.EMPTY, apiService.delete(Collections.singletonList("123")));
+    }
+
+    @Test
+    public void testDeleteCleansRegisteredResources() {
+        RuleVO rule = new RuleVO();
+        rule.setId("rule-1");
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        MetaDataDO metadata = new MetaDataDO();
+        metadata.setId("metadata-1");
+        ApiDO apiDO = buildApiDO("123");
+        when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
+        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
+        when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
+                .thenReturn(Collections.singletonList(selector));
+        when(ruleService.findBySelectorId("selector-1")).thenReturn(Collections.emptyList());
+        when(metaDataService.findByPathAndNamespaceId(apiDO.getApiPath(), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metadata);
+
+        apiService.delete(Collections.singletonList("123"));
+
+        verify(ruleService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorService, times(1)).deleteByNamespaceId(Collections.singletonList("selector-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(metaDataService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("metadata-1"), SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    @Test
+    public void testDeleteWhenApiDoesNotExist() {
+        when(apiMapper.selectByIds(Collections.singletonList("missing"))).thenReturn(Collections.emptyList());
+
+        assertEquals(AdminConstants.SYS_API_ID_NOT_EXIST, apiService.delete(Collections.singletonList("missing")));
     }
 
     @Test
@@ -173,6 +239,27 @@ public final class ApiServiceTest {
         given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
+        verify(tagRelationMapper).selectByApiIds(apiDOList.stream().map(ApiDO::getId).collect(Collectors.toList()));
+        verify(tagRelationMapper, never()).selectByQuery(any());
+        verify(tagMapper, never()).selectByIds(any());
+    }
+
+    @Test
+    public void testListByPageBatchesTags() {
+        ApiQuery query = new ApiQuery(null, 0, "", new PageParameter());
+        given(apiMapper.selectByQuery(query)).willReturn(Arrays.asList(buildApiDO("first"), buildApiDO("second")));
+        given(tagRelationMapper.selectByApiIds(Arrays.asList("first", "second"))).willReturn(Arrays.asList(
+                TagRelationDO.builder().apiId("first").tagId("tag").build(), TagRelationDO.builder().apiId("second").tagId("tag").build()));
+        TagDO tag = new TagDO();
+        tag.setId("tag");
+        tag.setDateCreated(new Timestamp(0));
+        tag.setDateUpdated(new Timestamp(0));
+        given(tagMapper.selectByIds(Collections.singletonList("tag"))).willReturn(Collections.singletonList(tag));
+        List<ApiVO> result = apiService.listByPage(query).getDataList();
+        assertEquals("tag", result.get(0).getTags().get(0).getId());
+        assertEquals("tag", result.get(1).getTags().get(0).getId());
+        verify(tagMapper).selectByIds(Collections.singletonList("tag"));
+        verify(tagRelationMapper, never()).selectByQuery(any());
     }
 
     private ApiDO buildApiDO(final String id) {

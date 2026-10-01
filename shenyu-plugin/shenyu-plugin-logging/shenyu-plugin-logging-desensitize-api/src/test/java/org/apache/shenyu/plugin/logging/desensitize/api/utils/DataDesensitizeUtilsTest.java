@@ -25,8 +25,6 @@ import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@ExtendWith(MockitoExtension.class)
 public class DataDesensitizeUtilsTest {
 
     private static final String JSON_TEXT = "{\"id\":\"123\",\"name\":\"jack\"}";
@@ -67,9 +64,32 @@ public class DataDesensitizeUtilsTest {
         String desensitizedData = DataDesensitizeUtils.desensitizeBody(true, JSON_TEXT, keyWordMatch, DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
         Map<String, String> jsonMap = JsonUtils.jsonToMap(JSON_TEXT, String.class);
         jsonMap.put("name", DigestUtils.md5Hex(jsonMap.get("name")));
-        String jsonRet = JsonUtils.toJson(jsonMap);
-        Assertions.assertEquals(jsonRet, desensitizedData);
+        Assertions.assertEquals(jsonMap, JsonUtils.jsonToMap(desensitizedData, String.class));
 
+        String plainText = "name=jack&message=hello";
+        Assertions.assertEquals(plainText, DataDesensitizeUtils.desensitizeBody(true, plainText, keyWordMatch,
+                DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg()));
+
+        String xml = "<user><name>jack</name></user>";
+        Assertions.assertEquals(xml, DataDesensitizeUtils.desensitizeBody(true, xml, keyWordMatch,
+                DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg()));
+
+        String jsonArray = "[1,2,3]";
+        Assertions.assertEquals(jsonArray, DataDesensitizeUtils.desensitizeBody(true, jsonArray, keyWordMatch,
+                DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg()));
+
+    }
+
+    @Test
+    public void desensitizeQueryParamsTest() {
+        String source = "id=123&name=jack&empty=&debug&name=rose";
+        String jack = DigestUtils.md5Hex("jack");
+        String rose = DigestUtils.md5Hex("rose");
+        Assertions.assertEquals("id=123&name=" + jack + "&empty=&debug&name=" + rose,
+                DataDesensitizeUtils.desensitizeQueryParams(source, keyWordMatch,
+                        DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg()));
+        Assertions.assertEquals("name=%invalid", DataDesensitizeUtils.desensitizeQueryParams("name=%invalid", keyWordMatch,
+                DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg()));
     }
 
     @Test

@@ -73,6 +73,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
     }
     
     private String buildAlertHtmlTemplate(final AlarmContent alert) {
+        // Introduce thymeleaf context parameters to render pages
         Context context = new Context();
         context.setVariable("nameTitle", "ShenYu Alarm");
         context.setVariable("nameTriggerTime", "Alarm Time");

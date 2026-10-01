@@ -49,6 +49,7 @@ services:
           memory: 2048M
     container_name: shenyu-examples-sdk-apache-dubbo-provider
     image: shenyu-examples-sdk-apache-dubbo-provider:latest
+    pull_policy: never
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
@@ -71,6 +72,7 @@ services:
           memory: 2048M
     container_name: shenyu-examples-sdk-apache-dubbo-consumer
     image: shenyu-examples-sdk-apache-dubbo-consumer:latest
+    pull_policy: never
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8899/actuator/health | grep UP || exit 1"]

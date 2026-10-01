@@ -40,6 +40,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -97,13 +98,30 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             modifyResponseHeadersAndStatus();
+            if (!hasBodyModifications()) {
+                return super.writeWith(body);
+            }
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
-                return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+                if (isJsonResponse()) {
+                    return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+                }
+                byte[] modifiedBody = tryModifyBody(bytes);
+                if (Objects.isNull(modifiedBody)) {
+                    return super.writeWith(Mono.just(this.getDelegate().bufferFactory().wrap(bytes)));
+                }
+                return WebFluxResultUtils.result(this.exchange, modifiedBody);
             });
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            modifyResponseHeadersAndStatus();
+            return super.writeAndFlushWith(body);
         }
 
         private void modifyResponseHeadersAndStatus() {
@@ -145,6 +163,19 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             this.getDelegate().getHeaders().putAll(httpHeaders);
         }
 
+        private boolean hasBodyModifications() {
+            return CollectionUtils.isNotEmpty(this.ruleHandle.getAddBodyKeys())
+                    || CollectionUtils.isNotEmpty(this.ruleHandle.getReplaceBodyKeys())
+                    || CollectionUtils.isNotEmpty(this.ruleHandle.getRemoveBodyKeys());
+        }
+
+        private boolean isJsonResponse() {
+            MediaType contentType = this.getHeaders().getContentType();
+            return Objects.isNull(contentType)
+                    || MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                    || contentType.getSubtype().endsWith("+json");
+        }
+
         private byte[] modifyBody(final byte[] responseBody) {
             try {
                 String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
@@ -168,6 +199,17 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 this.ruleHandle.getRemoveBodyKeys().forEach(context::delete);
             }
             return context.jsonString();
+        }
+
+        private byte[] tryModifyBody(final byte[] responseBody) {
+            try {
+                String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
+                LOG.info("the body string {}", bodyStr);
+                return bodyStr.getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                LOG.debug("skip modify response body because response content type is not json", e);
+                return null;
+            }
         }
     }
 }

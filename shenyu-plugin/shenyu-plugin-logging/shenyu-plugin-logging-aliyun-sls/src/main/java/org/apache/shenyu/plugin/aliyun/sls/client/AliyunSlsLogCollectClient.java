@@ -121,9 +121,15 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
 
     @Override
     public void close0() throws Exception {
-        if (Objects.nonNull(client)) {
-            client.shutdown();
-            producer.close();
+        try {
+            if (Objects.nonNull(client)) {
+                client.shutdown();
+                producer.close();
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
+            }
         }
     }
 
@@ -189,9 +195,9 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
             LOG.warn("send thread count number too large!");
             sendThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(sendThreadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(sendThreadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-aliyun-sls", true),
-                new ThreadPoolExecutor.AbortPolicy());
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     /**

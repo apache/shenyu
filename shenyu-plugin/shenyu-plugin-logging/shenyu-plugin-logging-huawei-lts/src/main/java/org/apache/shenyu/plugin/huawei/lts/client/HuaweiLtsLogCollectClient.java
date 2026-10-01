@@ -97,7 +97,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
                 .setBaseRetryBackoffMs(huaweiLtsLogConfig.getBaseRetryBackoffMs())
                 .setMaxRetryBackoffMs(huaweiLtsLogConfig.getMaxRetryBackoffMs())
                 .setEnableLocalTest(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
-                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getEnableLocalTest()))
+                .setGiveUpExtraLongSingleLog(Boolean.parseBoolean(huaweiLtsLogConfig.getSetGiveUpExtraLongSingleLog()))
                 .builder();
         this.producer = appender.getProducer();
 
@@ -117,12 +117,17 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
     @Override
     public void close0() throws Exception {
-        if (Objects.nonNull(producer)) {
-            try {
-                producer.close();
-
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+        try {
+            if (Objects.nonNull(producer)) {
+                try {
+                    producer.close();
+                } catch (InterruptedException | ProducerException e) {
+                    LOG.error("Close producer error.", e);
+                }
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
             }
         }
     }
@@ -175,9 +180,9 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
             LOG.warn("send thread count number too large!");
             threadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-huawei-lts", true),
-                new ThreadPoolExecutor.AbortPolicy());
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     /**

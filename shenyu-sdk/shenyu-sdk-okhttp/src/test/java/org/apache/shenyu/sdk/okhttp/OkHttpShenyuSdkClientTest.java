@@ -20,6 +20,8 @@ package org.apache.shenyu.sdk.okhttp;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -29,12 +31,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.mockito.Mockito.mock;
 
 /**
  * The type Ok http shenyu sdk client test.
  */
 public class OkHttpShenyuSdkClientTest {
+
+    @Test
+    public void testFactoryCreatesIndependentClients() {
+        ShenyuSdkClient firstClient = ShenyuSdkClientFactory.newInstance("okhttp");
+        ShenyuSdkClient secondClient = ShenyuSdkClientFactory.newInstance("okhttp");
+
+        assertNotSame(firstClient, secondClient);
+    }
 
     /**
      * Test shenyu http client.

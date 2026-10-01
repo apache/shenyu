@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" nsmap="{None: 'http://www.w3.org/2000/svg'}" viewBox="0 112 1680 1008" width="1680" height="1008" role="img" aria-label="Apache ShenYu architecture: control plane configuration sync, gateway request path, upstream services, and observability">
+  <!--Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0. http://www.apache.org/licenses/LICENSE-2.0-->
+  <defs>
+    <marker id="flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#E56A2F" />
+    </marker>
+    <marker id="sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2874CE" />
+    </marker>
+    <marker id="register" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#128279" />
+    </marker>
+    <marker id="telemetry" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#7B5BC7" />
+    </marker>
+  </defs>
+  <rect x="0" y="112" width="1680" height="1008" rx="0" fill="#F5F7FB" stroke="none" stroke-width="1" />
+  <rect x="50" y="140" width="1580" height="268" rx="22" fill="#EEF5FF" stroke="#C9DDF8" stroke-width="2" />
+  <rect x="78" y="157" width="160" height="39" rx="19.5" fill="#D9E9FF" stroke="none" stroke-width="1" />
+  <text x="158.0" y="182.28" fill="#1D5CA5" font-size="17" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">01  CONTROL</text>
+  <text x="260" y="184" fill="#274366" font-size="22" font-weight="550" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Admin owns configuration; sync updates gateway replicas</text>
+  <rect x="78" y="219" width="230" height="68" rx="13" fill="#FFFFFF" stroke="#B9CBE1" stroke-width="2" />
+  <rect x="96" y="239" width="26" height="22" rx="3" fill="none" stroke="#3673B8" stroke-width="2" />
+  <line x1="99" y1="245" x2="119" y2="245" stroke="#3673B8" stroke-width="2" stroke-linecap="round" />
+  <text x="139" y="260" fill="#173556" font-size="19" font-weight="650" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Dashboard / API</text>
+  <rect x="78" y="310" width="230" height="68" rx="13" fill="#FFFFFF" stroke="#A7D6D0" stroke-width="2" />
+  <circle cx="108" cy="344" r="12" fill="#D7F1ED" />
+  <text x="108" y="350" fill="#0B766F" font-size="15" font-weight="750" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">S</text>
+  <text x="139" y="350" fill="#174C49" font-size="19" font-weight="650" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Service SDK</text>
+  <rect x="370" y="218" width="365" height="160" rx="16" fill="#FFFFFF" stroke="#8FB9EB" stroke-width="2" />
+  <rect x="370" y="218" width="365" height="48" rx="16" fill="#DCEBFF" stroke="none" stroke-width="1" />
+  <rect x="370" y="249" width="365" height="17" rx="0" fill="#DCEBFF" stroke="none" stroke-width="1" />
+  <text x="390" y="250" fill="#174A84" font-size="22" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">ShenYu Admin</text>
+  <text x="392" y="294" fill="#334E6C" font-size="18" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Config API · users · registration</text>
+  <rect x="392" y="313" width="320" height="48" rx="9" fill="#F7FAFE" stroke="#CDDDEF" stroke-width="1.5" />
+  <ellipse cx="417" cy="328" rx="11" ry="4" fill="#D5E3F4" stroke="#5080BB" stroke-width="1.5" />
+  <path d="M406 328 v15 c0 6 22 6 22 0 v-15" stroke="#5080BB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <text x="443" y="343" fill="#36516F" font-size="17" font-weight="600" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Database · persisted config</text>
+  <rect x="812" y="231" width="483" height="135" rx="16" fill="#FFFFFF" stroke="#8FB9EB" stroke-width="2" />
+  <text x="838" y="264" fill="#174A84" font-size="22" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Data sync</text>
+  <text x="838" y="291" fill="#45617E" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Admin listener → gateway subscriber</text>
+  <rect x="838" y="309" width="173" height="35" rx="17.5" fill="#E2F0FF" stroke="none" stroke-width="1" />
+  <text x="924.5" y="331.94" fill="#1F64A7" font-size="16" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">WebSocket · default</text>
+  <rect x="1022" y="309" width="246" height="35" rx="17.5" fill="#F0F5FB" stroke="none" stroke-width="1" />
+  <text x="1145.0" y="331.94" fill="#45617E" font-size="16" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">HTTP · ZK · Nacos · etc.</text>
+  <rect x="1374" y="231" width="229" height="135" rx="16" fill="#FFFFFF" stroke="#C5D8ED" stroke-width="2" />
+  <text x="1394" y="264" fill="#2D506F" font-size="20" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Synced data</text>
+  <text x="1394" y="293" fill="#45617E" font-size="15.5" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Plugin · Selector · Rule</text>
+  <text x="1394" y="319" fill="#45617E" font-size="16" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Metadata · Auth</text>
+  <text x="1394" y="345" fill="#45617E" font-size="16" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Upstream · AI keys</text>
+  <line x1="308" y1="253" x2="365" y2="253" stroke="#2874CE" stroke-width="3" stroke-linecap="round" marker-end="url(#sync)" />
+  <line x1="308" y1="344" x2="365" y2="344" stroke="#128279" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 6" marker-end="url(#register)" />
+  <line x1="735" y1="298" x2="805" y2="298" stroke="#2874CE" stroke-width="3" stroke-linecap="round" marker-end="url(#sync)" />
+  <line x1="1295" y1="298" x2="1367" y2="298" stroke="#2874CE" stroke-width="3" stroke-linecap="round" marker-end="url(#sync)" />
+  <text x="335" y="237" fill="#386DA9" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">edit</text>
+  <text x="337" y="332" fill="#0B766F" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">register</text>
+  <rect x="50" y="438" width="1580" height="568" rx="22" fill="#FFF8F2" stroke="#F3D5BF" stroke-width="2" />
+  <rect x="78" y="455" width="132" height="39" rx="19.5" fill="#FFE5D3" stroke="none" stroke-width="1" />
+  <text x="144.0" y="480.28" fill="#A8491C" font-size="17" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">02  DATA</text>
+  <text x="230" y="482" fill="#75482F" font-size="22" font-weight="550" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">HTTP request path · each gateway replica runs its own chain and cache</text>
+  <rect x="78" y="702" width="124" height="105" rx="16" fill="#FFFFFF" stroke="#EAC4A9" stroke-width="2" />
+  <rect x="111" y="726" width="58" height="39" rx="5" fill="none" stroke="#CF6E39" stroke-width="2.5" />
+  <line x1="137" y1="767" x2="143" y2="767" stroke="#CF6E39" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="127" y1="774" x2="154" y2="774" stroke="#CF6E39" stroke-width="2.5" stroke-linecap="round" />
+  <text x="140" y="796" fill="#7D3D20" font-size="19" font-weight="700" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Clients</text>
+  <rect x="258" y="702" width="150" height="105" rx="16" fill="#FFFFFF" stroke="#EAC4A9" stroke-width="2" />
+  <path d="M 315 745 l 19 -16 19 16 -19 17 z" stroke="#CF6E39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="#FFF0E3" />
+  <line x1="334" y1="761" x2="334" y2="774" stroke="#CF6E39" stroke-width="2" stroke-linecap="round" />
+  <text x="333" y="796" fill="#7D3D20" font-size="19" font-weight="700" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Proxy / LB</text>
+  <rect x="462" y="523" width="700" height="463" rx="18" fill="#EAD7C9" stroke="#EBC4A9" stroke-width="1.5" />
+  <rect x="452" y="513" width="700" height="463" rx="18" fill="#F6E9DD" stroke="#E7C3A7" stroke-width="1.5" />
+  <rect x="442" y="503" width="700" height="463" rx="18" fill="#FFFFFF" stroke="#E6B58F" stroke-width="2.5" />
+  <rect x="442" y="503" width="700" height="57" rx="18" fill="#FFE3CF" stroke="none" stroke-width="1" />
+  <rect x="442" y="542" width="700" height="18" rx="0" fill="#FFE3CF" stroke="none" stroke-width="1" />
+  <text x="466" y="540" fill="#96431F" font-size="23" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">ShenYu gateway cluster</text>
+  <rect x="765" y="515" width="157" height="33" rx="16.5" fill="#FFFFFF" stroke="#E7B48F" stroke-width="1" />
+  <text x="843.5" y="536.94" fill="#A65027" font-size="16" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">N replicas</text>
+  <rect x="474" y="581" width="180" height="67" rx="12" fill="#F0FAF8" stroke="#9CD5CD" stroke-width="2" />
+  <text x="492" y="610" fill="#15776F" font-size="18" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">TCP / MQTT</text>
+  <text x="492" y="638" fill="#3B7772" font-size="15" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">dedicated listeners</text>
+  <rect x="718" y="581" width="398" height="67" rx="12" fill="#EFF6FF" stroke="#9ABFE8" stroke-width="2" />
+  <text x="741" y="610" fill="#225B98" font-size="19" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Local config cache</text>
+  <text x="741" y="638" fill="#3D648C" font-size="16" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Plugin · Selector · Rule · Metadata</text>
+  <path d="M 1054 366 V 578" stroke="#2874CE" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" marker-end="url(#sync)" />
+  <rect x="1110" y="425" width="180" height="31" rx="9" fill="#F5F7FB" stroke="none" stroke-width="1" />
+  <text x="1200" y="446" fill="#2366AB" font-size="15" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">config change</text>
+  <rect x="474" y="694" width="180" height="126" rx="13" fill="#FFF7F0" stroke="#DCA77F" stroke-width="2" />
+  <text x="493" y="733" fill="#8D441F" font-size="18" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Spring WebFlux</text>
+  <text x="493" y="762" fill="#75482F" font-size="15" font-weight="600" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">ShenyuWebHandler</text>
+  <text x="493" y="790" fill="#A26C4E" font-size="16" font-weight="450" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">entry point</text>
+  <rect x="718" y="698" width="398" height="259" rx="14" fill="#FFFFFF" stroke="#E3A77A" stroke-width="2" />
+  <text x="740" y="726" fill="#913F1C" font-size="20" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Ordered ShenyuPlugin chain</text>
+  <text x="740" y="751" fill="#8D624D" font-size="15" font-weight="450" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Configured order · dynamic plugin updates</text>
+  <rect x="740" y="763" width="172" height="31" rx="15.5" fill="#FFF0E3" stroke="none" stroke-width="1" />
+  <text x="826.0" y="783.43" fill="#A94F22" font-size="14.5" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Security / traffic</text>
+  <rect x="923" y="763" width="169" height="31" rx="15.5" fill="#E9F4F1" stroke="none" stroke-width="1" />
+  <text x="1007.5" y="783.43" fill="#33756B" font-size="14.5" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Cache / resilience</text>
+  <rect x="740" y="800" width="172" height="31" rx="15.5" fill="#EAF2FF" stroke="none" stroke-width="1" />
+  <text x="826.0" y="820.26" fill="#3465A3" font-size="14" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Transform / AI / MCP</text>
+  <rect x="923" y="800" width="169" height="31" rx="15.5" fill="#EFE8FF" stroke="none" stroke-width="1" />
+  <text x="1007.5" y="820.43" fill="#6846A3" font-size="14.5" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Metrics / logging</text>
+  <rect x="740" y="838" width="352" height="65" rx="9" fill="#FFF5EC" stroke="#F0C9AB" stroke-width="1.5" />
+  <text x="755" y="858" fill="#A84C20" font-size="16" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Proxy / RPC plugins</text>
+  <text x="755" y="879" fill="#714A36" font-size="15" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Divide · Dubbo · SOFA · gRPC · Tars</text>
+  <text x="755" y="898" fill="#714A36" font-size="14.5" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">WebSocket · RPC context / transform</text>
+  <rect x="740" y="910" width="352" height="30" rx="8" fill="#F5F7FB" stroke="none" stroke-width="1" />
+  <text x="916" y="930" fill="#3F536D" font-size="14.5" font-weight="550" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Selector / Rule: parameter + predicate matching</text>
+  <path d="M 917 649 V 694" stroke="#2874CE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" marker-end="url(#sync)" />
+  <line x1="202" y1="755" x2="252" y2="755" stroke="#E56A2F" stroke-width="3.5" stroke-linecap="round" marker-end="url(#flow)" />
+  <line x1="408" y1="755" x2="468" y2="755" stroke="#E56A2F" stroke-width="3.5" stroke-linecap="round" marker-end="url(#flow)" />
+  <line x1="654" y1="755" x2="712" y2="755" stroke="#E56A2F" stroke-width="3.5" stroke-linecap="round" marker-end="url(#flow)" />
+  <line x1="1116" y1="755" x2="1194" y2="755" stroke="#E56A2F" stroke-width="3.5" stroke-linecap="round" marker-end="url(#flow)" />
+  <text x="434" y="739" fill="#B1552B" font-size="15" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">HTTP</text>
+  <rect x="1200" y="545" width="402" height="348" rx="16" fill="#FFFFFF" stroke="#DFB18F" stroke-width="2" />
+  <rect x="1200" y="545" width="402" height="56" rx="16" fill="#FFE8D8" stroke="none" stroke-width="1" />
+  <rect x="1200" y="583" width="402" height="18" rx="0" fill="#FFE8D8" stroke="none" stroke-width="1" />
+  <text x="1224" y="582" fill="#914624" font-size="22" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Upstream services</text>
+  <text x="1224" y="629" fill="#6B432F" font-size="19" font-weight="650" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">HTTP / Spring Cloud</text>
+  <line x1="1224" y1="647" x2="1578" y2="647" stroke="#EDE2D8" stroke-width="1.5" stroke-linecap="round" />
+  <text x="1224" y="681" fill="#A66342" font-size="16" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">RPC</text>
+  <text x="1224" y="708" fill="#6B432F" font-size="18" font-weight="550" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Dubbo · SOFA · gRPC · Tars</text>
+  <line x1="1224" y1="729" x2="1578" y2="729" stroke="#EDE2D8" stroke-width="1.5" stroke-linecap="round" />
+  <text x="1224" y="761" fill="#A66342" font-size="16" font-weight="750" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Streaming</text>
+  <text x="1224" y="788" fill="#6B432F" font-size="18" font-weight="550" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">WebSocket services</text>
+  <rect x="1224" y="817" width="354" height="48" rx="8" fill="#FFF8F2" stroke="none" stroke-width="1" />
+  <text x="1401" y="846" fill="#8D624D" font-size="16" font-weight="500" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Backend apps own their APIs</text>
+  <rect x="1200" y="912" width="402" height="70" rx="13" fill="#F4EFFD" stroke="#CBB8EB" stroke-width="2" />
+  <text x="1224" y="941" fill="#6746A0" font-size="19" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Observability sinks</text>
+  <text x="1224" y="967" fill="#70578D" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Metrics · logs · trace IDs</text>
+  <path d="M 1116 884 H 1165 Q 1175 884 1175 894 V 947 H 1193" stroke="#7B5BC7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="6 5" marker-end="url(#telemetry)" />
+  <rect x="78" y="873" width="330" height="104" rx="13" fill="#FFFFFF" stroke="#D4C7BA" stroke-width="1.5" />
+  <rect x="96" y="889" width="118" height="30" rx="15.0" fill="#F1EBE5" stroke="none" stroke-width="1" />
+  <text x="155.0" y="909.1" fill="#71594A" font-size="15" font-weight="650" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">DEPLOY</text>
+  <text x="96" y="945" fill="#654D3F" font-size="18" font-weight="650" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">shenyu-bootstrap image</text>
+  <text x="96" y="966" fill="#917767" font-size="14" font-weight="450" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Docker / Kubernetes replicas</text>
+  <line x1="62" y1="1040" x2="1618" y2="1040" stroke="#DCE4ED" stroke-width="1.5" stroke-linecap="round" />
+  <text x="68" y="1077" fill="#51637A" font-size="17" font-weight="700" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Flows</text>
+  <line x1="137" y1="1071" x2="185" y2="1071" stroke="#E56A2F" stroke-width="3" stroke-linecap="round" marker-end="url(#flow)" />
+  <text x="199" y="1077" fill="#51637A" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">request</text>
+  <line x1="337" y1="1071" x2="385" y2="1071" stroke="#2874CE" stroke-width="3" stroke-linecap="round" marker-end="url(#sync)" />
+  <text x="399" y="1077" fill="#51637A" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">config sync</text>
+  <line x1="565" y1="1071" x2="613" y2="1071" stroke="#128279" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 6" marker-end="url(#register)" />
+  <text x="627" y="1077" fill="#51637A" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">registration</text>
+  <line x1="817" y1="1071" x2="865" y2="1071" stroke="#7B5BC7" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#telemetry)" />
+  <text x="879" y="1077" fill="#51637A" font-size="17" font-weight="500" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">telemetry</text>
+  <text x="1599" y="1077" fill="#51637A" font-size="17" font-weight="550" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif">Each replica reads its own local cache</text>
+</svg>

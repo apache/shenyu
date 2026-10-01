@@ -22,8 +22,11 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -188,6 +191,46 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = ruleMapper.delete(ruleDO.getId());
         assertThat(delete, equalTo(1));
+    }
+
+    @Test
+    public void deleteByIdsAndNamespaceId() {
+        RuleDO ruleInNamespace = buildRuleDO();
+        RuleDO ruleInAnotherNamespace = buildRuleDO();
+        ruleInAnotherNamespace.setNamespaceId("another-namespace");
+        assertThat(ruleMapper.insert(ruleInNamespace), equalTo(1));
+        assertThat(ruleMapper.insert(ruleInAnotherNamespace), equalTo(1));
+
+        List<String> ids = Arrays.asList(ruleInNamespace.getId(), ruleInAnotherNamespace.getId());
+        assertThat(ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID).size(), equalTo(1));
+        assertThat(ruleMapper.selectByIdsAndNamespaceId(Collections.singletonList(ruleInAnotherNamespace.getId()), SYS_DEFAULT_NAMESPACE_ID).isEmpty(), equalTo(true));
+        assertThat(ruleMapper.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), equalTo(1));
+        assertThat(ruleMapper.selectById(ruleInAnotherNamespace.getId()), equalTo(ruleInAnotherNamespace));
+
+        assertThat(ruleMapper.delete(ruleInAnotherNamespace.getId()), equalTo(1));
+    }
+
+    @Test
+    @Transactional
+    public void testCountMatchesFilteredList() {
+        RuleDO first = buildRuleDO();
+        first.setRuleName("permission-keyword-first");
+        RuleDO second = buildRuleDO();
+        second.setRuleName("permission-keyword-second");
+        RuleDO otherSelector = buildRuleDO();
+        otherSelector.setRuleName("permission-keyword-other");
+        otherSelector.setSelectorId("other-selector");
+        Arrays.asList(first, second, otherSelector).forEach(ruleMapper::insert);
+        RuleQuery query = new RuleQuery();
+        query.setSelectorId(first.getSelectorId());
+        query.setName("keyword");
+        query.setFilterIds(Arrays.asList(first.getId(), second.getId(), otherSelector.getId()));
+        assertThat(ruleMapper.countByQuery(query), equalTo(2));
+        assertThat(ruleMapper.countByQuery(query), equalTo(ruleMapper.selectByQuery(query).size()));
+        query.setName(first.getRuleName());
+        assertThat(ruleMapper.countByQuery(query), equalTo(1));
+        query.setName("missing-keyword");
+        assertThat(ruleMapper.countByQuery(query), equalTo(0));
     }
 
     private RuleDO buildRuleDO() {

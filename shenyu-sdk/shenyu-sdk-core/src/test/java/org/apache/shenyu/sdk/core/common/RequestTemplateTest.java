@@ -85,6 +85,17 @@ public class RequestTemplateTest {
         Assert.assertNotNull(shenyuRequest);
     }
 
+    @Test
+    public void testRequestWithoutPath() {
+        RequestTemplate template = new RequestTemplate();
+        template.setUrl("http://gateway");
+        template.setHttpMethod(ShenyuRequest.HttpMethod.GET);
+
+        ShenyuRequest shenyuRequest = template.request();
+
+        Assert.assertEquals("http://gateway", shenyuRequest.getUrl());
+    }
+
     public void assertNotNull(final RequestTemplate requestTemplate) {
         Assert.assertNotNull(requestTemplate);
         Assert.assertNotNull(requestTemplate.getReturnType());

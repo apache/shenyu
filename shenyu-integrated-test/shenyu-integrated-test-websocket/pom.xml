@@ -28,8 +28,6 @@
     <artifactId>shenyu-integrated-test-websocket</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <websocket.version>1.5.1</websocket.version>
     </properties>
 

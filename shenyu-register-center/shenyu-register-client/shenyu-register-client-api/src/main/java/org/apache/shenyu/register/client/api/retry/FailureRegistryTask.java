@@ -52,8 +52,11 @@ public class FailureRegistryTask extends AbstractRetryTask {
      */
     @Override
     protected void doRetry(final String key, final TimerTask timerTask) {
-        this.registerRepository.accept(key);
-        //Because accept requires an exception to be thrown. Only normal can remove.
+        this.registerRepository.retry(key);
+    }
+
+    @Override
+    protected void onRetryExhausted(final String key) {
         this.registerRepository.remove(key);
     }
 }

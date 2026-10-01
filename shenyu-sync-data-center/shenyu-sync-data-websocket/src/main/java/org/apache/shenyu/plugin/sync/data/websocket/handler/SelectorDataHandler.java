@@ -41,8 +41,17 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
 
     @Override
     protected void doRefresh(final List<SelectorData> dataList) {
-        pluginDataSubscriber.refreshSelectorDataSelf(dataList);
-        dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
+        pluginDataSubscriber.refreshSelectorDataAll();
+        pluginDataSubscriber.onSelectorRefresh(dataList);
+    }
+
+    @Override
+    protected void doSnapshot(final List<SelectorData> dataList, final String namespaceId) {
+        if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
+            throw new IllegalArgumentException("Snapshot row namespace does not match the connection");
+        }
+        pluginDataSubscriber.refreshSelectorDataNamespace(namespaceId);
+        doUpdate(dataList);
     }
 
     @Override

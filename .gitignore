@@ -3,7 +3,6 @@ target/
 *.class
 *.jar
 *.war
-*.zip
 *.tar
 *.tar.gz
 .flattened-pom.xml
@@ -18,7 +17,8 @@ cobertura.ser
 .settings/
 .project
 .classpath
-
+.claude
+.agents
 # idea ignore
 .idea/
 !/.idea/icon.svg
@@ -53,3 +53,4 @@ Thumbs.db
 
 # local worktrees
 .worktrees/
+.gitnexus

@@ -25,14 +25,16 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +61,14 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
     }
 
     @Override
+    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
+            return;
+        }
+        UpstreamCacheManager.getInstance().removeByKey(key.selectorId());
+    }
+
+    @Override
     public String pluginName() {
         return PluginEnum.DIVIDE.getName();
     }
@@ -68,17 +78,22 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
             return Collections.emptyList();
         }
         return upstreamList.stream().map(u -> {
-            Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
-            return Upstream.builder()
+            Map<String, String> metadata = Optional.ofNullable(u.getProps())
+                    .map(ps -> GsonUtils.getInstance().toObjectMap(ps, String.class))
+                    .map(HashMap::new)
+                    .orElseGet(HashMap::new);
+            Upstream upstream = Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
                     .weight(u.getWeight())
-                    .warmup(Integer.parseInt(properties.getProperty("warmup", "10")))
-                    .gray(Boolean.parseBoolean(properties.getProperty("gray", "false")))
-                    .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
+                    .warmup(Integer.parseInt(metadata.getOrDefault("warmup", "10")))
+                    .gray(Boolean.parseBoolean(metadata.getOrDefault("gray", "false")))
+                    .healthCheckEnabled(Boolean.parseBoolean(metadata.getOrDefault("healthCheckEnabled", "true")))
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
+            upstream.setMetadata(metadata);
+            return upstream;
         }).collect(Collectors.toList());
     }
 

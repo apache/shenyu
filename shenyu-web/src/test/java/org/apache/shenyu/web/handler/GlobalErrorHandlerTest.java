@@ -33,15 +33,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -78,9 +83,9 @@ public final class GlobalErrorHandlerTest {
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() {
         });
-        when(context.getBean(AlarmService.class)).thenReturn(content -> {
+        lenient().when(context.getBean(AlarmService.class)).thenReturn(content -> {
         });
-        when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig() {
+        lenient().when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig() {
         });
 
         globalErrorHandler = new GlobalErrorHandler();
@@ -94,5 +99,31 @@ public final class GlobalErrorHandlerTest {
         Mono<Void> response = globalErrorHandler.handle(webExchange, nullPointerException);
         assertNotNull(response);
         assertNotNull(globalErrorHandler.handle(webExchange, new ResponseStatusException(HttpStatus.BAD_REQUEST)));
+    }
+
+    @Test
+    public void testHandleResponseStatusExceptionWithNonStandardStatusCode() {
+        MockServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/test"));
+        ResponseStatusException exception = new ResponseStatusException(HttpStatusCode.valueOf(460), "Custom status");
+
+        Mono<Void> response = assertDoesNotThrow(() -> globalErrorHandler.handle(webExchange, exception));
+        response.block();
+
+        assertNotNull(webExchange.getResponse().getStatusCode());
+        assertEquals(460, webExchange.getResponse().getStatusCode().value());
+        assertTrue(webExchange.getResponse().getBodyAsString().block().contains("Custom status"));
+    }
+
+    @Test
+    public void testHandleResponseStatusExceptionWithNonStandardStatusCodeWithoutReason() {
+        MockServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/test"));
+        ResponseStatusException exception = new ResponseStatusException(HttpStatusCode.valueOf(460), null);
+
+        Mono<Void> response = assertDoesNotThrow(() -> globalErrorHandler.handle(webExchange, exception));
+        response.block();
+
+        assertNotNull(webExchange.getResponse().getStatusCode());
+        assertEquals(460, webExchange.getResponse().getStatusCode().value());
+        assertTrue(webExchange.getResponse().getBodyAsString().block().contains("460"));
     }
 }

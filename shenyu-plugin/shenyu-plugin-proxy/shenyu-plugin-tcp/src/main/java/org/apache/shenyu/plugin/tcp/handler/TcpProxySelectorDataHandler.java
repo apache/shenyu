@@ -20,14 +20,9 @@ package org.apache.shenyu.plugin.tcp.handler;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
-import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
-import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.Objects;
 
 public class TcpProxySelectorDataHandler implements ProxySelectorDataHandler {
 
@@ -36,26 +31,26 @@ public class TcpProxySelectorDataHandler implements ProxySelectorDataHandler {
     @Override
     public void handlerProxySelector(final ProxySelectorData proxySelectorData) {
         String name = proxySelectorData.getName();
-        if (!TcpBootstrapFactory.getSingleton().inCache(name)) {
-            Integer forwardPort = proxySelectorData.getForwardPort();
-            TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
-            tcpServerConfiguration.setPort(forwardPort);
-            tcpServerConfiguration.setProps(proxySelectorData.getProps());
-            tcpServerConfiguration.setPluginSelectorName(name);
-            UpstreamProvider.getSingleton().createUpstreams(name, Collections.emptyList());
-            BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().createBootstrapServer(tcpServerConfiguration);
-            TcpBootstrapFactory.getSingleton().cache(name, bootstrapServer);
-            LOG.info("shenyu create TcpBootstrapServer success name is {} port is {}", proxySelectorData.getName(), forwardPort);
+        TcpBootstrapFactory factory = TcpBootstrapFactory.getSingleton();
+        if (factory.inCache(name)) {
+            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", name, proxySelectorData.getForwardPort());
+            return;
+        }
+        Integer forwardPort = proxySelectorData.getForwardPort();
+        TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
+        tcpServerConfiguration.setPort(forwardPort);
+        tcpServerConfiguration.setProps(proxySelectorData.getProps());
+        tcpServerConfiguration.setPluginSelectorName(name);
+        if (factory.createBootstrapServerIfAbsent(tcpServerConfiguration)) {
+            LOG.info("shenyu create TcpBootstrapServer success name is {} port is {}", name, forwardPort);
         } else {
-            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", proxySelectorData.getName(), proxySelectorData.getForwardPort());
+            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", name, forwardPort);
         }
     }
 
     @Override
     public void removeProxySelector(final String proxySelectorName) {
-        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().removeCache(proxySelectorName);
-        if (Objects.nonNull(bootstrapServer)) {
-            bootstrapServer.shutdown();
+        if (TcpBootstrapFactory.getSingleton().removeAndShutdown(proxySelectorName)) {
             LOG.info("shenyu shutdown {}", proxySelectorName);
         }
     }

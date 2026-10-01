@@ -37,6 +37,18 @@ public class ShenyuConfigTest {
     
     private final ShenyuConfig config = new ShenyuConfig();
 
+    @Test
+    public void testSharedPoolMaximumDefaultsToCoreSize() {
+        ShenyuConfig.SharedPool pool = config.getSharedPool();
+        assertEquals(200, pool.getMaximumPoolSize());
+        pool.setCorePoolSize(300);
+        assertEquals(300, pool.getMaximumPoolSize());
+        pool.setMaximumPoolSize(400);
+        assertEquals(400, pool.getMaximumPoolSize());
+        pool.setCorePoolSize(350);
+        assertEquals(400, pool.getMaximumPoolSize());
+    }
+
     /**
      * test of shenyuConfig.
      *
