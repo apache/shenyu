@@ -105,6 +105,14 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
     List<DiscoveryHandlerDO> selectAll();
 
     /**
+     * Select handlers bound to selectors in a namespace.
+     *
+     * @param namespaceId namespace id
+     * @return discovery handlers
+     */
+    List<DiscoveryHandlerDO> selectAllByNamespaceId(String namespaceId);
+
+    /**
      * selectByDiscoveryId.
      *
      * @param discoveryId discoveryId

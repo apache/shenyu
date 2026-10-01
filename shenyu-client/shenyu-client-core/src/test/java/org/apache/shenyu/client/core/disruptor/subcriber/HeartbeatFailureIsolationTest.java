@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RunnableScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -47,8 +46,7 @@ public final class HeartbeatFailureIsolationTest {
         ShenyuClientRegisterRepository repository = mock(ShenyuClientRegisterRepository.class);
         ShenyuClientURIExecutorSubscriber subscriber = new ShenyuClientURIExecutorSubscriber(repository);
         ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(subscriber, "executor");
-        List<URIRegisterDTO> uris = (List<URIRegisterDTO>) ReflectionTestUtils.getField(ShenyuClientURIExecutorSubscriber.class, "URIS");
-        List<URIRegisterDTO> previous = new ArrayList<>(uris);
+        List<URIRegisterDTO> uris = (List<URIRegisterDTO>) ReflectionTestUtils.getField(subscriber, "uris");
         URIRegisterDTO failing = URIRegisterDTO.builder().host("localhost").port(18080).build();
         URIRegisterDTO healthy = URIRegisterDTO.builder().host("localhost").port(18081).build();
         doThrow(new IllegalStateException("admin unavailable")).when(repository).sendHeartbeat(failing);
@@ -67,8 +65,6 @@ public final class HeartbeatFailureIsolationTest {
         } finally {
             executor.shutdownNow();
             uris.clear();
-            uris.addAll(previous);
         }
     }
 }
-

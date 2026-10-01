@@ -127,18 +127,21 @@ class RequestConfigHelperTest {
     @Test
     void testMissingRequestTemplate() {
         RequestConfigHelper helper = new RequestConfigHelper("{\"argsPosition\":{}}");
-        // This will fail because getRequestTemplate() returns null
-        assertThrows(Exception.class, () -> {
-            helper.getUrlTemplate();
-        });
+        IllegalArgumentException urlException = assertThrows(IllegalArgumentException.class, helper::getUrlTemplate);
+        assertEquals("requestTemplate is required", urlException.getMessage());
+
+        IllegalArgumentException methodException = assertThrows(IllegalArgumentException.class, helper::getMethod);
+        assertEquals("requestTemplate is required", methodException.getMessage());
+
+        IllegalArgumentException argsToJsonBodyException = assertThrows(IllegalArgumentException.class, helper::isArgsToJsonBody);
+        assertEquals("requestTemplate is required", argsToJsonBodyException.getMessage());
     }
 
     @Test
     void testMissingUrlInTemplate() {
         RequestConfigHelper helper = new RequestConfigHelper("{\"requestTemplate\":{\"method\":\"GET\"}}");
-        assertThrows(Exception.class, () -> {
-            helper.getUrlTemplate();
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, helper::getUrlTemplate);
+        assertEquals("url is required in requestTemplate", exception.getMessage());
     }
 
     @Test

@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
@@ -25,9 +26,7 @@ import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * The type Meta data cache.
@@ -45,12 +44,8 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final WindowTinyLFUMap<String, MetaData> CACHE = new WindowTinyLFUMap<>(1 << 16, Integer.MAX_VALUE, Boolean.FALSE);
-
-    /**
-     * pathPattern -> path.
-     */
-    private static final ConcurrentMap<String, Set<String>> MAPPING = Maps.newConcurrentMap();
+    private static final WindowTinyLFUMap<String, MetaData> CACHE =
+            new WindowTinyLFUMap<>(Constants.CACHE_MAX_COUNT, Constants.CACHE_MAX_COUNT, Boolean.FALSE);
 
     private MetaDataCache() {
     }
@@ -97,13 +92,12 @@ public final class MetaDataCache {
     }
 
     private void clean(final String key) {
-        // springCloud and divide are needs to be cleaned
-        Optional.ofNullable(MAPPING.get(key))
-                .ifPresent(paths -> {
-                    for (String path : paths) {
-                        CACHE.remove(path);
-                    }
-                });
+        if (key.contains("*")) {
+            CACHE.clear();
+            return;
+        }
+        CACHE.entrySet().removeIf(entry -> Objects.equals(key, NULL.equals(entry.getValue())
+                ? DIVIDE_CACHE_KEY : entry.getValue().getPath()));
     }
 
     /**
@@ -125,7 +119,7 @@ public final class MetaDataCache {
                     final MetaData value = META_DATA_MAP.values()
                             .stream()
                             .filter(data -> data.getEnabled() && PathMatchUtils.match(data.getPath(), path))
-                            .findFirst()
+                            .min((left, right) -> PathMatchUtils.compare(left.getPath(), right.getPath(), path))
                             .orElse(null);
                     final String metaPath = Optional.ofNullable(value)
                             .map(MetaData::getPath)
@@ -147,13 +141,6 @@ public final class MetaDataCache {
     public void initCache(final String path, final MetaData value, final String metaPath) {
         // The extreme case will lead to OOM, that's why use LRU
         CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
-        // spring/** -> Collections 'spring/A', 'spring/B'
-        Set<String> paths = MAPPING.get(metaPath);
-        if (Objects.isNull(paths)) {
-            MAPPING.putIfAbsent(metaPath, new ConcurrentSkipListSet<>());
-            paths = MAPPING.get(metaPath);
-        }
-        paths.add(path);
     }
     
     /**

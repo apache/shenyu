@@ -255,6 +255,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
     
     private <T> void doUnregister(final T t) {
+        int failureCount = 0;
         for (String server : serverList) {
             String concat = server.concat(Constants.OFFLINE_PATH);
             try {
@@ -265,7 +266,11 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 RegisterUtils.doUnregister(GsonUtils.getInstance().toJson(t), concat, accessToken);
                 // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
-                LOGGER.error("Unregister admin url :{} is fail. cause:{}", server, e.getMessage());
+                failureCount++;
+                LOGGER.error("Unregister admin url :{} is fail.", server, e);
+                if (failureCount == serverList.size()) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

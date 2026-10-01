@@ -208,12 +208,10 @@ class HeartbeatListenerTest {
             org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO beatInfo = 
                     new org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO();
 
-            // Should throw RuntimeException due to login failure
-            try {
-                sendHeartbeatMethod.invoke(heartbeatListener, beatInfo);
-            } catch (Exception e) {
-                assertTrue(e.getCause() instanceof RuntimeException);
-            }
+            assertDoesNotThrow(() -> sendHeartbeatMethod.invoke(heartbeatListener, beatInfo));
+            assertDoesNotThrow(() -> sendHeartbeatMethod.invoke(heartbeatListener, beatInfo));
+            registerUtilsMockedStatic.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()),
+                    Mockito.never());
         }
     }
 
