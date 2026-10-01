@@ -37,6 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test Cases for SelectorMapper.
@@ -76,6 +77,9 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet);
         assertNotNull(selectorList);
         assertThat(selectorList, hasItems(selectorDO1, selectorDO));
+
+        assertEquals(1, selectorMapper.delete(selectorDO1.getId()));
+        assertEquals(1, selectorMapper.delete(selectorDO.getId()));
 
     }
 
@@ -200,6 +204,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
     @Test
     public void testDeleteByPluginId() {
         SelectorDO selectorDO = buildSelectorDO();
+        selectorDO.setPluginId("test-delete-by-plugin-id");
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
@@ -215,8 +220,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
         List<SelectorDO> list = selectorMapper.selectAll();
         assertNotNull(list);
-        assertEquals(list.size(), 1);
-        assertNotNull(selectorDO.getPluginId(), list.get(0).getPluginId());
+        assertTrue(list.stream().anyMatch(item -> selectorDO.getId().equals(item.getId())));
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);

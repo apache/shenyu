@@ -17,15 +17,19 @@
 
 package org.apache.shenyu.admin;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ActiveProfilesResolver;
 
 /**
- * Abstract Integration Test for Spring.
+ * Resolves the database profile used by admin integration tests.
  */
-@ActiveProfiles(resolver = DatabaseProfileResolver.class)
-@SpringBootTest(classes = ShenyuAdminBootstrap.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration")
-public abstract class AbstractSpringIntegrationTest {
+public final class DatabaseProfileResolver implements ActiveProfilesResolver {
 
+    static final String PROFILE_PROPERTY = "shenyu.test.database.profile";
+
+    static final String DEFAULT_PROFILE = "h2";
+
+    @Override
+    public String[] resolve(final Class<?> testClass) {
+        return new String[] {System.getProperty(PROFILE_PROPERTY, DEFAULT_PROFILE)};
+    }
 }
