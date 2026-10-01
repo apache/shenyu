@@ -48,6 +48,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  agent_gateway_migrations:
+    if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Agent Gateway upgrade and schema consistency
+        run: |
+          python3 .github/scripts/check-agent-gateway-migrations.py
+          python3 .github/scripts/test-agent-gateway-migrations.py
+
   changes:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
