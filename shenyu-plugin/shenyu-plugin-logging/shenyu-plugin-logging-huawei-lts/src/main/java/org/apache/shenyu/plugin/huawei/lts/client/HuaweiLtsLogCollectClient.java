@@ -117,12 +117,17 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
 
     @Override
     public void close0() throws Exception {
-        if (Objects.nonNull(producer)) {
-            try {
-                producer.close();
-
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
+        try {
+            if (Objects.nonNull(producer)) {
+                try {
+                    producer.close();
+                } catch (InterruptedException | ProducerException e) {
+                    LOG.error("Close producer error.", e);
+                }
+            }
+        } finally {
+            if (Objects.nonNull(threadExecutor)) {
+                threadExecutor.shutdown();
             }
         }
     }
@@ -177,7 +182,7 @@ public class HuaweiLtsLogCollectClient extends AbstractLogConsumeClient<HuaweiLo
         }
         return new ThreadPoolExecutor(threadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-huawei-lts", true),
-                new ThreadPoolExecutor.AbortPolicy());
+                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     /**

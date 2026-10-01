@@ -38,10 +38,10 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +66,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                                                  final KeyValueParser keyValueParser,
                                                  final DiscoverySyncData contextInfo,
                                                  final String discoveryId) {
-        this.discoverySyncDataList = new ArrayList<>();
+        this.discoverySyncDataList = new CopyOnWriteArrayList<>();
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
         this.discoveryId = discoveryId;

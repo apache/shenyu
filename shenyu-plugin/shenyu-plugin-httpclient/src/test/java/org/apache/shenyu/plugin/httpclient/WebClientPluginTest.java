@@ -19,13 +19,19 @@ package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -57,6 +63,7 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -181,6 +188,54 @@ public final class WebClientPluginTest {
                 .verify();
     }
 
+    @Test
+    public void testServerErrorTriggersFailover() {
+        WebClientPlugin plugin = new WebClientPlugin(mockWebClientError(), Constants.BYTES_PER_MB);
+        ServerWebExchange exchange = generateServerWebExchange();
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+
+        StepVerifier.create(plugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
+                .expectError(ShenyuUpstreamStatusException.class)
+                .verify();
+    }
+
+    @ParameterizedTest
+    @EnumSource(HeaderUniqueStrategyEnum.class)
+    public void testOutboundHeaderDeduplication(final HeaderUniqueStrategyEnum strategy) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header("X-Duplicate", "first", "last", "last")
+                .header(HttpHeaders.HOST, "original.example")
+                .build());
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), "X-Duplicate");
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), strategy);
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), "X-Duplicate");
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), strategy);
+        exchange.getResponse().getHeaders().set("X-Gateway", "preserved");
+        ClientResponse response = ClientResponse.create(HttpStatus.OK).header("X-Duplicate", "first", "last", "last").build();
+        when(exchangeFunction.exchange(captor.capture())).thenReturn(Mono.just(response));
+        WebClientPlugin plugin = new WebClientPlugin(WebClient.builder().exchangeFunction(exchangeFunction).build(), Constants.BYTES_PER_MB);
+        StepVerifier.create(plugin.doRequest(exchange, "GET", URI.create("http://upstream.example/test"), Flux.empty()))
+                .expectNextCount(1).verifyComplete();
+        List<String> expected = strategy == HeaderUniqueStrategyEnum.RETAIN_UNIQUE
+                ? List.of("first", "last") : List.of(strategy == HeaderUniqueStrategyEnum.RETAIN_FIRST ? "first" : "last");
+        assertEquals(expected, captor.getValue().headers().get("X-Duplicate"));
+        assertEquals(expected, exchange.getResponse().getHeaders().get("X-Duplicate"));
+        assertEquals(List.of("first", "last", "last"), exchange.getRequest().getHeaders().get("X-Duplicate"));
+        assertFalse(captor.getValue().headers().containsKey(HttpHeaders.HOST));
+        assertEquals("preserved", exchange.getResponse().getHeaders().getFirst("X-Gateway"));
+    }
+
+    @Test
+    public void testDeduplicationPreservesConfiguredHost() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").header(HttpHeaders.HOST, "original.example").build());
+        exchange.getAttributes().put(Constants.PRESERVE_HOST, true);
+        when(exchangeFunction.exchange(captor.capture())).thenReturn(Mono.just(ClientResponse.create(HttpStatus.OK).build()));
+        WebClientPlugin plugin = new WebClientPlugin(WebClient.builder().exchangeFunction(exchangeFunction).build(), Constants.BYTES_PER_MB);
+        StepVerifier.create(plugin.doRequest(exchange, "GET", URI.create("http://upstream.example/test"), Flux.empty()))
+                .expectNextCount(1).verifyComplete();
+        assertEquals("original.example", captor.getValue().headers().getFirst(HttpHeaders.HOST));
+    }
+
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
@@ -206,15 +261,8 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
-        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
-        
-        final ClientResponse mockResponse = mock(ClientResponse.class);
-        when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-        when(mockResponse.headers()).thenReturn(headers);
-        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
-        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
-        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
+        final ClientResponse response = ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(response));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)
                 .apply(consumer -> consumer.defaultHeader("Accept", "application/json")
