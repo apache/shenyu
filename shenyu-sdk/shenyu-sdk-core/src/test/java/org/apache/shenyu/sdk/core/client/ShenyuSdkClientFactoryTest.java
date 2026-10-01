@@ -18,14 +18,10 @@
 package org.apache.shenyu.sdk.core.client;
 
 import org.apache.shenyu.spi.ExtensionLoader;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -35,26 +31,18 @@ import static org.mockito.Mockito.when;
  */
 public class ShenyuSdkClientFactoryTest {
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        final Field field = ShenyuSdkClientFactory.class.getDeclaredField(
-                "SDK_CLIENT_MAP");
-        field.setAccessible(true);
-        final Map<String, ShenyuSdkClient> map = (Map<String, ShenyuSdkClient>) field.get(
-                null);
-        map.put("httpclient", mock(ShenyuSdkClient.class));
-    }
-
     @Test
     public void testNewInstance() {
-        assertNotNull(ShenyuSdkClientFactory.newInstance("httpclient"));
         try (MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class)) {
             ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
+            ShenyuSdkClient firstClient = mock(ShenyuSdkClient.class);
+            ShenyuSdkClient secondClient = mock(ShenyuSdkClient.class);
             mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class))
                     .thenReturn(extensionLoader);
-            when(extensionLoader.getJoin("clientType")).thenReturn(
-                    mock(ShenyuSdkClient.class));
-            assertNotNull(ShenyuSdkClientFactory.newInstance("clientType"));
+            when(extensionLoader.getJoin("clientType")).thenReturn(firstClient, secondClient);
+
+            assertSame(firstClient, ShenyuSdkClientFactory.newInstance("clientType"));
+            assertSame(secondClient, ShenyuSdkClientFactory.newInstance("clientType"));
         }
     }
 }

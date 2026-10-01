@@ -95,6 +95,14 @@ public class ExistenceProbeDialectTest {
                 assertTrue(session.getMapper(PluginMapper.class).existed("probe-1"));
                 assertTrue(session.getMapper(PluginMapper.class).nameExisted("probe-name"));
                 assertNull(session.getMapper(PluginMapper.class).nameExisted("missing-probe"));
+                jdbc.update("INSERT INTO meta_data (id, path, namespace_id, app_name, rpc_type) VALUES ('meta-1', '/probe', 'ns-one', 'probe', 'http')");
+                jdbc.update("INSERT INTO meta_data (id, path, namespace_id, app_name, rpc_type) VALUES ('meta-2', '/probe', 'ns-two', 'probe', 'http')");
+                MetaDataMapper metadata = session.getMapper(MetaDataMapper.class);
+                assertTrue(metadata.pathExistedExclude("/probe", "ns-one", List.of()));
+                assertTrue(metadata.pathExistedExclude("/probe", "ns-one", null));
+                assertTrue(metadata.pathExistedExclude("/probe", "ns-two", List.of("meta-1")));
+                assertNull(metadata.pathExistedExclude("/probe", "ns-one", List.of("meta-1")));
+                assertNull(metadata.pathExistedExclude("/probe", "missing", List.of()));
                 jdbc.update("INSERT INTO proxy_api_key_mapping (id, selector_id, proxy_api_key, namespace_id) VALUES ('key-1', 'selector-1', 'shared-key', 'ns')");
                 jdbc.update("INSERT INTO proxy_api_key_mapping (id, selector_id, proxy_api_key, namespace_id) VALUES ('key-2', 'selector-2', 'shared-key', 'ns')");
                 assertTrue(session.getMapper(AiProxyApiKeyMapper.class).existed("key-1"));
