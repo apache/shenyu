@@ -19,6 +19,7 @@ package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
@@ -31,6 +32,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,6 +52,9 @@ public class PublishWillTest {
     @Mock
     private Channel subscriberChannel;
 
+    @Mock
+    private Channel otherChannel;
+
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
@@ -63,7 +69,7 @@ public class PublishWillTest {
     public void testPublishWillToActiveSubscriber() {
         when(subscriberChannel.isActive()).thenReturn(true);
         when(subscribeRepository.getChannelsByTopic("status/offline"))
-                .thenReturn(Collections.singletonList(subscriberChannel));
+                .thenReturn(Collections.singletonMap(subscriberChannel, MqttQoS.EXACTLY_ONCE));
 
         byte[] message = "client lost".getBytes();
         WillRepository.WillEntry will = new WillRepository.WillEntry("status/offline", message, 1, true);
@@ -81,7 +87,7 @@ public class PublishWillTest {
     public void testPublishWillSkipsInactiveChannel() {
         when(subscriberChannel.isActive()).thenReturn(false);
         when(subscribeRepository.getChannelsByTopic("status/inactive"))
-                .thenReturn(Collections.singletonList(subscriberChannel));
+                .thenReturn(Collections.singletonMap(subscriberChannel, MqttQoS.AT_LEAST_ONCE));
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("status/inactive", "msg".getBytes(), 0, false);
         Publish.publishWill(will);
@@ -91,7 +97,7 @@ public class PublishWillTest {
 
     @Test
     public void testPublishWillToEmptySubscribers() {
-        when(subscribeRepository.getChannelsByTopic("topic/none")).thenReturn(Collections.emptyList());
+        when(subscribeRepository.getChannelsByTopic("topic/none")).thenReturn(Collections.emptyMap());
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("topic/none", "msg".getBytes(), 2, false);
         Publish.publishWill(will);
@@ -101,7 +107,7 @@ public class PublishWillTest {
     public void testPublishWillQosAndRetain() {
         when(subscriberChannel.isActive()).thenReturn(true);
         when(subscribeRepository.getChannelsByTopic("qos/retain"))
-                .thenReturn(Collections.singletonList(subscriberChannel));
+                .thenReturn(Collections.singletonMap(subscriberChannel, MqttQoS.EXACTLY_ONCE));
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("qos/retain", "data".getBytes(), 0, false);
         Publish.publishWill(will);
@@ -117,7 +123,7 @@ public class PublishWillTest {
     public void testPublishWillToWildcardSubscriber() {
         when(subscriberChannel.isActive()).thenReturn(true);
         when(subscribeRepository.getChannelsByTopic("status/client-001"))
-                .thenReturn(Collections.singletonList(subscriberChannel));
+                .thenReturn(Collections.singletonMap(subscriberChannel, MqttQoS.AT_MOST_ONCE));
 
         WillRepository.WillEntry will = new WillRepository.WillEntry("status/client-001", "gone".getBytes(), 0, false);
         Publish.publishWill(will);
@@ -126,5 +132,30 @@ public class PublishWillTest {
         verify(subscriberChannel).writeAndFlush(captor.capture());
         MqttPublishMessage published = (MqttPublishMessage) captor.getValue();
         assertEquals("status/client-001", published.variableHeader().topicName());
+    }
+
+    @Test
+    public void testPublishWillCapsQosAtSubscriberGrantedQos() {
+        when(subscriberChannel.isActive()).thenReturn(true);
+        when(otherChannel.isActive()).thenReturn(true);
+        Map<Channel, MqttQoS> subscribers = new HashMap<>();
+        subscribers.put(subscriberChannel, MqttQoS.AT_MOST_ONCE);
+        subscribers.put(otherChannel, MqttQoS.EXACTLY_ONCE);
+        when(subscribeRepository.getChannelsByTopic("status/qos-cap")).thenReturn(subscribers);
+
+        WillRepository.WillEntry will = new WillRepository.WillEntry("status/qos-cap", "client lost".getBytes(), 2, false);
+        Publish.publishWill(will);
+
+        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(subscriberChannel).writeAndFlush(captor.capture());
+        MqttPublishMessage toQos0Subscriber = (MqttPublishMessage) captor.getValue();
+        assertEquals(MqttQoS.AT_MOST_ONCE, toQos0Subscriber.fixedHeader().qosLevel());
+        assertEquals(0, toQos0Subscriber.variableHeader().packetId());
+
+        ArgumentCaptor<Object> otherCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(otherChannel).writeAndFlush(otherCaptor.capture());
+        MqttPublishMessage toQos2Subscriber = (MqttPublishMessage) otherCaptor.getValue();
+        assertEquals(MqttQoS.EXACTLY_ONCE, toQos2Subscriber.fixedHeader().qosLevel());
+        assertTrue(toQos2Subscriber.variableHeader().packetId() > 0);
     }
 }

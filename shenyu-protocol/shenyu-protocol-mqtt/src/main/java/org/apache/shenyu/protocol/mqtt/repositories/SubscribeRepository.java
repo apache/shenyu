@@ -24,13 +24,10 @@ import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -114,21 +111,22 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
     }
 
     /**
-     * Get channels whose subscription filter matches the published topic.
+     * Get the channels whose subscription filter matches the published topic,
+     * mapped to the maximum qos granted across all their matching filters.
      * Supports MQTT wildcards: + (single-level) and # (multi-level).
      *
      * @param topic the published topic name
-     * @return channels subscribed to matching topic filters
+     * @return matching channels with their maximum granted qos
      */
-    public List<Channel> getChannelsByTopic(final String topic) {
-        // MQTT requires at most one delivery per publish per client, so dedupe
-        // channels when overlapping filters (e.g. sport/# and #) both match.
-        Set<Channel> result = new LinkedHashSet<>();
+    public Map<Channel, MqttQoS> getChannelsByTopic(final String topic) {
+        // MQTT requires at most one delivery per publish per client, so merge the
+        // granted qos when overlapping filters (e.g. sport/# and #) both match.
+        Map<Channel, MqttQoS> result = new ConcurrentHashMap<>();
 
         // fast path: exact subscription, no wildcard scan needed
         Map<Channel, MqttQoS> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
         if (Objects.nonNull(exactMatch)) {
-            result.addAll(exactMatch.keySet());
+            result.putAll(exactMatch);
         }
 
         for (Map.Entry<String, Map<Channel, MqttQoS>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
@@ -137,10 +135,10 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
                 continue;
             }
             if (TopicMatcher.matches(filter, topic)) {
-                result.addAll(entry.getValue().keySet());
+                entry.getValue().forEach((channel, qos) -> result.merge(channel, qos, SubscribeRepository::maxQoS));
             }
         }
-        return new ArrayList<>(result);
+        return result;
     }
 
 }

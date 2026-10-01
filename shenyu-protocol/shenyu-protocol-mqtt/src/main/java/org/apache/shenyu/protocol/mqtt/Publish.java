@@ -37,7 +37,6 @@ import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -157,14 +156,16 @@ public class Publish extends MessageType {
         if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
             return;
         }
-        final List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
+        final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
         final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
-        final int packetId = willQos == MqttQoS.AT_MOST_ONCE
-                ? 0
-                : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
-        channels.parallelStream().forEach(channel -> {
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
             if (channel.isActive()) {
-                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, willQos, will.isRetain(), 0);
+                MqttQoS qos = minQoS(willQos, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos
+                        ? 0
+                        : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, will.isRetain(), 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), packetId);
                 MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
                         Unpooled.wrappedBuffer(will.getMessage()));

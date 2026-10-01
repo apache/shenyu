@@ -218,14 +218,14 @@ public final class SubscribeRepositoryTest {
     @Test
     public void testGetChannelsByTopicExactMatch() {
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).contains(channel)));
+        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).containsKey(channel)));
         assertTrue(repository.getChannelsByTopic(CHILD_TOPIC).isEmpty());
     }
 
     @Test
     public void testGetChannelsByTopicWildcardMatch() {
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(SINGLE_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
-        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(CHILD_TOPIC).contains(channel)));
+        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(CHILD_TOPIC).containsKey(channel)));
         assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
     }
 
@@ -233,16 +233,16 @@ public final class SubscribeRepositoryTest {
     public void testGetChannelsByTopicDeduplicatesOverlappingSubscriptions() {
         repository.add(channel, Arrays.asList(
                 new MqttTopicSubscription(MATCH_ALL_FILTER, MqttQoS.AT_MOST_ONCE),
-                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE)));
         awaitAssert(() -> {
             assertTrue(repository.get(MATCH_ALL_FILTER).containsKey(channel));
             assertTrue(repository.get(MULTI_LEVEL_FILTER).containsKey(channel));
         });
 
-        // MQTT requires at most one delivery per publish per client
-        List<Channel> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        // MQTT requires at most one delivery per publish per client, at the maximum qos of the matching filters
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
         assertEquals(1, matched.size());
-        assertTrue(matched.contains(channel));
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(channel));
     }
 
     @Test
@@ -250,7 +250,7 @@ public final class SubscribeRepositoryTest {
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
         repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
         awaitAssert(() -> assertEquals(2, repository.getChannelsByTopic(EXACT_TOPIC).size()));
-        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).containsAll(Arrays.asList(channel, otherChannel)));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).keySet().containsAll(Arrays.asList(channel, otherChannel)));
     }
 
     /**
@@ -280,9 +280,9 @@ public final class SubscribeRepositoryTest {
         }
 
         awaitAssert(() -> assertEquals(subscriberCount, repository.get(CONCURRENT_TOPIC).size()));
-        List<Channel> matched = repository.getChannelsByTopic(CONCURRENT_TOPIC);
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CONCURRENT_TOPIC);
         assertEquals(subscriberCount, matched.size());
-        assertTrue(matched.containsAll(subscribers));
+        assertTrue(matched.keySet().containsAll(subscribers));
     }
 
     private void subscribeAfter(final CountDownLatch startGate, final Channel subscriber, final String topic) {
