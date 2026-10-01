@@ -290,7 +290,8 @@
                 enabled = #{enabled, jdbcType=TINYINT},
             </if>
         </set>
-         WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
