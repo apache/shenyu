@@ -43,15 +43,33 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
     void testLookupIndexColumnOrder(final String table, final String index, final String columns) throws Exception {
         List<String> actual = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
-                ResultSet indexes = connection.getMetaData().getIndexInfo(null, null,
-                        connection.getMetaData().storesUpperCaseIdentifiers() ? table.toUpperCase(Locale.ROOT) : table, false, false)) {
+                ResultSet indexes = connection.getMetaData().getIndexInfo(null, null, metadataTableName(connection, table), false, false)) {
+            String expectedIndex = "Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())
+                    ? oracleIndexName(index) : index;
             while (indexes.next()) {
-                if (index.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
+                if (expectedIndex.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
                     actual.add(indexes.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
                 }
             }
         }
         assertEquals(columns, String.join(",", actual));
+    }
+
+    private String oracleIndexName(final String index) {
+        if ("idx_discovery_handler_discovery".equals(index)) {
+            return "idx_discovery_handler_disc";
+        }
+        if ("idx_operation_log_operator_time".equals(index)) {
+            return "idx_operation_log_oper_time";
+        }
+        return index;
+    }
+
+    private String metadataTableName(final Connection connection, final String table) throws Exception {
+        if ("Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName()) && "resource".equals(table)) {
+            return table;
+        }
+        return connection.getMetaData().storesUpperCaseIdentifiers() ? table.toUpperCase(Locale.ROOT) : table;
     }
 
     private static Stream<Arguments> indexes() {

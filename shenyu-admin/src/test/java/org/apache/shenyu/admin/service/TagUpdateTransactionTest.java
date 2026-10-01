@@ -58,7 +58,7 @@ public class TagUpdateTransactionTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testParentFailureRollsBackDescendantUpdates() {
-        assertThrows(DataIntegrityViolationException.class, () -> tagService.update(update("x".repeat(129))));
+        assertThrows(DataIntegrityViolationException.class, () -> tagService.update(update("x".repeat(256))));
         assertEquals("old", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
         assertEquals("{}", childExt());
     }
