@@ -340,9 +340,9 @@ public final class DataChangedEventDispatcherTest {
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
         verify(clusterDataChangedEventForwarder, times(1)).forward(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any());
-        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(nacosDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
     }
 
     /**
@@ -356,8 +356,8 @@ public final class DataChangedEventDispatcherTest {
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
         verify(clusterDataChangedEventForwarder, times(1)).forward(dataChangedEvent);
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(websocketDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
     }
 
     /**
@@ -369,8 +369,8 @@ public final class DataChangedEventDispatcherTest {
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
         dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
         verify(clusterDataChangedEventForwarder, never()).forward(any(DataChangedEvent.class));
-        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any());
-        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any());
+        verify(websocketDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
+        verify(httpLongPollingDataChangedListener, times(1)).onPluginChanged(anyList(), any(), any());
     }
 
     @Test
