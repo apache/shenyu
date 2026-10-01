@@ -155,8 +155,14 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
     
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
-        uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
-        shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
+        try {
+            uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
+            shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
+        } catch (Exception ex) {
+            // One unavailable admin must not suppress other URIs or future scheduled executions.
+            LOG.warn("Heartbeat failed for host:{}, port:{}, will retry on the next tick",
+                    uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), ex);
+        }
     }
 
     private void addUriIfAbsent(final URIRegisterDTO uriRegisterDTO) {
