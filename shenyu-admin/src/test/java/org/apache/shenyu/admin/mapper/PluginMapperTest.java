@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.junit.jupiter.api.Test;
@@ -255,10 +256,24 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
             final List<PluginDO> rows = pluginMapper.selectByQuery(query);
             assertEquals(1, rows.size());
             assertNull(rows.get(0).getPluginJar());
-            final List<PluginVO> page = pluginService.listByPage(query).getDataList();
+            final List<PluginListVO> page = pluginService.listByPage(query).getDataList();
             assertEquals(1, page.size());
             assertEquals(plugin.getId(), page.get(0).getId());
-            assertEquals("", page.get(0).getFile());
+            final com.fasterxml.jackson.databind.JsonNode listJson =
+                    new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(page.get(0));
+            org.junit.jupiter.api.Assertions.assertFalse(listJson.has("file"));
+            org.junit.jupiter.api.Assertions.assertFalse(listJson.has("jar"));
+            assertEquals(plugin.getName(), listJson.get("name").asText());
+            final org.apache.shenyu.admin.model.query.PluginQueryCondition condition =
+                    new org.apache.shenyu.admin.model.query.PluginQueryCondition();
+            condition.setKeyword(plugin.getName());
+            final List<PluginListVO> searched = pluginService.searchByCondition(condition);
+            assertEquals(1, searched.size());
+            assertEquals(plugin.getId(), searched.get(0).getId());
+            final com.fasterxml.jackson.databind.JsonNode searchJson =
+                    new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(searched.get(0));
+            org.junit.jupiter.api.Assertions.assertFalse(searchJson.has("file"));
+            org.junit.jupiter.api.Assertions.assertFalse(searchJson.has("jar"));
             assertArrayEquals(jar, pluginMapper.selectById(plugin.getId()).getPluginJar());
             assertArrayEquals(jar, Base64.getDecoder().decode(pluginService.findById(plugin.getId()).getFile()));
             final PluginVO exported = pluginService.listAllData().stream()

@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
@@ -87,7 +88,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
+    public List<PluginListVO> searchByCondition(final PluginQueryCondition condition) {
         condition.init();
         return pluginMapper.searchByCondition(condition);
     }
@@ -184,10 +185,10 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     @Pageable
-    public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
+    public CommonPager<PluginListVO> listByPage(final PluginQuery pluginQuery) {
         return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
                 .stream()
-                .map(PluginVO::buildPluginVO)
+                .map(PluginListVO::buildPluginListVO)
                 .collect(Collectors.toList()));
     }
 
