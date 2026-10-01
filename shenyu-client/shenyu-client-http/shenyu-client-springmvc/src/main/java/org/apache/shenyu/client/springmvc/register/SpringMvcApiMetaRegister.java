@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.springmvc.register;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
@@ -33,6 +32,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
 
@@ -70,12 +70,22 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     }
 
     @Override
+    protected List<MetaDataRegisterDTO> preParseList(final ApiBean apiBean) {
+        return clientRegisterConfig.getNamespace().stream().map(namespaceId -> preParse(apiBean, namespaceId)).collect(Collectors.toList());
+    }
+
+    @Override
     protected MetaDataRegisterDTO preParse(final ApiBean apiBean) {
+        return preParse(apiBean, clientRegisterConfig.getNamespace().get(0));
+    }
+
+    private MetaDataRegisterDTO preParse(final ApiBean apiBean, final String namespaceId) {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
         String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), annotation.path()[0]);
 
         return MetaDataRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(addPrefixed)
                 .appName(appName)
@@ -137,7 +147,8 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
         boolean registerMetaData = (Objects.isNull(classAnnotation) || classAnnotation.registerMetaData())
                 && (Objects.isNull(methodAnnotation) || methodAnnotation.registerMetaData());
 
-        return Lists.newArrayList(MetaDataRegisterDTO.builder()
+        return clientRegisterConfig.getNamespace().stream().map(namespaceId -> MetaDataRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(addPrefixed)
                 .appName(appName)
@@ -152,6 +163,6 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
                 .enabled(enabled)
                 .ruleName(ruleName)
                 .registerMetaData(registerMetaData)
-                .build());
+                .build()).collect(Collectors.toList());
     }
 }

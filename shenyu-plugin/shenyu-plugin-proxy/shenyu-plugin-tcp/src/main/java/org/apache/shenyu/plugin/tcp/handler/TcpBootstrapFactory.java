@@ -104,6 +104,7 @@ public final class TcpBootstrapFactory {
             creation.complete(bootstrapServer);
             return true;
         } catch (RuntimeException ex) {
+            UpstreamProvider.getSingleton().removeUpstreams(selectorName);
             creation.completeExceptionally(ex);
             throw ex;
         } finally {
@@ -164,6 +165,7 @@ public final class TcpBootstrapFactory {
      */
     public boolean removeAndShutdown(final String selectorName) {
         BootstrapServer bootstrapServer = cache.remove(selectorName);
+        UpstreamProvider.getSingleton().removeUpstreams(selectorName);
         if (Objects.isNull(bootstrapServer)) {
             return false;
         }
@@ -184,6 +186,7 @@ public final class TcpBootstrapFactory {
                 }
             }
         });
+        UpstreamProvider.getSingleton().clear();
     }
 
     /**

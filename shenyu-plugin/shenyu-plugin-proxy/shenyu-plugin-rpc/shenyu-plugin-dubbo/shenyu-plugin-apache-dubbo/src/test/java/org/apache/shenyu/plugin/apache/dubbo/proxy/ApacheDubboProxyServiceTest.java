@@ -21,8 +21,11 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.RpcContext;
+import org.apache.dubbo.rpc.RpcContextAttachment;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -42,9 +45,18 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For ApacheDubboProxyService.
@@ -93,6 +105,7 @@ public final class ApacheDubboProxyServiceTest {
     @AfterEach
     public void after() {
         ApacheDubboConfigCache.getInstance().invalidateAll();
+        RpcContext.removeClientAttachment();
     }
 
     @Test
@@ -110,6 +123,68 @@ public final class ApacheDubboProxyServiceTest {
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, selectorData, ruleData, exchange);
         future.complete("success");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void defersReferenceAccessAndInvocationOffTheRequestThread() throws Exception {
+        GenericService genericService = mock(GenericService.class);
+        AtomicReference<Thread> worker = new AtomicReference<>();
+        AtomicReference<RpcContextAttachment> workerContext = new AtomicReference<>();
+        RpcContext.getClientAttachment().setAttachment("timeout", 1234);
+        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_SELECTOR_ID, selectorData.getId());
+        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_RULE_ID, ruleData.getId());
+        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, "127.0.0.1");
+        RpcContext.getClientAttachment().setAttachment("custom", "value");
+        when(referenceConfig.getInterface()).thenReturn(PATH);
+        when(referenceConfig.get()).thenAnswer(invocation -> {
+            assertFalse(Schedulers.isInNonBlockingThread());
+            worker.set(Thread.currentThread());
+            return genericService;
+        });
+        when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenAnswer(invocation -> {
+            assertFalse(Schedulers.isInNonBlockingThread());
+            assertTrue(Thread.currentThread() == worker.get());
+            workerContext.set(RpcContext.getClientAttachment());
+            assertEquals(1234, workerContext.get().getObjectAttachments().get("timeout"));
+            assertEquals(selectorData.getId(), workerContext.get().getAttachment(Constants.DUBBO_SELECTOR_ID));
+            assertEquals(ruleData.getId(), workerContext.get().getAttachment(Constants.DUBBO_RULE_ID));
+            assertEquals("127.0.0.1", workerContext.get().getAttachment(Constants.DUBBO_REMOTE_ADDRESS));
+            assertEquals("value", workerContext.get().getAttachment("custom"));
+            return null;
+        });
+        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
+        field.setAccessible(true);
+        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(ApacheDubboConfigCache.getInstance())).put(PATH, referenceConfig);
+        ApacheDubboProxyService service = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
+        Mono<Object> result = service.genericInvoker("", metaData, selectorData, ruleData, exchange);
+        verifyNoInteractions(referenceConfig, genericService);
+
+        StepVerifier.create(result.subscribeOn(Schedulers.parallel())).expectNext(Constants.DUBBO_RPC_RESULT_EMPTY).verifyComplete();
+
+        assertNotSame(Thread.currentThread(), worker.get());
+        assertTrue(workerContext.get().getObjectAttachments().isEmpty());
+        assertEquals("value", RpcContext.getClientAttachment().getAttachment("custom"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void referenceInitializationErrorsAreReactive() throws Exception {
+        when(referenceConfig.getInterface()).thenReturn(PATH);
+        AtomicReference<RpcContextAttachment> workerContext = new AtomicReference<>();
+        RpcContext.getClientAttachment().setAttachment("custom", "value");
+        when(referenceConfig.get()).thenAnswer(invocation -> {
+            workerContext.set(RpcContext.getClientAttachment());
+            assertEquals("value", workerContext.get().getAttachment("custom"));
+            throw new IllegalStateException("registry unavailable");
+        });
+        Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
+        field.setAccessible(true);
+        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(ApacheDubboConfigCache.getInstance())).put(PATH, referenceConfig);
+        ApacheDubboProxyService service = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
+        Mono<Object> result = service.genericInvoker("", metaData, selectorData, ruleData, exchange);
+        StepVerifier.create(result).expectErrorMessage("registry unavailable").verify();
+        assertTrue(workerContext.get().getObjectAttachments().isEmpty());
     }
 
     static class BodyParamResolveServiceImpl implements DubboParamResolveService {

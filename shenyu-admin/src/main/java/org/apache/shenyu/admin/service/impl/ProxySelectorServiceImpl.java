@@ -49,6 +49,7 @@ import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
@@ -56,15 +57,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +80,9 @@ import java.util.stream.Collectors;
 public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxySelectorServiceImpl.class);
+
+    // Stay below Oracle's 1000-expression IN limit, including for large requested pages.
+    private static final int QUERY_BATCH_SIZE = 500;
 
     private final ProxySelectorMapper proxySelectorMapper;
 
@@ -115,6 +124,20 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public CommonPager<ProxySelectorVO> listByPage(final ProxySelectorQuery query) {
         List<ProxySelectorVO> result = Lists.newArrayList();
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
+        if (proxySelectorDOList.isEmpty()) {
+            return PageResultUtils.result(query.getPageParameter(), () -> result);
+        }
+        List<String> selectorIds = proxySelectorDOList.stream().map(ProxySelectorDO::getId).collect(Collectors.toList());
+        Map<String, DiscoveryRelDO> relations = queryBatches(selectorIds, discoveryRelMapper::selectByProxySelectorIds).stream()
+                .collect(Collectors.toMap(DiscoveryRelDO::getProxySelectorId, relation -> relation));
+        List<String> handlerIds = relations.values().stream().map(DiscoveryRelDO::getDiscoveryHandlerId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryHandlerDO> handlers = queryBatches(handlerIds, discoveryHandlerMapper::selectByIds).stream()
+                .collect(Collectors.toMap(DiscoveryHandlerDO::getId, handler -> handler));
+        List<String> discoveryIds = handlers.values().stream().map(DiscoveryHandlerDO::getDiscoveryId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryDO> discoveries = queryBatches(discoveryIds, discoveryMapper::selectByIds).stream()
+                .collect(Collectors.toMap(DiscoveryDO::getId, discovery -> discovery));
+        Map<String, List<DiscoveryUpstreamDO>> upstreams = queryBatches(Lists.newArrayList(handlers.keySet()), discoveryUpstreamMapper::selectByDiscoveryHandlerIds).stream()
+                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
@@ -125,17 +148,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
-            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+            DiscoveryRelDO discoveryRelDO = relations.get(proxySelectorDO.getId());
             if (Objects.nonNull(discoveryRelDO)) {
-                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
+                DiscoveryHandlerDO discoveryHandlerDO = handlers.get(discoveryRelDO.getDiscoveryHandlerId());
                 if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
-                    DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                    DiscoveryDO discoveryDO = discoveries.get(discoveryHandlerDO.getDiscoveryId());
                     DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
-                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = upstreams.getOrDefault(discoveryRelDO.getDiscoveryHandlerId(), Collections.emptyList());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
                         List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
                         vo.setDiscoveryUpstreams(upstreamVOS);
@@ -145,6 +168,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             result.add(vo);
         });
         return PageResultUtils.result(query.getPageParameter(), () -> result);
+    }
+
+    private <T> List<T> queryBatches(final List<String> ids, final Function<List<String>, List<T>> query) {
+        List<T> result = Lists.newArrayList();
+        for (List<String> batch : Lists.partition(ids, QUERY_BATCH_SIZE)) {
+            result.addAll(query.apply(batch));
+        }
+        return result;
     }
 
     /**
@@ -298,8 +329,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String selectorId = proxySelectorAddDTO.getSelectorId();
-        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
-        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        final ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        Assert.notNull(discovery, "Discovery configuration is required for selector: " + selectorId);
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discovery.getDiscoveryType());
         String discoveryId = discovery.getId();
         if (!StringUtils.hasLength(discoveryId)) {
             discoveryId = UUIDUtils.getInstance().generateShortUuid();
@@ -346,13 +378,18 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      */
     @Transactional(rollbackFor = Exception.class)
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
-        // update proxy selector
+        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
+        Assert.notNull(discovery, "Discovery configuration is required");
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
-        proxySelectorMapper.update(proxySelectorDO);
-        // DiscoveryRelDO
         DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+        Assert.notNull(discoveryRelDO, "Discovery binding does not exist for proxy selector: " + proxySelectorDO.getId());
         String discoveryHandlerId = discoveryRelDO.getDiscoveryHandlerId();
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
+        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        // Validate all related records before performing any update.
+        proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         discoveryHandlerDO.setHandler(proxySelectorAddDTO.getHandler());
@@ -361,8 +398,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         discoveryHandlerDO.setDateUpdated(currentTime);
         discoveryHandlerMapper.updateSelective(discoveryHandlerDO);
         // update discovery
-        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
-        ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         discoveryDO.setServerList(discovery.getServerList());
         discoveryDO.setDateUpdated(currentTime);
         discoveryDO.setProps(discovery.getProps());
@@ -468,6 +503,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<ProxySelectorData> proxySelectorList) {
         if (CollectionUtils.isEmpty(proxySelectorList)) {
             return ConfigImportResult.success();
@@ -507,12 +543,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final String namespace, final List<ProxySelectorData> proxySelectorList,
                                          final ConfigsImportContext context) {
         if (CollectionUtils.isEmpty(proxySelectorList)) {
             return ConfigImportResult.success();
         }
-        Map<String, String> proxySelectorIdMapping = context.getProxySelectorIdMapping();
+        Map<String, String> proxySelectorIdMapping = new HashMap<>();
         Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
                 .selectByNamespaceId(namespace)
                 .stream()
@@ -536,13 +573,23 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             }
             String oldProxySelectorId = selectorData.getId();
             String newProxySelectorId = UUIDUtils.getInstance().generateShortUuid();
-            selectorData.setId(newProxySelectorId);
-            selectorData.setNamespaceId(namespace);
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(selectorData);
+            proxySelectorDO.setId(newProxySelectorId);
+            proxySelectorDO.setNamespaceId(namespace);
             if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
                 proxySelectorIdMapping.put(oldProxySelectorId, newProxySelectorId);
                 successCount++;
             }
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    context.getProxySelectorIdMapping().putAll(proxySelectorIdMapping);
+                }
+            });
+        } else {
+            context.getProxySelectorIdMapping().putAll(proxySelectorIdMapping);
         }
         if (StringUtils.hasLength(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
