@@ -22,7 +22,9 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -154,9 +156,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                         String path = Objects.isNull(event.getPath()) ? selectKey : event.getPath();
                         List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
                                 : Collections.emptyList();
-                        if (!childrenList.isEmpty()) {
-                            watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
-                        }
+                        watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
                     } catch (Exception e) {
                         watcherInstanceRegisterMap.remove(selectKey);
                         LOGGER.error("zookeeper registry client subscribeChildrenChanges watch interrupt error:", e);
@@ -186,13 +186,15 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
             CuratorCache treeCache = client.addCache(key, (type, oldData, data) -> {
-                if (!Objects.nonNull(data) || !Objects.nonNull(data.getData())) {
+                // Curator delivers NODE_DELETED with a null new ChildData and the deleted node in oldData
+                ChildData changedNode = CuratorCacheListener.Type.NODE_DELETED == type ? oldData : data;
+                if (!Objects.nonNull(changedNode) || !Objects.nonNull(changedNode.getData())) {
                     return;
                 }
-                String currentPath = data.getPath();
-                String currentData = new String(data.getData(), StandardCharsets.UTF_8);
+                String currentPath = changedNode.getPath();
+                String currentData = new String(changedNode.getData(), StandardCharsets.UTF_8);
                 LOGGER.info("zookeeper registry watch find resultData ={}", currentData);
-                Stat stat = data.getStat();
+                Stat stat = changedNode.getStat();
                 boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                 if (!isEphemeral) {
                     LOGGER.info("zookeeper registry watch Ignore non-ephemeral node changes path {}", currentPath);

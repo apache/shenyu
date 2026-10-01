@@ -80,23 +80,29 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 LOG.info("received DataChangedEvent, not master, pass");
                 return;
             }
-            final int size = event.getSource() instanceof java.util.Collection ? ((java.util.Collection<?>) event.getSource()).size() : 1;
-            LOG.info("received DataChangedEvent, group={}, size={}, type={}", event.getGroupKey(), size, event.getEventType());
+            final int size = event.getSource() instanceof java.util.Collection
+                    ? ((java.util.Collection<?>) event.getSource()).size() : 1;
+            LOG.info("received DataChangedEvent, group={}, size={}, type={}",
+                    event.getGroupKey(), size, event.getEventType());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
             }
             switch (event.getGroupKey()) {
                 case APP_AUTH:
-                    listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
+                    listener.onAppAuthChanged((List<AppAuthData>) event.getSource(),
+                            event.getEventType(), event.getNamespaceId());
                     break;
                 case PLUGIN:
-                    listener.onPluginChanged((List<PluginData>) event.getSource(), event.getEventType());
+                    listener.onPluginChanged((List<PluginData>) event.getSource(),
+                            event.getEventType(), event.getNamespaceId());
                     break;
                 case RULE:
-                    listener.onRuleChanged((List<RuleData>) event.getSource(), event.getEventType());
+                    listener.onRuleChanged((List<RuleData>) event.getSource(),
+                            event.getEventType(), event.getNamespaceId());
                     break;
                 case SELECTOR:
-                    listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
+                    listener.onSelectorChanged((List<SelectorData>) event.getSource(),
+                            event.getEventType(), event.getNamespaceId());
                     break;
                 case META_DATA:
                     listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());

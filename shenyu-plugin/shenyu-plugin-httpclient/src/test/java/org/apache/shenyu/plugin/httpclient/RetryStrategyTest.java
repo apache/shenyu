@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.httpclient;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ServerWebExchange;
@@ -108,7 +107,7 @@ public class RetryStrategyTest {
 
         // Use StepVerifier to verify results
         StepVerifier.create(result)
-                .expectError(TimeoutException.class)
+                .expectErrorMatches(reactor.core.Exceptions::isRetryExhausted)
                 .verify();
     }
 }
