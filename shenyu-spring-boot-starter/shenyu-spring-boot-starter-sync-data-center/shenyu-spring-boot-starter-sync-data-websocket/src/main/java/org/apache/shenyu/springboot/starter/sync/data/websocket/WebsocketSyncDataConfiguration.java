@@ -26,7 +26,6 @@ import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,6 +35,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +44,7 @@ import java.util.List;
  * Websocket sync data configuration for spring boot.
  */
 @Configuration
+@Import(WebsocketSyncHealthConfiguration.class)
 @ConditionalOnClass(WebsocketSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.websocket", name = "urls")
 public class WebsocketSyncDataConfiguration {
@@ -65,7 +66,7 @@ public class WebsocketSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService websocketSyncDataService(
+    public WebsocketSyncDataService websocketSyncDataService(
             final ObjectProvider<WebsocketConfig> websocketConfig,
             final ShenyuConfig shenyuConfig,
             final ObjectProvider<PluginDataSubscriber> pluginSubscriber,

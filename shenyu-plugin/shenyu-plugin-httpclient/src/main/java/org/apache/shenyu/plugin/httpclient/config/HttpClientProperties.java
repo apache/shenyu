@@ -79,7 +79,7 @@ public class HttpClientProperties {
     private Integer allIdleTime = 3000;
 
     /**
-     * Connection read-timeout handler interval in milliseconds, default 3s; zero disables the handler's deadline.
+     * Connection read-timeout handler interval in milliseconds, default 3s; non-positive values disable the handler.
      * When installed, this handler operates independently of responseTimeout.
      */
     private Integer readTimeout = 3000;

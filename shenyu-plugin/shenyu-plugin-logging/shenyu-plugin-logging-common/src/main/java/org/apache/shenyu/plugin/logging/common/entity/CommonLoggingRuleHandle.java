@@ -17,7 +17,15 @@
 
 package org.apache.shenyu.plugin.logging.common.entity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * common logging rule handle.
@@ -39,6 +47,8 @@ public class CommonLoggingRuleHandle implements RuleHandle {
      */
     private Boolean maskStatus;
 
+    private transient volatile KeyWordMatch keyWordMatch;
+
     /**
      * get keyword.
      *
@@ -54,6 +64,29 @@ public class CommonLoggingRuleHandle implements RuleHandle {
      */
     public void setKeyword(final String keyword) {
         this.keyword = keyword;
+        this.keyWordMatch = null;
+    }
+
+    /**
+     * Get the compiled keyword matcher.
+     *
+     * @return keyword matcher
+     */
+    public KeyWordMatch getKeyWordMatch() {
+        KeyWordMatch result = keyWordMatch;
+        if (Objects.isNull(result)) {
+            synchronized (this) {
+                result = keyWordMatch;
+                if (Objects.isNull(result)) {
+                    Set<String> keywords = StringUtils.isBlank(keyword)
+                            ? Collections.emptySet()
+                            : new HashSet<>(Arrays.asList(keyword.split(";")));
+                    result = new KeyWordMatch(keywords);
+                    keyWordMatch = result;
+                }
+            }
+        }
+        return result;
     }
 
     /**

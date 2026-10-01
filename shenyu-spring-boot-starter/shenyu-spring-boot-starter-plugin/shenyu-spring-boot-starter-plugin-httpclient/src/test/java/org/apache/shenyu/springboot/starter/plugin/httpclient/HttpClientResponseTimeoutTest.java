@@ -19,6 +19,7 @@
 package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
 import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,6 +32,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.server.HttpServer;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,20 +79,23 @@ class HttpClientResponseTimeoutTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 100})
+    @ValueSource(ints = {-1, 0, 100})
     void independentReadHandlerStillAppliesWhenResponseTimeoutIsDisabled(final int readTimeout) {
         DisposableServer server = slowStreamingServer();
         try {
             HttpClientProperties properties = new HttpClientProperties();
             properties.setResponseTimeout(0L);
             properties.setReadTimeout(readTimeout);
-            HttpClient client = createClient(properties);
+            AtomicBoolean handlerInstalled = new AtomicBoolean();
+            HttpClient client = createClient(properties).doOnConnected(connection ->
+                    handlerInstalled.set(Objects.nonNull(connection.channel().pipeline().get(ReadTimeoutHandler.class))));
             Mono<String> body = client.get().uri("http://127.0.0.1:" + server.port()).responseContent().aggregate().asString();
-            if (readTimeout == 0) {
+            if (readTimeout <= 0) {
                 assertEquals("firstlast", body.block(Duration.ofSeconds(5)));
             } else {
                 assertThrows(ReadTimeoutException.class, () -> body.block(Duration.ofSeconds(5)));
             }
+            assertEquals(readTimeout > 0, handlerInstalled.get());
         } finally {
             server.disposeNow();
         }

@@ -127,7 +127,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         httpClient = httpClient.doOnConnected(connection -> {
             connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
             connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
-            connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+            if (properties.getReadTimeout() > 0) {
+                connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+            }
         });
         if (Objects.nonNull(loopResources)) {
             httpClient.runOn(loopResources);
