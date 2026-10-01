@@ -383,7 +383,7 @@ public final class DataChangedEventDispatcherTest {
             DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null, new ArrayList<>());
             dataChangedEventDispatcher.onApplicationEvent(event);
             verify(clusterDataChangedEventForwarder, never()).forward(any());
-            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any());
+            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
             org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()
                     .forEach(org.springframework.transaction.support.TransactionSynchronization::afterCommit);
             verify(clusterDataChangedEventForwarder).forward(event);
@@ -402,7 +402,7 @@ public final class DataChangedEventDispatcherTest {
             org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()
                     .forEach(sync -> sync.afterCompletion(org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK));
             verify(clusterDataChangedEventForwarder, never()).forward(any());
-            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any());
+            verify(httpLongPollingDataChangedListener, never()).onPluginChanged(anyList(), any(), any());
         } finally {
             org.springframework.transaction.support.TransactionSynchronizationManager.clear();
         }
