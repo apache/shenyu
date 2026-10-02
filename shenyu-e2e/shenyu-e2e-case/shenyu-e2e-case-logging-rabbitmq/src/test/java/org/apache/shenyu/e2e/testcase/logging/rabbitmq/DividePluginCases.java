@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
@@ -53,7 +54,11 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private static final String QUEUE = "queue.logging.plugin";
 
-    private static final String TEST_URI = "/http/order/findById?id=rabbitmq-e2e";
+    private static final String HEALTH_URI = "/http/order/findById?id=rabbitmq-e2e-health";
+
+    private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
+
+    private static final int HANDSHAKE_TIMEOUT_MILLIS = 5_000;
 
     private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(30);
 
@@ -68,17 +73,18 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private ShenYuScenarioSpec testDivideHello() {
         return ShenYuScenarioSpec.builder()
-                .name("http client hello1")
+                .name("http client hello")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists(TEST_URI))
+                        .checker(exists(HEALTH_URI))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists(TEST_URI)
+                        .addExists(HEALTH_URI)
                         .build())
                 .build();
     }
 
     private ShenYuScenarioSpec testRabbitMqLog() {
+        final String requestUri = "/http/order/findById?id=rabbitmq-e2e-" + UUID.randomUUID();
         return ShenYuScenarioSpec.builder()
                 .name("testRabbitMqLog")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
@@ -93,7 +99,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         .matchMode(MatchMode.OR)
                                         .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
                                         .build())
-                        .checker(exists(TEST_URI))
+                        .checker(exists(HEALTH_URI))
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .add(request -> {
@@ -104,11 +110,13 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 factory.setUsername("admin");
                                 factory.setPassword("admin");
                                 factory.setVirtualHost("/");
+                                factory.setConnectionTimeout(CONNECTION_TIMEOUT_MILLIS);
+                                factory.setHandshakeTimeout(HANDSHAKE_TIMEOUT_MILLIS);
                                 try (Connection connection = factory.newConnection(); Channel channel = connection.createChannel()) {
-                                    request.request(Method.GET, TEST_URI);
-                                    await().alias("RabbitMQ access log for " + TEST_URI)
+                                    request.request(Method.GET, requestUri);
+                                    await().alias("RabbitMQ access log for " + requestUri)
                                             .atMost(LOG_CONSUME_TIMEOUT)
-                                            .until(() -> containsRequestLog(channel, TEST_URI));
+                                            .until(() -> containsRequestLog(channel, requestUri));
                                 }
                             } catch (Exception e) {
                                 LOG.error("Failed to consume RabbitMQ access log", e);

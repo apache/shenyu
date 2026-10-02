@@ -31,6 +31,7 @@ import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
@@ -73,6 +74,10 @@ public class DividePluginTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginTest.class);
 
+    private static final int CONNECTION_TIMEOUT_MILLIS = 5_000;
+
+    private static final int HANDSHAKE_TIMEOUT_MILLIS = 5_000;
+
     private List<String> selectorIds = Lists.newArrayList();
 
     @BeforeEach
@@ -114,7 +119,7 @@ public class DividePluginTest {
         LOG.info("Starting logging RabbitMQ plugin");
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("pluginId", "45");
-        requestBody.put("name", "loggingRabbitmq");
+        requestBody.put("name", Plugin.LOGGINGRABBITMQ.getAlias());
         requestBody.put("enabled", "true");
         requestBody.put("role", "Logging");
         requestBody.put("sort", "171");
@@ -135,6 +140,8 @@ public class DividePluginTest {
         factory.setUsername("admin");
         factory.setPassword("admin");
         factory.setVirtualHost("/");
+        factory.setConnectionTimeout(CONNECTION_TIMEOUT_MILLIS);
+        factory.setHandshakeTimeout(HANDSHAKE_TIMEOUT_MILLIS);
         await().alias("RabbitMQ logging queue initialized")
                 .atMost(Duration.ofSeconds(30))
                 .until(() -> {
