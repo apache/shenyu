@@ -50,4 +50,4 @@ spring:
             enable: true
             
 mybatis:
-  type-handlers-package: org.apache.shenyu.admin.mybatis.pgog.handler
+  type-handlers-package: org.apache.shenyu.admin.mybatis.pg.handler,org.apache.shenyu.admin.mybatis.pgog.handler
