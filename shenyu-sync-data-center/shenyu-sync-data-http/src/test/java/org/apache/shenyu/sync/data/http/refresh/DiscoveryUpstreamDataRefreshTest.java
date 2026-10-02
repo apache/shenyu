@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.sync.data.http.refresh;
 
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public final class DiscoveryUpstreamDataRefreshTest {
@@ -31,9 +36,54 @@ public final class DiscoveryUpstreamDataRefreshTest {
     public void testRefreshWithEmptyData() {
         DiscoveryUpstreamDataSubscriber subscriber = mock(DiscoveryUpstreamDataSubscriber.class);
         DiscoveryUpstreamDataRefresh dataRefresh = new DiscoveryUpstreamDataRefresh(Collections.singletonList(subscriber));
+        DiscoverySyncData discoverySyncData = discoverySyncData("selector-id", "selector-name");
 
+        dataRefresh.refresh(Collections.singletonList(discoverySyncData));
+        dataRefresh.refresh(Collections.emptyList());
         dataRefresh.refresh(Collections.emptyList());
 
-        verify(subscriber).refresh();
+        verify(subscriber).onSubscribe(discoverySyncData);
+        verify(subscriber, times(2)).refresh();
+        verify(subscriber, times(1)).unSubscribe(argThat(item -> "selector-id".equals(item.selectorId())
+                && "selector-name".equals(item.selectorName())));
+    }
+
+    @Test
+    public void testRefreshRemovesOnlyMissingSelector() {
+        DiscoveryUpstreamDataSubscriber subscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        DiscoveryUpstreamDataRefresh dataRefresh = new DiscoveryUpstreamDataRefresh(Collections.singletonList(subscriber));
+        DiscoverySyncData removed = discoverySyncData("removed", "removed-name");
+        DiscoverySyncData retained = discoverySyncData("retained", "retained-name");
+        dataRefresh.refresh(List.of(removed, retained));
+
+        dataRefresh.refresh(Collections.singletonList(retained));
+
+        verify(subscriber).onSubscribe(removed);
+        verify(subscriber, times(2)).onSubscribe(retained);
+        verify(subscriber).unSubscribe(argThat(item -> "removed".equals(item.selectorId())));
+        verify(subscriber, never()).unSubscribe(argThat(item -> "retained".equals(item.selectorId())));
+    }
+
+    @Test
+    public void testRefreshRemovesOldSelectorNameBeforeReplacement() {
+        DiscoveryUpstreamDataSubscriber subscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        DiscoveryUpstreamDataRefresh dataRefresh = new DiscoveryUpstreamDataRefresh(Collections.singletonList(subscriber));
+        DiscoverySyncData previous = discoverySyncData("selector-id", "old-name");
+        DiscoverySyncData replacement = discoverySyncData("selector-id", "new-name");
+        dataRefresh.refresh(Collections.singletonList(previous));
+
+        dataRefresh.refresh(Collections.singletonList(replacement));
+
+        verify(subscriber).unSubscribe(argThat(item -> "old-name".equals(item.selectorName())));
+        verify(subscriber).onSubscribe(replacement);
+    }
+
+    private static DiscoverySyncData discoverySyncData(final String selectorId, final String selectorName) {
+        DiscoverySyncData data = new DiscoverySyncData();
+        data.setNamespaceId("default");
+        data.setPluginName("tcp");
+        data.setSelectorId(selectorId);
+        data.setSelectorName(selectorName);
+        return data;
     }
 }

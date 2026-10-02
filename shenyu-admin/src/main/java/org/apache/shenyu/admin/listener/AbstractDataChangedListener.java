@@ -335,30 +335,38 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected void refreshLocalCache() {
         List<NamespaceVO> namespaceList = namespaceService.listAll();
         for (NamespaceVO namespace : namespaceList) {
-            String namespaceId = namespace.getNamespaceId();
-            this.updatePluginCache(namespaceId);
-            this.updateAppAuthCache(namespaceId);
-            this.updateRuleCache(namespaceId);
-            this.updateSelectorCache(namespaceId);
-            this.updateMetaDataCache(namespaceId);
-            this.updateProxySelectorDataCache(namespaceId);
-            this.updateDiscoveryUpstreamDataCache(namespaceId);
-            this.updateAiProxyApiKeyCache(namespaceId);
+            this.refreshLocalCache(namespace.getNamespaceId());
         }
+    }
+
+    /**
+     * Refresh local cache for one namespace.
+     *
+     * @param namespaceId namespace id
+     */
+    protected void refreshLocalCache(final String namespaceId) {
+        this.updatePluginCache(namespaceId);
+        this.updateAppAuthCache(namespaceId);
+        this.updateRuleCache(namespaceId);
+        this.updateSelectorCache(namespaceId);
+        this.updateMetaDataCache(namespaceId);
+        this.updateProxySelectorDataCache(namespaceId);
+        this.updateDiscoveryUpstreamDataCache(namespaceId);
+        this.updateAiProxyApiKeyCache(namespaceId);
     }
 
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
      * Update rule cache.
      */
     protected void updateRuleCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
@@ -372,26 +380,26 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update app auth cache.
      */
     protected void updateAppAuthCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateProxySelectorDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateDiscoveryUpstreamDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateAiProxyApiKeyCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {

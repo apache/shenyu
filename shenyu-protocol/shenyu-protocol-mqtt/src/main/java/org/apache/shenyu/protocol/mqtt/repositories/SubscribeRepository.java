@@ -18,12 +18,13 @@
 package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,25 +33,22 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Topic and channel association.
  */
-public class SubscribeRepository implements BaseRepository<List<String>, List<Channel>> {
+public class SubscribeRepository implements BaseRepository<List<String>, Map<Channel, MqttQoS>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SubscribeRepository.class);
 
-    private static final Map<String, List<Channel>> TOPIC_CHANNEL_FACTORY = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Channel, MqttQoS>> TOPIC_CHANNEL_FACTORY = new ConcurrentHashMap<>();
 
     @Override
-    public void add(final List<String> topics, final List<Channel> channels) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(s -> {
-            List<Channel> list = get(s);
-            list.addAll(channels);
-            TOPIC_CHANNEL_FACTORY.put(s, list);
-        }));
+    public void add(final List<String> topics, final Map<Channel, MqttQoS> channelQos) {
+        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic ->
+                channelQos.forEach((channel, qos) -> TOPIC_CHANNEL_FACTORY
+                        .computeIfAbsent(topic, key -> new ConcurrentHashMap<>())
+                        .merge(channel, qos, SubscribeRepository::maxQoS))));
     }
 
     /**
@@ -59,11 +57,11 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream().forEach(s -> {
-            List<Channel> channels = get(s.topicName());
-            channels.add(channel);
-            TOPIC_CHANNEL_FACTORY.put(s.topicName(), channels);
-        }));
+        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream()
+                .filter(s -> s.qualityOfService() != MqttQoS.FAILURE)
+                .forEach(s -> TOPIC_CHANNEL_FACTORY
+                        .computeIfAbsent(s.topicName(), key -> new ConcurrentHashMap<>())
+                        .merge(channel, s.qualityOfService(), SubscribeRepository::maxQoS)));
     }
 
     @Override
@@ -78,27 +76,41 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
      */
     public void remove(final List<String> topics, final Channel channel) {
         CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
-            List<Channel> channels = TOPIC_CHANNEL_FACTORY.get(topic);
-            if (CollectionUtils.isNotEmpty(channels)) {
-                channels.remove(channel);
+            Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(topic);
+            if (Objects.nonNull(subscribers)) {
+                subscribers.remove(channel);
             }
         }));
     }
 
+    /**
+     * remove the channel from all topics it subscribed.
+     * @param channel channel
+     */
+    public void remove(final Channel channel) {
+        CompletableFuture.runAsync(() -> TOPIC_CHANNEL_FACTORY.values().parallelStream()
+                .forEach(subscribers -> subscribers.remove(channel)));
+    }
+
     @Override
-    public List<Channel> get(final List<String> topics) {
-        Set<Channel> channels = new CopyOnWriteArraySet<>();
-        topics.parallelStream().forEach(s -> channels.addAll(TOPIC_CHANNEL_FACTORY.get(s)));
-        return new CopyOnWriteArrayList<>(channels);
+    public Map<Channel, MqttQoS> get(final List<String> topics) {
+        Map<Channel, MqttQoS> subscribers = new ConcurrentHashMap<>();
+        topics.parallelStream().forEach(topic -> TOPIC_CHANNEL_FACTORY.getOrDefault(topic, Collections.emptyMap())
+                .forEach((channel, qos) -> subscribers.merge(channel, qos, SubscribeRepository::maxQoS)));
+        return subscribers;
     }
 
     /**
-     * get Channels.
+     * get subscriber channels with their granted qos.
      * @param topic topic
-     * @return Channels
+     * @return map of channel to granted qos
      */
-    public List<Channel> get(final String topic) {
-        return TOPIC_CHANNEL_FACTORY.getOrDefault(topic, new CopyOnWriteArrayList<>());
+    public Map<Channel, MqttQoS> get(final String topic) {
+        return TOPIC_CHANNEL_FACTORY.getOrDefault(topic, Collections.emptyMap());
+    }
+
+    private static MqttQoS maxQoS(final MqttQoS qos1, final MqttQoS qos2) {
+        return qos1.value() >= qos2.value() ? qos1 : qos2;
     }
 
     /**
@@ -119,13 +131,13 @@ public class SubscribeRepository implements BaseRepository<List<String>, List<Ch
             result.addAll(exactMatch);
         }
 
-        for (Map.Entry<String, List<Channel>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
+        for (Map.Entry<String, Map<Channel, MqttQoS>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
             String filter = entry.getKey();
             if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
                 continue;
             }
             if (TopicMatcher.matches(filter, topic)) {
-                result.addAll(entry.getValue());
+                result.addAll(entry.getValue().keySet());
             }
         }
         return new ArrayList<>(result);
