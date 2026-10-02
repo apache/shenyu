@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -128,6 +129,19 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.handleBeatInfo(dto);
         instanceCheckService.syncDB();
         verify(instanceInfoService, times(1)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testScheduledSyncContinuesAfterPersistenceFailure() {
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(dto);
+        doThrow(new IllegalStateException("database unavailable")).doNothing()
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> ReflectionTestUtils.invokeMethod(instanceCheckService, "syncDBSafely"));
+        assertDoesNotThrow(() -> ReflectionTestUtils.invokeMethod(instanceCheckService, "syncDBSafely"));
+
+        verify(instanceInfoService, times(2)).createOrUpdate(any(InstanceInfoVO.class));
     }
 
     @Test

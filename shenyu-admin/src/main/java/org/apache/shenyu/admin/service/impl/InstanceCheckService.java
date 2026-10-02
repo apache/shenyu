@@ -86,7 +86,7 @@ public class InstanceCheckService {
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::syncDBSafely, 40, scheduledTime, TimeUnit.SECONDS);
     }
 
     /**
@@ -173,6 +173,16 @@ public class InstanceCheckService {
     public void syncDB() {
         instanceHealthBeatInfo.values().forEach(vo -> {
             instanceInfoService.createOrUpdate(vo);
+        });
+    }
+
+    private void syncDBSafely() {
+        instanceHealthBeatInfo.forEach((instanceKey, instanceInfo) -> {
+            try {
+                instanceInfoService.createOrUpdate(instanceInfo);
+            } catch (Exception e) {
+                LOG.error("sync instance {} to database error", instanceKey, e);
+            }
         });
     }
 
