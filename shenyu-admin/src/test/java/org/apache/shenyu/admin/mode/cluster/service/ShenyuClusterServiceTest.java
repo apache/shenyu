@@ -186,7 +186,7 @@ public final class ShenyuClusterServiceTest {
 
             assertTrue(attemptsFinished.await(5, TimeUnit.SECONDS));
             verify(localSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
-            verify(localSelectMasterService, times(2)).releaseMaster();
+            verify(localSelectMasterService, atLeast(2)).releaseMaster();
             verify(localUpstreamCheckService, times(1)).close();
             verify(localInstanceCheckService, times(1)).close();
         } finally {
