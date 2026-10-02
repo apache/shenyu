@@ -232,7 +232,7 @@ jobs:
             image: oceanbase/oceanbase-ce:4.4.2-lts
             port: 2881
             profile: ob
-            url: jdbc:oceanbase://127.0.0.1:2881/shenyu
+            url: jdbc:oceanbase://127.0.0.1:2881/shenyu?serverTimezone=Asia/Shanghai
             username: root
             password: ''
             health_command: obclient -h 127.0.0.1 -P 2881 -uroot -e 'SELECT 1'
