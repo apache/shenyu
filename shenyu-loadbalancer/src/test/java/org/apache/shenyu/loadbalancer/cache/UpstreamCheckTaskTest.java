@@ -24,6 +24,8 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -48,7 +50,7 @@ public class UpstreamCheckTaskTest {
      */
     @Test
     @Timeout(30000)
-    public void testRun() {
+    public void testRun() throws IOException {
         // Mock selectorId1~selectorId4 to let it coverage 4 branch of `HealthCheckTask#check` method.
         final String selectorId1 = "s1";
         SelectorData selectorData1 = mock(SelectorData.class);
@@ -83,11 +85,12 @@ public class UpstreamCheckTaskTest {
         assertTrue(CollectionUtils.isNotEmpty(healthCheckTask.getUnhealthyUpstream().get(selectorId1)));
         // Let it coverage line 151~163.
         when(upstream.isHealthy()).thenReturn(false).thenReturn(true);
-        // Even if the address could not connect, it will return false, that mean it will not coverage 151~163.
-        when(upstream.getUrl()).thenReturn("https://www.baidu.com");
-        // Manually run one time
-        healthCheckTask.run();
-        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            when(upstream.getUrl()).thenReturn("127.0.0.1:" + serverSocket.getLocalPort());
+            // Manually run one time
+            healthCheckTask.run();
+            Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
+        }
         assertFalse(healthCheckTask.getHealthyUpstream().get(selectorId1).isEmpty());
         healthCheckTask.print();
     }
