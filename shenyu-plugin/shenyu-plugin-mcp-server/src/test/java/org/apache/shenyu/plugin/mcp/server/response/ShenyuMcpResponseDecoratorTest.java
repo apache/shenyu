@@ -28,6 +28,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,25 @@ class ShenyuMcpResponseDecoratorTest {
     }
 
     @Test
+    void testWriteWithPreservesUtf8CharacterSplitAcrossBuffers() throws Exception {
+        final ByteArrayOutputStream forwardedBody = new ByteArrayOutputStream();
+        when(delegate.writeWith(any())).thenAnswer(invocation -> Flux
+                .from(invocation.<Publisher<? extends DataBuffer>>getArgument(0))
+                .doOnNext(buffer -> appendBytes(forwardedBody, buffer))
+                .then());
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final ShenyuMcpResponseDecorator decorator =
+                new ShenyuMcpResponseDecorator(delegate, "session-1", future, null);
+        final byte[] utf8Character = "é".getBytes(StandardCharsets.UTF_8);
+
+        decorator.writeWith(Flux.just(buffer(new byte[]{utf8Character[0]}), buffer(new byte[]{utf8Character[1]}))).block();
+
+        assertEquals("é", future.get(5, TimeUnit.SECONDS));
+        assertEquals("é", new String(forwardedBody.toByteArray(), StandardCharsets.UTF_8));
+    }
+
+    @Test
     void testWriteAndFlushWithCompletesFutureAndPreservesFlushes() throws Exception {
         final List<List<String>> forwardedFlushes = new ArrayList<>();
         when(delegate.writeAndFlushWith(any())).thenAnswer(invocation -> Flux
@@ -92,6 +112,27 @@ class ShenyuMcpResponseDecoratorTest {
     }
 
     @Test
+    void testWriteAndFlushWithPreservesUtf8CharacterSplitAcrossFlushes() throws Exception {
+        final ByteArrayOutputStream forwardedBody = new ByteArrayOutputStream();
+        when(delegate.writeAndFlushWith(any())).thenAnswer(invocation -> Flux
+                .from(invocation.<Publisher<? extends Publisher<? extends DataBuffer>>>getArgument(0))
+                .concatMap(flush -> Flux.from(flush).doOnNext(buffer -> appendBytes(forwardedBody, buffer)).then())
+                .then());
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final ShenyuMcpResponseDecorator decorator =
+                new ShenyuMcpResponseDecorator(delegate, "session-1", future, null);
+        final byte[] utf8Character = "é".getBytes(StandardCharsets.UTF_8);
+
+        decorator.writeAndFlushWith(Flux.just(
+                Flux.just(buffer(new byte[]{utf8Character[0]})),
+                Flux.just(buffer(new byte[]{utf8Character[1]})))).block();
+
+        assertEquals("é", future.get(5, TimeUnit.SECONDS));
+        assertEquals("é", new String(forwardedBody.toByteArray(), StandardCharsets.UTF_8));
+    }
+
+    @Test
     void testSetCompleteCompletesFutureWithAccumulatedBody() {
         when(delegate.setComplete()).thenReturn(Mono.empty());
 
@@ -106,6 +147,16 @@ class ShenyuMcpResponseDecoratorTest {
 
     private DataBuffer buffer(final String content) {
         return bufferFactory.wrap(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private DataBuffer buffer(final byte[] content) {
+        return bufferFactory.wrap(content);
+    }
+
+    private void appendBytes(final ByteArrayOutputStream output, final DataBuffer dataBuffer) {
+        final byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        output.write(bytes, 0, bytes.length);
     }
 
     private String readBuffer(final DataBuffer dataBuffer) {

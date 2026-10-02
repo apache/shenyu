@@ -27,6 +27,8 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +37,7 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpResponseDecorator.class);
 
-    private final StringBuilder body = new StringBuilder();
+    private final ByteArrayOutputStream body = new ByteArrayOutputStream();
 
     private final CompletableFuture<String> future;
 
@@ -77,10 +79,11 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     }
 
     private void completeFuture() {
-        String responseBody;
+        byte[] responseBytes;
         synchronized (this.body) {
-            responseBody = this.body.toString();
+            responseBytes = this.body.toByteArray();
         }
+        String responseBody = new String(responseBytes, StandardCharsets.UTF_8);
         LOG.debug("Final response body length for session {}: {}", sessionId, responseBody.length());
         if (!future.isDone()) {
             synchronized (future) {
@@ -92,14 +95,21 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     }
 
     private void appendChunk(final DataBuffer buffer) {
-        final String chunk = buffer.toString(StandardCharsets.UTF_8);
+        final int chunkLength = buffer.readableByteCount();
         if (isFirstChunk) {
             LOG.debug("First response chunk received for session: {}", sessionId);
             isFirstChunk = false;
         }
-        LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunk.length());
+        LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunkLength);
         synchronized (this.body) {
-            this.body.append(chunk);
+            try (DataBuffer.ByteBufferIterator iterator = buffer.readableByteBuffers()) {
+                while (iterator.hasNext()) {
+                    final ByteBuffer byteBuffer = iterator.next().asReadOnlyBuffer();
+                    final byte[] bytes = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(bytes);
+                    this.body.write(bytes, 0, bytes.length);
+                }
+            }
         }
     }
 
