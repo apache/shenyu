@@ -84,3 +84,40 @@ ALTER TABLE `meta_data` ADD INDEX `idx_meta_data_namespace_path` (`namespace_id`
 
 -- Keep the tag name limit consistent with PostgreSQL, openGauss, and Oracle.
 ALTER TABLE `tag` MODIFY COLUMN `tag_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name';
+
+CREATE TABLE IF NOT EXISTS `scale_policy` (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `sort` int NOT NULL COMMENT 'sort',
+    `status` int NOT NULL COMMENT 'status 1:enable 0:disable',
+    `num` int COMMENT 'number of bootstrap',
+    `begin_time` datetime(3) COMMENT 'begin time',
+    `end_time` datetime(3) COMMENT 'end time',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('3', 1, 0, 10, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('2', 2, 0, 10, '2024-07-31 20:00:00.000', '2024-08-01 20:00:00.000', '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+INSERT IGNORE INTO `scale_policy` (`id`, `sort`, `status`, `num`, `begin_time`, `end_time`, `date_created`, `date_updated`) VALUES ('1', 3, 0, NULL, NULL, NULL, '2024-07-31 20:00:00.000', '2024-07-31 20:00:00.000');
+CREATE TABLE IF NOT EXISTS `scale_rule` (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `metric_name` varchar(128) NOT NULL COMMENT 'metric name',
+    `type` int NOT NULL COMMENT 'type 0:shenyu 1:k8s 2:others',
+    `sort` int NOT NULL COMMENT 'sort',
+    `status` int NOT NULL COMMENT 'status 1:enable 0:disable',
+    `minimum` varchar(128) COMMENT 'minimum of metric',
+    `maximum` varchar(128) COMMENT 'maximum of metric',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `scale_history` (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `config_id` int NOT NULL COMMENT '0:manual 1:period 2:dynamic',
+    `num` int NOT NULL COMMENT 'number of bootstrap',
+    `action` int NOT NULL COMMENT 'status 1:enable 0:disable',
+    `msg` text COMMENT 'message',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
