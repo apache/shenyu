@@ -41,6 +41,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.Mockito;
 
 public final class WebsocketDataHandlerTest {
@@ -111,7 +112,7 @@ public final class WebsocketDataHandlerTest {
     @Test
     public void testEmptySnapshotClearsOnlyItsGroup() {
         websocketDataHandler.snapshot(ConfigGroupEnum.RULE, "[]", "namespace-a", "namespace-a");
-        verify(pluginDataSubscriber).refreshRuleDataNamespace("namespace-a");
+        verify(pluginDataSubscriber).applyRuleDataSnapshot("namespace-a", Collections.emptyList());
         Mockito.verifyNoMoreInteractions(pluginDataSubscriber);
     }
 
@@ -132,15 +133,14 @@ public final class WebsocketDataHandlerTest {
     @Test
     public void testSnapshotReplacesStalePluginBeforeSubscribing() {
         websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, getJson(), "namespace-a", "namespace-a");
-        org.mockito.InOrder order = Mockito.inOrder(pluginDataSubscriber);
-        order.verify(pluginDataSubscriber).refreshPluginDataNamespace("namespace-a");
-        order.verify(pluginDataSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        verify(pluginDataSubscriber).applyPluginDataSnapshot(Mockito.eq("namespace-a"), Mockito.anyList());
     }
 
     @Test
     public void testEmptySnapshotsRemoveStaleGatewayCache() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
@@ -184,6 +184,7 @@ public final class WebsocketDataHandlerTest {
     public void testEmptyNamespaceSnapshotPreservesOtherNamespaces() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
@@ -216,14 +217,15 @@ public final class WebsocketDataHandlerTest {
     public void testNonEmptySnapshotRemovesMissingRulesAndPreservesOtherNamespace() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a")
+        RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a").pluginName("divide")
                 .namespaceId("namespace-a").sort(1).build();
-        RuleData replacement = RuleData.builder().id("replacement-rule").selectorId("selector-a")
+        RuleData replacement = RuleData.builder().id("replacement-rule").selectorId("selector-a").pluginName("divide")
                 .namespaceId("namespace-a").sort(2).build();
-        RuleData other = RuleData.builder().id("other-rule").selectorId("selector-b")
+        RuleData other = RuleData.builder().id("other-rule").selectorId("selector-b").pluginName("divide")
                 .namespaceId("namespace-b").sort(1).build();
         cache.cacheRuleData(stale);
         cache.cacheRuleData(other);
