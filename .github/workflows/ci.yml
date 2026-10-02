@@ -302,6 +302,8 @@ jobs:
               ;;
             ob)
               docker exec -i "${DATABASE_ID}" obclient -h 127.0.0.1 -P 2881 -uroot < db/init/ob/schema.sql
+              # Align OceanBase timestamp sessions with the admin application's GMT+8 setting.
+              docker exec "${DATABASE_ID}" obclient -h 127.0.0.1 -P 2881 -uroot -e "SET GLOBAL time_zone = '+08:00'"
               ;;
             oracle)
               { printf 'WHENEVER SQLERROR EXIT SQL.SQLCODE\n'; cat db/init/oracle/schema.sql; } | docker exec -i "${DATABASE_ID}" sqlplus -s shenyu/12345678@//localhost:1521/FREEPDB1
