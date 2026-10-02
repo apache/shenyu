@@ -259,10 +259,10 @@ jobs:
           OB_SYS_PASSWORD: 12345678
           OB_MEMORY_LIMIT: 4G
           OB_DATAFILE_SIZE: 2G
-          OB_LOG_DISK_SIZE: 2G
+          OB_LOG_DISK_SIZE: 5G
           OB_SYSTEM_MEMORY: 1G
           OB_TENANT_MEMORY_SIZE: 1G
-          OB_TENANT_MINI_CPU: 1
+          OB_TENANT_MIN_CPU: 1
           ORACLE_PASSWORD: 12345678
           APP_USER: shenyu
           APP_USER_PASSWORD: 12345678
