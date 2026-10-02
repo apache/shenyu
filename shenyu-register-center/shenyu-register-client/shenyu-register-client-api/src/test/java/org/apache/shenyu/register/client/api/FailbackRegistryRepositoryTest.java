@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.register.client.api;
 
+import org.apache.shenyu.common.timer.TaskEntity;
 import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
+import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
@@ -44,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -53,6 +58,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link FailbackRegistryRepository}.
@@ -129,6 +135,39 @@ public final class FailbackRegistryRepositoryTest {
         assertEquals(0, getFailureMapSize());
         repository.retry(key);
         verify(repository, times(3)).doPersistURI(original);
+    }
+
+    @Test
+    void retriesNewFailureQueuedAfterRetryBudgetIsExhausted() {
+        URIRegisterDTO original = createURIRegisterDTO();
+        URIRegisterDTO newer = createURIRegisterDTO();
+        doThrow(new IllegalStateException("offline")).when(repository).doPersistURI(same(original));
+        doThrow(new IllegalStateException("new failure")).when(repository).doPersistURI(same(newer));
+        repository.persistURI(original);
+
+        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
+        verify(timer, atLeastOnce()).add(taskCaptor.capture());
+        FailureRegistryTask originalTask = (FailureRegistryTask) taskCaptor.getAllValues().get(0);
+        TaskEntity originalTaskEntity = mock(TaskEntity.class);
+        when(originalTaskEntity.getTimer()).thenReturn(timer);
+        when(originalTaskEntity.getTimerTask()).thenReturn(originalTask);
+        for (int attempt = 0; attempt < 18; attempt++) {
+            originalTask.run(originalTaskEntity);
+        }
+
+        repository.persistURI(newer);
+        originalTask.run(originalTaskEntity);
+        assertEquals(1, getFailureMapSize());
+
+        verify(timer, atLeastOnce()).add(taskCaptor.capture());
+        FailureRegistryTask newerTask = (FailureRegistryTask) taskCaptor.getAllValues()
+                .get(taskCaptor.getAllValues().size() - 1);
+        TaskEntity newerTaskEntity = mock(TaskEntity.class);
+        when(newerTaskEntity.getTimer()).thenReturn(timer);
+        when(newerTaskEntity.getTimerTask()).thenReturn(newerTask);
+        doNothing().when(repository).doPersistURI(same(newer));
+        newerTask.run(newerTaskEntity);
+        assertEquals(0, getFailureMapSize());
     }
 
     @Test

@@ -37,7 +37,8 @@ public final class FailureRegistryTaskTest {
     @Test
     public void delegatesToAtomicRetry() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
-        new FailureRegistryTask("key", repository).doRetry("key", mock(TimerTask.class));
+        FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        task.doRetry("key", mock(TimerTask.class));
         verify(repository).retry("key");
         verifyNoMoreInteractions(repository);
     }
@@ -45,15 +46,16 @@ public final class FailureRegistryTaskTest {
     @Test
     public void propagatesFailureForRescheduling() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
-        doThrow(new IllegalStateException("offline")).when(repository).retry("key");
         FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        doThrow(new IllegalStateException("offline")).when(repository).retry("key");
         assertThrows(IllegalStateException.class, () -> task.doRetry("key", mock(TimerTask.class)));
     }
 
     @Test
     public void testRetryExhaustedRemovesFailure() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
-        new FailureRegistryTask("key", repository).onRetryExhausted("key");
+        FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        task.onRetryExhausted("key");
         verify(repository).remove("key");
     }
 
@@ -72,8 +74,10 @@ public final class FailureRegistryTaskTest {
     @Test
     public void independentTasksUseTheirOwnRegistrationKeys() {
         FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
-        new FailureRegistryTask("first", repository).doRetry("first", mock(TimerTask.class));
-        new FailureRegistryTask("second", repository).doRetry("second", mock(TimerTask.class));
+        FailureRegistryTask firstTask = new FailureRegistryTask("first", repository);
+        FailureRegistryTask secondTask = new FailureRegistryTask("second", repository);
+        firstTask.doRetry("first", mock(TimerTask.class));
+        secondTask.doRetry("second", mock(TimerTask.class));
         verify(repository).retry("first");
         verify(repository).retry("second");
         verifyNoMoreInteractions(repository);
@@ -87,13 +91,26 @@ public final class FailureRegistryTaskTest {
         TaskEntity entity = mock(TaskEntity.class);
         when(entity.getTimer()).thenReturn(timer);
         when(entity.getTimerTask()).thenReturn(timerTask);
-        doThrow(new IllegalStateException("registration failed")).when(repository).retry("key");
         FailureRegistryTask task = new FailureRegistryTask("key", repository);
+        doThrow(new IllegalStateException("registration failed")).when(repository).retry("key");
         for (int attempt = 0; attempt < 19; attempt++) {
             task.run(entity);
         }
         verify(repository, times(18)).retry("key");
         verify(repository).remove("key");
         verify(timer, times(18)).add(timerTask);
+    }
+
+    @Test
+    public void ownedTaskUsesConditionalRetryAndCleanup() {
+        FailbackRegistryRepository repository = mock(FailbackRegistryRepository.class);
+        FailureRegistryTask task = FailureRegistryTask.createOwned("key", repository);
+
+        task.doRetry("key", mock(TimerTask.class));
+        task.onRetryExhausted("key");
+
+        verify(repository).retry("key", task);
+        verify(repository).remove("key", task);
+        verifyNoMoreInteractions(repository);
     }
 }
