@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
@@ -103,31 +104,43 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
-                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
-                                    try {
+                                    String runId = UUID.randomUUID().toString();
+                                    String uri = "/http/order/findById?id=rocketmq-e2e-" + runId;
+                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP + "-" + runId);
+                                    try (RocketMQTestSupport support = new RocketMQTestSupport(NAMESERVER, TOPIC, runId);
+                                            AutoCloseable consumerShutdown = () -> consumer.shutdown()) {
                                         consumer.setNamesrvAddr(NAMESERVER);
+                                        consumer.setInstanceName("rocketmq-e2e-" + runId);
                                         consumer.subscribe(TOPIC, "*");
                                         consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
                                             LOG.info("Msg:{}", msgs);
                                             if (CollectionUtils.isNotEmpty(msgs)) {
                                                 msgs.forEach(e -> {
-                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
+                                                    if (RocketMQTestSupport.matchesAccessLog(e.getBody(), uri)) {
                                                         isLog.set(true);
                                                     }
                                                 });
                                             }
                                             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                                         });
-                                        consumer.start();
-                                        LOG.info("RocketMQ consumer started");
-                                        request.request(Method.GET, "/http/order/findById?id=23");
-                                        await().atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
+                                        support.prepare(consumer);
+                                        try {
+                                            Assertions.assertEquals(200, request.request(Method.GET, uri).statusCode(), "HTTP request failed: " + uri);
+                                        } catch (Exception e) {
+                                            LOG.error("HTTP request failed: {}", uri, e);
+                                            Assertions.fail("HTTP request failed: " + uri, e);
+                                        }
+                                        try {
+                                            await().alias("RocketMQ access log for " + uri).atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
+                                        } catch (Exception e) {
+                                            String diagnostic = support.diagnostics(consumer);
+                                            LOG.error("Failed to consume RocketMQ access log: {}; {}", uri, diagnostic, e);
+                                            Assertions.fail("Failed to consume RocketMQ access log: " + uri + "; " + diagnostic, e);
+                                        }
                                         LOG.info("isLog.get():{}", isLog.get());
                                     } catch (Exception e) {
-                                        LOG.error("error", e);
-                                        Assertions.fail("Failed to consume RocketMQ access log", e);
-                                    } finally {
-                                        consumer.shutdown();
+                                        LOG.error("RocketMQ case failed for {}", uri, e);
+                                        Assertions.fail("RocketMQ case failed for " + uri, e);
                                     }
                                 })
                                 .build()

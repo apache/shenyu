@@ -32,6 +32,24 @@
             <artifactId>rocketmq-client</artifactId>
             <version>4.9.3</version>
         </dependency>
+        <!-- Public admin APIs prepare the topic, inspect consumer queues, and diagnose broker messages. -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-tools</artifactId>
+            <version>4.9.3</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <!-- Keep commons-codec supplied by the existing E2E HTTP client dependencies. -->
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
