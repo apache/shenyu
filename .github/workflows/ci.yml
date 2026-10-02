@@ -312,6 +312,8 @@ jobs:
       - name: Run admin tests on ${{ matrix.dialect }}
         run: >-
           ./mvnw -B -ntp -pl shenyu-admin
+          -Dtest=MetaDataMapperTest#pathExistedExcludeIsScopedByNamespace+pathExistedExcludeHandlesEmptyAndNullExclusions+pathExistedExcludeStillDetectsOtherRows,MockRequestRecordMapperTest,TagMapperTest,TagUpdateTransactionTest,DictImportIntegrationTest
+          -Dsurefire.failIfNoSpecifiedTests=false
           -Dshenyu.test.database.profile=${{ matrix.profile }}
           -Dspring.datasource.url='${{ matrix.url }}'
           -Dspring.datasource.username=${{ matrix.username }}

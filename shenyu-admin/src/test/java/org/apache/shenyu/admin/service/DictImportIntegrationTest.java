@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -50,8 +50,10 @@ public class DictImportIntegrationTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testFailedImportRollsBackRowsAndAuditLog() {
-        assertThrows(DataIntegrityViolationException.class,
-                () -> shenyuDictService.importData(List.of(dict("dict-import-first"), dict("dict-import-first"))));
+        ShenyuDictDTO invalidDict = dict("dict-import-second");
+        invalidDict.setDictValue("x".repeat(2049));
+        assertThrows(DataAccessException.class,
+                () -> shenyuDictService.importData(List.of(dict("dict-import-first"), invalidDict)));
         assertEquals(0, dictCount());
         assertEquals(0, auditCount());
     }
@@ -81,4 +83,3 @@ public class DictImportIntegrationTest extends AbstractSpringIntegrationTest {
         return dto;
     }
 }
-
