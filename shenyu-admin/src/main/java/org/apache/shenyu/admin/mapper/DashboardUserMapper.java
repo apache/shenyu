@@ -59,17 +59,6 @@ public interface DashboardUserMapper extends ExistProvider {
     DashboardUserDO selectByUserName(String userName);
     
     /**
-     * find dashboard user by query.
-     *
-     * @param userName user name
-     * @param password exact stored password value
-     * @return {@linkplain DashboardUserDO}
-     * @deprecated do not use this method for authentication with raw passwords.
-     */
-    @Deprecated
-    DashboardUserDO findByQuery(@Param("userName") String userName, @Param("password") String password);
-    
-    /**
      * select dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
