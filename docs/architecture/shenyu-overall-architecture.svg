@@ -1,0 +1,97 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0.
+  You may obtain a copy at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 660"
+  style="background-color:#F8FAFC;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0 L0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+  </pattern>
+  <filter id="cs"><feDropShadow dx="2" dy="6" stdDeviation="10" flood-color="#005D7B" flood-opacity="0.08"/></filter>
+  <clipPath id="c1"><rect x="40" y="104" width="380" height="128" rx="10"/></clipPath>
+  <clipPath id="c2"><rect x="480" y="104" width="380" height="128" rx="10"/></clipPath>
+  <clipPath id="c3"><rect x="120" y="286" width="660" height="116" rx="10"/></clipPath>
+  <clipPath id="c4"><rect x="40" y="456" width="380" height="126" rx="10"/></clipPath>
+  <clipPath id="c5"><rect x="480" y="456" width="380" height="126" rx="10"/></clipPath>
+</defs>
+<style><![CDATA[
+text,tspan{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+]]></style>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title -->
+<text x="450" y="48" text-anchor="middle" font-size="24" font-weight="bold" fill="#005D7B">Apache ShenYu 总体架构</text>
+
+<rect x="25" y="80" width="850" height="174" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="42" y="100" font-size="12" font-weight="bold" fill="#94A3B8">入口与治理</text>
+<rect x="95" y="266" width="710" height="156" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="112" y="286" font-size="12" font-weight="bold" fill="#94A3B8">网关内核</text>
+<rect x="25" y="432" width="850" height="176" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="42" y="452" font-size="12" font-weight="bold" fill="#94A3B8">生态与交付</text>
+
+<rect x="40" y="104" width="380" height="128" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="40" y="104" width="6" height="128" fill="#E99151" clip-path="url(#c1)"/>
+<text x="62" y="132" font-size="16" font-weight="bold" fill="#2D3748">入口与注册</text>
+<text x="146" y="132" font-size="11" fill="#94A3B8">Ingress</text>
+<line x1="62" y1="146" x2="396" y2="146" stroke="#E2E8F0" stroke-width="1"/>
+<text x="62" y="174" font-size="12" fill="#64748B">shenyu-client / sdk / registry 把真实服务接入网关。</text>
+<text x="62" y="198" font-size="12" fill="#64748B">kubernetes-controller 把 Ingress 转成 selector / rule。</text>
+
+<rect x="480" y="104" width="380" height="128" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="480" y="104" width="6" height="128" fill="#005D7B" clip-path="url(#c2)"/>
+<text x="502" y="132" font-size="16" font-weight="bold" fill="#2D3748">控制平面</text>
+<text x="586" y="132" font-size="11" fill="#94A3B8">Control Plane</text>
+<line x1="502" y1="146" x2="836" y2="146" stroke="#E2E8F0" stroke-width="1"/>
+<text x="502" y="174" font-size="12" fill="#64748B">shenyu-admin 管理 plugin / selector / rule / metadata。</text>
+<text x="502" y="198" font-size="12" fill="#64748B">Admin listener 把变更通过 WebSocket、HTTP、ZK 等策略下发。</text>
+
+<rect x="120" y="286" width="660" height="116" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="120" y="286" width="6" height="116" fill="#4CA497" clip-path="url(#c3)"/>
+<text x="142" y="316" font-size="18" font-weight="bold" fill="#2D3748">网关运行面</text>
+<text x="236" y="316" font-size="11" fill="#94A3B8">Gateway Runtime</text>
+<line x1="142" y1="330" x2="744" y2="330" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="150" y="346" width="120" height="24" rx="12" fill="#E6F7ED"/>
+<text x="210" y="362" text-anchor="middle" font-size="10" font-weight="bold" fill="#4CA497">Bootstrap 装配</text>
+<rect x="290" y="346" width="132" height="24" rx="12" fill="#E0F2F8"/>
+<text x="356" y="362" text-anchor="middle" font-size="10" font-weight="bold" fill="#005D7B">ShenyuWebHandler</text>
+<rect x="442" y="346" width="154" height="24" rx="12" fill="#EDE9FE"/>
+<text x="519" y="362" text-anchor="middle" font-size="10" font-weight="bold" fill="#7C3AED">Plugin Chain + Cache</text>
+<text x="142" y="388" font-size="12" fill="#64748B">请求在这里完成匹配、治理、代理与响应返回，是整个系统的执行核心。</text>
+
+<rect x="40" y="456" width="380" height="126" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="40" y="456" width="6" height="126" fill="#7C3AED" clip-path="url(#c4)"/>
+<text x="62" y="484" font-size="16" font-weight="bold" fill="#2D3748">插件能力</text>
+<text x="134" y="484" font-size="11" fill="#94A3B8">Capabilities</text>
+<line x1="62" y1="498" x2="396" y2="498" stroke="#E2E8F0" stroke-width="1"/>
+<text x="62" y="526" font-size="12" fill="#64748B">代理、安全、限流、改写、观测、AI 等能力都以插件形式装入。</text>
+<text x="62" y="550" font-size="12" fill="#64748B">支持热插拔，也允许用户扩展自定义插件。</text>
+
+<rect x="480" y="456" width="380" height="126" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="480" y="456" width="6" height="126" fill="#0891B2" clip-path="url(#c5)"/>
+<text x="502" y="484" font-size="16" font-weight="bold" fill="#2D3748">交付与验证</text>
+<text x="588" y="484" font-size="11" fill="#94A3B8">Delivery</text>
+<line x1="502" y1="498" x2="836" y2="498" stroke="#E2E8F0" stroke-width="1"/>
+<text x="502" y="526" font-size="12" fill="#64748B">starter、dist、examples、integrated-test、e2e 负责装配、发布与验收。</text>
+<text x="502" y="550" font-size="12" fill="#64748B">它们让 ShenYu 可以从样例走到生产交付。</text>
+
+<line x1="230" y1="232" x2="330" y2="286" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="330,286 321,278 317,287" fill="#94A3B8"/>
+<text x="244" y="248" font-size="11" font-weight="bold" fill="#E99151">服务接入</text>
+
+<line x1="670" y1="232" x2="570" y2="286" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="570,286 583,287 579,278" fill="#94A3B8"/>
+<text x="607" y="248" font-size="11" font-weight="bold" fill="#005D7B">配置同步</text>
+
+<line x1="300" y1="402" x2="240" y2="456" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="240,456 252,452 246,445" fill="#94A3B8"/>
+<text x="246" y="432" font-size="11" font-weight="bold" fill="#7C3AED">挂载能力</text>
+
+<line x1="600" y1="402" x2="660" y2="456" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="660,456 654,445 648,452" fill="#94A3B8"/>
+<text x="623" y="432" font-size="11" font-weight="bold" fill="#0891B2">交付验证</text>
+
+</svg>
