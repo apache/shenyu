@@ -24,11 +24,18 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.lang.reflect.Field;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -300,4 +307,48 @@ public class UpstreamCheckTaskTest {
         // Clean up
         healthCheckTask.triggerRemoveAll(selectorId);
     }
+
+    @Test
+    @Timeout(10)
+    public void testConfigurationUpdateWaitsForHealthCheck() throws Exception {
+        UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        ExecutorService checks = Executors.newSingleThreadExecutor();
+        ExecutorService updates = Executors.newFixedThreadPool(2);
+        CountDownLatch releaseCheck = new CountDownLatch(1);
+        CountDownLatch updateStarted = new CountDownLatch(1);
+        Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+        executor.setAccessible(true);
+        executor.set(task, checks);
+        Upstream removed = Upstream.builder().protocol("http://").url("removed:8080").healthCheckEnabled(false).build();
+        task.putToMap(task.getUnhealthyUpstream(), "selector", removed);
+        try {
+            // Hold the worker so healthCheck waits for its result while owning the lock.
+            checks.submit(() -> {
+                releaseCheck.await();
+                return null;
+            });
+            final Future<?> healthCheck = updates.submit(task);
+            Awaitility.await().atMost(3, TimeUnit.SECONDS).untilTrue(task.getCheckStarted());
+            Future<?> configurationUpdate = updates.submit(() -> {
+                updateStarted.countDown();
+                task.withLock(() -> {
+                    task.getHealthyUpstream().remove("selector");
+                    task.getUnhealthyUpstream().remove("selector");
+                });
+            });
+            assertTrue(updateStarted.await(3, TimeUnit.SECONDS));
+            assertThrows(TimeoutException.class, () -> configurationUpdate.get(100, TimeUnit.MILLISECONDS));
+
+            releaseCheck.countDown();
+            healthCheck.get(3, TimeUnit.SECONDS);
+            configurationUpdate.get(3, TimeUnit.SECONDS);
+            assertFalse(task.getHealthyUpstream().containsKey("selector"));
+            assertFalse(task.getUnhealthyUpstream().containsKey("selector"));
+        } finally {
+            releaseCheck.countDown();
+            updates.shutdownNow();
+            checks.shutdownNow();
+        }
+    }
+
 }
