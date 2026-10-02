@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfilesResolver;
 
 /**
  * Resolves the database profile used by admin integration tests.
+ * The optional {@code -Dshenyu.test.database.profile} system property selects a profile; H2 is used by default.
  */
 public final class DatabaseProfileResolver implements ActiveProfilesResolver {
 

@@ -115,3 +115,6 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+-- Keep the tag name limit consistent with PostgreSQL, openGauss, and Oracle.
+ALTER TABLE `tag` MODIFY COLUMN `tag_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'tag name';

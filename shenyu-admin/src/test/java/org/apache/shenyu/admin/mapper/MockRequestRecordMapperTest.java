@@ -60,9 +60,9 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         mockRequestRecordDO.setBody(null);
         assertEquals(mockRequestRecordMapper.insertSelective(mockRequestRecordDO), 1);
         MockRequestRecordDO queryResult = mockRequestRecordMapper.queryById(mockRequestRecordDO.getId());
-        assertTrue(Objects.isNull(queryResult.getPathVariable()) || queryResult.getPathVariable().isEmpty());
-        assertTrue(Objects.isNull(queryResult.getQuery()) || queryResult.getQuery().isEmpty());
-        assertTrue(Objects.isNull(queryResult.getHeader()) || queryResult.getHeader().isEmpty());
+        assertEquals(queryResult.getPathVariable(), "");
+        assertEquals(queryResult.getQuery(), "");
+        assertEquals(queryResult.getHeader(), "");
         assertNull(queryResult.getBody());
     }
 
@@ -71,6 +71,15 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     public void insertBatch() {
         List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildMockRequestRecordDO(), buildMockRequestRecordDO(), buildMockRequestRecordDO());
         assertEquals(mockRequestRecordMapper.insertBatch(mockRequestRecordDOS), 3);
+    }
+
+    @Test
+    @Transactional
+    public void testInsertBatchAndQueryByLargeBody() {
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
+        mockRequestRecordDO.setBody("x".repeat(5001));
+        assertEquals(1, mockRequestRecordMapper.insertBatch(Lists.newArrayList(mockRequestRecordDO)));
+        assertEquals(1L, mockRequestRecordMapper.count(mockRequestRecordDO));
     }
 
     @Test
@@ -168,6 +177,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    @Transactional
     public void testSelectByQuery() {
         MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         mockRequestRecordMapper.insert(mockRequestRecordDO);
@@ -179,6 +189,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    @Transactional
     public void testBatchDelete() {
         MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         mockRequestRecordMapper.insert(mockRequestRecordDO);

@@ -63,6 +63,16 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    public void testSelectByPrimaryKeyNormalizesEmptyDescription() {
+        TagDO record = buildTagDO();
+        record.setTagDesc("");
+        assertEquals(1, tagMapper.insertSelective(record));
+        TagDO selected = tagMapper.selectByPrimaryKey(record.getId());
+        assertEquals("", selected.getTagDesc());
+        assertEquals(1, tagMapper.deleteByPrimaryKey(record.getId()));
+    }
+
+    @Test
     public void testDeleteByPrimaryKey() {
         TagDO record = buildTagDO();
         int count = tagMapper.insertSelective(record);

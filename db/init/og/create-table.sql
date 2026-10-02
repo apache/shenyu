@@ -3211,4 +3211,3 @@ CREATE INDEX idx_namespace_user_ns_user ON namespace_user_rel (namespace_id, use
 CREATE INDEX idx_namespace_user_user_ns ON namespace_user_rel (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON user_role (user_id, role_id);
 CREATE INDEX idx_resource_parent ON resource (parent_id);
-ALTER TABLE shenyu_dict ADD CONSTRAINT un_dict_type_dict_code_dict_name UNIQUE (type, dict_code, dict_name);

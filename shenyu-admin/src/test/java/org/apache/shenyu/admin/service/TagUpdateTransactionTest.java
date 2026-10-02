@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +58,7 @@ public class TagUpdateTransactionTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testParentFailureRollsBackDescendantUpdates() {
-        assertThrows(DataAccessException.class, () -> tagService.update(update("x".repeat(256))));
+        assertThrows(DataIntegrityViolationException.class, () -> tagService.update(update("x".repeat(256))));
         assertEquals("old", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
         assertEquals("{}", childExt());
     }

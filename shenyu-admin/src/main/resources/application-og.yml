@@ -49,4 +49,4 @@ spring:
           ssl:
             enable: true
 mybatis:
-  type-handlers-package: org.apache.shenyu.admin.mybatis.og.handler
+  type-handlers-package: org.apache.shenyu.admin.mybatis.pgog.handler

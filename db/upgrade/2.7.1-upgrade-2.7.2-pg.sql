@@ -116,7 +116,11 @@ CREATE INDEX idx_namespace_user_user_ns ON namespace_user_rel (user_id, namespac
 CREATE INDEX idx_user_role_user_role ON user_role (user_id, role_id);
 CREATE INDEX idx_resource_parent ON resource (parent_id);
 
--- Align required proxy selector and upstream fields with the other database schemas.
+-- Backfill legacy nullable values before aligning required fields with the other database schemas.
+UPDATE proxy_selector SET name = '' WHERE name IS NULL;
+UPDATE proxy_selector SET plugin_name = '' WHERE plugin_name IS NULL;
+UPDATE proxy_selector SET type = '' WHERE type IS NULL;
+UPDATE discovery_upstream SET upstream_url = '' WHERE upstream_url IS NULL;
 ALTER TABLE proxy_selector ALTER COLUMN name SET NOT NULL;
 ALTER TABLE proxy_selector ALTER COLUMN plugin_name SET NOT NULL;
 ALTER TABLE proxy_selector ALTER COLUMN type SET NOT NULL;

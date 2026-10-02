@@ -44,8 +44,7 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
     void testLookupIndexColumnOrder(final String table, final String index, final String columns) throws Exception {
         List<String> actual = new ArrayList<>();
         try (Connection connection = dataSource.getConnection()) {
-            String expectedIndex = "Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())
-                    ? oracleIndexName(index) : index;
+            String expectedIndex = index;
             if ("Oracle".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())) {
                 try (PreparedStatement statement = connection.prepareStatement("SELECT column_name FROM user_ind_columns WHERE table_name = ? AND index_name = ? ORDER BY column_position")) {
                     statement.setString(1, metadataTableName(connection, table));
@@ -66,16 +65,6 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
             }
         }
         assertEquals(columns, String.join(",", actual));
-    }
-
-    private String oracleIndexName(final String index) {
-        if ("idx_discovery_handler_discovery".equals(index)) {
-            return "idx_discovery_handler_disc";
-        }
-        if ("idx_operation_log_operator_time".equals(index)) {
-            return "idx_operation_log_oper_time";
-        }
-        return index;
     }
 
     private String metadataTableName(final Connection connection, final String table) throws Exception {

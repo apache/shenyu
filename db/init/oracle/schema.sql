@@ -3930,11 +3930,11 @@ CREATE INDEX idx_ns_plugin_ns_plugin ON namespace_plugin_rel (namespace_id, plug
 CREATE INDEX idx_discovery_rel_proxy ON discovery_rel (proxy_selector_id);
 CREATE INDEX idx_discovery_rel_selector ON discovery_rel (selector_id);
 CREATE INDEX idx_discovery_rel_handler ON discovery_rel (discovery_handler_id);
-CREATE INDEX idx_discovery_handler_disc ON discovery_handler (discovery_id);
+CREATE INDEX idx_discovery_handler_discovery ON discovery_handler (discovery_id);
 CREATE INDEX idx_discovery_ns_plugin ON discovery (namespace_id, plugin_name);
 CREATE INDEX idx_proxy_selector_ns ON proxy_selector (namespace_id);
 CREATE INDEX idx_operation_log_time ON operation_record_log (operation_time);
-CREATE INDEX idx_operation_log_oper_time ON operation_record_log (operator, operation_time);
+CREATE INDEX idx_operation_log_operator_time ON operation_record_log (operator, operation_time);
 CREATE INDEX idx_instance_ns_ip ON instance_info (namespace_id, instance_ip);
 CREATE INDEX idx_mock_record_api ON mock_request_record (api_id);
 CREATE INDEX idx_namespace_user_ns_user ON namespace_user_rel (namespace_id, user_id);

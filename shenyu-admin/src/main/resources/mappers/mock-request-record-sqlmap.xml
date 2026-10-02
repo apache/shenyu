@@ -23,9 +23,9 @@
         <result property="apiId" column="api_id" jdbcType="VARCHAR"/>
         <result property="host" column="host" jdbcType="VARCHAR"/>
         <result property="port" column="port" jdbcType="INTEGER"/>
-        <result property="pathVariable" column="path_variable" jdbcType="VARCHAR"/>
-        <result property="query" column="query" jdbcType="VARCHAR"/>
-        <result property="header" column="header" jdbcType="VARCHAR"/>
+        <result property="pathVariable" column="path_variable" jdbcType="VARCHAR" typeHandler="org.apache.shenyu.admin.mybatis.handler.EmptyStringTypeHandler"/>
+        <result property="query" column="query" jdbcType="VARCHAR" typeHandler="org.apache.shenyu.admin.mybatis.handler.EmptyStringTypeHandler"/>
+        <result property="header" column="header" jdbcType="VARCHAR" typeHandler="org.apache.shenyu.admin.mybatis.handler.EmptyStringTypeHandler"/>
         <result property="body" column="body" jdbcType="VARCHAR"/>
         <result property="dateCreated" column="date_created" jdbcType="TIMESTAMP"/>
         <result property="dateUpdated" column="date_updated" jdbcType="TIMESTAMP"/>
@@ -40,7 +40,7 @@
     </sql>
 
     <sql id="ItemBodyComparison" databaseId="oracle">
-        and dbms_lob.compare(body, to_clob(#{item.body})) = 0
+        and dbms_lob.compare(body, #{item.body,jdbcType=CLOB,typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}) = 0
     </sql>
 
     <sql id="BodyComparison">
@@ -48,7 +48,7 @@
     </sql>
 
     <sql id="BodyComparison" databaseId="oracle">
-        and dbms_lob.compare(body, to_clob(#{body})) = 0
+        and dbms_lob.compare(body, #{body,jdbcType=CLOB,typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}) = 0
     </sql>
 
     <select id="queryById" resultMap="MockRequestRecordMap">
@@ -262,15 +262,25 @@
     </insert>
 
     <insert id="insertBatch" databaseId="oracle">
-        insert into mock_request_record(
-            id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
-        )
-        <foreach collection="list" item="item" separator=" UNION ALL ">
-            SELECT #{item.id}, #{item.apiId}, #{item.host}, #{item.port}, #{item.url},
-                   #{item.pathVariable}, #{item.query}, #{item.header}, #{item.body},
-                   #{item.dateCreated}, #{item.dateUpdated}
-            FROM dual
+        INSERT ALL
+        <foreach collection="list" item="item">
+            INTO mock_request_record (
+                id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
+            ) VALUES (
+                CAST(#{item.id,jdbcType=VARCHAR} AS VARCHAR2(128)),
+                CAST(#{item.apiId,jdbcType=VARCHAR} AS VARCHAR2(128)),
+                CAST(#{item.host,jdbcType=VARCHAR} AS VARCHAR2(32)),
+                CAST(#{item.port,jdbcType=INTEGER} AS NUMBER(5)),
+                CAST(#{item.url,jdbcType=VARCHAR} AS VARCHAR2(1024)),
+                CAST(#{item.pathVariable,jdbcType=VARCHAR} AS VARCHAR2(255)),
+                CAST(#{item.query,jdbcType=VARCHAR} AS VARCHAR2(1024)),
+                CAST(#{item.header,jdbcType=VARCHAR} AS VARCHAR2(1024)),
+                #{item.body,jdbcType=CLOB,typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler},
+                CAST(#{item.dateCreated,jdbcType=TIMESTAMP} AS TIMESTAMP),
+                CAST(#{item.dateUpdated,jdbcType=TIMESTAMP} AS TIMESTAMP)
+            )
         </foreach>
+        SELECT 1 FROM dual
     </insert>
 
     <update id="update">

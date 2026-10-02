@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.mybatis.og.handler;
+package org.apache.shenyu.admin.mybatis.pgog.handler;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -30,26 +30,26 @@ import java.sql.Types;
 import java.util.Objects;
 
 /**
- * Maps byte arrays declared as JDBC BLOB to OpenGauss bytea values.
+ * Maps byte arrays declared as JDBC BLOB to PostgreSQL-compatible byte-array values.
  */
 @MappedTypes(byte[].class)
 @MappedJdbcTypes(JdbcType.BLOB)
-public class OpenGaussByteArrayBlobHandler extends BaseTypeHandler<byte[]> {
+public final class ByteArrayBlobHandler extends BaseTypeHandler<byte[]> {
 
     @Override
-    public void setParameter(final PreparedStatement preparedStatement, final int columnIndex,
-                             final byte[] columnValue, final JdbcType jdbcType) throws SQLException {
-        if (Objects.isNull(columnValue)) {
-            preparedStatement.setNull(columnIndex, Types.BINARY);
+    public void setParameter(final PreparedStatement preparedStatement, final int index,
+                             final byte[] parameter, final JdbcType jdbcType) throws SQLException {
+        if (Objects.isNull(parameter)) {
+            preparedStatement.setNull(index, Types.BINARY);
         } else {
-            preparedStatement.setBytes(columnIndex, columnValue);
+            preparedStatement.setBytes(index, parameter);
         }
     }
 
     @Override
-    public void setNonNullParameter(final PreparedStatement preparedStatement, final int columnIndex,
-                                    final byte[] columnValue, final JdbcType jdbcType) throws SQLException {
-        preparedStatement.setBytes(columnIndex, columnValue);
+    public void setNonNullParameter(final PreparedStatement preparedStatement, final int index,
+                                    final byte[] parameter, final JdbcType jdbcType) throws SQLException {
+        preparedStatement.setBytes(index, parameter);
     }
 
     @Override

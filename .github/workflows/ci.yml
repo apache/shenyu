@@ -109,7 +109,9 @@ jobs:
               - 'db/init/mysql/**'
               - 'db/init/pg/**'
               - 'db/init/og/**'
+              - 'db/init/ob/**'
               - 'db/init/oracle/**'
+              - 'db/upgrade/**'
               - '.github/workflows/ci.yml'
               - '.github/scripts/admin-dialect-*'
       - name: Resolve changed Maven modules
@@ -226,6 +228,14 @@ jobs:
             username: gaussdb
             password: ShenYuE2E@123
             health_command: LD_LIBRARY_PATH=/usr/local/opengauss/lib /usr/local/opengauss/bin/gsql -U gaussdb --password ShenYuE2E@123 -h 127.0.0.1 -p 5432 -d shenyu -c 'SELECT 1'
+          - dialect: ob
+            image: oceanbase/oceanbase-ce:4.4.2-lts
+            port: 2881
+            profile: ob
+            url: jdbc:oceanbase://127.0.0.1:2881/shenyu
+            username: root
+            password: 12345678
+            health_command: obclient -h 127.0.0.1 -P 2881 -uroot -p12345678 -e 'SELECT 1'
           - dialect: oracle
             image: gvenzl/oracle-free:23-slim-faststart
             port: 1521
@@ -245,6 +255,14 @@ jobs:
           POSTGRES_DB: shenyu
           GS_PASSWORD: ShenYuE2E@123
           GS_DB: shenyu
+          MODE: mini
+          OB_SYS_PASSWORD: 12345678
+          OB_MEMORY_LIMIT: 4G
+          OB_DATAFILE_SIZE: 2G
+          OB_LOG_DISK_SIZE: 2G
+          OB_SYSTEM_MEMORY: 1G
+          OB_TENANT_MEMORY_SIZE: 1G
+          OB_TENANT_MINI_CPU: 1
           ORACLE_PASSWORD: 12345678
           APP_USER: shenyu
           APP_USER_PASSWORD: 12345678
@@ -260,6 +278,14 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Restore ShenYu Maven Repos
+        id: restore-maven-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - uses: ./actions/setup-java-with-retry
         with:
           java-version: "17"
@@ -270,15 +296,19 @@ jobs:
           DATABASE_ID: ${{ job.services.database.id }}
           DIALECT: ${{ matrix.dialect }}
         run: |
+          set -euo pipefail
           case "${DIALECT}" in
             mysql)
               docker exec -i "${DATABASE_ID}" mysql -uroot -p12345678 < db/init/mysql/schema.sql
               ;;
             pg)
-              docker exec -i "${DATABASE_ID}" psql -U postgres -d shenyu < db/init/pg/create-table.sql
+              docker exec -i "${DATABASE_ID}" psql -v ON_ERROR_STOP=1 -U postgres -d shenyu < db/init/pg/create-table.sql
               ;;
             og)
-              docker exec -i "${DATABASE_ID}" bash -c 'LD_LIBRARY_PATH=/usr/local/opengauss/lib /usr/local/opengauss/bin/gsql -U gaussdb --password "$GS_PASSWORD" -h 127.0.0.1 -p 5432 -d shenyu' < db/init/og/create-table.sql
+              docker exec -i "${DATABASE_ID}" bash -c 'LD_LIBRARY_PATH=/usr/local/opengauss/lib /usr/local/opengauss/bin/gsql -v ON_ERROR_STOP=1 -U gaussdb --password "$GS_PASSWORD" -h 127.0.0.1 -p 5432 -d shenyu' < db/init/og/create-table.sql
+              ;;
+            ob)
+              docker exec -i "${DATABASE_ID}" obclient -h 127.0.0.1 -P 2881 -uroot -p12345678 < db/init/ob/schema.sql
               ;;
             oracle)
               { printf 'WHENEVER SQLERROR EXIT SQL.SQLCODE\n'; cat db/init/oracle/schema.sql; } | docker exec -i "${DATABASE_ID}" sqlplus -s shenyu/12345678@//localhost:1521/FREEPDB1

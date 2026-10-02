@@ -23,7 +23,7 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="tag_name" jdbcType="VARCHAR" property="tagName"/>
-        <result column="tag_desc" jdbcType="VARCHAR" property="tagDesc"/>
+        <result column="tag_desc" jdbcType="VARCHAR" property="tagDesc" typeHandler="org.apache.shenyu.admin.mybatis.handler.EmptyStringTypeHandler"/>
         <result column="parent_tag_id" jdbcType="VARCHAR" property="parentTagId"/>
         <result column="ext" jdbcType="VARCHAR" property="ext"/>
     </resultMap>
