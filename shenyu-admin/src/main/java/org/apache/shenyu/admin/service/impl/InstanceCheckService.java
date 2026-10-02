@@ -246,13 +246,11 @@ public class InstanceCheckService {
     }
 
     private void syncDBSafely() {
-        instanceHealthBeatInfo.forEach((instanceKey, instanceInfo) -> {
-            try {
-                instanceInfoService.createOrUpdate(instanceInfo);
-            } catch (Exception e) {
-                LOG.error("sync instance {} to database error", instanceKey, e);
-            }
-        });
+        try {
+            syncDB();
+        } catch (Exception e) {
+            LOG.error("sync instance info to database error", e);
+        }
     }
 
     /**
