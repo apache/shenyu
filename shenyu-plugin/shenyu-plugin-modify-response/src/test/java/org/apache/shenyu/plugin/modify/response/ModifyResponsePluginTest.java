@@ -48,6 +48,7 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -157,6 +158,37 @@ public final class ModifyResponsePluginTest {
         StepVerifier.create(response.getBodyAsString())
                 .expectNext("<p>unchanged</p>")
                 .verifyComplete();
+    }
+
+    @Test
+    public void testReplaceHeaderKeysRenamesKeyAndKeepsValues() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Old", "X-New"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Old", "abc");
+        response.getHeaders().add("X-Old", "def");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertFalse(response.getHeaders().containsKey("X-Old"));
+        assertEquals(Arrays.asList("abc", "def"), response.getHeaders().get("X-New"));
+    }
+
+    @Test
+    public void testReplaceHeaderKeysLeavesMissingSourceKeyUntouched() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Missing", "X-New"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertFalse(response.getHeaders().containsKey("X-New"));
     }
 
     @Test

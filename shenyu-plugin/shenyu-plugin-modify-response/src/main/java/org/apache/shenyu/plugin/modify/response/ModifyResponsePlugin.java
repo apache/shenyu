@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -144,7 +144,13 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             // replace headers
             if (MapUtils.isNotEmpty(this.ruleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = this.ruleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
+                replaceHeaderMap.forEach((key, value) -> {
+                    List<String> values = httpHeaders.get(key);
+                    if (Objects.nonNull(values)) {
+                        httpHeaders.addAll(value, values);
+                        httpHeaders.remove(key);
+                    }
+                });
             }
 
             // remove headers
