@@ -302,8 +302,6 @@ jobs:
               ;;
             ob)
               docker exec -i "${DATABASE_ID}" obclient -h 127.0.0.1 -P 2881 -uroot < db/init/ob/schema.sql
-              # Align OceanBase timestamp sessions with the admin application's GMT+8 setting.
-              docker exec "${DATABASE_ID}" obclient -h 127.0.0.1 -P 2881 -uroot -e "SET GLOBAL time_zone = '+08:00'"
               ;;
             oracle)
               { printf 'WHENEVER SQLERROR EXIT SQL.SQLCODE\n'; cat db/init/oracle/schema.sql; } | docker exec -i "${DATABASE_ID}" sqlplus -s shenyu/12345678@//localhost:1521/FREEPDB1
@@ -312,15 +310,22 @@ jobs:
       - name: Build admin and dependencies
         run: ./mvnw -B -ntp -pl shenyu-admin -am -DskipTests -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true install
       - name: Run admin tests on ${{ matrix.dialect }}
-        run: >-
-          ./mvnw -B -ntp -pl shenyu-admin
-          -Dtest=MetaDataMapperTest#pathExistedExcludeIsScopedByNamespace+pathExistedExcludeHandlesEmptyAndNullExclusions+pathExistedExcludeStillDetectsOtherRows,MockRequestRecordMapperTest,TagMapperTest,TagUpdateTransactionTest,DictImportIntegrationTest
-          -Dsurefire.failIfNoSpecifiedTests=false
-          -Dshenyu.test.database.profile=${{ matrix.profile }}
-          -Dspring.datasource.url='${{ matrix.url }}'
-          -Dspring.datasource.username=${{ matrix.username }}
-          -Dspring.datasource.password=${{ matrix.password }}
-          -DskipRemoteResources=true -Djacoco.skip=true test
+        env:
+          DIALECT: ${{ matrix.dialect }}
+        run: |
+          set -euo pipefail
+          EXTRA_ARGS=()
+          if [[ "${DIALECT}" == "ob" ]]; then
+            EXTRA_ARGS+=("-Dspring.datasource.hikari.connection-init-sql=SET time_zone = '+08:00'")
+          fi
+          ./mvnw -B -ntp -pl shenyu-admin "${EXTRA_ARGS[@]}" \
+            -Dtest=MetaDataMapperTest#pathExistedExcludeIsScopedByNamespace+pathExistedExcludeHandlesEmptyAndNullExclusions+pathExistedExcludeStillDetectsOtherRows,MockRequestRecordMapperTest,TagMapperTest,TagUpdateTransactionTest,DictImportIntegrationTest \
+            -Dsurefire.failIfNoSpecifiedTests=false \
+            -Dshenyu.test.database.profile=${{ matrix.profile }} \
+            -Dspring.datasource.url='${{ matrix.url }}' \
+            -Dspring.datasource.username=${{ matrix.username }} \
+            -Dspring.datasource.password=${{ matrix.password }} \
+            -DskipRemoteResources=true -Djacoco.skip=true test
 
   build_local_repo:
     needs: changes
