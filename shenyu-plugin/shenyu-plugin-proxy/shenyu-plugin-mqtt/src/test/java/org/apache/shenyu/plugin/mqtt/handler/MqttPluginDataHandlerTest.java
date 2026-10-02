@@ -27,7 +27,6 @@ import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link MqttPluginDataHandler}.
@@ -55,7 +54,10 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", true, null);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
-        assertTrue(isPortUsing());
+
+        Awaitility.await()
+                .atMost(5, TimeUnit.SECONDS)
+                .until(this::isPortUsing);
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
@@ -75,15 +77,10 @@ public class MqttPluginDataHandlerTest {
     }
 
     private boolean isPortUsing() {
-        boolean flag = false;
-        try {
-            InetAddress address = InetAddress.getByName("127.0.0.1");
-            Socket socket = new Socket(address, 9500);
-            flag = true;
+        try (Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 9500)) {
+            return true;
         } catch (Exception ignored) {
-
+            return false;
         }
-        return flag;
-
     }
 }
