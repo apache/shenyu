@@ -28,15 +28,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -56,14 +55,6 @@ public final class SubscribeRepositoryTest {
 
     private static final String OTHER_TOPIC = "test/other-topic";
 
-    private static final Duration TIMEOUT = Duration.ofSeconds(5);
-
-    private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
-
-    private static final String EXISTING_TOPIC = "test/existing-topic";
-
-    private static final String KEPT_TOPIC = "test/kept-topic";
-
     private static final String SPORT_TOPIC = "test/sport/tennis";
 
     private static final String PLAYER_TOPIC = "test/sport/tennis/player1";
@@ -79,17 +70,20 @@ public final class SubscribeRepositoryTest {
      * map shared with the other test classes of this module, so they are released around every test to keep
      * the tests independent of each other.
      */
-    private static final List<String> ALL_TOPICS = Arrays.asList(EXISTING_TOPIC, ABSENT_TOPIC, KEPT_TOPIC,
-            SPORT_TOPIC, PLAYER_TOPIC, SINGLE_LEVEL_FILTER, MULTI_LEVEL_FILTER, MATCH_ALL_FILTER, TOPIC, OTHER_TOPIC);
+    private static final List<String> ALL_TOPICS = Arrays.asList(ABSENT_TOPIC, TOPIC, OTHER_TOPIC,
+            SPORT_TOPIC, PLAYER_TOPIC, SINGLE_LEVEL_FILTER, MULTI_LEVEL_FILTER, MATCH_ALL_FILTER);
 
-    private final SubscribeRepository repository = new SubscribeRepository();
+    private static final Duration TIMEOUT = Duration.ofSeconds(5);
+
+    private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
+
+    private SubscribeRepository repository;
 
     private final List<EmbeddedChannel> subscribers = new ArrayList<>();
 
     private Channel channel;
 
     private Channel otherChannel;
-
 
     @BeforeEach
     public void setUp() {
@@ -103,6 +97,8 @@ public final class SubscribeRepositoryTest {
     @AfterEach
     public void tearDown() {
         clearAllTopics();
+        subscribers.forEach(EmbeddedChannel::finishAndReleaseAll);
+        subscribers.clear();
     }
 
     @Test
@@ -223,6 +219,69 @@ public final class SubscribeRepositoryTest {
         assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
     }
 
+    @Test
+    public void testGetChannelsByTopicExactMatch() {
+        EmbeddedChannel subscriber = subscribe(SPORT_TOPIC, MqttQoS.AT_MOST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(SPORT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
+        assertTrue(repository.getChannelsByTopic(PLAYER_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void testGetChannelsByTopicSingleLevelWildcardMatch() {
+        EmbeddedChannel subscriber = subscribe(SINGLE_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(PLAYER_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
+        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void testGetChannelsByTopicMultiLevelWildcardMatch() {
+        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(PLAYER_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
+        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).containsKey(subscriber));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMergesMaxQosForOverlappingFilters() {
+        EmbeddedChannel subscriber = subscribe(
+                new MqttTopicSubscription(MATCH_ALL_FILTER, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE));
+
+        // MQTT requires at most one delivery per publish per client, granted with the maximum qos
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(SPORT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(subscriber));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMultipleSubscribers() {
+        EmbeddedChannel first = subscribe(SPORT_TOPIC, MqttQoS.AT_MOST_ONCE);
+        EmbeddedChannel second = subscribe(SPORT_TOPIC, MqttQoS.AT_LEAST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(SPORT_TOPIC);
+        assertEquals(2, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(first));
+        assertEquals(MqttQoS.AT_LEAST_ONCE, matched.get(second));
+    }
+
+    @Test
+    public void testGetChannelsByTopicIgnoresUnsubscribedChannel() {
+        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), subscriber);
+        awaitAssert(() -> assertTrue(repository.get(MULTI_LEVEL_FILTER).isEmpty()));
+
+        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
+    }
+
     /**
      * The repository mutates its state asynchronously on the common pool,
      * so assertions have to be retried until the mutation becomes visible.
@@ -234,124 +293,29 @@ public final class SubscribeRepositoryTest {
     }
 
     /**
-     * The repository keeps its state in a static map which is shared by every instance and
-     * by the other test classes of this module, so the topics used here are released around every test.
-     */
-    private void clearAllTopics() {
-        repository.remove(ALL_TOPICS);
-        awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
-    }
-
-    @BeforeEach
-    void releaseTopicsBeforeTest() {
-        clearTopics();
-    }
-
-    @AfterEach
-    void releaseTopicsAndSubscribersAfterTest() {
-        clearTopics();
-        subscribers.forEach(EmbeddedChannel::finishAndReleaseAll);
-        subscribers.clear();
-    }
-
-    @Test
-    void removeRemovesChannelFromExistingTopic() {
-        EmbeddedChannel subscriber = subscribe(EXISTING_TOPIC);
-
-        repository.remove(Collections.singletonList(EXISTING_TOPIC), subscriber);
-
-        awaitAssert(() -> assertTrue(repository.get(EXISTING_TOPIC).isEmpty()));
-    }
-
-    @Test
-    void removeAbsentTopicDoesNotThrow() {
-        EmbeddedChannel subscriber = subscribe(KEPT_TOPIC);
-
-        assertDoesNotThrow(() -> repository.remove(Collections.singletonList(ABSENT_TOPIC), subscriber));
-        awaitRepositoryIdle();
-
-        assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
-        assertTrue(repository.get(KEPT_TOPIC).contains(subscriber));
-    }
-
-    @Test
-    void testGetChannelsByTopicExactMatch() {
-        EmbeddedChannel subscriber = subscribe(SPORT_TOPIC);
-
-        assertEquals(Collections.singletonList(subscriber), repository.getChannelsByTopic(SPORT_TOPIC));
-        assertTrue(repository.getChannelsByTopic(PLAYER_TOPIC).isEmpty());
-    }
-
-    @Test
-    void testGetChannelsByTopicWildcardMatch() {
-        EmbeddedChannel subscriber = subscribe(SINGLE_LEVEL_FILTER);
-
-        assertEquals(Collections.singletonList(subscriber), repository.getChannelsByTopic(PLAYER_TOPIC));
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
-    }
-
-    @Test
-    void testGetChannelsByTopicMultiLevelWildcardMatch() {
-        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER);
-
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).contains(subscriber));
-        assertTrue(repository.getChannelsByTopic(PLAYER_TOPIC).contains(subscriber));
-    }
-
-    @Test
-    void testGetChannelsByTopicDeduplicatesOverlappingSubscriptions() {
-        EmbeddedChannel subscriber = subscribe(MATCH_ALL_FILTER, MULTI_LEVEL_FILTER);
-
-        // MQTT requires at most one delivery per publish per client
-        assertEquals(Collections.singletonList(subscriber), repository.getChannelsByTopic(SPORT_TOPIC));
-    }
-
-    @Test
-    void testGetChannelsByTopicMultipleSubscribers() {
-        EmbeddedChannel first = subscribe(SPORT_TOPIC);
-        EmbeddedChannel second = subscribe(SPORT_TOPIC);
-
-        List<Channel> matched = repository.getChannelsByTopic(SPORT_TOPIC);
-        assertEquals(2, matched.size());
-        assertTrue(matched.containsAll(Arrays.asList(first, second)));
-    }
-
-    @Test
-    void testGetChannelsByTopicIgnoresUnsubscribedChannel() {
-        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER);
-
-        repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), subscriber);
-        awaitAssert(() -> assertTrue(repository.get(MULTI_LEVEL_FILTER).isEmpty()));
-
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
-    }
-
-    /**
-     * Registers a fresh subscriber for the given topic filters and waits until the repository knows it.
+     * Registers a fresh subscriber for the given topic filter and waits until the repository knows it.
      *
-     * @param filters the topic filters the subscriber subscribes to
+     * @param filter the topic filter the subscriber subscribes to
+     * @param qos    the granted qos of the subscription
      * @return the subscribed channel
      */
-    private EmbeddedChannel subscribe(final String... filters) {
-        EmbeddedChannel subscriber = new EmbeddedChannel();
-        subscribers.add(subscriber);
-        repository.add(subscriber, toSubscriptions(filters));
-        awaitAssert(() -> Arrays.stream(filters).forEach(filter -> assertTrue(repository.get(filter).contains(subscriber))));
-        return subscriber;
-    }
-
-    private List<MqttTopicSubscription> toSubscriptions(final String... topics) {
-        return Arrays.stream(topics)
-                .map(topic -> new MqttTopicSubscription(topic, MqttQoS.AT_MOST_ONCE))
-                .collect(Collectors.toList());
+    private EmbeddedChannel subscribe(final String filter, final MqttQoS qos) {
+        return subscribe(new MqttTopicSubscription(filter, qos));
     }
 
     /**
-     * Releases every topic so that the shared static map of the repository starts empty for the next test.
+     * Registers a fresh subscriber for the given subscriptions and waits until the repository knows them.
+     *
+     * @param subscriptions the subscriptions of the subscriber
+     * @return the subscribed channel
      */
-    private void clearTopics() {
-        repository.remove(ALL_TOPICS);
-        awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
+    private EmbeddedChannel subscribe(final MqttTopicSubscription... subscriptions) {
+        EmbeddedChannel subscriber = new EmbeddedChannel();
+        subscribers.add(subscriber);
+        repository.add(subscriber, Arrays.asList(subscriptions));
+        awaitAssert(() -> Arrays.stream(subscriptions)
+                .forEach(subscription -> assertTrue(repository.get(subscription.topicName()).containsKey(subscriber))));
+        return subscriber;
     }
 
     /**
@@ -360,5 +324,14 @@ public final class SubscribeRepositoryTest {
      */
     private void awaitRepositoryIdle() {
         assertTrue(ForkJoinPool.commonPool().awaitQuiescence(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS));
+    }
+
+    /**
+     * The repository keeps its state in a static map which is shared by every instance and
+     * by the other test classes of this module, so the topics used here are released around every test.
+     */
+    private void clearAllTopics() {
+        repository.remove(ALL_TOPICS);
+        awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
     }
 }

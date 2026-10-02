@@ -44,6 +44,12 @@ class SubscribeTest {
     void testSubscribeRejectsInvalidTopicFilter() throws InterruptedException {
         EmbeddedChannel channel = new EmbeddedChannel();
         channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
+
+        SubscribeRepository repository = new SubscribeRepository();
+        Singleton.INST.single(SubscribeRepository.class, repository);
+        Singleton.INST.single(TopicRepository.class, new TopicRepository());
+        new MessageType().setConnected(channel, true);
+
         ChannelHandlerContext ctx = channel.pipeline().firstContext();
         MqttSubscribeMessage msg = MqttMessageBuilders.subscribe()
                 .messageId(1)
@@ -51,12 +57,8 @@ class SubscribeTest {
                 .addSubscription(MqttQoS.AT_MOST_ONCE, "bad#filter")
                 .build();
 
-        SubscribeRepository repository = new SubscribeRepository();
-        Singleton.INST.single(SubscribeRepository.class, repository);
-        Singleton.INST.single(TopicRepository.class, new TopicRepository());
-
         new Subscribe().subscribe(ctx, msg);
-        awaitUntil(() -> repository.get("sport/#").contains(channel));
+        awaitUntil(() -> repository.get("sport/#").containsKey(channel));
         assertTrue(repository.get("bad#filter").isEmpty());
 
         MqttSubAckMessage subAck = channel.readOutbound();
