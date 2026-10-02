@@ -75,7 +75,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     private void doSelectMasterSafely(final String host, final String port, final String contextPath) {
         try {
             doSelectMaster(host, port, contextPath);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             LOG.error("select master task failed, will retry on the next period", e);
         }
     }
