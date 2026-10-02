@@ -17,27 +17,6 @@ name: it
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
   push:
     branches:
       - master
@@ -224,4 +203,23 @@ jobs:
           else
             echo "Test Successful"
             exit 0
+          fi
+
+  requirement:
+    name: it
+    if: github.repository == 'apache/shenyu' && always()
+    needs:
+      - changes
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check integration test status
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          RUN_INTEGRATION: ${{ needs.changes.outputs.run_integration }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          [[ "$CHANGES_RESULT" == "success" ]] || exit 1
+          if [[ "$RUN_INTEGRATION" == "true" ]]; then
+            [[ "$BUILD_RESULT" == "success" ]] || exit 1
           fi
