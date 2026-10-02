@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -34,30 +33,22 @@ import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link Subscribe}.
  */
 @ExtendWith(MockitoExtension.class)
 class SubscribeTest {
-
-    @Mock
-    private ChannelHandlerContext ctx;
-
-    @Mock
-    private Channel channel;
 
     @Mock
     private SubscribeRepository subscribeRepository;
@@ -69,56 +60,57 @@ class SubscribeTest {
 
     @BeforeEach
     void setUp() {
-        when(ctx.channel()).thenReturn(channel);
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
         Singleton.INST.single(TopicRepository.class, topicRepository);
     }
 
     @Test
     void testSubAckGrantsRequestedQoS() {
+        EmbeddedChannel channel = connectedChannel();
         MqttSubscribeMessage msg = subscribeMessage(10,
                 new MqttTopicSubscription("topic/qos2", MqttQoS.EXACTLY_ONCE),
                 new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE),
                 new MqttTopicSubscription("topic/qos1", MqttQoS.AT_LEAST_ONCE));
 
-        subscribe.subscribe(ctx, msg);
+        subscribe.subscribe(channel.pipeline().lastContext(), msg);
 
-        MqttSubAckMessage subAck = capturedSubAck();
+        MqttSubAckMessage subAck = channel.readOutbound();
         assertEquals(10, subAck.variableHeader().messageId());
         assertEquals(Arrays.asList(2, 0, 1), subAck.payload().grantedQoSLevels());
     }
 
     @Test
     void testSubAckExcludesFailureSubscriptions() {
+        EmbeddedChannel channel = connectedChannel();
         MqttSubscribeMessage msg = subscribeMessage(20,
                 new MqttTopicSubscription("topic/qos1", MqttQoS.AT_LEAST_ONCE),
                 new MqttTopicSubscription("topic/failure", MqttQoS.FAILURE),
                 new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE));
 
-        subscribe.subscribe(ctx, msg);
+        subscribe.subscribe(channel.pipeline().lastContext(), msg);
 
-        MqttSubAckMessage subAck = capturedSubAck();
+        MqttSubAckMessage subAck = channel.readOutbound();
         assertEquals(Arrays.asList(1, 0), subAck.payload().grantedQoSLevels());
         verify(topicRepository, never()).get("topic/failure");
     }
 
     @Test
-    void testSubscribeWhenConnectedClosesChannel() {
-        ChannelFuture closeFuture = mock(ChannelFuture.class);
-        when(channel.close()).thenReturn(closeFuture);
-        subscribe.setConnected(true);
+    void testSubscribeBeforeConnectClosesChannel() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        MqttSubscribeMessage msg = subscribeMessage(30,
+                new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE));
 
-        subscribe.subscribe(ctx, subscribeMessage(30,
-                new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE)));
+        subscribe.subscribe(channel.pipeline().lastContext(), msg);
 
-        verify(channel).close();
-        verify(channel, never()).writeAndFlush(any());
+        channel.runPendingTasks();
+        assertFalse(channel.isActive());
+        assertNull(channel.readOutbound());
     }
 
-    private MqttSubAckMessage capturedSubAck() {
-        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-        verify(channel).writeAndFlush(captor.capture());
-        return (MqttSubAckMessage) captor.getValue();
+    private EmbeddedChannel connectedChannel() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        new MessageType().setConnected(channel, true);
+        return channel;
     }
 
     private MqttSubscribeMessage subscribeMessage(final int packetId, final MqttTopicSubscription... subscriptions) {
