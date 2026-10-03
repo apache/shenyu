@@ -22,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -33,6 +34,7 @@ import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
@@ -57,6 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * test for {@linkplain ResourceService}.
@@ -79,6 +82,16 @@ public class ResourceServiceTest {
     
     @Mock
     private DashboardProperties properties;
+
+    @Test
+    public void testPluginCreationListenerIsTransactional() throws NoSuchMethodException {
+        Transactional transactional = ResourceServiceImpl.class
+                .getMethod("onPluginCreated", PluginCreatedEvent.class)
+                .getAnnotation(Transactional.class);
+
+        assertNotNull(transactional);
+        assertEquals(Exception.class, transactional.rollbackFor()[0]);
+    }
     
     @Test
     public void testCreateResourceBatch() {
