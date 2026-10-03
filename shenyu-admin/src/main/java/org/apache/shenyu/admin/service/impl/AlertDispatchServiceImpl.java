@@ -155,8 +155,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
             final String namespaceId = StringUtils.defaultString(alert.getNamespaceId());
             List<AlertReceiverDTO> dtoList = alertReceiverCache.computeIfAbsent(namespaceId, this::loadReceivers);
             return dtoList.stream().filter(item -> {
-                if (item.isEnable()) {
-                    if (item.isMatchAll()) {
+                if (Boolean.TRUE.equals(item.getEnable())) {
+                    if (Boolean.TRUE.equals(item.getMatchAll())) {
                         return true;
                     }
 
