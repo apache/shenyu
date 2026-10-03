@@ -43,6 +43,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -302,6 +303,28 @@ class ShenyuToolCallbackTest {
         exchangeHolderMock.when(() -> ShenyuMcpExchangeHolder.get("legacy-session")).thenReturn(exchange);
         assertSame(exchange, ReflectionTestUtils.invokeMethod(shenyuToolCallback, "getOriginExchange", mcpSyncServerExchange, "legacy-session"));
         exchangeHolderMock.verify(() -> ShenyuMcpExchangeHolder.get("legacy-session"));
+    }
+
+    @Test
+    void testSetTargetUriUsesCompleteUrlAsIs() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        ServerHttpRequest.Builder builder = MockServerHttpRequest.get("http://gateway.example:9195/mcp").build().mutate();
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "setTargetUri", builder, exchange, "https://target.example/api");
+
+        assertEquals(URI.create("https://target.example/api"), builder.build().getURI());
+    }
+
+    @Test
+    void testSetTargetUriPrefixesGatewayOriginForRelativePath() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(exchange.getRequest()).thenReturn(request);
+        when(request.getURI()).thenReturn(URI.create("http://gateway.example:9195/mcp"));
+        ServerHttpRequest.Builder builder = MockServerHttpRequest.get("http://gateway.example:9195/mcp").build().mutate();
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "setTargetUri", builder, exchange, "/api/order");
+
+        assertEquals(URI.create("http://gateway.example:9195/api/order"), builder.build().getURI());
     }
 
     @Test
