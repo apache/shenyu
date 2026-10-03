@@ -25,25 +25,26 @@ import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -105,21 +106,21 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
-    void testHandleBeatInfoNewAndExisting() throws InterruptedException {
+    void testHandleBeatInfoNewAndExisting() {
+        Clock clock = mock(Clock.class);
+        when(clock.millis()).thenReturn(1000L, 2000L);
+        InstanceCheckService controlledService = new InstanceCheckService(instanceInfoService, clock);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO first = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO first = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(first);
         long firstBeat = first.getLastHeartBeatTime();
-        assertThat(firstBeat, greaterThan(0L));
-
-        // Add a small delay to ensure different timestamps
-        Thread.sleep(1);
+        assertEquals(1000L, firstBeat);
         
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO second = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO second = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);
-        assertThat(second.getLastHeartBeatTime(), greaterThan(firstBeat));
+        assertEquals(2000L, second.getLastHeartBeatTime());
     }
 
     @Test
