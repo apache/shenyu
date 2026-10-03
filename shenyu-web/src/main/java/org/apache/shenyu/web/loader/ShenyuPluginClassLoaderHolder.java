@@ -77,6 +77,25 @@ public final class ShenyuPluginClassLoaderHolder {
     }
 
     /**
+     * Check whether the plugin class loader has already loaded the version.
+     *
+     * @param jarKey plugin jar key
+     * @param version plugin version
+     * @return true when the same plugin version is loaded
+     */
+    public boolean hasPluginClassLoader(final String jarKey, final String version) {
+        ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
+        lock.lock();
+        try {
+            return Optional.ofNullable(pluginCache.get(jarKey))
+                    .map(classLoader -> classLoader.compareVersion(version))
+                    .orElse(false);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * removePluginClassLoader.
      *
      * @param jarKey jarKey

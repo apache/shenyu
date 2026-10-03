@@ -85,18 +85,24 @@ public class ShenyuLoaderService {
                 webHandler.removeExtPlugins(loadResult.getRemovedPluginNames());
                 for (PluginJarParser.PluginJar extPath : loadResult.getPluginJars()) {
                     LOG.info("shenyu extPlugin find new {} to load", extPath.getAbsolutePath());
-                    singleton.replacePluginClassLoader(extPath,
-                            classLoader -> loaderPlugins(classLoader.loadUploadedJarPlugins()));
+                    singleton.replacePluginClassLoader(extPath, this::loadAndActivatePlugins);
                 }
             } else {
                 PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(Base64.getDecoder().decode(uploadedJarResource.getPluginJar()));
                 LOG.info("shenyu upload plugin jar find new {} to load", pluginJar.getJarKey());
-                singleton.replacePluginClassLoader(pluginJar,
-                        classLoader -> loaderPlugins(classLoader.loadUploadedJarPlugins()));
+                singleton.replacePluginClassLoader(pluginJar, this::loadAndActivatePlugins);
             }
         } catch (Exception e) {
             LOG.error("shenyu plugins load has error ", e);
         }
+    }
+
+    private void loadAndActivatePlugins(final ShenyuPluginClassLoader classLoader) {
+        List<ShenyuLoaderResult> plugins = classLoader.loadUploadedJarPlugins();
+        if (CollectionUtils.isEmpty(plugins)) {
+            throw new IllegalStateException("No plugin was loaded from the candidate jar");
+        }
+        loaderPlugins(plugins);
     }
 
     /**
