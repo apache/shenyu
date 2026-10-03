@@ -30,6 +30,7 @@
   to disable their deadline as well, and review route, retry and caller deadlines.
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
 
 ## [v2.7.0]- 2024-12-23
 
