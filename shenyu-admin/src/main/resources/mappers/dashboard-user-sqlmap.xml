@@ -71,6 +71,7 @@
         <where>
             <include refid="likeUser"/>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"

@@ -245,6 +245,7 @@
                 AND namespace = #{namespace, jdbcType=VARCHAR}
             </if>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">

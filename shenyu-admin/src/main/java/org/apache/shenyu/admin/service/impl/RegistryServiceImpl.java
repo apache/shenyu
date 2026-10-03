@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.RegistryMapper;
@@ -53,8 +55,9 @@ public class RegistryServiceImpl implements RegistryService {
     }
 
     @Override
+    @Pageable
     public CommonPager<RegistryVO> listByPage(final RegistryQuery registryQuery) {
-        return PageResultUtils.result(registryQuery.getPageParameter(), () -> registryMapper.countByQuery(registryQuery), () -> registryMapper.selectByQuery(registryQuery)
+        return PageResultUtils.result(registryQuery.getPageParameter(), () -> registryMapper.selectByQuery(registryQuery)
                 .stream()
                 .map(RegistryTransfer.INSTANCE::mapToVo)
                 .collect(Collectors.toList()));
