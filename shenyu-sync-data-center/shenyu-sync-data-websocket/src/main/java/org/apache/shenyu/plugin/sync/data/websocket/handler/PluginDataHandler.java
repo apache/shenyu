@@ -50,8 +50,7 @@ public class PluginDataHandler extends AbstractDataHandler<PluginData> {
         if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
             throw new IllegalArgumentException("Snapshot row namespace does not match the connection");
         }
-        pluginDataSubscriber.refreshPluginDataNamespace(namespaceId);
-        doUpdate(dataList);
+        pluginDataSubscriber.applyPluginDataSnapshot(namespaceId, dataList);
     }
 
     @Override

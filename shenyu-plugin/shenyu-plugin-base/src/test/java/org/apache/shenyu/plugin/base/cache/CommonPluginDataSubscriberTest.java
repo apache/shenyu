@@ -110,6 +110,67 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
+    void testPluginSnapshotKeepsExistingEntryUntilReplacementIsApplied() {
+        final PluginData oldPlugin = PluginData.builder().id("divide-id").name("divide").config("old")
+                .namespaceId("namespace-a").build();
+        final PluginData replacement = PluginData.builder().id("divide-id").name("divide").config("new")
+                .namespaceId("namespace-a").build();
+        final PluginData stale = PluginData.builder().id("removed-id").name("removed").namespaceId("namespace-a").build();
+        final PluginData otherNamespace = PluginData.builder().id("other-id").name("other").namespaceId("namespace-b").build();
+        baseDataCache.cachePluginData(oldPlugin);
+        baseDataCache.cachePluginData(stale);
+        baseDataCache.cachePluginData(otherNamespace);
+        doAnswer(invocation -> {
+            assertEquals(oldPlugin, baseDataCache.obtainPluginData("divide"));
+            return null;
+        }).when(handler).handlerPlugin(replacement);
+
+        commonPluginDataSubscriber.applyPluginDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(replacement, baseDataCache.obtainPluginData("divide"));
+        assertNull(baseDataCache.obtainPluginData("removed"));
+        assertEquals(otherNamespace, baseDataCache.obtainPluginData("other"));
+    }
+
+    @Test
+    void testSelectorSnapshotReplacesRowsAndRemovesOnlyStaleNamespaceRows() {
+        final SelectorData oldSelector = SelectorData.builder().id("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final SelectorData replacement = SelectorData.builder().id("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final SelectorData stale = SelectorData.builder().id("stale-selector").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final SelectorData otherNamespace = SelectorData.builder().id("other-selector").pluginName("divide")
+                .namespaceId("namespace-b").sort(4).build();
+        baseDataCache.cacheSelectData(oldSelector);
+        baseDataCache.cacheSelectData(stale);
+        baseDataCache.cacheSelectData(otherNamespace);
+
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(List.of(replacement, otherNamespace), baseDataCache.obtainSelectorData("divide"));
+    }
+
+    @Test
+    void testRuleSnapshotReplacesRowsAndRemovesOnlyStaleNamespaceRows() {
+        final RuleData oldRule = RuleData.builder().id("rule-a").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final RuleData replacement = RuleData.builder().id("rule-a").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final RuleData otherNamespace = RuleData.builder().id("other-rule").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-b").sort(4).build();
+        baseDataCache.cacheRuleData(oldRule);
+        baseDataCache.cacheRuleData(stale);
+        baseDataCache.cacheRuleData(otherNamespace);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(List.of(replacement, otherNamespace), baseDataCache.obtainRuleData("selector-a"));
+    }
+
+    @Test
     void testInitialSyncPropagatesHandlerFailureWithoutChangingLegacyBehavior() {
         PluginDataHandler handler = mock(PluginDataHandler.class);
         org.mockito.Mockito.when(handler.pluginNamed()).thenReturn(mockName1);

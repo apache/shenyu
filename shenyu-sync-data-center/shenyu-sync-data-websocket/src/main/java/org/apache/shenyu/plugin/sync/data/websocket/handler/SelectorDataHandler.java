@@ -50,8 +50,7 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
         if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
             throw new IllegalArgumentException("Snapshot row namespace does not match the connection");
         }
-        pluginDataSubscriber.refreshSelectorDataNamespace(namespaceId);
-        doUpdate(dataList);
+        pluginDataSubscriber.applySelectorDataSnapshot(namespaceId, dataList);
     }
 
     @Override
