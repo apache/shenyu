@@ -54,6 +54,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,11 +62,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryUpstreamServiceImpl.class);
+
+    // Keep IN lists below Oracle's 1000-expression limit and bound query payloads on all databases.
+    private static final int BATCH_SIZE = 500;
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -193,41 +198,59 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         return buildSyncData(discoveryHandlerMapper.selectAllByNamespaceId(namespaceId));
     }
 
-    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> discoveryHandlerDOS) {
-        return discoveryHandlerDOS.stream().map(d -> {
-            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
-            if (Objects.isNull(discoveryRelDO)) {
-                LOG.warn("Skipping discovery handler {} without a relation", d.getId());
-                return null;
-            }
-            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
-            discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
-            if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
-                String selectorId = discoveryRelDO.getSelectorId();
-                discoverySyncData.setSelectorId(selectorId);
-                SelectorDO selectorDO = selectorMapper.selectById(selectorId);
-                if (Objects.isNull(selectorDO)) {
-                    LOG.warn("Skipping discovery handler {} with missing selector {}", d.getId(), selectorId);
-                    return null;
+    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> handlers) {
+        List<DiscoverySyncData> result = new ArrayList<>();
+        for (List<DiscoveryHandlerDO> batch : Lists.partition(handlers, BATCH_SIZE)) {
+            List<String> handlerIds = batch.stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toList());
+            List<DiscoveryRelDO> relations = discoveryRelMapper.selectByDiscoveryHandlerIds(handlerIds);
+            Set<String> selectorIds = relations.stream().map(DiscoveryRelDO::getSelectorId).filter(StringUtils::hasLength).collect(Collectors.toSet());
+            List<String> proxyIds = relations.stream().filter(rel -> !StringUtils.hasLength(rel.getSelectorId()))
+                    .map(DiscoveryRelDO::getProxySelectorId).filter(StringUtils::hasLength).distinct().collect(Collectors.toList());
+            Map<String, SelectorDO> selectors = selectorIds.isEmpty() ? Collections.emptyMap()
+                    : selectorMapper.selectByIdSet(selectorIds).stream().collect(Collectors.toMap(SelectorDO::getId, Function.identity()));
+            Map<String, ProxySelectorDO> proxies = proxyIds.isEmpty() ? Collections.emptyMap()
+                    : proxySelectorMapper.selectByIds(proxyIds).stream().collect(Collectors.toMap(ProxySelectorDO::getId, Function.identity()));
+            Map<String, List<DiscoveryUpstreamData>> upstreams = discoveryUpstreamMapper.selectByDiscoveryHandlerIds(handlerIds).stream()
+                    .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId,
+                            Collectors.mapping(DiscoveryTransfer.INSTANCE::mapToData, Collectors.toList())));
+            Map<String, DiscoveryRelDO> relationByHandler = relations.stream()
+                    .collect(Collectors.toMap(DiscoveryRelDO::getDiscoveryHandlerId, Function.identity(), (existing, duplicate) -> {
+                        LOG.warn("Duplicate discovery relations for handler {}, retaining relation {} and ignoring {}",
+                                existing.getDiscoveryHandlerId(), existing.getId(), duplicate.getId());
+                        return existing;
+                    }));
+            for (DiscoveryHandlerDO handler : batch) {
+                DiscoveryRelDO relation = relationByHandler.get(handler.getId());
+                if (Objects.isNull(relation)) {
+                    LOG.warn("Skipping discovery handler {}: relation is missing", handler.getId());
+                    continue;
                 }
-                discoverySyncData.setSelectorName(selectorDO.getSelectorName());
-                discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
-            } else {
-                String proxySelectorId = discoveryRelDO.getProxySelectorId();
-                discoverySyncData.setSelectorId(proxySelectorId);
-                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
-                if (Objects.isNull(proxySelectorDO)) {
-                    LOG.warn("Skipping discovery handler {} with missing proxy selector {}", d.getId(), proxySelectorId);
-                    return null;
+                DiscoverySyncData data = new DiscoverySyncData();
+                data.setPluginName(relation.getPluginName());
+                if (StringUtils.hasLength(relation.getSelectorId())) {
+                    SelectorDO selector = selectors.get(relation.getSelectorId());
+                    if (Objects.isNull(selector)) {
+                        LOG.warn("Skipping discovery handler {}: selector {} is missing", handler.getId(), relation.getSelectorId());
+                        continue;
+                    }
+                    data.setSelectorId(selector.getId());
+                    data.setSelectorName(selector.getSelectorName());
+                    data.setNamespaceId(selector.getNamespaceId());
+                } else {
+                    ProxySelectorDO proxy = proxies.get(relation.getProxySelectorId());
+                    if (Objects.isNull(proxy)) {
+                        LOG.warn("Skipping discovery handler {}: proxy selector {} is missing", handler.getId(), relation.getProxySelectorId());
+                        continue;
+                    }
+                    data.setSelectorId(proxy.getId());
+                    data.setSelectorName(proxy.getName());
+                    data.setNamespaceId(proxy.getNamespaceId());
                 }
-                discoverySyncData.setSelectorName(proxySelectorDO.getName());
-                discoverySyncData.setNamespaceId(proxySelectorDO.getNamespaceId());
+                data.setUpstreamDataList(upstreams.getOrDefault(handler.getId(), Collections.emptyList()));
+                result.add(data);
             }
-            List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
-                    .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
-            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
-            return discoverySyncData;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        }
+        return result;
     }
 
     @Override
