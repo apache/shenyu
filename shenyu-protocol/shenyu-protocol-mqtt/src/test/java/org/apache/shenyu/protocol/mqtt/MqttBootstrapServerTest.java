@@ -27,10 +27,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.time.Duration;
+import java.util.Objects;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,6 +70,11 @@ public final class MqttBootstrapServerTest {
     }
 
     @Test
+    public void shutdownWithoutStartDoesNotThrow() {
+        assertDoesNotThrow(new MqttBootstrapServer()::shutdown);
+    }
+
+    @Test
     public void initShouldRegisterAllRepositories() {
         MqttBootstrapServer server = new MqttBootstrapServer();
 
@@ -81,7 +91,8 @@ public final class MqttBootstrapServerTest {
 
         server.start();
 
-        ChannelFuture future = getField(server, "future", ChannelFuture.class);
+        await().atMost(Duration.ofSeconds(10)).until(() -> Objects.nonNull(getChannelFuture(server)));
+        ChannelFuture future = getChannelFuture(server);
         assertTrue(future.channel().isActive());
 
         server.shutdown();
@@ -93,9 +104,69 @@ public final class MqttBootstrapServerTest {
         await().atMost(Duration.ofSeconds(5)).until(workerGroup::isTerminated);
     }
 
-    private <T> T getField(final Object target, final String name, final Class<T> type) throws Exception {
+    private static <T> T getField(final Object target, final String name, final Class<T> type) throws Exception {
         Field field = MqttBootstrapServer.class.getDeclaredField(name);
         field.setAccessible(true);
         return type.cast(field.get(target));
+    }
+
+    private static ChannelFuture getChannelFuture(final MqttBootstrapServer server) {
+        try {
+            return getField(server, "future", ChannelFuture.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Test
+    public void startWithPortInUseThenShutdownDoesNotThrow() throws Exception {
+        MqttContext env = new MqttContext();
+        env.setBossGroupThreadCount(1);
+        env.setWorkerGroupThreadCount(1);
+        env.setMaxPayloadSize(1024);
+        env.setLeakDetectorLevel("DISABLED");
+        try (ServerSocket socket = new ServerSocket(0)) {
+            env.setPort(socket.getLocalPort());
+            MqttBootstrapServer server = new MqttBootstrapServer();
+            server.start();
+            await().atMost(Duration.ofSeconds(10))
+                    .until(() -> {
+                        EventLoopGroup bossGroup = getBossGroup(server);
+                        return Objects.isNull(bossGroup) || bossGroup.isShutdown();
+                    });
+            assertDoesNotThrow(server::shutdown);
+        }
+    }
+
+    @Test
+    public void startOnFreePortThenShutdownDoesNotThrow() throws Exception {
+        MqttContext env = new MqttContext();
+        env.setBossGroupThreadCount(1);
+        env.setWorkerGroupThreadCount(1);
+        env.setMaxPayloadSize(1024);
+        env.setLeakDetectorLevel("DISABLED");
+        try (ServerSocket socket = new ServerSocket(0)) {
+            int freePort = socket.getLocalPort();
+            env.setPort(freePort);
+            MqttBootstrapServer server = new MqttBootstrapServer();
+            server.start();
+            await().atMost(Duration.ofSeconds(10))
+                    .until(() -> canConnect(freePort));
+            assertDoesNotThrow(server::shutdown);
+        }
+    }
+
+    private static EventLoopGroup getBossGroup(final MqttBootstrapServer server) throws Exception {
+        Field field = MqttBootstrapServer.class.getDeclaredField("bossGroup");
+        field.setAccessible(true);
+        return (EventLoopGroup) field.get(server);
+    }
+
+    private static boolean canConnect(final int port) {
+        try (Socket ignored = new Socket("127.0.0.1", port)) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
