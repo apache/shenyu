@@ -81,3 +81,5 @@ INSERT INTO `permission` VALUES ('1960000000000001029', '1346358560427216896', '
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 -- add index to speed up the meta data path uniqueness check
 ALTER TABLE `meta_data` ADD INDEX `idx_meta_data_namespace_path` (`namespace_id`, `path`) USING BTREE;
+ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_time` (`operation_time`) USING BTREE;
+ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_operator_time` (`operator`, `operation_time`) USING BTREE;
