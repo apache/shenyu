@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,6 +51,8 @@ public final class IpUtils {
      * ip pattern.
      */
     private static final Pattern IP_PATTERN = Pattern.compile("^((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)($|(?!\\.$)\\.)){4}$");
+
+    private static final Pattern DIGITS_AND_DOTS = Pattern.compile("^[\\d.]+$");
 
     /**
      * net card pattern.
@@ -414,6 +417,88 @@ public final class IpUtils {
             return parts[0];
         }
         return null;
+    }
+
+    /**
+     * Parse host and port from a host:port string, supporting IPv6 bracket notation.
+     *
+     * @param upstreamUrl the upstreamUrl in "host:port" or "[ipv6]:port" format
+     * @return string array with [host, port], port defaults to "80" if not present
+     */
+    public static String[] parseHostPort(final String upstreamUrl) {
+        if (StringUtils.isBlank(upstreamUrl)) {
+            throw new IllegalArgumentException("Invalid upstream URL, null or blank");
+        }
+        if (upstreamUrl.startsWith("[")) {
+            int closingBracket = upstreamUrl.lastIndexOf(']');
+            if (closingBracket < 0) {
+                throw new IllegalArgumentException("Invalid upstream URL, missing ']': " + upstreamUrl);
+            }
+            String host = upstreamUrl.substring(1, closingBracket);
+            validateIPv6Address(host);
+            String port = "80";
+            if (closingBracket < upstreamUrl.length() - 1) {
+                if (upstreamUrl.charAt(closingBracket + 1) != ':') {
+                    throw new IllegalArgumentException("Invalid upstream URL, unexpected content after ']': " + upstreamUrl);
+                }
+                String portPart = upstreamUrl.substring(closingBracket + 2);
+                port = portPart.isEmpty() ? "80" : portPart;
+            }
+            validateNumericPort(port, upstreamUrl);
+            return new String[]{host, port};
+        }
+        int lastColon = upstreamUrl.lastIndexOf(':');
+        if (lastColon == -1) {
+            validateHostIfLooksLikeIP(upstreamUrl);
+            return new String[]{upstreamUrl, "80"};
+        }
+        String host = upstreamUrl.substring(0, lastColon);
+        String port = upstreamUrl.substring(lastColon + 1);
+        if (host.indexOf(':') >= 0) {
+            throw new IllegalArgumentException("IPv6 addresses must be bracketed, e.g. [::1]:8080: " + upstreamUrl);
+        }
+        port = port.isEmpty() ? "80" : port;
+        validateHostIfLooksLikeIP(host);
+        validateNumericPort(port, upstreamUrl);
+        return new String[]{host, port};
+    }
+
+    private static void validateIPv6Address(final String host) {
+        // Quick pre-check: IPv6 addresses must contain colons, to avoid DNS lookups
+        if (host.indexOf(':') < 0) {
+            throw new IllegalArgumentException("Invalid IPv6 address (no colons): " + host);
+        }
+        try {
+            // Strip zone ID (e.g., %lo0, %eth0) before validation — zone IDs are
+            // platform-specific interface names and cause UnknownHostException on
+            // mismatched platforms.
+            String hostWithoutZone = host.contains("%") ? host.substring(0, host.indexOf('%')) : host;
+            InetAddress addr = InetAddress.getByName(hostWithoutZone);
+            if (!(addr instanceof Inet6Address)) {
+                throw new IllegalArgumentException("Invalid IPv6 address: " + host);
+            }
+        } catch (UnknownHostException e) {
+            throw new IllegalArgumentException("Invalid IPv6 address: " + host, e);
+        }
+    }
+
+    private static void validateNumericPort(final String port, final String upstreamUrl) {
+        try {
+            int portNum = Integer.parseInt(port);
+            if (portNum < 1 || portNum > 65535) {
+                throw new IllegalArgumentException("Invalid upstream URL, port out of range (1-65535): " + upstreamUrl);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid upstream URL, non-numeric port: " + upstreamUrl, e);
+        }
+    }
+
+    private static void validateHostIfLooksLikeIP(final String host) {
+        if (Objects.nonNull(host) && host.indexOf('.') >= 0 && DIGITS_AND_DOTS.matcher(host).matches()) {
+            if (!isCompleteHost(host)) {
+                throw new IllegalArgumentException("Invalid IPv4 address: " + host);
+            }
+        }
     }
 
     /**
