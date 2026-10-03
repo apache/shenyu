@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sign;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -77,7 +78,7 @@ public class SignPlugin extends AbstractShenyuPlugin {
                 return WebFluxResultUtils.failedResult(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(),
                         result.getReason(), exchange);
             }
-            return chain.execute(exchange);
+            return chain.execute(addAppParamHeader(exchange));
         }
 
         return ServerWebExchangeUtils.rewriteRequestBody(exchange, messageReaders, body -> {
@@ -86,7 +87,7 @@ public class SignPlugin extends AbstractShenyuPlugin {
                 return Mono.just(body);
             }
             throw new ResponsiveException(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), exchange);
-        }).flatMap(chain::execute)
+        }).map(this::addAppParamHeader).flatMap(chain::execute)
                 .onErrorResume(error -> {
                     if (error instanceof ResponsiveException) {
                         return WebFluxResultUtils.failedResult((ResponsiveException) error);
@@ -98,5 +99,13 @@ public class SignPlugin extends AbstractShenyuPlugin {
     private VerifyResult signVerifyWithBody(final String originalBody, final ServerWebExchange exchange) {
         // get url params
         return signService.signatureVerify(exchange, originalBody);
+    }
+
+    private ServerWebExchange addAppParamHeader(final ServerWebExchange exchange) {
+        String appParam = exchange.getAttribute(Constants.APP_PARAM);
+        if (ObjectUtils.isEmpty(appParam)) {
+            return exchange;
+        }
+        return exchange.mutate().request(request -> request.headers(headers -> headers.set(Constants.APP_PARAM, appParam))).build();
     }
 }
