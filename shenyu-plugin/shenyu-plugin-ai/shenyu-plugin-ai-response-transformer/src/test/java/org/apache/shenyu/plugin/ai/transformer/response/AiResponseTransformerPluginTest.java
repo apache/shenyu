@@ -181,6 +181,30 @@ class AiResponseTransformerPluginTest {
     }
 
     @Test
+    void testWriteAndFlushWithTransformsResponse() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"transformed\":true}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer first = response.bufferFactory().wrap("orig".getBytes(StandardCharsets.UTF_8));
+        DataBuffer second = response.bufferFactory().wrap("inal".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeAndFlushWith(Flux.just(Flux.just(first), Flux.just(second))))
+                .verifyComplete();
+
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("{\"transformed\":true}")
+                .verifyComplete();
+    }
+
+    @Test
     void testOriginalHeadersRemainWhenTransformedBodyIsInvalid() {
         MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
         response.getHeaders().set("X-Original", "original");

@@ -44,6 +44,7 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.reactivestreams.Publisher;
 
@@ -376,6 +377,12 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                     });
                         });
             });
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
         private String extractBodyFromAiResponse(final String aiResponse) {
