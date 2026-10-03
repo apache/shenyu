@@ -44,13 +44,17 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -180,6 +184,126 @@ public final class AbstractDataChangedListenerTest {
         verify(aiProxyApiKeyService, never()).listAll();
     }
 
+    @Test
+    void splitsMixedNamespaceChangesForEverySyncGroup() {
+        when(appAuthService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(appAuthService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+        when(namespacePluginService.listAll("namespace-a")).thenReturn(Collections.emptyList());
+        when(namespacePluginService.listAll("namespace-b")).thenReturn(Collections.emptyList());
+        when(ruleService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(ruleService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+        when(selectorService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(selectorService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+        when(metaDataService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(metaDataService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+        when(proxySelectorService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(proxySelectorService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamService.listAllByNamespaceId("namespace-a")).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamService.listAllByNamespaceId("namespace-b")).thenReturn(Collections.emptyList());
+
+        AppAuthData appAuthA = appAuthData("namespace-a");
+        AppAuthData appAuthB = appAuthData("namespace-b");
+        AppAuthData appAuthDefault = appAuthData(null);
+        MetaData metaDataA = metaData("namespace-a");
+        MetaData metaDataB = metaData("namespace-b");
+        MetaData metaDataDefault = metaData(null);
+        PluginData pluginA = pluginData("namespace-a");
+        PluginData pluginB = pluginData("namespace-b");
+        PluginData pluginDefault = pluginData(null);
+        RuleData ruleA = ruleData("namespace-a");
+        RuleData ruleB = ruleData("namespace-b");
+        RuleData ruleDefault = ruleData(null);
+        SelectorData selectorA = selectorData("namespace-a");
+        SelectorData selectorB = selectorData("namespace-b");
+        SelectorData selectorDefault = selectorData(null);
+        ProxySelectorData proxySelectorA = proxySelectorData("namespace-a");
+        ProxySelectorData proxySelectorB = proxySelectorData("namespace-b");
+        ProxySelectorData proxySelectorDefault = proxySelectorData(null);
+        DiscoverySyncData discoveryA = discoverySyncData("namespace-a");
+        DiscoverySyncData discoveryB = discoverySyncData("namespace-b");
+        DiscoverySyncData discoveryDefault = discoverySyncData(null);
+        DataEventTypeEnum eventType = DataEventTypeEnum.UPDATE;
+
+        listener.onAppAuthChanged(Lists.newArrayList(appAuthB, null, appAuthDefault, appAuthA), eventType);
+        listener.onMetaDataChanged(Lists.newArrayList(metaDataB, null, metaDataDefault, metaDataA), eventType);
+        listener.onPluginChanged(Lists.newArrayList(pluginB, null, pluginDefault, pluginA), eventType);
+        listener.onRuleChanged(Lists.newArrayList(ruleB, null, ruleDefault, ruleA), eventType);
+        listener.onSelectorChanged(Lists.newArrayList(selectorB, null, selectorDefault, selectorA), eventType);
+        listener.onProxySelectorChanged(Lists.newArrayList(proxySelectorB, null, proxySelectorDefault, proxySelectorA), eventType);
+        listener.onDiscoveryUpstreamChanged(Lists.newArrayList(discoveryB, null, discoveryDefault, discoveryA), eventType);
+
+        assertEquals(21, listener.callbackBatches.size());
+        assertCallbackBatch(ConfigGroupEnum.APP_AUTH, "namespace-a", appAuthA);
+        assertCallbackBatch(ConfigGroupEnum.APP_AUTH, "namespace-b", appAuthB);
+        assertCallbackBatch(ConfigGroupEnum.APP_AUTH, SYS_DEFAULT_NAMESPACE_ID, appAuthDefault);
+        assertCallbackBatch(ConfigGroupEnum.META_DATA, "namespace-a", metaDataA);
+        assertCallbackBatch(ConfigGroupEnum.META_DATA, "namespace-b", metaDataB);
+        assertCallbackBatch(ConfigGroupEnum.META_DATA, SYS_DEFAULT_NAMESPACE_ID, metaDataDefault);
+        assertCallbackBatch(ConfigGroupEnum.PLUGIN, "namespace-a", pluginA);
+        assertCallbackBatch(ConfigGroupEnum.PLUGIN, "namespace-b", pluginB);
+        assertCallbackBatch(ConfigGroupEnum.PLUGIN, SYS_DEFAULT_NAMESPACE_ID, pluginDefault);
+        assertCallbackBatch(ConfigGroupEnum.RULE, "namespace-a", ruleA);
+        assertCallbackBatch(ConfigGroupEnum.RULE, "namespace-b", ruleB);
+        assertCallbackBatch(ConfigGroupEnum.RULE, SYS_DEFAULT_NAMESPACE_ID, ruleDefault);
+        assertCallbackBatch(ConfigGroupEnum.SELECTOR, "namespace-a", selectorA);
+        assertCallbackBatch(ConfigGroupEnum.SELECTOR, "namespace-b", selectorB);
+        assertCallbackBatch(ConfigGroupEnum.SELECTOR, SYS_DEFAULT_NAMESPACE_ID, selectorDefault);
+        assertCallbackBatch(ConfigGroupEnum.PROXY_SELECTOR, "namespace-a", proxySelectorA);
+        assertCallbackBatch(ConfigGroupEnum.PROXY_SELECTOR, "namespace-b", proxySelectorB);
+        assertCallbackBatch(ConfigGroupEnum.PROXY_SELECTOR, SYS_DEFAULT_NAMESPACE_ID, proxySelectorDefault);
+        assertCallbackBatch(ConfigGroupEnum.DISCOVER_UPSTREAM, "namespace-a", discoveryA);
+        assertCallbackBatch(ConfigGroupEnum.DISCOVER_UPSTREAM, "namespace-b", discoveryB);
+        assertCallbackBatch(ConfigGroupEnum.DISCOVER_UPSTREAM, SYS_DEFAULT_NAMESPACE_ID, discoveryDefault);
+    }
+
+    private AppAuthData appAuthData(final String namespaceId) {
+        AppAuthData data = mock(AppAuthData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private MetaData metaData(final String namespaceId) {
+        MetaData data = mock(MetaData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private PluginData pluginData(final String namespaceId) {
+        PluginData data = mock(PluginData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private RuleData ruleData(final String namespaceId) {
+        RuleData data = mock(RuleData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private SelectorData selectorData(final String namespaceId) {
+        SelectorData data = mock(SelectorData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private ProxySelectorData proxySelectorData(final String namespaceId) {
+        ProxySelectorData data = mock(ProxySelectorData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private DiscoverySyncData discoverySyncData(final String namespaceId) {
+        DiscoverySyncData data = mock(DiscoverySyncData.class);
+        when(data.getNamespaceId()).thenReturn(namespaceId);
+        return data;
+    }
+
+    private void assertCallbackBatch(final ConfigGroupEnum group, final String namespaceId, final Object expectedData) {
+        List<?> changed = listener.callbackBatches.get(group.name() + "_" + namespaceId);
+        assertEquals(1, changed.size());
+        assertSame(expectedData, changed.get(0));
+    }
+
     @AfterEach
     public void cleanUp() {
         listener.getCache().clear();
@@ -290,6 +414,8 @@ public final class AbstractDataChangedListenerTest {
 
     static class MockAbstractDataChangedListener extends AbstractDataChangedListener {
 
+        private final Map<String, List<?>> callbackBatches = new HashMap<>();
+
         @Override
         protected void afterInitialize() {
             // NOP
@@ -297,6 +423,46 @@ public final class AbstractDataChangedListenerTest {
 
         public ConcurrentMap<String, ConfigDataCache> getCache() {
             return CACHE;
+        }
+
+        @Override
+        protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.APP_AUTH, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.META_DATA, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            super.afterPluginChanged(changed, eventType, namespaceId);
+            recordCallback(ConfigGroupEnum.PLUGIN, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.RULE, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.SELECTOR, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.PROXY_SELECTOR, changed, namespaceId);
+        }
+
+        @Override
+        protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            recordCallback(ConfigGroupEnum.DISCOVER_UPSTREAM, changed, namespaceId);
+        }
+
+        private void recordCallback(final ConfigGroupEnum group, final List<?> changed, final String namespaceId) {
+            callbackBatches.put(group.name() + "_" + namespaceId, changed);
         }
     }
 }
