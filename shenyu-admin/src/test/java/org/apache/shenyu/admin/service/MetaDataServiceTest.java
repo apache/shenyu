@@ -60,6 +60,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -151,6 +152,13 @@ public final class MetaDataServiceTest {
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
         msg = metaDataService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(StringUtils.EMPTY, msg);
+        verify(publisher, never()).onEnabled(any());
+        when(metaDataMapper.updateEnableBatch(ids, true)).thenReturn(ids.size());
+        when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+        msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(StringUtils.EMPTY, msg);
+        verify(publisher).onEnabled(any());
     }
 
     /**
