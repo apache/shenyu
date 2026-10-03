@@ -269,6 +269,7 @@ public class PluginServiceImpl implements PluginService {
                 PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
                 if (pluginMapper.insertSelective(pluginDO) > 0) {
                     // publish create event. init plugin data
+                    pluginEventPublisher.onCreated(pluginDO);
                     successCount++;
                 }
             }
