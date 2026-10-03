@@ -136,13 +136,23 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        select true from resource where id = #{id} limit 1
+        SELECT 1 from resource where id = #{id} limit 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1 from resource where id = #{id} AND ROWNUM = 1
     </select>
 
     <select id="nameExisted" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM resource
         WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="nameExisted" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM resource
+        WHERE name = #{name} AND ROWNUM = 1
     </select>
 
     <select id="selectByUserName" resultType="org.apache.shenyu.admin.model.entity.ResourceDO">

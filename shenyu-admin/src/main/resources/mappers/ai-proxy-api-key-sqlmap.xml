@@ -44,12 +44,21 @@
 
         <!-- exists checks -->
         <select id="existed" resultType="boolean">
-        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping WHERE id = #{id}
+        SELECT 1 FROM proxy_api_key_mapping WHERE id = #{id} LIMIT 1
         </select>
 
         <select id="proxyApiKeyExisted" resultType="boolean">
-        SELECT COUNT(1) > 0 FROM proxy_api_key_mapping
-        WHERE selector_id = #{selectorId} AND proxy_api_key = #{proxyApiKey}
+        SELECT 1 FROM proxy_api_key_mapping
+        WHERE selector_id = #{selectorId} AND proxy_api_key = #{proxyApiKey} LIMIT 1
+        </select>
+
+        <select databaseId="oracle" id="existed" resultType="boolean">
+        SELECT 1 FROM proxy_api_key_mapping WHERE id = #{id} AND ROWNUM = 1
+        </select>
+
+        <select databaseId="oracle" id="proxyApiKeyExisted" resultType="boolean">
+        SELECT 1 FROM proxy_api_key_mapping
+        WHERE selector_id = #{selectorId} AND proxy_api_key = #{proxyApiKey} AND ROWNUM = 1
         </select>
 
         <!-- basic selects -->
@@ -226,4 +235,4 @@
         ORDER BY date_updated DESC
 </select>
 
-</mapper> 
+</mapper>

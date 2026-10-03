@@ -269,10 +269,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM shenyu_dict
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM shenyu_dict
+         WHERE id = #{id}
+         AND ROWNUM = 1
     </select>
 
     <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">

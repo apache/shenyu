@@ -39,9 +39,15 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM discovery_handler
         WHERE id = #{id} limit 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM discovery_handler
+        WHERE id = #{id} AND ROWNUM = 1
     </select>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">

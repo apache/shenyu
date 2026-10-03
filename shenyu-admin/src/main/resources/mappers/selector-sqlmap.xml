@@ -215,10 +215,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM selector
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM selector
+         WHERE id = #{id}
+         AND ROWNUM = 1
     </select>
 
     <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
@@ -245,7 +252,7 @@
             </if>
 
             <if test="condition.userId != null and condition.userId != ''">
-                AND exists(select true
+                AND exists(select 1
                     from data_permission
                     where data_id = selector.id
                         and user_id = #{condition.userId})

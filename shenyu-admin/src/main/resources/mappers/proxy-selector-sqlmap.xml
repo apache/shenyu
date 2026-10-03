@@ -43,9 +43,15 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM proxy_selector
         WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM proxy_selector
+        WHERE id = #{id} AND ROWNUM = 1
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ProxySelectorQuery"
@@ -64,9 +70,15 @@
     </select>
 
     <select id="nameExisted" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM proxy_selector
         WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="nameExisted" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM proxy_selector
+        WHERE name = #{name} AND ROWNUM = 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
