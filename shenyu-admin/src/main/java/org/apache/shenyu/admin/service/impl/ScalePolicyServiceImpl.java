@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementation of ScalePolicyService.
@@ -100,7 +101,12 @@ public class ScalePolicyServiceImpl implements ScalePolicyService {
     }
 
     private void applyPolicy(final ScalePolicyDO scalePolicy) {
-        scalePolicyCache.updatePolicy(scalePolicy);
+        ScalePolicyDO updatedPolicy = scalePolicyMapper.selectByPrimaryKey(scalePolicy.getId());
+        if (Objects.isNull(updatedPolicy)) {
+            scalePolicyCache.removePolicy(scalePolicy.getId());
+        } else {
+            scalePolicyCache.updatePolicy(updatedPolicy);
+        }
         scaleService.executeScaling();
     }
 }
