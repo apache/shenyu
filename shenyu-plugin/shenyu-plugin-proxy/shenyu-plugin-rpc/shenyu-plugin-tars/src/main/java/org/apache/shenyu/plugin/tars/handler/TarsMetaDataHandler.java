@@ -43,13 +43,18 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         MetaData metaExist = META_DATA.get(metaData.getPath());
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
-        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()));
-        if (!exist) {
+        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()));
+        if (!exist || requiresRefresh(metaExist, metaData)) {
             ApplicationConfigCache.getInstance().initPrx(metaData);
         }
-        if (Objects.isNull(metaExist)) {
-            META_DATA.put(metaData.getPath(), metaData);
-        }
+        META_DATA.put(metaData.getPath(), metaData);
+    }
+
+    private boolean requiresRefresh(final MetaData current, final MetaData updated) {
+        return Objects.nonNull(current) && (!Objects.equals(current.getServiceName(), updated.getServiceName())
+                || !Objects.equals(current.getMethodName(), updated.getMethodName())
+                || !Objects.equals(current.getParameterTypes(), updated.getParameterTypes())
+                || !Objects.equals(current.getRpcExt(), updated.getRpcExt()));
     }
     
     @Override
@@ -58,7 +63,7 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
         List<TarsInvokePrx> removePrxList = prxList.stream()
-                .filter(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()))
+                .filter(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()))
                 .collect(Collectors.toList());
         prxList.removeAll(removePrxList);
         if (CollectionUtils.isEmpty(prxList)) {
