@@ -597,6 +597,12 @@ public class ShenyuToolCallback implements ToolCallback {
                               final ServerWebExchange originExchange,
                               final String path) {
         try {
+            if (path.startsWith("http://") || path.startsWith("https://")) {
+                // RequestConfigHelper#buildPath can return a complete URL from the tool input;
+                // prefixing the gateway origin would corrupt it
+                requestBuilder.uri(new URI(path));
+                return;
+            }
             final URI oldUri = originExchange.getRequest().getURI();
             final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
             requestBuilder.uri(new URI(newUriStr));
