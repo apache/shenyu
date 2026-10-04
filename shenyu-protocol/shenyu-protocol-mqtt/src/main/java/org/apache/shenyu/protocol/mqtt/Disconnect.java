@@ -24,6 +24,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 import java.util.Objects;
 
@@ -42,7 +43,16 @@ public class Disconnect extends MessageType {
     @Override
     public void disconnect(final ChannelHandlerContext ctx) {
         //// todo Last words
-        String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
+        cleanChannel(ctx.channel());
+        ctx.close();
+    }
+
+    /**
+     * Discard clean session state and release resources for a disconnected channel.
+     * @param channel disconnected channel
+     */
+    static void cleanChannel(final Channel channel) {
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
         if (Objects.nonNull(clientId)) {
             MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
             if (Objects.nonNull(session) && session.isCleanSession()) {
@@ -50,13 +60,8 @@ public class Disconnect extends MessageType {
                 Singleton.INST.get(SessionRepository.class).remove(clientId);
             }
         }
-        Singleton.INST.get(SubscribeRepository.class).removeChannel(ctx.channel());
-        cleanChannel(ctx.channel());
-        ctx.close();
-    }
-
-    private void cleanChannel(final Channel channel) {
-        //// todo ttl
+        Singleton.INST.get(SubscribeRepository.class).remove(channel);
         Singleton.INST.get(ChannelRepository.class).remove(channel);
+        MqttPacketIdGenerator.remove(channel);
     }
 }

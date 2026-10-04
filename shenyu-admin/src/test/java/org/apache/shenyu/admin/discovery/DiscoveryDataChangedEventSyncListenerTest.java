@@ -39,6 +39,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,6 +117,43 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         ArgumentCaptor<DiscoveryUpstreamDO> discoveryUpstreamCaptor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
         verify(discoveryUpstreamMapper).insert(discoveryUpstreamCaptor.capture());
         Assertions.assertEquals(namespaceId, discoveryUpstreamCaptor.getValue().getNamespaceId());
+    }
+
+    @Test
+    public void testOnChangeIsSafeWhenListenerIsAddedConcurrently() throws Exception {
+        DiscoverySyncData additionalContext = org.mockito.Mockito.mock(DiscoverySyncData.class);
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
+        when(contextInfo.getSelectorId()).thenReturn("selector-1");
+        when(additionalContext.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(additionalContext.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
+        when(additionalContext.getSelectorId()).thenReturn("selector-2");
+        DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+        upstreamData.setProtocol("http://");
+        upstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        upstreamData.setUrl("127.0.0.1:8080");
+        final CountDownLatch processingStarted = new CountDownLatch(1);
+        final CountDownLatch continueProcessing = new CountDownLatch(1);
+        org.mockito.Mockito.doAnswer(invocation -> {
+            processingStarted.countDown();
+            continueProcessing.await();
+            return Collections.singletonList(upstreamData);
+        }).when(keyValueParser).parseValue(anyString());
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            final java.util.concurrent.Future<?> change = executor.submit(() -> discoveryDataChangedEventSyncListener.onChange(
+                    new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED)));
+            Assertions.assertTrue(processingStarted.await(1, TimeUnit.SECONDS));
+            discoveryDataChangedEventSyncListener.addListener(additionalContext);
+            continueProcessing.countDown();
+            Assertions.assertDoesNotThrow(() -> change.get(1, TimeUnit.SECONDS));
+        } finally {
+            continueProcessing.countDown();
+            executor.shutdownNow();
+        }
+
+        verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));
     }
 
 }

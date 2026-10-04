@@ -45,6 +45,9 @@ import java.util.Objects;
  */
 public class McpSessionHelper {
 
+    /** Reactor transport-context key carrying the request-local ShenYu exchange. */
+    public static final String SHENYU_EXCHANGE_CONTEXT_KEY = "shenyu.serverWebExchange";
+
     private static final Logger LOG = LoggerFactory.getLogger(McpSessionHelper.class);
 
     /**

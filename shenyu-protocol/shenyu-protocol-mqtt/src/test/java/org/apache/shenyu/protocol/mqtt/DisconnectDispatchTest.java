@@ -84,7 +84,7 @@ public class DisconnectDispatchTest {
 
         assertNotNull(Singleton.INST.get(SessionRepository.class).get(clientId));
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
-                assertFalse(Singleton.INST.get(SubscribeRepository.class).get(topic).contains(channel)));
+                assertFalse(Singleton.INST.get(SubscribeRepository.class).get(topic).containsKey(channel)));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class DisconnectDispatchTest {
         new MqttFactory(MqttMessageBuilders.disconnect().build(), ctx).connect();
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
-                assertFalse(Singleton.INST.get(SubscribeRepository.class).get(topic).contains(channel)));
+                assertFalse(Singleton.INST.get(SubscribeRepository.class).get(topic).containsKey(channel)));
     }
 
     private void registerChannel(final String clientId) {

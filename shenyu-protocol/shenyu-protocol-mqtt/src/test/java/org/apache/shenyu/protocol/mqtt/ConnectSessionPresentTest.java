@@ -138,7 +138,7 @@ public class ConnectSessionPresentTest {
 
         SubscribeRepository subscribeRepository = Singleton.INST.get(SubscribeRepository.class);
         Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertTrue(subscribeRepository.get("test/topic").contains(channel)));
+                .untilAsserted(() -> assertTrue(subscribeRepository.get("test/topic").containsKey(channel)));
     }
 
     @Test
