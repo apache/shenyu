@@ -460,7 +460,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             return;
         }
         try {
-            websocketDataHandler.executor(groupEnum, json, eventType);
+            if (websocketData.isFullSnapshot()) {
+                if (!DataEventTypeEnum.REFRESH.name().equals(eventType) && !DataEventTypeEnum.MYSELF.name().equals(eventType)) {
+                    throw new IllegalArgumentException("Snapshot requires a refresh event");
+                }
+                websocketDataHandler.snapshot(groupEnum, json, websocketData.getNamespaceId(), namespaceId);
+            } else {
+                websocketDataHandler.executor(groupEnum, json, eventType);
+            }
             consecutiveSyncFailures.set(0);
         } catch (RuntimeException ex) {
             handleSyncFailure(ex, groupEnum.name(), eventType);

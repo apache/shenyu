@@ -1,0 +1,159 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+package org.apache.shenyu.plugin.base.cache;
+
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.Mockito.times;
+
+/**
+ * Regression tests for metadata prefix indexing.
+ */
+public class MetaDataPrefixIndexTest {
+
+    private final MetaDataCache cache = MetaDataCache.getInstance();
+
+    private final List<MetaData> registered = new ArrayList<>();
+
+    @AfterEach
+    public void cleanup() {
+        registered.forEach(cache::remove);
+        cache.clean();
+    }
+
+    @Test
+    public void testMutationBurstsRebuildOnlyOnColdLookup() {
+        Object initialIndex = ReflectionTestUtils.getField(cache, "pathIndex");
+        for (int i = 0; i < 10000; i++) {
+            register("burst-" + i, "/burst-" + i + "/**");
+        }
+        assertSame(initialIndex, ReflectionTestUtils.getField(cache, "pathIndex"));
+        assertEquals("burst-42", cache.obtain("/burst-42/first").getId());
+        Object rebuilt = ReflectionTestUtils.getField(cache, "pathIndex");
+        assertNotSame(initialIndex, rebuilt);
+        assertEquals("burst-43", cache.obtain("/burst-43/second").getId());
+        assertSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+        registered.forEach(cache::remove);
+        assertSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+        assertNull(cache.obtain("/burst-42/after-delete"));
+        assertNotSame(rebuilt, ReflectionTestUtils.getField(cache, "pathIndex"));
+    }
+
+    @Test
+    public void testNewVariablePatternInvalidatesEarlierNegativeLookup() {
+        assertNull(cache.obtain("/tenant/new"));
+        register("new-variable", "/{tenant}/new");
+        assertEquals("new-variable", cache.obtain("/tenant/new").getId());
+    }
+
+    @Test
+    public void testMutationBurstDefersBoundedNegativeCacheSweep() {
+        assertNull(cache.obtain("/negative/before"));
+        final Object miss = cache.getMetaDataCache().get("/negative/before");
+        for (int i = 0; i < 1000; i++) {
+            register("literal-burst-" + i, "/literal/" + i);
+            assertSame(miss, cache.getMetaDataCache().get("/negative/before"));
+        }
+        register("variable-after-miss", "/{tenant}/before");
+        assertSame(miss, cache.getMetaDataCache().get("/negative/before"));
+        assertEquals("variable-after-miss", cache.obtain("/negative/before").getId());
+        assertFalse((Boolean) ReflectionTestUtils.getField(cache, "negativeCacheDirty"));
+        assertNull(cache.obtain("/unmatched/one"));
+        assertNull(cache.obtain("/unmatched/two"));
+        cache.clean();
+        assertNull(cache.getMetaDataCache().get("/unmatched/one"));
+    }
+
+    @Test
+    public void testLiteralPathInvalidatesNormalizedNegativeLookup() {
+        assertNull(cache.obtain("/normalized//path"));
+        register("normalized", "/normalized/path");
+        assertEquals("normalized", cache.obtain("/normalized//path").getId());
+    }
+
+    @Test
+    public void testSpecificityIsComparedAcrossPrefixAndFallbackBuckets() {
+        register("broad", "/api/**");
+        register("specific-fallback", "/{tenant}/users");
+        assertEquals("specific-fallback", cache.obtain("/api/users").getId());
+    }
+
+    @Test
+    public void testColdLookupOnlyMatchesRelevantPrefix() {
+        for (int i = 0; i < 100; i++) {
+            register("route-" + i, "/service-" + i + "/**");
+        }
+        try (MockedStatic<PathMatchUtils> matcher = Mockito.mockStatic(PathMatchUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            assertEquals("route-42", cache.obtain("/service-42/cold").getId());
+            matcher.verify(() -> PathMatchUtils.match("/service-42/**", "/service-42/cold"), times(1));
+            matcher.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    public void testFallbackPatternsAndRepeatedSeparators() {
+        register("literal", "/prefix//items/**");
+        register("variable", "/{tenant}/records/**");
+        register("question", "/tenant?/items/**");
+        assertEquals("literal", cache.obtain("//prefix/items/one").getId());
+        assertEquals("variable", cache.obtain("/acme/records/one").getId());
+        assertEquals("question", cache.obtain("/tenant1/items/one").getId());
+    }
+
+    @Test
+    public void testChangedPrefixAndRemovalUpdateIndex() {
+        final MetaData old = register("changing", "/old-prefix/**");
+        assertEquals("changing", cache.obtain("/old-prefix/one").getId());
+        MetaData updated = register("changing", "/new-prefix/**");
+        assertNull(cache.obtain("/old-prefix/two"));
+        assertEquals("changing", cache.obtain("/new-prefix/one").getId());
+        cache.remove(updated);
+        assertNull(cache.obtain("/new-prefix/two"));
+        registered.remove(old);
+    }
+
+    @Test
+    public void testDisabledWildcardDoesNotMatch() {
+        MetaData metadata = MetaData.builder().id("disabled").path("/disabled-prefix/**").enabled(false).build();
+        registered.add(metadata);
+        cache.cache(metadata);
+        assertNull(cache.obtain("/disabled-prefix/one"));
+    }
+
+    private MetaData register(final String id, final String path) {
+        MetaData metadata = MetaData.builder().id(id).path(path).enabled(true).build();
+        registered.add(metadata);
+        cache.cache(metadata);
+        return metadata;
+    }
+}

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMasterService {
@@ -104,11 +105,23 @@ public class ClusterSelectMasterServiceZookeeperImpl implements ClusterSelectMas
     
     @Override
     public String getMasterUrl() {
+        if (!clusterZookeeperClient.isExist(MASTER_INFO)) {
+            // the info znode is only written by the first successful selectMaster - same anticipated state the JDBC impl guards
+            return StringUtils.EMPTY;
+        }
         String masterInfoJson = clusterZookeeperClient.getDirectly(MASTER_INFO);
         ClusterMasterDTO master = JsonUtils.jsonToObject(masterInfoJson, ClusterMasterDTO.class);
-        if (StringUtils.isEmpty(master.getContextPath())) {
+        if (Objects.isNull(master)) {
+            // the znode exists but carries no readable master info yet (empty or unparsable content)
+            return StringUtils.EMPTY;
+        }
+        String contextPath = master.getContextPath();
+        if (StringUtils.isEmpty(contextPath)) {
             return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort();
         }
-        return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + master.getContextPath();
+        if (contextPath.startsWith("/")) {
+            return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + contextPath;
+        }
+        return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort() + "/" + contextPath;
     }
 }
