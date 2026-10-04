@@ -116,6 +116,8 @@ public final class AgentMcpHttpHandler {
                 throw failure(415, "UTF-8 application/json is required", null);
             }
             List<MediaType> accepted = headers.getAccept();
+            // The 2026-07-28 client contract requires both response types. responseMode
+            // chooses server output; it does not relax this entry's strict Accept policy.
             if (!accepts(accepted, MediaType.APPLICATION_JSON) || !accepts(accepted, MediaType.TEXT_EVENT_STREAM)) {
                 throw failure(406, "Both JSON and SSE must be accepted", null);
             }

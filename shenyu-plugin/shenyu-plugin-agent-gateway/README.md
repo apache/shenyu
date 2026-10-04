@@ -20,10 +20,11 @@
 ## Overview
 
 The Agent Gateway plugin adds a request-scoped context to selected LLM traffic
-and then continues the existing plugin chain. It does not replace the AI Proxy
-implementation, read the request body, or introduce MCP SDK dependencies.
+and then continues the existing plugin chain. Explicitly matched MCP rules use
+a bounded tools-only entry instead. It does not replace the AI Proxy or legacy
+MCP server, or introduce MCP SDK dependencies. Only the MCP entry reads its body.
 
-Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文，然后继续执行现有插件链。它复用现有 AI Proxy，不读取请求体，也不引入 MCP SDK 依赖。
+Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界 tools-only 入口。它不替换 AI Proxy 或旧 MCP Server，不引入 MCP SDK 依赖；仅 MCP 入口读取自己的正文。
 
 ## Enablement
 
@@ -52,7 +53,7 @@ creation while leaving the existing AI Proxy and MCP plugins unchanged.
 
 ## Rule handle
 
-The first version uses these rule handle fields:
+The LLM rule handle uses these fields:
 
 ```json
 {
@@ -61,9 +62,8 @@ The first version uses these rule handle fields:
 }
 ```
 
-PR1 supports only `LLM` traffic. The existing MCP plugin remains independently
-configurable; this Agent Gateway rule cannot yet be used for MCP traffic.
-`trafficType` is required and must be exactly `LLM`. `responseRequestId` is an
+The existing MCP plugin remains independently configurable. `trafficType` is
+required and must be exactly `LLM` or `mcp`. `responseRequestId` is an
 optional boolean and defaults to `false`. Admin rejects unknown fields,
 malformed JSON, missing required fields, invalid field types, and unsupported
 traffic types before saving or importing an `agentGateway` rule handle. At
@@ -79,6 +79,46 @@ is never used as the internal request ID.
 
 ## Context contract
 
+### MCP tools entry and Accept policy
+
+An MCP rule uses `"trafficType": "mcp"` and an `mcp` configuration, for example:
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["order_status"],
+    "responseMode": "json"
+  }
+}
+```
+
+Only `server/discover`, `tools/list` and `tools/call` are supported. Tools must be
+explicitly registered; rule permissions intersect trusted server-side tool
+grants. Missing trusted identity is rejected. This is not remote tool aggregation.
+
+The entry targets the [2026-07-28 Streamable HTTP client contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#sending-messages):
+clients must explicitly list both `application/json` and `text/event-stream` in
+`Accept`, with positive quality values. `responseMode` selects the server's
+successful response format; it does not change the client's two-format contract.
+This entry intentionally returns HTTP 406 for JSON-only, SSE-only, missing,
+wildcard-only, or zero-quality required types, in either response mode. The
+protocol's client requirement does not itself mandate this server rejection
+status; 406 and explicit-type enforcement are this entry's strict policy, not a
+claim that every server must reject those clients. Malformed Accept is HTTP 400.
+Rejection precedes body subscription, identity resolution and tool invocation;
+preflight errors use ordinary JSON in either mode. JSON-only compatibility is
+not enabled by choosing `responseMode=json`.
+
+| Accept | responseMode=json | responseMode=sse |
+| --- | --- | --- |
+| `application/json, text/event-stream` | JSON result | SSE result |
+| `application/json` or `text/event-stream` alone | 406 | 406 |
+| Missing, wildcard-only, or required type with `q=0` | 406 | 406 |
+| Malformed media type | 400 | 400 |
+
+### Request context
+
 `AgentTrafficContext` is immutable and is created per subscription. It contains
 only the generated request ID, traffic type, selector ID, and rule ID. During
 downstream execution it is available from the dedicated Reactor context key
@@ -92,7 +132,7 @@ subscribed concurrently, because exchange attributes are shared by that request.
 
 ## Scope
 
-This module provides request correlation and Reactor context propagation for
-LLM traffic. MCP discovery, tool aggregation, callback bridging, usage/cost
-accounting, and unified identity or permission governance remain separate
-features and are not enabled by this plugin.
+This module provides LLM request correlation and a tools-only MCP entry with
+request-local identity, permissions, deadlines and cancellation. Remote tool
+aggregation, prompts/resources, callback bridging and usage/cost accounting are
+not included. Existing LLM forwarding and legacy MCP sessions remain separate.

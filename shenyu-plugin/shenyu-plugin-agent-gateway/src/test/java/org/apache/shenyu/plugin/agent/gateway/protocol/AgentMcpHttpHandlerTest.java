@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
@@ -176,6 +177,87 @@ class AgentMcpHttpHandlerTest {
         ServerWebExchange changed = exchange.mutate().request(exchange.getRequest().mutate().headers(headers -> headers.set(name, value)).build()).build();
         execute(handler(), changed, "{\"maxRequestBytes\":1024}");
         assertEquals(status, changed.getResponse().getStatusCode().value());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "json|application/json, text/event-stream|200",
+        "sse|application/json, text/event-stream|200",
+        "json|text/event-stream;q=0.5, application/json;q=0.8|200",
+        "sse|text/event-stream;q=0.5, application/json;q=0.8|200",
+        "json|APPLICATION/JSON, TEXT/EVENT-STREAM|200",
+        "sse|APPLICATION/JSON, TEXT/EVENT-STREAM|200",
+        "json|application/json|406",
+        "sse|application/json|406",
+        "json|text/event-stream|406",
+        "sse|text/event-stream|406",
+        "json|MISSING|406",
+        "sse|MISSING|406",
+        "json|*/*|406",
+        "sse|*/*|406",
+        "json|application/*, text/*|406",
+        "sse|application/*, text/*|406",
+        "json|application/json;q=0, text/event-stream|406",
+        "sse|application/json;q=0, text/event-stream|406",
+        "json|application/json, text/event-stream;q=0|406",
+        "sse|application/json, text/event-stream;q=0|406",
+        "json|application/json;q=0, text/event-stream;q=0|406",
+        "sse|application/json;q=0, text/event-stream;q=0|406",
+        "json|broken|400",
+        "sse|broken|400"
+    }, delimiter = '|')
+    void shouldRequireBothAcceptTypesRegardlessOfResponseMode(final String mode, final String accept, final int status) {
+        AtomicBoolean read = new AtomicBoolean();
+        AtomicBoolean resolved = new AtomicBoolean();
+        AtomicInteger invoked = new AtomicInteger();
+        AgentToolProvider tool = provider(input -> {
+            invoked.incrementAndGet();
+            return Mono.just(input.getArguments());
+        });
+        AgentMcpHttpHandler handler = handler(next -> {
+            resolved.set(true);
+            return Mono.just(new AgentMcpIdentity("owner", Set.of("read")));
+        }, tool);
+        MockServerWebExchange original = MockServerWebExchange.from(builder(HttpMethod.POST, "tools/call")
+                .body(Flux.defer(() -> {
+                    read.set(true);
+                    return Flux.just(new DefaultDataBufferFactory().wrap(body("tools/call").getBytes(StandardCharsets.UTF_8)));
+                })));
+        ServerWebExchange exchange = original.mutate().request(original.getRequest().mutate().headers(headers -> {
+            if ("MISSING".equals(accept)) {
+                headers.remove(HttpHeaders.ACCEPT);
+            } else {
+                headers.set(HttpHeaders.ACCEPT, accept);
+            }
+        }).build()).build();
+        execute(handler, exchange, "{\"responseMode\":\"" + mode + "\"}");
+        assertEquals(status, exchange.getResponse().getStatusCode().value());
+        assertEquals(status == 200, read.get());
+        assertEquals(status == 200, resolved.get());
+        assertEquals(status == 200 ? 1 : 0, invoked.get());
+        if (status == 200) {
+            assertEquals("sse".equals(mode) ? MediaType.TEXT_EVENT_STREAM : MediaType.APPLICATION_JSON,
+                    exchange.getResponse().getHeaders().getContentType());
+            assertTrue(original.getResponse().getBodyAsString().block().contains("\"isError\":false"));
+        } else {
+            verify(tool, never()).validate(org.mockito.ArgumentMatchers.any());
+            assertEquals(MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
+            if (status == 406) {
+                assertTrue(original.getResponse().getBodyAsString().block().contains("Both JSON and SSE must be accepted"));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"json", "sse"})
+    void shouldAcceptBothTypesAcrossMultipleHeaderValues(final String mode) {
+        MockServerWebExchange original = exchange("tools/list", body("tools/list"));
+        ServerWebExchange exchange = original.mutate().request(original.getRequest().mutate()
+                .headers(headers -> headers.put(HttpHeaders.ACCEPT, List.of("application/json", "text/event-stream"))).build()).build();
+        execute(handler(), exchange, "{\"responseMode\":\"" + mode + "\"}");
+        assertEquals(200, exchange.getResponse().getStatusCode().value());
+        assertEquals("sse".equals(mode) ? MediaType.TEXT_EVENT_STREAM : MediaType.APPLICATION_JSON,
+                exchange.getResponse().getHeaders().getContentType());
     }
 
     @Test
