@@ -500,12 +500,13 @@ public class ShenyuWebsocketClientTest {
         verify(client, times(2)).close();
         verify(client, never()).nowClose();
 
-        // a successful apply resets the counter and restores bounded recovery
+        // A single successful legacy payload cannot prove a full-cycle recovery.
         doNothing().when(handler).executor(any(), anyString(), anyString());
         client.onMessage(json);
+        assertEquals(3, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         doThrow(new RuntimeException("poison again")).when(handler).executor(any(), anyString(), anyString());
         client.onMessage(json);
-        verify(client, times(3)).close();
+        verify(client, times(2)).close();
         verify(client, never()).nowClose();
     }
 
@@ -561,7 +562,7 @@ public class ShenyuWebsocketClientTest {
         verify(client).send(DataEventTypeEnum.MYSELF.name());
         doNothing().when(handler).executor(any(), anyString(), anyString());
         client.onMessage(json);
-        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(3, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         verify(client, never()).nowClose();
     }
 
@@ -647,7 +648,63 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
-    void testSuccessfulSyncResetsFailureCounter() {
+    void testLegacyGoodThenPoisonSnapshotReachesCooldown() {
+        assertUnframedReplayIsBounded(false);
+    }
+
+    @Test
+    void testStandaloneGoodThenPoisonSnapshotReachesCooldown() {
+        assertUnframedReplayIsBounded(true);
+    }
+
+    private void assertUnframedReplayIsBounded(final boolean fullSnapshot) {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doReturn(false).when(client).isOpen();
+        doNothing().when(client).send(anyString());
+        setField(client, "namespaceId", "namespace-a");
+        WebsocketDataHandler handler = getHandler(client);
+        String envelope = "{\"groupType\":\"PLUGIN\",\"eventType\":\"MYSELF\","
+                + "\"namespaceId\":\"namespace-a\",\"fullSnapshot\":" + fullSnapshot + ",\"data\":";
+        String good = envelope + "[]}";
+        String poison = envelope + "[{\"id\":\"poison\"}]}";
+        org.mockito.stubbing.Answer<Void> apply = invocation -> {
+            if (!"[]".equals(invocation.getArgument(1))) {
+                throw new IllegalStateException("same poison item on every replay");
+            }
+            return null;
+        };
+        if (fullSnapshot) {
+            doAnswer(apply).when(handler).snapshot(any(), anyString(), anyString(), anyString());
+        } else {
+            doAnswer(apply).when(handler).executor(any(), anyString(), anyString());
+        }
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            client.onOpen(mock(ServerHandshake.class));
+            client.onMessage(good);
+            assertEquals(attempt - 1, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+            client.onMessage(poison);
+            assertEquals(attempt, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        }
+        verify(client, times(2)).close();
+        long deadline = (long) getField(client, "nextSyncRetryAt");
+        assertTrue(deadline - System.nanoTime() > 0);
+        client.onMessage(good);
+        assertEquals(3, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(deadline, getField(client, "nextSyncRetryAt"));
+        client.onMessage(poison);
+        assertEquals(deadline, getField(client, "nextSyncRetryAt"));
+        invokePrivate(client, "healthCheck");
+        verify(client, times(2)).close();
+        setField(client, "nextSyncRetryAt", System.nanoTime() - 1);
+        invokePrivate(client, "healthCheck");
+        verify(client, times(3)).close();
+        client.onOpen(mock(ServerHandshake.class));
+        verify(client, times(4)).send(DataEventTypeEnum.MYSELF.name());
+        verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testSuccessfulLegacyPayloadPreservesFailureCounter() {
         ShenyuWebsocketClient client = createSyncTestClient();
         doNothing().when(client).close();
         WebsocketDataHandler handler = getHandler(client);
@@ -660,6 +717,7 @@ public class ShenyuWebsocketClientTest {
         doThrow(new RuntimeException("transient again")).when(handler).executor(any(), anyString(), anyString());
         client.onMessage(json);
 
+        assertEquals(2, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         verify(client, times(2)).close();
         verify(client, never()).nowClose();
     }

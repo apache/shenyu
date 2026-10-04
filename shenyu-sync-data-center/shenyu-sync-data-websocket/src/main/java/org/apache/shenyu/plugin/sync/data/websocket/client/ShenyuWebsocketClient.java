@@ -468,10 +468,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             } else {
                 websocketDataHandler.executor(groupEnum, json, eventType);
             }
-            // A good payload cannot forgive earlier failed full-sync attempts.
-            if (Objects.isNull(initialSyncState) || initialSyncState.isComplete()) {
-                resetSyncFailures();
-            }
+            // Individual payloads, including legacy MYSELF and standalone snapshots,
+            // cannot prove that the complete sync cycle succeeded. Only the framed
+            // completion callback may reset the failure budget and cooldown.
         } catch (RuntimeException ex) {
             handleSyncFailure(ex, groupEnum.name(), eventType);
             if (org.apache.shenyu.common.utils.InitialSyncApplication.isActive()) {
