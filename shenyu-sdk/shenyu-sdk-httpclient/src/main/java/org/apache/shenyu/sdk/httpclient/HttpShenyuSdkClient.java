@@ -30,7 +30,6 @@ import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
-import org.apache.http.nio.client.HttpAsyncClient;
 import org.apache.http.nio.conn.NoopIOSessionStrategy;
 import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
@@ -51,6 +50,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 /**
  * shenyu httpclient.
  */
-@Join
+@Join(isSingleton = false)
 public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpShenyuSdkClient.class);
@@ -69,7 +69,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private RequestConfig requestConfig;
 
-    private HttpAsyncClient httpAsyncClient;
+    private CloseableHttpAsyncClient httpAsyncClient;
 
     @Override
     protected void initClient(final Properties props) {
@@ -98,12 +98,25 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
         }
     }
 
-    private HttpAsyncClient getHttpClient() {
+    private CloseableHttpAsyncClient getHttpClient() {
         CloseableHttpAsyncClient client = HttpAsyncClients.custom().setDefaultRequestConfig(requestConfig)
                 .setConnectionManager(connectionManager)
                 .build();
         client.start();
         return client;
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            if (Objects.nonNull(httpAsyncClient)) {
+                httpAsyncClient.close();
+            }
+        } finally {
+            if (Objects.nonNull(connectionManager)) {
+                connectionManager.shutdown();
+            }
+        }
     }
 
     @Override

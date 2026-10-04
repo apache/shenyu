@@ -63,12 +63,14 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -78,6 +80,9 @@ import java.util.stream.Collectors;
 public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxySelectorServiceImpl.class);
+
+    // Stay below Oracle's 1000-expression IN limit, including for large requested pages.
+    private static final int QUERY_BATCH_SIZE = 500;
 
     private final ProxySelectorMapper proxySelectorMapper;
 
@@ -119,6 +124,20 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public CommonPager<ProxySelectorVO> listByPage(final ProxySelectorQuery query) {
         List<ProxySelectorVO> result = Lists.newArrayList();
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
+        if (proxySelectorDOList.isEmpty()) {
+            return PageResultUtils.result(query.getPageParameter(), () -> result);
+        }
+        List<String> selectorIds = proxySelectorDOList.stream().map(ProxySelectorDO::getId).collect(Collectors.toList());
+        Map<String, DiscoveryRelDO> relations = queryBatches(selectorIds, discoveryRelMapper::selectByProxySelectorIds).stream()
+                .collect(Collectors.toMap(DiscoveryRelDO::getProxySelectorId, relation -> relation));
+        List<String> handlerIds = relations.values().stream().map(DiscoveryRelDO::getDiscoveryHandlerId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryHandlerDO> handlers = queryBatches(handlerIds, discoveryHandlerMapper::selectByIds).stream()
+                .collect(Collectors.toMap(DiscoveryHandlerDO::getId, handler -> handler));
+        List<String> discoveryIds = handlers.values().stream().map(DiscoveryHandlerDO::getDiscoveryId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        Map<String, DiscoveryDO> discoveries = queryBatches(discoveryIds, discoveryMapper::selectByIds).stream()
+                .collect(Collectors.toMap(DiscoveryDO::getId, discovery -> discovery));
+        Map<String, List<DiscoveryUpstreamDO>> upstreams = queryBatches(Lists.newArrayList(handlers.keySet()), discoveryUpstreamMapper::selectByDiscoveryHandlerIds).stream()
+                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
@@ -129,17 +148,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
             vo.setProps(proxySelectorDO.getProps());
-            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
+            DiscoveryRelDO discoveryRelDO = relations.get(proxySelectorDO.getId());
             if (Objects.nonNull(discoveryRelDO)) {
-                DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
+                DiscoveryHandlerDO discoveryHandlerDO = handlers.get(discoveryRelDO.getDiscoveryHandlerId());
                 if (Objects.nonNull(discoveryHandlerDO)) {
                     vo.setDiscoveryHandlerId(discoveryHandlerDO.getId());
                     vo.setListenerNode(discoveryHandlerDO.getListenerNode());
                     vo.setHandler(discoveryHandlerDO.getHandler());
-                    DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                    DiscoveryDO discoveryDO = discoveries.get(discoveryHandlerDO.getDiscoveryId());
                     DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
                     vo.setDiscovery(discoveryDTO);
-                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = upstreams.getOrDefault(discoveryRelDO.getDiscoveryHandlerId(), Collections.emptyList());
                     Optional.ofNullable(discoveryUpstreamDOList).ifPresent(list -> {
                         List<DiscoveryUpstreamVO> upstreamVOS = list.stream().map(DiscoveryTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
                         vo.setDiscoveryUpstreams(upstreamVOS);
@@ -149,6 +168,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             result.add(vo);
         });
         return PageResultUtils.result(query.getPageParameter(), () -> result);
+    }
+
+    private <T> List<T> queryBatches(final List<String> ids, final Function<List<String>, List<T>> query) {
+        List<T> result = Lists.newArrayList();
+        for (List<String> batch : Lists.partition(ids, QUERY_BATCH_SIZE)) {
+            result.addAll(query.apply(batch));
+        }
+        return result;
     }
 
     /**
