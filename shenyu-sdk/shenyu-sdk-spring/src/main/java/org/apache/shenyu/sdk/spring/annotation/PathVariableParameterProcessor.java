@@ -50,24 +50,24 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
         if (arg instanceof String) {
             String varName = "{" + name + "}";
             String varNameRegex = "\\{" + name + "\\}";
-            if (requestTemplate.getPath().contains(varName)) {
-                shenyuRequest.setUrl(requestTemplate.getUrl() + RegExUtils.replaceAll(requestTemplate.getPath(), varNameRegex, String.valueOf(arg)));
+            if (shenyuRequest.getUrl().contains(varName)) {
+                shenyuRequest.setUrl(RegExUtils.replaceAll(shenyuRequest.getUrl(), varNameRegex, String.valueOf(arg)));
             }
             return true;
         }
-        String path = requestTemplate.getPath();
+        String url = shenyuRequest.getUrl();
         for (Map.Entry<?, ?> entry : ((Map<?, ?>) arg).entrySet()) {
             final Object key = entry.getKey();
             final Object value = entry.getValue();
             if (key instanceof String && value instanceof String) {
                 String varName = "{" + key + "}";
                 String varNameRegex = "\\{" + key + "\\}";
-                if (path.contains(varName)) {
-                    path = RegExUtils.replaceAll(path, varNameRegex, (String) value);
+                if (url.contains(varName)) {
+                    url = RegExUtils.replaceAll(url, varNameRegex, (String) value);
                 }
             }
         }
-        shenyuRequest.setUrl(requestTemplate.getUrl() + path);
+        shenyuRequest.setUrl(url);
         return true;
     }
 }
