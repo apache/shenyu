@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -45,8 +46,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -560,6 +563,87 @@ public class ShenyuWebsocketClientTest {
         client.onMessage(json);
         assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testGoodThenPoisonSnapshotReachesCooldownAndRecovers() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doReturn(false).when(client).isOpen();
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready, () -> invokePrivate(client, "resetSyncFailures"));
+        setField(client, "initialSyncState", state);
+        AtomicReference<String> request = new AtomicReference<>();
+        doAnswer(invocation -> {
+            String message = invocation.getArgument(0);
+            if (message.startsWith(WebsocketSyncFrame.REQUEST_PREFIX)) {
+                request.set(message.substring(WebsocketSyncFrame.REQUEST_PREFIX.length()));
+            }
+            return null;
+        }).when(client).send(anyString());
+        String good = "{\"groupType\":\"PLUGIN\",\"eventType\":\"REFRESH\",\"data\":[]}";
+        String poison = "{\"groupType\":\"PLUGIN\",\"eventType\":\"REFRESH\",\"data\":[{\"id\":\"poison\"}]}";
+        doAnswer(invocation -> {
+            if (!"[]".equals(invocation.getArgument(1))) {
+                throw new IllegalStateException("same poison item on every replay");
+            }
+            return null;
+        }).when(getHandler(client)).executor(any(), anyString(), anyString());
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            client.onOpen(mock(ServerHandshake.class));
+            sendSyncFrame(client, request.get(), 0, good);
+            client.onMessage(good);
+            assertEquals(attempt - 1, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+            sendSyncFrame(client, request.get(), 1, poison);
+            sendSyncFrame(client, request.get(), 2, null);
+            assertEquals(attempt, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+            assertFalse(ready.get());
+        }
+        verify(client, times(2)).close();
+        long deadline = (long) getField(client, "nextSyncRetryAt");
+        assertTrue(deadline - System.nanoTime() > 0);
+        invokePrivate(client, "healthCheck");
+        verify(client, times(2)).close();
+        setField(client, "nextSyncRetryAt", System.nanoTime() - 1);
+        invokePrivate(client, "healthCheck");
+        verify(client, times(3)).close();
+        doNothing().when(getHandler(client)).executor(any(), anyString(), anyString());
+        client.onOpen(mock(ServerHandshake.class));
+        sendSyncFrame(client, request.get(), 0, good);
+        sendSyncFrame(client, request.get(), 1, poison);
+        assertEquals(3, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        sendSyncFrame(client, request.get(), 2, null);
+        assertTrue(ready.get());
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(0L, getField(client, "nextSyncRetryAt"));
+        verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testFullSyncBudgetResetsOnlyAfterDeferredApplicationCompletes() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready, () -> invokePrivate(client, "resetSyncFailures"));
+        setField(client, "initialSyncState", state);
+        ((AtomicInteger) getField(client, "consecutiveSyncFailures")).set(2);
+        setField(client, "nextSyncRetryAt", System.nanoTime() + 60_000_000_000L);
+        CompletableFuture<Void> pending = new CompletableFuture<>();
+        doAnswer(invocation -> {
+            InitialSyncApplication.register(pending);
+            return null;
+        }).when(getHandler(client)).executor(any(), anyString(), anyString());
+        String request = state.begin();
+        sendSyncFrame(client, request, 0, GsonUtils.getInstance().toJson(websocketData));
+        sendSyncFrame(client, request, 1, null);
+        assertFalse(ready.get());
+        assertEquals(2, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        pending.complete(null);
+        assertTrue(ready.get());
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(0L, getField(client, "nextSyncRetryAt"));
+    }
+
+    private void sendSyncFrame(final ShenyuWebsocketClient client, final String request, final int sequence, final String payload) {
+        client.onMessage(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(request, sequence, payload)));
     }
 
     @Test

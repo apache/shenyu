@@ -212,7 +212,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final AtomicBoolean initialSyncReady) {
         super(serverUri, headers);
         if (Objects.nonNull(initialSyncReady)) {
-            this.initialSyncState = new InitialSyncState(initialSyncReady);
+            this.initialSyncState = new InitialSyncState(initialSyncReady, this::resetSyncFailures);
         }
         this.namespaceId = namespaceId;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
@@ -468,13 +468,21 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             } else {
                 websocketDataHandler.executor(groupEnum, json, eventType);
             }
-            consecutiveSyncFailures.set(0);
+            // A good payload cannot forgive earlier failed full-sync attempts.
+            if (Objects.isNull(initialSyncState) || initialSyncState.isComplete()) {
+                resetSyncFailures();
+            }
         } catch (RuntimeException ex) {
             handleSyncFailure(ex, groupEnum.name(), eventType);
             if (org.apache.shenyu.common.utils.InitialSyncApplication.isActive()) {
                 throw ex;
             }
         }
+    }
+
+    private void resetSyncFailures() {
+        consecutiveSyncFailures.set(0);
+        nextSyncRetryAt = 0;
     }
 
     /**
