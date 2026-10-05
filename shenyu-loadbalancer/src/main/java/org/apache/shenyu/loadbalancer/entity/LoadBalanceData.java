@@ -19,7 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -33,13 +33,13 @@ public class LoadBalanceData {
     
     private URI url;
     
-    private Map<String, Collection<String>> headers = new HashMap<>();
+    private Map<String, Collection<String>> headers = Collections.emptyMap();
     
-    private Map<String, String> cookies = new HashMap<>();
+    private Map<String, String> cookies = Collections.emptyMap();
     
-    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, Object> attributes = Collections.emptyMap();
     
-    private Map<String, Collection<String>> queryParams = new HashMap<>();
+    private Map<String, Collection<String>> queryParams = Collections.emptyMap();
     
     /**
      * Instantiates a new Load balance data.

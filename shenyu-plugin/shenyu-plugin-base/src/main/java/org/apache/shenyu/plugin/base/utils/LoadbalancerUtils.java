@@ -17,19 +17,14 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,31 +68,14 @@ public final class LoadbalancerUtils {
                 .map(address -> address.getHostAddress())
                 .orElse("127.0.0.1");
         String httpMethod = Optional.ofNullable(request.getMethod()).map(method -> method.name()).orElse("GET");
-        URI uri = exchange.getRequest().getURI();
-        HttpHeaders headers = request.getHeaders();
-        MultiValueMap<String, HttpCookie> cookies = request.getCookies();
+        URI uri = request.getURI();
         Map<String, Object> attributes = exchange.getAttributes();
-        MultiValueMap<String, String> queryParams = request.getQueryParams();
+        // Only the ip is read by a load balancer (hash); copying headers, cookies and query
+        // params here would allocate maps per request without any consumer.
         return new LoadBalanceData(httpMethod, ip, uri,
-                buildMultiValueMap(headers),
-                buildCookies(cookies),
+                Collections.emptyMap(),
+                Collections.emptyMap(),
                 attributes,
-                buildMultiValueMap(queryParams));
-    }
-    
-    private static Map<String, Collection<String>> buildMultiValueMap(final MultiValueMap<String, String> queryParams) {
-        Map<String, Collection<String>> resultMap = new HashMap<>();
-        if (MapUtils.isNotEmpty(queryParams)) {
-            resultMap.putAll(queryParams);
-        }
-        return resultMap;
-    }
-    
-    private static Map<String, String> buildCookies(final MultiValueMap<String, HttpCookie> cookies) {
-        Map<String, String> resultMap = new HashMap<>();
-        if (MapUtils.isNotEmpty(cookies)) {
-            cookies.forEach((key, value) -> value.forEach((cookie) -> resultMap.put(cookie.getName(), cookie.getValue())));
-        }
-        return resultMap;
+                Collections.emptyMap());
     }
 }
