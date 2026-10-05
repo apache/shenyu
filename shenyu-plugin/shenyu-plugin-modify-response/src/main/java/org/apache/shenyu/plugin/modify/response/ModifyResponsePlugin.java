@@ -146,7 +146,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                 Map<String, String> replaceHeaderMap = this.ruleHandle.getReplaceHeaderKeys();
                 replaceHeaderMap.forEach((key, value) -> {
                     List<String> values = httpHeaders.get(key);
-                    if (Objects.nonNull(values)) {
+                    // HttpHeaders is case-insensitive, so an equal or case-only-different
+                    // target key would make the trailing remove drop the header entirely
+                    if (Objects.nonNull(values) && !key.equalsIgnoreCase(value)) {
                         httpHeaders.addAll(value, values);
                         httpHeaders.remove(key);
                     }

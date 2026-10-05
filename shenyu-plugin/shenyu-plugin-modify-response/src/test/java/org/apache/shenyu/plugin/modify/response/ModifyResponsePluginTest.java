@@ -192,6 +192,36 @@ public final class ModifyResponsePluginTest {
     }
 
     @Test
+    public void testReplaceHeaderKeysSameKeyIsNoOp() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Keep", "X-Keep"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Keep", "abc");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(Collections.singletonList("abc"), response.getHeaders().get("X-Keep"));
+    }
+
+    @Test
+    public void testReplaceHeaderKeysCaseOnlyRenameIsNoOp() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Keep", "x-keep"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Keep", "abc");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(Collections.singletonList("abc"), response.getHeaders().get("X-Keep"));
+    }
+
+    @Test
     public void testWriteWithSkipsBodyRulesForNonJsonResponse() {
         final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
         responseRuleHandle.setRemoveBodyKeys(Collections.singleton("$.value"));
