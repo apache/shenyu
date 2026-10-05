@@ -200,8 +200,10 @@ public final class ContextPathParserTest {
     }
 
     /**
-     * Test that parsing an ingress with empty-string annotation value
-     * is treated as non-null and produces a rule.
+     * Test that parsing an ingress with an empty-string context-path annotation
+     * is treated as blank (same as missing annotation) and produces no rules.
+     * An empty annotation value is likely a misconfiguration, so it is skipped
+     * consistent with the null-guard behavior from issue #6863.
      */
     @Test
     public void testParseWithEmptyStringContextPathAnnotation() {
@@ -241,17 +243,10 @@ public final class ContextPathParserTest {
         ShenyuMemoryConfig result = contextPathParser.parse(ingress, coreV1Api);
         List<IngressConfiguration> routeConfigs = result.getRouteConfigList();
 
-        Assertions.assertNotNull(routeConfigs);
-        Assertions.assertEquals(1, routeConfigs.size());
-
-        IngressConfiguration routeConfig = routeConfigs.get(0);
-        List<RuleData> ruleDataList = routeConfig.getRuleDataList();
-
-        // Empty string is still a valid value (not null), so a rule is created
-        // with paramValue "/**" (empty + "/**").
-        Assertions.assertFalse(ruleDataList.isEmpty());
-        Assertions.assertEquals(1, ruleDataList.size());
-        Assertions.assertEquals("", ruleDataList.get(0).getName());
-        Assertions.assertEquals("/**", ruleDataList.get(0).getConditionDataList().get(0).getParamValue());
+        // Empty string is treated as blank (same as missing annotation),
+        // so no route configurations should be produced.
+        Assertions.assertTrue(
+                Objects.isNull(routeConfigs) || routeConfigs.isEmpty(),
+                "No route configs should be produced when context-path annotation is empty");
     }
 }
