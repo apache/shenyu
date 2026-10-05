@@ -46,6 +46,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,6 +132,13 @@ public final class DiscoveryUpstreamControllerTest {
                         .content(GsonUtils.getInstance().toJson(dtoList)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    public void testBatchDelegatesToTransactionalService() {
+        List<DiscoveryUpstreamDTO> upstreams = List.of(buildDTO("handler"));
+        discoveryUpstreamController.createDiscoveryUpstreamList(upstreams);
+        verify(discoveryUpstreamService).createOrUpdateBatch(upstreams);
     }
 
     private DiscoveryUpstreamDTO buildDTO(final String discoveryHandlerId) {

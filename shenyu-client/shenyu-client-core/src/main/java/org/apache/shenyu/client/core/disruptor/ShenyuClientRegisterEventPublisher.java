@@ -27,6 +27,8 @@ import org.apache.shenyu.disruptor.provider.DisruptorProvider;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
+import java.util.Objects;
+
 /**
  * The type shenyu client register event publisher.
  */
@@ -35,8 +37,6 @@ public class ShenyuClientRegisterEventPublisher {
     private static final ShenyuClientRegisterEventPublisher INSTANCE = new ShenyuClientRegisterEventPublisher();
 
     private volatile DisruptorProviderManage<DataTypeParent> providerManage;
-
-    private boolean initialized;
 
     /**
      * Get instance.
@@ -53,18 +53,48 @@ public class ShenyuClientRegisterEventPublisher {
      * @param shenyuClientRegisterRepository shenyuClientRegisterRepository
      */
     public synchronized void start(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        if (initialized) {
+        if (Objects.nonNull(providerManage)) {
             return;
         }
         RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
-        factory.addSubscribers(new ShenyuClientURIExecutorSubscriber(shenyuClientRegisterRepository));
+        ShenyuClientURIExecutorSubscriber uriSubscriber = createUriSubscriber(shenyuClientRegisterRepository);
+        factory.addSubscribers(uriSubscriber);
         factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientMcpExecutorSubscriber(shenyuClientRegisterRepository));
-        DisruptorProviderManage<DataTypeParent> newProviderManage = new DisruptorProviderManage<>(factory);
-        newProviderManage.startup();
-        providerManage = newProviderManage;
-        initialized = true;
+        DisruptorProviderManage<DataTypeParent> manage = createProviderManage(factory);
+        try {
+            manage.startup();
+            uriSubscriber.start();
+            providerManage = manage;
+        } catch (RuntimeException ex) {
+            uriSubscriber.shutdown();
+            DisruptorProvider<DataTypeParent> provider = manage.getProvider();
+            if (Objects.nonNull(provider)) {
+                provider.shutdown();
+            }
+            throw ex;
+        }
+    }
+
+    /**
+     * Create URI subscriber.
+     *
+     * @param repository register repository
+     * @return URI subscriber
+     */
+    protected ShenyuClientURIExecutorSubscriber createUriSubscriber(final ShenyuClientRegisterRepository repository) {
+        return new ShenyuClientURIExecutorSubscriber(repository);
+    }
+
+    /**
+     * Create provider manager.
+     *
+     * @param factory consumer executor factory
+     * @return provider manager
+     */
+    protected DisruptorProviderManage<DataTypeParent> createProviderManage(final RegisterClientExecutorFactory<DataTypeParent> factory) {
+        return new DisruptorProviderManage<>(factory);
     }
 
     /**

@@ -84,6 +84,18 @@ public final class AiTokenLimiterPluginHandlerTest {
         assertNull(redisTemplate());
     }
 
+    @Test
+    public void testRemovePluginReleasesTheClient() {
+        AiTokenLimiterPluginHandler handler = new AiTokenLimiterPluginHandler();
+        handler.handlerPlugin(pluginData("127.0.0.1:6379"));
+        ReactiveRedisTemplate<?, ?> cached = redisTemplate();
+        assertNotNull(cached);
+
+        handler.removePlugin(new PluginData());
+        assertFalse(lettuceFactory(cached).isRunning());
+        assertNull(redisTemplate());
+    }
+
     private ReactiveRedisTemplate<?, ?> redisTemplate() {
         return AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get()
                 .obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
