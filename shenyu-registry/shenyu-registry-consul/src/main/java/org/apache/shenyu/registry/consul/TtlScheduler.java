@@ -95,9 +95,15 @@ public class TtlScheduler {
 
         @Override
         public void run() {
-            TtlScheduler.this.client.agentCheckPass(this.checkId);
-            if (log.isDebugEnabled()) {
-                log.debug("Sending consul heartbeat for: " + this.checkId);
+            try {
+                TtlScheduler.this.client.agentCheckPass(this.checkId);
+                if (log.isDebugEnabled()) {
+                    log.debug("Sending consul heartbeat for: " + this.checkId);
+                }
+            } catch (Exception e) {
+                // an exception escaping a fixed-rate task suppresses all later executions,
+                // so a single failed heartbeat must only be logged to keep beating
+                log.error("Sending consul heartbeat for: " + this.checkId + " failed", e);
             }
         }
     }
