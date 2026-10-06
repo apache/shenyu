@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
@@ -309,6 +310,83 @@ class AgentMcpHttpHandlerTest {
         assertEquals(0, calls.get());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "json,legacy-version,400,-32022", "sse,legacy-version,400,-32022",
+        "json,unknown-version,400,-32022", "sse,unknown-version,400,-32022",
+        "json,unknown-method,404,-32601", "sse,unknown-method,404,-32601",
+        "json,notification,400,-32600", "sse,notification,400,-32600",
+        "json,batch,400,-32600", "sse,batch,400,-32600",
+        "json,cursor,400,-32602", "sse,cursor,400,-32602",
+        "json,header-mismatch,400,-32020", "sse,header-mismatch,400,-32020",
+        "json,invalid-capabilities,400,-32602", "sse,invalid-capabilities,400,-32602"
+    })
+    void shouldPreserveToolsOnlyHttpErrorContract(final String mode, final String scenario, final int status, final int code) {
+        String method = "unknown-method".equals(scenario) ? "initialize" : "cursor".equals(scenario) ? "tools/list" : "tools/call";
+        JsonObject request = JsonParser.parseString(body(method)).getAsJsonObject();
+        JsonObject params = request.getAsJsonObject("params");
+        String version = scenario.endsWith("-version") ? "legacy-version".equals(scenario) ? "2025-06-18" : "1900-01-01" : AgentMcpRequestParser.VERSION;
+        MockServerHttpRequest.BodyBuilder headers = MockServerHttpRequest.method(HttpMethod.POST, "/agent");
+        headers.contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.ACCEPT, "application/json, text/event-stream")
+                .header("MCP-Protocol-Version", version).header("Mcp-Method", method);
+        if ("tools/call".equals(method)) {
+            headers.header("Mcp-Name", "header-mismatch".equals(scenario) ? "another-tool" : "read");
+        }
+        if (scenario.endsWith("-version")) {
+            params.getAsJsonObject("_meta").addProperty("io.modelcontextprotocol/protocolVersion", version);
+        } else if ("notification".equals(scenario)) {
+            request.remove("id");
+        } else if ("cursor".equals(scenario)) {
+            params.addProperty("cursor", "");
+        } else if ("invalid-capabilities".equals(scenario)) {
+            params.getAsJsonObject("_meta").addProperty("io.modelcontextprotocol/clientCapabilities", false);
+        }
+        String payload = "batch".equals(scenario) ? "[" + request + "]" : request.toString();
+        AgentToolProvider tool = provider(input -> Mono.just(input.getArguments()));
+        MockServerWebExchange exchange = MockServerWebExchange.from(headers.body(payload));
+        execute(handler(tool), exchange, "{\"responseMode\":\"" + mode + "\"}");
+        assertEquals(status, exchange.getResponse().getStatusCode().value());
+        assertEquals(MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
+        assertFalse(exchange.getResponse().getHeaders().containsKey("Mcp-Session-Id"));
+        JsonObject response = JsonParser.parseString(exchange.getResponse().getBodyAsString().block()).getAsJsonObject();
+        assertEquals(code, response.getAsJsonObject("error").get("code").getAsInt());
+        if ("notification".equals(scenario) || "batch".equals(scenario)) {
+            assertTrue(response.get("id").isJsonNull());
+        } else {
+            assertEquals("client-id", response.get("id").getAsString());
+        }
+        if (scenario.endsWith("-version")) {
+            assertEquals(AgentMcpRequestParser.VERSION, response.getAsJsonObject("error").getAsJsonObject("data").getAsJsonArray("supported").get(0).getAsString());
+        }
+        verify(tool, never()).validate(org.mockito.ArgumentMatchers.any());
+        verify(tool, never()).invoke(org.mockito.ArgumentMatchers.any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"json", "sse"})
+    void shouldWriteBusinessFailureInChosenResponseModeWithoutRetry(final String mode) {
+        AtomicInteger calls = new AtomicInteger();
+        AgentToolProvider tool = provider(input -> {
+            calls.incrementAndGet();
+            return Mono.error(new AgentToolExecutionException("provider-private-diagnostic"));
+        });
+        MockServerWebExchange exchange = exchange("tools/call", body("tools/call"));
+        execute(handler(tool), exchange, "{\"responseMode\":\"" + mode + "\"}");
+        assertEquals(200, exchange.getResponse().getStatusCode().value());
+        assertEquals("sse".equals(mode) ? MediaType.TEXT_EVENT_STREAM : MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
+        String payload = exchange.getResponse().getBodyAsString().block();
+        assertFalse(payload.contains("provider-private-diagnostic"));
+        if ("sse".equals(mode)) {
+            assertEquals(1, payload.split("event: message", -1).length - 1);
+            payload = payload.substring(payload.indexOf("data: ") + 6).trim();
+        }
+        JsonObject response = JsonParser.parseString(payload).getAsJsonObject();
+        assertEquals("client-id", response.get("id").getAsString());
+        assertFalse(response.has("error"));
+        assertTrue(response.getAsJsonObject("result").get("isError").getAsBoolean());
+        assertEquals(1, calls.get());
+    }
+
     @Test
     void shouldReleasePooledBodyOnNormalCompletionAndOverflow() {
         NettyDataBuffer normal = pooled(body("tools/list"));
@@ -423,8 +501,10 @@ class AgentMcpHttpHandlerTest {
         AgentToolProvider tool = provider(input -> "A".equals(input.getSubject())
                 ? Mono.<JsonObject>never().doOnSubscribe(subscription -> started.set(true)).doOnCancel(() -> cancelled.set(true)) : survivor.asMono());
         AgentMcpHttpHandler handler = handler(next -> Mono.just(new AgentMcpIdentity(next.getRequest().getHeaders().getFirst("Test-Verified-Identity"), Set.of("read"))), tool);
-        MockServerWebExchange first = MockServerWebExchange.from(builder(HttpMethod.POST, "tools/call").header("Test-Verified-Identity", "A").body(body("tools/call")));
-        MockServerWebExchange second = MockServerWebExchange.from(builder(HttpMethod.POST, "tools/call").header("Test-Verified-Identity", "B").body(body("tools/call")));
+        MockServerWebExchange first = MockServerWebExchange.from(builder(HttpMethod.POST, "tools/call").header("Test-Verified-Identity", "A")
+                .header("Mcp-Session-Id", "client-chosen-session").body(body("tools/call")));
+        MockServerWebExchange second = MockServerWebExchange.from(builder(HttpMethod.POST, "tools/call").header("Test-Verified-Identity", "B")
+                .header("Mcp-Session-Id", "client-chosen-session").body(body("tools/call")));
         StepVerifier.create(handler.handle(second, config("{}"), traffic, 7)).then(() -> {
             StepVerifier.create(handler.handle(first, config("{}"), traffic, 7)).then(() -> assertTrue(started.get())).thenCancel().verify();
             assertTrue(cancelled.get());
