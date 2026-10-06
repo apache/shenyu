@@ -17,22 +17,27 @@
 
 package org.apache.shenyu.k8s.parser;
 
-import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.cache.Indexer;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
-import io.kubernetes.client.openapi.models.V1IngressBuilder;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPathBuilder;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBuilder;
+import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
+import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
+import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,212 +46,180 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link ContextPathParser}.
+ * Test for {@link ContextPathParser}.
  */
-public final class ContextPathParserTest {
+public class ContextPathParserTest {
 
-    private SharedIndexInformer<V1Service> serviceInformer;
+    private static final String NAMESPACE = "context-path-namespace";
 
-    private SharedIndexInformer<V1Endpoints> endpointsInformer;
+    private Lister<V1Service> serviceLister;
 
-    private ContextPathParser contextPathParser;
-
-    private CoreV1Api coreV1Api;
+    private Lister<V1Endpoints> endpointsLister;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     public void setUp() {
-        serviceInformer = mock(SharedIndexInformer.class);
-        endpointsInformer = mock(SharedIndexInformer.class);
-
-        Lister<V1Service> serviceLister = mock(Lister.class);
-        when(serviceInformer.getIndexer()).thenReturn(mock(io.kubernetes.client.informer.cache.Indexer.class));
-
-        Lister<V1Endpoints> endpointsLister = mock(Lister.class);
-        when(endpointsInformer.getIndexer()).thenReturn(mock(io.kubernetes.client.informer.cache.Indexer.class));
-
-        contextPathParser = new ContextPathParser(serviceLister, endpointsLister);
-        coreV1Api = mock(CoreV1Api.class);
+        serviceLister = new Lister<>(mock(Indexer.class));
+        endpointsLister = new Lister<>(mock(Indexer.class));
     }
 
-    /**
-     * Test that parsing an ingress without the context-path annotation
-     * does NOT produce a rule with "null/**" as the path pattern.
-     * This is the regression test for GitHub issue #6863.
-     */
     @Test
-    public void testParseWithoutContextPathAnnotation() {
-        // Build ingress WITHOUT the context-path annotation
-        V1Ingress ingress = new V1IngressBuilder()
-                .withNewMetadata()
-                .withName("test-ingress")
-                .withNamespace("default")
-                .withAnnotations(Map.of("kubernetes.io/ingress.class", "shenyu"))
-                .endMetadata()
-                .withNewSpec()
-                .withRules(
-                        new V1IngressRuleBuilder()
-                                .withNewHttp()
-                                .withPaths(
-                                        new V1HTTPIngressPathBuilder()
-                                                .withPath("/api")
-                                                .withPathType("Prefix")
-                                                .withNewBackend()
-                                                .withNewService()
-                                                .withName("test-service")
-                                                .withNewPort()
-                                                .withNumber(8080)
-                                                .endPort()
-                                                .endService()
-                                                .endBackend()
-                                                .build()
-                                )
-                                .endHttp()
-                                .build()
-                )
-                .endSpec()
-                .build();
-
-        ShenyuMemoryConfig result = contextPathParser.parse(ingress, coreV1Api);
-        List<IngressConfiguration> routeConfigs = result.getRouteConfigList();
-
-        // When the context-path annotation is absent, no route configurations
-        // should be produced at all — not even selectors without rules.
-        // Before the fix, a phantom ContextPath selector was created (without rules)
-        // because the IngressReconciler persists selectors even when ruleDataList is empty.
-        Assertions.assertTrue(
-                Objects.isNull(routeConfigs) || routeConfigs.isEmpty(),
-                "No route configs should be produced when context-path annotation is absent, "
-                + "but got: " + routeConfigs);
-    }
-
-    /**
-     * Test that parsing an ingress WITH the context-path annotation
-     * produces a valid rule with the correct path pattern.
-     */
-    @Test
-    public void testParseWithContextPathAnnotation() {
-        String contextPath = "/myapp";
-        String addPrefix = "/myapp";
-
+    public void testParseContextPathSelectorAndRule() {
         Map<String, String> annotations = new HashMap<>();
-        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, contextPath);
-        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIX, addPrefix);
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "/api");
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIX, "/prefix");
         annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_ADD_PREFIXED, "true");
 
-        // Build ingress WITH the context-path annotation
-        V1Ingress ingress = new V1IngressBuilder()
-                .withNewMetadata()
-                .withName("test-ingress-with-annotation")
-                .withNamespace("default")
-                .withAnnotations(annotations)
-                .endMetadata()
-                .withNewSpec()
-                .withRules(
-                        new V1IngressRuleBuilder()
-                                .withNewHttp()
-                                .withPaths(
-                                        new V1HTTPIngressPathBuilder()
-                                                .withPath("/api")
-                                                .withPathType("Prefix")
-                                                .withNewBackend()
-                                                .withNewService()
-                                                .withName("test-service")
-                                                .withNewPort()
-                                                .withNumber(8080)
-                                                .endPort()
-                                                .endService()
-                                                .endBackend()
-                                                .build()
-                                )
-                                .endHttp()
-                                .build()
-                )
-                .endSpec()
-                .build();
+        ShenyuMemoryConfig config = parse(createIngress(annotations, createRule("www.example.com",
+                createPath("/context", "Prefix"))));
 
-        ShenyuMemoryConfig result = contextPathParser.parse(ingress, coreV1Api);
-        List<IngressConfiguration> routeConfigs = result.getRouteConfigList();
+        List<IngressConfiguration> routeConfigList = config.getRouteConfigList();
+        assertNotNull(routeConfigList);
+        assertEquals(1, routeConfigList.size());
 
-        Assertions.assertNotNull(routeConfigs);
-        Assertions.assertEquals(1, routeConfigs.size());
+        SelectorData selectorData = routeConfigList.get(0).getSelectorData();
+        assertEquals(PluginEnum.CONTEXT_PATH.getName(), selectorData.getPluginName());
+        assertEquals(String.valueOf(PluginEnum.CONTEXT_PATH.getCode()), selectorData.getPluginId());
+        assertEquals("/context", selectorData.getName());
+        assertEquals(MatchModeEnum.AND.getCode(), selectorData.getMatchMode());
+        assertEquals(2, selectorData.getConditionList().size());
+        assertEquals(ParamTypeEnum.DOMAIN.getName(), selectorData.getConditionList().get(0).getParamType());
+        assertEquals(OperatorEnum.EQ.getAlias(), selectorData.getConditionList().get(0).getOperator());
+        assertEquals("www.example.com", selectorData.getConditionList().get(0).getParamValue());
+        assertEquals(ParamTypeEnum.URI.getName(), selectorData.getConditionList().get(1).getParamType());
+        assertEquals(OperatorEnum.STARTS_WITH.getAlias(), selectorData.getConditionList().get(1).getOperator());
+        assertEquals("/context", selectorData.getConditionList().get(1).getParamValue());
 
-        IngressConfiguration routeConfig = routeConfigs.get(0);
-        List<RuleData> ruleDataList = routeConfig.getRuleDataList();
-
-        // With the annotation, a rule should be present
-        Assertions.assertFalse(ruleDataList.isEmpty(),
-                "Rule list should not be empty when context-path annotation is present");
-        Assertions.assertEquals(1, ruleDataList.size());
-
+        List<RuleData> ruleDataList = routeConfigList.get(0).getRuleDataList();
+        assertEquals(1, ruleDataList.size());
         RuleData ruleData = ruleDataList.get(0);
-        Assertions.assertEquals(contextPath, ruleData.getName());
+        assertEquals("/api", ruleData.getName());
+        assertEquals(PluginEnum.CONTEXT_PATH.getName(), ruleData.getPluginName());
+        assertEquals(MatchModeEnum.AND.getCode(), ruleData.getMatchMode());
+        assertEquals(1, ruleData.getConditionDataList().size());
+        assertEquals(OperatorEnum.PATH_PATTERN.getAlias(), ruleData.getConditionDataList().get(0).getOperator());
+        assertEquals("/api/**", ruleData.getConditionDataList().get(0).getParamValue());
 
-        // Verify the ContextMappingRuleHandle.getContextPath() is set correctly,
-        // so that ContextPathPlugin can use it for prefix stripping
-        ContextMappingRuleHandle ruleHandle = GsonUtils.getInstance()
-                .fromJson(ruleData.getHandle(), ContextMappingRuleHandle.class);
-        Assertions.assertEquals(contextPath, ruleHandle.getContextPath(),
-                "ContextMappingRuleHandle.getContextPath() must equal the annotation value "
-                + "so that ContextPathPlugin can strip the prefix correctly");
-
-        // Verify the path pattern is correct, NOT "null/**"
-        org.apache.shenyu.common.dto.ConditionData condition = ruleData.getConditionDataList().get(0);
-        Assertions.assertEquals(contextPath + "/**", condition.getParamValue(),
-                "Path pattern should be the contextPath + /**, not 'null/**'");
+        ContextMappingRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), ContextMappingRuleHandle.class);
+        assertEquals("/api", ruleHandle.getContextPath());
+        assertEquals("/prefix", ruleHandle.getAddPrefix());
+        assertTrue(ruleHandle.getAddPrefixed());
     }
 
-    /**
-     * Test that parsing an ingress with an empty-string context-path annotation
-     * is treated as blank (same as missing annotation) and produces no rules.
-     * An empty annotation value is likely a misconfiguration, so it is skipped
-     * consistent with the null-guard behavior from issue #6863.
-     */
+    @Test
+    public void testParseRuleHandleDefaults() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "/api");
+
+        ShenyuMemoryConfig config = parse(createIngress(annotations, createRule(null, createPath("/context", "Prefix"))));
+
+        List<RuleData> ruleDataList = config.getRouteConfigList().get(0).getRuleDataList();
+        ContextMappingRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(ruleDataList.get(0).getHandle(), ContextMappingRuleHandle.class);
+        assertEquals("/api", ruleHandle.getContextPath());
+        assertNull(ruleHandle.getAddPrefix());
+        assertFalse(ruleHandle.getAddPrefixed());
+    }
+
+    @Test
+    public void testParsePathTypeToOperatorMapping() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "/api");
+
+        assertEquals(OperatorEnum.EQ.getAlias(), parsePathOperator(annotations, "Exact"));
+        assertEquals(OperatorEnum.STARTS_WITH.getAlias(), parsePathOperator(annotations, "Prefix"));
+        assertEquals(OperatorEnum.MATCH.getAlias(), parsePathOperator(annotations, "ImplementationSpecific"));
+        assertEquals(OperatorEnum.MATCH.getAlias(), parsePathOperator(annotations, "Unknown"));
+    }
+
+    @Test
+    public void testParseIngressRuleWithNullPath() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "/api");
+
+        ShenyuMemoryConfig config = parse(createIngress(annotations, createRule(null, createPath(null, "Prefix"))));
+
+        List<IngressConfiguration> routeConfigList = config.getRouteConfigList();
+        assertNotNull(routeConfigList);
+        assertEquals(0, routeConfigList.size());
+    }
+
+    @Test
+    public void testParseIngressWithoutRules() {
+        V1Ingress ingress = new V1IngressBuilder()
+                .withNewMetadata().withName("context-path-ingress").withNamespace(NAMESPACE)
+                .withAnnotations(new HashMap<>()).endMetadata()
+                .withNewSpec().endSpec()
+                .build();
+
+        ShenyuMemoryConfig config = parse(ingress);
+
+        assertNull(config.getRouteConfigList());
+    }
+
+    @Test
+    public void testParseIngressWithoutSpec() {
+        V1Ingress ingress = new V1IngressBuilder()
+                .withNewMetadata().withName("context-path-ingress").withNamespace(NAMESPACE)
+                .withAnnotations(new HashMap<>()).endMetadata()
+                .build();
+
+        ShenyuMemoryConfig config = parse(ingress);
+
+        assertNull(config.getRouteConfigList());
+    }
+
+    private String parsePathOperator(final Map<String, String> annotations, final String pathType) {
+        ShenyuMemoryConfig config = parse(createIngress(annotations, createRule(null, createPath("/context", pathType))));
+        return config.getRouteConfigList().get(0).getSelectorData().getConditionList().get(0).getOperator();
+    }
+
+    private ShenyuMemoryConfig parse(final V1Ingress ingress) {
+        return new ContextPathParser(serviceLister, endpointsLister).parse(ingress, null);
+    }
+
+    private V1Ingress createIngress(final Map<String, String> annotations, final V1IngressRule rule) {
+        return new V1IngressBuilder()
+                .withNewMetadata().withName("context-path-ingress").withNamespace(NAMESPACE).withAnnotations(annotations).endMetadata()
+                .withNewSpec().withRules(rule).endSpec()
+                .withKind("Ingress")
+                .build();
+    }
+
+    private V1IngressRule createRule(final String host, final V1HTTPIngressPath path) {
+        return new V1IngressRuleBuilder().withHost(host).withNewHttp().withPaths(path).endHttp().build();
+    }
+
+    private V1HTTPIngressPath createPath(final String path, final String pathType) {
+        return new V1HTTPIngressPathBuilder().withPath(path).withPathType(pathType).build();
+    }
+
     @Test
     public void testParseWithEmptyStringContextPathAnnotation() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "");
 
         V1Ingress ingress = new V1IngressBuilder()
-                .withNewMetadata()
-                .withName("test-ingress-empty")
-                .withNamespace("default")
-                .withAnnotations(annotations)
-                .endMetadata()
-                .withNewSpec()
-                .withRules(
-                        new V1IngressRuleBuilder()
-                                .withNewHttp()
-                                .withPaths(
-                                        new V1HTTPIngressPathBuilder()
-                                                .withPath("/api")
-                                                .withPathType("Prefix")
-                                                .withNewBackend()
-                                                .withNewService()
-                                                .withName("test-service")
-                                                .withNewPort()
-                                                .withNumber(8080)
-                                                .endPort()
-                                                .endService()
-                                                .endBackend()
-                                                .build()
-                                )
-                                .endHttp()
-                                .build()
-                )
-                .endSpec()
+                .withNewMetadata().withName("test-ingress-empty").withNamespace(NAMESPACE)
+                .withAnnotations(annotations).endMetadata()
+                .withNewSpec().withRules(createRule(null, createPath("/context", "Prefix"))).endSpec()
+                .withKind("Ingress")
                 .build();
 
-        ShenyuMemoryConfig result = contextPathParser.parse(ingress, coreV1Api);
-        List<IngressConfiguration> routeConfigs = result.getRouteConfigList();
+        ShenyuMemoryConfig config = parse(ingress);
+        List<IngressConfiguration> routeConfigList = config.getRouteConfigList();
 
         // Empty string is treated as blank (same as missing annotation),
         // so no route configurations should be produced.
-        Assertions.assertTrue(
-                Objects.isNull(routeConfigs) || routeConfigs.isEmpty(),
+        assertTrue(
+                Objects.isNull(routeConfigList) || routeConfigList.isEmpty(),
                 "No route configs should be produced when context-path annotation is empty");
     }
 }
