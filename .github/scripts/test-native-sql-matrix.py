@@ -129,6 +129,23 @@ class NativeSqlMatrixTest(unittest.TestCase):
             "user_role|user_role_user|CREATE INDEX user_role_user ON public.user_role USING btree (user_id, role_id)",
         ])
         self.assertEqual(matrix.verify_index_rows(rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
+        opengauss_rows = "\n".join(line + " TABLESPACE pg_default" for line in rows.splitlines())
+        self.assertEqual(matrix.verify_index_rows(opengauss_rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
+        partial_rows = rows.replace("(plugin_id)", "(plugin_id) WHERE plugin_id IS NOT NULL")
+        with self.assertRaises(AssertionError):
+            matrix.verify_index_rows(partial_rows, True)
+
+    def test_oceanbase_waits_for_writable_ddl_not_only_select(self):
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("ob", "upgrade", Path(directory))
+            with patch.object(matrix, "run"), patch.object(matrix.time, "monotonic", side_effect=[0, 1, 2]), \
+                    patch.object(matrix.time, "sleep") as sleep, \
+                    patch.object(engine, "sql", side_effect=["1", RuntimeError("4179 creating tenant"), "1", ""]) as sql:
+                engine.start()
+                self.assertEqual(sql.call_count, 4)
+                self.assertIn("CREATE DATABASE IF NOT EXISTS sql_matrix_ready", sql.call_args_list[1].args[0])
+                self.assertIn("DROP DATABASE sql_matrix_ready", sql.call_args_list[3].args[0])
+                sleep.assert_called_once_with(5)
 
     def test_scalars_reject_empty_or_multiple_results(self):
         self.assertEqual(matrix.scalar("\n 1 \n"), "1")

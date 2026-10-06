@@ -85,7 +85,8 @@ def verify_index_rows(rows, postgres=False):
             continue
         table, name, value = line.strip().lower().split("|", 2)
         if postgres:
-            match = re.search(r"\(([^()]*)\)\s*$", value)
+            match = re.search(r'\busing\s+(?:btree|ubtree)\s*\(([^()]*)\)'
+                              r'(?:\s+tablespace\s+(?:"[^"]+"|[a-z_]\w*))?\s*$', value)
             if not match:
                 continue  # expression indexes are not usable for these column lookups
             indexes[(table, name)] = [column.strip().strip('"') for column in match[1].split(",")]
@@ -130,6 +131,12 @@ class Engine:
             try:
                 query = "SELECT 1 FROM dual;" if self.dialect == "oracle" else "SELECT 1;"
                 if scalar(self.sql(query, database=False, timeout=20)) == "1":
+                    if self.dialect == "ob":
+                        # SELECT works before OceanBase finishes tenant creation. Probe
+                        # disposable DDL before executing either real schema, never retry
+                        # or suppress an error inside the actual schema/upgrade script.
+                        self.sql("CREATE DATABASE IF NOT EXISTS sql_matrix_ready; DROP DATABASE sql_matrix_ready;",
+                                 database=False, timeout=20)
                     return
             except (RuntimeError, subprocess.TimeoutExpired, AssertionError) as error:
                 last_error = str(error)
@@ -204,7 +211,9 @@ class Engine:
             query = "SELECT tablename||'|'||indexname||'|'||indexdef FROM pg_indexes WHERE schemaname='public';"
         else:
             query = "SELECT lower(table_name)||'|'||lower(index_name)||'|'||lower(column_name)||'|'||column_position FROM user_ind_columns;"
-        return verify_index_rows(self.sql(query), self.dialect in ("pg", "og"))
+        rows = self.sql(query)
+        (self.output / (self.name + ".indexes.txt")).write_text(rows, encoding="utf-8")
+        return verify_index_rows(rows, self.dialect in ("pg", "og"))
 
 
 def execute_matrix(dialect, root, output):
