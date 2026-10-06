@@ -31,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Parses the client address from the X-Forwarded-For header. If header is not present.
@@ -107,8 +108,11 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             LOG.warn("Multiple X-Forwarded-For headers found, discarding all");
             return Collections.emptyList();
         }
-        List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-        if (values.size() == 1 && StringUtils.isEmpty(values.get(0))) {
+        List<String> values = Arrays.stream(xForwardedValues.get(0).split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toList());
+        if (values.isEmpty()) {
             return Collections.emptyList();
         }
         return values;

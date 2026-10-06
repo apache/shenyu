@@ -230,6 +230,7 @@ public final class AppAuthDO extends BaseDO {
         return Optional.ofNullable(appAuthDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             AppAuthDO appAuthDO = AppAuthDO.builder()
+                    .namespaceId(item.getNamespaceId())
                     .appKey(item.getAppKey())
                     .appSecret(item.getAppSecret())
                     .open(item.getOpen())

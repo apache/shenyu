@@ -822,11 +822,6 @@ public interface Constants {
     String DEFAULT_CLUSTER = "failover";
 
     /**
-     * cache data max size, means map size.
-     */
-    Long LRU_MAP_MAXSIZE = 65536L;
-
-    /**
      * namespace,sush as nacos .
      */
     String NAMESPACE = "namespace";

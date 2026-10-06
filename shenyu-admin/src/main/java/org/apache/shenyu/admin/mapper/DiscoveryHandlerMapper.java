@@ -105,6 +105,22 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
     List<DiscoveryHandlerDO> selectAll();
 
     /**
+     * Select related rows for one page in a single query.
+     *
+     * @param ids identifiers to match
+     * @return matching rows
+     */
+    List<DiscoveryHandlerDO> selectByIds(@Param("ids") List<String> ids);
+
+    /**
+     * Select handlers bound to selectors in a namespace.
+     *
+     * @param namespaceId namespace id
+     * @return discovery handlers
+     */
+    List<DiscoveryHandlerDO> selectAllByNamespaceId(String namespaceId);
+
+    /**
      * selectByDiscoveryId.
      *
      * @param discoveryId discoveryId
