@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server.callback;
 
-import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.common.McpTransportContext;
-import org.springframework.test.util.ReflectionTestUtils;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
@@ -40,20 +38,24 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -259,6 +261,19 @@ class ShenyuToolCallbackTest {
         assertThrows(RuntimeException.class, () -> {
             shenyuToolCallback.call("{}", toolContext);
         });
+    }
+
+    @Test
+    void testToolCallUsesHttpRpcType() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(exchange.getAttribute(Constants.CONTEXT)).thenReturn(shenyuContext);
+        when(exchange.getAttributes()).thenReturn(new HashMap<>());
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "configureShenyuContext", exchange,
+                "session123", "/mcp/order/findAll",
+                "{\"requestTemplate\":{\"url\":\"/mcp/order/findAll\",\"method\":\"GET\"},\"argsPosition\":{}}");
+
+        verify(shenyuContext).setRpcType(RpcTypeEnum.HTTP.getName());
     }
 
     @Test

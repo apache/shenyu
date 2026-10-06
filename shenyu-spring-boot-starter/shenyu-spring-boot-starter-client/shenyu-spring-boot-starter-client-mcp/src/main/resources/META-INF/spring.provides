@@ -1,3 +1,4 @@
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,29 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-server:
-  port: 8150
-  address: 0.0.0.0
-  tomcat:
-    max-http-form-post-size: 100MB
-shenyu:
-  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
-  register:
-    enable: true
-    registerType: http
-    serverLists: http://localhost:9095
-    props:
-      username: admin
-      password: 123456
-  client:
-    mcp:
-      props:
-        contextPath: /mcp
-        appName: mcp
-    http:
-      props:
-        contextPath: /mcp
-        appName: mcp
-        host: 127.0.0.1
-        port: 8150
+provides: shenyu-spring-boot-starter-client-mcp
