@@ -67,7 +67,7 @@
         smn_topic_urn, match_all, labels, levels, namespace_id, date_created, date_updated)
         values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enable,jdbcType=TINYINT},
         #{type,jdbcType=TINYINT}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
-        #{hookUrl,jdbcType=VARCHAR}, #{wechatId,jdbcType=VARCHAR}, #{accessToken,jdbcType=TINYINT},
+        #{hookUrl,jdbcType=VARCHAR}, #{wechatId,jdbcType=VARCHAR}, #{accessToken,jdbcType=VARCHAR},
         #{tgBotToken,jdbcType=VARCHAR}, #{tgUserId,jdbcType=VARCHAR}, #{slackWebHookUrl,jdbcType=VARCHAR},
         #{corpId,jdbcType=VARCHAR}, #{agentId,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR},
         #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
@@ -86,7 +86,7 @@
             email = #{email,jdbcType=VARCHAR},
             hook_url = #{hookUrl,jdbcType=VARCHAR},
             wechat_id = #{wechatId,jdbcType=VARCHAR},
-            access_token = #{accessToken,jdbcType=TINYINT},
+            access_token = #{accessToken,jdbcType=VARCHAR},
             tg_bot_token = #{tgBotToken,jdbcType=VARCHAR},
             tg_user_id = #{tgUserId,jdbcType=VARCHAR},
             slack_web_hook_url = #{slackWebHookUrl,jdbcType=VARCHAR},
@@ -134,7 +134,7 @@
             <if test="email != null">email = #{email,jdbcType=VARCHAR},</if>
             <if test="hookUrl != null">hook_url = #{hookUrl,jdbcType=VARCHAR},</if>
             <if test="wechatId != null">wechat_id = #{wechatId,jdbcType=VARCHAR},</if>
-            <if test="accessToken != null">access_token = #{accessToken,jdbcType=TINYINT},</if>
+            <if test="accessToken != null">access_token = #{accessToken,jdbcType=VARCHAR},</if>
             <if test="tgBotToken != null">tg_bot_token = #{tgBotToken,jdbcType=VARCHAR},</if>
             <if test="tgUserId != null">tg_user_id = #{tgUserId,jdbcType=VARCHAR},</if>
             <if test="slackWebHookUrl != null">slack_web_hook_url = #{slackWebHookUrl,jdbcType=VARCHAR},</if>
