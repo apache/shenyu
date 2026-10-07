@@ -17,11 +17,20 @@
 
 package org.apache.shenyu.plugin.grpc.handler;
 
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
+import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -31,7 +40,29 @@ public final class GrpcDiscoveryUpstreamDataHandlerTest {
 
     @AfterEach
     public void tearDown() {
-        GrpcClientCache.removeClient(SELECTOR_ID);
+        ApplicationConfigCache.getInstance().invalidate(SELECTOR_ID);
+    }
+
+    @Test
+    public void testHandlerDiscoveryUpstreamData() {
+        DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()
+                .protocol("grpc://")
+                .url("127.0.0.1:9090")
+                .weight(100)
+                .status(0)
+                .props("{\"healthCheckEnabled\":\"false\"}")
+                .build();
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId(SELECTOR_ID);
+        discoverySyncData.setUpstreamDataList(Collections.singletonList(discoveryUpstreamData));
+
+        new GrpcDiscoveryUpstreamDataHandler().handlerDiscoveryUpstreamData(discoverySyncData);
+
+        List<GrpcUpstream> upstreamList = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(SELECTOR_ID);
+        assertEquals(1, upstreamList.size());
+        assertEquals("grpc://", upstreamList.get(0).getProtocol());
+        assertFalse(upstreamList.get(0).isHealthCheckEnabled());
+        assertNotNull(GrpcClientCache.getGrpcClient(SELECTOR_ID));
     }
 
     @Test
