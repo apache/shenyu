@@ -91,7 +91,7 @@ public class LoggingRabbitmqPluginDataHandler extends AbstractLogPluginDataHandl
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         Map<String, Object> rabbitmqJsonMap = GsonUtils.getInstance().convertToMap(selectorData.getHandle());
-        Object hostObj = rabbitmqJsonMap.get("host");
+        Object hostObj = Objects.isNull(rabbitmqJsonMap) ? null : rabbitmqJsonMap.get("host");
         if (Objects.isNull(hostObj) || !(hostObj instanceof String) || ((String) hostObj).trim().isEmpty()) {
             RabbitmqClientCache.getInstance().invalidate(selectorData.getId());
             Optional.ofNullable(RabbitmqClientCache.getInstance().getClientCache())

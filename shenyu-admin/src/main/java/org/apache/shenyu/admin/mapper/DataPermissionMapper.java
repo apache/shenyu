@@ -47,6 +47,15 @@ public interface DataPermissionMapper {
     List<DataPermissionDO> listByUserId(String userId);
 
     /**
+     * Find users already granted access to a selector or rule.
+     *
+     * @param dataId selector or rule id
+     * @param dataType permission type
+     * @return granted user ids
+     */
+    List<String> selectUserIds(@Param("dataId") String dataId, @Param("dataType") Integer dataType);
+
+    /**
      * deleteSelector data permission by user id and data id.
      * @param dataId data id
      * @param userId user id

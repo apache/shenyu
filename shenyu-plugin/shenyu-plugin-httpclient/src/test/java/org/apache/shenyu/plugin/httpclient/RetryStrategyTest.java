@@ -17,14 +17,19 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
-import java.util.concurrent.TimeoutException;
+import io.netty.channel.ConnectTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -81,25 +86,57 @@ public class RetryStrategyTest {
     }
 
     @Test
-    void testFixedRetryStrategyExecute() {
-        // Create a simulated AbstractHttpClientPlugin
+    void testFixedRetryStrategyRetriesTransientGetFailures() {
         AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
         FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(new ConnectTimeoutException("connection timed out"));
+        });
 
-        // Create a simulated ServerWebExchange
-        ServerWebExchange exchange = mock(ServerWebExchange.class);
-        Duration duration = Duration.ofSeconds(5);
-        int retryTimes = 3;
+        StepVerifier.withVirtualTime(() -> strategy.execute(response, exchange, Duration.ofSeconds(10), 2))
+                .thenAwait(Duration.ofSeconds(4))
+                .expectError(ConnectTimeoutException.class)
+                .verify();
 
-        // Create a mock response Mono that throws an exception
-        Mono<String> response = Mono.error(new RuntimeException("Test error"));
+        assertEquals(3, attempts.get());
+    }
 
-        // Execute retry policy
-        Mono<String> result = strategy.execute(response, exchange, duration, retryTimes);
+    @Test
+    void testFixedRetryStrategyDoesNotRetryPermanentFailures() {
+        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(new IllegalArgumentException("permanent failure"));
+        });
 
-        // Use StepVerifier to verify results
-        StepVerifier.create(result)
+        StepVerifier.create(strategy.execute(response, exchange, Duration.ofSeconds(5), 3))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+
+        assertEquals(1, attempts.get());
+    }
+
+    @Test
+    void testFixedRetryStrategyDoesNotRetryPostRequests() {
+        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/").build());
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(new TimeoutException("request timed out"));
+        });
+
+        StepVerifier.create(strategy.execute(response, exchange, Duration.ofSeconds(5), 3))
                 .expectError(TimeoutException.class)
                 .verify();
+
+        assertEquals(1, attempts.get());
     }
 }

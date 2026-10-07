@@ -73,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       k8s_ingress: ${{ steps.cases.outputs.run_k8s_ingress }}
+      k8s_ingress_matrix: ${{ steps.cases.outputs.k8s_ingress_matrix }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/paths-filter
@@ -97,6 +98,9 @@ jobs:
               - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
+              - '.github/workflows/integrated-test-k8s-ingress.yml'
+              - '.github/scripts/resolve-test-case-matrix.sh'
+              - '.github/scripts/resolve-test-case-matrix-test.sh'
       - name: Resolve k8s ingress cases
         id: cases
         if: steps.filter.outputs['k8s-ingress'] == 'true'
@@ -108,12 +112,7 @@ jobs:
   build:
     needs: changes
     strategy:
-      matrix:
-        case:
-          - shenyu-integrated-test-k8s-ingress-http
-          - shenyu-integrated-test-k8s-ingress-apache-dubbo
-          - shenyu-integrated-test-k8s-ingress-websocket
-          - shenyu-integrated-test-k8s-ingress-grpc
+      matrix: ${{ fromJSON(needs.changes.outputs.k8s_ingress_matrix || '{"include":[]}') }}
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.k8s_ingress == 'true'
     steps:
@@ -140,6 +139,10 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.17.x
+
+      - name: Test Dubbo deployment readiness script
+        if: matrix.case == 'shenyu-integrated-test-k8s-ingress-apache-dubbo'
+        run: bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/script/build_k8s_cluster_test.sh
 
       - name: Install k8s
         run: |

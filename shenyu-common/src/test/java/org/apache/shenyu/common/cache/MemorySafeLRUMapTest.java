@@ -38,29 +38,25 @@ public class MemorySafeLRUMapTest {
 
     @Test
     public void testLru() {
-        try {
-            MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<>(1, 1024) {
-                
-                private static final long serialVersionUID = 8897028073615563875L;
-                
-                @Override
-                public boolean isFull() {
-                    //just for test
-                    return size() > 0;
-                }
-            };
-            lru.put(1, 1);
-            Assert.assertEquals(1, lru.size());
-            lru.put(2, 2);
-            lru.put(3, 3);
-            Assert.assertEquals(1, lru.size());
-            final Map.Entry<Integer, Integer> entry = lru.entrySet().iterator().next();
-            final Integer key = entry.getKey();
-            final Integer value = entry.getValue();
-            Assert.assertEquals(3, (int) key);
-            Assert.assertEquals(3, (int) value);
-        } catch (Throwable t) {
-            // due to rapid changes in JVM memory, the results of this test are not stable, just ignore
-        }
+        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<>(1, 1024) {
+
+            private static final long serialVersionUID = 8897028073615563875L;
+
+            @Override
+            public boolean isFull() {
+                //just for test
+                return size() > 0;
+            }
+        };
+        lru.put(1, 1);
+        Assert.assertEquals(1, lru.size());
+        lru.put(2, 2);
+        lru.put(3, 3);
+        Assert.assertEquals(1, lru.size());
+        final Map.Entry<Integer, Integer> entry = lru.entrySet().iterator().next();
+        final Integer key = entry.getKey();
+        final Integer value = entry.getValue();
+        Assert.assertEquals(3, (int) key);
+        Assert.assertEquals(3, (int) value);
     }
 }
