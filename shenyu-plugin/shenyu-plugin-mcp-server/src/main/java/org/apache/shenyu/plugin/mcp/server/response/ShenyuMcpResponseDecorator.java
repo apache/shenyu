@@ -37,6 +37,8 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpResponseDecorator.class);
 
+    private static final int MAX_CAPTURE_BYTES = 1024 * 1024;
+
     private final ByteArrayOutputStream body = new ByteArrayOutputStream();
 
     private final CompletableFuture<String> future;
@@ -44,6 +46,8 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     private final String sessionId;
 
     private boolean isFirstChunk = true;
+
+    private volatile boolean captureLimitExceeded;
 
     private final JsonObject responseTemplate;
 
@@ -79,6 +83,10 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     }
 
     private void completeFuture() {
+        if (captureLimitExceeded) {
+            future.completeExceptionally(new IllegalStateException("MCP response exceeds the 1 MiB capture limit"));
+            return;
+        }
         byte[] responseBytes;
         synchronized (this.body) {
             responseBytes = this.body.toByteArray();
@@ -102,9 +110,18 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
         }
         LOG.debug("Received response chunk for session {}, length: {}", sessionId, chunkLength);
         synchronized (this.body) {
+            if (captureLimitExceeded) {
+                return;
+            }
             try (DataBuffer.ByteBufferIterator iterator = buffer.readableByteBuffers()) {
                 while (iterator.hasNext()) {
                     final ByteBuffer byteBuffer = iterator.next().asReadOnlyBuffer();
+                    final int remainingCapacity = MAX_CAPTURE_BYTES - this.body.size();
+                    if (byteBuffer.remaining() > remainingCapacity) {
+                        captureLimitExceeded = true;
+                        LOG.warn("Response body for session {} exceeds the 1 MiB capture limit", sessionId);
+                        return;
+                    }
                     final byte[] bytes = new byte[byteBuffer.remaining()];
                     byteBuffer.get(bytes);
                     this.body.write(bytes, 0, bytes.length);

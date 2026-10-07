@@ -33,9 +33,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -130,6 +132,26 @@ class ShenyuMcpResponseDecoratorTest {
 
         assertEquals("é", future.get(5, TimeUnit.SECONDS));
         assertEquals("é", new String(forwardedBody.toByteArray(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void testWriteWithRejectsCaptureLargerThanLimitButForwardsWholeBody() throws Exception {
+        final ByteArrayOutputStream forwardedBody = new ByteArrayOutputStream();
+        when(delegate.writeWith(any())).thenAnswer(invocation -> Flux
+                .from(invocation.<Publisher<? extends DataBuffer>>getArgument(0))
+                .doOnNext(buffer -> appendBytes(forwardedBody, buffer))
+                .then());
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final ShenyuMcpResponseDecorator decorator =
+                new ShenyuMcpResponseDecorator(delegate, "session-1", future, null);
+        final byte[] response = new byte[1024 * 1024 + 1];
+
+        decorator.writeWith(Flux.just(buffer(response))).block();
+
+        final ExecutionException exception = assertThrows(ExecutionException.class, future::get);
+        assertEquals("MCP response exceeds the 1 MiB capture limit", exception.getCause().getMessage());
+        assertEquals(response.length, forwardedBody.size());
     }
 
     @Test
