@@ -148,14 +148,14 @@ public final class MetaDataServiceTest {
         String msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
         when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
-                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
-                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build()))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build(), MetaDataDO.builder().id("id3").build()));
         msg = metaDataService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(StringUtils.EMPTY, msg);
         verify(publisher, never()).onEnabled(any());
         when(metaDataMapper.updateEnableBatch(ids, true)).thenReturn(ids.size());
         when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
-                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build(), MetaDataDO.builder().id("id3").build()));
         msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(StringUtils.EMPTY, msg);
         verify(publisher).onEnabled(any());
