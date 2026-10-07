@@ -418,6 +418,7 @@ comment on column OPERATION_RECORD_LOG.operation_type
   is 'operation type：create/update/delete/register...';
 
 create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
 create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
 
 create sequence operation_record_log_seq

@@ -96,4 +96,5 @@ VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL,
 -- add index to speed up the meta data path uniqueness check
 create index idx_meta_data_namespace_path on meta_data (namespace_id, path);
 create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
 create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
