@@ -57,7 +57,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -351,9 +350,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                             
                             final String finalMessage = messageWithResponseBody;
                             return chatClient.prompt().user(finalMessage).stream().content()
-                                    .collectList()
-                                    .map(list -> Objects.isNull(list) ? "" : list.stream().filter(Objects::nonNull)
-                                            .collect(Collectors.joining("")))
+                                    .filter(Objects::nonNull)
+                                    .collect(StringBuilder::new, StringBuilder::append)
+                                    .map(StringBuilder::toString)
                                     .flatMap(aiResponse -> {
 
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
