@@ -109,7 +109,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
             final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
             //always query the latest available list
-            final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+            final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+            if (Objects.isNull(availableUpstreamList)) {
+                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+            }
+            final List<Upstream> upstreamList = availableUpstreamList
                     .stream().filter(data -> {
                         final String trimUri = data.getUrl().trim();
                         for (URI needToExclude : exclude) {

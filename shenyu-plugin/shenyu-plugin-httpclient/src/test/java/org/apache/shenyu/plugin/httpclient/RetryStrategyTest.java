@@ -18,19 +18,26 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * retry strategy test.
@@ -83,6 +90,27 @@ public class RetryStrategyTest {
         StepVerifier.create(result)
                 .expectError(RuntimeException.class)
                 .verify();
+    }
+
+    @Test
+    void testFailoverWithMissingUpstreamList() {
+        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(httpClientPlugin);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://localhost:8080/test"));
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "retry-missing-upstream");
+
+        StepVerifier.create(strategy.execute(Mono.error(new ConnectTimeoutException("connection timed out")), exchange, Duration.ofSeconds(5), 3))
+                .expectErrorSatisfies(error -> {
+                    assertTrue(error instanceof ResponseStatusException);
+                    ResponseStatusException exception = (ResponseStatusException) error;
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getStatusCode());
+                    assertEquals("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", exception.getReason());
+                })
+                .verify();
+
+        verifyNoInteractions(httpClientPlugin);
     }
 
     @Test
