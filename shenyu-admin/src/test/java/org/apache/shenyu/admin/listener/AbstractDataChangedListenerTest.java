@@ -437,6 +437,7 @@ public final class AbstractDataChangedListenerTest {
 
         @Override
         protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+            // Preserve the AI proxy API key cache refresh performed by the base listener.
             super.afterPluginChanged(changed, eventType, namespaceId);
             recordCallback(ConfigGroupEnum.PLUGIN, changed, namespaceId);
         }
