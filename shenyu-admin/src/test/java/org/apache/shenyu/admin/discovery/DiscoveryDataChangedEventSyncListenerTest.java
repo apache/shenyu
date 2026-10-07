@@ -102,6 +102,31 @@ public class DiscoveryDataChangedEventSyncListenerTest {
     }
 
     @Test
+    public void testUpdatedFreshUpstreamSetsHandlerAndTimestampWithoutDatabaseId() {
+        DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+        upstreamData.setProtocol("http://");
+        upstreamData.setUrl("127.0.0.1:8080");
+        upstreamData.setWeight(50);
+        when(keyValueParser.parseValue(anyString())).thenReturn(Collections.singletonList(upstreamData));
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
+        final long beforeUpdate = System.currentTimeMillis();
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.UPDATED));
+
+        ArgumentCaptor<DiscoveryUpstreamDO> upstreamCaptor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateDiscoveryHandlerIdAndUrl(upstreamCaptor.capture());
+        DiscoveryUpstreamDO updated = upstreamCaptor.getValue();
+        Assertions.assertNull(updated.getId());
+        Assertions.assertEquals("discoveryHandlerId", updated.getDiscoveryHandlerId());
+        Assertions.assertEquals(50, updated.getWeight());
+        Assertions.assertNotNull(updated.getDateUpdated());
+        Assertions.assertTrue(updated.getDateUpdated().getTime() >= beforeUpdate);
+        Assertions.assertTrue(updated.getDateUpdated().getTime() <= System.currentTimeMillis());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
     public void testOnChangeShouldUseDiscoveryNamespaceWhenUpstreamNamespaceBlank() {
         final String namespaceId = "namespace-test";
         final DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();

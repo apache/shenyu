@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -134,6 +135,27 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals("20", upstream.getMetadata().get("warmup"));
         assertEquals(20, upstream.getWarmup());
         assertEquals(false, upstream.isHealthCheckEnabled());
+    }
+
+    @Test
+    public void handlerDiscoveryUpdatesProtocolAndPropsTest() {
+        final DiscoveryUpstreamData original = DiscoveryUpstreamData.builder().url("mock-update:8080").protocol("http://").status(0).weight(10)
+                .props("{\"warmup\":\"10\",\"healthCheckEnabled\":\"false\",\"az\":\"old\"}").build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(original));
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        final Upstream cached = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        final DiscoveryUpstreamData updated = DiscoveryUpstreamData.builder().url(original.getUrl()).protocol("https://").status(0).weight(20)
+                .props("{\"warmup\":\"30\",\"healthCheckEnabled\":\"false\",\"az\":\"new\"}").build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(updated));
+
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        final List<Upstream> after = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, after.size());
+        assertSame(cached, after.get(0));
+        assertEquals("https://", cached.getProtocol());
+        assertEquals(30, cached.getWarmup());
+        assertEquals("new", cached.getMetadata().get("az"));
     }
 
     /**

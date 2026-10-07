@@ -51,9 +51,9 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         final List<Upstream> upstreams = convertUpstreamList(upstreamList);
         final List<Upstream> grayUpstreamList = upstreams.stream().filter(Upstream::isGray).toList();
         if (!grayUpstreamList.isEmpty()) {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
+            UpstreamCacheManager.getInstance().submitDiscovery(discoverySyncData.getSelectorId(), grayUpstreamList);
         } else {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
+            UpstreamCacheManager.getInstance().submitDiscovery(discoverySyncData.getSelectorId(), upstreams);
         }
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean

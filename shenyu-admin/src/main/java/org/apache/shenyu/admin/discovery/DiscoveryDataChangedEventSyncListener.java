@@ -117,6 +117,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             case UPDATED:
                 upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                    discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                     int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
                     LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
                 });
