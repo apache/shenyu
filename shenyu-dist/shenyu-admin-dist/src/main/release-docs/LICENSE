@@ -590,7 +590,6 @@ MPL licenses
 The following components are provided under the MPL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    consul-api 1.4.5: https://github.com/hashicorp/consul, MPL 2.0
     rhino 1.7.7.2: https://mozilla.github.io/rhino/ , MPL 2.0
 
 ========================================

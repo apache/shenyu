@@ -116,8 +116,6 @@
         <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
-        <consul.api.version>1.4.5</consul.api.version>
-        <consul.version>2.2.6.RELEASE</consul.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
