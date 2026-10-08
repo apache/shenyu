@@ -247,6 +247,9 @@ public class DubboIngressParser implements K8sResourceParser<V1Ingress> {
                             continue;
                         }
                         Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
+                        if (Objects.isNull(metadataAnnotations)) {
+                            continue;
+                        }
                         DubboRuleHandle ruleHandle = createDubboRuleHandle(annotations);
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleHandle, ruleConditionList);

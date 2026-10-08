@@ -20,10 +20,15 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
+import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.service.PluginService;
 import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +37,9 @@ import java.util.stream.Stream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for PluginMapper.
@@ -41,6 +48,9 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private PluginMapper pluginMapper;
+
+    @Resource
+    private PluginService pluginService;
 
     @Test
     public void selectById() {
@@ -233,6 +243,45 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final int deleteResult = pluginMapper.delete(pluginDO.getId());
         assertThat(deleteResult, equalTo(1));
+    }
+
+    @Test
+    public void pagedListOmitsJarWhileDetailAndExportPreserveIt() {
+        final PluginDO plugin = PluginDO.buildPluginDO(buildPluginDTO());
+        final byte[] jar = new byte[] {0, 1, 2, 127, -1};
+        plugin.setPluginJar(jar);
+        assertEquals(1, pluginMapper.insert(plugin));
+        try {
+            final PluginQuery query = new PluginQuery(plugin.getName(), null, new PageParameter(1, 10));
+            final List<PluginDO> rows = pluginMapper.selectByQuery(query);
+            assertEquals(1, rows.size());
+            assertNull(rows.get(0).getPluginJar());
+            final List<PluginListVO> page = pluginService.listByPage(query).getDataList();
+            assertEquals(1, page.size());
+            assertEquals(plugin.getId(), page.get(0).getId());
+            final com.fasterxml.jackson.databind.JsonNode listJson =
+                    new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(page.get(0));
+            org.junit.jupiter.api.Assertions.assertFalse(listJson.has("file"));
+            org.junit.jupiter.api.Assertions.assertFalse(listJson.has("jar"));
+            assertEquals(plugin.getName(), listJson.get("name").asText());
+            final org.apache.shenyu.admin.model.query.PluginQueryCondition condition =
+                    new org.apache.shenyu.admin.model.query.PluginQueryCondition();
+            condition.setKeyword(plugin.getName());
+            final List<PluginListVO> searched = pluginService.searchByCondition(condition);
+            assertEquals(1, searched.size());
+            assertEquals(plugin.getId(), searched.get(0).getId());
+            final com.fasterxml.jackson.databind.JsonNode searchJson =
+                    new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(searched.get(0));
+            org.junit.jupiter.api.Assertions.assertFalse(searchJson.has("file"));
+            org.junit.jupiter.api.Assertions.assertFalse(searchJson.has("jar"));
+            assertArrayEquals(jar, pluginMapper.selectById(plugin.getId()).getPluginJar());
+            assertArrayEquals(jar, Base64.getDecoder().decode(pluginService.findById(plugin.getId()).getFile()));
+            final PluginVO exported = pluginService.listAllData().stream()
+                    .filter(item -> plugin.getId().equals(item.getId())).findFirst().orElseThrow();
+            assertArrayEquals(jar, Base64.getDecoder().decode(exported.getFile()));
+        } finally {
+            pluginMapper.delete(plugin.getId());
+        }
     }
 
     private PluginDTO buildPluginDTO() {

@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
@@ -100,13 +101,15 @@ public final class PluginControllerTest {
     @Test
     public void testQueryPlugins() throws Exception {
         final PageParameter pageParameter = new PageParameter();
-        List<PluginVO> pluginVOS = new ArrayList<>();
-        pluginVOS.add(pluginVO);
-        final CommonPager<PluginVO> commonPager = new CommonPager<>();
+        List<PluginListVO> pluginVOS = new ArrayList<>();
+        PluginListVO summary = new PluginListVO();
+        summary.setId(pluginVO.getId());
+        summary.setName(pluginVO.getName());
+        pluginVOS.add(summary);
+        final CommonPager<PluginListVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(pluginVOS);
-        final PluginQuery pluginQuery = new PluginQuery("t_n", 1, pageParameter);
-        given(this.pluginService.listByPage(pluginQuery)).willReturn(commonPager);
+        given(this.pluginService.listByPage(org.mockito.ArgumentMatchers.any(PluginQuery.class))).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template")
                         .param("name", "t_n")
                         .param("enabled", "1")
@@ -116,7 +119,41 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].name", is(pluginVO.getName())))
+                .andExpect(jsonPath("$.data.dataList[0].file").doesNotExist())
+                .andExpect(jsonPath("$.data.dataList[0].jar").doesNotExist())
                 .andReturn();
+    }
+
+    @Test
+    public void testSearchPluginsOmitsJarField() throws Exception {
+        PluginListVO summary = new PluginListVO();
+        summary.setId("123");
+        summary.setName("t_n");
+        given(pluginService.searchByPage(org.mockito.ArgumentMatchers.any()))
+                .willReturn(new com.github.pagehelper.PageInfo<>(Collections.singletonList(summary)));
+        mockMvc.perform(MockMvcRequestBuilders.post("/plugin-template/list/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pageNum\":1,\"pageSize\":10,\"condition\":{}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.list[0].id", is("123")))
+                .andExpect(jsonPath("$.data.list[0].file").doesNotExist())
+                .andExpect(jsonPath("$.data.list[0].jar").doesNotExist());
+    }
+
+    @Test
+    public void testSearchAdaptorOmitsJarField() throws Exception {
+        PluginListVO summary = new PluginListVO();
+        summary.setId("123");
+        CommonPager<PluginListVO> page = new CommonPager<>();
+        page.setDataList(Collections.singletonList(summary));
+        given(pluginService.searchByPageToPager(org.mockito.ArgumentMatchers.any())).willReturn(page);
+        mockMvc.perform(MockMvcRequestBuilders.post("/plugin-template/list/search/adaptor")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pageNum\":1,\"pageSize\":10,\"condition\":{}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.dataList[0].id", is("123")))
+                .andExpect(jsonPath("$.data.dataList[0].file").doesNotExist())
+                .andExpect(jsonPath("$.data.dataList[0].jar").doesNotExist());
     }
 
     @Test
@@ -130,11 +167,13 @@ public final class PluginControllerTest {
 
     @Test
     public void testDetailPlugin() throws Exception {
+        pluginVO.setFile("AQID");
         given(this.pluginService.findById("123")).willReturn(pluginVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(pluginVO.getId())))
+                .andExpect(jsonPath("$.data.file", is("AQID")))
                 .andReturn();
     }
 

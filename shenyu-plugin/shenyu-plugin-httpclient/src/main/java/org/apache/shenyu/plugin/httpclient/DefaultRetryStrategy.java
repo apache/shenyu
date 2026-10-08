@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.httpclient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
@@ -39,6 +40,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -115,9 +117,9 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             }
             final List<Upstream> upstreamList = availableUpstreamList
                     .stream().filter(data -> {
-                        final String trimUri = data.getUrl().trim();
+                        final URI upstreamUri = URI.create(data.buildDomain());
                         for (URI needToExclude : exclude) {
-                            if ((needToExclude.getHost() + ":" + needToExclude.getPort()).equals(trimUri)) {
+                            if (isSameUpstream(needToExclude, upstreamUri)) {
                                 return false;
                             }
                         }
@@ -139,5 +141,13 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
         });
+    }
+
+    private boolean isSameUpstream(final URI first, final URI second) {
+        final String firstScheme = first.getScheme().toLowerCase(Locale.ROOT);
+        final String secondScheme = second.getScheme().toLowerCase(Locale.ROOT);
+        return firstScheme.equals(secondScheme)
+                && first.getHost().equalsIgnoreCase(second.getHost())
+                && UriUtils.getActualPort(firstScheme, first.getPort()) == UriUtils.getActualPort(secondScheme, second.getPort());
     }
 }
