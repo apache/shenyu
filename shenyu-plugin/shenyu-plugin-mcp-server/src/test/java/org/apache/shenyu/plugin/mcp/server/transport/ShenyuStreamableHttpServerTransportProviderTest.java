@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.mcp.server.transport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
+import io.modelcontextprotocol.spec.McpServerTransport;
 import io.modelcontextprotocol.server.McpRequestHandler;
 import org.apache.shenyu.plugin.mcp.server.session.McpSessionHelper;
 import org.springframework.web.server.ServerWebExchange;
@@ -258,6 +259,19 @@ class ShenyuStreamableHttpServerTransportProviderTest {
                 "sessions must be keyed by the session ID returned to the client, otherwise close() cannot clean it up");
         assertTrue(transports.containsKey(returnedSessionId),
                 "sessionTransports must be keyed by the session ID returned to the client, otherwise close() cannot clean it up");
+
+        // Drive the close path: it is the only thing that exercises the transport's own sessionId,
+        // so without the setSessionId() fix nothing would be removed here. Asserting only the map
+        // keys above would pass on master too (they were always keyed by the returned id); this part
+        // fails when line transport.setSessionId(newSessionId) is reverted.
+        final McpServerTransport transport = (McpServerTransport) transports.get(returnedSessionId);
+        assertNotNull(transport, "the transport must be reachable via the returned session id");
+        transport.closeGracefully().block();
+
+        assertTrue(sessions.isEmpty(), "close() must remove the session from the sessions map");
+        assertTrue(transports.isEmpty(), "close() must remove the transport from the sessionTransports map");
+        assertNull(ShenyuMcpExchangeHolder.get(returnedSessionId),
+                "close() must remove the exchange binding for the returned session id");
     }
 
     @SuppressWarnings("unchecked")
