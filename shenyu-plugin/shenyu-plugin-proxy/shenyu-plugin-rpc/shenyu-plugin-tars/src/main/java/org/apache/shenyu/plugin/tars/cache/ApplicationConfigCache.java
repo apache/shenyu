@@ -186,6 +186,7 @@ public final class ApplicationConfigCache {
      * @param metaData metaData
      */
     public void initPrx(final MetaData metaData) {
+        LOCK.lock();
         try {
             if (Objects.isNull(prxClassCache.get(metaData.getPath()))) {
                 lockedLoadMetaData(metaData);
@@ -195,6 +196,8 @@ public final class ApplicationConfigCache {
             }
         } catch (Exception e) {
             LOG.error("ShenyuTarsPluginInitializeException: init tars ref ex:{}", e.getMessage());
+        } finally {
+            LOCK.unlock();
         }
     }
 
@@ -291,6 +294,7 @@ public final class ApplicationConfigCache {
      * @param selectorData selectorData
      */
     public void initPrxClass(final SelectorData selectorData) {
+        LOCK.lock();
         try {
             final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
             if (CollectionUtils.isEmpty(upstreamList)) {
@@ -304,6 +308,8 @@ public final class ApplicationConfigCache {
             }
         } catch (ExecutionException | NoSuchMethodException e) {
             throw new ShenyuException(e.getCause());
+        } finally {
+            LOCK.unlock();
         }
     }
     
@@ -318,8 +324,8 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(prxClass)) {
             return;
         }
-        TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
-        tarsInvokePrxList.getTarsInvokePrxList().clear();
+        TarsInvokePrxList previous = cache.get(metaData.getPath());
+        TarsInvokePrxList tarsInvokePrxList = new TarsInvokePrxList(previous.getMethod(), previous.getParamTypes(), previous.getParamNames());
         if (Objects.isNull(tarsInvokePrxList.getMethod())) {
             TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
             Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
@@ -333,6 +339,7 @@ public final class ApplicationConfigCache {
             Object strProxy = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
             return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl());
         }).collect(Collectors.toList()));
+        cache.put(metaData.getPath(), tarsInvokePrxList);
     }
     
     /**
@@ -341,16 +348,21 @@ public final class ApplicationConfigCache {
      * @param contextPath context path
      */
     public void invalidate(final String contextPath) {
-        List<MetaData> metaDataList = ctxPathCache.remove(contextPath);
-        if (CollectionUtils.isNotEmpty(metaDataList)) {
-            metaDataList.forEach(metaData -> {
-                cache.invalidate(metaData.getPath());
-                prxClassCache.remove(metaData.getPath());
-                String paramKeyPrefix = PrxInfoUtil.getPrxName(metaData) + "_";
-                prxParamCache.keySet().removeIf(key -> key.startsWith(paramKeyPrefix));
-            });
+        LOCK.lock();
+        try {
+            refreshUpstreamCache.remove(contextPath);
+            List<MetaData> metaDataList = ctxPathCache.remove(contextPath);
+            if (CollectionUtils.isNotEmpty(metaDataList)) {
+                metaDataList.forEach(metaData -> {
+                    cache.invalidate(metaData.getPath());
+                    prxClassCache.remove(metaData.getPath());
+                    String paramKeyPrefix = PrxInfoUtil.getPrxName(metaData) + "_";
+                    prxParamCache.keySet().removeIf(key -> key.startsWith(paramKeyPrefix));
+                });
+            }
+        } finally {
+            LOCK.unlock();
         }
-        refreshUpstreamCache.remove(contextPath);
     }
     
     /**

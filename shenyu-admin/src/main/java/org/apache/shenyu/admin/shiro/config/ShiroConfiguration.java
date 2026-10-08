@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.shiro.bean.ClusterEventAuthFilter;
 import org.apache.shenyu.admin.config.properties.ShiroProperties;
 import org.apache.shenyu.admin.shiro.bean.StatelessAuthFilter;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -58,22 +60,26 @@ public class ShiroConfiguration {
      *
      * @param securityManager {@linkplain DefaultWebSecurityManager}
      * @param shiroProperties {@linkplain ShiroProperties}
+     * @param clusterProperties cluster authentication settings
      * @return {@linkplain ShiroFilterFactoryBean}
      */
     @Bean
     public ShiroFilterFactoryBean shiroFilterFactoryBean(
             @Qualifier("shiroSecurityManager") final DefaultWebSecurityManager securityManager,
-            @Qualifier("shiroProperties") final ShiroProperties shiroProperties) {
+            @Qualifier("shiroProperties") final ShiroProperties shiroProperties,
+            final ClusterProperties clusterProperties) {
         ShiroFilterFactoryBean factoryBean = new ShiroFilterFactoryBean();
         factoryBean.setSecurityManager(securityManager);
         Map<String, Filter> filterMap = new LinkedHashMap<>();
         filterMap.put("statelessAuth", new StatelessAuthFilter());
+        filterMap.put("clusterEventAuth", new ClusterEventAuthFilter(clusterProperties));
         factoryBean.setFilters(filterMap);
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
 
+        filterChainDefinitionMap.put("/cluster/data-change-event", "clusterEventAuth");
         for (String s : shiroProperties.getWhiteList()) {
-            filterChainDefinitionMap.put(s, "anon");
+            filterChainDefinitionMap.putIfAbsent(s, "anon");
         }
 
         filterChainDefinitionMap.put("/**", "statelessAuth");

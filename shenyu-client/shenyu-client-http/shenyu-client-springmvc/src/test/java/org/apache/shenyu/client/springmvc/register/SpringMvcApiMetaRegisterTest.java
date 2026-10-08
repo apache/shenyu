@@ -20,6 +20,9 @@ package org.apache.shenyu.client.springmvc.register;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -27,11 +30,17 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -129,6 +138,31 @@ public class SpringMvcApiMetaRegisterTest {
         objectHashMap.put(beanClass.getName(), beanClass.getDeclaredConstructor().newInstance());
         return beansExtractor.extract(null, objectHashMap).get(0);
     }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"first;second", "", " "})
+    void publishesEachNamespaceForMethodsAndWildcardBeans(final String namespace) throws Exception {
+        final ShenyuClientConfig config = new ShenyuClientConfig();
+        config.setNamespace(namespace);
+        ShenyuClientConfig.ClientPropertiesConfig properties = new ShenyuClientConfig.ClientPropertiesConfig();
+        properties.getProps().setProperty("port", "8080");
+        properties.getProps().setProperty("host", "127.0.0.1");
+        properties.getProps().setProperty("appName", "test");
+        properties.getProps().setProperty("contextPath", "/testContext");
+        config.getClient().put(RpcTypeEnum.HTTP.getName(), properties);
+        for (Class<?> beanClass : List.of(TestPreApiBean.class, TestApiBeanAnnotatedMethodAndClass.class)) {
+            TestShenyuClientRegisterEventPublisher publisher = new TestShenyuClientRegisterEventPublisher();
+            SpringMvcApiMetaRegister registrar = new SpringMvcApiMetaRegister(publisher, new ClientRegisterConfigImpl(config, RpcTypeEnum.HTTP, null, null));
+            registrar.register(createSimpleApiBean(beanClass));
+            List<String> expected = "first;second".equals(namespace) ? List.of("first", "second") : List.of(Constants.SYS_DEFAULT_NAMESPACE_ID);
+            assertThat(publisher.events.stream().map(MetaDataRegisterDTO::getNamespaceId).collect(Collectors.toList()), equalTo(expected));
+            String path = beanClass == TestPreApiBean.class ? "/testContext/testClass/**" : "/testContext/testClass/testMethod";
+            for (MetaDataRegisterDTO event : publisher.events) {
+                assertThat(event.getPath(), equalTo(path));
+            }
+        }
+    }
     
     @ShenyuSpringMvcClient
     @RestController
@@ -200,6 +234,8 @@ public class SpringMvcApiMetaRegisterTest {
     static class TestShenyuClientRegisterEventPublisher extends ShenyuClientRegisterEventPublisher {
         
         private MetaDataRegisterDTO metaData;
+
+        private final List<MetaDataRegisterDTO> events = new ArrayList<>();
         
         @Override
         public void start(final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
@@ -208,6 +244,7 @@ public class SpringMvcApiMetaRegisterTest {
         @Override
         public void publishEvent(final DataTypeParent data) {
             this.metaData = (MetaDataRegisterDTO) data;
+            events.add(metaData);
         }
     }
     

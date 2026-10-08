@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.mock.api;
 
 import org.apache.shenyu.common.utils.JsonUtils;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,6 +38,8 @@ public final class MockRequest {
     private byte[] body;
 
     private Object json;
+
+    private Map<String, String> forms;
 
     private MockRequest() {
     }
@@ -88,13 +93,30 @@ public final class MockRequest {
     }
 
     /**
-     * Gets form-body,not support now.
+     * Gets form-body.
      *
      * @return form-body
      */
     public Map<String, String> getForms() {
-        //todo
-        throw new UnsupportedOperationException();
+        if (Objects.isNull(forms)) {
+            Map<String, String> parsedForms = new LinkedHashMap<>();
+            if (Objects.nonNull(body) && body.length > 0) {
+                String formBody = new String(body, StandardCharsets.UTF_8);
+                for (String pair : formBody.split("&")) {
+                    if (pair.isEmpty()) {
+                        continue;
+                    }
+                    int separator = pair.indexOf('=');
+                    String encodedName = separator < 0 ? pair : pair.substring(0, separator);
+                    String encodedValue = separator < 0 ? "" : pair.substring(separator + 1);
+                    String name = URLDecoder.decode(encodedName, StandardCharsets.UTF_8);
+                    String value = URLDecoder.decode(encodedValue, StandardCharsets.UTF_8);
+                    parsedForms.putIfAbsent(name, value);
+                }
+            }
+            forms = parsedForms;
+        }
+        return forms;
     }
 
     /**
