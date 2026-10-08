@@ -54,6 +54,31 @@ public class RequestParamParameterProcessorTest {
     }
 
     @Test
+    public void processArgumentEncodesReservedCharactersTest() {
+        RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final RequestParam param = spy(RequestParam.class);
+        when(param.value()).thenReturn("q");
+
+        processor.processArgument(request, param, "a&admin=true 100%");
+
+        assertTrue(request.getUrl().endsWith("q=a%26admin%3Dtrue%20100%25"), "query param value must be percent-encoded: " + request.getUrl());
+    }
+
+    @Test
+    public void processArgumentMapValuesAreEncodedTest() {
+        RequestTemplate template = new RequestTemplate(Void.class, method2, "method2", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final RequestParam param = spy(RequestParam.class);
+
+        Map<String, Object> params = Maps.newHashMap();
+        params.put("k&y", "v=l");
+        processor.processArgument(request, param, params);
+
+        assertTrue(request.getUrl().contains("k%26y=v%3Dl"), "map keys and values must be percent-encoded: " + request.getUrl());
+    }
+
+    @Test
     public void processArgumentNullTest() {
         RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
         this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
