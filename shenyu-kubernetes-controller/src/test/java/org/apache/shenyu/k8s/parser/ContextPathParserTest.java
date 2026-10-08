@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -198,5 +199,27 @@ public class ContextPathParserTest {
 
     private V1HTTPIngressPath createPath(final String path, final String pathType) {
         return new V1HTTPIngressPathBuilder().withPath(path).withPathType(pathType).build();
+    }
+
+    @Test
+    public void testParseWithEmptyStringContextPathAnnotation() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.PLUGIN_CONTEXT_PATH_PATH, "");
+
+        V1Ingress ingress = new V1IngressBuilder()
+                .withNewMetadata().withName("test-ingress-empty").withNamespace(NAMESPACE)
+                .withAnnotations(annotations).endMetadata()
+                .withNewSpec().withRules(createRule(null, createPath("/context", "Prefix"))).endSpec()
+                .withKind("Ingress")
+                .build();
+
+        ShenyuMemoryConfig config = parse(ingress);
+        List<IngressConfiguration> routeConfigList = config.getRouteConfigList();
+
+        // Empty string is treated as blank (same as missing annotation),
+        // so no route configurations should be produced.
+        assertTrue(
+                Objects.isNull(routeConfigList) || routeConfigList.isEmpty(),
+                "No route configs should be produced when context-path annotation is empty");
     }
 }
