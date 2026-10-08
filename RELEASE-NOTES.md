@@ -6,6 +6,10 @@
 
 ### Behavior Changes
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
 - Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
   The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
   but can discard a newer registration failure arriving between those calls.
