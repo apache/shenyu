@@ -20,6 +20,7 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
+import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +108,37 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
 
     private static MqttQoS maxQoS(final MqttQoS qos1, final MqttQoS qos2) {
         return qos1.value() >= qos2.value() ? qos1 : qos2;
+    }
+
+    /**
+     * Get the channels whose subscription filter matches the published topic,
+     * mapped to the maximum qos granted across all their matching filters.
+     * Supports MQTT wildcards: + (single-level) and # (multi-level).
+     *
+     * @param topic the published topic name
+     * @return matching channels with their maximum granted qos
+     */
+    public Map<Channel, MqttQoS> getChannelsByTopic(final String topic) {
+        // MQTT requires at most one delivery per publish per client, so merge the
+        // granted qos when overlapping filters (e.g. sport/# and #) both match.
+        Map<Channel, MqttQoS> result = new ConcurrentHashMap<>();
+
+        // fast path: exact subscription, no wildcard scan needed
+        Map<Channel, MqttQoS> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
+        if (Objects.nonNull(exactMatch)) {
+            result.putAll(exactMatch);
+        }
+
+        for (Map.Entry<String, Map<Channel, MqttQoS>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
+            String filter = entry.getKey();
+            if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
+                continue;
+            }
+            if (TopicMatcher.matches(filter, topic)) {
+                entry.getValue().forEach((channel, qos) -> result.merge(channel, qos, SubscribeRepository::maxQoS));
+            }
+        }
+        return result;
     }
 
 }

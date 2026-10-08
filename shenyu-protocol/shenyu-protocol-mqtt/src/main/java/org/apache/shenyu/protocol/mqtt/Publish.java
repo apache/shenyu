@@ -35,6 +35,9 @@ import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
+import java.util.Objects;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -142,5 +145,32 @@ public class Publish extends MessageType {
 
     private static MqttQoS minQoS(final MqttQoS publishQoS, final MqttQoS grantedQoS) {
         return publishQoS.value() <= grantedQoS.value() ? publishQoS : grantedQoS;
+    }
+
+    /**
+     * Publish a Last Will message to all subscribers of the will topic.
+     *
+     * @param will the will entry containing topic, message, qos, and retain flag
+     */
+    static void publishWill(final WillRepository.WillEntry will) {
+        if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
+            return;
+        }
+        final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
+        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
+            if (channel.isActive()) {
+                MqttQoS qos = minQoS(willQos, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos
+                        ? 0
+                        : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, will.isRetain(), 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), packetId);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
+                        Unpooled.wrappedBuffer(will.getMessage()));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
     }
 }
