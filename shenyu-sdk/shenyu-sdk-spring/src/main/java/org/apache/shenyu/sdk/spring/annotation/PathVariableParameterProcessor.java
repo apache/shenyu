@@ -42,7 +42,7 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
 
     @Override
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
-        String name = ANNOTATION.cast(annotation).value();
+        String name = StringUtils.defaultIfBlank(ANNOTATION.cast(annotation).value(), ANNOTATION.cast(annotation).name());
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         checkState(arg instanceof String && StringUtils.isNotBlank(name) || arg instanceof Map,
             "PathVariable Object class pls is String or Map<String, String> and PathVariable annotation value could not be empty when String class at the method %s.", requestTemplate.getMethod());
