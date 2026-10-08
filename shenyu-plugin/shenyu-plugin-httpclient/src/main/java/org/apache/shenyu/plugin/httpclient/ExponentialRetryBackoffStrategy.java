@@ -17,14 +17,22 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.PrematureCloseException;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Exponential Retry Backoff Strategy.
@@ -49,23 +57,35 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
      * @return Response Mono object after retry processing
      */
     public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
-        RetryBackoffSpec retrySpec = initDefaultBackoff(retryTimes);
+        RetryBackoffSpec retrySpec = initDefaultBackoff(exchange, retryTimes);
         Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(5));
         return response.retryWhen(retrySpec)
                 .timeout(totalTimeout, Mono.error(() -> new java.util.concurrent.TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 
-    private RetryBackoffSpec initDefaultBackoff(final int retryTimes) {
+    private RetryBackoffSpec initDefaultBackoff(final ServerWebExchange exchange, final int retryTimes) {
         return Retry.backoff(retryTimes, Duration.ofMillis(500))
                 .maxBackoff(Duration.ofSeconds(5))
-                // Retry only for instantaneous errors
-                .transientErrors(true)
+                .filter(throwable -> HttpMethod.GET.equals(exchange.getRequest().getMethod()) && isTransientFailure(throwable))
                 // Add 50% random jitter to the delay time of each retry
                 .jitter(0.5d)
-                // When the maximum number of retrys is reached, a specified exception is thrown
-                .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
-                    throw new IllegalStateException("Retry limit exceeded");
-                });
+                .onRetryExhaustedThrow((retrySpec, retrySignal) -> retrySignal.failure());
+    }
+
+    private boolean isTransientFailure(final Throwable throwable) {
+        Throwable cause = throwable;
+        while (Objects.nonNull(cause)) {
+            if (cause instanceof TimeoutException
+                    || cause instanceof ConnectTimeoutException
+                    || cause instanceof ReadTimeoutException
+                    || cause instanceof ConnectException
+                    || cause instanceof SocketTimeoutException
+                    || cause instanceof PrematureCloseException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

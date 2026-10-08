@@ -33,6 +33,8 @@ public final class InitialSyncState {
 
     private final AtomicBoolean ready;
 
+    private final Runnable onComplete;
+
     private String requestId;
 
     private int sequence;
@@ -50,7 +52,17 @@ public final class InitialSyncState {
      * @param ready shared startup latch
      */
     public InitialSyncState(final AtomicBoolean ready) {
+        this(ready, () -> { });
+    }
+
+    /**
+     * Create connection state with a full-attempt completion callback.
+     * @param ready shared startup latch
+     * @param onComplete callback after the end frame and all application work succeed
+     */
+    public InitialSyncState(final AtomicBoolean ready, final Runnable onComplete) {
         this.ready = ready;
+        this.onComplete = Objects.requireNonNull(onComplete);
     }
 
     /**
@@ -140,7 +152,16 @@ public final class InitialSyncState {
         if (ended && pending == 0 && !failed && System.nanoTime() - startedAt < TimeUnit.SECONDS.toNanos(60)) {
             ready.set(true);
             requestId = null;
+            onComplete.run();
         }
+    }
+
+    /**
+     * Whether the latest attempt completed successfully, independent of the startup latch.
+     * @return complete attempt
+     */
+    public synchronized boolean isComplete() {
+        return ended && !failed && Objects.isNull(requestId);
     }
 
     /**

@@ -56,7 +56,7 @@ public class RequestParamParameterProcessorTest {
     @Test
     public void processArgumentNullTest() {
         RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final RequestParam param = spy(RequestParam.class);
         when(param.value()).thenReturn("");
 
@@ -66,7 +66,7 @@ public class RequestParamParameterProcessorTest {
     @Test
     public void processArgumentStringTest() {
         RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final RequestParam param = spy(RequestParam.class);
         when(param.value()).thenReturn("id");
 
@@ -78,7 +78,7 @@ public class RequestParamParameterProcessorTest {
     @Test
     public void processArgumentMapTest() {
         RequestTemplate template = new RequestTemplate(Void.class, method2, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final RequestParam param = spy(RequestParam.class);
 
         Map<String, Object> params = Maps.newHashMap();

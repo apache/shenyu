@@ -77,7 +77,6 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         }
         this.contextPath = contextPath;
         this.ipAndPort = this.getHost() + ":" + port;
-        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
