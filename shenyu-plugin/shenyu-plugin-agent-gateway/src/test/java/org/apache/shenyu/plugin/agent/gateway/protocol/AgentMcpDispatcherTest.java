@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
@@ -69,6 +70,7 @@ class AgentMcpDispatcherTest {
                     assertEquals("private", result.get("cacheScope").textValue());
                     assertEquals(0, result.get("ttlMs").intValue());
                     assertEquals("shenyu-agent-gateway", result.path("_meta").path("io.modelcontextprotocol/serverInfo").path("name").textValue());
+                    assertEquals(AgentGatewayConstants.MCP_SERVER_VERSION, result.path("_meta").path("io.modelcontextprotocol/serverInfo").path("version").textValue());
                 }).verifyComplete();
     }
 
@@ -432,7 +434,7 @@ class AgentMcpDispatcherTest {
     }
 
     private AgentMcpDispatcher dispatcher(final AgentToolProvider... providers) {
-        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(providers)), "shenyu-agent-gateway", "2.7.2-SNAPSHOT");
+        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(providers)), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION);
     }
 
     private AgentToolProvider provider(final String name, final Function<AgentToolInvocation, Mono<JsonObject>> action) {

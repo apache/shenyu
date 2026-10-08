@@ -51,7 +51,7 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
     private final AgentMcpHttpHandler mcpHandler;
 
     public AgentGatewayPlugin() {
-        this(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "shenyu-agent-gateway", "2.7.2-SNAPSHOT"),
+        this(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION),
                 exchange -> Mono.empty()));
     }
 

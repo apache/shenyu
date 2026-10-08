@@ -123,7 +123,7 @@ public final class AgentMcpDispatcher {
             return Mono.error(failure(request, 403, -32602, "Tool is not available"));
         }
         JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
-        JsonObject capabilities = JsonParser.parseString(params.path("_meta").path("io.modelcontextprotocol/clientCapabilities").toString()).getAsJsonObject();
+        JsonObject capabilities = request.getClientCapabilities();
         return registry.invoke(name, context.getAllowedTools(), () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
                         context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities))
                 .map(value -> {

@@ -120,8 +120,8 @@ not enabled by choosing `responseMode=json`.
 ### Protocol support and compatibility
 
 This is an implementation contract for the tools-only entry, not a claim of
-complete MCP conformance or final protocol approval. The PR remains draft while
-the protocol choice and wider Agent Gateway MCP contract are stabilized. The
+complete MCP conformance or final protocol approval. Protocol-version and
+compatibility decisions remain open to community discussion. The
 [fixed versioning contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
 uses per-request version metadata rather than an initialization handshake.
 

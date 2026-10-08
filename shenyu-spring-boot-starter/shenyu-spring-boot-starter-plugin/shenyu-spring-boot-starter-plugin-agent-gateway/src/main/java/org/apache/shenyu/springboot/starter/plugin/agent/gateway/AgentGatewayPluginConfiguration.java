@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
@@ -50,7 +51,7 @@ public class AgentGatewayPluginConfiguration {
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", "2.7.2-SNAPSHOT"), resolver));
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION), resolver));
     }
 
     /**

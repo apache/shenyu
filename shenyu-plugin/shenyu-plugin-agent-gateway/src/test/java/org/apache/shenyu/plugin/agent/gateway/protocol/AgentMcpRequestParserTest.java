@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -174,6 +175,25 @@ class AgentMcpRequestParserTest {
         request.getParams().putObject("_meta").put("subject", "forged");
         assertEquals("order_status", request.getParams().get("name").textValue());
         assertFalse(request.getParams().get("_meta").has("subject"));
+    }
+
+    @Test
+    void shouldSnapshotCapabilitiesWithoutLosingNestedTypesOrLargeIntegers() {
+        String capabilities = "{\"sampling\":{},\"flag\":true,\"large\":92233720368547758081234,\"values\":[null,\"text\",false,0.5]}";
+        AgentMcpRequest request = parse(body("tools/call", "1", "2026-07-28")
+                .replace("\"io.modelcontextprotocol/clientCapabilities\":{}", "\"io.modelcontextprotocol/clientCapabilities\":" + capabilities), headers("tools/call"));
+        JsonObject copy = request.getClientCapabilities();
+        assertTrue(copy.get("sampling").isJsonObject());
+        assertTrue(copy.get("flag").getAsBoolean());
+        assertEquals("92233720368547758081234", copy.get("large").getAsString());
+        assertTrue(copy.getAsJsonArray("values").get(0).isJsonNull());
+        assertEquals("text", copy.getAsJsonArray("values").get(1).getAsString());
+        assertFalse(copy.getAsJsonArray("values").get(2).getAsBoolean());
+        assertEquals(0.5, copy.getAsJsonArray("values").get(3).getAsDouble());
+        copy.remove("sampling");
+        copy.getAsJsonArray("values").set(0, new com.google.gson.JsonPrimitive("changed"));
+        assertTrue(request.getClientCapabilities().has("sampling"));
+        assertTrue(request.getClientCapabilities().getAsJsonArray("values").get(0).isJsonNull());
     }
 
     @Test

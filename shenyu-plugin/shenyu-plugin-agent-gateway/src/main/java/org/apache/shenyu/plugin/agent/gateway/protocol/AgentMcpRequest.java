@@ -19,6 +19,11 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Validated protocol data, not a source of trusted identity or permissions.
@@ -31,10 +36,13 @@ public final class AgentMcpRequest {
 
     private final ObjectNode params;
 
+    private final JsonObject clientCapabilities;
+
     AgentMcpRequest(final JsonNode id, final String method, final ObjectNode params) {
         this.id = id.deepCopy();
         this.method = method;
         this.params = params.deepCopy();
+        clientCapabilities = toGson(this.params.path("_meta").path("io.modelcontextprotocol/clientCapabilities")).getAsJsonObject();
     }
 
     public JsonNode getId() {
@@ -47,5 +55,36 @@ public final class AgentMcpRequest {
 
     public ObjectNode getParams() {
         return params.deepCopy();
+    }
+
+    /**
+     * Reuse the validated capability snapshot without a JSON text round trip.
+     * @return an independent capability object
+     */
+    public JsonObject getClientCapabilities() {
+        return clientCapabilities.deepCopy();
+    }
+
+    private static JsonElement toGson(final JsonNode node) {
+        if (node.isObject()) {
+            JsonObject object = new JsonObject();
+            node.fields().forEachRemaining(field -> object.add(field.getKey(), toGson(field.getValue())));
+            return object;
+        }
+        if (node.isArray()) {
+            JsonArray array = new JsonArray();
+            node.forEach(value -> array.add(toGson(value)));
+            return array;
+        }
+        if (node.isNumber()) {
+            return new JsonPrimitive(node.numberValue());
+        }
+        if (node.isBoolean()) {
+            return new JsonPrimitive(node.booleanValue());
+        }
+        if (node.isTextual()) {
+            return new JsonPrimitive(node.textValue());
+        }
+        return JsonNull.INSTANCE;
     }
 }
