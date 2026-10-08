@@ -43,7 +43,7 @@ spec:
             failureThreshold: 3
             httpGet:
               port: 9195
-              path: /actuator/health
+              path: /actuator/health/liveness
           readinessProbe:
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -52,7 +52,7 @@ spec:
             failureThreshold: 3
             httpGet:
               port: 9195
-              path: /actuator/health
+              path: /actuator/health/readiness
           env:
             - name: TZ
               value: Asia/Beijing
@@ -93,4 +93,3 @@ spec:
       port: 9195
       targetPort: 9195
       nodePort: 31195
-

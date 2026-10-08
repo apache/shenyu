@@ -72,6 +72,16 @@ shenyu:
       messageMaxSize: 10240
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
+      # Reconciles gateway sessions connected to this admin node with the shared
+      # database, so gateways converge even when the change was written through
+      # another standalone admin node on the same database. Namespaces without
+      # connected gateway sessions are not polled; a larger interval reduces the
+      # database polling cost but increases the worst-case consistency delay.
+      # Opt in for shared-database standalone nodes. Only plugin/selector/rule
+      # groups support namespace-scoped replacement; other groups use normal sync.
+      reconciliation:
+        enabled: false
+        interval: 60s
 #    apollo:
 #      meta: http://localhost:8080
 #      appId: shenyu
@@ -121,6 +131,9 @@ shenyu:
     # secret-key: "your-secret-key-here"
     expired-seconds: 86400000
   cluster:
+    # Same high-entropy node-only credential on every Admin. Missing credentials fail closed.
+    # Use HTTPS (schema: https) or a trusted TLS service mesh to protect the credential in transit.
+    event-secret: ${SHENYU_CLUSTER_EVENT_SECRET:}
     enabled: false
     type: jdbc
     connectionTimeout: 15000

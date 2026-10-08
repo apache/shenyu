@@ -19,20 +19,56 @@ package org.apache.shenyu.plugin.mcp.server.response;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for {@link NonCommittingMcpResponseDecorator}.
  */
 public final class NonCommittingMcpResponseDecoratorTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void releasesCollectedBufferOnUpstreamError(final boolean flush) {
+        NettyDataBuffer buffer = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT).allocateBuffer();
+        buffer.write("partial".getBytes(StandardCharsets.UTF_8));
+        CompletableFuture<String> future = new CompletableFuture<>();
+        NonCommittingMcpResponseDecorator decorator = new NonCommittingMcpResponseDecorator(new MockServerHttpResponse(), "session", future, null);
+        IllegalStateException failure = new IllegalStateException("upstream failed");
+        Flux<NettyDataBuffer> body = Flux.concat(Mono.just(buffer), Mono.error(failure));
+
+        StepVerifier.create(flush ? decorator.writeAndFlushWith(Flux.just(body)) : decorator.writeWith(body))
+                .expectErrorMatches(error -> error == failure).verify();
+
+        assertEquals(0, buffer.getNativeBuffer().refCnt());
+        assertTrue(future.isCompletedExceptionally());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void releasesCollectedBufferOnCancellation(final boolean flush) {
+        NettyDataBuffer buffer = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT).allocateBuffer();
+        buffer.write("partial".getBytes(StandardCharsets.UTF_8));
+        NonCommittingMcpResponseDecorator decorator = new NonCommittingMcpResponseDecorator(new MockServerHttpResponse(), "session", new CompletableFuture<>(), null);
+        Flux<NettyDataBuffer> body = Flux.concat(Mono.just(buffer), Mono.never());
+
+        StepVerifier.create(flush ? decorator.writeAndFlushWith(Flux.just(body)) : decorator.writeWith(body))
+                .thenCancel().verify();
+
+        assertEquals(0, buffer.getNativeBuffer().refCnt());
+    }
 
     @Test
     public void testWriteWithReleasesCollectedBuffers() {

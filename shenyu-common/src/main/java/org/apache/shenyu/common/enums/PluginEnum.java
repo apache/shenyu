@@ -283,6 +283,11 @@ public enum PluginEnum {
     AI_PROXY(199, 0, "aiProxy"),
 
     /**
+     * Agent gateway plugin enum.
+     */
+    AGENT_GATEWAY(198, 0, "agentGateway"),
+
+    /**
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),

@@ -151,8 +151,7 @@ public class ConsulSyncDataService extends AbstractPathDataSyncService {
                         -1, TimeUnit.MILLISECONDS);
                 return;
             }
-            if (!this.consulIndexes.containsValue(newIndex)
-                    && !currentIndex.equals(ConsulConstants.INIT_CONFIG_VERSION_INDEX)) {
+            if (!currentIndex.equals(ConsulConstants.INIT_CONFIG_VERSION_INDEX)) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("watchPathRoot {} has new index {}", watchPathRoot, newIndex);
                 }

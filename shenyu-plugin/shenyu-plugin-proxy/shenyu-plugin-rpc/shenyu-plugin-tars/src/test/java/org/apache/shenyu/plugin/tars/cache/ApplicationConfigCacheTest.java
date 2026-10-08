@@ -18,21 +18,31 @@
 package org.apache.shenyu.plugin.tars.cache;
 
 import com.qq.tars.protocol.annotation.Servant;
+import com.qq.tars.client.Communicator;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
+import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,8 +51,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * Test case for {@link ApplicationConfigCache}.
@@ -170,5 +187,117 @@ public final class ApplicationConfigCacheTest {
     public void testGetInstance() {
         final ApplicationConfigCache result = ApplicationConfigCache.getInstance();
         assertNotNull(result);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRefreshPublishesCompleteSnapshot() throws Exception {
+        final String path = "snapshot-refresh";
+        final Map<String, Class<?>> classes = (Map<String, Class<?>>) ReflectionTestUtils.getField(applicationConfigCacheUnderTest, "prxClassCache");
+        final Communicator original = (Communicator) ReflectionTestUtils.getField(applicationConfigCacheUnderTest, "communicator");
+        final Communicator communicator = mock(Communicator.class);
+        final TarsInvokePrxList previous = applicationConfigCacheUnderTest.get(path);
+        previous.setMethod(Object.class.getMethod("toString"));
+        previous.addTarsInvokePrxList(Collections.singletonList(new TarsInvokePrx(new Object(), "old")));
+        final MetaData metadata = new MetaData();
+        metadata.setPath(path);
+        metadata.setServiceName("service");
+        final TarsUpstream upstream = TarsUpstream.builder().upstreamUrl("127.0.0.1:8080").build();
+        classes.put(path, Object.class);
+        ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", communicator);
+        try {
+            when(communicator.stringToProxy(eq(Object.class), anyString())).thenAnswer(invocation -> {
+                assertSame(previous, applicationConfigCacheUnderTest.get(path));
+                assertEquals(1, previous.getTarsInvokePrxList().size());
+                return new Object();
+            });
+            ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest, "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream));
+            assertNotSame(previous, applicationConfigCacheUnderTest.get(path));
+            assertEquals(1, previous.getTarsInvokePrxList().size());
+            assertEquals("old", previous.getTarsInvokePrxList().get(0).getHost());
+            assertEquals("127.0.0.1:8080", applicationConfigCacheUnderTest.get(path).getTarsInvokePrxList().get(0).getHost());
+            final TarsInvokePrxList current = applicationConfigCacheUnderTest.get(path);
+            org.mockito.Mockito.doThrow(new IllegalStateException("proxy unavailable")).when(communicator).stringToProxy(eq(Object.class), anyString());
+            assertThrows(IllegalStateException.class, () -> ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest,
+                    "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream)));
+            assertSame(current, applicationConfigCacheUnderTest.get(path));
+            assertEquals(1, current.getTarsInvokePrxList().size());
+        } finally {
+            classes.remove(path);
+            ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", original);
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInvalidateRemovesCompanionCaches() throws Exception {
+        final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "/demo", "/demo/test",
+                RpcTypeEnum.TARS.getName(), "service", "method", "", "", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final Map<String, List<MetaData>> ctxPathCache = (Map<String, List<MetaData>>) getField("ctxPathCache");
+        final Map<String, Class<?>> prxClassCache = (Map<String, Class<?>>) getField("prxClassCache");
+        final Map<String, ApplicationConfigCache.TarsParamInfo> prxParamCache =
+                (Map<String, ApplicationConfigCache.TarsParamInfo>) getField("prxParamCache");
+        final Map<String, List<?>> refreshUpstreamCache = (Map<String, List<?>>) getField("refreshUpstreamCache");
+        ctxPathCache.clear();
+        prxClassCache.clear();
+        prxParamCache.clear();
+        refreshUpstreamCache.clear();
+        ctxPathCache.put(metaData.getContextPath(), Collections.singletonList(metaData));
+        prxClassCache.put(metaData.getPath(), ApplicationConfigCacheTest.class);
+        final String paramKey = PrxInfoUtil.getPrxName(metaData) + "_" + metaData.getMethodName();
+        prxParamCache.put(paramKey, new ApplicationConfigCache.TarsParamInfo(new Class<?>[0], new String[0]));
+        refreshUpstreamCache.put(metaData.getContextPath(), Collections.emptyList());
+        final TarsInvokePrxList cached = applicationConfigCacheUnderTest.get(metaData.getPath());
+
+        applicationConfigCacheUnderTest.invalidate(metaData.getContextPath());
+
+        assertTrue(ctxPathCache.isEmpty());
+        assertTrue(prxClassCache.isEmpty());
+        assertTrue(prxParamCache.isEmpty());
+        assertTrue(refreshUpstreamCache.isEmpty());
+        assertNotSame(cached, applicationConfigCacheUnderTest.get(metaData.getPath()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @SuppressWarnings("unchecked")
+    void deletedUpstreamsCannotBeRepublishedByMetadata(final boolean emptyUpdate) throws Exception {
+        final String context = "/deleted" + emptyUpdate;
+        final MetaData metadata = new MetaData("id", "app", context, context + "/path", RpcTypeEnum.TARS.getName(),
+                "deletedService" + emptyUpdate, "method", "", "{\"methodInfo\":[]}", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        final Map<String, List<MetaData>> contexts = (Map<String, List<MetaData>>) getField("ctxPathCache");
+        final Map<String, Class<?>> classes = (Map<String, Class<?>>) getField("prxClassCache");
+        final Map<String, List<TarsUpstream>> upstreams = (Map<String, List<TarsUpstream>>) getField("refreshUpstreamCache");
+        final Communicator original = (Communicator) getField("communicator");
+        final Communicator communicator = mock(Communicator.class);
+        contexts.put(context, List.of(metadata));
+        classes.put(metadata.getPath(), Object.class);
+        upstreams.put(context, List.of(TarsUpstream.builder().upstreamUrl("127.0.0.1:8080").build()));
+        applicationConfigCacheUnderTest.get(metadata.getPath()).addTarsInvokePrxList(List.of(new TarsInvokePrx(new Object(), "old")));
+        ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", communicator);
+        try {
+            SelectorData selector = new SelectorData();
+            selector.setName(context);
+            selector.setHandle("[]");
+            if (emptyUpdate) {
+                applicationConfigCacheUnderTest.initPrxClass(selector);
+            } else {
+                new TarsPluginDataHandler().removeSelector(selector);
+            }
+            assertFalse(upstreams.containsKey(context));
+            applicationConfigCacheUnderTest.initPrx(metadata);
+            assertTrue(classes.containsKey(metadata.getPath()), "Metadata must initialize successfully after deletion");
+            assertTrue(applicationConfigCacheUnderTest.get(metadata.getPath()).getTarsInvokePrxList().isEmpty());
+            verifyNoInteractions(communicator);
+        } finally {
+            applicationConfigCacheUnderTest.invalidate(context);
+            ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", original);
+        }
+    }
+
+    private Object getField(final String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        java.lang.reflect.Field field = ApplicationConfigCache.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(applicationConfigCacheUnderTest);
     }
 }

@@ -84,6 +84,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
         return Flux.from(body)
                 .collectList()
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::processResponseData)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeWith for session: {}", sessionId))
@@ -97,6 +98,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         return Flux.from(body)
                 .flatMap(Flux::from)
                 .collectList()
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::processResponseData)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeAndFlushWith for session: {}", sessionId))
@@ -147,14 +149,14 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
     private String aggregateDataBuffers(final java.util.List<? extends DataBuffer> dataBuffers) {
         final StringBuilder responseBuilder = new StringBuilder();
 
-        for (DataBuffer buffer : dataBuffers) {
-            try {
+        try {
+            for (DataBuffer buffer : dataBuffers) {
                 final byte[] bytes = new byte[buffer.readableByteCount()];
                 buffer.read(bytes);
                 responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
-            } finally {
-                DataBufferUtils.release(buffer);
             }
+        } finally {
+            dataBuffers.forEach(DataBufferUtils::release);
         }
 
         return responseBuilder.toString();

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.tcp.handler;
 
 import org.apache.shenyu.plugin.base.cache.CommonProxySelectorDataSubscriber;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
+import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -36,6 +38,10 @@ public final class TcpProxySelectorDataHandlerTest {
     private static final String FIRST_SELECTOR = "first";
 
     private static final String SECOND_SELECTOR = "second";
+
+    private static final String FIRST_SELECTOR_ID = "first-id";
+
+    private static final String SECOND_SELECTOR_ID = "second-id";
 
     private final TcpBootstrapFactory factory = TcpBootstrapFactory.getSingleton();
 
@@ -55,6 +61,10 @@ public final class TcpProxySelectorDataHandlerTest {
         BootstrapServer secondServer = mock(BootstrapServer.class);
         factory.cache(FIRST_SELECTOR, firstServer);
         factory.cache(SECOND_SELECTOR, secondServer);
+        UpstreamProvider.getSingleton().createUpstreams(FIRST_SELECTOR, Collections.emptyList());
+        UpstreamProvider.getSingleton().createUpstreams(SECOND_SELECTOR, Collections.emptyList());
+        UpstreamProvider.getSingleton().registerSelector(FIRST_SELECTOR_ID, FIRST_SELECTOR);
+        UpstreamProvider.getSingleton().registerSelector(SECOND_SELECTOR_ID, SECOND_SELECTOR);
 
         new CommonProxySelectorDataSubscriber(Collections.singletonList(new TcpProxySelectorDataHandler())).refresh();
 
@@ -62,6 +72,10 @@ public final class TcpProxySelectorDataHandlerTest {
         verify(secondServer).shutdown();
         assertFalse(factory.inCache(FIRST_SELECTOR));
         assertFalse(factory.inCache(SECOND_SELECTOR));
+        assertFalse(UpstreamProvider.getSingleton().inCache(FIRST_SELECTOR));
+        assertFalse(UpstreamProvider.getSingleton().inCache(SECOND_SELECTOR));
+        assertNull(UpstreamProvider.getSingleton().getSelectorName(FIRST_SELECTOR_ID));
+        assertNull(UpstreamProvider.getSingleton().getSelectorName(SECOND_SELECTOR_ID));
     }
 
     @Test
@@ -71,6 +85,8 @@ public final class TcpProxySelectorDataHandlerTest {
         doThrow(new IllegalStateException("shutdown failed")).when(failingServer).shutdown();
         factory.cache(FIRST_SELECTOR, failingServer);
         factory.cache(SECOND_SELECTOR, secondServer);
+        UpstreamProvider.getSingleton().createUpstreams(FIRST_SELECTOR, Collections.emptyList());
+        UpstreamProvider.getSingleton().registerSelector(FIRST_SELECTOR_ID, FIRST_SELECTOR);
 
         assertDoesNotThrow(() -> new TcpProxySelectorDataHandler().refresh());
 
@@ -78,18 +94,24 @@ public final class TcpProxySelectorDataHandlerTest {
         verify(secondServer).shutdown();
         assertFalse(factory.inCache(FIRST_SELECTOR));
         assertFalse(factory.inCache(SECOND_SELECTOR));
+        assertFalse(UpstreamProvider.getSingleton().inCache(FIRST_SELECTOR));
+        assertNull(UpstreamProvider.getSingleton().getSelectorName(FIRST_SELECTOR_ID));
     }
 
     @Test
     public void testRemoveProxySelector() {
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
         factory.cache(FIRST_SELECTOR, bootstrapServer);
+        UpstreamProvider.getSingleton().createUpstreams(FIRST_SELECTOR, Collections.emptyList());
+        UpstreamProvider.getSingleton().registerSelector(FIRST_SELECTOR_ID, FIRST_SELECTOR);
         TcpProxySelectorDataHandler handler = new TcpProxySelectorDataHandler();
 
         handler.removeProxySelector(FIRST_SELECTOR);
 
         verify(bootstrapServer).shutdown();
         assertFalse(factory.inCache(FIRST_SELECTOR));
+        assertFalse(UpstreamProvider.getSingleton().inCache(FIRST_SELECTOR));
+        assertNull(UpstreamProvider.getSingleton().getSelectorName(FIRST_SELECTOR_ID));
         assertDoesNotThrow(() -> handler.removeProxySelector(FIRST_SELECTOR));
     }
 }
