@@ -18,9 +18,12 @@
 package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
+import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
@@ -264,6 +267,82 @@ public class CommonUpstreamUtils {
      * @return the string
      */
     public static String buildUrl(final String host, final Integer port) {
-        return Optional.of(String.join(":", host, String.valueOf(port))).orElse(null);
+        if (Objects.nonNull(host) && host.contains(":")) {
+            if (host.startsWith("[") && host.endsWith("]")) {
+                return String.format("%s:%d", host, port);
+            }
+            return String.format("[%s]:%d", host, port);
+        }
+        return String.join(":", host, String.valueOf(port));
+    }
+
+    /**
+     * Parse host and port from a host:port string, supporting IPv6 bracket notation.
+     *
+     * @param upstreamUrl the upstreamUrl in "host:port" or "[ipv6]:port" format
+     * @return string array with [host, port], port defaults to "80" if not present
+     */
+    public static String[] parseHostPort(final String upstreamUrl) {
+        return IpUtils.parseHostPort(upstreamUrl);
+    }
+
+    /**
+     * Normalize upstream URL to canonical form for consistent storage and query.
+     * IPv6 addresses are always wrapped in brackets: {@code [::1]:8080}.
+     * IPv4/hostname format: {@code 192.168.1.1:8080}.
+     * Default port 80 is always appended if absent.
+     *
+     * @param url raw upstream URL
+     * @return canonical URL string
+     */
+    public static String normalizeUrl(final String url) {
+        if (StringUtils.isBlank(url)) {
+            throw new IllegalArgumentException("Invalid upstream URL, null or blank");
+        }
+        String[] parts = parseHostPort(url);
+        return buildUrl(parts[0], Integer.parseInt(parts[1]));
+    }
+
+    /**
+     * Match an existing upstream record by host and port, for backward compatibility
+     * with old records stored in non-normalized URL format.
+     *
+     * @param mapper              the discovery upstream mapper
+     * @param discoveryHandlerId  the discovery handler id
+     * @param normalizedUrl       the URL in canonical format
+     * @return matching DiscoveryUpstreamDO or null if not found
+     */
+    public static DiscoveryUpstreamDO matchByHostAndPort(final DiscoveryUpstreamMapper mapper,
+                                                          final String discoveryHandlerId,
+                                                          final String normalizedUrl) {
+        List<DiscoveryUpstreamDO> existingList = mapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        return matchByHostAndPort(existingList, normalizedUrl);
+    }
+
+    /**
+     * Match an existing upstream record by host and port from an in-memory list.
+     * Use this overload in batch loops to avoid repeated DB queries.
+     *
+     * @param existingList  the list of existing upstreams for a handler
+     * @param normalizedUrl the URL in canonical format
+     * @return matching DiscoveryUpstreamDO or null if not found
+     */
+    public static DiscoveryUpstreamDO matchByHostAndPort(final List<DiscoveryUpstreamDO> existingList,
+                                                          final String normalizedUrl) {
+        if (Objects.isNull(existingList) || existingList.isEmpty()) {
+            return null;
+        }
+        String[] newParts = parseHostPort(normalizedUrl);
+        for (DiscoveryUpstreamDO existing : existingList) {
+            try {
+                String[] existingParts = parseHostPort(existing.getUpstreamUrl());
+                if (newParts[0].equals(existingParts[0]) && newParts[1].equals(existingParts[1])) {
+                    return existing;
+                }
+            } catch (Exception e) {
+                // skip old records with unparseable URLs
+            }
+        }
+        return null;
     }
 }
