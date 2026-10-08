@@ -94,6 +94,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -703,9 +704,14 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private void publishImportEvent(final List<SelectorData> importedSelectors) {
-        if (CollectionUtils.isNotEmpty(importedSelectors)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, importedSelectors));
+        Map<String, List<SelectorData>> selectorsByNamespace = new LinkedHashMap<>();
+        for (SelectorData selector : importedSelectors) {
+            String namespaceId = StringUtils.defaultIfEmpty(selector.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+            selector.setNamespaceId(namespaceId);
+            selectorsByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(selector);
         }
+        selectorsByNamespace.values().forEach(selectors ->
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, selectors)));
     }
 
     private SelectorData buildSelectorData(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions,

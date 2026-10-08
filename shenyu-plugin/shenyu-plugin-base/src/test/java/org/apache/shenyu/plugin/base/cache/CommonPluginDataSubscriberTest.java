@@ -234,6 +234,52 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
+    public void testUnSelectorSubscribeWithMissingPluginName() {
+        final String path = "/dangling";
+        final MatchDataCache matchDataCache = MatchDataCache.getInstance();
+        baseDataCache.cleanSelectorData();
+        matchDataCache.cleanSelectorData();
+        matchDataCache.cleanRuleDataData();
+
+        // the gateway cached the selector under its real plugin name before the plugin row vanished
+        final SelectorData cachedSelector = SelectorData.builder().id(mockSelectorId1).enabled(true).pluginName(mockPluginName1).build();
+        final SelectorData otherPluginSelector = SelectorData.builder().id(mockSelectorId2).enabled(true).pluginName(mockPluginName2).build();
+        final RuleData cachedRule = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        baseDataCache.cacheSelectData(cachedSelector);
+        baseDataCache.cacheSelectData(otherPluginSelector);
+        matchDataCache.cacheSelectorData(path, cachedSelector, 100, 100);
+        matchDataCache.cacheRuleData(path, cachedRule, 100, 100);
+
+        // the admin cannot resolve a plugin name for the dangling selector, so the delete event carries none
+        final SelectorData deletion = SelectorData.builder().id(mockSelectorId1).enabled(true).build();
+        commonPluginDataSubscriber.unSelectorSubscribe(deletion);
+
+        assertNull(baseDataCache.obtainSelectorData(mockPluginName1));
+        assertNull(matchDataCache.obtainSelectorData(mockPluginName1, path));
+        assertNull(matchDataCache.obtainRuleData(mockPluginName1, path));
+        // an unrelated plugin keeps its selector
+        assertEquals(Lists.newArrayList(otherPluginSelector), baseDataCache.obtainSelectorData(mockPluginName2));
+    }
+
+    @Test
+    public void testUnRuleSubscribeWithMissingPluginName() {
+        final MatchDataCache matchDataCache = MatchDataCache.getInstance();
+        baseDataCache.cleanRuleData();
+        matchDataCache.cleanRuleDataData();
+
+        final RuleData cachedRule = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        baseDataCache.cacheRuleData(cachedRule);
+        matchDataCache.cacheRuleData("/rule", cachedRule, 100, 100);
+
+        // the admin cannot resolve a plugin name for a rule of a deleted plugin, so the delete event carries none
+        final RuleData deletion = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        commonPluginDataSubscriber.unRuleSubscribe(deletion);
+
+        assertNull(baseDataCache.obtainRuleData(mockSelectorId1));
+        assertNull(matchDataCache.obtainRuleData(mockPluginName1, "/rule"));
+    }
+
+    @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();

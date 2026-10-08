@@ -52,6 +52,7 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -362,6 +363,39 @@ public final class SelectorServiceTest {
         ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
         assertEquals(selectorDTOs.size(), eventCaptor.getValue().getSource().size());
+    }
+
+    @Test
+    public void testGlobalImportPublishesOneEventPerNamespace() {
+        SelectorDTO first = buildSelectorDTO("first");
+        first.setNamespaceId("namespace-a");
+        SelectorDTO second = buildSelectorDTO("second");
+        second.setNamespaceId("namespace-b");
+        SelectorDTO third = buildSelectorDTO("third");
+        third.setNamespaceId("namespace-a");
+        SelectorDTO defaultSelector = buildSelectorDTO("default");
+        defaultSelector.setNamespaceId(null);
+        SelectorDTO emptyNamespace = buildSelectorDTO("empty");
+        emptyNamespace.setNamespaceId("");
+        given(selectorMapper.selectAll()).willReturn(Collections.emptyList());
+        given(selectorMapper.insertSelective(any())).willReturn(1);
+        given(pluginMapper.selectById(any())).willReturn(buildPluginDO());
+
+        ConfigImportResult result = selectorService.importData(Arrays.asList(first, second, third, defaultSelector, emptyNamespace));
+
+        assertEquals(5, result.getSuccessCount());
+        verify(selectorEventPublisher, times(5)).onCreated(any(SelectorDO.class));
+        ArgumentCaptor<DataChangedEvent> events = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(3)).publishEvent(events.capture());
+        List<DataChangedEvent> published = events.getAllValues();
+        assertEquals(Arrays.asList(2, 1, 2), published.stream().map(event -> event.getSource().size()).toList());
+        List<String> namespaces = Arrays.asList("namespace-a", "namespace-b", SYS_DEFAULT_NAMESPACE_ID);
+        for (int index = 0; index < published.size(); index++) {
+            assertEquals(ConfigGroupEnum.SELECTOR, published.get(index).getGroupKey());
+            for (Object data : published.get(index).getSource()) {
+                assertEquals(namespaces.get(index), ((SelectorData) data).getNamespaceId());
+            }
+        }
     }
 
     private void testUpdate() {
