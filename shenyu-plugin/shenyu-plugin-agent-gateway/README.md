@@ -21,10 +21,12 @@
 
 The Agent Gateway plugin adds a request-scoped context to selected LLM traffic
 and then continues the existing plugin chain. Explicitly matched MCP rules use
-a bounded tools-only entry instead. It does not replace the AI Proxy or legacy
-MCP server, or introduce MCP SDK dependencies. Only the MCP entry reads its body.
+a bounded tools-only entry instead, with optional remote tools aggregation.
+It does not replace the AI Proxy or legacy MCP server. Remote aggregation reuses
+the repository-managed MCP SDK `mcp-core` wire models and uses a request-owned
+JDK HTTP adapter for outbound calls. Only the MCP entry reads its body.
 
-Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界 tools-only 入口。它不替换 AI Proxy 或旧 MCP Server，不引入 MCP SDK 依赖；仅 MCP 入口读取自己的正文。
+Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界 tools-only 入口，可单独启用远程 tools 聚合。它不替换 AI Proxy 或旧 MCP Server；聚合复用仓库统一管理的 MCP SDK `mcp-core` 协议模型，出站调用使用请求独享的 JDK HTTP 适配。仅 MCP 入口读取自己的正文。
 
 ## Enablement
 
@@ -93,9 +95,12 @@ An MCP rule uses `"trafficType": "mcp"` and an `mcp` configuration, for example:
 }
 ```
 
-Only `server/discover`, `tools/list` and `tools/call` are supported. Tools must be
-explicitly registered; rule permissions intersect trusted server-side tool
-grants. Missing trusted identity is rejected. This is not remote tool aggregation.
+Only `server/discover`, `tools/list` and `tools/call` are supported. Local tools
+must be explicitly registered; remote tools come from the separately enabled
+managed catalog. Rule permissions intersect trusted server-side tool grants
+for both paths. Missing trusted identity is rejected. See
+[Remote tools aggregation](#remote-tools-aggregation) for configuration and
+the outbound contract.
 
 The entry targets the [2026-07-28 Streamable HTTP client contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#sending-messages):
 clients must explicitly list both `application/json` and `text/event-stream` in
@@ -127,12 +132,12 @@ uses per-request version metadata rather than an initialization handshake.
 
 | Boundary | Current entry behavior |
 | --- | --- |
-| Version | Only `2026-07-28`; no implicit fallback or translation to older revisions |
+| Inbound version | Only `2026-07-28`; older inbound requests are not implicitly accepted or upgraded |
 | `server/discover` | Advertises that version and tools capability only |
-| `tools/list` | Complete permission-filtered local list; any supplied cursor is rejected |
-| `tools/call` | One authorized local Provider invocation per subscription, without retry |
+| `tools/list` | Complete permission-filtered local and enabled remote list; any supplied inbound cursor is rejected |
+| `tools/call` | One authorized local Provider or remote tool invocation per subscription, without retry |
 | Successful response | JSON object, or one final `event: message` SSE frame; no progress stream |
-| Lifecycle | No `initialize`, protocol session, GET listener or session DELETE endpoint |
+| Inbound lifecycle | No `initialize`, protocol session, GET listener or session DELETE endpoint; outbound sessions are managed separately |
 | Other methods | Rejected; no prompts/resources, MRTR, Tasks or subscriptions |
 
 These behaviors apply only after an enabled, continued MCP rule matches. The
@@ -140,7 +145,9 @@ plugin does not expose a universal `/mcp` path. Unmatched or disabled traffic,
 LLM rules and independently routed legacy MCP traffic keep their existing chain.
 An initialization-based client must use a separately configured legacy endpoint
 or an explicit client adapter; this entry does not make SDK 0.17.0 interoperable
-with the newer wire contract. Remote SDK experiments are not part of this module.
+with the newer wire contract. The remote aggregation adapter connects to the
+fixed older outbound contract described below; it does not relax inbound checks
+or provide arbitrary protocol-version negotiation.
 
 The parser accepts one UTF-8 JSON-RPC 2.0 object with a string or integral ID,
 object `params`, and object `_meta`. It requires a string
@@ -170,17 +177,20 @@ have the same public denial. A rule referring to an unregistered tool instead
 fails as server misconfiguration, not a successful empty list. Record-level
 authorization belongs to the Provider; tool-name permission alone is not enough.
 
-The current Provider returns a business JSON object. The entry encodes it as
+The local Provider returns a business JSON object. The entry encodes it as
 `structuredContent` plus one text item and `isError=false`. Declared argument
 validation failures and explicit `AgentToolExecutionException` failures instead
 produce a sanitized `isError=true` result. Unexpected exceptions and empty
 Provider completion are internal protocol errors. Providers must not return an
-entire remote `CallToolResult` expecting lossless passthrough; native remote
-results need a separate aggregation adapter, outside this PR.
+entire remote `CallToolResult` expecting lossless passthrough. Enabled remote
+tools use the dedicated catalog path in this plugin instead: native result
+fields are preserved without the local business-object wrapper, and the entry
+sets `resultType=complete` for its inbound response contract.
 
 Successful discovery/list results use `resultType=complete`, `ttlMs=0` and
-`cacheScope=private`; calls also have `resultType=complete`. Each result includes
-server information in `_meta`; this does not create a shared identity cache.
+`cacheScope=private`; calls also have `resultType=complete`. Discovery/list results
+include server information in `_meta`; this does not create a shared identity
+cache. Remote call results retain their upstream `_meta`.
 
 The following matrix assumes an authenticated request passing preceding checks;
 it does not specify precedence when several inputs are invalid.
@@ -211,8 +221,8 @@ is not guaranteed to receive an error body.
 ### Deadlines, isolation and configuration limits
 
 One execution budget covers identity resolution, body acquisition, parsing,
-Provider execution, encoding and response writing. The invocation receives its
-absolute deadline. The handler cancels the current reactive subscription on
+local Provider or remote tool execution, encoding and response writing. The
+invocation receives its absolute deadline. The handler cancels the current reactive subscription on
 timeout or downstream cancellation, without closing shared registry/pool state.
 Termination cleanup is request-local; equal client RPC IDs or supplied session
 IDs do not merge calls. Adapters must honor cancellation for their own transport;
@@ -231,12 +241,13 @@ policies have their own budgets.
 | `maxRequestBytes` | 262144 | Integer 1024–1048576, UTF-8 bytes |
 | `maxResponseBytes` | 1048576 | Integer 1024–4194304, includes SSE framing |
 
-Admin create/update/import rejects unknown fields and invalid known values.
-Runtime parsing permits unknown fields but rejects invalid known values. Rules
+Admin rule create/update/import rejects unknown fields and invalid known values.
+Runtime rule parsing permits unknown fields but rejects invalid known values. Rules
 are captured per subscription; later updates affect new requests, not the
 in-flight snapshot. `configurationVersion` is a node-local generation, not an
-Admin revision. Tool registration is frozen at startup; dynamic targets and
-credential/session lifecycle are not provided. Server codec limits may be
+Admin revision. Local tool registration is frozen at startup; enabled remote
+tools use the managed catalog's directory updates, credential-version bindings
+and outbound session lifecycle described below. Server codec limits may be
 smaller than rule limits and remain effective.
 
 ### Contract regression coverage
@@ -246,7 +257,9 @@ smaller than rule limits and remain effective.
 semantics and asynchronous isolation. `AgentMcpHttpHandlerTest` covers both
 response modes, strict Accept, HTTP error mapping, byte limits and cancellation
 through body, execution and writing. Config/registry/plugin/Starter tests cover
-assembly and snapshot boundaries. Passing these targeted tests is not complete
+assembly and snapshot boundaries. Aggregation, remote client, transport policy,
+credential resolver and catalog lifecycle tests cover the optional remote path.
+Passing these targeted tests is not complete
 MCP, OAuth, full-project or arbitrary-client acceptance, nor a reviewer approval.
 
 ### Request context
