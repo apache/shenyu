@@ -17,10 +17,20 @@
 
 package org.apache.shenyu.plugin.agent.gateway.handle;
 
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Immutable, validated rule handle for the agent gateway plugin.
  */
 public final class AgentGatewayRuleHandle {
+
+    private static final AtomicLong GENERATIONS = new AtomicLong();
+
+    private final long generation;
+
+    private final AgentGatewayMcpConfig mcp;
 
     private final String rawHandle;
 
@@ -34,7 +44,9 @@ public final class AgentGatewayRuleHandle {
 
     private AgentGatewayRuleHandle(final String rawHandle, final String trafficType,
                                    final boolean responseRequestId, final boolean valid,
-                                   final String errorMessage) {
+                                   final String errorMessage, final AgentGatewayMcpConfig mcp) {
+        this.generation = GENERATIONS.incrementAndGet();
+        this.mcp = mcp;
         this.rawHandle = rawHandle;
         this.trafficType = trafficType;
         this.responseRequestId = responseRequestId;
@@ -44,11 +56,23 @@ public final class AgentGatewayRuleHandle {
 
     public static AgentGatewayRuleHandle valid(final String rawHandle, final String trafficType,
                                                final boolean responseRequestId) {
-        return new AgentGatewayRuleHandle(rawHandle, trafficType, responseRequestId, true, null);
+        return new AgentGatewayRuleHandle(rawHandle, trafficType, responseRequestId, true, null, null);
+    }
+
+    public static AgentGatewayRuleHandle mcp(final String rawHandle, final boolean responseRequestId, final AgentGatewayMcpConfig config) {
+        return new AgentGatewayRuleHandle(rawHandle, "mcp", responseRequestId, true, null, config);
+    }
+
+    public long getGeneration() {
+        return generation;
+    }
+
+    public AgentGatewayMcpConfig getMcp() {
+        return mcp;
     }
 
     public static AgentGatewayRuleHandle invalid(final String rawHandle, final String errorMessage) {
-        return new AgentGatewayRuleHandle(rawHandle, null, false, false, errorMessage);
+        return new AgentGatewayRuleHandle(rawHandle, null, false, false, errorMessage, null);
     }
 
     public String getRawHandle() {
