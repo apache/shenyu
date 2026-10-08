@@ -24,12 +24,15 @@ import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
@@ -83,6 +86,54 @@ public final class HttpClientRegisterRepositoryTest {
                     eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
             registerUtils.verify(() -> RegisterUtils.doRegister(anyString(),
                     eq(SECOND_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {FIRST_SERVER, SECOND_SERVER})
+    public void partialRegistrationFailureMustPropagate(final String failedServer) throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+                MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doRegister(anyString(), eq(failedServer + Constants.URI_PATH), anyString(), anyString()))
+                    .thenThrow(new IOException("unavailable"));
+            assertThrows(RuntimeException.class, () -> multiServerRepository.doPersistURI(uriRegisterDTO()));
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                registerUtils.verify(() -> RegisterUtils.doRegister(anyString(), eq(server + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {FIRST_SERVER, SECOND_SERVER})
+    public void partialHeartbeatFailureMustPropagate(final String failedServer) throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+                MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doHeartBeat(anyString(), eq(failedServer + Constants.URI_PATH), anyString(), anyString()))
+                    .thenThrow(new IOException("unavailable"));
+            assertThrows(RuntimeException.class, () -> multiServerRepository.sendHeartbeat(uriRegisterDTO()));
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                registerUtils.verify(() -> RegisterUtils.doHeartBeat(anyString(), eq(server + Constants.URI_PATH), eq(Constants.HEARTBEAT), eq(TOKEN)));
+            }
+        }
+    }
+
+    @Test
+    public void retainsAllRegistrationFailures() throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+                MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doRegister(anyString(), anyString(), anyString(), anyString())).thenThrow(new IOException("unavailable"));
+            RuntimeException failure = assertThrows(RuntimeException.class, () -> multiServerRepository.doPersistURI(uriRegisterDTO()));
+            assertEquals(1, failure.getSuppressed().length);
+            assertTrue(failure.getCause() instanceof IOException);
         }
     }
 
@@ -288,6 +339,39 @@ public final class HttpClientRegisterRepositoryTest {
             assertThrows(RuntimeException.class, () -> repository.doPersistURI(uriRegisterDTO));
             registerUtils.verify(() -> RegisterUtils.doRegister(anyString(),
                     eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)), never());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {FIRST_SERVER, SECOND_SERVER})
+    public void partialInstanceHeartbeatFailureMustPropagate(final String failedServer) throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class)) {
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of(TOKEN));
+            registerUtils.when(() -> RegisterUtils.doHeartBeat(anyString(), eq(failedServer + Constants.BEAT_URI_PATH), anyString(), anyString()))
+                    .thenThrow(new IOException("unavailable"));
+            assertThrows(RuntimeException.class, () -> multiServerRepository.sendHeartbeat(new InstanceBeatInfoDTO()));
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                registerUtils.verify(() -> RegisterUtils.doHeartBeat(anyString(), eq(server + Constants.BEAT_URI_PATH), eq(Constants.HEARTBEAT), eq(TOKEN)));
+            }
+        }
+    }
+
+    @Test
+    public void retainsAllHeartbeatFailures() throws IOException {
+        HttpClientRegisterRepository multiServerRepository = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+                MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of(TOKEN));
+            IOException first = new IOException("first unavailable");
+            IOException second = new IOException("second unavailable");
+            registerUtils.when(() -> RegisterUtils.doHeartBeat(anyString(), eq(FIRST_SERVER + Constants.URI_PATH), anyString(), anyString())).thenThrow(first);
+            registerUtils.when(() -> RegisterUtils.doHeartBeat(anyString(), eq(SECOND_SERVER + Constants.URI_PATH), anyString(), anyString())).thenThrow(second);
+            RuntimeException failure = assertThrows(RuntimeException.class, () -> multiServerRepository.sendHeartbeat(uriRegisterDTO()));
+            assertEquals(first, failure.getCause());
+            assertEquals(1, failure.getSuppressed().length);
+            assertEquals(second, failure.getSuppressed()[0]);
         }
     }
 

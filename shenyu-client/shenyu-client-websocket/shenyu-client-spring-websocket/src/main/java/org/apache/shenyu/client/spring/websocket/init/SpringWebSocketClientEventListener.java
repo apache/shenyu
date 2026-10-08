@@ -61,8 +61,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The type Shenyu websocket client event listener.
  */
 public class SpringWebSocketClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringWebSocketClient> {
-    
-    private final String[] pathAttributeNames = new String[] {"path", "value"};
+
+    private final String[] pathAttributeNames = new String[]{"path", "value"};
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
 
@@ -148,12 +148,12 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-    
+
     @Override
     protected String getClientName() {
         return RpcTypeEnum.WEB_SOCKET.getName();
     }
-    
+
     @Override
     protected void handle(final String beanName, final Object bean) {
         Class<?> clazz = getCorrectedClass(bean);
@@ -242,10 +242,11 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                 .enabled(webSocketClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
+                .registerMetaData(webSocketClient.registerMetaData())
                 .namespaceId(namespaceId)
                 .build();
     }
-    
+
     @Override
     public String getPort() {
         final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));

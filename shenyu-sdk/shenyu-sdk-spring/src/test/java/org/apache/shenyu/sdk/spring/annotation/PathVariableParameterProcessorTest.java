@@ -51,7 +51,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentNullTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("");
 
@@ -65,7 +65,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentStringTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("id");
 
@@ -77,7 +77,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentMapTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         Map<String, String> pathParam = Maps.newHashMap();
         pathParam.put("id", "idValue");
         pathParam.put("name", "nameValue");

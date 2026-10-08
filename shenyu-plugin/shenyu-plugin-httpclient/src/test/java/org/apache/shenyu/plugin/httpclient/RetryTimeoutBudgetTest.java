@@ -40,7 +40,7 @@ class RetryTimeoutBudgetTest {
     void allowsEveryConfiguredRetryDespiteBackoffExceedingAttemptTimeout(final String type) {
         AtomicInteger attempts = new AtomicInteger();
         StepVerifier.withVirtualTime(() -> strategy(type).execute(Mono.defer(() -> attempts.incrementAndGet() < 4
-                        ? Mono.error(new IllegalStateException("retry")) : Mono.just("success")),
+                        ? Mono.error(new IllegalStateException("retry", new TimeoutException("transient failure"))) : Mono.just("success")),
                 MockServerWebExchange.from(MockServerHttpRequest.get("/")), Duration.ofMillis(100), 3))
                 .thenAwait(Duration.ofMinutes(2))
                 .expectNext("success")

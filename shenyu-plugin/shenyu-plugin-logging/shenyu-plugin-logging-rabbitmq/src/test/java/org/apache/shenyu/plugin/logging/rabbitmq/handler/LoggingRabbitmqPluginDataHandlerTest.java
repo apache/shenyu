@@ -171,6 +171,14 @@ public final class LoggingRabbitmqPluginDataHandlerTest {
         assertNotNull(cache.getClientCache().get("1332017966661636096"));
     }
 
+    @Test
+    public void testHandlerSelectorWithEmptyHandle() {
+        selectorData.setHandle("");
+
+        Assertions.assertDoesNotThrow(() -> loggingRabbitmqPluginDataHandler.handlerSelector(selectorData));
+        Assertions.assertNull(RabbitmqClientCache.getInstance().getClientCache().get(selectorData.getId()));
+    }
+
     private PluginData createPluginData() {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);

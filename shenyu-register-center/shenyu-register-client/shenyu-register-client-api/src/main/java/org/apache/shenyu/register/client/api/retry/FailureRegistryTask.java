@@ -31,7 +31,9 @@ import java.util.concurrent.TimeUnit;
 public class FailureRegistryTask extends AbstractRetryTask {
     
     private final FailbackRegistryRepository registerRepository;
-    
+
+    private final boolean ownerAware;
+
     /**
      * Instantiates a new Timer task.
      *
@@ -39,9 +41,25 @@ public class FailureRegistryTask extends AbstractRetryTask {
      * @param registerRepository the register repository
      */
     public FailureRegistryTask(final String key, final FailbackRegistryRepository registerRepository) {
+        this(key, registerRepository, false);
+    }
+
+    private FailureRegistryTask(final String key, final FailbackRegistryRepository registerRepository, final boolean ownerAware) {
         //Indicates 10s to retry.
         super(key, TimeUnit.SECONDS.toMillis(10), 18);
         this.registerRepository = registerRepository;
+        this.ownerAware = ownerAware;
+    }
+
+    /**
+     * Create a task that can only retry and remove the pending payload stored for that task.
+     *
+     * @param key the registration key
+     * @param registerRepository the registry repository
+     * @return an owner-aware retry task
+     */
+    public static FailureRegistryTask createOwned(final String key, final FailbackRegistryRepository registerRepository) {
+        return new FailureRegistryTask(key, registerRepository, true);
     }
     
     /**
@@ -52,13 +70,19 @@ public class FailureRegistryTask extends AbstractRetryTask {
      */
     @Override
     protected void doRetry(final String key, final TimerTask timerTask) {
-        this.registerRepository.accept(key);
-        //Because accept requires an exception to be thrown. Only normal can remove.
-        this.registerRepository.remove(key);
+        if (ownerAware) {
+            this.registerRepository.retry(key, this);
+        } else {
+            this.registerRepository.retry(key);
+        }
     }
 
     @Override
     protected void onRetryExhausted(final String key) {
-        this.registerRepository.remove(key);
+        if (ownerAware) {
+            this.registerRepository.remove(key, this);
+        } else {
+            this.registerRepository.remove(key);
+        }
     }
 }
