@@ -605,8 +605,6 @@ The text of each license is the standard Apache 2.0 license.
     pulsar-client 3.2.3: https://github.com/apache/pulsar, Apache 2.0
 	pulsar-client-admin-api 3.2.3: https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client-admin-api, Apache 2.0
 	pulsar-client-api 3.2.3: https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client-api, Apache 2.0
-    aliyun-log 0.6.57: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
-    aliyun-log-producer 0.3.10: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
     tencentcloud-cls-sdk-java 1.0.14: https://github.com/TencentCloud/tencentcloud-cls-sdk-java, Apache 2.0
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0
