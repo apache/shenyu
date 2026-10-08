@@ -427,8 +427,9 @@ public final class DiscoveryUpstreamServiceTest {
         verify(discoveryProcessor).changeUpstream(any(), any());
     }
 
-    @Test
-    public void testUpdateBatchPublishesOnlyAfterCommit() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testBatchPublishesOnlyAfterCommit(final boolean createOrUpdate) {
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
         when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
@@ -436,7 +437,11 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         TransactionSynchronizationManager.initSynchronization();
         try {
-            discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            if (createOrUpdate) {
+                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
+            } else {
+                discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            }
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
             TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
@@ -446,11 +451,16 @@ public final class DiscoveryUpstreamServiceTest {
         }
     }
 
-    @Test
-    public void testRolledBackBatchDoesNotPublish() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testRolledBackBatchDoesNotPublish(final boolean createOrUpdate) {
         TransactionSynchronizationManager.initSynchronization();
         try {
-            discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            if (createOrUpdate) {
+                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
+            } else {
+                discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            }
             TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());

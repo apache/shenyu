@@ -184,18 +184,27 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     private void addToFail(final Holder t) {
-        Holder oldObj = concurrentHashMap.put(t.getKey(), t);
+        FailureRegistryTask registryTask = FailureRegistryTask.createOwned(t.getKey(), this);
+        Holder newHolder = new Holder(t.getObj(), t.getPath(), t.getType(), registryTask);
+        Holder oldObj = concurrentHashMap.put(t.getKey(), newHolder);
         if (Objects.nonNull(oldObj)) {
+            if (Objects.nonNull(oldObj.getRetryTask())) {
+                oldObj.getRetryTask().cancel();
+            }
             logger.debug("Updated failback registration payload, {}", t.getPath());
-            return;
         }
-        FailureRegistryTask registryTask = new FailureRegistryTask(t.getKey(), this);
         timer.add(registryTask);
-        logger.warn("Add to failback and wait for execution, {}", t.getPath());
+        if (concurrentHashMap.get(t.getKey()) != newHolder) {
+            registryTask.cancel();
+        }
+        if (Objects.isNull(oldObj)) {
+            logger.warn("Add to failback and wait for execution, {}", t.getPath());
+        }
     }
 
     /**
-     * Remove.
+     * Unconditionally remove a pending registration, retained for compatibility with custom retry tasks.
+     * Do not pair this with {@link #accept(String)}: use {@link #retry(String)} to preserve concurrent failures.
      *
      * @param key the key
      */
@@ -204,7 +213,21 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Accpet.
+     * Remove a pending registration only when the task still owns its holder.
+     *
+     * @param key the registration key
+     * @param retryTask the retry task
+     */
+    public void remove(final String key, final FailureRegistryTask retryTask) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.nonNull(holder) && holder.getRetryTask() == retryTask) {
+            concurrentHashMap.remove(key, holder);
+        }
+    }
+
+    /**
+     * Attempt a pending registration without claiming it, retained for compatibility with custom retry tasks.
+     * New retry tasks should use {@link #retry(String)} instead of an accept/remove pair.
      *
      * @param key the key
      */
@@ -213,6 +236,43 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder)) {
             return;
         }
+        persist(holder);
+    }
+
+    /**
+     * Retry a pending registration without removing failures queued during the attempt.
+     *
+     * @param key the registration key
+     */
+    public void retry(final String key) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.nonNull(holder)) {
+            retry(key, holder.getRetryTask());
+        }
+    }
+
+    /**
+     * Retry a pending registration only when the task still owns its holder.
+     *
+     * @param key the registration key
+     * @param retryTask the retry task
+     */
+    public void retry(final String key, final FailureRegistryTask retryTask) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.isNull(holder) || holder.getRetryTask() != retryTask || !concurrentHashMap.remove(key, holder)) {
+            return;
+        }
+        try {
+            persist(holder);
+        } catch (RuntimeException ex) {
+            // A newer failure has its own timer task; otherwise retain this task's retry.
+            if (Objects.isNull(concurrentHashMap.putIfAbsent(key, holder))) {
+                throw ex;
+            }
+        }
+    }
+
+    private void persist(final Holder holder) {
         String type = holder.getType();
         switch (type) {
             case Constants.URI:
@@ -261,6 +321,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
 
         private final String type;
 
+        private final FailureRegistryTask retryTask;
+
         /**
          * Instantiates a new Holder.
          *
@@ -269,9 +331,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
          * @param type the type
          */
         Holder(final Object obj, final String path, final String type) {
+            this(obj, path, type, null);
+        }
+
+        /**
+         * Instantiates a new Holder.
+         *
+         * @param obj the registration object
+         * @param path the registration path
+         * @param type the registration type
+         * @param retryTask the retry task
+         */
+        Holder(final Object obj, final String path, final String type, final FailureRegistryTask retryTask) {
             this.obj = obj;
             this.path = path;
             this.type = type;
+            this.retryTask = retryTask;
         }
 
         /**
@@ -299,6 +374,10 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
          */
         public String getType() {
             return type;
+        }
+
+        public FailureRegistryTask getRetryTask() {
+            return retryTask;
         }
 
         private String getKey() {

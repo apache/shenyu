@@ -136,7 +136,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             }
             handlerIds.add(upstream.getDiscoveryHandlerId());
         }
-        handlerIds.forEach(this::fetchAll);
+        handlerIds.forEach(this::fetchAfterCommit);
     }
 
     @Override
@@ -149,6 +149,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
+        fetchAfterCommit(discoveryHandlerId);
+        return 0;
+    }
+
+    private void fetchAfterCommit(final String discoveryHandlerId) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -159,7 +164,6 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         } else {
             this.fetchAll(discoveryHandlerId);
         }
-        return 0;
     }
 
     @Override

@@ -6,6 +6,9 @@
 
 ### Behavior Changes
 
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a
@@ -27,6 +30,7 @@
   to disable their deadline as well, and review route, retry and caller deadlines.
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
 
 ## [v2.7.0]- 2024-12-23
 

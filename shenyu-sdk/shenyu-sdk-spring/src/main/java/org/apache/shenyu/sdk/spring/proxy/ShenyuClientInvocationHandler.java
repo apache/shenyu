@@ -54,6 +54,8 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private final Map<Method, ShenyuClientMethodHandler> methodHandlerMap = new ConcurrentHashMap<>();
 
+    private final Class<?> apiClass;
+
     private final ApplicationContext applicationContext;
 
     private final Contract contract;
@@ -64,6 +66,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     public ShenyuClientInvocationHandler(final Class<?> apiClass, final ApplicationContext applicationContext,
                                          final ShenyuClientFactoryBean shenyuClientFactoryBean) {
+        this.apiClass = apiClass;
         this.shenyuClientFactoryBean = shenyuClientFactoryBean;
         this.applicationContext = applicationContext;
         this.contract = applicationContext.getBean(Contract.class);
@@ -75,7 +78,9 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-
+        if (method.getDeclaringClass() == Object.class) {
+            return invokeObjectMethod(proxy, method, args);
+        }
         ShenyuClientMethodHandler handler = methodHandlerMap.get(method);
         if (ObjectUtils.isEmpty(handler)) {
             throw new ShenyuException(String.format("the method cannot be called, please check the annotation and configuration, method %s", method.getName()));
@@ -92,6 +97,20 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
             result = method.invoke(fallback, args);
         }
         return result;
+    }
+
+    private Object invokeObjectMethod(final Object proxy, final Method method, final Object[] args) {
+        switch (method.getName()) {
+            case "equals":
+                return proxy == args[0];
+            case "hashCode":
+                return System.identityHashCode(proxy);
+            case "toString":
+                return String.format("%s(name=%s, url=%s)", apiClass.getName(),
+                        shenyuClientFactoryBean.getName(), shenyuClientFactoryBean.getUrl());
+            default:
+                throw new UnsupportedOperationException(method.toString());
+        }
     }
 
     private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuClient shenyuClient) {
