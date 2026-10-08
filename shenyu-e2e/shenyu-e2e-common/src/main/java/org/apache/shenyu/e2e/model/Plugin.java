@@ -71,8 +71,7 @@ public enum Plugin {
     LOGGING_PULSAR("loggingPulsar", 35),
     LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
     BRPC("brpc", 41),
-    LOGGINGHUAWEILTS("loggingHuaweiLts", 43),
-    LOGGINGRABBITMQ("loggingRabbitMQ", 45),;
+    LOGGINGHUAWEILTS("loggingHuaweiLts", 43);
 
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;
