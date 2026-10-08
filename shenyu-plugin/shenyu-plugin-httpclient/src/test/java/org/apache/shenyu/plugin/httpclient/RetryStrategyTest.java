@@ -19,9 +19,14 @@ package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -46,20 +51,42 @@ public class RetryStrategyTest {
         ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(httpClientPlugin);
 
         // Create a simulated ServerWebExchange
-        ServerWebExchange exchange = mock(ServerWebExchange.class);
-        Duration duration = Duration.ofSeconds(5);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+        Duration duration = Duration.ofSeconds(30);
         int retryTimes = 3;
 
-        // Create a mock response Mono that throws an exception
-        Mono<String> response = Mono.error(new RuntimeException("Test error"));
+        // Create a mock response Mono that throws a network exception
+        AtomicInteger attempts = new AtomicInteger();
+        ConnectTimeoutException failure = new ConnectTimeoutException("connection timed out");
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(failure);
+        });
 
         // Execute retry policy
-        Mono<String> result = strategy.execute(response, exchange, duration, retryTimes);
-
-        // Use StepVerifier to verify results
-        StepVerifier.create(result)
-                .expectError(RuntimeException.class)
+        StepVerifier.withVirtualTime(() -> strategy.execute(response, exchange, duration, retryTimes))
+                .thenAwait(Duration.ofSeconds(30))
+                .expectErrorMatches(error -> error == failure)
                 .verify();
+        assertEquals(retryTimes + 1, attempts.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST", "PUT"})
+    void testExponentialStrategyDoesNotRetryUnsafeRequestsOrPermanentFailures(final String method) {
+        ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(mock(AbstractHttpClientPlugin.class));
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.valueOf(method), "/").build());
+        Throwable failure = "GET".equals(method)
+                ? WebClientResponseException.create(400, "Bad Request", HttpHeaders.EMPTY, new byte[0], null)
+                : new TimeoutException("request timed out");
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(failure);
+        });
+        StepVerifier.create(strategy.execute(response, exchange, Duration.ofSeconds(5), 3))
+                .expectErrorMatches(error -> error == failure).verify();
+        assertEquals(1, attempts.get());
     }
 
     @Test
