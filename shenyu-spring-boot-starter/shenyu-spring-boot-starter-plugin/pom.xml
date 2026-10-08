@@ -70,7 +70,6 @@
         <module>shenyu-spring-boot-starter-plugin-key-auth</module>
         <module>shenyu-spring-boot-starter-plugin-tcp</module>
         <module>shenyu-spring-boot-starter-plugin-transform</module>
-        <module>shenyu-spring-boot-starter-plugin-logging-huawei-lts</module>
         <module>shenyu-spring-boot-starter-plugin-basic-auth</module>
         <module>shenyu-spring-boot-starter-plugin-ai-proxy</module>
         <module>shenyu-spring-boot-starter-plugin-ai-prompt</module>

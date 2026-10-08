@@ -246,7 +246,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--Ai proxy Plugin end-->
-        
+
         <!--Ai prompt Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -554,13 +554,6 @@
         </dependency>
         <!-- shenyu logging-tencentcls plugin end -->
 
-        <!-- shenyu logging-huaweilts plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-huaweilts plugin end -->
 
 
         <!-- shenyu logging-clickhouse plugin start -->
