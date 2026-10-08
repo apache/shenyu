@@ -30,7 +30,6 @@ import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -60,6 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -92,6 +92,8 @@ public final class ApplicationConfigCache {
     private final ConcurrentHashMap<String, List<MetaData>> ctxPathCache = new ConcurrentHashMap<>();
     
     private final ConcurrentHashMap<String, Class<?>> prxClassCache = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, String> prxDefinitionCache = new ConcurrentHashMap<>();
     
     private final ConcurrentHashMap<String, TarsParamInfo> prxParamCache = new ConcurrentHashMap<>();
     
@@ -186,15 +188,16 @@ public final class ApplicationConfigCache {
      * @param metaData metaData
      */
     public void initPrx(final MetaData metaData) {
+        LOCK.lock();
         try {
-            if (Objects.isNull(prxClassCache.get(metaData.getPath()))) {
-                lockedLoadMetaData(metaData);
-            }
+            lockedLoadMetaData(metaData);
             if (Objects.nonNull(metaData.getContextPath()) && Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
                 refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
             }
         } catch (Exception e) {
             LOG.error("ShenyuTarsPluginInitializeException: init tars ref ex:{}", e.getMessage());
+        } finally {
+            LOCK.unlock();
         }
     }
 
@@ -211,18 +214,21 @@ public final class ApplicationConfigCache {
     private void lockedLoadMetaData(final MetaData metaData) throws ClassNotFoundException {
         LOCK.lock();
         try {
-            if (prxClassCache.containsKey(metaData.getPath())) {
-                return;
-            }
             if (StringUtils.isEmpty(metaData.getRpcExt())) {
                 throw new ShenyuTarsPluginException("ShenyuTarsPluginInitializeException: can't init prx with empty ext string");
             }
-            Class<?> prxClazz = buildClassDefinition(metaData);
-            prxClassCache.put(metaData.getPath(), prxClazz);
-            List<MetaData> paths = ctxPathCache.getOrDefault(metaData.getContextPath(), new ArrayList<>());
-            if (!IterableUtils.matchesAny(paths, p -> p.getPath().equals(metaData.getPath()))) {
-                paths.add(metaData);
+            String definition = metaData.getMethodName() + "\n" + metaData.getRpcExt();
+            if (!prxClassCache.containsKey(metaData.getPath()) || !definition.equals(prxDefinitionCache.get(metaData.getPath()))) {
+                Class<?> prxClazz = buildClassDefinition(metaData);
+                Class<?> previous = prxClassCache.put(metaData.getPath(), prxClazz);
+                prxDefinitionCache.put(metaData.getPath(), definition);
+                if (Objects.nonNull(previous)) {
+                    prxParamCache.keySet().removeIf(key -> key.startsWith(previous.getName() + "_"));
+                }
             }
+            List<MetaData> paths = new ArrayList<>(ctxPathCache.getOrDefault(metaData.getContextPath(), new ArrayList<>()));
+            paths.removeIf(previous -> Objects.equals(previous.getPath(), metaData.getPath()));
+            paths.add(metaData);
             ctxPathCache.put(metaData.getContextPath(), paths);
         } finally {
             LOCK.unlock();
@@ -237,7 +243,7 @@ public final class ApplicationConfigCache {
      * @throws ClassNotFoundException meta data class definition not found
      */
     private Class<?> buildClassDefinition(final MetaData metaData) throws ClassNotFoundException {
-        String clazzName = PrxInfoUtil.getPrxName(metaData);
+        String clazzName = PrxInfoUtil.getPrxName(metaData) + "_" + UUID.randomUUID().toString().replace("-", "");
         DynamicType.Builder<?> classDefinition = new ByteBuddy().makeInterface().name(clazzName);
         TarsParamExtInfo tarsParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), TarsParamExtInfo.class);
         for (MethodInfo methodInfo : tarsParamExtInfo.getMethodInfo()) {
@@ -255,12 +261,15 @@ public final class ApplicationConfigCache {
                     definition = definition.withParameter(paramTypes[i], paramNames[i]);
                     prxParamCache.put(getClassMethodKey(clazzName, methodInfo.getMethodName()), new TarsParamInfo(paramTypes, paramNames));
                 }
-                classDefinition = definition.withoutCode();
             }
+            if (CollectionUtils.isEmpty(methodInfo.getParams())) {
+                prxParamCache.put(getClassMethodKey(clazzName, methodInfo.getMethodName()), new TarsParamInfo(new Class<?>[0], new String[0]));
+            }
+            classDefinition = definition.withoutCode();
         }
         return classDefinition.annotateType(AnnotationDescription.Builder.ofType(Servant.class).build())
                 .make()
-                .load(Servant.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .load(Servant.class.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
                 .getLoaded();
         
     }
@@ -291,6 +300,7 @@ public final class ApplicationConfigCache {
      * @param selectorData selectorData
      */
     public void initPrxClass(final SelectorData selectorData) {
+        LOCK.lock();
         try {
             final List<TarsUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), TarsUpstream.class);
             if (CollectionUtils.isEmpty(upstreamList)) {
@@ -304,6 +314,8 @@ public final class ApplicationConfigCache {
             }
         } catch (ExecutionException | NoSuchMethodException e) {
             throw new ShenyuException(e.getCause());
+        } finally {
+            LOCK.unlock();
         }
     }
     
@@ -318,21 +330,16 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(prxClass)) {
             return;
         }
-        TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
-        tarsInvokePrxList.getTarsInvokePrxList().clear();
-        if (Objects.isNull(tarsInvokePrxList.getMethod())) {
-            TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
-            Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
-            Method method = prx.getClass().getDeclaredMethod(
-                    PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
-            tarsInvokePrxList.setMethod(method);
-            tarsInvokePrxList.setParamTypes(tarsParamInfo.getParamTypes());
-            tarsInvokePrxList.setParamNames(tarsParamInfo.getParamNames());
-        }
+        TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
+        Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
+        Method method = prx.getClass().getDeclaredMethod(
+                PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
+        TarsInvokePrxList tarsInvokePrxList = new TarsInvokePrxList(method, tarsParamInfo.getParamTypes(), tarsParamInfo.getParamNames());
         tarsInvokePrxList.getTarsInvokePrxList().addAll(upstreamList.stream().map(upstream -> {
             Object strProxy = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
             return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl(), metaData.getAppName());
         }).collect(Collectors.toList()));
+        cache.put(metaData.getPath(), tarsInvokePrxList);
     }
     
     /**
@@ -341,8 +348,25 @@ public final class ApplicationConfigCache {
      * @param contextPath context path
      */
     public void invalidate(final String contextPath) {
-        List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
-        metaDataList.forEach(metaData -> cache.invalidate(metaData.getPath()));
+        LOCK.lock();
+        try {
+            refreshUpstreamCache.remove(contextPath);
+            List<MetaData> metaDataList = ctxPathCache.remove(contextPath);
+            if (CollectionUtils.isNotEmpty(metaDataList)) {
+                metaDataList.forEach(metaData -> {
+                    cache.invalidate(metaData.getPath());
+                    Class<?> removed = prxClassCache.remove(metaData.getPath());
+                    prxDefinitionCache.remove(metaData.getPath());
+                    if (Objects.nonNull(removed)) {
+                        prxParamCache.keySet().removeIf(key -> key.startsWith(removed.getName() + "_"));
+                    }
+                    String paramKeyPrefix = PrxInfoUtil.getPrxName(metaData) + "_";
+                    prxParamCache.keySet().removeIf(key -> key.startsWith(paramKeyPrefix));
+                });
+            }
+        } finally {
+            LOCK.unlock();
+        }
     }
     
     /**

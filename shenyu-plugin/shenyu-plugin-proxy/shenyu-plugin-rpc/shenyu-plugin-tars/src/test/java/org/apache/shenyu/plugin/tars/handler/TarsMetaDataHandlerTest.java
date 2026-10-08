@@ -30,6 +30,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -125,6 +126,31 @@ public class TarsMetaDataHandlerTest {
             tarsMetaDataHandler.remove(metaData);
             assertEquals(1, invokePrxList.getTarsInvokePrxList().size());
             assertEquals("otherApp", invokePrxList.getTarsInvokePrxList().get(0).getAppName());
+        }
+    }
+
+    @Test
+    public void testMetadataSnapshotsAreIsolatedByApplication() {
+        final ApplicationConfigCache cache = mock(ApplicationConfigCache.class);
+        final TarsInvokePrxList proxies = new TarsInvokePrxList();
+        proxies.addTarsInvokePrxList(Arrays.asList(new TarsInvokePrx(new Object(), "first", metaData.getAppName()),
+                new TarsInvokePrx(new Object(), "second", "otherApp")));
+        when(cache.get(anyString())).thenReturn(proxies);
+        final MetaData other = new MetaData("other", "otherApp", "contextPath", "path", RpcTypeEnum.TARS.getName(),
+                "otherService", "otherMethod", "", "otherExt", false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        try (MockedStatic<ApplicationConfigCache> cacheStatic = mockStatic(ApplicationConfigCache.class)) {
+            cacheStatic.when(ApplicationConfigCache::getInstance).thenReturn(cache);
+            tarsMetaDataHandler.handle(metaData);
+            tarsMetaDataHandler.handle(other);
+            clearInvocations(cache);
+            tarsMetaDataHandler.handle(metaData);
+            tarsMetaDataHandler.handle(other);
+            verify(cache, never()).initPrx(metaData);
+            verify(cache, never()).initPrx(other);
+            tarsMetaDataHandler.remove(metaData);
+            clearInvocations(cache);
+            tarsMetaDataHandler.handle(other);
+            verify(cache, never()).initPrx(other);
         }
     }
 }
