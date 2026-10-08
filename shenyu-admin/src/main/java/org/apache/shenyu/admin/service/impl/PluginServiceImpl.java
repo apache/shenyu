@@ -101,6 +101,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String createOrUpdate(final PluginDTO pluginDTO) {
+        org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(pluginDTO.getName(), pluginDTO.getConfig());
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
 
@@ -257,6 +258,7 @@ public class PluginServiceImpl implements PluginService {
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
+            org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(pluginName, pluginDTO.getConfig());
             // check plugin base info
             if (existPluginMap.containsKey(pluginName)) {
                 errorMsgBuilder
@@ -317,6 +319,9 @@ public class PluginServiceImpl implements PluginService {
             Assert.isTrue(checkFile(Base64.getDecoder().decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
+        if (Objects.nonNull(before)) {
+            org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(before.getName(), pluginDTO.getConfig());
+        }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.updateSelective(pluginDO) > 0) {
             // publish update event.

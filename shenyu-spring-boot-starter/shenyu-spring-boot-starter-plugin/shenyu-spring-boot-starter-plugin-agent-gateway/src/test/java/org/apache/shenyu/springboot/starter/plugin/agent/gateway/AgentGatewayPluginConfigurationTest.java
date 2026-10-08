@@ -110,6 +110,38 @@ class AgentGatewayPluginConfigurationTest {
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
+    @Test
+    void shouldRequireDeploymentAllowlistForAggregation() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void shouldAssembleOptInCatalogAndWireTrustedPluginSync() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp")
+                .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
+                    throw new SecurityException("Missing fixture credentials");
+                }).run(context -> {
+                    final var catalog = context.getBean(org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog.class);
+                    var event = new org.apache.shenyu.common.dto.PluginData();
+                    event.setEnabled(true);
+                    event.setConfig("{}");
+                    context.getBean(PluginDataHandler.class).handlerPlugin(event);
+                    assertNotNull(catalog);
+                    assertEquals(0, catalog.diagnostics().get("clients"));
+                });
+    }
+
+    @Test
+    void shouldRejectDomainAllowlistWithoutRelaxingTlsPolicy() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://example.com:443/mcp")
+                .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
+                    throw new SecurityException("unused");
+                }).run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
     private MockServerWebExchange exchange() {
         return MockServerWebExchange.from(MockServerHttpRequest.post("/agent/mcp")
                 .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")

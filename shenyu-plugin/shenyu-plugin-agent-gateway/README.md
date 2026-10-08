@@ -264,7 +264,77 @@ subscribed concurrently, because exchange attributes are shared by that request.
 
 ## Scope
 
-This module provides LLM request correlation and a tools-only MCP entry with
-request-local identity, permissions, deadlines and cancellation. Remote tool
-aggregation, prompts/resources, callback bridging and usage/cost accounting are
-not included. Existing LLM forwarding and legacy MCP sessions remain separate.
+This change adds opt-in remote tools aggregation to the LLM
+request-correlation and tools-only MCP entry merged in #7424.
+Prompts/resources, callback bridging, result transformation
+and usage/cost accounting are not included. Legacy MCP sessions and AI Proxy stay separate.
+
+## Remote tools aggregation
+
+All remote tools use `server.tool` names; lookup preserves original tool names
+including dots. A complete directory generation is leased across each operation.
+Authorization is the same rule/security intersection as local providers. Remote
+native results keep content, structuredContent, isError, opaque `_meta` and
+extension fields, without the ordinary local-provider business wrapper.
+
+Enable the managed catalog separately from the plugin:
+
+```properties
+shenyu.plugins.agent.gateway.enabled=true
+shenyu.plugins.agent.gateway.aggregation.enabled=true
+shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp
+shenyu.plugins.agent.gateway.aggregation.credentials-directory=/run/shenyu/mcp-credentials
+```
+
+The exact allowlist is deployment-controlled, not changed by an Agent or Admin
+configuration. The first version supports literal IPv4 HTTPS with normal JDK
+CA/hostname verification; certificates must include the target IP SAN. DNS names,
+proxies, redirects, link-local/metadata addresses and remote plaintext HTTP are
+rejected. Local `http://127.0.0.1:<port>/<path>` remains available. IPv6 is not supported.
+The documentation IP above is an example, not a verified remote deployment.
+
+Save this secret-free **plugin** configuration in Admin, not a rule handle:
+
+```json
+{"aggregation":{"revision":"orders-v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1"}]}}
+```
+
+Admin validates unknown/duplicate/missing fields, bounds and endpoint syntax
+before saving or importing; the gateway uses the same parser. Existing data-sync
+channels feed an owned, bounded configuration worker. No custom production HTTP
+configuration endpoint, gateway DB access or Agent-provided target is introduced.
+An empty server array explicitly removes remotes; rules must also stop naming
+removed tools, otherwise the existing unknown-tool configuration check fails closed.
+
+Mount `service/orders/v1.json` below the credential directory, readable only by
+the gateway operator/service account and not writable by gateway/API clients:
+
+```json
+{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","bearerToken":"<service-token>"}
+```
+
+The resolver reads a bounded versioned file and verifies its independent name,
+full endpoint, reference and version binding. Paths must remain inside the real
+mounted directory; token contents and secret-store errors are not logged.
+Deployments may replace the resolver with one trusted `RemoteServiceCredentialResolver`
+bean. This is a mounted-file integration, not a managed Vault/KMS client or an
+automatic file watcher. OS permissions and read-only secret mounts remain deployment duties.
+Agent Authorization, Cookie and request metadata are not forwarded.
+
+Resolve all credentials before replacing the directory. Invalid config/missing
+credentials reject the update and preserve the previous generation. Once a
+valid replacement starts, failed discovery leaves remote access unavailable until
+an explicit successful update. Old in-flight calls retain their captured version;
+removing a credential file alone does not revoke already captured leases.
+Disable/removal withdraws new remote access immediately, including an in-progress
+candidate. Queue overflow also withdraws access and requires an explicit valid refresh.
+Cleanup failures remain quarantined and prevent further allocation; shutdown reports failure.
+
+Outbound support remains fixed `2025-06-18` initialize/initialized, bounded tools
+pagination/call and JSON or a single final SSE response. It does not add GET stream
+recovery, OAuth, Tasks or nonempty request `_meta` delegation, nor change the inbound
+version. Conservative limits retained from verified experiments: 8 Servers, 4 pages
+per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per client,
+5-second directory update and 2-second session DELETE completion. The trusted
+request deadline bounds the individual HTTP future; cancellation does not promise
+remote business rollback, termination of arbitrary backend code or stopped billing.

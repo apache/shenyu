@@ -42,6 +42,8 @@ public final class AgentMcpDispatcher {
 
     private final AgentToolRegistry registry;
 
+    private final AgentMcpRemoteCatalog remoteCatalog;
+
     private final String serverName;
 
     private final String serverVersion;
@@ -49,7 +51,12 @@ public final class AgentMcpDispatcher {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion) {
+        this(registry, serverName, serverVersion, null);
+    }
+
+    public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion, final AgentMcpRemoteCatalog remoteCatalog) {
         this.registry = Objects.requireNonNull(registry, "registry");
+        this.remoteCatalog = remoteCatalog;
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
             throw new IllegalArgumentException("Server identity must not be blank");
         }
@@ -70,6 +77,10 @@ public final class AgentMcpDispatcher {
         Objects.requireNonNull(contextFactory, "contextFactory");
         return Mono.defer(() -> {
             AgentMcpExecutionContext context = Objects.requireNonNull(contextFactory.get(), "execution context");
+            if (Objects.nonNull(remoteCatalog)) {
+                return remoteCatalog.withSnapshot(snapshot -> routeWithRemote(request, context, snapshot))
+                        .contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
+            }
             if (!registry.listDefinitions(context.getRuleTools()).keySet().containsAll(context.getRuleTools())) {
                 return Mono.error(failure(request, 500, -32603, "Configured tool is not registered"));
             }
@@ -82,6 +93,58 @@ public final class AgentMcpDispatcher {
             failure.initCause(error);
             return failure;
         });
+    }
+
+    private Mono<ObjectNode> routeWithRemote(final AgentMcpRequest request, final AgentMcpExecutionContext context,
+                                           final AgentMcpRemoteCatalog.Snapshot snapshot) {
+        java.util.Map<String, ObjectNode> definitions = snapshot.definitions();
+        for (String name : definitions.keySet()) {
+            if (registry.isRegistered(name)) {
+                return Mono.error(failure(request, 500, -32603, "Tool namespace collision"));
+            }
+        }
+        for (String name : context.getRuleTools()) {
+            if (!registry.isRegistered(name) && !definitions.containsKey(name)) {
+                return Mono.error(failure(request, 500, -32603, "Configured tool is not registered"));
+            }
+        }
+        if ("tools/list".equals(request.getMethod())) {
+            if (request.getParams().has("cursor")) {
+                return Mono.error(failure(request, 400, -32602, "Cursor is not supported by this unpaginated tool list"));
+            }
+            ObjectNode result = complete();
+            cacheMetadata(result);
+            ArrayNode tools = result.putArray("tools");
+            registry.listDefinitions(context.getAllowedTools()).forEach((name, definition) -> {
+                ObjectNode tool = tools.addObject().put("name", name).put("description", definition.getDescription());
+                tool.set("inputSchema", toTree(definition.getInputSchema()));
+            });
+            definitions.forEach((name, definition) -> {
+                if (context.getAllowedTools().contains(name)) {
+                    tools.add(definition.deepCopy());
+                }
+            });
+            return Mono.just(response(request, result));
+        }
+        if ("tools/call".equals(request.getMethod())) {
+            String name = request.getParams().path("name").textValue();
+            if (!context.getAllowedTools().contains(name)) {
+                return Mono.error(failure(request, 403, -32602, "Tool is not available"));
+            }
+            if (definitions.containsKey(name)) {
+                ObjectNode params = request.getParams();
+                JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
+                return snapshot.invoke(name, arguments, context)
+                        .switchIfEmpty(Mono.error(new IllegalStateException("Remote tool completed without a result")))
+                        .map(value -> {
+                            ObjectNode result = value.deepCopy();
+                            result.put("resultType", "complete");
+                            return response(request, result);
+                        })
+                        .onErrorMap(SecurityException.class, error -> failure(request, 403, -32602, "Tool is not available"));
+            }
+        }
+        return route(request, context);
     }
 
     private Mono<ObjectNode> route(final AgentMcpRequest request, final AgentMcpExecutionContext context) {

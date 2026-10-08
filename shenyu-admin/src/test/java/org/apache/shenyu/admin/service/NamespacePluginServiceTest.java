@@ -82,6 +82,34 @@ public final class NamespacePluginServiceTest {
     }
 
     @Test
+    public void testRejectsInvalidAgentConfigBeforeNamespacePersistence() {
+        var dto = new org.apache.shenyu.admin.model.dto.NamespacePluginDTO();
+        dto.setId("agent-id");
+        dto.setName("other-name");
+        dto.setConfig("{\"unknown\":\"SECRET\"}");
+        NamespacePluginVO stored = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(stored.getName()).thenReturn("agentGateway");
+        Mockito.when(namespacePluginRelMapper.selectById("agent-id")).thenReturn(stored);
+        Assertions.assertThrows(org.apache.shenyu.admin.exception.ShenyuAdminException.class, () -> namespacePluginService.update(dto));
+        Mockito.verify(namespacePluginRelMapper, Mockito.never()).updateSelective(Mockito.any());
+        Mockito.verifyNoInteractions(namespacePluginEventPublisher);
+    }
+
+    @Test
+    public void testAcceptsExplicitEmptyAgentConfigAndPublishesUpdate() {
+        var dto = new org.apache.shenyu.admin.model.dto.NamespacePluginDTO();
+        dto.setId("agent-id");
+        dto.setName("agentGateway");
+        dto.setConfig("{}");
+        NamespacePluginVO stored = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(stored.getName()).thenReturn("agentGateway");
+        Mockito.when(namespacePluginRelMapper.selectById("agent-id")).thenReturn(stored);
+        Mockito.when(namespacePluginRelMapper.updateSelective(Mockito.any())).thenReturn(1);
+        namespacePluginService.update(dto);
+        Mockito.verify(namespacePluginEventPublisher).onUpdated(stored, stored);
+    }
+
+    @Test
     public void testCreateDoesNotPublishWhenInsertFails() {
         String namespaceId = "namespaceId";
         String pluginId = "pluginId";
