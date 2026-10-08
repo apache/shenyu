@@ -322,12 +322,6 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-polaris</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
