@@ -81,17 +81,6 @@ public interface DashboardUserService {
     DashboardUserVO findByUserName(String username);
 
     /**
-     * find dashboard user by query.
-     *
-     * @param userName user name
-     * @param password exact stored password value
-     * @return {@linkplain DashboardUserVO}
-     * @deprecated use {@link #findByUserName(String)} and {@link PasswordHashService} for authentication.
-     */
-    @Deprecated
-    DashboardUserVO findByQuery(String userName, String password);
-
-    /**
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
