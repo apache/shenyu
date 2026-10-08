@@ -802,16 +802,6 @@ INSERT INTO `permission` VALUES ('1697146375754190848','1346358560427216896','16
 INSERT INTO `permission` VALUES ('1697146617543233536','1346358560427216896','1697146617513873408', '2023-08-31 15:17:39', '2023-08-31 07:17:39');
 INSERT INTO `permission` VALUES ('1697146860569595904','1346358560427216896','1697146860540235776', '2023-08-31 15:18:37', '2023-08-31 07:18:37');
 
-INSERT INTO `permission` VALUES ('1792779493537148928','1346358560427216896','1792749362361954340', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148929','1346358560427216896','1792749362445840411', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148930','1346358560427216896','1792749362445840412', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148931','1346358560427216896','1792749362445840413', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148932','1346358560427216896','1792749362445840414', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148933','1346358560427216896','1792749362445840415', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148934','1346358560427216896','1792749362445840416', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148935','1346358560427216896','1792749362445840417', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148936','1346358560427216896','1792749362445840418', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `permission` VALUES ('1792779493537148937','1346358560427216896','1792749362445840419', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1792779493537148938','1346358560427216896','1792749362361954341', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1792779493537148939','1346358560427216896','1792749362445840420', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1792779493537148940','1346358560427216896','1792749362445840421', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -987,7 +977,6 @@ INSERT INTO `plugin` VALUES ('34', 'loggingAliyunSls','{\"projectName\": \"sheny
 INSERT INTO `plugin` VALUES ('35', 'loggingPulsar', '{\"topic":\"shenyu-access-logging\", \"serviceUrl\": \"pulsar://localhost:6650\"}', 'Logging', 185, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00',null);
 INSERT INTO `plugin` VALUES ('36', 'loggingTencentCls','{\"endpoint\": \"ap-guangzhou.cls.tencentcs.com\", \"topic\": \"shenyu-topic\"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00',null);
 INSERT INTO `plugin` VALUES ('38', 'loggingClickHouse', '{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"databse\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00',null);
-INSERT INTO `plugin` VALUES ('39', 'casdoor', '{\"endpoint\":\"http://localhost:8000\"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00',null);
 INSERT INTO `plugin` VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00',null);
 INSERT INTO `plugin` VALUES ('42', 'tcp', NULL, 'Proxy', 320, 1, '2023-05-30 18:02:53', '2022-05-30 18:02:53',null);
 INSERT INTO `plugin` VALUES ('43', 'loggingHuaweiLts', '{\"totalSizeInBytes\":\"104857600\",\"maxBlockMs\":\"0\",\"ioThreadCount\":\"1\",\"batchSizeThresholdInBytes\":\"524288\",\"batchCountThreshold\":\"4096\",\"lingerMs\":\"2000\",\"retries\":\"100\",\"baseRetryBackoffMs\":\"100\",\"maxRetryBackoffMs\":\"100\",\"enableLocalTest\":\"true\",\"setGiveUpExtraLongSingleLog\":\"false\"}', 'Logging', 177, 0, '2023-07-05 14:03:53.686', '2023-07-06 12:42:07.234', NULL);
@@ -1295,12 +1284,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172775', '38', 'engine', 'engi
 INSERT INTO `plugin_handle` VALUES ('1529402613204172776', '38', 'clusterName', 'clusterName', 3, 3, 9, '{\"required\":\"1\",\"defaultValue\":\"cluster\",\"rule\":\"\"}', '2022-12-30 00:17:21.150', '2022-12-30 00:17:21.150');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172777', '38', 'ttl', 'ttl', 3, 3, 10,  '{\"required\":\"0\",\"defaultValue\":\"30\"}', '2023-03-01 11:14:15', '2023-08-16 11:15:14');
 
-INSERT INTO `plugin_handle` VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-INSERT INTO `plugin_handle` VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-INSERT INTO `plugin_handle` VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-INSERT INTO `plugin_handle` VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-INSERT INTO `plugin_handle` VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
-INSERT INTO `plugin_handle` VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 
 INSERT INTO `plugin_handle` VALUES ('1676472478492946432', '43', 'projectId', 'projectId', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:06:00.893', '2023-07-07 22:50:00.597');
 INSERT INTO `plugin_handle` VALUES ('1676473313352380416', '43', 'logGroupId', 'logGroupId', 2, 3, 1, '{\"required\":\"1\",\"rule\":\"\"}', '2023-07-05 14:09:19.928', '2023-07-07 22:50:00.606');
@@ -1889,16 +1872,6 @@ INSERT INTO `resource` VALUES ('1697145808210333696', '1697141926247763968', 'SH
 INSERT INTO `resource` VALUES ('1697146617513873408', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.DELETE', '', '', '', 2, 0, 'delete', 1, 0, 'system:alert:delete', 1, '2023-08-31 15:17:39', '2023-08-31 07:22:07');
 INSERT INTO `resource` VALUES ('1697146860540235776', '1697141926247763968', 'SHENYU.BUTTON.SYSTEM.EDIT', '', '', '', 2, 0, 'edit', 1, 0, 'system:alert:edit', 1, '2023-08-31 15:18:37', '2023-08-31 07:18:37');
 
-INSERT INTO `resource` VALUES ('1792749362361954340', '1346775491550474240', 'casdoor', 'casdoor', '/plug/casdoor', 'casdoor', 1, 0, 'safety', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840411', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840412', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorSelector:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840413', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorSelector:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840414', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorSelector:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840415', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorRule:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840416', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorRule:query', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840417', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840418', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoorRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
-INSERT INTO `resource` VALUES ('1792749362445840419', '1792749362361954340', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:casdoor:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 
 INSERT INTO `resource` VALUES ('1792749362361954341', '1346775491550474240', 'keyAuth', 'keyAuth', '/plug/keyAuth', 'keyAuth', 1, 0, 'border-bottom', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1792749362445840420', '1792749362361954341', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:keyAuthSelector:add', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -2579,7 +2552,6 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822173','649330b6-c2d7-4edc-be8e-8a54df9eb385','35', '{\"topic\":\"shenyu-access-logging\", \"serviceUrl\": \"pulsar://localhost:6650\"}', 185, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822174','649330b6-c2d7-4edc-be8e-8a54df9eb385','36', '{\"endpoint\": \"ap-guangzhou.cls.tencentcs.com\", \"topic\": \"shenyu-topic\"}', 176, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822175','649330b6-c2d7-4edc-be8e-8a54df9eb385','38', '{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"databse\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}', 195, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
-INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822176','649330b6-c2d7-4edc-be8e-8a54df9eb385','39', '{\"endpoint\":\"http://localhost:8000\"}', 40, 0, '2022-09-11 12:00:00.000', '2022-09-11 12:00:00.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{\"master\":\"mymaster\",\"mode\":\"standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}', 60, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0, '2022-07-24 19:00:00.000', '2022-07-24 19:00:00.000');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1, '2023-05-30 18:02:53.000', '2022-05-30 18:02:53.000');

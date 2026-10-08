@@ -979,7 +979,6 @@ INSERT INTO "public"."plugin" VALUES ('34', 'loggingAliyunSls', '{"projectName":
 INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00', null);
-INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('43', 'loggingHuaweiLts', '{ "totalSizeInBytes": "104857600","maxBlockMs":"0","ioThreadCount":"1","batchSizeThresholdInBytes":"524288","batchCountThreshold":"4096","lingerMs":"2000","retries":"100","baseRetryBackoffMs":"100","maxRetryBackoffMs":"100","enableLocalTest":"true","setGiveUpExtraLongSingleLog":"false"}', 'Logging', 177, 0, '2023-07-05 14:03:53', '2023-07-06 12:42:07', null);
@@ -1313,12 +1312,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172835', '38', 'engin
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172836', '38', 'clusterName', 'clusterName', 3, 3, 9, '{"required":"1","defaultValue":"cluster"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
 
 
-INSERT INTO "public"."plugin_handle" VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
-INSERT INTO "public"."plugin_handle" VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
-INSERT INTO "public"."plugin_handle" VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
-INSERT INTO "public"."plugin_handle" VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
-INSERT INTO "public"."plugin_handle" VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
-INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312065', '43', 'projectId', 'projectId', 2, 3, 0, '{"required":"1","rule":""}', '2023-07-05 14:06:00.893', '2023-07-07 22:50:00.597');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312066', '43', 'logGroupId', 'logGroupId', 2, 3, 1, '{"required":"1","rule":""}', '2023-07-05 14:09:19.928', '2023-07-07 22:50:00.606');
@@ -2744,7 +2737,6 @@ INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822172','64933
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822173','649330b6-c2d7-4edc-be8e-8a54df9eb385','35', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 185, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822174','649330b6-c2d7-4edc-be8e-8a54df9eb385','36', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 176, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822175','649330b6-c2d7-4edc-be8e-8a54df9eb385','38', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 195, 0, '2022-06-30 21:00:00.000', '2022-06-30 21:00:00.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822176','649330b6-c2d7-4edc-be8e-8a54df9eb385','39', '{"endpoint":"http://localhost:8000"}', 40, 0, '2022-09-11 12:00:00.000', '2022-09-11 12:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 60, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0, '2022-07-24 19:00:00.000', '2022-07-24 19:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1, '2023-05-30 18:02:53.000', '2022-05-30 18:02:53.000');

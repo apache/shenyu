@@ -75,6 +75,7 @@ public class EnumServiceImpl implements EnumService {
                 .map(paramTypeEnum -> new EnumVO(null, paramTypeEnum.getName(), paramTypeEnum.getSupport())).collect(Collectors.toList());
 
         List<EnumVO> pluginEnums = Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum != PluginEnum.CASDOOR)
                 .map(pluginEnum -> new EnumVO(pluginEnum.getCode(), pluginEnum.getName(), true))
                 .collect(Collectors.toList());
 
