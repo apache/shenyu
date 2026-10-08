@@ -18,7 +18,9 @@
 package org.apache.shenyu.registry.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.agent.model.NewService;
+import com.ecwid.consul.v1.health.HealthServicesRequest;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.path.InstancePathConstants;
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,12 +38,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public final class ConsulInstanceRegisterRepositoryTest {
@@ -159,5 +165,29 @@ public final class ConsulInstanceRegisterRepositoryTest {
             executor.shutdownNow();
             ttlExecutor.shutdownNow();
         }
+    }
+
+    @Test
+    public void testWatcherKeepsPollingAfterFailure() throws NoSuchFieldException, IllegalAccessException {
+        final ConsulClient consulClient = mock(ConsulClient.class);
+        when(consulClient.getHealthServices(anyString(), any(HealthServicesRequest.class)))
+                .thenThrow(new RuntimeException("consul temporarily unavailable"))
+                .thenReturn(new Response<>(Collections.emptyList(), 1L, Boolean.TRUE, 0L));
+
+        final Field consulClientField = ConsulInstanceRegisterRepository.class.getDeclaredField("consulClient");
+        consulClientField.setAccessible(true);
+        consulClientField.set(repository, consulClient);
+        final Field watchDelayField = ConsulInstanceRegisterRepository.class.getDeclaredField("watchDelay");
+        watchDelayField.setAccessible(true);
+        watchDelayField.set(repository, "1");
+        final Field waitTimeField = ConsulInstanceRegisterRepository.class.getDeclaredField("waitTime");
+        waitTimeField.setAccessible(true);
+        waitTimeField.set(repository, "0");
+
+        repository.watcherStart("test-service");
+
+        verify(consulClient, timeout(15000).atLeast(2))
+                .getHealthServices(eq("test-service"), any(HealthServicesRequest.class));
+        repository.close();
     }
 }

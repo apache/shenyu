@@ -183,8 +183,15 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         if (!watchSelectKeySet.add(selectKey)) {
             return;
         }
-        watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey),
-                5, Integer.parseInt(watchDelay), TimeUnit.SECONDS));
+        watchFutures.add(this.executor.scheduleWithFixedDelay(() -> {
+            try {
+                this.watchConfigKeyValues(selectKey);
+            } catch (Exception e) {
+                // an exception escaping a fixed-delay task suppresses all later executions,
+                // so a single watch failure must only be logged to keep watching
+                LOGGER.error("consul registry watch key: {} error", selectKey, e);
+            }
+        }, 5, Integer.parseInt(watchDelay), TimeUnit.SECONDS));
     }
 
     /**
