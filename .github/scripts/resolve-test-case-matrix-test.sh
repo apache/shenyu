@@ -116,6 +116,8 @@ assert_file_output "k8s-examples-http" "shenyu-bootstrap/pom.xml" "run_k8s_examp
 assert_file_output "k8s-examples-http" "pom.xml" "run_k8s_examples" "true"
 
 readonly E2E_GRPC="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-grpc/compose/script/e2e-grpc-sync-compose.sh"
+readonly E2E_RABBITMQ="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rabbitmq/compose/script/e2e-logging-rabbitmq-compose.sh"
+readonly E2E_RABBITMQ_CASE="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rabbitmq/src/test/java/org/apache/shenyu/e2e/testcase/logging/rabbitmq/DividePluginCases.java"
 readonly IT_GRPC="shenyu-integrated-test/shenyu-integrated-test-grpc/src/test/java/GrpcPluginTest.java"
 readonly IT_K8S_GRPC="shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-grpc/script/healthcheck.sh"
 readonly PROD_GRPC="shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-rpc/shenyu-plugin-grpc/pom.xml"
@@ -146,6 +148,10 @@ assert_output "e2e" "$(jq -cn --arg file "${ADMIN_SERVICE}" '["README.md", $file
 assert_ci_ignored "${E2E_GRPC}"
 assert_file_output "e2e" "${E2E_GRPC}" "e2e_matrix" \
   '{"include":[{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"}]}'
+assert_file_output "e2e" "${E2E_RABBITMQ}" "e2e_matrix" \
+  '{"include":[{"script":"e2e-logging-rabbitmq-compose","case":"shenyu-e2e-case-logging-rabbitmq","example_projects":":shenyu-examples-http"}]}'
+assert_file_output "e2e" "${E2E_RABBITMQ_CASE}" "e2e_matrix" \
+  '{"include":[{"script":"e2e-logging-rabbitmq-compose","case":"shenyu-e2e-case-logging-rabbitmq","example_projects":":shenyu-examples-http"}]}'
 assert_file_output "integration" "${E2E_GRPC}" "run_integration" "false"
 assert_file_output "k8s-ingress" "${E2E_GRPC}" "run_k8s_ingress" "false"
 

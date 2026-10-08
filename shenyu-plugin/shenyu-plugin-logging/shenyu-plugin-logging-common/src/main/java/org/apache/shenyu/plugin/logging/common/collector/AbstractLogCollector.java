@@ -57,9 +57,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
-    private int bufferSize;
+    private volatile int bufferSize;
 
-    private BlockingQueue<L> bufferQueue;
+    private volatile BlockingQueue<L> bufferQueue;
 
     private final Map<String, BlockingQueue<L>> bufferQueueS = Maps.newConcurrentMap();
 
@@ -67,12 +67,18 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private long lastPushTime;
 
-    private final AtomicBoolean started = new AtomicBoolean(true);
+    private final AtomicBoolean started = new AtomicBoolean(false);
+
+    private ShenyuThreadPoolExecutor executor;
 
     @Override
-    public void start() {
-        bufferSize = getLogCollectConfig().getBufferQueueSize();
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+    public synchronized void start() {
+        refreshBufferSize();
+        if (started.get()) {
+            return;
+        }
+        // Admission is bounded in collect(), allowing live capacity changes without dropping queued logs.
+        bufferQueue = new LinkedBlockingDeque<>();
         ShenyuConfig config = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig());
         final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
         ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
@@ -81,7 +87,22 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
         started.set(true);
-        threadExecutor.execute(this::consume);
+        executor = threadExecutor;
+        try {
+            threadExecutor.execute(() -> consume(threadExecutor));
+        } catch (RuntimeException e) {
+            started.set(false);
+            threadExecutor.shutdownNow();
+            throw e;
+        }
+    }
+
+    private void refreshBufferSize() {
+        int configuredSize = getLogCollectConfig().getBufferQueueSize();
+        if (configuredSize <= 0) {
+            throw new IllegalArgumentException("bufferQueueSize must be positive");
+        }
+        bufferSize = configuredSize;
     }
 
     @Override
@@ -94,7 +115,13 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
             bufferQueue.offer(log);
         } else {
-            bufferQueue.offer(log);
+            BlockingQueue<L> queue = bufferQueue;
+            synchronized (queue) {
+                // On shrink, retain the backlog but reject new logs until it falls below the new limit.
+                if (queue.size() < bufferSize) {
+                    queue.offer(log);
+                }
+            }
         }
     }
 
@@ -107,8 +134,8 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     /**
      * batch and async consume.
      */
-    private void consume() {
-        while (started.get()) {
+    private void consume(final ThreadPoolExecutor consumerExecutor) {
+        while (!consumerExecutor.isShutdown()) {
             int diffTimeMSForPush = 100;
             try {
                 List<L> logs = new ArrayList<>();
@@ -284,8 +311,11 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     protected abstract void desensitizeLog(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
 
     @Override
-    public void close() throws Exception {
+    public synchronized void close() throws Exception {
         started.set(false);
+        if (Objects.nonNull(executor)) {
+            executor.shutdownNow();
+        }
         AbstractLogConsumeClient<?, ?> logCollectClient = getLogConsumeClient();
         try {
             flushBufferQueues();

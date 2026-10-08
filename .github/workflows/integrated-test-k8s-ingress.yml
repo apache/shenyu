@@ -140,6 +140,10 @@ jobs:
         with:
           go-version: 1.17.x
 
+      - name: Test Dubbo deployment readiness script
+        if: matrix.case == 'shenyu-integrated-test-k8s-ingress-apache-dubbo'
+        run: bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/script/build_k8s_cluster_test.sh
+
       - name: Install k8s
         run: |
           go install sigs.k8s.io/kind@v0.14.0

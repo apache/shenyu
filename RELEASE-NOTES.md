@@ -10,9 +10,12 @@
   upstream connections and reducing connection setup overhead. It previously
   defaulted to `false` as a workaround for stale pooled connections being reset
   by the peer (Reactor Netty issue #388).
-  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream idle timeout
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream or load balancer idle timeout
   when using a fixed connection pool. If connection resets persist, restore
   the previous behavior with `shenyu.httpclient.keepAlive=false`.
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a
@@ -25,6 +28,16 @@
   count returns HTTP 408. The aggregate ceiling now also bounds a source that
   never completes; it does not replace the per-attempt response timeout.
 - The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+- `shenyu.httpclient.responseTimeout` now configures Reactor Netty's response-read
+  deadline (default 3000 ms). It limits gaps between reads throughout the response
+  body, not just the wait for headers. Slow SSE, long-polling and token streams
+  can therefore time out after headers have arrived.
+- A non-positive responseTimeout disables that deadline only. Independently
+  configured read-timeout handlers still apply; use `shenyu.httpclient.readTimeout=0`
+  to disable their deadline as well, and review route, retry and caller deadlines.
+  The client factory now retains its connection-handler configuration, so configured
+  read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
 
 ## [v2.7.0]- 2024-12-23
 
