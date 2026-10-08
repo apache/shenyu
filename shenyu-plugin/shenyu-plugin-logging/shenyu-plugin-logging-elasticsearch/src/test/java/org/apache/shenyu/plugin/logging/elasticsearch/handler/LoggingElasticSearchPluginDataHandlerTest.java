@@ -131,9 +131,14 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         PluginData pluginData = createPluginData();
         pluginData.setConfig(GsonUtils.getGson().toJson(existingConfig));
 
-        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
+        LoggingElasticSearchPluginDataHandler.getPluginGlobalConfigMap().put(pluginData.getId(), existingConfig);
+        try {
+            loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
 
-        verify(loggingElasticSearchPluginDataHandler, never()).doRefreshConfig(any());
+            verify(loggingElasticSearchPluginDataHandler, never()).doRefreshConfig(any());
+        } finally {
+            LoggingElasticSearchPluginDataHandler.getPluginGlobalConfigMap().remove(pluginData.getId());
+        }
     }
 
     @Test

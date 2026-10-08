@@ -46,6 +46,15 @@ public enum Singleton {
     }
 
     /**
+     * Remove the singleton entry for the given class.
+     *
+     * @param clazz the clazz
+     */
+    public void remove(final Class<?> clazz) {
+        SINGLES.remove(clazz.getName());
+    }
+
+    /**
      * Get t.
      *
      * @param <T>   the type parameter
