@@ -158,9 +158,11 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         }
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
             if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
-                shenyuMcpServerManager.removeTool(server.getPath(), ruleData.getName());
+                shenyuMcpServerManager.removeTool(server.getPath(),
+                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName() : mcpServerTool.getName());
             }
         });
         MetaDataCache.getInstance().clean();

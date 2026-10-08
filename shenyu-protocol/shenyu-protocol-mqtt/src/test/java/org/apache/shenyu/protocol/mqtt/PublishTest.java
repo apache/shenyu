@@ -254,7 +254,11 @@ public final class PublishTest {
         addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
         addSubscriber(otherSubscriberChannel, MqttQoS.EXACTLY_ONCE);
 
+        // wait for the first delivery so that the second publish cannot interleave packet id allocation
         publishToSubscribers(MqttQoS.EXACTLY_ONCE);
+        captureMessages(subscriberChannel, 1);
+        captureMessages(otherSubscriberChannel, 1);
+
         publishToSubscribers(MqttQoS.EXACTLY_ONCE);
 
         List<MqttPublishMessage> messages = captureMessages(subscriberChannel, 2);
@@ -273,10 +277,11 @@ public final class PublishTest {
         ByteBuf payload = Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8);
         try {
             publishToSubscribers(MqttQoS.AT_LEAST_ONCE, payload);
-            awaitAssert(() -> assertEquals(3, payload.refCnt()));
 
             MqttPublishMessage delivered = captureMessage(subscriberChannel);
             MqttPublishMessage otherDelivered = captureMessage(otherSubscriberChannel);
+            // one reference held by the inbound message plus one retained duplicate per active subscriber
+            awaitAssert(() -> assertEquals(3, payload.refCnt()));
             assertEquals(PAYLOAD, delivered.payload().toString(CharsetUtil.UTF_8));
             assertEquals(PAYLOAD, otherDelivered.payload().toString(CharsetUtil.UTF_8));
 

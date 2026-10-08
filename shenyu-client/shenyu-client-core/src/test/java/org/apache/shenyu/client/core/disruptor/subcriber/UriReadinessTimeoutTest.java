@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.ServerSocket;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -84,12 +86,10 @@ public final class UriReadinessTimeoutTest {
     public void testUnreachableUriDoesNotBlockNextUri() throws Exception {
         subscriber = new ShenyuClientURIExecutorSubscriber(repository, 100);
         ShenyuClientShutdownHook.set(repository, new Properties());
-        int closedPort;
-        try (ServerSocket closed = new ServerSocket(0)) {
-            closedPort = closed.getLocalPort();
-        }
-        try (ServerSocket ready = new ServerSocket(0)) {
-            URIRegisterDTO unavailable = uri(closedPort);
+        try (Socket unavailableSocket = new Socket(); ServerSocket ready = new ServerSocket(0)) {
+            // Reserve a port without listening so the ready server cannot reuse the unavailable endpoint.
+            unavailableSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+            URIRegisterDTO unavailable = uri(unavailableSocket.getLocalPort());
             URIRegisterDTO available = uri(ready.getLocalPort());
             assertTimeoutPreemptively(Duration.ofSeconds(3), () -> subscriber.executor(List.of(unavailable, available)));
             verify(repository, never()).persistURI(unavailable);
@@ -100,29 +100,28 @@ public final class UriReadinessTimeoutTest {
     @Test
     public void testInterruptionStopsWaitingAndPreservesFlag() throws Exception {
         subscriber = new ShenyuClientURIExecutorSubscriber(repository, 30000);
-        int closedPort;
-        try (ServerSocket closed = new ServerSocket(0)) {
-            closedPort = closed.getLocalPort();
-        }
-        URIRegisterDTO unavailable = uri(closedPort);
-        AtomicBoolean interrupted = new AtomicBoolean();
-        CountDownLatch started = new CountDownLatch(1);
-        Thread worker = new Thread(() -> {
-            started.countDown();
-            subscriber.executor(List.of(unavailable));
-            interrupted.set(Thread.currentThread().isInterrupted());
-        });
-        worker.start();
-        try {
-            assertTrue(started.await(1, TimeUnit.SECONDS));
-            worker.interrupt();
-            worker.join(2000);
-            assertFalse(worker.isAlive());
-            assertTrue(interrupted.get());
-            verify(repository, never()).persistURI(unavailable);
-        } finally {
-            worker.interrupt();
-            worker.join(2000);
+        try (Socket unavailableSocket = new Socket()) {
+            unavailableSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+            URIRegisterDTO unavailable = uri(unavailableSocket.getLocalPort());
+            AtomicBoolean interrupted = new AtomicBoolean();
+            CountDownLatch started = new CountDownLatch(1);
+            Thread worker = new Thread(() -> {
+                started.countDown();
+                subscriber.executor(List.of(unavailable));
+                interrupted.set(Thread.currentThread().isInterrupted());
+            });
+            worker.start();
+            try {
+                assertTrue(started.await(1, TimeUnit.SECONDS));
+                worker.interrupt();
+                worker.join(2000);
+                assertFalse(worker.isAlive());
+                assertTrue(interrupted.get());
+                verify(repository, never()).persistURI(unavailable);
+            } finally {
+                worker.interrupt();
+                worker.join(2000);
+            }
         }
     }
 

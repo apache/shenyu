@@ -20,7 +20,9 @@ package org.apache.shenyu.plugin.api.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -93,9 +95,15 @@ public final class SpringBeanUtils {
      * @param classLoader class loader
      */
     public void registerBean(final String beanName, final BeanDefinition beanDefinition, final ClassLoader classLoader) {
+        AbstractBeanDefinition definition = beanDefinition instanceof AbstractBeanDefinition
+                ? (AbstractBeanDefinition) beanDefinition : new GenericBeanDefinition(beanDefinition);
+        try {
+            definition.setBeanClass(Class.forName(beanDefinition.getBeanClassName(), false, classLoader));
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalArgumentException("Cannot load bean class " + beanDefinition.getBeanClassName(), ex);
+        }
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-        beanFactory.setBeanClassLoader(classLoader);
-        beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        beanFactory.registerBeanDefinition(beanName, definition);
     }
 
     /**

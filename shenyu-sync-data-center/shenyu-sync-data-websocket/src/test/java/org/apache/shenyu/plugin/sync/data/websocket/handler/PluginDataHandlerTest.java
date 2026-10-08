@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,7 +32,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class PluginDataHandlerTest {
@@ -60,24 +60,35 @@ public final class PluginDataHandlerTest {
     public void testDoRefresh() {
         List<PluginData> pluginDataList = createFakePluginDataObjects(3);
         pluginDataHandler.doRefresh(pluginDataList);
+        verify(subscriber).refreshPluginDataAll();
         verify(subscriber).onPluginRefresh(pluginDataList);
     }
 
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testRefreshEventsUseOnlyTheBatchCallback(final String eventType) {
+    void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
         List<PluginData> batch = createFakePluginDataObjects(2);
         pluginDataHandler.handle(new Gson().toJson(batch), eventType);
+        verify(subscriber).refreshPluginDataAll();
         verify(subscriber).onPluginRefresh(batch);
         verifyNoMoreInteractions(subscriber);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testEmptyRefreshDoesNotCallSubscriber(final String eventType) {
+    void testEmptyRefreshClearsSnapshot(final String eventType) {
         pluginDataHandler.handle("[]", eventType);
-        verifyNoInteractions(subscriber);
+        verify(subscriber).refreshPluginDataAll();
+        verify(subscriber).onPluginRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
+    }
+
+    @Test
+    public void testEmptySnapshotStillClearsCachedData() {
+        pluginDataHandler.handle("[]", DataEventTypeEnum.MYSELF.name());
+
+        verify(subscriber).refreshPluginDataAll();
     }
 
     @Test

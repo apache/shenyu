@@ -62,12 +62,14 @@ class ShenyuPluginClassLoaderBeanIsolationTest {
     @Test
     void closingPreviousGenerationShouldNotDestroyReplacementBean() {
         GenericApplicationContext context = createContext();
+        ClassLoader factoryClassLoader = context.getDefaultListableBeanFactory().getBeanClassLoader();
         String className = "fixture.reload.SharedComponent";
         ShenyuPluginClassLoader previousLoader = createLoader("same-plugin", className);
         ShenyuPluginClassLoader replacementLoader = createLoader("same-plugin", className);
         try {
             previousLoader.loadUploadedJarPlugins();
             replacementLoader.loadUploadedJarPlugins();
+            assertSame(factoryClassLoader, context.getDefaultListableBeanFactory().getBeanClassLoader());
             String previousBeanName = previousLoader.getPluginBeanName(className);
             String replacementBeanName = replacementLoader.getPluginBeanName(className);
 
@@ -76,6 +78,7 @@ class ShenyuPluginClassLoaderBeanIsolationTest {
             assertFalse(context.containsBean(previousBeanName));
             assertTrue(context.containsBean(replacementBeanName));
             assertSame(replacementLoader, context.getBean(replacementBeanName).getClass().getClassLoader());
+            assertSame(factoryClassLoader, context.getDefaultListableBeanFactory().getBeanClassLoader());
         } finally {
             previousLoader.close();
             replacementLoader.close();

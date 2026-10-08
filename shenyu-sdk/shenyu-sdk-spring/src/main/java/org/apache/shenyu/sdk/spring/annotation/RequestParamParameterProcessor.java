@@ -48,7 +48,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
         String name = requestParam.value();
         checkState(StringUtils.isNotBlank(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
             requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
-        StringBuilder pathResult = new StringBuilder(requestTemplate.getPath());
+        StringBuilder urlResult = new StringBuilder(shenyuRequest.getUrl());
         Map<Object, Object> params = Maps.newHashMap();
         if (!(arg instanceof Map) && !(arg instanceof MultipartFile)) {
             params.put(name, arg);
@@ -56,14 +56,14 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
             params = (Map<Object, Object>) arg;
         }
         params.forEach((key, value) -> {
-            if (pathResult.indexOf("?") > 0) {
-                pathResult.append("&");
+            if (urlResult.indexOf("?") > 0) {
+                urlResult.append("&");
             } else {
-                pathResult.append("?");
+                urlResult.append("?");
             }
-            pathResult.append(key).append("=").append(value);
+            urlResult.append(key).append("=").append(value);
         });
-        shenyuRequest.setUrl(requestTemplate.getUrl() + pathResult);
+        shenyuRequest.setUrl(urlResult.toString());
         return true;
     }
 
