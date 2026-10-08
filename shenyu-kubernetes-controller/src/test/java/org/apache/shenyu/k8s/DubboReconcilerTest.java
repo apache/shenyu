@@ -35,6 +35,9 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
@@ -42,8 +45,10 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.any;
@@ -193,5 +198,27 @@ public final class DubboReconcilerTest {
 
         IngressParser ingressParser = new IngressParser(serviceInformer, endpointsInformer);
         Assertions.assertEquals(1, ingressParser.parse(ingress, mock(io.kubernetes.client.openapi.apis.CoreV1Api.class)).size());
+    }
+
+    /**
+     * test reconcile with fewer protocols than endpoints.
+     */
+    @Test
+    public void testReconcileWithFewerProtocolsThanEndpoints() {
+        V1Ingress ingress = ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME);
+        Map<String, String> annotations = ingress.getMetadata().getAnnotations();
+        annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo+ssl://");
+        V1Endpoints endpoints = endpointsInformer.getIndexer().getByKey(NAMESPACE + "/" + SERVICE_NAME);
+        endpoints.getSubsets().get(0).setAddresses(java.util.Arrays.asList(
+                new V1EndpointAddress().ip("127.0.0.1"), new V1EndpointAddress().ip("127.0.0.2")));
+        ingressReconciler.reconcile(new Request(NAMESPACE, INGRESS_NAME));
+        ArgumentCaptor<SelectorData> selectorCaptor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
+        List<DubboUpstream> upstreams = GsonUtils.getInstance().fromList(selectorCaptor.getValue().getHandle(), DubboUpstream.class);
+        Assertions.assertEquals(2, upstreams.size());
+        Assertions.assertEquals("127.0.0.1:20888", upstreams.get(0).getUpstreamUrl());
+        Assertions.assertEquals("dubbo+ssl://", upstreams.get(0).getProtocol());
+        Assertions.assertEquals("127.0.0.2:20888", upstreams.get(1).getUpstreamUrl());
+        Assertions.assertEquals("dubbo://", upstreams.get(1).getProtocol());
     }
 }
