@@ -6,6 +6,13 @@
 
 ### Behavior Changes
 
+- `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
+  upstream connections and reducing connection setup overhead. It previously
+  defaulted to `false` as a workaround for stale pooled connections being reset
+  by the peer (Reactor Netty issue #388).
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream or load balancer idle timeout
+  when using a fixed connection pool. If connection resets persist, restore
+  the previous behavior with `shenyu.httpclient.keepAlive=false`.
 - Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
   The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
   but can discard a newer registration failure arriving between those calls.
