@@ -51,6 +51,13 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    void selectPageUpstreams() {
+        assertEquals(discoveryUpstreamDO.getId(), discoveryUpstreamMapper.selectByDiscoveryHandlerIds(Collections.singletonList(discoveryUpstreamDO.getDiscoveryHandlerId())).get(0).getId());
+        assertEquals(0, discoveryUpstreamMapper.selectByDiscoveryHandlerIds(Collections.emptyList()).size());
+        assertEquals(0, discoveryUpstreamMapper.selectByDiscoveryHandlerIds(Collections.singletonList("missing")).size());
+    }
+
+    @Test
     void existed() {
 
         Boolean b = discoveryUpstreamMapper.existed(discoveryUpstreamDO.getId());

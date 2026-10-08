@@ -68,6 +68,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * this is ai response transformer plugin.
+ * The complete response is buffered before transformation; streaming and SSE responses are not supported.
  */
 public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
@@ -306,7 +307,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
-            return dataBufferMono.flatMap(dataBuffer -> {
+            return dataBufferMono.map(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
@@ -376,7 +377,8 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
                                     });
                         });
-            });
+            }).defaultIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())))
+                    .flatMap(response -> response);
         }
 
         @Override

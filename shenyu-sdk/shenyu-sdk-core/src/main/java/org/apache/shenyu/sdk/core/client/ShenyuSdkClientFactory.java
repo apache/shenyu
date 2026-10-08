@@ -19,15 +19,10 @@ package org.apache.shenyu.sdk.core.client;
 
 import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * The type Shenyu sdk client factory.
  */
 public class ShenyuSdkClientFactory {
-
-    private static final Map<String, ShenyuSdkClient> SDK_CLIENT_MAP = new ConcurrentHashMap<>();
     
     /**
      * New shenyu sku client.
@@ -36,6 +31,6 @@ public class ShenyuSdkClientFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuSdkClient newInstance(final String clientType) {
-        return SDK_CLIENT_MAP.computeIfAbsent(clientType, ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class)::getJoin);
+        return ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class).getJoin(clientType);
     }
 }

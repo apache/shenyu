@@ -29,7 +29,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +40,35 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Tests initial synchronization readiness independently of the socket handshake.
  */
 class InitialSyncStateTest {
+
+    @Test
+    void testCompletionCallbackRejectsFailedAndAbandonedAttempts() {
+        AtomicBoolean ready = new AtomicBoolean(true);
+        AtomicInteger completed = new AtomicInteger();
+        InitialSyncState state = new InitialSyncState(ready, completed::incrementAndGet);
+        String failed = state.begin();
+        CompletableFuture<Void> failure = new CompletableFuture<>();
+        state.accept(new WebsocketSyncFrame(failed, 0, "data"), value -> InitialSyncApplication.register(failure));
+        state.accept(new WebsocketSyncFrame(failed, 1, null), value -> { });
+        failure.completeExceptionally(new IllegalStateException("poison"));
+        assertEquals(0, completed.get());
+        assertFalse(state.isComplete());
+        String abandoned = state.begin();
+        CompletableFuture<Void> pending = new CompletableFuture<>();
+        state.accept(new WebsocketSyncFrame(abandoned, 0, "data"), value -> InitialSyncApplication.register(pending));
+        state.accept(new WebsocketSyncFrame(abandoned, 1, null), value -> { });
+        state.invalidate();
+        final String retry = state.begin();
+        pending.complete(null);
+        assertEquals(0, completed.get());
+        assertFalse(state.isComplete());
+        state.accept(new WebsocketSyncFrame(retry, 0, null), value -> { });
+        assertEquals(1, completed.get());
+        assertTrue(state.isComplete());
+        state.accept(new WebsocketSyncFrame(retry, 0, null), value -> { });
+        assertEquals(1, completed.get());
+    }
+
 
     @Test
     void testInterleavedIncrementalMustFinishBeforeReadiness() {
