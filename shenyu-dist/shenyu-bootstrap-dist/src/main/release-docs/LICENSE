@@ -468,8 +468,6 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
     snappy-java 1.1.10.5: https://github.com/xerial/snappy-java, Apache 2.0
-    sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
-    sofa-rpc-all 5.13.0: http://github.com/sofastack/sofa-rpc, Apache 2.0
     jsonschema-generator 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     spring-ai-template-st 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-deepseek 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
@@ -676,9 +674,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jakarta.xml.bind-api 4.0.2: https://github.com/eclipse-ee4j/jaxb-api, BSD 3-Clause
     protobuf-java 3.25.5: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.7: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
-    tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
-    tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
-    tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
     zstd-jni 1.5.6-3: https://github.com/luben/zstd-jni, BSD 2-Clause
     zstd-jni 1.5.6-4: https://github.com/luben/zstd-jni, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause

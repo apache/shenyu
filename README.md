@@ -34,7 +34,7 @@ Apache ShenYu is a Java-based gateway for service proxying, protocol conversion,
 | Area | What ShenYu provides |
 | --- | --- |
 | Plugin routing and extensions | An ordered plugin chain for HTTP requests, with selector and rule matching where applicable. Spring Boot starters select plugins; [custom Java plugins](https://shenyu.apache.org/docs/developer/custom-plugin/), SPI implementations, and WASM plugin APIs extend the gateway. |
-| Protocols and upstreams | HTTP and Spring Cloud services, WebSocket connections, and Apache Dubbo, gRPC, SOFA, and Tars backends. Optional TCP and MQTT listeners provide additional ingress. |
+| Protocols and upstreams | HTTP and Spring Cloud services, WebSocket connections, and Apache Dubbo and gRPC backends. Optional TCP and MQTT listeners provide additional ingress; SOFA and Tars gateway plugins are available as external plugin-store starters. |
 | Registration and discovery | Client SDKs register service addresses and API metadata with Admin. Registry integrations support discovery; an optional Kubernetes controller reconciles Ingress and Endpoints resources. |
 | Security and traffic control | WAF, signing, authentication plugins, load balancing, rate limiting, and fault tolerance through Hystrix, Resilience4j, and Sentinel. |
 | Caching and transformation | In-memory or Redis-backed response caching, URL rewriting, redirection, and request/response transformation. |
@@ -109,6 +109,8 @@ curl -fsS http://localhost:9195/shenyu/plugin/selectorAndRules \
 ```
 
 This request updates only this gateway instance; it does not write the route to Admin. For centrally managed, durable routes, configure them in Admin with a persistent database instead of the default in-memory H2 database.
+
+SOFA and Tars support is no longer bundled in the default gateway distribution. To run those protocols, install the matching plugin-store starter in the gateway classpath and keep using the existing Admin metadata, client registration SDKs, and examples for protocol configuration.
 
 #### Verify the route
 
