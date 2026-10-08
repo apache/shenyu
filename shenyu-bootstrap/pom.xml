@@ -563,14 +563,6 @@
         <!-- shenyu logging-huaweilts plugin end -->
 
 
-        <!-- shenyu logging-clickhouse plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-clickhouse</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-clickhouse plugin end -->
-
         <!-- shenyu kubernetes controller starter -->
 <!--        <dependency>-->
 <!--            <groupId>org.apache.shenyu</groupId>-->

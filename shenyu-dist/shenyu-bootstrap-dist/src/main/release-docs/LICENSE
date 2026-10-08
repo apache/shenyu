@@ -240,8 +240,6 @@ The text of each license is the standard Apache 2.0 license.
     cap-std 1.0.7: https://github.com/bytecodealliance/cap-std, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
     classmate 1.7.0: https://github.com/FasterXML/java-classmate, Apache 2.0
-    clickhouse-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-client, Apache 2.0
-    clickhouse-http-client 0.3.2-patch11: https://mvnrepository.com/artifact/com.clickhouse/clickhouse-http-client, Apache 2.0
 	collector 0.15.0: http://github.com/prometheus/jmx_exporter, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0
     commons-cli 1.2: https://github.com/apache/commons-cli, Apache 2.0
