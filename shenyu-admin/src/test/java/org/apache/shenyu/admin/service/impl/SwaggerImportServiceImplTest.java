@@ -37,11 +37,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
+import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -174,6 +180,31 @@ public class SwaggerImportServiceImplTest {
             }
         };
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void buildShenyuMcpToolKeepsEveryHttpMethodOfTheSamePath() throws Exception {
+        OpenAPI openapi = new OpenAPI();
+        openapi.setPaths(new Paths());
+        PathItem pathItem = new PathItem();
+        pathItem.setGet(new Operation().operationId("listUsers"));
+        pathItem.setPost(new Operation().operationId("createUser"));
+        openapi.getPaths().addPathItem("/users", pathItem);
+
+        java.lang.reflect.Method build = SwaggerImportServiceImpl.class.getDeclaredMethod("buildShenyuMcpTool", OpenAPI.class);
+        build.setAccessible(true);
+        Map<String, java.util.List<Map<String, ShenyuMcpTool>>> result =
+                (Map<String, java.util.List<Map<String, ShenyuMcpTool>>>) build.invoke(service, openapi);
+
+        java.util.List<Map<String, ShenyuMcpTool>> tools = result.values().iterator().next();
+        assertEquals(2, tools.size(), "both operations of the same path must become MCP tools");
+        java.util.Set<String> httpMethods = tools.stream()
+                .flatMap(toolMap -> toolMap.values().stream())
+                .map(ShenyuMcpTool::getMethod)
+                .collect(java.util.stream.Collectors.toSet());
+        assertEquals(new java.util.HashSet<>(Arrays.asList("get", "post")), httpMethods);
+    }
+
 
     private static final class RecordingDocManager implements DocManager {
 

@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -90,6 +91,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -297,7 +299,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public int deleteByNamespaceId(final List<String> ids, final String namespaceId) {
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
-        List<PluginDO> pluginDOS = pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId));
+        List<PluginDO> pluginDOS = new ArrayList<>(pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
         unbindDiscovery(selectors, pluginDOS);
         return deleteSelector(selectors, pluginDOS);
     }
@@ -308,22 +310,54 @@ public class SelectorServiceImpl implements SelectorService {
      * @param selectors selectors
      */
     private void unbindDiscovery(final List<SelectorDO> selectors, final List<PluginDO> pluginDOS) {
-        Map<String, String> pluginMap = ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName);
+        Map<String, String> pluginMap = new HashMap<>(ListUtil.toMap(pluginDOS, PluginDO::getId, PluginDO::getName));
+        List<ResolvedDiscovery> resolvedDiscoveries = new ArrayList<>();
+        // Validate the whole batch before deleting any discovery rows or publishing removal events.
         for (SelectorDO selector : selectors) {
             DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selector.getId());
             if (Objects.isNull(discoveryHandlerDO)) {
                 continue;
             }
+            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+            String pluginName = null;
+            if (Objects.nonNull(discoveryDO)) {
+                pluginName = pluginMap.get(selector.getPluginId());
+                if (StringUtils.isBlank(pluginName)) {
+                    PluginDO pluginDO = pluginMapper.selectById(selector.getPluginId());
+                    pluginName = Objects.isNull(pluginDO) ? null : pluginDO.getName();
+                }
+                if (StringUtils.isBlank(pluginName)) {
+                    pluginName = discoveryDO.getPluginName();
+                }
+                if (StringUtils.isBlank(pluginName)) {
+                    throw new ShenyuAdminException("Cannot delete selector batch: plugin name for selector " + selector.getId()
+                            + " with discovery upstream data cannot be resolved. No selectors in this batch were deleted; restore the plugin name and retry");
+                }
+                if (!Objects.equals(pluginMap.get(selector.getPluginId()), pluginName)) {
+                    // The selector deletion event also resolves plugin names from this list.
+                    pluginDOS.removeIf(plugin -> Objects.equals(plugin.getId(), selector.getPluginId()));
+                    PluginDO pluginDO = new PluginDO();
+                    pluginDO.setId(selector.getPluginId());
+                    pluginDO.setName(pluginName);
+                    pluginDOS.add(pluginDO);
+                    pluginMap.put(selector.getPluginId(), pluginName);
+                }
+            }
+            resolvedDiscoveries.add(new ResolvedDiscovery(selector, discoveryHandlerDO, discoveryDO, pluginName));
+        }
+        for (ResolvedDiscovery resolved : resolvedDiscoveries) {
+            SelectorDO selector = resolved.selector();
+            DiscoveryHandlerDO discoveryHandlerDO = resolved.handler();
             discoveryHandlerMapper.delete(discoveryHandlerDO.getId());
             discoveryRelMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
             discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerDO.getId());
-            DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+            DiscoveryDO discoveryDO = resolved.discovery();
             if (Objects.nonNull(discoveryDO)) {
                 final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
                 ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
                 proxySelectorDTO.setId(selector.getId());
                 proxySelectorDTO.setName(selector.getSelectorName());
-                proxySelectorDTO.setPluginName(pluginMap.getOrDefault(selector.getPluginId(), ""));
+                proxySelectorDTO.setPluginName(resolved.pluginName());
                 proxySelectorDTO.setNamespaceId(selector.getNamespaceId());
                 discoveryProcessor.removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
                 if (DiscoveryLevel.SELECTOR.getCode().equals(discoveryDO.getDiscoveryLevel())) {
@@ -718,6 +752,9 @@ public class SelectorServiceImpl implements SelectorService {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private record ResolvedDiscovery(SelectorDO selector, DiscoveryHandlerDO handler, DiscoveryDO discovery, String pluginName) {
     }
 
 }

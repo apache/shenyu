@@ -29,8 +29,10 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,10 +53,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -106,6 +112,7 @@ public final class WebsocketCollectorTest {
         websocketCollector = new WebsocketCollector();
         // Clear shared static state between tests
         clearStaticSessionState();
+        WebsocketCollector.resetSendGuards();
         when(session.isOpen()).thenReturn(true);
         Map<String, Object> userProperties = new HashMap<>();
         userProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -132,6 +139,22 @@ public final class WebsocketCollectorTest {
         if (Objects.nonNull(sessionSendQueues)) {
             sessionSendQueues.clear();
         }
+        Map<Session, ?> sessionNamespaces =
+                (Map<Session, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_NAMESPACE_IDS");
+        if (Objects.nonNull(sessionNamespaces)) {
+            sessionNamespaces.clear();
+        }
+    }
+
+    @Test
+    public void testNestedApiKeysAreRedacted() {
+        String message = "{\"data\":[{\"proxyApiKey\":\"proxy-secret\","
+                + "\"nested\":{\"realApiKey\":\"real-secret\",\"apiKey\":\"api-secret\"}}]}";
+        String masked = ReflectionTestUtils.invokeMethod(WebsocketCollector.class, "maskSensitive", message);
+        assertFalse(masked.contains("proxy-secret"));
+        assertFalse(masked.contains("real-secret"));
+        assertFalse(masked.contains("api-secret"));
+        assertTrue(masked.contains("******"));
     }
 
     @Test
@@ -140,6 +163,80 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testInvalidInitialSyncRequestIsIgnored() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        for (String id : new String[]{"", "not-a-uuid", "00000000-0000-0000-0000-00000000000z"}) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session));
+        }
+        verify(syncDataService, never()).syncAllByNamespaceId(any(), anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertNull(ThreadLocalUtils.get("sessionKey"));
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(async).sendText(anyString(), any(SendHandler.class));
+    }
+
+    @Test
+    void testInitialSyncFramesAndEmptyCompletion() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "configuration", DataEventTypeEnum.MYSELF);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrame data = GsonUtils.getInstance().fromJson(messages.getAllValues().get(0), WebsocketSyncFrame.class);
+        final WebsocketSyncFrame end = GsonUtils.getInstance().fromJson(messages.getAllValues().get(1), WebsocketSyncFrame.class);
+        assertEquals(id, data.getRequestId());
+        assertEquals(0, data.getSequence());
+        assertEquals("configuration", data.getPayload());
+        assertEquals(id, end.getRequestId());
+        assertEquals(1, end.getSequence());
+        assertNull(end.getPayload());
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(async, times(3)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrame empty = GsonUtils.getInstance().fromJson(messages.getValue(), WebsocketSyncFrame.class);
+        assertEquals(0, empty.getSequence());
+        assertNull(empty.getPayload());
+        websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testFailedInitialSyncDoesNotSendCompletion() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenThrow(new IllegalStateException("snapshot unavailable"));
+        assertThrows(IllegalStateException.class,
+                () -> websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session));
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertNull(ThreadLocalUtils.get("sessionKey"));
+    }
+
+    @Test
+    void testFollowerCannotCompleteInitialSync() {
+        ClusterProperties properties = new ClusterProperties();
+        properties.setEnabled(true);
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(properties);
+        ClusterSelectMasterService master = mock(ClusterSelectMasterService.class);
+        when(SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class)).thenReturn(master);
+        RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+        verify(syncDataService, never()).syncAllByNamespaceId(any(), anyString());
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
     }
 
     @Test
@@ -247,6 +344,89 @@ public final class WebsocketCollectorTest {
         websocketCollector.onClose(session);
         assertEquals(0L, getSessionSetSize());
         assertNull(getSession());
+    }
+
+    @Test
+    void testOnCloseRemovesAlreadyClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        assertEquals(1, namespaceSessionCount(Constants.SYS_DEFAULT_NAMESPACE_ID));
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+
+        websocketCollector.onClose(session);
+
+        assertEquals(0L, getSessionSetSize());
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testOnErrorRemovesAlreadyClosedSessionFromNamespaceMap() {
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).error(anyString(), anyString(), isA(Throwable.class));
+
+        websocketCollector.onError(session, new IllegalStateException("closed"));
+
+        assertEquals(0L, getSessionSetSize());
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+    @Test
+    void testRepeatedCloseOfAlreadyClosedSessionIsIdempotent() {
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+
+        websocketCollector.onClose(session);
+        websocketCollector.onClose(session);
+        websocketCollector.onError(session, new IllegalStateException("closed again"));
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+    }
+
+    @Test
+    void testMissingNamespaceLeavesNoPartialRegistration() {
+        Map<String, Object> userProperties = new HashMap<>();
+        when(session.getUserProperties()).thenReturn(userProperties);
+
+        assertThrows(ShenyuException.class, () -> websocketCollector.onOpen(session));
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testReconnectDoesNotAccumulateClosedSessions() {
+        doNothing().when(loggerSpy).warn(anyString(), anyString());
+        for (int i = 0; i < 3; i++) {
+            Session reconnect = mock(Session.class);
+            Map<String, Object> props = new HashMap<>();
+            props.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+            when(reconnect.isOpen()).thenReturn(true);
+            when(reconnect.getUserProperties()).thenReturn(props);
+            websocketCollector.onOpen(reconnect);
+            when(reconnect.isOpen()).thenReturn(false);
+            websocketCollector.onClose(reconnect);
+        }
+
+        assertEquals(0L, getSessionSetSize());
+        assertTrue(namespaceMap().isEmpty());
+    }
+
+    @Test
+    void testNamespaceBroadcastSkipsClosedSession() {
+        RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+        when(session.isOpen()).thenReturn(false);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stale-msg", DataEventTypeEnum.CREATE);
+
+        verify(async, never()).sendText(anyString(), any(SendHandler.class));
+        assertFalse(namespaceMap().containsKey(Constants.SYS_DEFAULT_NAMESPACE_ID));
     }
 
     @Test
@@ -381,7 +561,7 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testSendBySessionFailure() {
+    void testSendBySessionFailure() throws Exception {
         final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         when(session.getAsyncRemote()).thenReturn(async);
         when(session.isOpen()).thenReturn(true);
@@ -394,8 +574,85 @@ public final class WebsocketCollectorTest {
         }).when(async).sendText(anyString(), any(SendHandler.class));
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "fail-msg", DataEventTypeEnum.CREATE);
         verify(async, times(1)).sendText(eq("fail-msg"), any(SendHandler.class));
+        // a failed send closes the session so the gateway reconnects and resynchronizes
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testCloseCancelsInFlightWatchdog() {
+        WebsocketCollector.setSendTimeoutMillis(60000L);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stalled-message", DataEventTypeEnum.CREATE);
+        Map<?, ?> queues = (Map<?, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        Object queue = java.util.Objects.requireNonNull(queues).get(session);
+        java.util.concurrent.ScheduledFuture<?> future = (java.util.concurrent.ScheduledFuture<?>)
+                ReflectionTestUtils.getField(queue, "timeoutFuture");
+        org.junit.jupiter.api.Assertions.assertNotNull(future);
+        assertFalse(future.isCancelled());
+        websocketCollector.onClose(session);
+        assertTrue(future.isCancelled());
+        assertNull(ReflectionTestUtils.getField(queue, "timeoutFuture"));
+        WebsocketCollector.resetSendGuards();
+    }
+
+    @Test
+    void testMissingSendCallbackTimesOutAndClosesSession() throws Exception {
+        WebsocketCollector.setSendTimeoutMillis(150);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        // container never invokes the send handler — the stalled-connection case
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stuck-message", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "second-message", DataEventTypeEnum.CREATE);
+        // only the first message reaches sendText; the second stays queued
+        verify(async, times(1)).sendText(eq("stuck-message"), any(SendHandler.class));
+        verify(async, never()).sendText(eq("second-message"), any(SendHandler.class));
+
+        // the watchdog closes the broken session within a bounded time
+        waitUntil(() -> getSessionSetSize() == 0L);
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testSynchronousSendExceptionClosesSession() throws Exception {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        when(session.isOpen()).thenReturn(true);
+        websocketCollector.onOpen(session);
+
+        doAnswer(invocation -> {
+            throw new IllegalStateException("broken pipe");
+        }).when(async).sendText(anyString(), any(SendHandler.class));
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "boom-message", DataEventTypeEnum.CREATE);
+
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testQueueOverflowClosesSession() throws Exception {
+        WebsocketCollector.setMaxQueuedMessages(2);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m1", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m2", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m3", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m4", DataEventTypeEnum.CREATE);
+
+        verify(async, times(1)).sendText(eq("m1"), any(SendHandler.class));
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
     }
 
     @Test
@@ -454,7 +711,29 @@ public final class WebsocketCollectorTest {
         return Objects.isNull(sessionSet) ? -1 : sessionSet.size();
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Set<Session>> namespaceMap() {
+        return (Map<String, Set<Session>>) ReflectionTestUtils.getField(WebsocketCollector.class, "NAMESPACE_SESSION_MAP");
+    }
+
+    private int namespaceSessionCount(final String namespaceId) {
+        Set<Session> sessions = namespaceMap().get(namespaceId);
+        return Objects.isNull(sessions) ? 0 : sessions.size();
+    }
+
+    private int sendQueueSize() {
+        Map<?, ?> queues = (Map<?, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        return Objects.isNull(queues) ? 0 : queues.size();
+    }
+
     private Session getSession() {
         return (Session) ThreadLocalUtils.get("sessionKey");
+    }
+
+    private void waitUntil(final java.util.function.Supplier<Boolean> condition) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 3000L;
+        while (!condition.get() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20L);
+        }
     }
 }

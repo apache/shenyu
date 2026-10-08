@@ -16,28 +16,8 @@
 name: ci
 
 on:
+  # Required checks must report a result even for documentation-only PRs.
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
   push:
     branches:
       - master
@@ -68,16 +48,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  agent_gateway_migrations:
+    if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Agent Gateway upgrade and schema consistency
+        run: |
+          python3 .github/scripts/check-agent-gateway-migrations.py
+          python3 .github/scripts/test-agent-gateway-migrations.py
+
   changes:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.modules.outputs.has_code_changes }}
       code_files: ${{ steps.filter.outputs.code_files }}
+      rat_required: ${{ steps.filter.outputs.code }}
       modules: ${{ steps.modules.outputs.modules }}
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
+      - name: Test CI case resolver
+        run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test storage Compose healthchecks
+        run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -114,6 +109,21 @@ jobs:
         env:
           CHANGED_FILES_JSON: ${{ steps.filter.outputs.code_files }}
         run: bash .github/scripts/resolve-ci-modules.sh
+      - name: Test GHCR publish routing
+        run: bash .github/scripts/resolve-ghcr-publish-test.sh
+
+  rat_check:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.rat_required == 'true'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Run Apache RAT check
+        run: ./mvnw -B -ntp apache-rat:check
 
   pr_build:
     needs: changes
@@ -163,7 +173,7 @@ jobs:
           MODULE_ARGS=""
 
           if [[ "${{ needs.changes.outputs.full_build_required }}" != "true" && -n "${{ needs.changes.outputs.modules }}" ]]; then
-            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am -amd"
+            MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am"
           fi
 
           if mvnd --version > /dev/null 2>&1; then
@@ -335,6 +345,7 @@ jobs:
     if: (github.repository == 'apache/shenyu') && always()
     needs:
       - changes
+      - rat_check
       - pr_build
       - build_local_repo
       - test_group
@@ -344,6 +355,9 @@ jobs:
       - name: checking job status
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit -1
+          if [[ "${{ needs.changes.outputs.rat_required }}" == "true" ]]; then
+            [[ "${{ needs.rat_check.result }}" == "success" ]] || exit -1
+          fi
           if [[ "${{ needs.changes.outputs.code }}" == "true" && "${{ github.event_name }}" == "pull_request" ]]; then
             [[ "${{ needs.pr_build.result }}" == "success" ]] || exit -1
           fi
