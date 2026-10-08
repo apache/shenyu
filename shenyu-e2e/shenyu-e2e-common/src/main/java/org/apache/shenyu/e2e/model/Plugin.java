@@ -42,7 +42,6 @@ public enum Plugin {
     DIVIDE("divide", 5),
     DUBBO("dubbo", 6),
     SPRING_CLOUD("springCloud", 8),
-    HYSTRIX("hystrix", 9),
     SENTINEL("sentinel", 10),
     SOFA("sofa", 11),
     RESILIENCE4J("resilience4j", 12),

@@ -72,14 +72,6 @@
         </dependency>
         <!-- shenyu ratelimiter plugin end-->
 
-        <!-- shenyu hystrix plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu hystrix plugin end-->
-
         <!-- shenyu resilience4j plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

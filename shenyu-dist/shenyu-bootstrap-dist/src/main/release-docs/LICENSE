@@ -314,9 +314,6 @@ The text of each license is the standard Apache 2.0 license.
     httpcore5-h2 5.2.4: https://hc.apache.org/httpcomponents-core-5.0.x, Apache 2.0
     httpcore-nio 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
     httpmime 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
-    hystrix-core 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
-    hystrix-metrics-event-stream 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
-    hystrix-serialization 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
     j2objc-annotations 2.8 https://github.com/google/j2objc, Apache 2.0
     jackson-annotations 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-core 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0

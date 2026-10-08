@@ -64,13 +64,6 @@
           "config": null,
           "role": 0,
           "enabled": false
-        },
-        {
-          "id": "9",
-          "name": "hystrix",
-          "config": null,
-          "role": 0,
-          "enabled": false
         }
       ]
     },
