@@ -115,6 +115,16 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
     }
     
+    /**
+     * Remove extension handlers owned by a displaced loader without removing their replacements.
+     *
+     * @param classLoader owner class loader
+     */
+    public void removeExtendPluginDataHandlers(final ClassLoader classLoader) {
+        handlerMap.entrySet().removeIf(entry -> !builtInHandlerNames.contains(entry.getKey())
+                && entry.getValue().getClass().getClassLoader() == classLoader);
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
         LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());

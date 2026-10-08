@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -597,6 +598,12 @@ public class ShenyuToolCallback implements ToolCallback {
                               final ServerWebExchange originExchange,
                               final String path) {
         try {
+            if (path.startsWith("http://") || path.startsWith("https://")) {
+                // RequestConfigHelper#buildPath can return a complete URL from the tool input;
+                // prefixing the gateway origin would corrupt it
+                requestBuilder.uri(new URI(path));
+                return;
+            }
             final URI oldUri = originExchange.getRequest().getURI();
             final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
             requestBuilder.uri(new URI(newUriStr));
@@ -675,9 +682,11 @@ public class ShenyuToolCallback implements ToolCallback {
             MetaData metaData = MetaDataCache.getInstance().obtain(configHelper.getUrlTemplate());
             if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
                 decoratedExchange.getAttributes().put(Constants.META_DATA, metaData);
-                shenyuContext.setRpcType(metaData.getRpcType());
             }
 
+            // MCP tools are invoked through an internal HTTP request. The response plugin
+            // must therefore select an HTTP MessageWriter rather than an MCP writer.
+            shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
             shenyuContext.setPath(extractRawPath(decoratedPath));
 
             final Map<String, Object> attributes = decoratedExchange.getAttributes();

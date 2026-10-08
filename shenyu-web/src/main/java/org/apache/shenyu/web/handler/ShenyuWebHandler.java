@@ -192,6 +192,16 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     }
 
     /**
+     * Remove only the plugin instances owned by a displaced extension loader.
+     *
+     * @param classLoader owner class loader
+     */
+    public synchronized void removeExtPluginsByClassLoader(final ClassLoader classLoader) {
+        sourcePlugins.removeIf(plugin -> plugin.getClass().getClassLoader() == classLoader);
+        plugins = plugins.stream().filter(plugin -> plugin.getClass().getClassLoader() != classLoader).collect(Collectors.toList());
+    }
+
+    /**
      * Remove ext plugins.
      *
      * @param pluginNames plugin names

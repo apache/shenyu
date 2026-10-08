@@ -57,19 +57,42 @@ public final class ShenyuPluginClassLoaderHolder {
      */
     public void replacePluginClassLoader(final PluginJarParser.PluginJar pluginJar,
                                          final Consumer<ShenyuPluginClassLoader> activation) {
+        replacePluginClassLoader(pluginJar, activation, ignored -> { });
+    }
+
+    /**
+     * Replace a plugin and remove only registrations owned by the displaced loader.
+     *
+     * @param pluginJar plugin jar
+     * @param activation loading and activation callback
+     * @param deactivation ownership-aware cleanup callback
+     */
+    public void replacePluginClassLoader(final PluginJarParser.PluginJar pluginJar,
+                                         final Consumer<ShenyuPluginClassLoader> activation,
+                                         final Consumer<ShenyuPluginClassLoader> deactivation) {
         String jarKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
         ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
         lock.lock();
         ShenyuPluginClassLoader candidate = new ShenyuPluginClassLoader(pluginJar);
+        ShenyuPluginClassLoader previous = pluginCache.get(jarKey);
         try {
             activation.accept(candidate);
-            ShenyuPluginClassLoader previous = pluginCache.get(jarKey);
             if (Objects.nonNull(previous)) {
+                deactivation.accept(previous);
                 previous.close();
             }
             pluginCache.put(jarKey, candidate);
         } catch (RuntimeException ex) {
-            candidate.close();
+            try {
+                deactivation.accept(candidate);
+                if (Objects.nonNull(previous)) {
+                    activation.accept(previous);
+                }
+            } catch (RuntimeException rollbackFailure) {
+                ex.addSuppressed(rollbackFailure);
+            } finally {
+                candidate.close();
+            }
             throw ex;
         } finally {
             lock.unlock();
@@ -102,12 +125,24 @@ public final class ShenyuPluginClassLoaderHolder {
      * @return removed plugin names
      */
     public Set<String> removePluginClassLoader(final String jarKey) {
+        return removePluginClassLoader(jarKey, ignored -> { });
+    }
+
+    /**
+     * Remove a loader and its owned runtime registrations.
+     *
+     * @param jarKey plugin jar key
+     * @param deactivation ownership-aware cleanup callback
+     * @return removed plugin names
+     */
+    public Set<String> removePluginClassLoader(final String jarKey, final Consumer<ShenyuPluginClassLoader> deactivation) {
         ReentrantLock lock = pluginLocks.computeIfAbsent(jarKey, key -> new ReentrantLock());
         lock.lock();
         try {
             ShenyuPluginClassLoader classLoader = pluginCache.remove(jarKey);
             if (Objects.nonNull(classLoader)) {
                 Set<String> pluginNames = classLoader.getLoadedPluginNames();
+                deactivation.accept(classLoader);
                 classLoader.close();
                 return pluginNames;
             }
