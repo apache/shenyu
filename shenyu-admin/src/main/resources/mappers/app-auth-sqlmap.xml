@@ -141,17 +141,31 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM app_auth
          WHERE id = #{id}
          LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM app_auth
+         WHERE id = #{id}
+         AND ROWNUM = 1
+    </select>
+
     <select id="appKeyExisted" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM app_auth
          WHERE app_key = #{appKey}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="appKeyExisted" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM app_auth
+         WHERE app_key = #{appKey}
+         AND ROWNUM = 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AppAuthDO">
