@@ -174,7 +174,6 @@
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <jsonpath.version>2.4.0</jsonpath.version>
-        <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <chicory.version>1.7.3</chicory.version>
         <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
