@@ -32,7 +32,6 @@
         <module>shenyu-admin-listener-apollo</module>
         <module>shenyu-admin-listener-etcd</module>
         <module>shenyu-admin-listener-nacos</module>
-        <module>shenyu-admin-listener-polaris</module>
         <module>shenyu-admin-listener-zookeeper</module>
     </modules>
 

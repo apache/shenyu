@@ -251,10 +251,6 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-#    polaris:
-#      url: 127.0.0.1:8093
-#      namespace:
-#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
   heartbeat:
@@ -270,7 +266,6 @@ shenyu:
   fallback:
     enabled: false
     paths:
-      - /fallback/hystrix
       - /fallback/resilience4j
       - /fallback/sentinel
   health:
