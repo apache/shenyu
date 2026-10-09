@@ -311,12 +311,6 @@
         <!-- shenyu-admin-listener start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-consul</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>

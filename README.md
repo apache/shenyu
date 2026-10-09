@@ -38,7 +38,7 @@ Apache ShenYu is a Java-based gateway for service proxying, protocol conversion,
 | Registration and discovery | Client SDKs register service addresses and API metadata with Admin. Registry integrations support discovery; an optional Kubernetes controller reconciles Ingress and Endpoints resources. |
 | Security and traffic control | WAF, signing, authentication plugins, load balancing, rate limiting, and fault tolerance through Resilience4j and Sentinel; deprecated Hystrix remains available as an external plugin (see [plugin-store-hystrix](docs/plugin-store-hystrix.md)). |
 | Caching and transformation | In-memory or Redis-backed response caching, URL rewriting, redirection, and request/response transformation. |
-| Dynamic configuration | Admin persists plugins, selectors, rules, metadata, and authentication data. WebSocket sync is the default; HTTP long polling, ZooKeeper, Nacos, etcd, Consul, and Apollo are available. Gateway replicas apply updates to their local caches. |
+| Dynamic configuration | Admin persists plugins, selectors, rules, metadata, and authentication data. WebSocket sync is the default; HTTP long polling, ZooKeeper, Nacos, etcd, and Apollo are available. Consul sync is available as an external extension (see [plugin-store-consul](docs/plugin-store-consul.md)). Gateway replicas apply updates to their local caches. |
 | Observability | Metrics and logging plugins, including Kafka and Elasticsearch destinations; email and DingTalk alerts from Admin. |
 | AI and MCP | AI proxy, prompt processing, token limits, sensitive-word filtering, AI request/response transformation, and an MCP server plugin with SSE and Streamable HTTP. |
 

@@ -66,9 +66,7 @@ public enum Plugin {
     LOGGING_ELASTIC_SEARCH("loggingElasticSearch", 32),
     LOGGING_KAFKA("loggingKafka", 33),
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
-    BRPC("brpc", 41),
-    LOGGINGHUAWEILTS("loggingHuaweiLts", 43),
-    LOGGINGRABBITMQ("loggingRabbitMQ", 45),;
+    BRPC("brpc", 41);
 
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;

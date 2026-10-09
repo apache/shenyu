@@ -56,7 +56,6 @@
         <module>shenyu-spring-boot-starter-plugin-mqtt</module>
         <module>shenyu-spring-boot-starter-plugin-metrics</module>
         <module>shenyu-spring-boot-starter-plugin-logging-rocketmq</module>
-        <module>shenyu-spring-boot-starter-plugin-logging-rabbitmq</module>
         <module>shenyu-spring-boot-starter-plugin-logging-kafka</module>
         <module>shenyu-spring-boot-starter-plugin-logging-elasticsearch</module>
         <module>shenyu-spring-boot-starter-plugin-cache</module>
@@ -66,7 +65,6 @@
         <module>shenyu-spring-boot-starter-plugin-key-auth</module>
         <module>shenyu-spring-boot-starter-plugin-tcp</module>
         <module>shenyu-spring-boot-starter-plugin-transform</module>
-        <module>shenyu-spring-boot-starter-plugin-logging-huawei-lts</module>
         <module>shenyu-spring-boot-starter-plugin-basic-auth</module>
         <module>shenyu-spring-boot-starter-plugin-ai-proxy</module>
         <module>shenyu-spring-boot-starter-plugin-ai-prompt</module>

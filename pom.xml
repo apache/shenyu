@@ -116,8 +116,6 @@
         <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
-        <consul.api.version>1.4.5</consul.api.version>
-        <consul.version>2.2.6.RELEASE</consul.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
@@ -155,7 +153,6 @@
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.9.2</kafka-clients.version>
-        <amqp-client.version>5.16.0</amqp-client.version>
         <eureka.version>2.0.2</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
@@ -179,7 +176,6 @@
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
-        <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <chicory.version>1.7.3</chicory.version>
         <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
