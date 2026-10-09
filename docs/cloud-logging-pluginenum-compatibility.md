@@ -1,4 +1,3 @@
-#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,6 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-org.apache.shenyu.springboot.starter.plugin.logging.aliyun.sls.LoggingAliyunSlsPluginConfiguration
+# Cloud logging PluginEnum compatibility
+
+The Aliyun SLS logging implementation has moved out of the main ShenYu
+runtime into the plugin store. The `PluginEnum.LOGGING_ALIYUN_SLS`
+constant remains in `shenyu-common` as a stable compatibility contract for
+store modules, persisted configuration references, and external code that
+uses the plugin name or sort value.
+
+The retained API values are:
+
+- Name: `loggingAliyunSls`
+- Sort: `175`
+
+Current default dependencies, active plugin metadata, menu resources, and
+permission rows for the implementation are removed from the main runtime.
+Historical upgrade SQL remains unchanged.
