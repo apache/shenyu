@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
@@ -162,7 +163,7 @@ public final class PluginServiceTest {
         PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter);
         List<PluginDO> pluginDOList = IntStream.range(0, 10).mapToObj(i -> buildPluginDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.pluginMapper.selectByQuery(pluginQuery)).willReturn(pluginDOList);
-        final CommonPager<PluginVO> pluginDOCommonPager = this.pluginService.listByPage(pluginQuery);
+        final CommonPager<PluginListVO> pluginDOCommonPager = this.pluginService.listByPage(pluginQuery);
         assertEquals(pluginDOCommonPager.getDataList().size(), pluginDOList.size());
     }
 

@@ -17,6 +17,13 @@
 
 package org.apache.shenyu.plugin.agent.gateway;
 
+import org.apache.shenyu.common.utils.VersionUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+import java.util.Properties;
+
 /**
  * Constants used by the agent gateway plugin.
  */
@@ -42,6 +49,23 @@ public final class AgentGatewayConstants {
      */
     public static final String CONFIG_INVALID_CODE = "AGENT_GATEWAY_CONFIG_INVALID";
 
+    /**
+     * Artifact version advertised by the MCP entry, including builds run from class directories.
+     */
+    public static final String MCP_SERVER_VERSION = loadMcpServerVersion();
+
     private AgentGatewayConstants() {
+    }
+
+    private static String loadMcpServerVersion() {
+        Properties properties = new Properties();
+        try (InputStream input = AgentGatewayConstants.class.getResourceAsStream("/META-INF/shenyu/agent-gateway-version.properties")) {
+            if (Objects.nonNull(input)) {
+                properties.load(input);
+            }
+            return VersionUtils.getVersion(AgentGatewayPlugin.class, properties.getProperty("version", "unknown"));
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot read Agent Gateway version metadata", error);
+        }
     }
 }

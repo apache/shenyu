@@ -20,11 +20,11 @@ package org.apache.shenyu.k8s.cache;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The cache for mapping service name to the ingress relations that reference the service.
@@ -69,7 +69,7 @@ public final class ServiceIngressCache {
      */
     public void putIngressName(final String namespace, final String serviceName, final ServiceIngressRelation relation) {
         INGRESS_MAP.compute(getKey(namespace, serviceName), (key, relations) -> {
-            List<ServiceIngressRelation> res = Objects.isNull(relations) ? new ArrayList<>() : relations;
+            List<ServiceIngressRelation> res = Objects.isNull(relations) ? new CopyOnWriteArrayList<>() : relations;
             res.removeIf(item -> item.isSameIngress(relation.getIngressNamespace(), relation.getIngressName()));
             res.add(relation);
             return res;

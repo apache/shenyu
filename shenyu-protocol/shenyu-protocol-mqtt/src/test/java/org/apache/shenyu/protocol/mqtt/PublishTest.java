@@ -41,6 +41,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.awaitility.core.ThrowingRunnable;
@@ -122,6 +123,7 @@ public final class PublishTest {
         Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         Singleton.INST.single(TopicRepository.class, TOPIC_REPOSITORY);
         Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
 
@@ -400,6 +402,7 @@ public final class PublishTest {
     }
 
     private void clearSharedState() {
+        Singleton.INST.get(SessionRepository.class).remove(CLIENT_ID);
         ALL_TOPICS.forEach(TOPIC_REPOSITORY::remove);
         SUBSCRIBE_REPOSITORY.remove(ALL_TOPICS);
         awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(SUBSCRIBE_REPOSITORY.get(topic).isEmpty())));

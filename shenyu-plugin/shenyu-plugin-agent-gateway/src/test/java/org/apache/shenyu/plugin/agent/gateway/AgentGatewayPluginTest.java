@@ -25,6 +25,14 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +48,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 class AgentGatewayPluginTest {
 
@@ -288,6 +298,77 @@ class AgentGatewayPluginTest {
 
         assertTrue(called.get());
         assertTrue(Objects.isNull(exchange.getResponse().getStatusCode()));
+    }
+
+    @Test
+    void shouldCleanContextWhenChainThrowsSynchronously() {
+        ServerWebExchange exchange = newExchange();
+        StepVerifier.create(plugin.doExecute(exchange, next -> {
+            throw new IllegalStateException("chain failed before returning a publisher");
+        }, selector(), rule("rule-1"))).expectError(IllegalStateException.class).verify();
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+    }
+
+    @Test
+    void shouldDenyDefaultMcpAndNotContinueToBusinessChain() {
+        MockServerWebExchange exchange = mcpExchange();
+        StepVerifier.create(plugin.doExecute(exchange, next -> Mono.error(new AssertionError("MCP must terminate here")), selector(),
+                rule("{\"trafficType\":\"mcp\",\"mcp\":{}}"))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+    }
+
+    @Test
+    void shouldSelectConfigurationAtSubscriptionNotAssembly() {
+        MockServerWebExchange exchange = mcpExchange();
+        RuleData data = rule("rule-1");
+        Mono<Void> execution = plugin.doExecute(exchange, next -> Mono.error(new AssertionError("Stale LLM configuration")), selector(), data);
+        data.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{}}");
+        StepVerifier.create(execution).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    void shouldKeepInflightPermissionSnapshotWhileNewRequestsSeeRevocation() {
+        AtomicReference<AgentMcpExecutionContext> captured = new AtomicReference<>();
+        reactor.core.publisher.Sinks.One<JsonObject> result = reactor.core.publisher.Sinks.one();
+        AgentToolProvider tool = mock(AgentToolProvider.class);
+        when(tool.getName()).thenReturn("read");
+        when(tool.getDescription()).thenReturn("Read one resource");
+        when(tool.getInputSchema()).thenReturn(JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject());
+        when(tool.getRequiredClientCapabilities()).thenReturn(new JsonObject());
+        when(tool.invoke(any())).thenReturn(Mono.deferContextual(context -> {
+            captured.set(context.get(AgentMcpExecutionContext.class));
+            assertEquals(context.<AgentTrafficContext>get(AgentGatewayConstants.REACTOR_CONTEXT_KEY).getRequestId(), captured.get().getRequestId());
+            return result.asMono();
+        }));
+        AgentGatewayPlugin configured = new AgentGatewayPlugin(new AgentMcpHttpHandler(
+                new AgentMcpDispatcher(new AgentToolRegistry(List.of(tool)), "server", "1"),
+                next -> Mono.just(new AgentMcpIdentity("trusted", Set.of("read")))));
+        RuleData data = rule("{\"trafficType\":\"mcp\",\"responseRequestId\":true,\"mcp\":{\"allowedTools\":[\"read\"]}}");
+        MockServerWebExchange first = mcpExchange();
+        MockServerWebExchange second = mcpExchange();
+        StepVerifier.create(configured.doExecute(first, next -> Mono.error(new AssertionError("Unexpected chain")), selector(), data))
+                .then(() -> {
+                    assertEquals(Set.of("read"), captured.get().getAllowedTools());
+                    data.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{}}");
+                    new AgentGatewayPluginDataHandler().handlerRule(data);
+                    StepVerifier.create(configured.doExecute(second, next -> Mono.error(new AssertionError("Unexpected chain")), selector(), data)).verifyComplete();
+                    assertEquals(HttpStatus.FORBIDDEN, second.getResponse().getStatusCode());
+                    assertEquals(reactor.core.publisher.Sinks.EmitResult.OK, result.tryEmitValue(new JsonObject()));
+                }).verifyComplete();
+        assertEquals(HttpStatus.OK, first.getResponse().getStatusCode());
+        assertEquals(captured.get().getRequestId(), first.getResponse().getHeaders().getFirst(AgentGatewayConstants.REQUEST_ID_HEADER));
+        assertTrue(Objects.isNull(first.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+        assertTrue(Objects.isNull(second.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+    }
+
+    private MockServerWebExchange mcpExchange() {
+        return MockServerWebExchange.from(MockServerHttpRequest.post("/agent/mcp")
+                .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")
+                .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "tools/call").header("Mcp-Name", "read")
+                .body("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"read\",\"_meta\":{"
+                        + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}"));
     }
 
     private ServerWebExchange newExchange() {

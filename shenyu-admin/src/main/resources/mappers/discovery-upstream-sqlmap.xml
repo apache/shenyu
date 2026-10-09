@@ -123,7 +123,7 @@
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
-        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
+        WHERE discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
     </update>
 
     <select id="selectAll" resultMap="BaseResultMap">
