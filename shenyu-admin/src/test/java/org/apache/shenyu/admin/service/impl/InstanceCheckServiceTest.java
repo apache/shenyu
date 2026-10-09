@@ -35,6 +35,7 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -44,8 +45,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -132,8 +136,47 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testScheduledSyncContinuesAfterPersistenceFailure() {
+        final InstanceBeatInfoDTO failedInstance = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        final InstanceBeatInfoDTO healthyInstance = buildDTO("127.0.0.2", "8080", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(failedInstance);
+        instanceCheckService.handleBeatInfo(healthyInstance);
+        final AtomicInteger failedInstanceAttempts = new AtomicInteger();
+        final AtomicInteger healthyInstanceAttempts = new AtomicInteger();
+        doAnswer(invocation -> {
+            final InstanceInfoVO instanceInfo = invocation.getArgument(0);
+            if ("127.0.0.1".equals(instanceInfo.getInstanceIp()) && failedInstanceAttempts.getAndIncrement() == 0) {
+                throw new IllegalStateException("database unavailable");
+            }
+            if ("127.0.0.2".equals(instanceInfo.getInstanceIp())) {
+                healthyInstanceAttempts.incrementAndGet();
+            }
+            return null;
+        }).when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(instanceCheckService::syncDB);
+        assertDoesNotThrow(instanceCheckService::syncDB);
+
+        verify(instanceInfoService, times(4)).createOrUpdate(any(InstanceInfoVO.class));
+        assertEquals(2, failedInstanceAttempts.get());
+        assertEquals(2, healthyInstanceAttempts.get());
+    }
+
+    @Test
     void testCloseWithoutSetup() {
         assertDoesNotThrow(instanceCheckService::close);
+    }
+
+    @Test
+    void testCloseContinuesAfterPersistenceFailure() {
+        final InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(dto);
+        doThrow(new IllegalStateException("database unavailable"))
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(instanceCheckService::close);
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
     }
 
     @Test
