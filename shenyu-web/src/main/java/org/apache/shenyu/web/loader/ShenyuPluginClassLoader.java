@@ -20,6 +20,7 @@ package org.apache.shenyu.web.loader;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,12 +32,18 @@ import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -121,6 +128,39 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     }
 
     @Override
+    protected URL findResource(final String name) {
+        byte[] bytes = pluginJar.getResourceMap().get(name);
+        if (Objects.isNull(bytes)) {
+            return null;
+        }
+        try {
+            return new URL(null, "memory:" + System.identityHashCode(this) + "/" + name, new URLStreamHandler() {
+                @Override
+                protected URLConnection openConnection(final URL url) {
+                    return new URLConnection(url) {
+                        @Override
+                        public void connect() {
+                        }
+
+                        @Override
+                        public InputStream getInputStream() {
+                            return new ByteArrayInputStream(bytes);
+                        }
+                    };
+                }
+            });
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("Unable to expose plugin resource " + name, ex);
+        }
+    }
+
+    @Override
+    protected Enumeration<URL> findResources(final String name) {
+        URL resource = findResource(name);
+        return Objects.isNull(resource) ? Collections.emptyEnumeration() : Collections.enumeration(Collections.singleton(resource));
+    }
+
+    @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
         if (ability(name)) {
             return this.getParent().loadClass(name);
@@ -146,6 +186,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     @Override
     public void close() {
+        ExtensionLoader.removeExtensionLoaders(this);
         Set<String> clazzNames = pluginJar.getClazzMap().keySet();
         for (String clazzName : clazzNames) {
             SpringBeanUtils.getInstance().destroyBean(clazzName);
