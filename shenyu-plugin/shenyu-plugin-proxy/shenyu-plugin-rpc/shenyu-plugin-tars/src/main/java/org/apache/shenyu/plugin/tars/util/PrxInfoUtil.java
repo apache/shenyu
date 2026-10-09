@@ -66,7 +66,7 @@ public final class PrxInfoUtil {
         }));
         PRIMITIVE_TYPE.put("boolean", new PrimitiveType(boolean.class, o -> {
             if (o instanceof String) {
-                return Byte.valueOf((String) o);
+                return Boolean.valueOf((String) o);
             }
             return o;
         }));
