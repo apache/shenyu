@@ -35,6 +35,5 @@
         <module>shenyu-sync-data-etcd</module>
         <module>shenyu-sync-data-consul</module>
         <module>shenyu-sync-data-apollo</module>
-        <module>shenyu-sync-data-polaris</module>
     </modules>
 </project>

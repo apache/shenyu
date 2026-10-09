@@ -35,7 +35,6 @@
         <module>shenyu-registry-nacos</module>
         <module>shenyu-registry-apollo</module>
         <module>shenyu-registry-eureka</module>
-        <module>shenyu-registry-polaris</module>
         <module>shenyu-registry-kubernetes</module>
     </modules>
 
