@@ -18,19 +18,40 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * retry strategy test.
@@ -83,6 +104,58 @@ public class RetryStrategyTest {
         StepVerifier.create(result)
                 .expectError(RuntimeException.class)
                 .verify();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost/test, http://, localhost",
+        "http://localhost/test, http://, localhost:80",
+        "https://localhost/test, https://, localhost:443",
+        "http://localhost:8080/other?ignored=true, http://, localhost:8080"
+    })
+    void testFailoverExcludesSameUpstream(final String currentUri, final String protocol, final String url) {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange(currentUri);
+        Upstream upstream = Upstream.builder().protocol(protocol).url(url).build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Collections.singletonList(upstream));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectErrorSatisfies(this::assertFailoverExhausted)
+                    .verify();
+        }
+        verifyNoInteractions(plugin);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://, standby:8080",
+        "http://, localhost:8081",
+        "https://, localhost:8080"
+    })
+    void testFailoverSelectsDifferentUpstream(final String protocol, final String url) {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol(protocol).url(url).build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+        verify(plugin).doRequest(eq(exchange), eq("GET"), uriCaptor.capture(), any());
+        assertEquals(URI.create(standby.buildDomain() + "/test?mode=retry"), uriCaptor.getValue());
     }
 
     @Test
@@ -138,5 +211,21 @@ public class RetryStrategyTest {
                 .verify();
 
         assertEquals(1, attempts.get());
+    }
+
+    private ServerWebExchange createFailoverExchange(final String currentUri) {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test?mode=retry"));
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create(currentUri));
+        exchange.getAttributes().put(Constants.REWRITE_URI, "/test");
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7475");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "roundRobin");
+        return exchange;
+    }
+
+    private void assertFailoverExhausted(final Throwable error) {
+        ResponseStatusException statusException = assertInstanceOf(ResponseStatusException.class, error);
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, statusException.getStatusCode());
+        assertEquals("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", statusException.getReason());
     }
 }
