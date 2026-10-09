@@ -66,7 +66,6 @@ public enum Plugin {
     LOGGING_ELASTIC_SEARCH("loggingElasticSearch", 32),
     LOGGING_KAFKA("loggingKafka", 33),
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
-    LOGGING_PULSAR("loggingPulsar", 35),
     LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
     BRPC("brpc", 41),
     LOGGINGHUAWEILTS("loggingHuaweiLts", 43),

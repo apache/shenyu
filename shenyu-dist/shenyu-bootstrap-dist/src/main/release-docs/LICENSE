@@ -229,7 +229,6 @@ The text of each license is the standard Apache 2.0 license.
     brave-opentracing 0.31.1: https://zipkin.io, Apache 2.0
     brave-tests 6.0.3: https://zipkin.io, Apache 2.0
     breeze-core 0.1.4: https://mvnrepository.com/artifact/com.weibo/breeze-core, Apache 2.0
-	bouncy-castle-bc 3.2.3-pkg: https://mvnrepository.com/artifact/org.apache.pulsar/bouncy-castle-bc, Apache 2.0
     audience-annotations 0.12.0: https://yetus.apache.org/audience-annotations, Apache 2.0
     auto-value-annotations 1.9: https://github.com/google/auto/tree/master/value, Apache 2.0
     bolt 1.6.10: https://github.com/alipay/sofa-bolt, Apache 2.0
@@ -599,9 +598,6 @@ The text of each license is the standard Apache 2.0 license.
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
     elasticsearch-java 8.13.4: https://github.com/elastic/elasticsearch-java, Apache 2.0
     elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
-    pulsar-client 3.2.3: https://github.com/apache/pulsar, Apache 2.0
-	pulsar-client-admin-api 3.2.3: https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client-admin-api, Apache 2.0
-	pulsar-client-api 3.2.3: https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client-api, Apache 2.0
     tencentcloud-cls-sdk-java 1.0.14: https://github.com/TencentCloud/tencentcloud-cls-sdk-java, Apache 2.0
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0

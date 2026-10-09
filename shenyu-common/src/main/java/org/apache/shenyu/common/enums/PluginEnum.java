@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 
 /**
  * PluginEnum.
+ *
+ * <p>Logging plugin entries are kept as core compatibility API for AbstractLoggingPlugin,
+ * even when their concrete plugin modules are migrated out of the main tree.</p>
  */
 public enum PluginEnum {
 
