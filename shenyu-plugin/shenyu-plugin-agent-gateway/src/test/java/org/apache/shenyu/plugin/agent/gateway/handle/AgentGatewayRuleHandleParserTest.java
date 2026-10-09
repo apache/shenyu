@@ -49,7 +49,7 @@ class AgentGatewayRuleHandleParserTest {
         AgentGatewayRuleHandle handle = parser.parse("{\"trafficType\":\"llm\"}");
 
         assertFalse(handle.isValid());
-        assertEquals("trafficType must be LLM", handle.getErrorMessage());
+        assertEquals("trafficType must be LLM or mcp", handle.getErrorMessage());
     }
 
     @Test
@@ -73,7 +73,20 @@ class AgentGatewayRuleHandleParserTest {
         AgentGatewayRuleHandle handle = parser.parse("{\"trafficType\":\"MCP\"}");
 
         assertFalse(handle.isValid());
-        assertEquals("trafficType must be LLM", handle.getErrorMessage());
+        assertEquals("trafficType must be LLM or mcp", handle.getErrorMessage());
+    }
+
+    @Test
+    void shouldParseMcpSnapshotAndIgnoreOnlyUnknownFields() {
+        AgentGatewayRuleHandle first = parser.parse("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"],\"future\":true}}");
+        AgentGatewayRuleHandle second = parser.parse("{\"trafficType\":\"mcp\",\"mcp\":{}}");
+        assertTrue(first.isValid());
+        assertEquals(java.util.Set.of("read"), first.getMcp().getAllowedTools());
+        assertTrue(second.getGeneration() > first.getGeneration());
+        assertEquals(java.util.Set.of(), second.getMcp().getAllowedTools());
+        assertFalse(parser.parse("{\"trafficType\":\"mcp\",\"mcp\":{\"timeoutMs\":0}}").isValid());
+        assertFalse(parser.parse("{\"trafficType\":\"mcp\"}").isValid());
+        assertFalse(parser.parse("{\"trafficType\":\"LLM\",\"mcp\":{}}").isValid());
     }
 
     @Test

@@ -796,8 +796,10 @@
                         <exclude>**/logs/**</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.tar.gz</exclude>
-                        <exclude>**/spring.factories</exclude>
-                        <exclude>**/spring.provides</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.factories</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.provides</exclude>
+                        <exclude>shenyu-examples/**/spring.factories</exclude>
+                        <exclude>shenyu-examples/**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
                         <exclude>**/*.json</exclude>
                         <!-- IDE files -->

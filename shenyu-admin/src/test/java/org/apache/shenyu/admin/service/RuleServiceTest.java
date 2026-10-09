@@ -244,6 +244,26 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testAgentGatewayMcpRejectsNestedUnknownFieldBeforeWrite() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{\"future\":true}}");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayMcpAcceptsExplicitConfiguration() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"]}}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
     public void testAgentGatewayCreateAcceptsValidHandle() {
         mockAgentGatewayPlugin();
         RuleDTO ruleDTO = buildRuleDTO("");

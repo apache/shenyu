@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.transformer.request;
 
+import com.google.gson.JsonElement;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
@@ -197,8 +198,8 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         String body = bodyBuilder.toString().trim();
 
         if (body.startsWith("{") && body.endsWith("}") || body.startsWith("[") && body.endsWith("]")) {
-            Map<String, Object> requestBodyMap = GsonUtils.getInstance().convertToMap(body);
-            return GsonUtils.getInstance().toJson(requestBodyMap);
+            GsonUtils.getInstance().fromJson(body, JsonElement.class);
+            return body;
         }
 
         return null;
