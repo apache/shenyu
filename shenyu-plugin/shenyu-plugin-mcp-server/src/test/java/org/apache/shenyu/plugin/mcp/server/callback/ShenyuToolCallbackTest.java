@@ -45,6 +45,7 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -340,6 +341,26 @@ class ShenyuToolCallbackTest {
         ReflectionTestUtils.invokeMethod(shenyuToolCallback, "setTargetUri", builder, exchange, "/api/order");
 
         assertEquals(URI.create("http://gateway.example:9195/api/order"), builder.build().getURI());
+    }
+
+    @Test
+    void testDecoratedExchangePreservesFixedAndDynamicQueryParameters() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+        ShenyuContext context = new ShenyuContext();
+        originExchange.getAttributes().put(Constants.CONTEXT, context);
+        String config = "{\"requestTemplate\":{\"url\":\"/users?fixed=true\",\"method\":\"GET\"},"
+                + "\"argsPosition\":{\"page\":\"query\"}}";
+
+        ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(shenyuToolCallback, "buildDecoratedExchange",
+                originExchange, new CompletableFuture<String>(), "session123", config, "{\"page\":\"1\"}");
+
+        assertEquals(URI.create("http://gateway.example:9195/users?page=1&fixed=true"), decoratedExchange.getRequest().getURI());
+        assertEquals("1", decoratedExchange.getRequest().getQueryParams().getFirst("page"));
+        assertEquals("true", decoratedExchange.getRequest().getQueryParams().getFirst("fixed"));
+        assertEquals("/users", context.getPath());
+        assertEquals("/users", context.getRealUrl());
     }
 
     @Test

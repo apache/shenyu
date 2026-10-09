@@ -69,7 +69,10 @@ public class MqttFactory {
                 messageType.pubRel(ctx, msg);
                 break;
             case PUBACK:
+                break;
             case DISCONNECT:
+                messageType.disconnect(ctx);
+                break;
             default:
                 break;
         }

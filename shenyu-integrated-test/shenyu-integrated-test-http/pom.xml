@@ -130,14 +130,6 @@
         </dependency>
         <!-- apache shenyu resilience4j plugin end-->
 
-        <!-- apache shenyu hystrix plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- apache shenyu hystrix plugin end-->
-
         <!--shenyu cache plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -193,14 +185,6 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-kafka plugin end-->
-
-        <!-- shenyu logging-pulsar plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-pulsar plugin end -->
 
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>

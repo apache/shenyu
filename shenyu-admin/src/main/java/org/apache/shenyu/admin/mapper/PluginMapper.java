@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
-import org.apache.shenyu.admin.model.vo.PluginVO;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -211,5 +211,5 @@ public interface PluginMapper extends ExistProvider {
      * @param condition condition.
      * @return list
      */
-    List<PluginVO> searchByCondition(@Param("condition") PluginQueryCondition condition);
+    List<PluginListVO> searchByCondition(@Param("condition") PluginQueryCondition condition);
 }
