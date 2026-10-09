@@ -257,4 +257,25 @@ public final class DiscoveryServiceImplTest {
         discoveryDTO.setDiscoveryHandler(handlerDTO);
         return discoveryDTO;
     }
+
+    @Test
+    public void testImportKeepsBlankSelectorIdShapeAndRemapsProxySelector() {
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getProxySelectorIdMapping().put("proxy-selector-exported", "proxy-selector-new");
+        DiscoveryDTO discoveryDTO = buildImportDiscovery();
+        DiscoveryRelDTO rel = new DiscoveryRelDTO();
+        rel.setSelectorId("");
+        rel.setProxySelectorId("proxy-selector-exported");
+        discoveryDTO.setDiscoveryRel(rel);
+
+        given(discoveryMapper.selectAllByNamespaceId("ns-import")).willReturn(Collections.emptyList());
+        given(discoveryMapper.insert(any(DiscoveryDO.class))).willReturn(1);
+
+        discoveryService.importData("ns-import", Collections.singletonList(discoveryDTO), context);
+
+        ArgumentCaptor<DiscoveryRelDO> relCaptor = ArgumentCaptor.forClass(DiscoveryRelDO.class);
+        verify(discoveryRelMapper).insertSelective(relCaptor.capture());
+        assertEquals("", relCaptor.getValue().getSelectorId());
+        assertEquals("proxy-selector-new", relCaptor.getValue().getProxySelectorId());
+    }
 }
