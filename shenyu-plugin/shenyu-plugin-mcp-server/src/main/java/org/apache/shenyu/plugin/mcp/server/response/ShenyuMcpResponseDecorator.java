@@ -57,8 +57,10 @@ public class ShenyuMcpResponseDecorator extends ServerHttpResponseDecorator {
     public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
         LOG.debug("Writing response data for session: {}", sessionId);
         return super.writeWith(Flux.from(body).doOnNext(buffer -> {
+            int readPosition = buffer.readPosition();
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
+            buffer.readPosition(readPosition);
             String chunk = new String(bytes, StandardCharsets.UTF_8);
             if (isFirstChunk) {
                 LOG.debug("First response chunk received for session: {}", sessionId);
