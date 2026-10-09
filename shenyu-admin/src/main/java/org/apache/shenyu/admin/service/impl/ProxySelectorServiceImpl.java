@@ -242,8 +242,11 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             boolean fillDiscovery;
             if (StringUtils.hasLength(proxySelectorAddDTO.getDiscovery().getId())) {
                 discoveryDO = discoveryMapper.selectById(proxySelectorAddDTO.getDiscovery().getId());
+                Assert.notNull(discoveryDO, "Discovery does not exist: " + proxySelectorAddDTO.getDiscovery().getId());
+                Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                        "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
                 discoveryId = proxySelectorAddDTO.getDiscovery().getId();
-                fillDiscovery = Objects.nonNull(discoveryDO);
+                fillDiscovery = true;
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
                 discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
