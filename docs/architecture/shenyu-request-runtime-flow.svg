@@ -1,0 +1,112 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0.
+  You may obtain a copy at http://www.apache.org/licenses/LICENSE-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560"
+  style="background-color:#F8FAFC;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0 L0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+  </pattern>
+  <filter id="cs"><feDropShadow dx="2" dy="6" stdDeviation="10" flood-color="#005D7B" flood-opacity="0.08"/></filter>
+  <clipPath id="c1"><rect x="35" y="126" width="150" height="164" rx="10"/></clipPath>
+  <clipPath id="c2"><rect x="205" y="126" width="150" height="164" rx="10"/></clipPath>
+  <clipPath id="c3"><rect x="375" y="126" width="150" height="164" rx="10"/></clipPath>
+  <clipPath id="c4"><rect x="545" y="126" width="150" height="164" rx="10"/></clipPath>
+  <clipPath id="c5"><rect x="715" y="126" width="150" height="164" rx="10"/></clipPath>
+  <clipPath id="c6"><rect x="135" y="370" width="260" height="90" rx="10"/></clipPath>
+  <clipPath id="c7"><rect x="505" y="370" width="260" height="90" rx="10"/></clipPath>
+</defs>
+<style><![CDATA[
+text,tspan{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+]]></style>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title -->
+<text x="450" y="48" text-anchor="middle" font-size="24" font-weight="bold" fill="#005D7B">ShenYu 请求执行链路</text>
+
+<rect x="20" y="96" width="860" height="224" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="38" y="116" font-size="12" font-weight="bold" fill="#94A3B8">主路径</text>
+<rect x="120" y="350" width="660" height="130" rx="14" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="138" y="370" font-size="12" font-weight="bold" fill="#94A3B8">支撑能力</text>
+
+<rect x="35" y="126" width="150" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="35" y="126" width="6" height="164" fill="#0891B2" clip-path="url(#c1)"/>
+<text x="57" y="154" font-size="16" font-weight="bold" fill="#2D3748">1. 请求进入</text>
+<text x="132" y="154" font-size="11" fill="#94A3B8">Ingress</text>
+<line x1="57" y1="168" x2="161" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="57" y="198" font-size="12" fill="#64748B">外部请求进入 bootstrap。</text>
+<text x="57" y="222" font-size="12" fill="#64748B">URI、Header、Path 被整理为 exchange。</text>
+<text x="57" y="246" font-size="12" fill="#64748B">网关准备开始整条处理链。</text>
+
+<rect x="205" y="126" width="150" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="205" y="126" width="6" height="164" fill="#005D7B" clip-path="url(#c2)"/>
+<text x="227" y="154" font-size="16" font-weight="bold" fill="#2D3748">2. 建立链路</text>
+<text x="302" y="154" font-size="11" fill="#94A3B8">Handler</text>
+<line x1="227" y1="168" x2="331" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="227" y="198" font-size="12" fill="#64748B">ShenyuWebHandler 记录开始时间。</text>
+<text x="227" y="222" font-size="12" fill="#64748B">它创建 DefaultShenyuPluginChain。</text>
+<text x="227" y="246" font-size="12" fill="#64748B">如有需要再切到指定 scheduler。</text>
+
+<rect x="375" y="126" width="150" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="375" y="126" width="6" height="164" fill="#7C3AED" clip-path="url(#c3)"/>
+<text x="397" y="154" font-size="16" font-weight="bold" fill="#2D3748">3. 插件匹配</text>
+<text x="475" y="154" font-size="11" fill="#94A3B8">Match</text>
+<line x1="397" y1="168" x2="501" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="397" y="198" font-size="12" fill="#64748B">先判断 PluginData 是否启用。</text>
+<text x="397" y="222" font-size="12" fill="#64748B">再按 selector、rule 匹配请求条件。</text>
+<text x="397" y="246" font-size="12" fill="#64748B">未命中就继续下一个插件。</text>
+
+<rect x="545" y="126" width="150" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="545" y="126" width="6" height="164" fill="#E99151" clip-path="url(#c4)"/>
+<text x="567" y="154" font-size="16" font-weight="bold" fill="#2D3748">4. 插件执行</text>
+<text x="645" y="154" font-size="11" fill="#94A3B8">Execute</text>
+<line x1="567" y1="168" x2="671" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="567" y="198" font-size="12" fill="#64748B">插件按排序依次执行。</text>
+<text x="567" y="222" font-size="12" fill="#64748B">每个插件都有 before / execute / after。</text>
+<text x="567" y="246" font-size="12" fill="#64748B">命中后可以继续，也可以直接返回。</text>
+
+<rect x="715" y="126" width="150" height="164" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="715" y="126" width="6" height="164" fill="#4CA497" clip-path="url(#c5)"/>
+<text x="737" y="154" font-size="16" font-weight="bold" fill="#2D3748">5. 代理与返回</text>
+<text x="828" y="154" font-size="11" fill="#94A3B8">Upstream</text>
+<line x1="737" y1="168" x2="841" y2="168" stroke="#E2E8F0" stroke-width="1"/>
+<text x="737" y="198" font-size="12" fill="#64748B">divide、dubbo、grpc 等插件完成代理。</text>
+<text x="737" y="222" font-size="12" fill="#64748B">请求到达真实上游服务。</text>
+<text x="737" y="246" font-size="12" fill="#64748B">响应再沿链路回到客户端。</text>
+
+<rect x="135" y="370" width="260" height="90" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="135" y="370" width="6" height="90" fill="#005D7B" clip-path="url(#c6)"/>
+<text x="157" y="398" font-size="16" font-weight="bold" fill="#2D3748">热数据缓存</text>
+<text x="234" y="398" font-size="11" fill="#94A3B8">Cache</text>
+<text x="157" y="422" font-size="12" fill="#64748B">BaseDataCache 保存 plugin、selector、rule 热数据；</text>
+<text x="157" y="442" font-size="12" fill="#64748B">MatchDataCache 负责路径命中缓存。</text>
+
+<rect x="505" y="370" width="260" height="90" rx="10" fill="#FFF" filter="url(#cs)"/>
+<rect x="505" y="370" width="6" height="90" fill="#E99151" clip-path="url(#c7)"/>
+<text x="527" y="398" font-size="16" font-weight="bold" fill="#2D3748">动态插件管理</text>
+<text x="619" y="398" font-size="11" fill="#94A3B8">Plugin Event</text>
+<text x="527" y="422" font-size="12" fill="#64748B">启用、禁用、排序、pluginJar 热加载都会重排插件链；</text>
+<text x="527" y="442" font-size="12" fill="#64748B">新请求会立刻看到最新顺序与能力。</text>
+
+<line x1="185" y1="206" x2="205" y2="206" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="205,206 195,201 195,211" fill="#94A3B8"/>
+<line x1="355" y1="206" x2="375" y2="206" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="375,206 365,201 365,211" fill="#94A3B8"/>
+<line x1="525" y1="206" x2="545" y2="206" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="545,206 535,201 535,211" fill="#94A3B8"/>
+<line x1="695" y1="206" x2="715" y2="206" stroke="#94A3B8" stroke-width="2"/>
+<polygon points="715,206 705,201 705,211" fill="#94A3B8"/>
+
+<path d="M455 290 L455 330 L265 330 L265 370" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="265,370 260,360 270,360" fill="#94A3B8"/>
+<text x="334" y="324" font-size="11" font-weight="bold" fill="#005D7B">命中依赖缓存</text>
+
+<path d="M620 290 L620 330 L635 330 L635 370" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="635,370 630,360 640,360" fill="#94A3B8"/>
+<text x="632" y="324" font-size="11" font-weight="bold" fill="#E99151">链路可热更新</text>
+
+</svg>
