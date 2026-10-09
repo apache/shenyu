@@ -6,6 +6,11 @@
 
 ### Behavior Changes
 
+- Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
+  Enabling the plugin does not grant MCP access: deployments must supply a trusted
+  `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without
+  a trusted identity adapter, MCP requests are denied with HTTP 401. Existing LLM
+  forwarding and independently configured legacy MCP endpoints remain unchanged.
 - Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
   The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
   but can discard a newer registration failure arriving between those calls.

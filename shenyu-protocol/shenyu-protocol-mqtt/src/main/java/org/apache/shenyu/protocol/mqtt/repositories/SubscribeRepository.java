@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,10 +40,10 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
 
     @Override
     public void add(final List<String> topics, final Map<Channel, MqttQoS> channelQos) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic ->
+        topics.forEach(topic ->
                 channelQos.forEach((channel, qos) -> TOPIC_CHANNEL_FACTORY
                         .computeIfAbsent(topic, key -> new ConcurrentHashMap<>())
-                        .merge(channel, qos, SubscribeRepository::maxQoS))));
+                        .merge(channel, qos, SubscribeRepository::maxQoS)));
     }
 
     /**
@@ -53,16 +52,17 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        CompletableFuture.runAsync(() -> mqttTopicSubscription.parallelStream()
+        // Complete registration before returning so a later disconnect cannot overtake it.
+        mqttTopicSubscription.stream()
                 .filter(s -> s.qualityOfService() != MqttQoS.FAILURE)
                 .forEach(s -> TOPIC_CHANNEL_FACTORY
                         .computeIfAbsent(s.topicName(), key -> new ConcurrentHashMap<>())
-                        .merge(channel, s.qualityOfService(), SubscribeRepository::maxQoS)));
+                        .merge(channel, s.qualityOfService(), SubscribeRepository::maxQoS));
     }
 
     @Override
     public void remove(final List<String> topics) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(TOPIC_CHANNEL_FACTORY::remove));
+        topics.forEach(TOPIC_CHANNEL_FACTORY::remove);
     }
 
     /**
@@ -71,12 +71,12 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param channel channel
      */
     public void remove(final List<String> topics, final Channel channel) {
-        CompletableFuture.runAsync(() -> topics.parallelStream().forEach(topic -> {
+        topics.forEach(topic -> {
             Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(topic);
             if (Objects.nonNull(subscribers)) {
                 subscribers.remove(channel);
             }
-        }));
+        });
     }
 
     /**
@@ -84,8 +84,7 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param channel channel
      */
     public void remove(final Channel channel) {
-        CompletableFuture.runAsync(() -> TOPIC_CHANNEL_FACTORY.values().parallelStream()
-                .forEach(subscribers -> subscribers.remove(channel)));
+        TOPIC_CHANNEL_FACTORY.values().forEach(subscribers -> subscribers.remove(channel));
     }
 
     @Override

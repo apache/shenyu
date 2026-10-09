@@ -18,12 +18,20 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.ObjectProvider;
+import reactor.core.publisher.Mono;
 
 /**
  * Agent gateway plugin auto configuration.
@@ -35,11 +43,15 @@ public class AgentGatewayPluginConfiguration {
     /**
      * Create the agent gateway plugin.
      *
+     * @param providers explicitly registered server-side tools
+     * @param resolvers trusted security adapter, missing adapters deny access
      * @return the plugin
      */
     @Bean
-    public ShenyuPlugin agentGatewayPlugin() {
-        return new AgentGatewayPlugin();
+    public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers) {
+        AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
+        AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION), resolver));
     }
 
     /**

@@ -36,10 +36,10 @@ Apache ShenYu is a Java-based gateway for service proxying, protocol conversion,
 | Plugin routing and extensions | An ordered plugin chain for HTTP requests, with selector and rule matching where applicable. Spring Boot starters select plugins; [custom Java plugins](https://shenyu.apache.org/docs/developer/custom-plugin/), SPI implementations, and WASM plugin APIs extend the gateway. |
 | Protocols and upstreams | HTTP and Spring Cloud services, WebSocket connections, and Apache Dubbo, gRPC, SOFA, and Tars backends. Optional TCP and MQTT listeners provide additional ingress. |
 | Registration and discovery | Client SDKs register service addresses and API metadata with Admin. Registry integrations support discovery; an optional Kubernetes controller reconciles Ingress and Endpoints resources. |
-| Security and traffic control | WAF, signing, authentication plugins, load balancing, rate limiting, and fault tolerance through Hystrix, Resilience4j, and Sentinel. |
+| Security and traffic control | WAF, signing, authentication plugins, load balancing, rate limiting, and fault tolerance through Resilience4j and Sentinel; deprecated Hystrix remains available as an external plugin (see [plugin-store-hystrix](docs/plugin-store-hystrix.md)). |
 | Caching and transformation | In-memory or Redis-backed response caching, URL rewriting, redirection, and request/response transformation. |
-| Dynamic configuration | Admin persists plugins, selectors, rules, metadata, and authentication data. WebSocket sync is the default; HTTP long polling, ZooKeeper, Nacos, etcd, Consul, Apollo, and Polaris are available. Gateway replicas apply updates to their local caches. |
-| Observability | Metrics and logging plugins, including Kafka, Pulsar, Elasticsearch, and ClickHouse destinations; email and DingTalk alerts from Admin. |
+| Dynamic configuration | Admin persists plugins, selectors, rules, metadata, and authentication data. WebSocket sync is the default; HTTP long polling, ZooKeeper, Nacos, etcd, and Apollo are available. Consul sync is available as an external extension (see [plugin-store-consul](docs/plugin-store-consul.md)). Gateway replicas apply updates to their local caches. |
+| Observability | Metrics and logging plugins, including Kafka and Elasticsearch destinations; email and DingTalk alerts from Admin. |
 | AI and MCP | AI proxy, prompt processing, token limits, sensitive-word filtering, AI request/response transformation, and an MCP server plugin with SSE and Streamable HTTP. |
 
 ## Architecture

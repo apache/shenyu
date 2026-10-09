@@ -23,6 +23,7 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.concurrent.FutureCallback;
 import org.junit.Assert;
@@ -77,11 +78,43 @@ public class HttpShenyuSdkClientTest {
     }
 
     @Test
+    public void testConnectionRequestTimeoutHonorsConfiguredProperty() throws Exception {
+        HttpShenyuSdkClient client = new HttpShenyuSdkClient();
+        Properties props = new Properties();
+        props.setProperty("http.connectionRequestTimeOut", "50");
+        try {
+            client.initClient(props);
+            RequestConfig requestConfig = (RequestConfig) getField(client, "requestConfig");
+            Assert.assertEquals(50, requestConfig.getConnectionRequestTimeout());
+        } finally {
+            client.close();
+        }
+    }
+
+    @Test
+    public void testConnectionRequestTimeoutDefaultsWhenUnset() throws Exception {
+        HttpShenyuSdkClient client = new HttpShenyuSdkClient();
+        try {
+            client.initClient(new Properties());
+            RequestConfig requestConfig = (RequestConfig) getField(client, "requestConfig");
+            Assert.assertEquals(2000, requestConfig.getConnectionRequestTimeout());
+        } finally {
+            client.close();
+        }
+    }
+
+    @Test
     public void testFactoryCreatesIndependentClients() {
         ShenyuSdkClient firstClient = ShenyuSdkClientFactory.newInstance("httpclient");
         ShenyuSdkClient secondClient = ShenyuSdkClientFactory.newInstance("httpclient");
 
         assertNotSame(firstClient, secondClient);
+    }
+
+    private Object getField(final HttpShenyuSdkClient client, final String name) throws Exception {
+        Field field = HttpShenyuSdkClient.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(client);
     }
 
     private void setField(final HttpShenyuSdkClient client, final String name, final Object value) throws Exception {

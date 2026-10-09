@@ -61,7 +61,6 @@ add_e2e_all() {
   add_unique e2e_cases "e2e-grpc-sync-compose"
   add_unique e2e_cases "e2e-websocket-sync-compose"
   add_unique e2e_cases "e2e-logging-rocketmq-compose"
-  add_unique e2e_cases "e2e-logging-rabbitmq-compose"
 }
 
 add_integration_all() {
@@ -262,9 +261,6 @@ map_direct_case_path() {
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-websocket/*)
         add_unique e2e_cases "e2e-websocket-sync-compose"
         ;;
-      shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rabbitmq/*)
-        add_unique e2e_cases "e2e-logging-rabbitmq-compose"
-        ;;
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rocketmq/*)
         add_unique e2e_cases "e2e-logging-rocketmq-compose"
         ;;
@@ -351,13 +347,6 @@ map_domain_path() {
     *rocketmq*)
       if [[ "${mode}" == "e2e" ]]; then
         add_unique e2e_cases "e2e-logging-rocketmq-compose"
-      else
-        add_unique integration_cases "shenyu-integrated-test-http"
-      fi
-      ;;
-    *rabbitmq*)
-      if [[ "${mode}" == "e2e" ]]; then
-        add_unique e2e_cases "e2e-logging-rabbitmq-compose"
       else
         add_unique integration_cases "shenyu-integrated-test-http"
       fi
@@ -471,10 +460,6 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
       },
       "e2e-logging-rocketmq-compose": {
         case: "shenyu-e2e-case-logging-rocketmq",
-        example_projects: ":shenyu-examples-http"
-      },
-      "e2e-logging-rabbitmq-compose": {
-        case: "shenyu-e2e-case-logging-rabbitmq",
         example_projects: ":shenyu-examples-http"
       }
     }[.];

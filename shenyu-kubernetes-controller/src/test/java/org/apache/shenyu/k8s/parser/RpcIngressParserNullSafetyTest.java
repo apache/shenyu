@@ -81,6 +81,21 @@ public final class RpcIngressParserNullSafetyTest {
     }
 
     @Test
+    public void shouldSkipServiceWithoutAnnotations() {
+        Lister<V1Service> serviceLister = createServiceLister(new V1ServiceBuilder().withNewMetadata().withName(BACKEND_SERVICE)
+                .withNamespace(NAMESPACE).endMetadata().build());
+        List<K8sResourceParser<V1Ingress>> parsers = createParsers(serviceLister);
+
+        for (K8sResourceParser<V1Ingress> parser : parsers) {
+            ShenyuMemoryConfig config = Assertions.assertDoesNotThrow(() -> parser.parse(createIngress(Collections.singletonMap(
+                    "service-label", BACKEND_SERVICE)), null));
+            Assertions.assertEquals(1, config.getRouteConfigList().size());
+            Assertions.assertTrue(config.getRouteConfigList().get(0).getRuleDataList().isEmpty());
+            Assertions.assertTrue(config.getRouteConfigList().get(0).getMetaDataList().isEmpty());
+        }
+    }
+
+    @Test
     public void shouldIgnoreNullIngressLabels() {
         Lister<V1Service> serviceLister = createServiceLister(null);
         List<K8sResourceParser<V1Ingress>> parsers = createParsers(serviceLister);

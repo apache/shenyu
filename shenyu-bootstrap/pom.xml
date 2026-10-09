@@ -72,14 +72,6 @@
         </dependency>
         <!-- shenyu ratelimiter plugin end-->
 
-        <!-- shenyu hystrix plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu hystrix plugin end-->
-
         <!-- shenyu resilience4j plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -479,20 +471,7 @@
         </dependency>
         <!--shenyu debug plugin end-->
 
-        <!--shenyu data sync start use consul-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!--shenyu registry start-->
-
-        <!--shenyu data sync start use polaris-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sync-data-polaris</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!--shenyu instance start-->
 
@@ -514,14 +493,6 @@
         </dependency>
         <!--shenyu logging-kafka plugin end-->
 
-        <!--shenyu logging-rabbitmq plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-rabbitmq</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu logging-rabbitmq plugin end-->
-
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -530,39 +501,9 @@
         </dependency>
         <!--shenyu logging-elasticsearch plugin end-->
 
-        <!-- shenyu logging-aliyunsls plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-aliyunsls plugin end -->
-
-        <!-- shenyu logging-pulsar plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-pulsar plugin end -->
 
 
-        <!-- shenyu logging-huaweilts plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-huawei-lts</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-huaweilts plugin end -->
 
-
-        <!-- shenyu logging-clickhouse plugin start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging-clickhouse</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu logging-clickhouse plugin end -->
 
         <!-- shenyu kubernetes controller starter -->
 <!--        <dependency>-->

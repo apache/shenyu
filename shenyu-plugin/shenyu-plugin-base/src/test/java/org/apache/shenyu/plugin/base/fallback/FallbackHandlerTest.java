@@ -21,10 +21,14 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -35,9 +39,13 @@ import reactor.test.StepVerifier;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -93,6 +101,41 @@ public final class FallbackHandlerTest {
         StepVerifier.create(testFallbackHandler.fallback(exchange, URI.create("fallback:/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete();
         assertThrows(RuntimeException.class, () -> StepVerifier.create(testFallbackAvoidRedirectLoopHandler.fallback(exchange,
                 URI.create("fallback:/SHENYU/SHENYU"), mock(RuntimeException.class))).expectSubscription().verifyComplete());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/fallback?reason=a%26b", "fallback:/fallback?reason=a%26b"})
+    void fallbackToSameEncodedQuery(final String target) {
+        URI current = URI.create("http://localhost/fallback?reason=a%26b");
+        MockServerWebExchange fallbackExchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.GET, current));
+        RuntimeException exception = new RuntimeException(new IllegalStateException("upstream failed"));
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> testFallbackAvoidRedirectLoopHandler.fallback(fallbackExchange, URI.create(target), exception));
+        assertSame(exception.getCause(), thrown.getCause());
+    }
+
+    @Test
+    void relativeFallbackToDifferentQuery() {
+        URI current = URI.create("http://localhost/fallback?reason=a%26b");
+        URI target = URI.create("/fallback?reason=a&b");
+        MockServerWebExchange fallbackExchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.GET, current));
+
+        StepVerifier.create(testFallbackAvoidRedirectLoopHandler.fallback(fallbackExchange, target, new RuntimeException("upstream failed"))).verifyComplete();
+
+        assertEquals(HttpStatus.FOUND, fallbackExchange.getResponse().getStatusCode());
+        assertEquals(target, fallbackExchange.getResponse().getHeaders().getLocation());
+    }
+
+    @Test
+    void internalFallbackToDifferentQuery() {
+        URI current = URI.create("http://localhost/fallback?reason=a%26b");
+        MockServerWebExchange fallbackExchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.GET, current));
+
+        StepVerifier.create(testFallbackAvoidRedirectLoopHandler.fallback(fallbackExchange,
+                URI.create("fallback:/fallback?reason=a&b"), new RuntimeException("upstream failed"))).verifyComplete();
+
+        verify(SpringBeanUtils.getInstance().getBean(DispatcherHandler.class)).handle(argThat(dispatched ->
+                "http://localhost/fallback?reason=a&b".equals(dispatched.getRequest().getURI().toString())));
     }
 
     static class TestFallbackHandler implements FallbackHandler {

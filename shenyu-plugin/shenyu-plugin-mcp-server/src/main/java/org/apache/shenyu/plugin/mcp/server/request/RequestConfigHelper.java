@@ -140,7 +140,7 @@ public class RequestConfigHelper {
         String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
 
         // Handle new query parameters
-        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder);
+        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder, existingQuery);
 
         // Clear the template variables that have not been replaced
         basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
@@ -202,10 +202,11 @@ public class RequestConfigHelper {
      * @param inputJson the input JSON object
      * @param basePath the base path to modify
      * @param queryBuilder the query builder to append to
+     * @param existingQuery the existing query string
      * @return the modified base path
      */
     private static String processArguments(final JsonObject argsPosition, final JsonObject inputJson,
-                                       final String basePath, final StringBuilder queryBuilder) {
+                                       final String basePath, final StringBuilder queryBuilder, final String existingQuery) {
         String modifiedBasePath = basePath;
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
@@ -216,7 +217,7 @@ public class RequestConfigHelper {
                 modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", UriUtils.encodePathSegment(value, StandardCharsets.UTF_8));
             } else if ("query".equals(position) && inputJson.has(key)) {
                 // Handle query parameters
-                if (!modifiedBasePath.contains(key + "=")) {
+                if (!existingQuery.startsWith(key + "=") && !existingQuery.contains("&" + key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
                     }
@@ -244,11 +245,7 @@ public class RequestConfigHelper {
 
         // Add query parameters
         if (!queryBuilder.isEmpty()) {
-            if (hasExistingQuery) {
-                finalPath.append("&").append(queryBuilder);
-            } else {
-                finalPath.append("?").append(queryBuilder);
-            }
+            finalPath.append("?").append(queryBuilder);
         }
 
         // Add existing query parameters
