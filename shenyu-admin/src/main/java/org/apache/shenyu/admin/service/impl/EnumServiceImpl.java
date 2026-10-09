@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.model.vo.EnumVO;
 import org.apache.shenyu.common.enums.HttpMethodEnum;
-import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -75,6 +74,7 @@ public class EnumServiceImpl implements EnumService {
                 .map(paramTypeEnum -> new EnumVO(null, paramTypeEnum.getName(), paramTypeEnum.getSupport())).collect(Collectors.toList());
 
         List<EnumVO> pluginEnums = Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum != PluginEnum.HYSTRIX)
                 .map(pluginEnum -> new EnumVO(pluginEnum.getCode(), pluginEnum.getName(), true))
                 .collect(Collectors.toList());
 
@@ -101,10 +101,6 @@ public class EnumServiceImpl implements EnumService {
                 .map(redisModeEnum -> new EnumVO(null, redisModeEnum.getName(), true))
                 .collect(Collectors.toList());
 
-        List<EnumVO> hystrixIsolationModeEnums = Arrays.stream(HystrixIsolationModeEnum.values())
-                .map(hystrixIsolationModeEnum -> new EnumVO(hystrixIsolationModeEnum.getCode(), hystrixIsolationModeEnum.getName(), true))
-                .collect(Collectors.toList());
-
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
@@ -118,7 +114,6 @@ public class EnumServiceImpl implements EnumService {
         enums.put("serializeEnums", serializeEnums);
         enums.put("wafEnums", wafEnums);
         enums.put("redisModeEnums", redisModeEnums);
-        enums.put("hystrixIsolationModeEnums", hystrixIsolationModeEnums);
 
         return enums;
     }
