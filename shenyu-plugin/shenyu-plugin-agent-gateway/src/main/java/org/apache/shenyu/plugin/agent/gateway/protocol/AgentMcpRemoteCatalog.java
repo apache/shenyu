@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Candidate-only remote catalog port. The implementation owns bounded discovery and generation leases.
+ * Remote catalog port. The implementation owns bounded discovery and generation leases.
  */
 public interface AgentMcpRemoteCatalog {
 
@@ -35,6 +35,17 @@ public interface AgentMcpRemoteCatalog {
      * @return the single native protocol result
      */
     Mono<ObjectNode> withSnapshot(Function<Snapshot, Mono<ObjectNode>> operation);
+
+    /** Distinguishes an unavailable catalog from unexpected gateway failures. */
+    final class CatalogUnavailableException extends IllegalStateException {
+
+        private static final long serialVersionUID = 1L;
+
+        /** Create a sanitized catalog-unavailable failure without target or credential details. */
+        public CatalogUnavailableException() {
+            super("Remote catalog unavailable");
+        }
+    }
 
     /**
      * Request-owned view of one pinned generation.

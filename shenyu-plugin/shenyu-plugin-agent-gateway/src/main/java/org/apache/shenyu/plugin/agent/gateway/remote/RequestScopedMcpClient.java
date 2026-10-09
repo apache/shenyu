@@ -201,7 +201,6 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 .header("Accept", "application/json, text/event-stream")
                 .header("Authorization", authorization)
                 .header("MCP-Protocol-Version", VERSION)
-                .header("X-Spike-Subject", RemoteTransportPolicy.subject(transportContext.get("subject")))
                 .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
             if (java.util.Objects.nonNull(session) && !"initialize".equals(method)) {
                 builder.header("MCP-Session-Id", session);

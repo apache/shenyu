@@ -6,6 +6,15 @@
 
 ### Behavior Changes
 
+- Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
+  accepts only the `aggregation` field; blank config and `{}` remain valid.
+  Previously stored arbitrary fields must be removed or migrated before the next
+  save/import, even when only toggling another plugin property. Other plugins are
+  unaffected. An unavailable enabled remote catalog fails the whole MCP entry,
+  including local tools, with HTTP 503 / JSON-RPC `-32023`; no local-only fallback
+  is implicit. Outbound calls use fixed service credentials without Agent identity
+  headers; request context and identity remain inside the gateway.
+
 - Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
   Enabling the plugin does not grant MCP access: deployments must supply a trusted
   `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without

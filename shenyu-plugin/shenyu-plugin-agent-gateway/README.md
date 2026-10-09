@@ -208,6 +208,7 @@ it does not specify precedence when several inputs are invalid.
 | Missing required client capability | 400 | JSON-RPC error `-32021` with the missing capability tree |
 | Declared Provider argument or business failure | 200 | JSON-RPC result with `isError=true` |
 | Invalid server configuration / unexpected tool failure / encoded response overflow | 500 | Configuration or sanitized internal error; no tool retry |
+| Enabled remote catalog has no complete current generation | 503 | JSON-RPC error `-32023`, `Remote catalog unavailable`; local-only calls are also refused |
 | Request body overflow / execution deadline | 413 / 504 | Ordinary JSON transport error |
 
 Transport and JSON-RPC error responses are JSON in either response mode,
@@ -319,6 +320,12 @@ configuration endpoint, gateway DB access or Agent-provided target is introduced
 An empty server array explicitly removes remotes; rules must also stop naming
 removed tools, otherwise the existing unknown-tool configuration check fails closed.
 
+Compatibility: this plugin previously had no plugin-config field contract.
+Blank configuration and `{}` remain valid for local-only use. Any other stored
+top-level fields must be removed or migrated before the next save/import,
+including a save made only to toggle another plugin property: only `aggregation`
+is accepted now. This does not change other plugins' configuration contracts.
+
 Mount `service/orders/v1.json` below the credential directory, readable only by
 the gateway operator/service account and not writable by gateway/API clients:
 
@@ -333,6 +340,11 @@ Deployments may replace the resolver with one trusted `RemoteServiceCredentialRe
 bean. This is a mounted-file integration, not a managed Vault/KMS client or an
 automatic file watcher. OS permissions and read-only secret mounts remain deployment duties.
 Agent Authorization, Cookie and request metadata are not forwarded.
+The trusted Agent subject also stays inside the gateway; no subject-identity
+header is sent to the remote server. Outbound authentication uses only the
+target-bound fixed service credential. Debug response diagnostics contain only
+server, method, generated outbound id, status and byte count, never credentials,
+Agent identity or result bodies.
 
 Resolve all credentials before replacing the directory. Invalid config/missing
 credentials reject the update and preserve the previous generation. Once a
@@ -342,6 +354,12 @@ removing a credential file alone does not revoke already captured leases.
 Disable/removal withdraws new remote access immediately, including an in-progress
 candidate. Queue overflow also withdraws access and requires an explicit valid refresh.
 Cleanup failures remain quarantined and prevent further allocation; shutdown reports failure.
+
+Fail-closed scope: while the enabled catalog has no complete current generation,
+every MCP operation using that catalog is refused, including discovery and purely
+local tools. The entry returns HTTP 503 / JSON-RPC `-32023` rather than a generic
+gateway-bug error. There is no implicit last-good-generation or local-only fallback.
+An explicit empty remote configuration can restore a complete local-only view.
 
 Outbound support remains fixed `2025-06-18` initialize/initialized, bounded tools
 pagination/call and JSON or a single final SSE response. It does not add GET stream

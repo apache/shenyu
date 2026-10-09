@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URI;
 import java.util.Set;
 import java.util.function.Function;
 
 /** Immutable target and independently resolved credential binding. */
 public final class RemoteServerBinding {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteServerBinding.class);
 
     private final Config config;
 
@@ -78,7 +83,12 @@ public final class RemoteServerBinding {
      * @return operation result
      */
     public RequestScopedMcpClient newClient() {
-        return new RequestScopedMcpClient(this, ignored -> { });
+        return new RequestScopedMcpClient(this, event -> {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Remote MCP response server={} method={} id={} status={} bytes={}",
+                        event.get("server"), event.get("method"), event.get("id"), event.get("status"), event.get("bytes"));
+            }
+        });
     }
 
     /**

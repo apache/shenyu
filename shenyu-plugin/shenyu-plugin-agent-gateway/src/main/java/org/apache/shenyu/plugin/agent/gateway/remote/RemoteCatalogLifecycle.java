@@ -17,12 +17,18 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
+
 import io.modelcontextprotocol.spec.McpSchema;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import reactor.core.publisher.Flux;
@@ -136,14 +142,14 @@ public final class RemoteCatalogLifecycle {
             if (!valid.getAsBoolean()) {
                 return null;
             }
-            if (closed || java.util.Objects.nonNull(updatingGeneration) || !cleanupFailures.isEmpty() || generations.size() >= maxGenerations) {
+            if (closed || Objects.nonNull(updatingGeneration) || !cleanupFailures.isEmpty() || generations.size() >= maxGenerations) {
                 throw new IllegalStateException("Closed, update in progress, or generation budget exhausted");
             }
             Generation candidate = new Generation(++sequence);
             generations.add(candidate);
             updatingGeneration = candidate;
             // Fail closed for new requests throughout a controlled configuration replacement.
-            if (java.util.Objects.nonNull(current)) {
+            if (Objects.nonNull(current)) {
                 current.retired = true;
             }
             current = null;
@@ -163,7 +169,7 @@ public final class RemoteCatalogLifecycle {
                         // Managed factories are local, non-blocking constructors; allocation and ownership are atomic.
                         client = config.create().get();
                         // Factories must return exclusively owned clients; never borrow another generation's client.
-                        if (java.util.Objects.isNull(client)) {
+                        if (Objects.isNull(client)) {
                             return Mono.error(new IllegalStateException("Null target client"));
                         }
                         if (owners.containsKey(client)) {
@@ -222,7 +228,7 @@ public final class RemoteCatalogLifecycle {
         Set<String> ruleSnapshot = Set.copyOf(rule);
         Set<String> grantsSnapshot = Set.copyOf(grants);
         // Own arguments at assembly, including nested maps. The per-subscription directory is acquired below.
-        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var json = new ObjectMapper();
         var input = json.valueToTree(arguments);
         return Mono.usingWhen(
             Mono.fromCallable(this::acquire),
@@ -231,7 +237,7 @@ public final class RemoteCatalogLifecycle {
                     name,
                     ruleSnapshot,
                     grantsSnapshot,
-                    json.convertValue(input.deepCopy(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() { })
+                    json.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { })
                 ),
             this::release,
             (generation, error) -> release(generation),
@@ -241,8 +247,8 @@ public final class RemoteCatalogLifecycle {
 
     private Generation acquire() {
         synchronized (lock) {
-            if (closed || java.util.Objects.isNull(current)) {
-                throw new IllegalStateException("No complete current directory");
+            if (closed || Objects.isNull(current)) {
+                throw new CatalogUnavailableException();
             }
             current.references++;
             return current;
@@ -252,10 +258,10 @@ public final class RemoteCatalogLifecycle {
     /** Stop new remote access immediately while asynchronous retirement proceeds. */
     public void withdraw() {
         synchronized (lock) {
-            if (java.util.Objects.nonNull(updatingGeneration)) {
+            if (Objects.nonNull(updatingGeneration)) {
                 updatingGeneration.retired = true;
             }
-            if (java.util.Objects.nonNull(current)) {
+            if (Objects.nonNull(current)) {
                 current.retired = true;
                 current = null;
             }
@@ -270,10 +276,10 @@ public final class RemoteCatalogLifecycle {
      * @param arguments trusted arguments value
      * @return operation result
      */
-    public Mono<com.fasterxml.jackson.databind.node.ObjectNode> callRaw(final String name, final Set<String> rule, final Set<String> grants, final Map<String, Object> arguments) {
+    public Mono<ObjectNode> callRaw(final String name, final Set<String> rule, final Set<String> grants, final Map<String, Object> arguments) {
         Set<String> ruleSnapshot = Set.copyOf(rule);
         Set<String> grantsSnapshot = Set.copyOf(grants);
-        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var json = new ObjectMapper();
         var input = json.valueToTree(arguments);
         return Mono.usingWhen(
             Mono.fromCallable(this::acquire),
@@ -282,7 +288,7 @@ public final class RemoteCatalogLifecycle {
                     name,
                     ruleSnapshot,
                     grantsSnapshot,
-                    json.convertValue(input.deepCopy(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() { })
+                    json.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { })
                 ),
             this::release,
             (generation, error) -> release(generation),
@@ -306,7 +312,7 @@ public final class RemoteCatalogLifecycle {
         synchronized (lock) {
             for (Generation generation : generations) {
                 if (generation.retired && generation.references == 0) {
-                    if (java.util.Objects.isNull(generation.cleanup)) {
+                    if (Objects.isNull(generation.cleanup)) {
                         List<RemoteMcpEndpoint> clients = List.copyOf(generation.clients);
                         generation.cleanup = Flux.fromIterable(clients)
                             .flatMap(
@@ -352,8 +358,8 @@ public final class RemoteCatalogLifecycle {
      */
     public Set<String> visible(final Set<String> rule, final Set<String> grants) {
         synchronized (lock) {
-            if (closed || java.util.Objects.isNull(current)) {
-                throw new IllegalStateException("No complete current directory");
+            if (closed || Objects.isNull(current)) {
+                throw new CatalogUnavailableException();
             }
             return current.directory.visible(rule, grants);
         }
@@ -369,7 +375,7 @@ public final class RemoteCatalogLifecycle {
                 "closed",
                 closed,
                 "updating",
-                java.util.Objects.nonNull(updatingGeneration),
+                Objects.nonNull(updatingGeneration),
                 "generations",
                 generations.size(),
                 "clients",
@@ -380,7 +386,7 @@ public final class RemoteCatalogLifecycle {
                     .mapToInt(g -> g.references)
                     .sum(),
                 "currentVersion",
-                java.util.Objects.isNull(current) ? 0L : current.version,
+                Objects.isNull(current) ? 0L : current.version,
                 "cleanupFailures",
                 List.copyOf(cleanupFailures)
             );
@@ -395,8 +401,8 @@ public final class RemoteCatalogLifecycle {
      */
     public Map<String, McpSchema.Tool> definitions(final Set<String> rule, final Set<String> grants) {
         synchronized (lock) {
-            if (closed || java.util.Objects.isNull(current)) {
-                throw new IllegalStateException("No complete current directory");
+            if (closed || Objects.isNull(current)) {
+                throw new CatalogUnavailableException();
             }
             return current.directory.definitions(rule, grants);
         }
@@ -426,7 +432,7 @@ public final class RemoteCatalogLifecycle {
         return Mono.defer(() -> {
             synchronized (lock) {
                 closed = true;
-                if (java.util.Objects.nonNull(current)) {
+                if (Objects.nonNull(current)) {
                     current.retired = true;
                 }
                 current = null;
@@ -445,7 +451,7 @@ public final class RemoteCatalogLifecycle {
     }
 
     private void signalDrain() {
-        if (closed && java.util.Objects.isNull(updatingGeneration) && generations.isEmpty()) {
+        if (closed && Objects.isNull(updatingGeneration) && generations.isEmpty()) {
             drained.tryEmitEmpty();
         }
     }
@@ -453,11 +459,11 @@ public final class RemoteCatalogLifecycle {
     public record Config(String name, String credentialVersion, Supplier<RemoteMcpEndpoint> create) {
         public Config {
             if (
-                java.util.Objects.isNull(name)
+                Objects.isNull(name)
                     || !name.matches("[A-Za-z0-9_-]{1,48}")
-                    || java.util.Objects.isNull(credentialVersion)
+                    || Objects.isNull(credentialVersion)
                     || credentialVersion.isBlank()
-                    || java.util.Objects.isNull(create)
+                    || Objects.isNull(create)
             ) {
                 throw new IllegalArgumentException("Invalid controlled target configuration");
             }

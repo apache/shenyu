@@ -40,6 +40,7 @@ import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -101,7 +102,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String createOrUpdate(final PluginDTO pluginDTO) {
-        org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(pluginDTO.getName(), pluginDTO.getConfig());
+        AgentGatewayPluginConfigValidator.validate(pluginDTO.getName(), pluginDTO.getConfig());
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
 
@@ -258,7 +259,7 @@ public class PluginServiceImpl implements PluginService {
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
-            org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(pluginName, pluginDTO.getConfig());
+            AgentGatewayPluginConfigValidator.validate(pluginName, pluginDTO.getConfig());
             // check plugin base info
             if (existPluginMap.containsKey(pluginName)) {
                 errorMsgBuilder
@@ -320,7 +321,7 @@ public class PluginServiceImpl implements PluginService {
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         if (Objects.nonNull(before)) {
-            org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator.validate(before.getName(), pluginDTO.getConfig());
+            AgentGatewayPluginConfigValidator.validate(before.getName(), pluginDTO.getConfig());
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.updateSelective(pluginDO) > 0) {

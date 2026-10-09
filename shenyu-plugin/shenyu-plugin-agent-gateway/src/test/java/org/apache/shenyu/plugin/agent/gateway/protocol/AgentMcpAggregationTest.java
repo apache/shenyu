@@ -49,6 +49,37 @@ class AgentMcpAggregationTest {
 
     private final AtomicInteger calls = new AtomicInteger();
 
+    private final AtomicInteger localCalls = new AtomicInteger();
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"server/discover", "tools/list", "tools/call"})
+    void shouldDistinguishUnavailableCatalogWithoutFallingBackToLocalTools(final String method) {
+        AgentMcpRemoteCatalog unavailable = operation -> Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException());
+        AgentMcpDispatcher dispatcher = dispatcher("local", unavailable);
+        StepVerifier.create(dispatcher.dispatch(request(method, "local"), () -> context("A", Set.of("local"))))
+                .expectErrorSatisfies(error -> {
+                    AgentMcpProtocolException protocol = (AgentMcpProtocolException) error;
+                    assertEquals(503, protocol.getHttpStatus());
+                    assertEquals(-32023, protocol.getCode());
+                    assertEquals("Remote catalog unavailable", protocol.toResponse().path("error").path("message").asText());
+                    assertEquals("same-rpc-id", protocol.toResponse().path("id").asText());
+                }).verify();
+        assertEquals(0, localCalls.get());
+    }
+
+    @Test
+    void shouldNotLabelUnexpectedCatalogFailuresAsUnavailable() {
+        AgentMcpRemoteCatalog broken = operation -> Mono.error(new IllegalStateException("private diagnostic"));
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "gateway", "1", broken);
+        StepVerifier.create(dispatcher.dispatch(request("tools/list", ""), () -> context("A", Set.of())))
+                .expectErrorSatisfies(error -> {
+                    AgentMcpProtocolException protocol = (AgentMcpProtocolException) error;
+                    assertEquals(500, protocol.getHttpStatus());
+                    assertEquals(-32603, protocol.getCode());
+                    assertEquals("Internal error", protocol.getMessage());
+                }).verify();
+    }
+
     @Test
     void shouldCombineLocalAndRemoteListsWithIdenticalPermissionPredicate() {
         AgentMcpDispatcher dispatcher = dispatcher("local");
@@ -109,6 +140,10 @@ class AgentMcpAggregationTest {
     }
 
     private AgentMcpDispatcher dispatcher(final String localName) {
+        return dispatcher(localName, null);
+    }
+
+    private AgentMcpDispatcher dispatcher(final String localName, final AgentMcpRemoteCatalog override) {
         AgentToolProvider provider = new AgentToolProvider() {
             @Override
             public String getName() {
@@ -134,9 +169,7 @@ class AgentMcpAggregationTest {
 
             @Override
             public Mono<JsonObject> invoke(final AgentToolInvocation invocation) {
-                JsonObject value = new JsonObject();
-                value.addProperty("subject", invocation.getSubject());
-                return Mono.just(value);
+                return localValue(invocation);
             }
         };
         AgentMcpRemoteCatalog catalog = new AgentMcpRemoteCatalog() {
@@ -149,7 +182,14 @@ class AgentMcpAggregationTest {
                         (ignored, error) -> Mono.fromRunnable(active::decrementAndGet), ignored -> Mono.fromRunnable(active::decrementAndGet));
             }
         };
-        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(provider)), "candidate", "1", catalog);
+        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(provider)), "candidate", "1", java.util.Objects.isNull(override) ? catalog : override);
+    }
+
+    private Mono<JsonObject> localValue(final AgentToolInvocation invocation) {
+        localCalls.incrementAndGet();
+        JsonObject value = new JsonObject();
+        value.addProperty("subject", invocation.getSubject());
+        return Mono.just(value);
     }
 
     private AgentMcpRemoteCatalog.Snapshot snapshot() {

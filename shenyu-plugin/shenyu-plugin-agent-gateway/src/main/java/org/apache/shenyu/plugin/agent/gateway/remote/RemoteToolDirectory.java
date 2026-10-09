@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import reactor.core.publisher.Mono;
@@ -35,8 +37,6 @@ import reactor.core.publisher.Mono;
 public final class RemoteToolDirectory {
 
     private static final ObjectMapper JSON = new ObjectMapper();
-
-
 
     private final Map<String, Entry> entries;
 
@@ -85,12 +85,12 @@ public final class RemoteToolDirectory {
         final Set<String> seen,
         final List<Entry> result
     ) {
-        if (page >= maxPages || (java.util.Objects.nonNull(cursor) && !seen.add(cursor))) {
+        if (page >= maxPages || (Objects.nonNull(cursor) && !seen.add(cursor))) {
             return Mono.error(new IllegalArgumentException("Pagination limit or repeated cursor"));
         }
         return Mono.defer(() -> target.pages().apply(cursor)).flatMap(reply -> {
             for (McpSchema.Tool tool : reply.tools()) {
-                if (java.util.Objects.isNull(tool.name()) || tool.name().isBlank() || java.util.Objects.isNull(tool.description()) || tool.description().isBlank()) {
+                if (Objects.isNull(tool.name()) || tool.name().isBlank() || Objects.isNull(tool.description()) || tool.description().isBlank()) {
                     return Mono.error(new IllegalArgumentException("Invalid tool definition"));
                 }
                 org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry.validateDefinition(
@@ -104,7 +104,7 @@ public final class RemoteToolDirectory {
                     return Mono.error(new IllegalArgumentException("Tool limit"));
                 }
             }
-            if (java.util.Objects.isNull(reply.nextCursor()) || reply.nextCursor().isEmpty()) {
+            if (Objects.isNull(reply.nextCursor()) || reply.nextCursor().isEmpty()) {
                 return Mono.just(List.copyOf(result));
             }
             return pages(target, reply.nextCursor(), page + 1, maxPages, maxTools, seen, result);
@@ -124,9 +124,9 @@ public final class RemoteToolDirectory {
         }
         Map<String, Entry> mapped = new LinkedHashMap<>();
         for (Entry entry : entries) {
-            // User confirmed a stable namespace for every remote tool on 2026-10-05.
+            // Prefix every remote name to keep routing stable when other servers add tools.
             String exposed = entry.target().name() + "." + entry.originalName();
-            if (java.util.Objects.nonNull(mapped.putIfAbsent(exposed, entry))) {
+            if (Objects.nonNull(mapped.putIfAbsent(exposed, entry))) {
                 throw new IllegalArgumentException("Ambiguous exposed name");
             }
         }
@@ -159,7 +159,7 @@ public final class RemoteToolDirectory {
         JsonNode input = JSON.valueToTree(arguments).deepCopy();
         return Mono.defer(() -> {
             Entry entry = entries.get(name);
-            if (java.util.Objects.isNull(entry) || !permitted.contains(name)) {
+            if (Objects.isNull(entry) || !permitted.contains(name)) {
                 return Mono.error(new SecurityException("Tool unavailable"));
             }
             Map<String, Object> privateArguments = JSON.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { });
@@ -186,14 +186,15 @@ public final class RemoteToolDirectory {
         Map<String, McpSchema.Tool> result = new LinkedHashMap<>();
         for (String name : permitted) {
             var value = JSON.valueToTree(entries.get(name).metadata());
-            ((com.fasterxml.jackson.databind.node.ObjectNode) value).put("name", name);
+            ((ObjectNode) value).put("name", name);
             result.put(name, JSON.convertValue(value, McpSchema.Tool.class));
         }
         return Map.copyOf(result);
     }
 
     /**
-     * with Local.
+     * Extension point for local providers that already return native MCP results.
+     * Production AgentToolProvider instances stay in their separate registry path.
      * @param source trusted source value
      * @param maxTools trusted maxTools value
      * @return operation result
@@ -208,7 +209,7 @@ public final class RemoteToolDirectory {
                 tool.rawCall
             );
             String name = tool.definition.name();
-            if (java.util.Objects.nonNull(result.putIfAbsent(name, new Entry(target, name, tool.definition)))) {
+            if (Objects.nonNull(result.putIfAbsent(name, new Entry(target, name, tool.definition)))) {
                 throw new IllegalArgumentException("Local and remote tool namespace collision");
             }
             if (result.size() > maxTools) {
@@ -226,7 +227,7 @@ public final class RemoteToolDirectory {
      * @param arguments trusted arguments value
      * @return operation result
      */
-    public Mono<com.fasterxml.jackson.databind.node.ObjectNode> callRaw(
+    public Mono<ObjectNode> callRaw(
         final String name,
         final Set<String> ruleTools,
         final Set<String> grants,
@@ -236,10 +237,10 @@ public final class RemoteToolDirectory {
         JsonNode input = JSON.valueToTree(arguments).deepCopy();
         return Mono.defer(() -> {
             Entry entry = entries.get(name);
-            if (java.util.Objects.isNull(entry) || !permitted.contains(name)) {
+            if (Objects.isNull(entry) || !permitted.contains(name)) {
                 return Mono.error(new SecurityException("Tool unavailable"));
             }
-            if (java.util.Objects.isNull(entry.target().rawCalls())) {
+            if (Objects.isNull(entry.target().rawCalls())) {
                 return Mono.error(new IllegalStateException("Raw MCP result callback required"));
             }
             Map<String, Object> privateArguments = JSON.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { });
@@ -248,27 +249,30 @@ public final class RemoteToolDirectory {
                 .rawCalls()
                 .apply(new McpSchema.CallToolRequest(entry.originalName(), privateArguments))
                 .switchIfEmpty(Mono.error(new IllegalStateException("Missing raw MCP result")))
-                .map(com.fasterxml.jackson.databind.node.ObjectNode::deepCopy);
+                .map(ObjectNode::deepCopy);
         });
     }
 
     public record Entry(Target target, String originalName, McpSchema.Tool metadata) { }
 
-    /** Local targets stay unprefixed; raw callbacks must return native protocol results, not business JSON. */
+    /**
+     * Extension point for native-result local providers, not the production AgentToolProvider adapter.
+     * Local targets stay unprefixed; callbacks must return native protocol results, not business JSON.
+     */
     public static final class LocalTool {
 
         private final McpSchema.Tool definition;
 
-        private final Function<McpSchema.CallToolRequest, Mono<com.fasterxml.jackson.databind.node.ObjectNode>> rawCall;
+        private final Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCall;
 
-        public LocalTool(final McpSchema.Tool definition, final Function<McpSchema.CallToolRequest, Mono<com.fasterxml.jackson.databind.node.ObjectNode>> rawCall) {
+        public LocalTool(final McpSchema.Tool definition, final Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCall) {
             if (
-                java.util.Objects.isNull(definition)
-                || java.util.Objects.isNull(definition.name())
+                Objects.isNull(definition)
+                || Objects.isNull(definition.name())
                     || definition.name().isBlank()
-                    || java.util.Objects.isNull(definition.description())
+                    || Objects.isNull(definition.description())
                     || definition.description().isBlank()
-                    || java.util.Objects.isNull(rawCall)
+                    || Objects.isNull(rawCall)
             ) {
                 throw new IllegalArgumentException("Invalid local tool");
             }
@@ -282,7 +286,7 @@ public final class RemoteToolDirectory {
         String name,
         Function<String, Mono<McpSchema.ListToolsResult>> pages,
         Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
-        Function<McpSchema.CallToolRequest, Mono<com.fasterxml.jackson.databind.node.ObjectNode>> rawCalls
+        Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls
     ) {
         public Target(
             final String name,
@@ -293,7 +297,7 @@ public final class RemoteToolDirectory {
         }
 
         public Target {
-            if (java.util.Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
+            if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid stable server name");
             }
         }

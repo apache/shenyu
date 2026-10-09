@@ -52,17 +52,6 @@ import reactor.core.publisher.Mono;
 public class AgentGatewayPluginConfiguration {
 
     /**
-     * Create the agent gateway plugin.
-     *
-     * @param providers explicitly registered server-side tools
-     * @param resolvers trusted security adapter, missing adapters deny access
-     * @return the plugin
-     */
-    public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers) {
-        return createPlugin(providers, resolvers, null);
-    }
-
-    /**
      * Create a plugin with an optional managed remote catalog.
      * @param providers local providers
      * @param resolvers trusted identity adapters

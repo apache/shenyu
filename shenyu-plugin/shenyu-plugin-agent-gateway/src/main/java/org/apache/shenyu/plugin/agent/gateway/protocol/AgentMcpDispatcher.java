@@ -89,6 +89,11 @@ public final class AgentMcpDispatcher {
             if (error instanceof AgentMcpProtocolException) {
                 return error;
             }
+            if (error instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
+                AgentMcpProtocolException failure = failure(request, 503, -32023, "Remote catalog unavailable");
+                failure.initCause(error);
+                return failure;
+            }
             AgentMcpProtocolException failure = failure(request, 500, -32603, "Internal error");
             failure.initCause(error);
             return failure;

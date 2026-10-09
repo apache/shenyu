@@ -107,13 +107,15 @@ class RequestScopedMcpClientTest {
             }
             List<ObjectNode> results = Flux.range(0, 32).flatMap(index -> call(client, "token-" + index, 0, "subject-" + index)).collectList().block(WAIT);
             assertEquals(32, results.size());
+            assertEquals(32, results.stream().map(result -> result.path("structuredContent").path("token").asText()).distinct().count());
             for (ObjectNode result : results) {
-                assertEquals("subject-" + result.path("structuredContent").path("token").textValue().substring(6), result.path("structuredContent").path("subject").textValue());
+                assertTrue(result.path("structuredContent").path("token").asText().startsWith("token-"));
                 assertEquals("opaque", result.path("_meta").path("Authorization").textValue());
                 assertTrue(result.path("isError").booleanValue());
                 assertTrue(result.has("extension"));
             }
             assertTrue(fixture.requests.stream().allMatch(value -> "Bearer fixed-test-token".equals(value.get("authorization"))));
+            assertTrue(fixture.requests.stream().allMatch(value -> value.get("subjectHeader").isEmpty() && value.get("cookie").isEmpty()));
             client.closeGracefully().block(WAIT);
             assertEquals(1, fixture.deletes);
         }
@@ -129,7 +131,7 @@ class RequestScopedMcpClientTest {
             assertTrue(fixture.delayed.await(2, TimeUnit.SECONDS));
             ObjectNode peer = call(client, "peer", 0, "b").block(WAIT);
             cancelled.dispose();
-            assertEquals("b", peer.path("structuredContent").path("subject").textValue());
+            assertEquals("peer", peer.path("structuredContent").path("token").textValue());
             awaitIdle(client);
             assertEquals(0, fixture.deletes);
             client.closeGracefully().block(WAIT);
@@ -196,6 +198,8 @@ class RequestScopedMcpClientTest {
 
     private static Mono<ObjectNode> call(final RequestScopedMcpClient client, final String token, final int delay, final String subject) {
         return client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", token, "delay", delay)))
+                .transformDeferredContextual((response, context) -> response.doOnNext(ignored ->
+                        assertEquals(subject, ((McpTransportContext) context.get(McpTransportContext.KEY)).get("subject"))))
                 .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("subject", subject))));
     }
 
@@ -240,7 +244,9 @@ class RequestScopedMcpClientTest {
                     }
                     ObjectNode request = (ObjectNode) json.readTree(exchange.getRequestBody());
                     String method = request.path("method").textValue();
-                    requests.add(Map.of("method", method, "authorization", exchange.getRequestHeaders().getFirst("Authorization")));
+                    requests.add(Map.of("method", method, "authorization", exchange.getRequestHeaders().getFirst("Authorization"),
+                            "subjectHeader", java.util.Objects.toString(exchange.getRequestHeaders().getFirst("X-Spike-Subject"), ""),
+                            "cookie", java.util.Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), "")));
                     if ("notifications/initialized".equals(method)) {
                         exchange.sendResponseHeaders(202, -1);
                         return;
@@ -265,8 +271,7 @@ class RequestScopedMcpClientTest {
                             Thread.sleep(delay);
                         }
                         result.putArray("content").addObject().put("type", "text").put("text", "native");
-                        result.putObject("structuredContent").put("token", request.path("params").path("arguments").path("token").textValue())
-                                .put("subject", exchange.getRequestHeaders().getFirst("X-Spike-Subject"));
+                        result.putObject("structuredContent").put("token", request.path("params").path("arguments").path("token").textValue());
                         result.put("isError", true).put("extension", "native-extension");
                         result.putObject("_meta").put("Authorization", "opaque");
                     }
