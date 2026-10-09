@@ -177,7 +177,8 @@ public enum PluginEnum {
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
-     * Logging Tencent cls enums.
+     * Logging Tencent cls compatibility enum.
+     * The implementation moved to the plugin store, but the name and sort are stable API.
      */
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
 
