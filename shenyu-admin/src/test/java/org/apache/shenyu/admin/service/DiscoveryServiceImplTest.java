@@ -24,7 +24,12 @@ import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -50,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -186,5 +192,69 @@ public final class DiscoveryServiceImplTest {
         assertThrows(ShenyuException.class, () -> discoveryService.delete("discovery-1", SYS_DEFAULT_NAMESPACE_ID));
         verify(discoveryMapper, never()).delete(any(), any());
         verify(discoveryProcessor, never()).removeDiscovery(any());
+    }
+
+    @Test
+    public void testImportSkipsRelWhenSelectorMappingMissing() {
+        final ConfigsImportContext context = new ConfigsImportContext();
+        DiscoveryDTO discoveryDTO = buildImportDiscovery();
+        DiscoveryRelDTO rel = new DiscoveryRelDTO();
+        rel.setSelectorId("selector-exported");
+        discoveryDTO.setDiscoveryRel(rel);
+
+        given(discoveryMapper.selectAllByNamespaceId("ns-import")).willReturn(Collections.emptyList());
+        given(discoveryMapper.insert(any(DiscoveryDO.class))).willReturn(1);
+
+        discoveryService.importData("ns-import", Collections.singletonList(discoveryDTO), context);
+
+        verify(discoveryRelMapper, never()).insertSelective(any(DiscoveryRelDO.class));
+    }
+
+    @Test
+    public void testImportSkipsRelWhenProxySelectorMappingMissing() {
+        final ConfigsImportContext context = new ConfigsImportContext();
+        DiscoveryDTO discoveryDTO = buildImportDiscovery();
+        DiscoveryRelDTO rel = new DiscoveryRelDTO();
+        rel.setProxySelectorId("proxy-selector-exported");
+        discoveryDTO.setDiscoveryRel(rel);
+
+        given(discoveryMapper.selectAllByNamespaceId("ns-import")).willReturn(Collections.emptyList());
+        given(discoveryMapper.insert(any(DiscoveryDO.class))).willReturn(1);
+
+        discoveryService.importData("ns-import", Collections.singletonList(discoveryDTO), context);
+
+        verify(discoveryRelMapper, never()).insertSelective(any(DiscoveryRelDO.class));
+    }
+
+    @Test
+    public void testImportRemapsRelReferencesWhenMappingsExist() {
+        final ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("selector-exported", "selector-new");
+        DiscoveryDTO discoveryDTO = buildImportDiscovery();
+        DiscoveryRelDTO rel = new DiscoveryRelDTO();
+        rel.setSelectorId("selector-exported");
+        discoveryDTO.setDiscoveryRel(rel);
+
+        given(discoveryMapper.selectAllByNamespaceId("ns-import")).willReturn(Collections.emptyList());
+        given(discoveryMapper.insert(any(DiscoveryDO.class))).willReturn(1);
+
+        discoveryService.importData("ns-import", Collections.singletonList(discoveryDTO), context);
+
+        ArgumentCaptor<DiscoveryRelDO> relCaptor = ArgumentCaptor.forClass(DiscoveryRelDO.class);
+        verify(discoveryRelMapper).insertSelective(relCaptor.capture());
+        assertEquals("selector-new", relCaptor.getValue().getSelectorId());
+    }
+
+    private DiscoveryDTO buildImportDiscovery() {
+        DiscoveryDTO discoveryDTO = new DiscoveryDTO();
+        discoveryDTO.setName("discovery-import");
+        discoveryDTO.setPluginName("tcp");
+        discoveryDTO.setType("local");
+        DiscoveryHandlerDTO handlerDTO = new DiscoveryHandlerDTO();
+        handlerDTO.setId("handler-exported");
+        handlerDTO.setListenerNode("/shenyu/discovery");
+        handlerDTO.setHandler("");
+        discoveryDTO.setDiscoveryHandler(handlerDTO);
+        return discoveryDTO;
     }
 }

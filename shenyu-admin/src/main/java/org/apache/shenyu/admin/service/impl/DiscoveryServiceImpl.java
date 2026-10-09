@@ -532,12 +532,24 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryRel());
                 discoveryRelDO.setDiscoveryHandlerId(discoveryHandlerId);
-                Optional.ofNullable(discoveryRelDO.getSelectorId())
-                                .ifPresent(selectorId -> discoveryRelDO.setSelectorId(context.getSelectorIdMapping().get(selectorId)));
-                Optional.ofNullable(discoveryRelDO.getProxySelectorId())
-                        .ifPresent(proxySelectorId -> discoveryRelDO.setProxySelectorId(context.getProxySelectorIdMapping().get(proxySelectorId)));
-                discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                discoveryRelMapper.insertSelective(discoveryRelDO);
+                String remappedSelectorId = Optional.ofNullable(discoveryRelDO.getSelectorId())
+                        .map(context.getSelectorIdMapping()::get)
+                        .orElse(null);
+                String remappedProxySelectorId = Optional.ofNullable(discoveryRelDO.getProxySelectorId())
+                        .map(context.getProxySelectorIdMapping()::get)
+                        .orElse(null);
+                boolean selectorReferenceLost = Objects.nonNull(discoveryRelDO.getSelectorId()) && Objects.isNull(remappedSelectorId);
+                boolean proxySelectorReferenceLost = Objects.nonNull(discoveryRelDO.getProxySelectorId()) && Objects.isNull(remappedProxySelectorId);
+                if (Objects.isNull(discoveryHandlerId) || selectorReferenceLost || proxySelectorReferenceLost) {
+                    // the relation's target was not imported into this namespace; skip it instead
+                    // of persisting a row whose selector/proxy-selector reference was nulled by remapping
+                    LOG.warn("skip discovery rel of discovery [{}]: referenced selector/proxy selector was not imported", discoveryName);
+                } else {
+                    discoveryRelDO.setSelectorId(remappedSelectorId);
+                    discoveryRelDO.setProxySelectorId(remappedProxySelectorId);
+                    discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                    discoveryRelMapper.insertSelective(discoveryRelDO);
+                }
             }
         }
         
