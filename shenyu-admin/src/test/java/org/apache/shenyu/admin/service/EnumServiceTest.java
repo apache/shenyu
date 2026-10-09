@@ -93,7 +93,7 @@ public final class EnumServiceTest {
     private static Stream<String> nonNullEleKeys() {
         return Stream.of("httpMethodEnums", "loadBalanceEnums", "matchModeEnums", "operatorEnums", "paramTypeEnums",
                 "pluginEnums", "pluginTypeEnums", "rpcTypeEnums", "selectorTypeEnums", "serializeEnums", "wafEnums",
-                "redisModeEnums", "hystrixIsolationModeEnums");
+                "redisModeEnums");
     }
 
     private static Stream<String> nullEleCodeKeys() {
@@ -103,7 +103,7 @@ public final class EnumServiceTest {
 
     private static Stream<String> supportEleCodeKeys() {
         return Stream.of("loadBalanceEnums", "matchModeEnums", "pluginEnums", "pluginTypeEnums", "selectorTypeEnums",
-                "serializeEnums", "wafEnums", "redisModeEnums", "hystrixIsolationModeEnums");
+                "serializeEnums", "wafEnums", "redisModeEnums");
     }
 
 }

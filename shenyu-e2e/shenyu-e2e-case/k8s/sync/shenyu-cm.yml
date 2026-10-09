@@ -400,7 +400,6 @@ data:
       fallback:
         enabled: false
         paths:
-          - /fallback/hystrix
           - /fallback/resilience4j
           - /fallback/sentinel
       health:

@@ -166,8 +166,9 @@ public class InstanceCheckService {
                     instance.setInstanceState(InstanceStatusEnum.DELETED.getCode());
                 }
             }
-            collectStateData();
         });
+        // sample the aggregated state once per scheduled cycle, after all instances are updated
+        collectStateData();
     }
 
     public void syncDB() {
