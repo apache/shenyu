@@ -67,8 +67,7 @@ public enum Plugin {
     LOGGING_KAFKA("loggingKafka", 33),
     LOGGING_TENCENT_CLS("loggingTencentCls", 36),
     LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
-    BRPC("brpc", 41),
-    LOGGINGRABBITMQ("loggingRabbitMQ", 45),;
+    BRPC("brpc", 41);
 
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;

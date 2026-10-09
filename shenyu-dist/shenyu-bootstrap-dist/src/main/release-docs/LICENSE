@@ -610,7 +610,6 @@ The text of each license is the standard Apache 2.0 license.
     client-java-spring-integration 17.0.2: https://github.com/kubernetes-client/java, Apache 2.0
     kotlin-stdlib 1.9.24 https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.9.24 https://kotlinlang.org, Apache 2.0
-    amqp-client 5.21.0: https://www.rabbitmq.com/api-guide.html#license, Apache 2.0
     hessian-lite 3.2.13: https://github.com/apache/dubbo-hessian-lite, Apache 2.0
     javatuples 1.2: https://mvnrepository.com/artifact/org.javatuples/javatuples, Apache 2.0
     wasi-cap-std-sync 7.0.0: https://github.com/bytecodealliance/wasmtime, Apache 2.0
