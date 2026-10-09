@@ -635,10 +635,6 @@ The text of each license is the standard Apache 2.0 license.
     jsonschema-module-jackson 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     jsonschema-module-swagger-2 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     json-schema-validator 2.0.0: https://github.com/networknt/json-schema-validator, Apache 2.0
-    motan-core 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-springsupport 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, Apache 2.0
     swagger-annotations-jakarta 2.2.38: https://github.com/swagger-api/swagger-core, Apache 2.0
     dubbo-dependencies-zookeeper 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     kafka-clients 3.9.2: https://kafka.apache.org, Apache 2.0
