@@ -402,6 +402,17 @@ class ProxySelectorServiceTest {
     }
 
     @Test
+    void testListAllDataKeepsNamespaceId() {
+        ProxySelectorDO proxySelectorDO = buildProxySelectorDO();
+        proxySelectorDO.setNamespaceId("ns-1");
+        given(proxySelectorMapper.selectAll()).willReturn(Collections.singletonList(proxySelectorDO));
+
+        List<ProxySelectorVO> selectorVOList = proxySelectorService.listAllData();
+
+        assertEquals("ns-1", selectorVOList.get(0).getNamespaceId());
+    }
+
+    @Test
     void testImportData() {
         final List<ProxySelectorDO> selectorDOs = Collections.singletonList(buildProxySelectorDO());
         given(this.proxySelectorMapper.selectAll()).willReturn(selectorDOs);
