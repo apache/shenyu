@@ -17,12 +17,16 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -93,6 +97,21 @@ public final class PredicateJudgeFactoryTest {
         conditionData.setParamValue("[/a-zA-Z0-9]+");
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http?/test"));
+    }
+
+    @Test
+    public void testRegexPatternIsCached() throws ReflectiveOperationException {
+        Field cacheField = RegexPredicateJudge.class.getDeclaredField("PATTERN_CACHE");
+        cacheField.setAccessible(true);
+        Cache<?, ?> cache = (Cache<?, ?>) cacheField.get(null);
+        cache.invalidateAll();
+        conditionData.setOperator(OperatorEnum.REGEX.getAlias());
+        conditionData.setParamValue("[/a-zA-Z0-9]+");
+
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
+
+        assertEquals(1, cache.estimatedSize());
     }
 
     @Test
