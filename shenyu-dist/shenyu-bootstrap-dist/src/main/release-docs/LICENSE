@@ -313,9 +313,6 @@ The text of each license is the standard Apache 2.0 license.
     httpcore5-h2 5.2.4: https://hc.apache.org/httpcomponents-core-5.0.x, Apache 2.0
     httpcore-nio 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
     httpmime 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
-    hystrix-core 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
-    hystrix-metrics-event-stream 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
-    hystrix-serialization 1.5.18: https://github.com/Netflix/Hystrix, Apache 2.0
     j2objc-annotations 2.8 https://github.com/google/j2objc, Apache 2.0
     jackson-annotations 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-core 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
@@ -601,8 +598,6 @@ The text of each license is the standard Apache 2.0 license.
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
     elasticsearch-java 8.13.4: https://github.com/elastic/elasticsearch-java, Apache 2.0
     elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
-    aliyun-log 0.6.57: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
-    aliyun-log-producer 0.3.10: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
     tencentcloud-cls-sdk-java 1.0.14: https://github.com/TencentCloud/tencentcloud-cls-sdk-java, Apache 2.0
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0
@@ -631,10 +626,6 @@ The text of each license is the standard Apache 2.0 license.
     jsonschema-module-jackson 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     jsonschema-module-swagger-2 4.38.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     json-schema-validator 2.0.0: https://github.com/networknt/json-schema-validator, Apache 2.0
-    motan-core 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-registry-zookeeper 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-springsupport 1.2.1: https://github.com/weibocom/motan, Apache 2.0
-    motan-transport-netty4 1.2.1: https://github.com/weibocom/motan, Apache 2.0
     swagger-annotations-jakarta 2.2.38: https://github.com/swagger-api/swagger-core, Apache 2.0
     dubbo-dependencies-zookeeper 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     kafka-clients 3.9.2: https://kafka.apache.org, Apache 2.0

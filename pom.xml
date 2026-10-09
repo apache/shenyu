@@ -178,7 +178,6 @@
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
-        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
         <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
@@ -797,8 +796,10 @@
                         <exclude>**/logs/**</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.tar.gz</exclude>
-                        <exclude>**/spring.factories</exclude>
-                        <exclude>**/spring.provides</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.factories</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.provides</exclude>
+                        <exclude>shenyu-examples/**/spring.factories</exclude>
+                        <exclude>shenyu-examples/**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
                         <exclude>**/*.json</exclude>
                         <!-- IDE files -->

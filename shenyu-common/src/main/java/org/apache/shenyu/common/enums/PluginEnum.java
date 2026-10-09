@@ -169,9 +169,10 @@ public enum PluginEnum {
      * Logging Rabbitmq plugin enum.
      */
     LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
-    
+
     /**
-     * Logging AliYun sls enums.
+     * Logging Aliyun sls compatibility enum.
+     * The implementation moved to the plugin store, but the name and sort are stable API.
      */
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
