@@ -92,6 +92,7 @@
         <if test="instanceType != null and instanceType != ''">
             AND instance_type = #{instanceType}
         </if>
+        ORDER BY date_created DESC, id ASC
     </select>
     
     <select id="selectById" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">

@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
@@ -37,7 +39,7 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.namespace.NamespaceCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
@@ -125,10 +127,16 @@ public class NamespaceServiceImpl implements NamespaceService {
             return new CommonPager<>();
         }
         namespaceQuery.setNamespaceIds(namespaceIds);
-        return PageResultUtils.result(namespaceQuery.getPageParameter(), () -> namespaceMapper.countByQuery(namespaceQuery), () -> namespaceMapper.selectByQuery(namespaceQuery)
-                .stream()
-                .map(NamespaceTransfer.INSTANCE::mapToVo)
-                .collect(Collectors.toList()));
+        PageParameter pageParameter = namespaceQuery.getPageParameter();
+        // Start pagination only after resolving namespace permissions.
+        PageHelper.startPage(pageParameter.getCurrentPage(), pageParameter.getPageSize());
+        try {
+            PageInfo<NamespaceDO> page = new PageInfo<>(namespaceMapper.selectByQuery(namespaceQuery));
+            return new CommonPager<>(new PageParameter(page.getPageNum(), page.getPageSize(), (int) page.getTotal()),
+                    page.getList().stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList()));
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 
     @Override

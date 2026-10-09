@@ -207,6 +207,7 @@
                 </foreach>
             </if>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="selectByNamespaceIds" parameterType="java.util.List" resultMap="BaseResultMap">
