@@ -91,9 +91,15 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             if (update.sequence() != revision.get()) {
                 return Mono.empty();
             }
-            return reload(update.source()).doOnSuccess(ignored -> lastFailure = "").onErrorResume(error -> {
-                lastFailure = error.getClass().getSimpleName();
-                LOG.warn("Agent MCP configuration update rejected ({})", lastFailure);
+            return reload(update.source(), () -> !closed && update.sequence() == revision.get()).doOnSuccess(version -> {
+                if (java.util.Objects.nonNull(version) && update.sequence() == revision.get()) {
+                    lastFailure = "";
+                }
+            }).onErrorResume(error -> {
+                if (update.sequence() == revision.get()) {
+                    lastFailure = error.getClass().getSimpleName();
+                }
+                LOG.warn("Agent MCP configuration update rejected ({})", error.getClass().getSimpleName());
                 return Mono.empty();
             });
         });
@@ -104,11 +110,11 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param plugin authoritative plugin data
      */
     public synchronized void accept(final PluginData plugin) {
+        long sequence = revision.incrementAndGet();
         boolean enabled = Boolean.TRUE.equals(plugin.getEnabled());
         if (!enabled) {
             lifecycle.withdraw();
         }
-        long sequence = revision.incrementAndGet();
         String source = enabled && java.util.Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
         if (source.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 16384) {
             lifecycle.withdraw();
@@ -130,6 +136,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @return published directory generation
      */
     public Mono<Long> reload(final String source) {
+        return reload(source, () -> !closed);
+    }
+
+    private Mono<Long> reload(final String source, final java.util.function.BooleanSupplier valid) {
         return Mono.defer(() -> {
             AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
@@ -137,7 +147,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 RemoteServerBinding.Config reference = new RemoteServerBinding.Config(server.name(), server.endpoint(), server.credentialRef(), server.credentialVersion());
                 targets.add(RemoteServerBinding.resolve(reference, allowedEndpoints, credentials::resolve).lifecycleConfig());
             }
-            return lifecycle.refresh(targets, List.of(), localNames);
+            return lifecycle.refresh(targets, List.of(), localNames, valid);
         });
     }
 

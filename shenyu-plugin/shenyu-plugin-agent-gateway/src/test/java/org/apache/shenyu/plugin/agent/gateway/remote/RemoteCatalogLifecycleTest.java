@@ -42,6 +42,33 @@ class RemoteCatalogLifecycleTest {
     private static final Set<String> TOOLS = Set.of("orders.lookup", "orders.lookup.detail");
 
     @Test
+    void staleControlUpdateDoesNotAllocateGenerationOrClient() {
+        Fake client = new Fake("stale");
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        assertEquals(null, manager.refresh(List.of(config(client)), List.of(), Set.of(), () -> false).block(WAIT));
+        assertEquals(0L, manager.diagnostics().get("currentVersion"));
+        assertEquals(0, manager.diagnostics().get("clients"));
+        assertEquals(0, client.closes.get());
+        manager.closeGracefully().block(WAIT);
+    }
+
+    @Test
+    void supersededControlUpdateCannotPublishAfterHandshakeCompletes() {
+        Fake client = new Fake("superseded");
+        client.handshake = Sinks.one();
+        java.util.concurrent.atomic.AtomicBoolean valid = new java.util.concurrent.atomic.AtomicBoolean(true);
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        var update = manager.refresh(List.of(config(client)), List.of(), Set.of(), valid::get).toFuture();
+        valid.set(false);
+        client.handshake.tryEmitValue(client.info());
+        assertThrows(RuntimeException.class, () -> Mono.fromFuture(update).block(WAIT));
+        assertEquals(0L, manager.diagnostics().get("currentVersion"));
+        assertEquals(0, manager.diagnostics().get("clients"));
+        assertEquals(1, client.closes.get());
+        manager.closeGracefully().block(WAIT);
+    }
+
+    @Test
     void discoversCompletePagesAndUsesOriginalDottedName() {
         Fake client = new Fake("one");
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);

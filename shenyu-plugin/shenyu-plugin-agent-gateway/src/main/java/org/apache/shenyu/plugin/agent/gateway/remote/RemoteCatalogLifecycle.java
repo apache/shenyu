@@ -90,6 +90,11 @@ public final class RemoteCatalogLifecycle {
      * @return published generation
      */
     public Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames) {
+        return refresh(source, locals, reservedNames, () -> true);
+    }
+
+    Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames,
+                       final java.util.function.BooleanSupplier valid) {
         List<Config> configs = List.copyOf(source);
         List<RemoteToolDirectory.LocalTool> localSnapshot = List.copyOf(locals);
         Set<String> reserved = Set.copyOf(reservedNames);
@@ -97,7 +102,7 @@ public final class RemoteCatalogLifecycle {
             return Mono.error(new IllegalArgumentException("Invalid or duplicate target configuration"));
         }
         return Mono.usingWhen(
-            Mono.fromCallable(this::reserve),
+            Mono.fromCallable(() -> reserve(valid)),
             candidate ->
                 closeIdle()
                     .then(build(candidate, configs))
@@ -111,7 +116,7 @@ public final class RemoteCatalogLifecycle {
                     .timeout(Duration.ofSeconds(5))
                     .map(directory -> {
                         synchronized (lock) {
-                            if (closed || candidate.retired) {
+                            if (closed || candidate.retired || !valid.getAsBoolean()) {
                                 throw new IllegalStateException("Closed or withdrawn during refresh");
                             }
                             candidate.directory = directory;
@@ -125,8 +130,12 @@ public final class RemoteCatalogLifecycle {
         );
     }
 
-    private Generation reserve() {
+    private Generation reserve(final java.util.function.BooleanSupplier valid) {
         synchronized (lock) {
+            // Recheck after credential resolution, atomically with generation allocation.
+            if (!valid.getAsBoolean()) {
+                return null;
+            }
             if (closed || java.util.Objects.nonNull(updatingGeneration) || !cleanupFailures.isEmpty() || generations.size() >= maxGenerations) {
                 throw new IllegalStateException("Closed, update in progress, or generation budget exhausted");
             }

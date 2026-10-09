@@ -33,6 +33,85 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManagedRemoteMcpCatalogTest {
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void withdrawnDuringSuccessfulCredentialResolutionDoesNotStartRemoteHandshake(final boolean emptyConfiguration) throws Exception {
+        final CountDownLatch entered = new CountDownLatch(1);
+        final CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger handshakes = new AtomicInteger();
+        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/ready", exchange -> {
+            exchange.sendResponseHeaders(204, -1);
+            exchange.close();
+        });
+        server.createContext("/mcp", exchange -> {
+            try {
+                if ("DELETE".equals(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(204, -1);
+                    return;
+                }
+                var json = new com.fasterxml.jackson.databind.ObjectMapper();
+                var request = json.readTree(exchange.getRequestBody());
+                if ("notifications/initialized".equals(request.path("method").asText())) {
+                    exchange.sendResponseHeaders(202, -1);
+                    return;
+                }
+                var result = json.createObjectNode();
+                if ("initialize".equals(request.path("method").asText())) {
+                    handshakes.incrementAndGet();
+                    result.put("protocolVersion", "2025-06-18");
+                    result.putObject("capabilities").putObject("tools");
+                    result.putObject("serverInfo").put("name", "fixture").put("version", "1");
+                } else {
+                    result.putArray("tools");
+                }
+                var envelope = json.createObjectNode().put("jsonrpc", "2.0");
+                envelope.set("id", request.get("id"));
+                envelope.set("result", result);
+                byte[] bytes = json.writeValueAsBytes(envelope);
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, bytes.length);
+                exchange.getResponseBody().write(bytes);
+            } finally {
+                exchange.close();
+            }
+        });
+        server.start();
+        URI endpoint = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
+        warmFixture(endpoint);
+        handshakes.set(0);
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(endpoint), Set.of(), target -> {
+            entered.countDown();
+            try {
+                assertTrue(release.await(10, TimeUnit.SECONDS));
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted fixture resolver");
+            }
+            return new RemoteServerBinding.Credential(target, "fixed-test-token");
+        });
+        try {
+            catalog.accept(event(true, config().replace("https://192.0.2.10:443/mcp", endpoint.toString())));
+            assertTrue(entered.await(5, TimeUnit.SECONDS));
+            catalog.accept(event(emptyConfiguration, "{}"));
+            release.countDown();
+            await(() -> (long) catalog.diagnostics().get("currentVersion") > 1L);
+            assertEquals(0, handshakes.get(), "A superseded enable event must not allocate or initialize a remote client");
+            assertEquals(0, catalog.diagnostics().get("clients"));
+            long disabledVersion = (long) catalog.diagnostics().get("currentVersion");
+            catalog.accept(event(true, config().replace("https://192.0.2.10:443/mcp", endpoint.toString())));
+            await(() -> (long) catalog.diagnostics().get("currentVersion") > disabledVersion);
+            assertEquals(1, handshakes.get(), "A fresh explicit enable must still discover the remote directory");
+            catalog.accept(event(false, "{}"));
+            await(() -> (long) catalog.diagnostics().get("currentVersion") > disabledVersion + 1L);
+            assertEquals(0, catalog.diagnostics().get("clients"));
+        } finally {
+            release.countDown();
+            catalog.closeAsync().block(Duration.ofSeconds(5));
+            server.stop(0);
+        }
+    }
+
     @Test
     void resolvesCredentialsOnOwnedWorkerAndDropsSupersededEnableEvents() throws Exception {
         CountDownLatch entered = new CountDownLatch(1);
@@ -101,6 +180,23 @@ class ManagedRemoteMcpCatalogTest {
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
+        }
+    }
+
+    private static void warmFixture(final URI endpoint) throws Exception {
+        // Warm fixture transport and protocol classes before measuring control-update behavior.
+        var ready = java.net.http.HttpRequest.newBuilder(endpoint.resolve("/ready")).timeout(Duration.ofSeconds(30)).GET().build();
+        assertEquals(204, java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()
+                .send(ready, java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+        var reference = new RemoteServerBinding.Config("orders", endpoint, "service/orders", "v1");
+        var warmup = RemoteServerBinding.resolve(reference, Set.of(endpoint), target -> new RemoteServerBinding.Credential(target, "fixed-test-token")).newClient();
+        try {
+            warmup.initialize().then(warmup.listTools(null))
+                    .contextWrite(context -> context.put(io.modelcontextprotocol.common.McpTransportContext.KEY,
+                            io.modelcontextprotocol.common.McpTransportContext.create(java.util.Map.of("deadline", java.time.Instant.now().plusSeconds(30)))))
+                    .block(Duration.ofSeconds(30));
+        } finally {
+            warmup.closeGracefully().block(Duration.ofSeconds(5));
         }
     }
 
