@@ -52,7 +52,7 @@ public enum AlertTransfer {
                     alertReceiverDO.setDiscordChannelId(alertReceiverDTO.getDiscordChannelId());
                     alertReceiverDO.setEmail(alertReceiverDTO.getEmail());
                     alertReceiverDO.setWechatId(alertReceiverDTO.getWechatId());
-                    alertReceiverDO.setEnable(alertReceiverDTO.isEnable());
+                    alertReceiverDO.setEnable(alertReceiverDTO.getEnable());
                     alertReceiverDO.setHookUrl(alertReceiverDTO.getHookUrl());
                     alertReceiverDO.setType(alertReceiverDTO.getType());
                     alertReceiverDO.setLabels(alertReceiverDTO.getLabels());
@@ -65,7 +65,7 @@ public enum AlertTransfer {
                     alertReceiverDO.setSmnTopicUrn(alertReceiverDTO.getSmnTopicUrn());
                     alertReceiverDO.setSmnRegion(alertReceiverDTO.getSmnRegion());
                     alertReceiverDO.setPhone(alertReceiverDTO.getPhone());
-                    alertReceiverDO.setMatchAll(alertReceiverDTO.isMatchAll());
+                    alertReceiverDO.setMatchAll(alertReceiverDTO.getMatchAll());
                     alertReceiverDO.setSlackWebHookUrl(alertReceiverDTO.getSlackWebHookUrl());
                     alertReceiverDO.setNamespaceId(alertReceiverDTO.getNamespaceId());
                     alertReceiverDO.setDateCreated(alertReceiverDTO.getDateCreated());
@@ -95,7 +95,7 @@ public enum AlertTransfer {
                     alertReceiverDTO.setDiscordChannelId(alertReceiverDO.getDiscordChannelId());
                     alertReceiverDTO.setEmail(alertReceiverDO.getEmail());
                     alertReceiverDTO.setWechatId(alertReceiverDO.getWechatId());
-                    alertReceiverDTO.setEnable(alertReceiverDO.isEnable());
+                    alertReceiverDTO.setEnable(alertReceiverDO.getEnable());
                     alertReceiverDTO.setHookUrl(alertReceiverDO.getHookUrl());
                     alertReceiverDTO.setType(alertReceiverDO.getType());
                     alertReceiverDTO.setLabels(alertReceiverDO.getLabels());
@@ -108,7 +108,7 @@ public enum AlertTransfer {
                     alertReceiverDTO.setSmnTopicUrn(alertReceiverDO.getSmnTopicUrn());
                     alertReceiverDTO.setSmnRegion(alertReceiverDO.getSmnRegion());
                     alertReceiverDTO.setPhone(alertReceiverDO.getPhone());
-                    alertReceiverDTO.setMatchAll(alertReceiverDO.isMatchAll());
+                    alertReceiverDTO.setMatchAll(alertReceiverDO.getMatchAll());
                     alertReceiverDTO.setSlackWebHookUrl(alertReceiverDO.getSlackWebHookUrl());
                     alertReceiverDTO.setDateCreated(alertReceiverDO.getDateCreated());
                     alertReceiverDTO.setDateUpdated(alertReceiverDO.getDateUpdated());
