@@ -38,8 +38,10 @@ import org.mockito.quality.Strictness;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -147,5 +149,20 @@ public final class ApacheDubboPluginTest {
         stringStringMap.put("test", "test");
         apacheDubboPlugin.transmitRpcContext(stringStringMap);
         assertEquals(RpcContext.getContext().getAttachment("test"), "test");
+    }
+
+    @Test
+    public void testMissingRuleHandleUsesDefault() {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress("127.0.0.1", 8080)).build());
+        ApacheDubboProxyService proxyService = mock(ApacheDubboProxyService.class);
+        apacheDubboPlugin = new ApacheDubboPlugin(proxyService);
+        SelectorData selectorData = SelectorData.builder().id("selector").build();
+        RuleData ruleData = RuleData.builder().id("missing-rule-handle").build();
+        when(proxyService.genericInvoker("", metaData, selectorData, ruleData, exchange)).thenReturn(Mono.just("result"));
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(apacheDubboPlugin.doDubboInvoker(exchange, chain, selectorData, ruleData, metaData, ""))
+                .verifyComplete();
     }
 }
