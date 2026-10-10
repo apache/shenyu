@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -39,6 +40,7 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.impl.ProxySelectorServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +51,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -102,11 +107,14 @@ class ProxySelectorServiceTest {
     @Mock
     private DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @BeforeEach
     void testSetUp() {
 
         proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, discoveryMapper, discoveryUpstreamMapper,
-                discoveryHandlerMapper, discoveryRelMapper, selectorMapper, discoveryProcessorHolder);
+                discoveryHandlerMapper, discoveryRelMapper, selectorMapper, discoveryProcessorHolder, eventPublisher);
     }
 
     @Test
@@ -246,14 +254,17 @@ class ProxySelectorServiceTest {
         assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.CREATE_SUCCESS);
     }
 
-    @Test
-    void testUpdateWithNullDiscoveryUpstreams() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testUpdatePublishesListenerConfigurationAfterCommit(final boolean commit) {
 
         ProxySelectorAddDTO proxySelectorDTO = new ProxySelectorAddDTO();
         proxySelectorDTO.setId("proxy-1");
         proxySelectorDTO.setName("test");
-        proxySelectorDTO.setPluginName("test");
+        proxySelectorDTO.setPluginName("tcp");
         proxySelectorDTO.setForwardPort(8080);
+        proxySelectorDTO.setNamespaceId("namespace-1");
+        proxySelectorDTO.setProps("{\"loadBalance\":\"roundRobin\"}");
         proxySelectorDTO.setDiscovery(new ProxySelectorAddDTO.Discovery());
 
         DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
@@ -273,8 +284,30 @@ class ProxySelectorServiceTest {
         given(discoveryProcessorHolder.chooseProcessor("local")).willReturn(discoveryProcessor);
         given(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).willReturn(Collections.emptyList());
 
-        assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
-        verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            assertEquals(proxySelectorService.update(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
+            verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+            verifyNoInteractions(eventPublisher);
+            int status = commit ? TransactionSynchronization.STATUS_COMMITTED : TransactionSynchronization.STATUS_ROLLED_BACK;
+            TransactionSynchronizationManager.getSynchronizations().forEach(synchronization -> synchronization.afterCompletion(status));
+            if (!commit) {
+                verifyNoInteractions(eventPublisher);
+                return;
+            }
+            ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+            verify(eventPublisher).publishEvent(captor.capture());
+            DataChangedEvent event = captor.getValue();
+            assertEquals(ConfigGroupEnum.PROXY_SELECTOR, event.getGroupKey());
+            List<?> payload = (List<?>) event.getSource();
+            assertEquals(1, payload.size());
+            ProxySelectorData data = (ProxySelectorData) payload.get(0);
+            assertEquals("test", data.getName());
+            assertEquals(8080, data.getForwardPort());
+            assertEquals("roundRobin", data.getProps().getProperty("loadBalance"));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     @ParameterizedTest
