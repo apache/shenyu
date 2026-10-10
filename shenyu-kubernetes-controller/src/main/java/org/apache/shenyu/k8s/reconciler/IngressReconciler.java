@@ -60,7 +60,9 @@ import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.IngressUtils;
 import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
+import org.apache.shenyu.k8s.parser.IngressPluginDefinition;
 import org.apache.shenyu.k8s.parser.IngressParser;
+import org.apache.shenyu.k8s.parser.EndpointsUnavailableException;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -166,29 +169,28 @@ public class IngressReconciler implements Reconciler {
             return new Result(false);
         }
         Map<String, String> annotations = getAnnotations(v1Ingress);
-        enablePluginsBasedOnAnnotations(annotations, request);
+        enablePluginsBasedOnAnnotations(v1Ingress, annotations, request);
 
         if (!checkIngressClass(v1Ingress)) {
             LOG.info("IngressClass is not match {}", request);
             return new Result(false);
         }
 
-        if (Objects.isNull(oldIngress)) {
+        if (Objects.isNull(oldIngress) || needUpdate(oldIngress, v1Ingress)) {
             try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
+                // Resolve all backends before replacing the last successfully applied configuration.
+                V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
+                List<ShenyuMemoryConfig> configs = ingressParser.parse(ingressCopy, new CoreV1Api(apiClient));
+                if (Objects.nonNull(oldIngress)) {
+                    doDeleteConfigByIngress(request, oldIngress);
+                }
+                addNewIngressConfigToShenyu(v1Ingress, configs);
+            } catch (EndpointsUnavailableException e) {
+                LOG.info("Retry ingress {}: {}", request, e.getMessage());
+                return new Result(true);
             } catch (IOException e) {
                 LOG.error("add new ingress config error", e);
-            }
-        } else if (needUpdate(oldIngress, v1Ingress)) {
-            // Update logic
-            // 1. clean old config
-            doDeleteConfigByIngress(request, oldIngress);
-
-            // 2. add new config
-            try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
-            } catch (IOException e) {
-                LOG.error("add new ingress config error", e);
+                return new Result(true);
             }
         }
         IngressCache.getInstance().put(request.getNamespace(), request.getName(), v1Ingress);
@@ -208,8 +210,14 @@ public class IngressReconciler implements Reconciler {
         return new Result(false);
     }
 
-    private void enablePluginsBasedOnAnnotations(final Map<String, String> annotations, final Request request) {
-        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+    private void enablePluginsBasedOnAnnotations(final V1Ingress ingress, final Map<String, String> annotations, final Request request) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(ingress);
+        if (pluginDefinition.isPresent()) {
+            PluginData pluginData = pluginDefinition.get().pluginData(ingress, request, ingressParser.getEndpointsLister());
+            if (Objects.nonNull(pluginData)) {
+                shenyuCacheRepository.saveOrUpdatePluginData(pluginData);
+            }
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             String zookeeperUrl = getZookeeperUrl(annotations, request);
             enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, zookeeperUrl);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
@@ -225,7 +233,12 @@ public class IngressReconciler implements Reconciler {
     private void doDeleteConfigByIngress(final Request request, final V1Ingress oldIngress) {
         final Map<String, String> annotations = getAnnotations(oldIngress);
         List<String> selectorList = new ArrayList<>();
-        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(oldIngress);
+        if (pluginDefinition.isPresent()) {
+            List<String> metadataPaths = ingressParser.findMetadataPaths(pluginDefinition.get(), oldIngress);
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), pluginDefinition.get().pluginName(),
+                    metadataPaths);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
                     annotations.get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
@@ -239,7 +252,9 @@ public class IngressReconciler implements Reconciler {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
-            if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            if (pluginDefinition.isPresent()) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), pluginDefinition.get().pluginName());
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
             } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
@@ -369,18 +384,27 @@ public class IngressReconciler implements Reconciler {
 
     private List<String> deleteSelectorByIngressName(final String namespace, final String name,
                                                      final String pluginName, final String path) {
+        List<String> metadataPaths = Objects.isNull(path) || path.isEmpty() ? Collections.emptyList() : Collections.singletonList(path);
+        return deleteSelectorByIngressName(namespace, name, pluginName, metadataPaths);
+    }
+
+    private List<String> deleteSelectorByIngressName(final String namespace, final String name,
+                                                     final String pluginName, final List<String> paths) {
         final List<String> selectorList = IngressSelectorCache.getInstance().get(namespace, name, pluginName);
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
+            Set<String> metadataPaths = new LinkedHashSet<>(CollectionUtils.emptyIfNull(paths));
             for (String selectorId : selectorList) {
                 List<RuleData> ruleList = shenyuCacheRepository.findRuleDataList(selectorId);
                 // To avoid ConcurrentModificationException, copy the ruleId to list
                 List<String> ruleIdList = new ArrayList<>();
                 ruleList.forEach(rule -> ruleIdList.add(rule.getId()));
-                for (String id : ruleIdList) {
+                for (String path : metadataPaths) {
                     MetaData metaData = shenyuCacheRepository.findMetaData(path);
                     if (Objects.nonNull(metaData)) {
                         shenyuCacheRepository.deleteMetaData(metaData);
                     }
+                }
+                for (String id : ruleIdList) {
                     shenyuCacheRepository.deleteRuleData(pluginName, selectorId, id);
                 }
                 shenyuCacheRepository.deleteSelectorData(pluginName, selectorId);
@@ -445,10 +469,8 @@ public class IngressReconciler implements Reconciler {
         return !oldIngress.equals(currentIngress);
     }
 
-    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final CoreV1Api apiClient) throws IOException {
-        V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
-        List<ShenyuMemoryConfig> shenyuMemoryConfigList = ingressParser.parse(ingressCopy, apiClient);
-        String pluginName = getPluginName(ingressCopy);
+    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList) throws IOException {
+        String pluginName = getPluginName(v1Ingress);
 
         for (ShenyuMemoryConfig shenyuMemoryConfig : shenyuMemoryConfigList) {
             if (Objects.nonNull(shenyuMemoryConfig)) {
@@ -714,6 +736,10 @@ public class IngressReconciler implements Reconciler {
     }
 
     private String getPluginName(final V1Ingress ingress) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(ingress);
+        if (pluginDefinition.isPresent()) {
+            return pluginDefinition.get().pluginName();
+        }
         Map<String, String> annotations = getAnnotations(ingress);
         String pluginName;
         String pluginDubboEnabled = annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED);

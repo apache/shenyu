@@ -276,6 +276,46 @@ the request body, credentials, response content, or mutable plugin-chain state.
 Each subscription gets its own context. The same exchange should not be
 subscribed concurrently, because exchange attributes are shared by that request.
 
+## Tool call metrics
+
+When the existing ShenYu Metrics plugin runs before Agent Gateway, it installs
+a server-side terminal callback. No new exporter, endpoint, dependency or Admin
+configuration is required. Without that plugin, calls behave as before and no
+MCP statistics are recorded.
+
+`shenyu_agent_mcp_calls_total{outcome}` counts one logical call per subscription,
+starting only after authentication and valid `tools/call` parsing. It includes
+subsequent authorization/argument rejection, not just provider invocations.
+Discovery, listing, malformed input and pre-authentication refusals remain in
+the existing HTTP metrics; they are not tool calls. Retries and upstream attempts
+are not introduced or counted separately.
+
+The six fixed outcomes are `success`, `tool_error` (including invalid tool
+arguments reported as MCP `isError=true`), `rejected`, `server_error`, `timeout`
+and `cancelled`. A result computed by a tool is not a successful call until its
+response write completes. Encoding/write failures count as `server_error`;
+deadline expiry and downstream cancellation are distinct. Each subscription
+records at most one terminal event, even with repeated RPC ids or late signals.
+
+`shenyu_agent_mcp_call_latency_millis{outcome}` uses monotonic elapsed time from
+validated parsing through the terminal response write/error/cancellation. Its
+`_sum` and `_count` can be used for mean latency in milliseconds. This first
+version reuses the existing histogram registration/buckets; it does not claim
+a new percentile policy. No subject, tool name, RPC/request id, configuration
+version, arguments or response body is a metric label.
+
+For a time window, the logical-call failure ratio is
+`(tool_error + server_error + timeout) / (success + tool_error + server_error + timeout)`.
+Use rates/increases of the terminal counter, not cumulative process totals;
+report authorization refusals and cancellations separately. An empty denominator
+means no applicable observations, not a zero failure rate. Callback failures are
+best-effort observation failures and do not change a response or trigger retries.
+
+No token or cost metric is emitted: MCP does not supply a trusted model-usage
+source here, and missing usage must not be represented as zero or estimated from
+tool-call count/result length. Remote-catalog-specific labels, per-tool metrics,
+in-flight gauges and persistent reporting remain outside this first version.
+
 ## Scope
 
 This change adds opt-in remote tools aggregation to the LLM

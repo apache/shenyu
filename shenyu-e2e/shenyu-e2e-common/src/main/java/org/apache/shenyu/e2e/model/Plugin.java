@@ -42,7 +42,6 @@ public enum Plugin {
     DIVIDE("divide", 5),
     DUBBO("dubbo", 6),
     SPRING_CLOUD("springCloud", 8),
-    HYSTRIX("hystrix", 9),
     SENTINEL("sentinel", 10),
     SOFA("sofa", 11),
     RESILIENCE4J("resilience4j", 12),
@@ -66,13 +65,7 @@ public enum Plugin {
     MOCK("mock", 31),
     LOGGING_ELASTIC_SEARCH("loggingElasticSearch", 32),
     LOGGING_KAFKA("loggingKafka", 33),
-    LOGGING_ALIYUN_SLS("loggingAliyunSls", 34),
-    LOGGING_TENCENT_CLS("loggingTencentCls", 36),
-    LOGGING_PULSAR("loggingPulsar", 35),
-    LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
-    BRPC("brpc", 41),
-    LOGGINGHUAWEILTS("loggingHuaweiLts", 43),
-    LOGGINGRABBITMQ("loggingRabbitMQ", 45),;
+    BRPC("brpc", 41);
 
     private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;

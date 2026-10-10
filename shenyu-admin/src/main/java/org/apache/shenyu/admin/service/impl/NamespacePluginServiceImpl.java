@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -115,9 +116,10 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     @Transactional(rollbackFor = Exception.class)
     public String update(final NamespacePluginDTO namespacePluginDTO) {
         final NamespacePluginVO before = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
-        if (Objects.nonNull(before)) {
-            AgentGatewayPluginConfigValidator.validate(before.getName(), namespacePluginDTO.getConfig());
-        }
+        Assert.notNull(before, "Namespace plugin relation does not exist: " + namespacePluginDTO.getId());
+        Assert.isTrue(Objects.equals(before.getNamespaceId(), namespacePluginDTO.getNamespaceId()),
+                "Namespace plugin relation does not belong to namespace: " + namespacePluginDTO.getNamespaceId());
+        AgentGatewayPluginConfigValidator.validate(before.getName(), namespacePluginDTO.getConfig());
         AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
         if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {

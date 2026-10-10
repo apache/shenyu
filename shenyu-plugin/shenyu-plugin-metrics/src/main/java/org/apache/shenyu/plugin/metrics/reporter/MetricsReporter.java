@@ -43,6 +43,8 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.REQUEST_TYPE_TOTAL, new String[]{"type"}, "shenyu http request type total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_THROW_TOTAL, "shenyu request error total count");
         MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
+        MetricsReporter.registerCounter(LabelNames.AGENT_MCP_CALLS_TOTAL, new String[]{"outcome"}, "Terminal authenticated parsed MCP logical calls");
+        MetricsReporter.registerHistogram(LabelNames.AGENT_MCP_CALL_LATENCY, new String[]{"outcome"}, "MCP logical call terminal latency millis");
         MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, "shenyu sentinel request restrict total count");
         MetricsReporter.registerCounter(LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu sentinel circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, "shenyu resilience4j request restrict total count");
