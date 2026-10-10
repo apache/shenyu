@@ -532,12 +532,25 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryRel());
                 discoveryRelDO.setDiscoveryHandlerId(discoveryHandlerId);
-                Optional.ofNullable(discoveryRelDO.getSelectorId())
-                                .ifPresent(selectorId -> discoveryRelDO.setSelectorId(context.getSelectorIdMapping().get(selectorId)));
-                Optional.ofNullable(discoveryRelDO.getProxySelectorId())
-                        .ifPresent(proxySelectorId -> discoveryRelDO.setProxySelectorId(context.getProxySelectorIdMapping().get(proxySelectorId)));
-                discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                discoveryRelMapper.insertSelective(discoveryRelDO);
+                // rels created for a TCP proxy selector store an empty selector_id ('' in the
+                // database, not NULL), so only a non-blank reference is a remappable target;
+                // blank references keep their exported shape
+                String remappedSelectorId = StringUtils.isBlank(discoveryRelDO.getSelectorId())
+                        ? discoveryRelDO.getSelectorId() : context.getSelectorIdMapping().get(discoveryRelDO.getSelectorId());
+                String remappedProxySelectorId = StringUtils.isBlank(discoveryRelDO.getProxySelectorId())
+                        ? discoveryRelDO.getProxySelectorId() : context.getProxySelectorIdMapping().get(discoveryRelDO.getProxySelectorId());
+                boolean selectorReferenceLost = StringUtils.isNotBlank(discoveryRelDO.getSelectorId()) && Objects.isNull(remappedSelectorId);
+                boolean proxySelectorReferenceLost = StringUtils.isNotBlank(discoveryRelDO.getProxySelectorId()) && Objects.isNull(remappedProxySelectorId);
+                if (Objects.isNull(discoveryHandlerId) || selectorReferenceLost || proxySelectorReferenceLost) {
+                    // the relation's target was not imported into this namespace; skip it instead
+                    // of persisting a row whose selector/proxy-selector reference was nulled by remapping
+                    LOG.warn("skip discovery rel of discovery [{}]: referenced selector/proxy selector was not imported", discoveryName);
+                } else {
+                    discoveryRelDO.setSelectorId(remappedSelectorId);
+                    discoveryRelDO.setProxySelectorId(remappedProxySelectorId);
+                    discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                    discoveryRelMapper.insertSelective(discoveryRelDO);
+                }
             }
         }
         
