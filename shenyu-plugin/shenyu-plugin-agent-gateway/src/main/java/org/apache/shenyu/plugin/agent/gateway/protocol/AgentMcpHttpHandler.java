@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
@@ -79,6 +80,7 @@ public final class AgentMcpHttpHandler {
                              final AgentTrafficContext traffic, final long configurationVersion) {
         return Mono.defer(() -> {
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
+            final AgentMcpCallObservation observation = new AgentMcpCallObservation(exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL));
             AtomicReference<JsonNode> rpcId = new AtomicReference<>();
             return Mono.fromRunnable(() -> preflight(exchange, config))
                     .then(Mono.defer(() -> securityResolver.resolve(exchange))
@@ -86,12 +88,19 @@ public final class AgentMcpHttpHandler {
                     .flatMap(identity -> read(exchange, config).map(body -> parser.parse(body, exchange.getRequest().getHeaders(), config.getMaxRequestBytes()))
                             .flatMap(request -> {
                                 rpcId.set(request.getId());
+                                observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
                                         traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline));
                             }))
-                    .flatMap(response -> write(exchange, response, config, "sse".equals(config.getResponseMode()), 200))
+                    .flatMap(response -> {
+                        observation.response(response);
+                        return write(exchange, response, config, "sse".equals(config.getResponseMode()), 200);
+                    })
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                    .onErrorResume(error -> handleFailure(exchange, config, rpcId.get(), error));
+                    .doOnError(observation::failure)
+                    .onErrorResume(error -> handleFailure(exchange, config, rpcId.get(), error))
+                    .doOnError(observation::failure)
+                    .doFinally(observation::finish);
         });
     }
 
