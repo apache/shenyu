@@ -57,7 +57,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,9 +70,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import org.springframework.test.util.ReflectionTestUtils;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test cases for DiscoveryUpstreamService.
@@ -170,10 +174,133 @@ public final class DiscoveryUpstreamServiceTest {
         List<DiscoveryHandlerDO> list = Collections.singletonList(buildDiscoveryHandlerDO());
 
         when(discoveryHandlerMapper.selectAll()).thenReturn(list);
-        when(discoveryRelMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildDiscoveryRelDO());
-        when(proxySelectorMapper.selectById(any())).thenReturn(buildProxySelectorDO());
+        DiscoveryRelDO relation = buildDiscoveryRelDO();
+        relation.setDiscoveryHandlerId("123");
+        relation.setProxySelectorId("selector_1");
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(Collections.singletonList(relation));
+        when(proxySelectorMapper.selectByIds(any())).thenReturn(Collections.singletonList(buildProxySelectorDO()));
         List<DiscoverySyncData> dataList = discoveryUpstreamService.listAll();
         assertEquals(dataList.size(), list.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {20, 501})
+    void batchesQueriesAndPreservesHandlerOrder(final int count) {
+        List<DiscoveryHandlerDO> handlers = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            DiscoveryHandlerDO handler = buildDiscoveryHandlerDO();
+            handler.setId(String.valueOf(i));
+            handlers.add(handler);
+        }
+        when(discoveryHandlerMapper.selectAll()).thenReturn(handlers);
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            Assertions.assertTrue(ids.size() <= 500);
+            return ids.stream().map(id -> {
+                DiscoveryRelDO relation = buildDiscoveryRelDO();
+                relation.setDiscoveryHandlerId(id);
+                if (Integer.parseInt(id) % 2 == 0) {
+                    relation.setSelectorId(id);
+                } else {
+                    relation.setProxySelectorId(id);
+                }
+                return relation;
+            }).collect(Collectors.toList());
+        });
+        when(selectorMapper.selectByIdSet(any())).thenAnswer(invocation -> {
+            java.util.Set<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> {
+                SelectorDO selector = buildSelectorDO();
+                selector.setId(id);
+                return selector;
+            }).collect(Collectors.toList());
+        });
+        when(proxySelectorMapper.selectByIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> {
+                ProxySelectorDO proxy = buildProxySelectorDO();
+                proxy.setId(id);
+                return proxy;
+            }).collect(Collectors.toList());
+        });
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(any())).thenAnswer(invocation -> {
+            List<String> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> buildDiscoveryUpstreamDO("u-" + id, id, "localhost:8080")).collect(Collectors.toList());
+        });
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAll();
+        assertEquals(count, data.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(String.valueOf(i), data.get(i).getSelectorId());
+            assertEquals(1, data.get(i).getUpstreamDataList().size());
+        }
+        int batches = (count + 499) / 500;
+        verify(discoveryHandlerMapper).selectAll();
+        verify(discoveryRelMapper, times(batches)).selectByDiscoveryHandlerIds(any());
+        verify(discoveryUpstreamMapper, times(batches)).selectByDiscoveryHandlerIds(any());
+        verify(selectorMapper, times(batches)).selectByIdSet(any());
+        verify(proxySelectorMapper, times(count / 500 + (count % 500 > 1 ? 1 : 0))).selectByIds(any());
+        verify(discoveryRelMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
+        verify(selectorMapper, never()).selectById(any());
+        verify(proxySelectorMapper, never()).selectById(any());
+    }
+
+    @Test
+    public void duplicateAndMissingBindingsDoNotAbortOtherHandlers() {
+        List<DiscoveryHandlerDO> handlers = new ArrayList<>();
+        for (String id : List.of("valid", "missing-relation", "missing-selector", "missing-proxy")) {
+            DiscoveryHandlerDO handler = buildDiscoveryHandlerDO();
+            handler.setId(id);
+            handlers.add(handler);
+        }
+        DiscoveryRelDO valid = buildDiscoveryRelDO();
+        valid.setDiscoveryHandlerId("valid");
+        valid.setSelectorId("selector_1");
+        DiscoveryRelDO duplicate = buildDiscoveryRelDO();
+        duplicate.setDiscoveryHandlerId("valid");
+        duplicate.setSelectorId("missing");
+        DiscoveryRelDO missingSelector = buildDiscoveryRelDO();
+        missingSelector.setDiscoveryHandlerId("missing-selector");
+        missingSelector.setSelectorId("missing");
+        DiscoveryRelDO missingProxy = buildDiscoveryRelDO();
+        missingProxy.setDiscoveryHandlerId("missing-proxy");
+        missingProxy.setProxySelectorId("missing");
+        when(discoveryHandlerMapper.selectAll()).thenReturn(handlers);
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(List.of(valid, duplicate, missingSelector, missingProxy));
+        when(selectorMapper.selectByIdSet(any())).thenReturn(List.of(buildSelectorDO()));
+        when(proxySelectorMapper.selectByIds(any())).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIds(any())).thenReturn(Collections.emptyList());
+
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAll();
+
+        assertEquals(1, data.size());
+        assertEquals("selector_1", data.get(0).getSelectorId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchesNamespaceSyncAndRetainsNamespace(final boolean proxy) {
+        final DiscoveryRelDO relation = buildDiscoveryRelDO();
+        relation.setDiscoveryHandlerId("123");
+        when(discoveryHandlerMapper.selectAllByNamespaceId("tenant")).thenReturn(List.of(buildDiscoveryHandlerDO()));
+        if (proxy) {
+            relation.setSelectorId("");
+            relation.setProxySelectorId("selector_1");
+            ProxySelectorDO selector = buildProxySelectorDO();
+            selector.setNamespaceId("tenant");
+            when(proxySelectorMapper.selectByIds(List.of("selector_1"))).thenReturn(List.of(selector));
+        } else {
+            relation.setSelectorId("selector_1");
+            SelectorDO selector = buildSelectorDO();
+            selector.setNamespaceId("tenant");
+            when(selectorMapper.selectByIdSet(Set.of("selector_1"))).thenReturn(List.of(selector));
+        }
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(List.of("123"))).thenReturn(List.of(relation));
+        List<DiscoverySyncData> data = discoveryUpstreamService.listAllByNamespaceId("tenant");
+        assertEquals(1, data.size());
+        assertEquals("tenant", data.get(0).getNamespaceId());
+        verify(discoveryHandlerMapper, never()).selectAll();
+        verify(discoveryRelMapper, never()).selectByDiscoveryHandlerId(any());
     }
 
     @Test
@@ -189,23 +316,23 @@ public final class DiscoveryUpstreamServiceTest {
         DiscoveryHandlerDO validProxy = buildDiscoveryHandlerDO();
         validProxy.setId("valid-proxy");
         when(discoveryHandlerMapper.selectAll()).thenReturn(List.of(noRelation, missingSelector, validSelector, missingProxy, validProxy));
-        when(discoveryRelMapper.selectByDiscoveryHandlerId("no-relation")).thenReturn(null);
         DiscoveryRelDO staleSelectorRel = buildDiscoveryRelDO();
         staleSelectorRel.setSelectorId("deleted-selector");
-        when(discoveryRelMapper.selectByDiscoveryHandlerId("missing-selector")).thenReturn(staleSelectorRel);
+        staleSelectorRel.setDiscoveryHandlerId("missing-selector");
         DiscoveryRelDO staleProxyRel = buildDiscoveryRelDO();
         staleProxyRel.setProxySelectorId("deleted-proxy");
-        when(discoveryRelMapper.selectByDiscoveryHandlerId("missing-proxy")).thenReturn(staleProxyRel);
+        staleProxyRel.setDiscoveryHandlerId("missing-proxy");
         DiscoveryRelDO selectorRel = buildDiscoveryRelDO();
         selectorRel.setSelectorId("selector_1");
-        when(discoveryRelMapper.selectByDiscoveryHandlerId("valid-selector")).thenReturn(selectorRel);
-        when(selectorMapper.selectById("selector_1")).thenReturn(buildSelectorDO());
-        when(selectorMapper.selectById("deleted-selector")).thenReturn(null);
+        selectorRel.setDiscoveryHandlerId("valid-selector");
+        when(selectorMapper.selectByIdSet(Set.of("selector_1", "deleted-selector"))).thenReturn(List.of(buildSelectorDO()));
         DiscoveryRelDO proxyRel = buildDiscoveryRelDO();
         proxyRel.setProxySelectorId("proxy_1");
-        when(discoveryRelMapper.selectByDiscoveryHandlerId("valid-proxy")).thenReturn(proxyRel);
-        when(proxySelectorMapper.selectById("proxy_1")).thenReturn(buildProxySelectorDO());
-        when(proxySelectorMapper.selectById("deleted-proxy")).thenReturn(null);
+        proxyRel.setDiscoveryHandlerId("valid-proxy");
+        when(discoveryRelMapper.selectByDiscoveryHandlerIds(any())).thenReturn(List.of(staleSelectorRel, staleProxyRel, selectorRel, proxyRel));
+        ProxySelectorDO proxy = buildProxySelectorDO();
+        proxy.setId("proxy_1");
+        when(proxySelectorMapper.selectByIds(List.of("deleted-proxy", "proxy_1"))).thenReturn(List.of(proxy));
         List<DiscoverySyncData> result = discoveryUpstreamService.listAll();
         assertEquals(2, result.size());
         assertEquals("selector_1", result.get(0).getSelectorId());
@@ -300,8 +427,9 @@ public final class DiscoveryUpstreamServiceTest {
         verify(discoveryProcessor).changeUpstream(any(), any());
     }
 
-    @Test
-    public void testUpdateBatchPublishesOnlyAfterCommit() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testBatchPublishesOnlyAfterCommit(final boolean createOrUpdate) {
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
         when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
@@ -309,7 +437,11 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         TransactionSynchronizationManager.initSynchronization();
         try {
-            discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            if (createOrUpdate) {
+                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
+            } else {
+                discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
+            }
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
             TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
@@ -319,11 +451,16 @@ public final class DiscoveryUpstreamServiceTest {
         }
     }
 
-    @Test
-    public void testRolledBackBatchDoesNotPublish() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testRolledBackBatchDoesNotPublish(final boolean createOrUpdate) {
         TransactionSynchronizationManager.initSynchronization();
         try {
-            discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            if (createOrUpdate) {
+                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
+            } else {
+                discoveryUpstreamService.updateBatch("123", Collections.emptyList());
+            }
             TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
