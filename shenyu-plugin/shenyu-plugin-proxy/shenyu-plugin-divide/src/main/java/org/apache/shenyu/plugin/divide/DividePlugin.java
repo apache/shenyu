@@ -37,6 +37,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
@@ -46,7 +47,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,11 +99,17 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        final List<Upstream> breakeredUpstreamList = filterByCircuitBreaker(selector.getId(), upstreamList);
+        if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
+            LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
+            return WebFluxResultUtils.result(exchange, error);
+        }
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
         if (CollectionUtils.isNotEmpty(specifyDomains)) {
             String requested = specifyDomains.get(0);
-            upstream = upstreamList.stream()
+            upstream = breakeredUpstreamList.stream()
                     .filter(u -> u.getUrl().equals(requested))
                     .findFirst()
                     .map(u -> Upstream.builder()
@@ -110,9 +119,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
                             .warmup(u.getWarmup())
                             .status(u.isStatus())
                             .build())
-                    .orElseGet(() -> LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange));
+                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange));
         } else {
-            upstream = LoadbalancerUtils.getForExchange(upstreamList, ruleHandle.getLoadBalance(), exchange);
+            upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
         }
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
@@ -130,14 +139,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
-            return chain.execute(exchange).doFinally(signalType -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
-            long beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream, beginTime
-            ));
-        }
-        return chain.execute(exchange);
+        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, selector.getId(), upstream);
     }
 
     @Override
@@ -165,8 +167,62 @@ public class DividePlugin extends AbstractShenyuPlugin {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
 
+    /**
+     * Forward the request through the plugin chain and record its outcome into
+     * the built-in circuit breaker, keeping the load-balance specific triggers.
+     *
+     * @param exchange the current server exchange
+     * @param chain the plugin chain
+     * @param ruleHandle the divide rule handle
+     * @param selectorId the selector id
+     * @param upstream the chosen upstream
+     * @return {@code Mono<Void>} to indicate when request processing is complete
+     */
+    private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                                 final DivideRuleHandle ruleHandle, final String selectorId, final Upstream upstream) {
+        String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+        if (ruleHandle.getLoadBalance().equals(P2C)) {
+            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
+                    .doFinally(signalType -> responseTrigger(upstream)), breakerKey);
+        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+            long beginTime = System.currentTimeMillis();
+            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
+                    .doOnSuccess(e -> successResponseTrigger(upstream, beginTime)), breakerKey);
+        }
+        return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange), breakerKey);
+    }
+
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    /**
+     * Filter out upstreams blocked by the built-in circuit breaker.
+     *
+     * <p>When every upstream of the selector is blocked, a single half-open
+     * probe request is granted to one of them so the breaker can recover;
+     * otherwise the caller should fail fast.
+     *
+     * @param selectorId the selector id the upstreams belong to
+     * @param upstreamList the healthy upstream list from the cache
+     * @return the upstreams allowed to receive requests, possibly empty
+     */
+    private List<Upstream> filterByCircuitBreaker(final String selectorId, final List<Upstream> upstreamList) {
+        List<Upstream> allowed = new ArrayList<>(upstreamList.size());
+        for (Upstream upstream : upstreamList) {
+            if (UpstreamCircuitBreaker.getInstance().isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, upstream))) {
+                allowed.add(upstream);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(allowed)) {
+            return allowed;
+        }
+        for (Upstream upstream : upstreamList) {
+            if (UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(UpstreamCircuitBreaker.buildKey(selectorId, upstream))) {
+                return Collections.singletonList(upstream);
+            }
+        }
+        return Collections.emptyList();
     }
 
     private void responseTrigger(final Upstream upstream) {

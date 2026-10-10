@@ -473,4 +473,29 @@ public final class SelectorServiceTest {
         metaDataRegisterDTO.setRpcType("test");
         return metaDataRegisterDTO;
     }
+
+    @Test
+    public void enabledByIdsAndNamespaceIdSkipsForeignSelectors() {
+        SelectorDO own = new SelectorDO();
+        own.setId("sel-own");
+        own.setNamespaceId("ns-a");
+        own.setPluginId("plugin-1");
+        SelectorDO foreign = new SelectorDO();
+        foreign.setId("sel-foreign");
+        foreign.setNamespaceId("ns-b");
+        foreign.setPluginId("plugin-1");
+        when(selectorMapper.selectById("sel-own")).thenReturn(own);
+        when(selectorMapper.selectById("sel-foreign")).thenReturn(foreign);
+        when(selectorMapper.updateEnable(anyString(), any())).thenReturn(1);
+        when(selectorConditionMapper.selectByQuery(any())).thenReturn(Collections.emptyList());
+        PluginDO pluginDO = new PluginDO();
+        pluginDO.setId("plugin-1");
+        pluginDO.setName("tcp");
+        when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
+
+        selectorService.enabledByIdsAndNamespaceId(Arrays.asList("sel-own", "sel-foreign"), false, "ns-a");
+
+        verify(selectorMapper).updateEnable("sel-own", false);
+        verify(selectorMapper, never()).updateEnable("sel-foreign", false);
+    }
 }

@@ -24,6 +24,7 @@ import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
@@ -124,7 +125,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                             }
                         }
                         return true;
-                    }).collect(Collectors.toList());
+                    })
+                    //skip upstreams that are still blocked by the built-in circuit breaker
+                    .filter(data -> UpstreamCircuitBreaker.getInstance()
+                            .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
+                    .collect(Collectors.toList());
             if (upstreamList.isEmpty()) {
                 // no need to retry anymore
                 return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
@@ -137,9 +142,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
-            return httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
+            final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+            return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
+                    .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e));
+                    .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
         });
     }
 

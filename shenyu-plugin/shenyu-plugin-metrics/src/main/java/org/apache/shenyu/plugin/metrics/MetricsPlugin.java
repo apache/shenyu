@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.metrics;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -33,6 +34,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
@@ -56,6 +58,11 @@ public class MetricsPlugin implements ShenyuPlugin {
     }
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
+        exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, (AgentMcpCallObserver) (outcome, millis) -> {
+            String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};
+            MetricsReporter.counterIncrement(LabelNames.AGENT_MCP_CALLS_TOTAL, labels);
+            MetricsReporter.recordTime(LabelNames.AGENT_MCP_CALL_LATENCY, labels, millis);
+        });
         exchange.getAttributes().put(Constants.METRICS_SENTINEL, (Consumer<HttpStatus>) status -> {
             if (Objects.equals(HttpStatus.TOO_MANY_REQUESTS, status)) {
                 MetricsReporter.counterIncrement(LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL);

@@ -123,9 +123,6 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                     OperatorEnum operator = getOperator(path.getPathType());
                     ConditionData pathCondition = createPathCondition(pathPath, operator);
                     String contextPath = annotations.get(IngressConstants.PLUGIN_CONTEXT_PATH_PATH);
-                    if (Objects.isNull(contextPath)) {
-                        continue;
-                    }
                     List<ConditionData> conditionListWithPath = new ArrayList<>(2);
                     if (Objects.nonNull(hostCondition)) {
                         conditionListWithPath.add(hostCondition);
