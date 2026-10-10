@@ -44,6 +44,7 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.reactivestreams.Publisher;
 
@@ -67,6 +68,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * this is ai response transformer plugin.
+ * The complete response is buffered before transformation; streaming and SSE responses are not supported.
  */
 public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
@@ -305,7 +307,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
-            return dataBufferMono.flatMap(dataBuffer -> {
+            return dataBufferMono.map(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
@@ -375,7 +377,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
                                     });
                         });
-            });
+            }).defaultIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())))
+                    .flatMap(response -> response);
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
         private String extractBodyFromAiResponse(final String aiResponse) {
