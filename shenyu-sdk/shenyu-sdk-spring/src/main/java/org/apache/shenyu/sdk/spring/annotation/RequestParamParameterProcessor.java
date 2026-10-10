@@ -47,7 +47,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
-        String name = requestParam.value();
+        String name = StringUtils.defaultIfBlank(requestParam.value(), requestParam.name());
         checkState(StringUtils.isNotBlank(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
             requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
         StringBuilder urlResult = new StringBuilder(shenyuRequest.getUrl());

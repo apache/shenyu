@@ -53,6 +53,20 @@ public class RequestParamParameterProcessorTest {
         this.method2 = clazz.getMethod("method2", Map.class);
     }
 
+
+    @Test
+    public void processArgumentNameOnlyTest() {
+        RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final RequestParam param = spy(RequestParam.class);
+        when(param.value()).thenReturn("");
+        when(param.name()).thenReturn("id");
+
+        processor.processArgument(request, param, "idValue");
+
+        assertTrue(request.getUrl().endsWith("id=idValue"), "param name alias resolve failed.");
+    }
+
     @Test
     public void processArgumentEncodesReservedCharactersTest() {
         RequestTemplate template = new RequestTemplate(Void.class, method1, "method1", "/dev/url/param", "", "/path", ShenyuRequest.HttpMethod.GET, null, null, null);
