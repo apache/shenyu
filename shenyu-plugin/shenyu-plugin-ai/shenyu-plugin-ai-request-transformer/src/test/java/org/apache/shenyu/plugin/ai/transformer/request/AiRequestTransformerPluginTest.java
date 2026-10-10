@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.transformer.request;
 
 import com.google.gson.JsonSyntaxException;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiRequestTransformerHandle;
@@ -25,10 +26,13 @@ import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegis
 import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.request.handler.AiRequestTransformerPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.springframework.ai.chat.client.ChatClient;
@@ -44,7 +48,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -140,6 +146,57 @@ class AiRequestTransformerPluginTest {
     void testConvertBodyJsonWithMalformedJson() {
         String aiResponse = "POST /test HTTP/1.1\nContent-Type: application/json\n\n[{\"broken\":}]";
         assertThrows(JsonSyntaxException.class, () -> AiRequestTransformerPlugin.convertBodyJson(aiResponse));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        ", http://upstream.example/rewritten",
+        "/forced, http://upstream.example/forced"
+    })
+    void testRewriteRequestRouting(final String rewriteUri, final String expectedOutboundUri) {
+        AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
+        handle.setProvider("TEST_PROVIDER");
+        handle.setBaseUrl("http://test.com");
+        handle.setApiKey("test-api-key");
+        handle.setModel("test-model");
+
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        String aiResponse = "POST /rewritten HTTP/1.1\nContent-Type: application/json\n\n{}";
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(Flux.just(aiResponse));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("http://localhost/original")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{}"));
+        ShenyuContext context = new ShenyuContext();
+        context.setPath("/original");
+        context.setRealUrl("/original");
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        if (Objects.nonNull(rewriteUri)) {
+            exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
+        }
+        RuleData rule = new RuleData();
+        rule.setId("test-routing-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+        AtomicReference<ServerWebExchange> downstreamExchange = new AtomicReference<>();
+        when(chain.execute(any(ServerWebExchange.class))).thenAnswer(invocation -> {
+            downstreamExchange.set(invocation.getArgument(0));
+            return Mono.empty();
+        });
+
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            StepVerifier.create(plugin.doExecute(exchange, chain, new SelectorData(), rule)).verifyComplete();
+
+            ServerWebExchange downstream = downstreamExchange.get();
+            assertEquals(URI.create("http://localhost/rewritten"), downstream.getRequest().getURI());
+            assertEquals(URI.create(expectedOutboundUri), RequestUrlUtils.buildRequestUri(downstream, "http://upstream.example"));
+            assertEquals("/rewritten", context.getPath());
+            assertEquals("/rewritten", context.getRealUrl());
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
     }
 
     @Test
