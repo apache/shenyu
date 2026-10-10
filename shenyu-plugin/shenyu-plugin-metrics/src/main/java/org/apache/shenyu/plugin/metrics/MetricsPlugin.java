@@ -58,6 +58,7 @@ public class MetricsPlugin implements ShenyuPlugin {
     }
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
+        // Metrics must run before Agent Gateway so its per-subscription observation can capture this callback.
         exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, (AgentMcpCallObserver) (outcome, millis) -> {
             String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};
             MetricsReporter.counterIncrement(LabelNames.AGENT_MCP_CALLS_TOTAL, labels);
