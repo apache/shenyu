@@ -25,9 +25,12 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPathBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
@@ -158,6 +161,52 @@ public class DubboIngressParserTest {
         annotations.put(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "");
         List<DubboUpstream> upstreams = assertDoesNotThrow(() -> parseAndGetUpstreams(annotations));
         assertNotNull(upstreams);
+    }
+
+    @Test
+    public void shouldRetryPathWhenEndpointsAreMissing() {
+        Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
+
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(
+                createIngress(null, Collections.emptyMap(), true), null));
+    }
+
+    @Test
+    public void shouldRetryDefaultBackendWhenEndpointsAreMissing() {
+        Indexer<V1Endpoints> missingEndpointsIndexer = mock(Indexer.class);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, new Lister<>(missingEndpointsIndexer));
+        V1Ingress ingress = new V1IngressBuilder().withNewMetadata().withName("test-ingress").withNamespace(NAMESPACE)
+                .withAnnotations(Collections.emptyMap()).withLabels(Collections.emptyMap()).endMetadata()
+                .withNewSpec().withDefaultBackend(new V1IngressBackend()
+                        .service(new V1IngressServiceBackend().name(SERVICE_NAME)
+                                .port(new V1ServiceBackendPort().number(8080))))
+                .endSpec().build();
+
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+    }
+
+    @Test
+    public void shouldNotInheritDefaultWhenPathEndpointsAreUnavailable() {
+        V1Ingress ingress = createIngress(null, Collections.emptyMap(), true);
+        ingress.getSpec().setDefaultBackend(new V1IngressBackend().service(new V1IngressServiceBackend()
+                .name("ready-default").port(new V1ServiceBackendPort().number(8080))));
+        when(endpointsIndexer.getByKey(NAMESPACE + "/ready-default")).thenReturn(new V1EndpointsBuilder()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.2")).build()).build());
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, endpointsLister);
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+    }
+
+    @Test
+    public void shouldRetryUntilEndpointsHaveReadyAddresses() {
+        V1Ingress ingress = createIngress(null, Collections.emptyMap(), true);
+        DubboIngressParser parser = new DubboIngressParser(serviceLister, endpointsLister);
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(new V1Endpoints());
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(new V1EndpointsBuilder()
+                .withSubsets(new V1EndpointSubsetBuilder().withNotReadyAddresses(new V1EndpointAddress().ip("127.0.0.1")).build()).build());
+        Assertions.assertThrows(EndpointsUnavailableException.class, () -> parser.parse(ingress, null));
     }
 
     @Test

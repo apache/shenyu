@@ -62,6 +62,7 @@ import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.parser.IngressPluginDefinition;
 import org.apache.shenyu.k8s.parser.IngressParser;
+import org.apache.shenyu.k8s.parser.EndpointsUnavailableException;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,22 +176,21 @@ public class IngressReconciler implements Reconciler {
             return new Result(false);
         }
 
-        if (Objects.isNull(oldIngress)) {
+        if (Objects.isNull(oldIngress) || needUpdate(oldIngress, v1Ingress)) {
             try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
+                // Resolve all backends before replacing the last successfully applied configuration.
+                V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
+                List<ShenyuMemoryConfig> configs = ingressParser.parse(ingressCopy, new CoreV1Api(apiClient));
+                if (Objects.nonNull(oldIngress)) {
+                    doDeleteConfigByIngress(request, oldIngress);
+                }
+                addNewIngressConfigToShenyu(v1Ingress, configs);
+            } catch (EndpointsUnavailableException e) {
+                LOG.info("Retry ingress {}: {}", request, e.getMessage());
+                return new Result(true);
             } catch (IOException e) {
                 LOG.error("add new ingress config error", e);
-            }
-        } else if (needUpdate(oldIngress, v1Ingress)) {
-            // Update logic
-            // 1. clean old config
-            doDeleteConfigByIngress(request, oldIngress);
-
-            // 2. add new config
-            try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
-            } catch (IOException e) {
-                LOG.error("add new ingress config error", e);
+                return new Result(true);
             }
         }
         IngressCache.getInstance().put(request.getNamespace(), request.getName(), v1Ingress);
@@ -469,10 +469,8 @@ public class IngressReconciler implements Reconciler {
         return !oldIngress.equals(currentIngress);
     }
 
-    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final CoreV1Api apiClient) throws IOException {
-        V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
-        List<ShenyuMemoryConfig> shenyuMemoryConfigList = ingressParser.parse(ingressCopy, apiClient);
-        String pluginName = getPluginName(ingressCopy);
+    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList) throws IOException {
+        String pluginName = getPluginName(v1Ingress);
 
         for (ShenyuMemoryConfig shenyuMemoryConfig : shenyuMemoryConfigList) {
             if (Objects.nonNull(shenyuMemoryConfig)) {

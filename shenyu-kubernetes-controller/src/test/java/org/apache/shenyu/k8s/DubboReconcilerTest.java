@@ -82,7 +82,7 @@ public final class DubboReconcilerTest {
 
     @BeforeEach
     public void init() {
-        IngressCache.getInstance().remove("mockedNamespace", "mockedIngress");
+        IngressCache.getInstance().remove(NAMESPACE, INGRESS_NAME);
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -161,6 +161,42 @@ public final class DubboReconcilerTest {
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
         verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @Test
+    public void testIngressBeforeEndpointsRecoversOnRetry() {
+        Indexer<V1Endpoints> indexer = endpointsInformer.getIndexer();
+        final V1Endpoints ready = indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME);
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
+        Assertions.assertNull(IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(ready);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(org.mockito.ArgumentMatchers.argThat(selector ->
+                selector.getHandle().contains("127.0.0.1:20888")));
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+        verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @Test
+    public void testUnavailableUpdatePreservesAppliedIngress() {
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        final V1Ingress applied = IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME);
+        V1Ingress updated = new V1IngressBuilder(applied).build();
+        updated.getMetadata().setResourceVersion("2");
+        when(ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME)).thenReturn(updated);
+        when(endpointsInformer.getIndexer().getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        org.mockito.Mockito.clearInvocations(shenyuCacheRepository);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        Assertions.assertSame(applied, IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).deleteSelectorData(any(), any());
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
     }
 
     @Test
