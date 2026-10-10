@@ -187,7 +187,7 @@ public final class SelectorServiceTest {
         SelectorDO mockedSelectorDO = buildSelectorDO();
         PluginDO mockedPluginDO = buildPluginDO();
         given(pluginMapper.selectByIds(Collections.singletonList(mockedSelectorDO.getPluginId()))).willReturn(Collections.singletonList(mockedPluginDO));
-        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()))).willReturn(Collections.singletonList(mockedSelectorDO));
+        given(selectorMapper.selectByIdSet(Stream.of(correctId).collect(Collectors.toSet()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(mockedSelectorDO));
 
         // mock for test if divide selector delete.
 //        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
@@ -203,17 +203,17 @@ public final class SelectorServiceTest {
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 
         final List<String> ids = Collections.singletonList(correctId);
-        given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
-        assertEquals(selectorService.deleteByNamespaceId(ids, any()), ids.size());
+        given(selectorMapper.deleteByIds(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(ids.size());
+        assertEquals(selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
     }
 
     @Test
     public void testDeleteResolvesDiscoveryPluginNameWhenBatchLookupMisses() {
         SelectorDO selector = buildSelectorDO();
-        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selector));
         given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
         given(pluginMapper.selectById(selector.getPluginId())).willReturn(buildPluginDO());
-        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
 
         selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID);
 
@@ -228,10 +228,10 @@ public final class SelectorServiceTest {
         discovery.setDiscoveryType("local");
         discovery.setPluginName("test");
         SelectorDO selector = buildSelectorDO();
-        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selector));
         given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
         given(discoveryMapper.selectById("1")).willReturn(discovery);
-        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
 
         assertEquals(1, selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID));
 
@@ -242,7 +242,7 @@ public final class SelectorServiceTest {
     @Test
     public void testDeleteRejectsDiscoveryWithoutPluginName() {
         SelectorDO selector = buildSelectorDO();
-        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(selector));
         given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
 
         ShenyuAdminException exception = assertThrows(ShenyuAdminException.class,
@@ -252,7 +252,7 @@ public final class SelectorServiceTest {
         assertTrue(exception.getMessage().contains("No selectors in this batch were deleted"));
         verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
         verify(discoveryHandlerMapper, never()).delete(any());
-        verify(selectorMapper, never()).deleteByIds(any());
+        verify(selectorMapper, never()).deleteByIds(any(), any());
     }
 
     @Test
@@ -262,7 +262,7 @@ public final class SelectorServiceTest {
         second.setId("other-selector");
         second.setPluginId("missing-plugin");
         List<String> ids = Arrays.asList(first.getId(), second.getId());
-        given(selectorMapper.selectByIdSet(new TreeSet<>(ids))).willReturn(Arrays.asList(first, second));
+        given(selectorMapper.selectByIdSet(new TreeSet<>(ids), SYS_DEFAULT_NAMESPACE_ID)).willReturn(Arrays.asList(first, second));
         given(pluginMapper.selectByIds(Arrays.asList(first.getPluginId(), second.getPluginId()))).willReturn(Collections.singletonList(buildPluginDO()));
 
         ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
@@ -271,7 +271,7 @@ public final class SelectorServiceTest {
 
         verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
         verify(discoveryHandlerMapper, never()).delete(any());
-        verify(selectorMapper, never()).deleteByIds(any());
+        verify(selectorMapper, never()).deleteByIds(any(), any());
     }
 
     @Test

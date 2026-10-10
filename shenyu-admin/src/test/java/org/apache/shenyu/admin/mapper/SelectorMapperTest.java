@@ -43,6 +43,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
+    /**
+     * A namespace that is different from the default one, used to exercise the
+     * namespace-scoped {@code selectByIdSet} / {@code deleteByIds} statements.
+     */
+    private static final String OTHER_NAMESPACE_ID = "2b8b2b3a-1f5f-4f1e-9c1a-000000000000";
+
     @Resource
     private SelectorMapper selectorMapper;
 
@@ -73,10 +79,43 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(1, insert);
 
         Set<String> idSet = Stream.of(selectorDO1.getId(), selectorDO.getId()).collect(Collectors.toSet());
-        List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet);
+        List<SelectorDO> selectorList = selectorMapper.selectByIdSet(idSet, SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(selectorList);
         assertThat(selectorList, hasItems(selectorDO1, selectorDO));
 
+    }
+
+    /**
+     * Regression test for the cross-namespace isolation this PR introduces: a selector that
+     * belongs to another namespace must not be returned by {@code selectByIdSet} nor removed
+     * by {@code deleteByIds} when the default namespace id is passed. Removing the
+     * {@code namespace_id} predicate from either statement makes this test fail.
+     */
+    @Test
+    public void testSelectByIdSetAndDeleteByIdsAreNamespaceScoped() {
+        SelectorDO defaultNamespaceSelector = buildSelectorDO();
+        assertEquals(1, selectorMapper.insert(defaultNamespaceSelector));
+
+        SelectorDO otherNamespaceSelector = buildSelectorDO(OTHER_NAMESPACE_ID);
+        assertEquals(1, selectorMapper.insert(otherNamespaceSelector));
+
+        Set<String> bothIds = Stream.of(defaultNamespaceSelector.getId(), otherNamespaceSelector.getId())
+                .collect(Collectors.toSet());
+
+        // selectByIdSet must only return the selector of the requested namespace.
+        List<SelectorDO> selected = selectorMapper.selectByIdSet(bothIds, SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(1, selected.size());
+        assertEquals(defaultNamespaceSelector.getId(), selected.get(0).getId());
+
+        // deleteByIds must not remove the selector of the other namespace (nor report it deleted).
+        List<String> bothIdList = Stream.of(defaultNamespaceSelector.getId(), otherNamespaceSelector.getId())
+                .collect(Collectors.toList());
+        int deleted = selectorMapper.deleteByIds(bothIdList, SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(1, deleted);
+        assertNotNull(selectorMapper.selectById(otherNamespaceSelector.getId()));
+
+        // Clean up the selector that the namespace-scoped delete intentionally left behind.
+        assertEquals(1, selectorMapper.delete(otherNamespaceSelector.getId()));
     }
 
     @Test
@@ -248,6 +287,10 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private SelectorDO buildSelectorDO() {
+        return buildSelectorDO(SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    private SelectorDO buildSelectorDO(final String namespaceId) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return SelectorDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
@@ -263,7 +306,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
-                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
+                .namespaceId(namespaceId)
                 .build();
     }
 }
