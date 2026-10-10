@@ -159,6 +159,7 @@ public enum DiscoveryTransfer {
             discoveryDTO.setServerList(data.getServerList());
             discoveryDTO.setPluginName(data.getPluginName());
             discoveryDTO.setProps(data.getProps());
+            discoveryDTO.setNamespaceId(data.getNamespaceId());
             return discoveryDTO;
         }).orElse(null);
     }
