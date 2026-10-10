@@ -39,6 +39,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -62,6 +64,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 
 /**
@@ -274,7 +277,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         String namespaceId = DEFAULT_NAMESPACE;
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
-        ConfigDataCache cache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache cache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
         getCache().put(cacheKey, cache);
 
         boolean result = invokeCheckCacheDelayAndUpdate(cache, "md5", 500L);
@@ -295,8 +298,8 @@ public final class HttpLongPollingDataChangedListenerTest {
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
 
         // serverCache is NOT the object in CACHE; CACHE has a different instance with same md5 as client
-        ConfigDataCache serverCache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
-        ConfigDataCache latestCache = new ConfigDataCache(group, "{}", "clientMd5", 2000L, namespaceId);
+        ConfigDataCache serverCache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache latestCache = new ConfigDataCache(cacheKey, "{}", "clientMd5", 2000L, namespaceId);
         getCache().put(cacheKey, latestCache);
 
         // clientMd5 matches latestCache.md5 → returns false (no update needed)
@@ -314,7 +317,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         String namespaceId = DEFAULT_NAMESPACE;
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
-        ConfigDataCache cache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache cache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
         getCache().put(cacheKey, cache);
 
         boolean result = invokeCheckCacheDelayAndUpdate(cache, "newMd5", 500L);
@@ -332,8 +335,8 @@ public final class HttpLongPollingDataChangedListenerTest {
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
 
-        ConfigDataCache oldCache = new ConfigDataCache(group, "{}", "oldMd5", 500L, namespaceId);
-        ConfigDataCache newCache = new ConfigDataCache(group, "{}", "newMd5", 2000L, namespaceId);
+        ConfigDataCache oldCache = new ConfigDataCache(cacheKey, "{}", "oldMd5", 500L, namespaceId);
+        ConfigDataCache newCache = new ConfigDataCache(cacheKey, "{}", "newMd5", 2000L, namespaceId);
         getCache().put(cacheKey, newCache);
 
         // oldCache != CACHE.get(cacheKey), clientMd5 != newMd5 → true
@@ -347,21 +350,46 @@ public final class HttpLongPollingDataChangedListenerTest {
         getCache().remove(cacheKey);
     }
 
-    @Test
-    public void testClientNewerRefreshesOnlyItsNamespace() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testClientNewerRefreshesOnlyItsNamespace(final boolean matchesClient) throws Exception {
         RecordingHttpLongPollingDataChangedListener recordingListener =
-                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties);
+                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties, matchesClient ? "client" : "refreshed");
         String namespaceId = "namespace-one";
-        String group = ConfigGroupEnum.PLUGIN.name();
-        String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
-        ConfigDataCache serverCache = new ConfigDataCache(group, "{}", "serverMd5", 1000L, namespaceId);
-        getCache().put(cacheKey, serverCache);
+        try {
+            ConfigDataCache clientCache = recordingListener.seedCache(namespaceId, "client");
+            ConfigDataCache serverCache = recordingListener.seedCache(namespaceId, "old");
 
-        boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache, "clientMd5", 2000L);
+            boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache,
+                    clientCache.getMd5(), serverCache.getLastModifyTime() + 1);
 
-        assertEquals(true, result);
-        assertEquals(namespaceId, recordingListener.refreshedNamespace);
-        getCache().remove(cacheKey);
+            assertEquals(!matchesClient, result);
+            assertEquals(namespaceId, recordingListener.refreshedNamespace);
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testRecoveryDoesNotReadAnotherNamespace() throws Exception {
+        String namespaceId = "ns1";
+        String otherNamespaceId = "ns1_ns1";
+        RecordingHttpLongPollingDataChangedListener recordingListener =
+                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties, "refreshed");
+        try {
+            ConfigDataCache otherCache = recordingListener.seedCache(otherNamespaceId, "client");
+            ConfigDataCache serverCache = recordingListener.seedCache(namespaceId, "old");
+
+            boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache,
+                    otherCache.getMd5(), serverCache.getLastModifyTime() + 1);
+
+            assertEquals(true, result);
+            assertEquals(namespaceId, recordingListener.refreshedNamespace);
+            assertSame(otherCache, getCache().get(otherCache.getGroup()));
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+            clearAllGroupsInCache(otherNamespaceId);
+        }
     }
 
     /**
@@ -730,7 +758,7 @@ public final class HttpLongPollingDataChangedListenerTest {
     private void populateAllGroupsInCache(final String namespaceId, final String md5) throws Exception {
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
-            getCache().put(cacheKey, new ConfigDataCache(group.name(), "{}", md5, 1000L, namespaceId));
+            getCache().put(cacheKey, new ConfigDataCache(cacheKey, "{}", md5, 1000L, namespaceId));
         }
     }
 
@@ -812,17 +840,25 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     private static final class RecordingHttpLongPollingDataChangedListener extends HttpLongPollingDataChangedListener {
 
+        private final String refreshedId;
+
         private String refreshedNamespace;
 
-        private RecordingHttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
+        private RecordingHttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties, final String refreshedId) {
             super(httpSyncProperties);
+            this.refreshedId = refreshedId;
+        }
+
+        private ConfigDataCache seedCache(final String namespaceId, final String id) {
+            PluginData data = PluginData.builder().id(id).namespaceId(namespaceId).build();
+            updateCache(ConfigGroupEnum.PLUGIN, List.of(data), namespaceId);
+            return CACHE.get(buildCacheKey(namespaceId, ConfigGroupEnum.PLUGIN.name()));
         }
 
         @Override
         protected void refreshLocalCache(final String namespaceId) {
             refreshedNamespace = namespaceId;
-            String cacheKey = buildCacheKey(namespaceId, ConfigGroupEnum.PLUGIN.name());
-            CACHE.put(cacheKey, new ConfigDataCache(ConfigGroupEnum.PLUGIN.name(), "{}", "refreshedMd5", 3000L, namespaceId));
+            seedCache(namespaceId, refreshedId);
         }
     }
 }
