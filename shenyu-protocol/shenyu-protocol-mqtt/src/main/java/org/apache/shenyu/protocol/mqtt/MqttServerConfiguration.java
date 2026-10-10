@@ -19,6 +19,9 @@ package org.apache.shenyu.protocol.mqtt;
 
 import org.apache.shenyu.protocol.mqtt.utils.EncryptUtil;
 
+import java.util.Locale;
+import java.util.Objects;
+
 /**
  * mqtt server configuration.
  */
@@ -47,11 +50,8 @@ public class MqttServerConfiguration {
      */
     public void afterPropertiesSet() {
 
-        if (isEncryptPassword()) {
-            setPassword(encryptPassword());
-        }
         MqttContext context = new MqttContext();
-        context.setPassword(getPassword());
+        context.setPassword(effectivePassword());
         context.setPort(getPort());
         context.setMaxPayloadSize(getMaxPayloadSize());
         context.setUserName(getUserName());
@@ -59,8 +59,31 @@ public class MqttServerConfiguration {
         context.setLeakDetectorLevel(getLeakDetectorLevel());
     }
 
-    private String encryptPassword() {
-        return EncryptUtil.choose(getEncryptMode(), getPassword());
+    private String effectivePassword() {
+        return isEncryptPassword() ? EncryptUtil.choose(getEncryptMode(), getPassword()) : getPassword();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof MqttServerConfiguration)) {
+            return false;
+        }
+        MqttServerConfiguration other = (MqttServerConfiguration) obj;
+        // Compare only settings applied to the MQTT context.
+        return port == other.port
+                && maxPayloadSize == other.maxPayloadSize
+                && workerGroupThreadCount == other.workerGroupThreadCount
+                && Objects.equals(userName, other.userName)
+                && Objects.equals(effectivePassword(), other.effectivePassword())
+                && leakDetectorLevel.toUpperCase(Locale.ROOT).equals(other.leakDetectorLevel.toUpperCase(Locale.ROOT));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(port, maxPayloadSize, workerGroupThreadCount, userName, effectivePassword(), leakDetectorLevel.toUpperCase(Locale.ROOT));
     }
 
     /**
