@@ -51,6 +51,11 @@ public class MemorySafeTaskQueue<R extends Runnable> extends MemorySafeLinkedBlo
     }
 
     @Override
+    public boolean offer(final Runnable runnable) {
+        return TaskQueue.super.offer(runnable);
+    }
+
+    @Override
     public boolean doOffer(final Runnable runnable) {
         return super.offer(runnable);
     }
