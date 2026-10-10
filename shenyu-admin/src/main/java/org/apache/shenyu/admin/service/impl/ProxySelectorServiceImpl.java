@@ -236,7 +236,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
+            DiscoveryProcessor discoveryProcessor;
             DiscoveryDO discoveryDO;
             String discoveryId;
             boolean fillDiscovery;
@@ -247,10 +247,14 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
                 discoveryId = proxySelectorAddDTO.getDiscovery().getId();
                 fillDiscovery = true;
+                // the stored discovery is the source of truth for the processor type; the
+                // payload could otherwise declare a different type than the referenced row
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
                 discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
                 fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
