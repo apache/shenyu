@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.common.entity;
 
+import java.util.Objects;
+import java.util.function.Supplier;
+
 /**
  * shenyu gateway access log.
  */
@@ -33,6 +36,18 @@ public class ShenyuRequestLog {
     private String requestHeader;
 
     private String responseHeader;
+
+    /**
+     * Deferred source of the request header json, resolved on first read.
+     * Transient so the log clients never serialize it.
+     */
+    private transient Supplier<String> requestHeaderSupplier;
+
+    /**
+     * Deferred source of the response header json, resolved on first read.
+     * Transient so the log clients never serialize it.
+     */
+    private transient Supplier<String> responseHeaderSupplier;
 
     private String queryParams;
 
@@ -224,6 +239,10 @@ public class ShenyuRequestLog {
      * @return requestHeader
      */
     public String getRequestHeader() {
+        if (Objects.nonNull(requestHeaderSupplier)) {
+            requestHeader = requestHeaderSupplier.get();
+            requestHeaderSupplier = null;
+        }
         return requestHeader;
     }
 
@@ -234,6 +253,18 @@ public class ShenyuRequestLog {
      */
     public void setRequestHeader(final String requestHeader) {
         this.requestHeader = requestHeader;
+        this.requestHeaderSupplier = null;
+    }
+
+    /**
+     * set requestHeader lazily, so the header json is built by whoever reads it instead of
+     * the request thread that produced the log entry.
+     *
+     * @param requestHeaderSupplier supplier of the serialized request header json
+     */
+    public void setRequestHeader(final Supplier<String> requestHeaderSupplier) {
+        this.requestHeaderSupplier = requestHeaderSupplier;
+        this.requestHeader = null;
     }
 
     /**
@@ -242,6 +273,10 @@ public class ShenyuRequestLog {
      * @return responseHeader
      */
     public String getResponseHeader() {
+        if (Objects.nonNull(responseHeaderSupplier)) {
+            responseHeader = responseHeaderSupplier.get();
+            responseHeaderSupplier = null;
+        }
         return responseHeader;
     }
 
@@ -252,6 +287,18 @@ public class ShenyuRequestLog {
      */
     public void setResponseHeader(final String responseHeader) {
         this.responseHeader = responseHeader;
+        this.responseHeaderSupplier = null;
+    }
+
+    /**
+     * set responseHeader lazily, so the header json is built by whoever reads it instead of
+     * the response thread that produced the log entry.
+     *
+     * @param responseHeaderSupplier supplier of the serialized response header json
+     */
+    public void setResponseHeader(final Supplier<String> responseHeaderSupplier) {
+        this.responseHeaderSupplier = responseHeaderSupplier;
+        this.responseHeader = null;
     }
 
     /**

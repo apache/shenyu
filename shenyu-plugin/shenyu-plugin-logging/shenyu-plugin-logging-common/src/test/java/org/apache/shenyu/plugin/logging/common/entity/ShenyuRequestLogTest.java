@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.common.entity;
 
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The Test Case For ShenyuRequestLog.
@@ -88,6 +90,54 @@ public class ShenyuRequestLogTest {
     public void testRequestHeader() {
         shenyuRequestLog.setRequestHeader("{}");
         Assertions.assertEquals(shenyuRequestLog.getRequestHeader(), "{}");
+    }
+
+    @Test
+    public void testRequestHeaderIsSerializedLazily() {
+        AtomicInteger invocations = new AtomicInteger();
+        shenyuRequestLog.setRequestHeader(() -> {
+            invocations.incrementAndGet();
+            return "{\"X-source\":\"mock test\"}";
+        });
+        Assertions.assertEquals(0, invocations.get());
+        Assertions.assertEquals("{\"X-source\":\"mock test\"}", shenyuRequestLog.getRequestHeader());
+        Assertions.assertEquals(1, invocations.get());
+        Assertions.assertEquals("{\"X-source\":\"mock test\"}", shenyuRequestLog.getRequestHeader());
+        Assertions.assertEquals(1, invocations.get());
+    }
+
+    @Test
+    public void testResponseHeaderIsSerializedLazily() {
+        AtomicInteger invocations = new AtomicInteger();
+        shenyuRequestLog.setResponseHeader(() -> {
+            invocations.incrementAndGet();
+            return "{\"X-response\":\"mock test\"}";
+        });
+        Assertions.assertEquals(0, invocations.get());
+        Assertions.assertEquals("{\"X-response\":\"mock test\"}", shenyuRequestLog.getResponseHeader());
+        Assertions.assertEquals(1, invocations.get());
+    }
+
+    @Test
+    public void testResolvedHeaderIsNotSerializedTwice() {
+        AtomicInteger invocations = new AtomicInteger();
+        shenyuRequestLog.setRequestHeader(() -> {
+            invocations.incrementAndGet();
+            return "{}";
+        });
+        Assertions.assertEquals("{}", shenyuRequestLog.getRequestHeader());
+        shenyuRequestLog.setRequestHeader("{\"a\":\"b\"}");
+        Assertions.assertEquals("{\"a\":\"b\"}", shenyuRequestLog.getRequestHeader());
+        Assertions.assertEquals(1, invocations.get());
+    }
+
+    @Test
+    public void testDeferredHeaderSourceIsNotSerialized() {
+        shenyuRequestLog.setRequestHeader(() -> "{\"X-source\":\"mock test\"}");
+        shenyuRequestLog.setResponseHeader(() -> "{\"X-response\":\"mock test\"}");
+        String json = GsonUtils.getInstance().toJson(shenyuRequestLog);
+        Assertions.assertFalse(json.contains("Supplier"));
+        Assertions.assertFalse(json.contains("mock test"));
     }
 
     @Test

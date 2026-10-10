@@ -106,7 +106,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethod().name());
         requestInfo.setRequestMethod(request.getMethod().name());
-        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
+        requestInfo.setRequestHeader(() -> LogCollectUtils.getHeaders(request.getHeaders()));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));

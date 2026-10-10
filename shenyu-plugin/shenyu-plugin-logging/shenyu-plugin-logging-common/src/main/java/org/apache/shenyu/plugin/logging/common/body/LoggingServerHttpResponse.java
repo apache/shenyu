@@ -147,7 +147,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (Objects.nonNull(getStatusCode())) {
             logInfo.setStatus(getStatusCode().value());
         }
-        logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
+        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(getHeaders()));
         logInfo.setTraceId(getTraceId());
         final MediaType mediaType = exchange.getResponse().getHeaders().getContentType();
         if (MediaTypeUtils.isByteType(mediaType)) {
@@ -274,7 +274,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         logInfo.setModule(shenyuContext.getModule());
         long costTime = DateUtils.acquireMillisBetween(shenyuContext.getStartDateTime(), LocalDateTime.now());
         logInfo.setUpstreamResponseTime(costTime);
-        logInfo.setResponseHeader(LogCollectUtils.getHeaders(exchange.getResponse().getHeaders()));
+        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(exchange.getResponse().getHeaders()));
         logInfo.setRpcType(shenyuContext.getRpcType());
         logInfo.setMethod(shenyuContext.getMethod());
         if (StringUtils.isNotBlank(shenyuContext.getRpcType())) {
