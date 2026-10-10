@@ -44,6 +44,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -157,5 +158,76 @@ class AiRequestTransformerPluginTest {
         String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
         String result = AiRequestTransformerPlugin.extractRequestPathFromAiResponse(aiResponse);
         assertEquals("/", result);
+    }
+
+    @Test
+    void testRewriteRequestPathWithQueryString() {
+        String aiResponse = "POST /rewritten?new=2 HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original?old=1");
+
+        assertEquals("/rewritten", forwardedUri.getPath());
+        assertEquals("new=2", forwardedUri.getQuery());
+    }
+
+    @Test
+    void testRewriteRequestPathKeepsPercentEncodedQueryString() {
+        String aiResponse = "POST /rewritten?q=a%20b&n=1 HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original");
+
+        assertEquals("/rewritten", forwardedUri.getPath());
+        assertEquals("q=a%20b&n=1", forwardedUri.getRawQuery());
+    }
+
+    @Test
+    void testRewriteRequestPathKeepsOriginalTargetOnMalformedQueryString() {
+        String aiResponse = "POST /rewritten?bad=%zz HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original?old=1");
+
+        assertEquals("/original", forwardedUri.getPath());
+        assertEquals("old=1", forwardedUri.getQuery());
+    }
+
+    /**
+     * Runs the plugin with a mocked model answer and returns the request URI the plugin chain received.
+     *
+     * @param aiResponse  the mocked model answer, a full HTTP request message
+     * @param originalUri the URI of the incoming request
+     * @return the URI handed to the downstream plugin chain
+     */
+    private URI forwardAndCaptureRequestUri(final String aiResponse, final String originalUri) {
+        AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
+        handle.setProvider("TEST_PROVIDER");
+        handle.setBaseUrl("http://test.com");
+        handle.setApiKey("test-api-key");
+        handle.setModel("test-model");
+
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(Flux.just(aiResponse));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(originalUri)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{\"original\":true}"));
+        RuleData rule = new RuleData();
+        rule.setId("test-request-target-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+        AtomicReference<URI> downstreamUri = new AtomicReference<>();
+        when(chain.execute(any(ServerWebExchange.class))).thenAnswer(invocation -> {
+            downstreamUri.set(invocation.getArgument(0, ServerWebExchange.class).getRequest().getURI());
+            return Mono.empty();
+        });
+
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            StepVerifier.create(plugin.doExecute(exchange, chain, new SelectorData(), rule)).verifyComplete();
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
+
+        return downstreamUri.get();
     }
 }

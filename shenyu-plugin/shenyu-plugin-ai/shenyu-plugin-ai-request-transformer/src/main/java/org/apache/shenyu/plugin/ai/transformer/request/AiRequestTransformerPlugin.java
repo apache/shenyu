@@ -66,6 +66,17 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiRequestTransformerPlugin.class);
 
+    /**
+     * Valid characters of a generated origin-form path component.
+     */
+    private static final String PATH_PATTERN = "^/[a-zA-Z0-9/_\\-]*$";
+
+    /**
+     * Valid characters of a generated query component: RFC 3986 query syntax (percent-encoded
+     * sequences must be well formed so that the target is always a legal URI reference).
+     */
+    private static final String QUERY_PATTERN = "^(%[0-9a-fA-F]{2}|[a-zA-Z0-9\\-._~!$&'()*+,;=:@/?])*$";
+
     private final List<HttpMessageReader<?>> messageReaders;
 
     private final AiModelFactoryRegistry aiModelFactoryRegistry;
@@ -232,33 +243,46 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
     }
 
     private static Mono<ServerWebExchange> rewriteRequestPath(final ServerWebExchange exchange, final String aiResponse) {
-        String newPath = extractRequestPathFromAiResponse(aiResponse);
+        String newTarget = extractRequestPathFromAiResponse(aiResponse);
 
-        if (Objects.isNull(newPath) || newPath.isEmpty()) {
+        if (Objects.isNull(newTarget) || newTarget.isEmpty()) {
             return Mono.just(exchange);
         }
 
-        if (newPath.contains("..")) {
-            LOG.warn("Detected potential path traversal attempt in extracted path: {} , Will continue to use the original path.", newPath);
+        if (newTarget.contains("..")) {
+            LOG.warn("Detected potential path traversal attempt in extracted path: {} , Will continue to use the original path.", newTarget);
             return Mono.just(exchange);
         }
+
+        // The model answers with an origin-form request target, so it may carry a query string.
+        // Validate the path and the query separately, then apply both to the request URI.
+        int queryIndex = newTarget.indexOf('?');
+        String newPath = queryIndex < 0 ? newTarget : newTarget.substring(0, queryIndex);
+        String newQuery = queryIndex < 0 ? null : newTarget.substring(queryIndex + 1);
 
         if (!newPath.startsWith("/")) {
             LOG.warn("Extracted path does not start with '/': {} , Will continue to use the original path.", newPath);
             return Mono.just(exchange);
         }
 
-        if (!newPath.matches("^/[a-zA-Z0-9/_\\-]*$")) {
+        if (!newPath.matches(PATH_PATTERN)) {
             LOG.warn("Extracted path contains invalid characters: {}, Will continue to use the original path.", newPath);
             return Mono.just(exchange);
         }
 
-        LOG.debug("Request path after validation and rewriting: {}", newPath);
+        if (Objects.nonNull(newQuery) && !newQuery.matches(QUERY_PATTERN)) {
+            LOG.warn("Extracted query contains invalid characters: {}, Will continue to use the original path.", newQuery);
+            return Mono.just(exchange);
+        }
+
+        String rewrittenTarget = Objects.isNull(newQuery) ? newPath : newPath + "?" + newQuery;
+
+        LOG.debug("Request path after validation and rewriting: {}", rewrittenTarget);
 
         ServerHttpRequest originalRequest = exchange.getRequest();
         URI originalUri = originalRequest.getURI();
 
-        URI newUri = originalUri.resolve(newPath);
+        URI newUri = originalUri.resolve(rewrittenTarget);
 
         ServerHttpRequest newRequest = originalRequest.mutate()
                 .uri(newUri)
