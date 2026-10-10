@@ -210,9 +210,11 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
             }
         }
 
+        // Eureka equality identifies instances but does not compare upstream configuration.
         Set<InstanceInfo> updatedInstances = currentInstances.stream()
                 .filter(currentInstance -> previousInstances.stream()
-                        .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId()) && !currentInstance.equals(previousInstance)))
+                        .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId())
+                                && !buildUpstreamJsonFromInstance(currentInstance).equals(buildUpstreamJsonFromInstance(previousInstance))))
                 .collect(Collectors.toSet());
         if (!updatedInstances.isEmpty()) {
             for (InstanceInfo instance : updatedInstances) {
@@ -241,7 +243,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, selectKey, true);
         return instances.stream()
                 .map(i -> InstanceEntity.builder()
-                        .appName(i.getAppName()).host(i.getHostName()).port(i.getPort()).uri(getURI(i))
+                        .appName(i.getAppName()).host(i.getIPAddr()).port(i.getPort()).uri(getURI(i))
                         .build()
                 ).collect(Collectors.toList());
     }

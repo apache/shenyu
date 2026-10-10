@@ -26,8 +26,10 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.Before;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,10 +60,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -179,6 +184,31 @@ public class DefaultDiscoveryProcessorTest {
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         defaultDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
         verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @Test
+    public void testFetchAllRetainsWatchIpAddressUpstream() {
+        final InstanceEntity selected = InstanceEntity.builder().appName("SHENYU-INSTANCES").host("10.0.0.1").port(8080).build();
+        when(shenyuDiscoveryService.selectInstances(anyString())).thenReturn(Collections.singletonList(selected));
+        final DiscoveryUpstreamDO watched = new DiscoveryUpstreamDO();
+        watched.setId("watch-row");
+        watched.setUpstreamUrl("10.0.0.1:8080");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-id")).thenReturn(Collections.singletonList(watched));
+        final DiscoveryHandlerDTO handler = new DiscoveryHandlerDTO();
+        handler.setId("handler-id");
+        handler.setDiscoveryId("id");
+        handler.setListenerNode("/SHENYU-INSTANCES");
+        final ProxySelectorDTO selector = new ProxySelectorDTO();
+        selector.setId("selector-id");
+
+        defaultDiscoveryProcessor.fetchAll(handler, selector);
+
+        verify(discoveryUpstreamMapper, never()).deleteByIds(anyList());
+        verify(discoveryUpstreamMapper, never()).insert(any(DiscoveryUpstreamDO.class));
+        final ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        final DiscoverySyncData published = (DiscoverySyncData) ((List<?>) eventCaptor.getValue().getSource()).get(0);
+        assertEquals(watched.getUpstreamUrl(), published.getUpstreamDataList().get(0).getUrl());
     }
 
     @Test
