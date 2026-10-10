@@ -243,18 +243,25 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
+            DiscoveryProcessor discoveryProcessor;
             DiscoveryDO discoveryDO;
             String discoveryId;
             boolean fillDiscovery;
             if (StringUtils.hasLength(proxySelectorAddDTO.getDiscovery().getId())) {
                 discoveryDO = discoveryMapper.selectById(proxySelectorAddDTO.getDiscovery().getId());
+                Assert.notNull(discoveryDO, "Discovery does not exist: " + proxySelectorAddDTO.getDiscovery().getId());
+                Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                        "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
                 discoveryId = proxySelectorAddDTO.getDiscovery().getId();
-                fillDiscovery = Objects.nonNull(discoveryDO);
+                fillDiscovery = true;
+                // the stored discovery is the source of truth for the processor type; the
+                // payload could otherwise declare a different type than the referenced row
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
                 discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
                 fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
@@ -395,6 +402,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
         // Validate all related records before performing any update.
         proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler
