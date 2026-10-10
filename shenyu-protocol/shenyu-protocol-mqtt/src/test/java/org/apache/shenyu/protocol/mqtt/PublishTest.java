@@ -18,6 +18,7 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,6 +35,7 @@ import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
@@ -48,6 +50,9 @@ import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
@@ -55,8 +60,11 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -145,27 +153,31 @@ public final class PublishTest {
         new MqttContext().setPassword(null);
     }
 
-    @Test
-    public void retainedPublishStoresMessage() {
-        new Publish().publish(publisherContext(), publishMessage(RETAINED_TOPIC, PAYLOAD, true));
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(RETAINED_TOPIC)));
+    @ParameterizedTest
+    @MethodSource("retainedPayloads")
+    public void retainedPublishReplaysOriginalBytes(final byte[] expected, final ByteBuf payload) {
+        int readerIndex = payload.readerIndex();
+        MqttPublishMessage message = new MqttPublishMessage(
+                new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_LEAST_ONCE, true, 0),
+                new MqttPublishVariableHeader(RETAINED_TOPIC, PUBLISHER_PACKET_ID), payload);
+        try {
+            new Publish().publish(publisherContext(), message);
+            assertEquals(readerIndex, payload.readerIndex());
+            awaitAssert(() -> {
+                assertArrayEquals(expected, TOPIC_REPOSITORY.get(RETAINED_TOPIC));
+                assertEquals(1, payload.refCnt());
+            });
+            payload.setZero(readerIndex, payload.readableBytes());
+        } finally {
+            message.release();
+        }
+        assertRetainedReplay(RETAINED_TOPIC, expected);
     }
 
     @Test
     public void nonRetainedPublishDoesNotStoreMessage() {
         new Publish().publish(publisherContext(), publishMessage(NON_RETAINED_TOPIC, PAYLOAD, false));
         assertNull(TOPIC_REPOSITORY.get(NON_RETAINED_TOPIC));
-    }
-
-    @Test
-    public void retainedPublishReadsMessageFromDirectPayload() {
-        ByteBuf payload = Unpooled.directBuffer().writeBytes(PAYLOAD.getBytes(StandardCharsets.UTF_8));
-        try {
-            new Publish().publish(publisherContext(), publishMessage(RETAINED_TOPIC, payload, true));
-            awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(RETAINED_TOPIC)));
-        } finally {
-            payload.release();
-        }
     }
 
     @Test
@@ -188,7 +200,7 @@ public final class PublishTest {
         new Connect().connect(ctx, connectMessage());
         new Publish().publish(ctx, publishMessage(END_TO_END_TOPIC, PAYLOAD, true));
 
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(END_TO_END_TOPIC)));
+        awaitAssert(() -> assertArrayEquals(PAYLOAD.getBytes(StandardCharsets.UTF_8), TOPIC_REPOSITORY.get(END_TO_END_TOPIC)));
         assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(channel));
 
         CHANNEL_REPOSITORY.remove(channel);
@@ -196,15 +208,28 @@ public final class PublishTest {
     }
 
     @Test
-    public void zeroByteRetainedPublishClearsRetainedMessage() {
+    public void retainedPublishReplacesAndClearsMessage() {
         Publish publish = new Publish();
         ChannelHandlerContext ctx = publisherContext();
 
-        publish.publish(ctx, publishMessage(CLEARED_TOPIC, PAYLOAD, true));
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(CLEARED_TOPIC)));
+        byte[][] messages = {{0, (byte) 0xff, (byte) 0x80, 0x41}, {(byte) 0xfe, 0, 0x42}};
+        for (byte[] bytes : messages) {
+            MqttPublishMessage message = publishMessage(CLEARED_TOPIC, Unpooled.wrappedBuffer(bytes), true);
+            try {
+                publish.publish(ctx, message);
+                awaitAssert(() -> {
+                    assertArrayEquals(bytes, TOPIC_REPOSITORY.get(CLEARED_TOPIC));
+                    assertEquals(1, message.refCnt());
+                });
+            } finally {
+                message.release();
+            }
+            assertRetainedReplay(CLEARED_TOPIC, bytes);
+        }
 
         publish.publish(ctx, publishMessage(CLEARED_TOPIC, "", true));
         assertNull(TOPIC_REPOSITORY.get(CLEARED_TOPIC));
+        assertRetainedReplay(CLEARED_TOPIC, null);
     }
 
     @Test
@@ -312,6 +337,44 @@ public final class PublishTest {
         assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
         assertEquals(MqttQoS.AT_MOST_ONCE, pubRec.fixedHeader().qosLevel());
         assertEquals(PUBLISHER_PACKET_ID, ((MqttMessageIdVariableHeader) pubRec.variableHeader()).messageId());
+    }
+
+    private static Stream<Arguments> retainedPayloads() {
+        byte[] text = "hello 中文".getBytes(StandardCharsets.UTF_8);
+        byte[] binary = {0, (byte) 0xff, (byte) 0x80, 0x41};
+        ByteBuf sliced = Unpooled.buffer().writeByte(0x11).writeByte(0x22).writeBytes(binary).writeByte(0x33)
+                .slice(1, binary.length + 2).setIndex(1, binary.length + 1);
+        ByteBuf direct = Unpooled.directBuffer().writeByte(0x11).writeBytes(binary).writeByte(0x22)
+                .setIndex(1, binary.length + 1);
+        return Stream.of(
+                Arguments.of(text, Unpooled.copiedBuffer(text)),
+                Arguments.of(binary, sliced),
+                Arguments.of(binary, direct));
+    }
+
+    private void assertRetainedReplay(final String topic, final byte[] expected) {
+        EmbeddedChannel channel = channel(true);
+        CHANNEL_REPOSITORY.add(channel, CLIENT_ID);
+        try {
+            new Subscribe().subscribe(channel.pipeline().lastContext(), MqttMessageBuilders.subscribe()
+                    .messageId(1).addSubscription(MqttQoS.AT_LEAST_ONCE, topic).build());
+            boolean replayed = false;
+            for (MqttMessage message = channel.readOutbound(); Objects.nonNull(message); message = channel.readOutbound()) {
+                try {
+                    if (message instanceof MqttPublishMessage && message.fixedHeader().isRetain()) {
+                        replayed = true;
+                        assertArrayEquals(expected, ByteBufUtil.getBytes(((MqttPublishMessage) message).payload()));
+                    }
+                } finally {
+                    ReferenceCountUtil.release(message);
+                }
+            }
+            assertEquals(Objects.nonNull(expected), replayed);
+        } finally {
+            SUBSCRIBE_REPOSITORY.remove(channel);
+            CHANNEL_REPOSITORY.remove(channel);
+            channel.finishAndReleaseAll();
+        }
     }
 
     /**
