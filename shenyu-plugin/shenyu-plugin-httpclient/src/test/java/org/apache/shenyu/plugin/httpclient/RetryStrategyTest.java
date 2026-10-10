@@ -22,6 +22,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -44,7 +45,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -156,6 +159,86 @@ public class RetryStrategyTest {
         ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
         verify(plugin).doRequest(eq(exchange), eq("GET"), uriCaptor.capture(), any());
         assertEquals(URI.create(standby.buildDomain() + "/test?mode=retry"), uriCaptor.getValue());
+    }
+
+    @Test
+    void testFailoverSkipsBlockedUpstream() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        for (int i = 0; i < 3; i++) {
+            breaker.recordFailure(standbyKey);
+        }
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            exchange, Duration.ofSeconds(5), 2))
+                    .expectErrorSatisfies(this::assertFailoverExhausted)
+                    .verify();
+        } finally {
+            breaker.reset(standbyKey);
+        }
+        verifyNoInteractions(plugin);
+    }
+
+    @Test
+    void testFailoverResendRecordsFailureOutcome() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.error(new TimeoutException("resend failed")));
+        final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            exchange, Duration.ofSeconds(5), 2))
+                    .expectErrorSatisfies(this::assertFailoverExhausted)
+                    .verify();
+        }
+        // the failed resend recorded one failure, one more below the threshold keeps the breaker closed
+        breaker.recordFailure(standbyKey);
+        assertFalse(breaker.isBlocking(standbyKey));
+        breaker.recordFailure(standbyKey);
+        assertTrue(breaker.isBlocking(standbyKey));
+        breaker.reset(standbyKey);
+    }
+
+    @Test
+    void testFailoverResendRecordsSuccessOutcome() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
+        final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.recordFailure(standbyKey);
+        breaker.recordFailure(standbyKey);
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // the successful resend reset the failure counter, so two more failures stay below the threshold
+        breaker.recordFailure(standbyKey);
+        breaker.recordFailure(standbyKey);
+        assertFalse(breaker.isBlocking(standbyKey));
+        breaker.reset(standbyKey);
     }
 
     @Test
