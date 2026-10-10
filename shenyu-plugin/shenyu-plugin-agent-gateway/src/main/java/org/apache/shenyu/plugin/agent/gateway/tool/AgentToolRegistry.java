@@ -87,6 +87,25 @@ public final class AgentToolRegistry {
     }
 
     /**
+     * Check startup-local namespace ownership without invoking a provider.
+     * @param name candidate exposed name
+     * @return whether a local provider owns this name
+     */
+    public boolean isRegistered(final String name) {
+        return providers.containsKey(name);
+    }
+
+    /**
+     * Validate remote metadata with the same bounded local-schema contract.
+     * @param name exposed tool name
+     * @param description human-readable description
+     * @param schema input schema, not executed here
+     */
+    public static void validateDefinition(final String name, final String description, final JsonObject schema) {
+        new AgentToolDefinition(name, description, schema);
+    }
+
+    /**
      * Invoke an authorized tool once per subscription without retries or shared results.
      * The input factory must obtain identity from a trusted source and create a fresh request id.
      * @param name tool name

@@ -39,6 +39,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.modelcontextprotocol.sdk</groupId>
+            <artifactId>mcp-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-common</artifactId>
             <version>${project.version}</version>

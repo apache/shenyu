@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -101,6 +102,7 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
             throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
+        AgentGatewayPluginConfigValidator.validate(pluginDO.getName(), pluginDO.getConfig());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
         if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) <= 0) {
             return null;
@@ -117,6 +119,8 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         Assert.notNull(before, "Namespace plugin relation does not exist: " + namespacePluginDTO.getId());
         Assert.isTrue(Objects.equals(before.getNamespaceId(), namespacePluginDTO.getNamespaceId()),
                 "Namespace plugin relation does not belong to namespace: " + namespacePluginDTO.getNamespaceId());
+        AgentGatewayPluginConfigValidator.validate(before.getName(), namespacePluginDTO.getConfig());
+        AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
         if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {
             final NamespacePluginVO now = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
@@ -271,6 +275,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         int successCount = 0;
         for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
             String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
+            AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
+            PluginDO template = pluginMapper.selectById(pluginId);
+            if (Objects.nonNull(template)) {
+                AgentGatewayPluginConfigValidator.validate(template.getName(), namespacePluginDTO.getConfig());
+            }
             // check plugin base info
             if (existPluginMap.containsKey(pluginId)) {
                 errorMsgBuilder
