@@ -20,7 +20,9 @@ package org.apache.shenyu.plugin.api.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -81,10 +83,53 @@ public final class SpringBeanUtils {
             throw new NullPointerException("beanDefinition.beanClassName is null");
         }
         String beanName = getBeanName(beanClassName);
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-        beanFactory.setBeanClassLoader(classLoader);
-        beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        registerBean(beanName, beanDefinition, classLoader);
         return beanName;
+    }
+
+    /**
+     * Register a bean with an explicit name.
+     *
+     * @param beanName bean name
+     * @param beanDefinition bean definition
+     * @param classLoader class loader
+     */
+    public void registerBean(final String beanName, final BeanDefinition beanDefinition, final ClassLoader classLoader) {
+        AbstractBeanDefinition definition = beanDefinition instanceof AbstractBeanDefinition
+                ? (AbstractBeanDefinition) beanDefinition : new GenericBeanDefinition(beanDefinition);
+        try {
+            definition.setBeanClass(Class.forName(beanDefinition.getBeanClassName(), false, classLoader));
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalArgumentException("Cannot load bean class " + beanDefinition.getBeanClassName(), ex);
+        }
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+        beanFactory.registerBeanDefinition(beanName, definition);
+    }
+
+    /**
+     * Check whether a bean with the exact name exists.
+     *
+     * @param beanName bean name
+     * @return true when the bean exists
+     */
+    public boolean existBeanByName(final String beanName) {
+        return this.applicationContext.containsBean(beanName);
+    }
+
+    /**
+     * Get a bean by its exact name.
+     *
+     * @param beanName bean name
+     * @param <T> bean type
+     * @return bean or null when it cannot be obtained
+     */
+    @SuppressWarnings("all")
+    public <T> T getBeanByName(final String beanName) {
+        try {
+            return this.getBean(beanName);
+        } catch (BeansException e) {
+            return null;
+        }
     }
     
     /**
@@ -123,6 +168,15 @@ public final class SpringBeanUtils {
      */
     public void destroyBean(final String className) {
         String beanName = getBeanName(className);
+        destroyBeanByName(beanName);
+    }
+
+    /**
+     * Destroy a bean by its exact name.
+     *
+     * @param beanName bean name
+     */
+    public void destroyBeanByName(final String beanName) {
         DefaultListableBeanFactory beanFactory = getBeanFactory();
         if (beanFactory.containsBean(beanName)) {
             beanFactory.destroySingleton(beanName);

@@ -37,7 +37,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -45,6 +47,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class ShenyuPluginClassLoader extends ClassLoader implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginClassLoader.class);
+
+    private static final AtomicLong GENERATION = new AtomicLong();
 
     static {
         registerAsParallelCapable();
@@ -55,6 +59,10 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
     private final Map<String, byte[]> resourceCache = new ConcurrentHashMap<>();
+
+    private final Set<String> registeredBeanNames = ConcurrentHashMap.newKeySet();
+
+    private final long generation = GENERATION.incrementAndGet();
 
     private final Set<String> loadedPluginNames = ConcurrentHashMap.newKeySet();
 
@@ -146,23 +154,24 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
 
     @Override
     public void close() {
-        Set<String> clazzNames = pluginJar.getClazzMap().keySet();
-        for (String clazzName : clazzNames) {
-            SpringBeanUtils.getInstance().destroyBean(clazzName);
+        for (String beanName : registeredBeanNames) {
+            SpringBeanUtils.getInstance().destroyBeanByName(beanName);
         }
+        registeredBeanNames.clear();
     }
 
     private <T> T getOrCreateSpringBean(final String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        if (SpringBeanUtils.getInstance().existBean(className)) {
-            T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
+        String beanName = getPluginBeanName(className);
+        if (SpringBeanUtils.getInstance().existBeanByName(beanName)) {
+            T inst = SpringBeanUtils.getInstance().getBeanByName(beanName);
             // if the class is loaded by other classloader, then reload it
-            if (!isLoadedByOtherClassLoader(inst)) {
+            if (Objects.nonNull(inst) && !isLoadedByOtherClassLoader(inst)) {
                 return inst;
             }
         }
         lock.lock();
         try {
-            T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
+            T inst = SpringBeanUtils.getInstance().getBeanByName(beanName);
             if (Objects.isNull(inst) || isLoadedByOtherClassLoader(inst)) {
                 Class<?> clazz = Class.forName(className, false, this);
                 //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
@@ -179,8 +188,9 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
                     beanDefinition.setBeanClassName(className);
                     beanDefinition.setAutowireCandidate(true);
                     beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-                    String beanName = SpringBeanUtils.getInstance().registerBean(beanDefinition, this);
-                    inst = SpringBeanUtils.getInstance().getBeanByClassName(beanName);
+                    SpringBeanUtils.getInstance().registerBean(beanName, beanDefinition, this);
+                    registeredBeanNames.add(beanName);
+                    inst = SpringBeanUtils.getInstance().getBeanByName(beanName);
                 }
             }
             return inst;
@@ -198,6 +208,11 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      */
     private <T> boolean isLoadedByOtherClassLoader(final T inst) {
         return !inst.getClass().getClassLoader().equals(this);
+    }
+
+    String getPluginBeanName(final String className) {
+        String pluginKey = Optional.ofNullable(pluginJar.getAbsolutePath()).orElse(pluginJar.getJarKey());
+        return pluginKey + "#" + generation + "#" + className;
     }
 
     private ShenyuLoaderResult buildResult(final Object instance) {
@@ -221,7 +236,7 @@ public final class ShenyuPluginClassLoader extends ClassLoader implements Closea
      * @return boolean
      */
     public boolean compareVersion(final String version) {
-        return pluginJar.getVersion().equals(version);
+        return Objects.equals(pluginJar.getVersion(), version);
     }
 
     /**
