@@ -21,52 +21,43 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.protocol.mqtt.BootstrapServer;
 import org.apache.shenyu.protocol.mqtt.MqttBootstrapServer;
 import org.apache.shenyu.protocol.mqtt.MqttServerConfiguration;
 
-import java.net.InetAddress;
-import java.net.Socket;
+import java.util.Objects;
 
 /**
  * The type Mqtt plugin data handler.
  */
 public class MqttPluginDataHandler implements PluginDataHandler {
 
-    private final BootstrapServer server = new MqttBootstrapServer();
+    private final MqttBootstrapServer server = new MqttBootstrapServer();
+
+    private MqttServerConfiguration runningConfiguration;
 
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        MqttServerConfiguration configuration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MqttServerConfiguration.class);
-        configuration.afterPropertiesSet();
-        if (pluginData.getEnabled()) {
-            server.init();
-            server.start();
-        } else {
-            if (isPortUsing(configuration.getPort())) {
-                server.shutdown();
-            }
+    public synchronized void handlerPlugin(final PluginData pluginData) {
+        if (!pluginData.getEnabled()) {
+            server.shutdown();
+            runningConfiguration = null;
+            return;
         }
+        MqttServerConfiguration configuration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MqttServerConfiguration.class);
+        if (configuration.equals(runningConfiguration) && server.isRunning()) {
+            return;
+        }
+        if (Objects.nonNull(runningConfiguration)) {
+            server.shutdown();
+            runningConfiguration = null;
+        }
+        configuration.afterPropertiesSet();
+        server.init();
+        server.start();
+        runningConfiguration = configuration;
     }
 
     @Override
     public String pluginNamed() {
         return PluginEnum.MQTT.getName();
-    }
-
-    /**
-     * Ture is use else false.
-     *
-     * @param port server port
-     * @return boolean
-     */
-    private boolean isPortUsing(final int port) {
-        boolean flag = false;
-        try (Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), port)) {
-            flag = true;
-        } catch (Exception ignored) {
-
-        }
-        return flag;
     }
 }
