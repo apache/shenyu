@@ -22,15 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
-import java.net.URI;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.function.Function;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
@@ -42,6 +33,20 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 /** Managed, opt-in catalog fed exclusively by the trusted plugin data-sync channel. */
 public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, AutoCloseable {
@@ -62,7 +67,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final Sinks.Many<ControlUpdate> updates = Sinks.many().unicast().onBackpressureBuffer(new ArrayBlockingQueue<>(16));
 
-    private final java.util.concurrent.atomic.AtomicLong revision = new java.util.concurrent.atomic.AtomicLong();
+    private final AtomicLong revision = new AtomicLong();
 
     private final Disposable worker;
 
@@ -79,7 +84,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
         this.allowedEndpoints = Set.copyOf(allowedEndpoints);
         this.localNames = Set.copyOf(localNames);
-        this.credentials = java.util.Objects.requireNonNull(credentials, "credentials");
+        this.credentials = Objects.requireNonNull(credentials, "credentials");
         this.allowedEndpoints.forEach(RemoteTransportPolicy::endpoint);
         // The single owned subscription belongs to the control-plane lifecycle, never a request.
         lifecycle.refresh(List.of()).block(Duration.ofSeconds(6));
@@ -92,13 +97,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 return Mono.empty();
             }
             return reload(update.source(), () -> !closed && update.sequence() == revision.get()).doOnSuccess(version -> {
-                if (java.util.Objects.nonNull(version) && update.sequence() == revision.get()) {
-                    lastFailure = "";
-                }
+                recordFailure(update.sequence(), "");
             }).onErrorResume(error -> {
-                if (update.sequence() == revision.get()) {
-                    lastFailure = error.getClass().getSimpleName();
-                }
+                recordFailure(update.sequence(), error.getClass().getSimpleName());
                 LOG.warn("Agent MCP configuration update rejected ({})", error.getClass().getSimpleName());
                 return Mono.empty();
             });
@@ -110,13 +111,15 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param plugin authoritative plugin data
      */
     public synchronized void accept(final PluginData plugin) {
-        long sequence = revision.incrementAndGet();
+        final long sequence = revision.incrementAndGet();
+        // Diagnostics belong to the newest event, even if an older update is fenced before reserve().
+        lastFailure = "";
         boolean enabled = Boolean.TRUE.equals(plugin.getEnabled());
         if (!enabled) {
             lifecycle.withdraw();
         }
-        String source = enabled && java.util.Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
-        if (source.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 16384) {
+        String source = enabled && Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
+        if (source.getBytes(StandardCharsets.UTF_8).length > 16384) {
             lifecycle.withdraw();
             lastFailure = "ConfigurationByteLimit";
             return;
@@ -139,7 +142,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         return reload(source, () -> !closed);
     }
 
-    private Mono<Long> reload(final String source, final java.util.function.BooleanSupplier valid) {
+    private Mono<Long> reload(final String source, final BooleanSupplier stillCurrent) {
         return Mono.defer(() -> {
             AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
@@ -147,7 +150,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 RemoteServerBinding.Config reference = new RemoteServerBinding.Config(server.name(), server.endpoint(), server.credentialRef(), server.credentialVersion());
                 targets.add(RemoteServerBinding.resolve(reference, allowedEndpoints, credentials::resolve).lifecycleConfig());
             }
-            return lifecycle.refresh(targets, List.of(), localNames, valid);
+            return lifecycle.refresh(targets, List.of(), localNames, stillCurrent);
         });
     }
 
@@ -161,9 +164,24 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @return immutable diagnostic values
      */
     public Map<String, Object> diagnostics() {
-        Map<String, Object> result = new LinkedHashMap<>(lifecycle.diagnostics());
-        result.put("lastFailure", lastFailure);
+        Diagnostics state = diagnosticsState();
+        Map<String, Object> result = new LinkedHashMap<>(state.lifecycle().toMap());
+        result.put("lastFailure", state.lastFailure());
         return Map.copyOf(result);
+    }
+
+    /**
+     * Capture typed lifecycle and current control-update failure diagnostics.
+     * @return immutable control-plane diagnostic snapshot
+     */
+    public synchronized Diagnostics diagnosticsState() {
+        return new Diagnostics(lifecycle.diagnosticsState(), revision.get(), lastFailure);
+    }
+
+    private synchronized void recordFailure(final long sequence, final String category) {
+        if (sequence == revision.get()) {
+            lastFailure = category;
+        }
     }
 
     /**
@@ -182,6 +200,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     @Override
     public void close() {
         closeAsync().block(Duration.ofSeconds(8));
+    }
+
+    /** Failure is scoped to revision; empty means no failure recorded, not a ready catalog. */
+    public record Diagnostics(RemoteCatalogLifecycle.Diagnostics lifecycle, long revision, String lastFailure) {
     }
 
     private record ControlUpdate(long sequence, String source) {

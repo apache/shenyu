@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -90,7 +91,8 @@ public final class AgentMcpDispatcher {
                 return error;
             }
             if (error instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
-                AgentMcpProtocolException failure = failure(request, 503, -32023, "Remote catalog unavailable");
+                AgentMcpProtocolException failure = failure(request, AgentMcpRemoteCatalog.CatalogUnavailableException.HTTP_STATUS,
+                        AgentMcpRemoteCatalog.CatalogUnavailableException.RPC_CODE, AgentMcpRemoteCatalog.CatalogUnavailableException.MESSAGE);
                 failure.initCause(error);
                 return failure;
             }
@@ -102,7 +104,7 @@ public final class AgentMcpDispatcher {
 
     private Mono<ObjectNode> routeWithRemote(final AgentMcpRequest request, final AgentMcpExecutionContext context,
                                            final AgentMcpRemoteCatalog.Snapshot snapshot) {
-        java.util.Map<String, ObjectNode> definitions = snapshot.definitions();
+        Map<String, ObjectNode> definitions = snapshot.definitions();
         for (String name : definitions.keySet()) {
             if (registry.isRegistered(name)) {
                 return Mono.error(failure(request, 500, -32603, "Tool namespace collision"));

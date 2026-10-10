@@ -39,11 +39,20 @@ public interface AgentMcpRemoteCatalog {
     /** Distinguishes an unavailable catalog from unexpected gateway failures. */
     final class CatalogUnavailableException extends IllegalStateException {
 
+        /** Sanitized message shared by transport and lifecycle failures. */
+        public static final String MESSAGE = "Remote catalog unavailable";
+
+        /** HTTP service-unavailable status. */
+        public static final int HTTP_STATUS = 503;
+
+        /** Application-level JSON-RPC code for an unavailable catalog. */
+        public static final int RPC_CODE = -32023;
+
         private static final long serialVersionUID = 1L;
 
         /** Create a sanitized catalog-unavailable failure without target or credential details. */
         public CatalogUnavailableException() {
-            super("Remote catalog unavailable");
+            super(MESSAGE);
         }
     }
 

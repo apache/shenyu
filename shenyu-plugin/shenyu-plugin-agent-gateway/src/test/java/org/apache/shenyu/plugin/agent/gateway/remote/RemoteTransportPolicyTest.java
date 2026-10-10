@@ -22,14 +22,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.net.URI;
 import java.net.Proxy;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class RemoteTransportPolicyTest {
 
@@ -41,7 +41,7 @@ class RemoteTransportPolicyTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"https://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp",
-        "https://169.254.169.254:443/mcp", "https://224.1.2.3:443/mcp", "https://256.1.2.3:443/mcp", "https://010.1.2.3:443/mcp",
+        "https://169.254.169.254:443/mcp", "https://224.1.2.3:443/mcp", "https://255.255.255.255:443/mcp", "https://256.1.2.3:443/mcp", "https://010.1.2.3:443/mcp",
         "https://[::1]:443/mcp", "https://127.0.0.1/mcp", "https://user@127.0.0.1:443/mcp", "https://127.0.0.1:443/mcp?x=1",
         "https://127.0.0.1:443/a/../mcp", "https://127.0.0.1:443/%2e/mcp", "https://127.0.0.1:443//mcp"})
     void rejectsDnsPlaintextRemoteAndAmbiguousAddresses(final String endpoint) {

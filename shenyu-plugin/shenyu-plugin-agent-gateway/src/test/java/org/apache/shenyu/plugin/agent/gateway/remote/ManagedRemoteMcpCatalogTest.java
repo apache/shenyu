@@ -17,29 +17,77 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.HttpServer;
+import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.PluginData;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.net.URI;
+import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManagedRemoteMcpCatalogTest {
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    @Test
+    void newerFencedEventClearsOnlyTheSupersededFailureDiagnostic() throws Exception {
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(URI.create("https://192.0.2.10:443/mcp")), Set.of(), target -> {
+            entered.countDown();
+            try {
+                assertTrue(release.await(10, TimeUnit.SECONDS));
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted fixture resolver");
+            }
+            return new RemoteServerBinding.Credential(target, "fixed-test-token");
+        });
+        try {
+            catalog.accept(event(true, "[]"));
+            await(() -> "IllegalArgumentException".equals(catalog.diagnosticsState().lastFailure()));
+            catalog.accept(event(true, config()));
+            assertTrue(entered.await(5, TimeUnit.SECONDS));
+            assertEquals("", catalog.diagnosticsState().lastFailure());
+            long resolvingRevision = catalog.diagnosticsState().revision();
+            catalog.accept(event(false, "{}"));
+            assertTrue(catalog.diagnosticsState().revision() > resolvingRevision);
+            assertEquals("", catalog.diagnosticsState().lastFailure());
+            release.countDown();
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
+            assertEquals("", catalog.diagnosticsState().lastFailure());
+            assertEquals(0, catalog.diagnosticsState().lifecycle().clients());
+            catalog.accept(event(true, "[]"));
+            await(() -> "IllegalArgumentException".equals(catalog.diagnosticsState().lastFailure()));
+        } finally {
+            release.countDown();
+            catalog.closeAsync().block(Duration.ofSeconds(5));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void withdrawnDuringSuccessfulCredentialResolutionDoesNotStartRemoteHandshake(final boolean emptyConfiguration) throws Exception {
         final CountDownLatch entered = new CountDownLatch(1);
         final CountDownLatch release = new CountDownLatch(1);
         AtomicInteger handshakes = new AtomicInteger();
-        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/ready", exchange -> {
             exchange.sendResponseHeaders(204, -1);
             exchange.close();
@@ -50,7 +98,7 @@ class ManagedRemoteMcpCatalogTest {
                     exchange.sendResponseHeaders(204, -1);
                     return;
                 }
-                var json = new com.fasterxml.jackson.databind.ObjectMapper();
+                var json = new ObjectMapper();
                 var request = json.readTree(exchange.getRequestBody());
                 if ("notifications/initialized".equals(request.path("method").asText())) {
                     exchange.sendResponseHeaders(202, -1);
@@ -95,16 +143,16 @@ class ManagedRemoteMcpCatalogTest {
             assertTrue(entered.await(5, TimeUnit.SECONDS));
             catalog.accept(event(emptyConfiguration, "{}"));
             release.countDown();
-            await(() -> (long) catalog.diagnostics().get("currentVersion") > 1L);
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
             assertEquals(0, handshakes.get(), "A superseded enable event must not allocate or initialize a remote client");
-            assertEquals(0, catalog.diagnostics().get("clients"));
-            long disabledVersion = (long) catalog.diagnostics().get("currentVersion");
+            assertEquals(0, catalog.diagnosticsState().lifecycle().clients());
+            long disabledVersion = catalog.diagnosticsState().lifecycle().currentVersion();
             catalog.accept(event(true, config().replace("https://192.0.2.10:443/mcp", endpoint.toString())));
-            await(() -> (long) catalog.diagnostics().get("currentVersion") > disabledVersion);
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > disabledVersion);
             assertEquals(1, handshakes.get(), "A fresh explicit enable must still discover the remote directory");
             catalog.accept(event(false, "{}"));
-            await(() -> (long) catalog.diagnostics().get("currentVersion") > disabledVersion + 1L);
-            assertEquals(0, catalog.diagnostics().get("clients"));
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > disabledVersion + 1L);
+            assertEquals(0, catalog.diagnosticsState().lifecycle().clients());
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
@@ -136,10 +184,10 @@ class ManagedRemoteMcpCatalogTest {
             catalog.accept(event(true, config()));
             catalog.accept(event(false, config()));
             release.countDown();
-            await(() -> (long) catalog.diagnostics().get("currentVersion") > 1L);
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
             assertTrue(workerThread.get());
             assertEquals(1, resolutions.get());
-            assertEquals(0, catalog.diagnostics().get("clients"));
+            assertEquals(0, catalog.diagnosticsState().lifecycle().clients());
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
@@ -165,18 +213,18 @@ class ManagedRemoteMcpCatalogTest {
             for (int index = 0; index < 32; index++) {
                 catalog.accept(event(true, config()));
             }
-            assertEquals("ConfigurationQueueRejected", catalog.diagnostics().get("lastFailure"));
-            assertEquals(0L, catalog.diagnostics().get("currentVersion"));
+            assertEquals("ConfigurationQueueRejected", catalog.diagnosticsState().lastFailure());
+            assertEquals(0L, catalog.diagnosticsState().lifecycle().currentVersion());
             release.countDown();
             await(() -> {
-                if ((long) catalog.diagnostics().get("currentVersion") > 1L) {
+                if (catalog.diagnosticsState().lifecycle().currentVersion() > 1L) {
                     return true;
                 }
                 // Recovery remains explicit while the worker drains superseded events.
                 catalog.accept(event(true, "{}"));
                 return false;
             });
-            assertEquals(0, catalog.diagnostics().get("clients"));
+            assertEquals(0, catalog.diagnosticsState().lifecycle().clients());
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
@@ -185,15 +233,15 @@ class ManagedRemoteMcpCatalogTest {
 
     private static void warmFixture(final URI endpoint) throws Exception {
         // Warm fixture transport and protocol classes before measuring control-update behavior.
-        var ready = java.net.http.HttpRequest.newBuilder(endpoint.resolve("/ready")).timeout(Duration.ofSeconds(30)).GET().build();
-        assertEquals(204, java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()
-                .send(ready, java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+        var ready = HttpRequest.newBuilder(endpoint.resolve("/ready")).timeout(Duration.ofSeconds(30)).GET().build();
+        assertEquals(204, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()
+                .send(ready, HttpResponse.BodyHandlers.discarding()).statusCode());
         var reference = new RemoteServerBinding.Config("orders", endpoint, "service/orders", "v1");
         var warmup = RemoteServerBinding.resolve(reference, Set.of(endpoint), target -> new RemoteServerBinding.Credential(target, "fixed-test-token")).newClient();
         try {
             warmup.initialize().then(warmup.listTools(null))
-                    .contextWrite(context -> context.put(io.modelcontextprotocol.common.McpTransportContext.KEY,
-                            io.modelcontextprotocol.common.McpTransportContext.create(java.util.Map.of("deadline", java.time.Instant.now().plusSeconds(30)))))
+                    .contextWrite(context -> context.put(McpTransportContext.KEY,
+                            McpTransportContext.create(Map.of("deadline", Instant.now().plusSeconds(30)))))
                     .block(Duration.ofSeconds(30));
         } finally {
             warmup.closeGracefully().block(Duration.ofSeconds(5));
@@ -212,7 +260,7 @@ class ManagedRemoteMcpCatalogTest {
                 + "\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}]}}";
     }
 
-    private static void await(final java.util.function.BooleanSupplier condition) throws InterruptedException {
+    private static void await(final BooleanSupplier condition) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
             Thread.sleep(5);

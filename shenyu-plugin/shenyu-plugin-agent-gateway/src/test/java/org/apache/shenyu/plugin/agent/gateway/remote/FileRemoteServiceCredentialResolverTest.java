@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +52,7 @@ class FileRemoteServiceCredentialResolverTest {
     @ValueSource(strings = {"name", "endpoint", "credentialRef", "credentialVersion", "bearerToken"})
     void rejectsMissingFieldsWithoutSecretCause(final String field) throws Exception {
         var json = new ObjectMapper();
-        var document = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(document());
+        var document = (ObjectNode) json.readTree(document());
         document.remove(field);
         Files.createDirectories(root.resolve("service/orders"));
         Files.writeString(root.resolve("service/orders/v1.json"), document.toString());

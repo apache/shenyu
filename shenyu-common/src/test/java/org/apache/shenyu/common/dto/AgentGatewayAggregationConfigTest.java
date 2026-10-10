@@ -57,7 +57,7 @@ class AgentGatewayAggregationConfigTest {
     @ParameterizedTest
     @ValueSource(strings = {"http://user:pass@127.0.0.1:8080/mcp", "http://127.0.0.1/mcp", "http://127.0.0.1:8080/a/../mcp",
         "http://127.0.0.1:8080/mcp?key=SECRET", "http://127.0.0.1:8080/mcp#SECRET", "http://127.0.0.1:8080/%2e/mcp",
-        "https://example.com:443/mcp", "http://192.0.2.10:8080/mcp"})
+        "https://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp", "https://255.255.255.255:443/mcp"})
     void rejectsAmbiguousEndpoints(final String endpoint) {
         String server = "{\"name\":\"orders\",\"endpoint\":\"" + endpoint + "\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)));

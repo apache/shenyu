@@ -34,33 +34,67 @@ import reactor.test.StepVerifier;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpConnectTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RequestScopedMcpClientTest {
 
     private static final Duration WAIT = Duration.ofSeconds(5);
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void responseDiagnosticsHaveFixedShapeAndNoRequestData(final boolean sse) throws Exception {
+        List<Map<String, Object>> events = new CopyOnWriteArrayList<>();
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client(events::add);
+            try {
+                client.initialize().block(WAIT);
+                client.listTools(null).block(WAIT);
+                call(client, "PRIVATE-ARGUMENT", 0, "PRIVATE-SUBJECT").block(WAIT);
+                assertThrows(RuntimeException.class, () -> call(client, "upstream-failure", 0, "PRIVATE-SUBJECT").block(WAIT));
+                assertEquals(5, events.size());
+                for (Map<String, Object> event : events) {
+                    assertEquals(Set.of("event", "server", "method", "id", "status", "contentType", "bytes"), event.keySet());
+                    assertEquals("http-response", event.get("event"));
+                    assertEquals("orders", event.get("server"));
+                    assertTrue(event.get("id") instanceof String);
+                    assertTrue(event.get("status") instanceof Integer);
+                    assertTrue(event.get("bytes") instanceof Integer);
+                    assertEquals("notifications/initialized".equals(event.get("method")) ? 0 : fixture.responseBytes.get(event.get("id")), event.get("bytes"));
+                    assertThrows(UnsupportedOperationException.class, () -> event.put("private", "value"));
+                    assertTrue(!event.toString().contains("PRIVATE-") && !event.toString().contains("fixed-test-token"));
+                }
+                assertEquals(List.of(200, 202, 200, 200, 503), events.stream().map(event -> event.get("status")).toList());
+                assertEquals(events.size(), events.stream().map(event -> event.get("id")).distinct().count());
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
 
     @Test
     void lateConnectFailureAfterCancellationDoesNotDropAnError() {
@@ -221,6 +255,8 @@ class RequestScopedMcpClientTest {
 
         private final List<Map<String, String>> requests = new CopyOnWriteArrayList<>();
 
+        private final Map<String, Integer> responseBytes = new ConcurrentHashMap<>();
+
         private final CountDownLatch delayed = new CountDownLatch(1);
 
         private volatile int deleteStatus = 204;
@@ -245,9 +281,10 @@ class RequestScopedMcpClientTest {
                     ObjectNode request = (ObjectNode) json.readTree(exchange.getRequestBody());
                     String method = request.path("method").textValue();
                     requests.add(Map.of("method", method, "authorization", exchange.getRequestHeaders().getFirst("Authorization"),
-                            "subjectHeader", java.util.Objects.toString(exchange.getRequestHeaders().getFirst("X-Spike-Subject"), ""),
-                            "cookie", java.util.Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), "")));
+                            "subjectHeader", Objects.toString(exchange.getRequestHeaders().getFirst("X-Spike-Subject"), ""),
+                            "cookie", Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), "")));
                     if ("notifications/initialized".equals(method)) {
+                        responseBytes.put(request.path("id").asText(), 0);
                         exchange.sendResponseHeaders(202, -1);
                         return;
                     }
@@ -262,6 +299,7 @@ class RequestScopedMcpClientTest {
                         tool.putObject("inputSchema").put("type", "object");
                     } else {
                         if ("upstream-failure".equals(request.path("params").path("arguments").path("token").textValue())) {
+                            responseBytes.put(request.path("id").asText(), 0);
                             exchange.sendResponseHeaders(503, -1);
                             return;
                         }
@@ -280,6 +318,7 @@ class RequestScopedMcpClientTest {
                     envelope.set("result", result);
                     boolean streaming = sse && !"initialize".equals(method);
                     byte[] response = (streaming ? "event: message\ndata: " + envelope + "\n\n" : envelope.toString()).getBytes(StandardCharsets.UTF_8);
+                    responseBytes.put(request.path("id").asText(), response.length);
                     exchange.getResponseHeaders().set("Content-Type", streaming ? "text/event-stream" : "application/json");
                     exchange.sendResponseHeaders(200, response.length);
                     exchange.getResponseBody().write(response);
@@ -297,9 +336,14 @@ class RequestScopedMcpClientTest {
         }
 
         private RequestScopedMcpClient client() {
+            return client(ignored -> { });
+        }
+
+        private RequestScopedMcpClient client(final Consumer<Map<String, Object>> observer) {
             URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
             RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1");
-            return RemoteServerBinding.resolve(target, Set.of(uri), ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")).newClient();
+            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, Set.of(uri),
+                    ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")), observer);
         }
 
         @Override

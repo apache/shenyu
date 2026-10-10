@@ -317,6 +317,17 @@ Admin validates unknown/duplicate/missing fields, bounds and endpoint syntax
 before saving or importing; the gateway uses the same parser. Existing data-sync
 channels feed an owned, bounded configuration worker. No custom production HTTP
 configuration endpoint, gateway DB access or Agent-provided target is introduced.
+
+The starter creates one `ManagedRemoteMcpCatalog` per gateway application context,
+fed by the existing data-sync channel for that gateway's configured namespace
+(`shenyu.namespace`). That catalog owns its control-update fence, worker, directory
+generations and client leases. Every discovery/list/call pins one complete generation,
+then checks local/remote name collisions and rule/identity grants in that view.
+Different gateway contexts do not share catalog state. This is not an in-process
+multi-namespace router: deployments must keep the sync namespace boundary intact.
+Deployment allowlists and credential resolution remain operator-controlled;
+Admin cannot widen that transport boundary.
+
 An empty server array explicitly removes remotes; rules must also stop naming
 removed tools, otherwise the existing unknown-tool configuration check fails closed.
 
@@ -354,6 +365,14 @@ removing a credential file alone does not revoke already captured leases.
 Disable/removal withdraws new remote access immediately, including an in-progress
 candidate. Queue overflow also withdraws access and requires an explicit valid refresh.
 Cleanup failures remain quarantined and prevent further allocation; shutdown reports failure.
+Closed catalogs, overlapping refresh reservations, exhausted generation budgets
+and quarantined cleanup all reject reservation with the same sanitized
+catalog-unavailable exception. Superseded updates allocate no generation or client.
+Failure diagnostics belong to the latest control-event revision; a newer event
+clears the superseded failure even when the older event exits without publication.
+An empty failure field does not mean ready: check the current generation too.
+Typed `diagnosticsState()` snapshots are available to Java callers; `diagnostics()`
+retains the secret-free map export for existing management consumers.
 
 Fail-closed scope: while the enabled catalog has no complete current generation,
 every MCP operation using that catalog is refused, including discovery and purely

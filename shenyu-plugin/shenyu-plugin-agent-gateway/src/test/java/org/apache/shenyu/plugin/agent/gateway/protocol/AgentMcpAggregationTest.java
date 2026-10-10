@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +36,7 @@ import reactor.test.StepVerifier;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -51,8 +54,8 @@ class AgentMcpAggregationTest {
 
     private final AtomicInteger localCalls = new AtomicInteger();
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"server/discover", "tools/list", "tools/call"})
+    @ParameterizedTest
+    @ValueSource(strings = {"server/discover", "tools/list", "tools/call"})
     void shouldDistinguishUnavailableCatalogWithoutFallingBackToLocalTools(final String method) {
         AgentMcpRemoteCatalog unavailable = operation -> Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException());
         AgentMcpDispatcher dispatcher = dispatcher("local", unavailable);
@@ -182,7 +185,7 @@ class AgentMcpAggregationTest {
                         (ignored, error) -> Mono.fromRunnable(active::decrementAndGet), ignored -> Mono.fromRunnable(active::decrementAndGet));
             }
         };
-        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(provider)), "candidate", "1", java.util.Objects.isNull(override) ? catalog : override);
+        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(provider)), "candidate", "1", Objects.isNull(override) ? catalog : override);
     }
 
     private Mono<JsonObject> localValue(final AgentToolInvocation invocation) {

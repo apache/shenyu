@@ -20,27 +20,31 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
-
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 /** Owns complete directory generations, operation leases and bounded session cleanup. */
 public final class RemoteCatalogLifecycle {
 
     private final Object lock = new Object();
 
-    private final Set<Generation> generations = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Generation> generations = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final Map<RemoteMcpEndpoint, Generation> owners = new IdentityHashMap<>();
 
@@ -100,7 +104,7 @@ public final class RemoteCatalogLifecycle {
     }
 
     Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames,
-                       final java.util.function.BooleanSupplier valid) {
+                       final BooleanSupplier stillCurrent) {
         List<Config> configs = List.copyOf(source);
         List<RemoteToolDirectory.LocalTool> localSnapshot = List.copyOf(locals);
         Set<String> reserved = Set.copyOf(reservedNames);
@@ -108,7 +112,11 @@ public final class RemoteCatalogLifecycle {
             return Mono.error(new IllegalArgumentException("Invalid or duplicate target configuration"));
         }
         return Mono.usingWhen(
-            Mono.fromCallable(() -> reserve(valid)),
+            Mono.defer(() -> {
+                Generation candidate = reserve(stillCurrent);
+                // A fenced control update has no resource and must not enter the build/cleanup paths.
+                return Objects.isNull(candidate) ? Mono.empty() : Mono.just(candidate);
+            }),
             candidate ->
                 closeIdle()
                     .then(build(candidate, configs))
@@ -122,8 +130,8 @@ public final class RemoteCatalogLifecycle {
                     .timeout(Duration.ofSeconds(5))
                     .map(directory -> {
                         synchronized (lock) {
-                            if (closed || candidate.retired || !valid.getAsBoolean()) {
-                                throw new IllegalStateException("Closed or withdrawn during refresh");
+                            if (closed || candidate.retired || !stillCurrent.getAsBoolean() || !cleanupFailures.isEmpty()) {
+                                throw new CatalogUnavailableException();
                             }
                             candidate.directory = directory;
                             current = candidate;
@@ -136,14 +144,14 @@ public final class RemoteCatalogLifecycle {
         );
     }
 
-    private Generation reserve(final java.util.function.BooleanSupplier valid) {
+    private Generation reserve(final BooleanSupplier stillCurrent) {
         synchronized (lock) {
             // Recheck after credential resolution, atomically with generation allocation.
-            if (!valid.getAsBoolean()) {
+            if (!stillCurrent.getAsBoolean()) {
                 return null;
             }
             if (closed || Objects.nonNull(updatingGeneration) || !cleanupFailures.isEmpty() || generations.size() >= maxGenerations) {
-                throw new IllegalStateException("Closed, update in progress, or generation budget exhausted");
+                throw new CatalogUnavailableException();
             }
             Generation candidate = new Generation(++sequence);
             generations.add(candidate);
@@ -158,13 +166,14 @@ public final class RemoteCatalogLifecycle {
     }
 
     private Mono<RemoteToolDirectory> build(final Generation candidate, final List<Config> configs) {
+        Objects.requireNonNull(candidate, "A reserved generation is required to build a directory");
         return Flux.fromIterable(configs)
             .concatMap(config ->
                 Mono.defer(() -> {
                     RemoteMcpEndpoint client;
                     synchronized (lock) {
                         if (closed || candidate.retired || !generations.contains(candidate) || !cleanupFailures.isEmpty()) {
-                            return Mono.error(new IllegalStateException("Closed, retired, or quarantined client cleanup"));
+                            return Mono.error(new CatalogUnavailableException());
                         }
                         // Managed factories are local, non-blocking constructors; allocation and ownership are atomic.
                         client = config.create().get();
@@ -227,22 +236,7 @@ public final class RemoteCatalogLifecycle {
     public Mono<McpSchema.CallToolResult> call(final String name, final Set<String> rule, final Set<String> grants, final Map<String, Object> arguments) {
         Set<String> ruleSnapshot = Set.copyOf(rule);
         Set<String> grantsSnapshot = Set.copyOf(grants);
-        // Own arguments at assembly, including nested maps. The per-subscription directory is acquired below.
-        var json = new ObjectMapper();
-        var input = json.valueToTree(arguments);
-        return Mono.usingWhen(
-            Mono.fromCallable(this::acquire),
-            generation ->
-                generation.directory.call(
-                    name,
-                    ruleSnapshot,
-                    grantsSnapshot,
-                    json.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { })
-                ),
-            this::release,
-            (generation, error) -> release(generation),
-            this::release
-        );
+        return withArguments(arguments, (directory, input) -> directory.call(name, ruleSnapshot, grantsSnapshot, input));
     }
 
     private Generation acquire() {
@@ -279,21 +273,15 @@ public final class RemoteCatalogLifecycle {
     public Mono<ObjectNode> callRaw(final String name, final Set<String> rule, final Set<String> grants, final Map<String, Object> arguments) {
         Set<String> ruleSnapshot = Set.copyOf(rule);
         Set<String> grantsSnapshot = Set.copyOf(grants);
+        return withArguments(arguments, (directory, input) -> directory.callRaw(name, ruleSnapshot, grantsSnapshot, input));
+    }
+
+    private <T> Mono<T> withArguments(final Map<String, Object> arguments,
+                                    final BiFunction<RemoteToolDirectory, Map<String, Object>, Mono<T>> operation) {
+        // Own nested input at assembly; each subscription receives a fresh copy and a directory lease.
         var json = new ObjectMapper();
         var input = json.valueToTree(arguments);
-        return Mono.usingWhen(
-            Mono.fromCallable(this::acquire),
-            generation ->
-                generation.directory.callRaw(
-                    name,
-                    ruleSnapshot,
-                    grantsSnapshot,
-                    json.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { })
-                ),
-            this::release,
-            (generation, error) -> release(generation),
-            this::release
-        );
+        return withSnapshot(directory -> operation.apply(directory, json.convertValue(input.deepCopy(), new TypeReference<Map<String, Object>>() { })));
     }
 
     private Mono<Void> release(final Generation generation) {
@@ -370,26 +358,17 @@ public final class RemoteCatalogLifecycle {
      * @return operation result
      */
     public Map<String, Object> diagnostics() {
+        return diagnosticsState().toMap();
+    }
+
+    /**
+     * Return an immutable, typed lifecycle snapshot; no request data or credentials.
+     * @return lifecycle state captured under the generation lock
+     */
+    public Diagnostics diagnosticsState() {
         synchronized (lock) {
-            return Map.of(
-                "closed",
-                closed,
-                "updating",
-                Objects.nonNull(updatingGeneration),
-                "generations",
-                generations.size(),
-                "clients",
-                owners.size(),
-                "references",
-                generations
-                    .stream()
-                    .mapToInt(g -> g.references)
-                    .sum(),
-                "currentVersion",
-                Objects.isNull(current) ? 0L : current.version,
-                "cleanupFailures",
-                List.copyOf(cleanupFailures)
-            );
+            return new Diagnostics(closed, Objects.nonNull(updatingGeneration), generations.size(), owners.size(),
+                    generations.stream().mapToInt(g -> g.references).sum(), Objects.isNull(current) ? 0L : current.version, cleanupFailures);
         }
     }
 
@@ -414,7 +393,7 @@ public final class RemoteCatalogLifecycle {
      * @param operation trusted operation value
      * @return operation result
      */
-    public <T> Mono<T> withSnapshot(final java.util.function.Function<RemoteToolDirectory, Mono<T>> operation) {
+    public <T> Mono<T> withSnapshot(final Function<RemoteToolDirectory, Mono<T>> operation) {
         return Mono.usingWhen(
             Mono.fromCallable(this::acquire),
             generation -> operation.apply(generation.directory),
@@ -453,6 +432,23 @@ public final class RemoteCatalogLifecycle {
     private void signalDrain() {
         if (closed && Objects.isNull(updatingGeneration) && generations.isEmpty()) {
             drained.tryEmitEmpty();
+        }
+    }
+
+    /** Immutable lifecycle diagnostics; map export is retained for existing management consumers. */
+    public record Diagnostics(boolean closed, boolean updating, int generations, int clients, int references,
+                              long currentVersion, List<String> cleanupFailures) {
+        public Diagnostics {
+            cleanupFailures = List.copyOf(cleanupFailures);
+        }
+
+        /**
+         * Preserve the existing secret-free management export without changing the typed snapshot.
+         * @return immutable legacy field map
+         */
+        public Map<String, Object> toMap() {
+            return Map.of("closed", closed, "updating", updating, "generations", generations, "clients", clients,
+                    "references", references, "currentVersion", currentVersion, "cleanupFailures", cleanupFailures);
         }
     }
 

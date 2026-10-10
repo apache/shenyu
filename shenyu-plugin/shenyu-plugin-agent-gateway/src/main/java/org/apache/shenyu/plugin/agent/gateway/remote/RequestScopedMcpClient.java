@@ -24,6 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
+import reactor.core.publisher.Sinks;
+
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -36,6 +40,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -45,9 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.core.publisher.SignalType;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Bounded, fixed 2025-06-18 request/one-final-response adapter.
@@ -107,7 +110,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     RequestScopedMcpClient(final RemoteServerBinding binding, final java.util.function.Consumer<Map<String, Object>> observer, final javax.net.ssl.SSLContext testContext) {
         HttpClient.Builder builder = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).proxy(RemoteTransportPolicy.directOnly())
                 .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(Duration.ofSeconds(2));
-        if (java.util.Objects.nonNull(testContext)) {
+        if (Objects.nonNull(testContext)) {
             builder.sslContext(testContext);
         }
         http = builder.build();
@@ -139,7 +142,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     public Mono<McpSchema.ListToolsResult> listTools(final String cursor) {
         return ready().then(
             Mono.defer(() ->
-                request("tools/list", java.util.Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false).map(result ->
+                request("tools/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false).map(result ->
                     JSON.convertValue(result, McpSchema.ListToolsResult.class)
                 )
             )
@@ -202,7 +205,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 .header("Authorization", authorization)
                 .header("MCP-Protocol-Version", VERSION)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
-            if (java.util.Objects.nonNull(session) && !"initialize".equals(method)) {
+            if (Objects.nonNull(session) && !"initialize".equals(method)) {
                 builder.header("MCP-Session-Id", session);
             }
             HttpRequest outbound = builder.build();
@@ -210,7 +213,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 active.decrementAndGet();
                 return Mono.error(new IllegalStateException("Client concurrency limit"));
             }
-            var owned = new java.util.concurrent.atomic.AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
+            var owned = new AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
             return Mono.defer(() -> {
                 CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, ignored -> new BoundedBody(LIMIT));
                 owned.set(future);
@@ -224,7 +227,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 .map(response -> decodeResponse(response, method, id, notification))
                 .doFinally(ignored -> {
                     CompletableFuture<?> future = owned.get();
-                    if (java.util.Objects.nonNull(future)) {
+                    if (Objects.nonNull(future)) {
                         future.cancel(true);
                         inFlight.remove(future);
                     }
@@ -284,13 +287,13 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                         }
                     }
                     if (candidate.length() > 0) {
-                        if (java.util.Objects.nonNull(data)) {
+                        if (Objects.nonNull(data)) {
                             throw new IllegalArgumentException("Only one final response supported");
                         }
                         data = candidate.toString();
                     }
                 }
-                if (java.util.Objects.isNull(data)) {
+                if (Objects.isNull(data)) {
                     throw new IllegalArgumentException("Missing final SSE response");
                 }
                 text = data;
@@ -323,7 +326,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         for (CompletableFuture<?> future : inFlight) {
             future.cancel(true);
         }
-        if (java.util.Objects.isNull(session)) {
+        if (Objects.isNull(session)) {
             return Mono.empty();
         }
         HttpRequest request = HttpRequest.newBuilder(endpoint)
@@ -350,10 +353,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         Sinks.One<T> signal = Sinks.one();
         request.whenComplete((response, error) -> {
             Throwable failure = error;
-            while (failure instanceof CompletionException && java.util.Objects.nonNull(failure.getCause())) {
+            while (failure instanceof CompletionException && Objects.nonNull(failure.getCause())) {
                 failure = failure.getCause();
             }
-            if (java.util.Objects.nonNull(failure)) {
+            if (Objects.nonNull(failure)) {
                 // Retain active errors, but a detached request has no subscriber to receive late failures.
                 signal.tryEmitError(failure);
             } else {

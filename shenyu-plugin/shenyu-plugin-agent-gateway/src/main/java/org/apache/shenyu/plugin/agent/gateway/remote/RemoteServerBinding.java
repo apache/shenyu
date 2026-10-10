@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -46,7 +47,7 @@ public final class RemoteServerBinding {
      * @return operation result
      */
     public static RemoteServerBinding resolve(final Config config, final Set<URI> allowedEndpoints, final Function<Config, Credential> localResolver) {
-        if (java.util.Objects.isNull(config) || java.util.Objects.isNull(allowedEndpoints) || java.util.Objects.isNull(localResolver)) {
+        if (Objects.isNull(config) || Objects.isNull(allowedEndpoints) || Objects.isNull(localResolver)) {
             throw new IllegalArgumentException("Missing controlled target configuration");
         }
         // Exact configured URI, including path/port. Never resolve an Agent-provided URL.
@@ -60,7 +61,7 @@ public final class RemoteServerBinding {
             // A secret-store exception can contain credentials: do not retain its message/cause.
             throw new SecurityException("Service credential resolution failed");
         }
-        if (java.util.Objects.isNull(credential) || !config.equals(credential.target)) {
+        if (Objects.isNull(credential) || !config.equals(credential.target)) {
             throw new SecurityException("Missing or mismatched service credential binding");
         }
         return new RemoteServerBinding(config, credential);
@@ -106,14 +107,14 @@ public final class RemoteServerBinding {
 
     public record Config(String name, URI endpoint, String credentialRef, String credentialVersion) {
         public Config {
-            if (java.util.Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
+            if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid stable server name");
             }
             RemoteTransportPolicy.endpoint(endpoint);
             if (
-                java.util.Objects.isNull(credentialRef)
+                Objects.isNull(credentialRef)
                     || !credentialRef.matches("[A-Za-z0-9_./-]{1,96}")
-                    || java.util.Objects.isNull(credentialVersion)
+                    || Objects.isNull(credentialVersion)
                     || !credentialVersion.matches("[A-Za-z0-9_-]{1,48}")
             ) {
                 throw new IllegalArgumentException("Invalid credential reference or version");
@@ -129,7 +130,7 @@ public final class RemoteServerBinding {
         private final String authorization;
 
         public Credential(final Config target, final String bearerToken) {
-            if (java.util.Objects.isNull(target) || java.util.Objects.isNull(bearerToken) || bearerToken.length() > 2048 || !bearerToken.matches("[A-Za-z0-9._~+/-]+=*")) {
+            if (Objects.isNull(target) || Objects.isNull(bearerToken) || bearerToken.length() > 2048 || !bearerToken.matches("[A-Za-z0-9._~+/-]+=*")) {
                 throw new IllegalArgumentException("Invalid service credential");
             }
             this.target = target;

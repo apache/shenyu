@@ -19,12 +19,14 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Fixed-IP transport and opaque metadata boundary; does not support DNS-based targets. */
@@ -79,7 +81,7 @@ public final class RemoteTransportPolicy {
      * @return operation result
      */
     public static String subject(final Object value) {
-        if (java.util.Objects.isNull(value)) {
+        if (Objects.isNull(value)) {
             return "null";
         }
         if (!(value instanceof String text) || !text.matches("[A-Za-z0-9._@:/-]{1,128}")) {
@@ -94,7 +96,7 @@ public final class RemoteTransportPolicy {
      */
     public static void callMetadata(final ObjectNode request) {
         JsonNode meta = request.get("_meta");
-        if (java.util.Objects.nonNull(meta) && !meta.isNull() && (!meta.isObject() || !meta.isEmpty())) {
+        if (Objects.nonNull(meta) && !meta.isNull() && (!meta.isObject() || !meta.isEmpty())) {
             // No silent filtering/fallback: this narrow managed has no delegated metadata/progress contract.
             throw new IllegalArgumentException("Outbound request metadata is not supported");
         }
@@ -106,7 +108,7 @@ public final class RemoteTransportPolicy {
      */
     public static void resultMetadata(final ObjectNode result) {
         JsonNode meta = result.get("_meta");
-        if (java.util.Objects.isNull(meta)) {
+        if (Objects.isNull(meta)) {
             return;
         }
         if (!meta.isObject()) {
