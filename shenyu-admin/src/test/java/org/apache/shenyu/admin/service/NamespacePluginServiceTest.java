@@ -25,6 +25,9 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.service.impl.NamespacePluginServiceImpl;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
@@ -167,5 +170,47 @@ public final class NamespacePluginServiceTest {
 
         // verify
         Assertions.assertEquals(0, result.size());
+    }
+
+    @Test
+    public void testUpdateRejectsRelationFromAnotherNamespace() {
+        NamespacePluginDTO dto = new NamespacePluginDTO();
+        dto.setId("rel-1");
+        dto.setNamespaceId("namespace-a");
+        dto.setPluginId("pluginId");
+        NamespacePluginVO before = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(before.getNamespaceId()).thenReturn("namespace-b");
+        Mockito.when(namespacePluginRelMapper.selectById("rel-1")).thenReturn(before);
+
+        Assertions.assertThrows(ShenyuAdminException.class, () -> namespacePluginService.update(dto));
+        Mockito.verify(namespacePluginRelMapper, Mockito.never()).updateSelective(Mockito.any());
+    }
+
+    @Test
+    public void testUpdateRejectsUnknownRelation() {
+        NamespacePluginDTO dto = new NamespacePluginDTO();
+        dto.setId("missing-rel");
+        dto.setNamespaceId("namespace-a");
+        dto.setPluginId("pluginId");
+        Mockito.when(namespacePluginRelMapper.selectById("missing-rel")).thenReturn(null);
+
+        Assertions.assertThrows(ShenyuAdminException.class, () -> namespacePluginService.update(dto));
+        Mockito.verify(namespacePluginRelMapper, Mockito.never()).updateSelective(Mockito.any());
+    }
+
+    @Test
+    public void testUpdateAcceptsRelationFromSameNamespace() {
+        NamespacePluginDTO dto = new NamespacePluginDTO();
+        dto.setId("rel-1");
+        dto.setNamespaceId("namespace-a");
+        dto.setPluginId("pluginId");
+        NamespacePluginVO before = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(before.getNamespaceId()).thenReturn("namespace-a");
+        NamespacePluginVO after = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(namespacePluginRelMapper.selectById("rel-1")).thenReturn(before, after);
+        Mockito.when(namespacePluginRelMapper.updateSelective(Mockito.any())).thenReturn(1);
+
+        Assertions.assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, namespacePluginService.update(dto));
+        Mockito.verify(namespacePluginEventPublisher).onUpdated(after, before);
     }
 }
