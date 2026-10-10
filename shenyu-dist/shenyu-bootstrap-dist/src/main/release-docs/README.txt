@@ -3,7 +3,8 @@ Welcome to Apache ShenYu
 
 Apache ShenYu is an asynchronous, high-performance, cross-language, responsive API gateway.
 
-* Support various languages (http protocol), support Dubbo, Spring-Cloud, Grpc, Sofa, Tars and other protocols.
+* Support various languages (http protocol), support Dubbo, Spring-Cloud, Grpc and other bundled protocols.
+* Sofa and Tars gateway plugins are no longer bundled in the default bootstrap distribution; install the matching external plugin-store starter in the gateway classpath when those protocols are needed.
 * Plugin design idea, plugin hot swap, easy to expand.
 * Flexible flow filtering to meet various flow control.
 * Built-in rich plugin support, authentication, limiting, fuse, firewall, etc.

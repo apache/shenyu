@@ -24,7 +24,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,9 +52,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         // for grpc
         pluginResult = initPlugin(PluginEnum.GRPC.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\",\"threadpool\": \"shared\"}");
         assertThat(pluginResult, is("success"));
-        // for sofa
-        pluginResult = initPlugin(PluginEnum.SOFA.getName(), "{\"protocol\":\"zookeeper\",\"register\":\"shenyu-zk:2181\",\"threadpool\": \"shared\"}");
-        assertThat(pluginResult, Matchers.is("success"));
     }
     
     @Test
@@ -85,6 +81,5 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, dubbo);
         String grpc = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromGrpc", String.class);
         assertEquals(spring, grpc);
-        // TODO test sofa
     }
 }
