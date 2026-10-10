@@ -23,18 +23,30 @@ import org.apache.shenyu.plugin.ai.common.spring.ai.factory.OpenAiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStreamCancellation;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
-    
-/** 
+
+/**
  * The type ai proxy plugin configuration.
  */
 @Configuration
@@ -47,9 +59,9 @@ public class AiProxyPluginConfiguration {
     /**
      * Ai proxy plugin.
      *
-     * @param aiProxyConfigService the aiProxyConfigService
+     * @param aiProxyConfigService   the aiProxyConfigService
      * @param aiProxyExecutorService the aiProxyExecutorService
-     * @param aiProxyPluginHandler the aiProxyPluginHandler
+     * @param aiProxyPluginHandler   the aiProxyPluginHandler
      * @return the shenyu plugin
      */
     @Bean
@@ -123,5 +135,75 @@ public class AiProxyPluginConfiguration {
     @Bean
     public AiProxyApiKeyDataSubscriber aiProxyApiKeyDataSubscriber() {
         return new CommonAiProxyApiKeyDataSubscriber();
+    }
+
+    /**
+     * Ai proxy engine.
+     *
+     * @param aiProxyProtocolFactory protocol factory
+     * @param aiProxyProviderFactory provider factory
+     * @param aiProxyTransport transport
+     * @return the AI proxy engine
+     */
+    @Bean
+    public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
+            final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport) {
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport);
+    }
+
+    /**
+     * OpenAI chat protocol.
+     *
+     * @return the OpenAI chat protocol
+     */
+    @Bean
+    public OpenAiChat openAiChat() {
+        return new OpenAiChat();
+    }
+
+    /**
+     * Ai proxy protocol factory.
+     *
+     * @param protocols protocols
+     * @return the AI proxy protocol factory
+     */
+    @Bean
+    public AiProxyProtocolFactory aiProxyProtocolFactory(final List<AiProxyProtocol> protocols) {
+        return new AiProxyProtocolFactory(protocols);
+    }
+
+    /**
+     * OpenAI provider.
+     *
+     * @return the OpenAI provider
+     */
+    @Bean(name = "openai")
+    public OpenAi openAi() {
+        return new OpenAi();
+    }
+
+    /**
+     * Ai proxy provider factory.
+     *
+     * @param providers providers
+     * @return the AI proxy provider factory
+     */
+    @Bean
+    public AiProxyProviderFactory aiProxyProviderFactory(final List<AiProxyProvider> providers) {
+        return new AiProxyProviderFactory(providers);
+    }
+
+    /**
+     * Ai proxy transport.
+     *
+     * @return the AI proxy transport
+     */
+    @Bean
+    @ConditionalOnMissingBean(AiProxyTransport.class)
+    public AiProxyTransport aiProxyTransport() {
+        final WebClient webClient = WebClient.builder()
+                .filter(AiStreamCancellation.responseFilter())
+                .build();
+        return new WebClientAiProxyTransport(webClient);
     }
 }
