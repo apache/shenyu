@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.tars.handler;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
@@ -35,21 +35,27 @@ import java.util.stream.Collectors;
  */
 public class TarsMetaDataHandler implements MetaDataHandler {
 
-    private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Pair<String, String>, MetaData> META_DATA = Maps.newConcurrentMap();
     
     @Override
     public void handle(final MetaData metaData) {
         metaData.updateContextPath();
-        MetaData metaExist = META_DATA.get(metaData.getPath());
+        Pair<String, String> key = Pair.of(metaData.getPath(), metaData.getAppName());
+        MetaData metaExist = META_DATA.get(key);
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
-        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()));
-        if (!exist) {
+        boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()));
+        if (!exist || requiresRefresh(metaExist, metaData)) {
             ApplicationConfigCache.getInstance().initPrx(metaData);
         }
-        if (Objects.isNull(metaExist)) {
-            META_DATA.put(metaData.getPath(), metaData);
-        }
+        META_DATA.put(key, metaData);
+    }
+
+    private boolean requiresRefresh(final MetaData current, final MetaData updated) {
+        return Objects.nonNull(current) && (!Objects.equals(current.getServiceName(), updated.getServiceName())
+                || !Objects.equals(current.getMethodName(), updated.getMethodName())
+                || !Objects.equals(current.getParameterTypes(), updated.getParameterTypes())
+                || !Objects.equals(current.getRpcExt(), updated.getRpcExt()));
     }
     
     @Override
@@ -58,12 +64,10 @@ public class TarsMetaDataHandler implements MetaDataHandler {
         List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                 .get(metaData.getPath()).getTarsInvokePrxList();
         List<TarsInvokePrx> removePrxList = prxList.stream()
-                .filter(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()))
+                .filter(tarsInvokePrx -> Objects.equals(tarsInvokePrx.getAppName(), metaData.getAppName()))
                 .collect(Collectors.toList());
         prxList.removeAll(removePrxList);
-        if (CollectionUtils.isEmpty(prxList)) {
-            META_DATA.remove(metaData.getPath());
-        }
+        META_DATA.remove(Pair.of(metaData.getPath(), metaData.getAppName()));
     }
     
     @Override

@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.tars.cache;
 
 import com.qq.tars.protocol.annotation.Servant;
 import com.qq.tars.client.Communicator;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.implementation.FixedValue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -39,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +64,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Test case for {@link ApplicationConfigCache}.
@@ -202,14 +207,20 @@ public final class ApplicationConfigCacheTest {
         final MetaData metadata = new MetaData();
         metadata.setPath(path);
         metadata.setServiceName("service");
+        metadata.setMethodName("method");
         final TarsUpstream upstream = TarsUpstream.builder().upstreamUrl("127.0.0.1:8080").build();
-        classes.put(path, Object.class);
+        final Class<?> proxyClass = new ByteBuddy().subclass(Object.class).defineMethod("promise_method", String.class, Visibility.PUBLIC)
+                .intercept(FixedValue.value("")).make().load(getClass().getClassLoader()).getLoaded();
+        classes.put(path, proxyClass);
+        final Map<String, ApplicationConfigCache.TarsParamInfo> params = (Map<String, ApplicationConfigCache.TarsParamInfo>) getField("prxParamCache");
+        final String paramKey = ApplicationConfigCache.getClassMethodKey(proxyClass.getName(), "method");
+        params.put(paramKey, new ApplicationConfigCache.TarsParamInfo(new Class<?>[0], new String[0]));
         ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", communicator);
         try {
-            when(communicator.stringToProxy(eq(Object.class), anyString())).thenAnswer(invocation -> {
+            when(communicator.stringToProxy(eq(proxyClass), anyString())).thenAnswer(invocation -> {
                 assertSame(previous, applicationConfigCacheUnderTest.get(path));
                 assertEquals(1, previous.getTarsInvokePrxList().size());
-                return new Object();
+                return proxyClass.getDeclaredConstructor().newInstance();
             });
             ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest, "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream));
             assertNotSame(previous, applicationConfigCacheUnderTest.get(path));
@@ -217,13 +228,57 @@ public final class ApplicationConfigCacheTest {
             assertEquals("old", previous.getTarsInvokePrxList().get(0).getHost());
             assertEquals("127.0.0.1:8080", applicationConfigCacheUnderTest.get(path).getTarsInvokePrxList().get(0).getHost());
             final TarsInvokePrxList current = applicationConfigCacheUnderTest.get(path);
-            org.mockito.Mockito.doThrow(new IllegalStateException("proxy unavailable")).when(communicator).stringToProxy(eq(Object.class), anyString());
+            org.mockito.Mockito.doThrow(new IllegalStateException("proxy unavailable")).when(communicator).stringToProxy(eq(proxyClass), anyString());
             assertThrows(IllegalStateException.class, () -> ReflectionTestUtils.invokeMethod(applicationConfigCacheUnderTest,
                     "refreshTarsInvokePrxList", metadata, Collections.singletonList(upstream)));
             assertSame(current, applicationConfigCacheUnderTest.get(path));
             assertEquals(1, current.getTarsInvokePrxList().size());
         } finally {
             classes.remove(path);
+            params.remove(paramKey);
+            ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", original);
+        }
+    }
+
+    @Test
+    void metadataChangesRebuildActualInvocationState() throws Exception {
+        final String context = "/metadataRefresh";
+        final String path = context + "/invoke";
+        final Communicator original = (Communicator) getField("communicator");
+        final Communicator communicator = mock(Communicator.class);
+        when(communicator.stringToProxy(any(Class.class), anyString())).thenAnswer(invocation -> {
+            Class<?> type = invocation.getArgument(0);
+            return Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, (proxy, method, args) -> null);
+        });
+        ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", communicator);
+        SelectorData selector = new SelectorData();
+        selector.setName(context);
+        selector.setHandle("[{\"upstreamUrl\":\"127.0.0.1:8080\"}]");
+        try {
+            applicationConfigCacheUnderTest.initPrxClass(selector);
+            Class<?> previousClass = null;
+            for (int index = 0; index < 3; index++) {
+                String method = index == 0 ? "first" : "second";
+                String paramType = index == 0 ? "int" : index == 1 ? "java.lang.String" : "long";
+                String paramName = "argument" + index;
+                String ext = "{\"methodInfo\":[{\"methodName\":\"" + method + "\",\"params\":[{\"left\":\""
+                        + paramType + "\",\"right\":\"" + paramName + "\"}],\"returnType\":\"java.lang.String\"}]}";
+                MetaData metadata = new MetaData("id", "app", context, path, RpcTypeEnum.TARS.getName(),
+                        "service", method, paramType, ext, false, Constants.SYS_DEFAULT_NAMESPACE_ID);
+                applicationConfigCacheUnderTest.initPrx(metadata);
+                TarsInvokePrxList current = applicationConfigCacheUnderTest.get(path);
+                assertEquals("promise_" + method, current.getMethod().getName());
+                assertEquals(PrxInfoUtil.getParamClass(paramType), current.getParamTypes()[0]);
+                assertEquals(paramName, current.getParamNames()[0]);
+                Object proxy = current.getTarsInvokePrxList().get(0).getInvokePrx();
+                assertTrue(current.getMethod().getDeclaringClass().isInstance(proxy));
+                assertNotSame(previousClass, proxy.getClass());
+                previousClass = proxy.getClass();
+                applicationConfigCacheUnderTest.initPrxClass(selector);
+                assertEquals("promise_" + method, applicationConfigCacheUnderTest.get(path).getMethod().getName());
+            }
+        } finally {
+            applicationConfigCacheUnderTest.invalidate(context);
             ReflectionTestUtils.setField(applicationConfigCacheUnderTest, "communicator", original);
         }
     }
@@ -300,4 +355,5 @@ public final class ApplicationConfigCacheTest {
         field.setAccessible(true);
         return field.get(applicationConfigCacheUnderTest);
     }
+
 }
