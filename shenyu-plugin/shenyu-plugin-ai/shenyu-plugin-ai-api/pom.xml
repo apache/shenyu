@@ -20,22 +20,31 @@
 
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-plugin</artifactId>
+        <artifactId>shenyu-plugin-ai</artifactId>
         <version>2.7.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-ai</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>shenyu-plugin-ai-api</artifactId>
 
-    <modules>
-        <module>shenyu-plugin-ai-api</module>
-        <module>shenyu-plugin-ai-common</module>
-        <module>shenyu-plugin-ai-prompt</module>
-        <module>shenyu-plugin-ai-token-limiter</module>
-        <module>shenyu-plugin-ai-request-transformer</module>
-        <module>shenyu-plugin-ai-proxy</module>
-        <module>shenyu-plugin-ai-response-transformer</module>
-        <module>shenyu-plugin-ai-sensitive-word</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>
