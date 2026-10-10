@@ -395,6 +395,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
         // Validate all related records before performing any update.
         proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler

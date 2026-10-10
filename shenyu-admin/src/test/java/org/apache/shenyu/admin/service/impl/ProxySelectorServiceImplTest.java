@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -132,5 +134,48 @@ public final class ProxySelectorServiceImplTest {
         discovery.setDiscoveryType("zookeeper");
         dto.setDiscovery(discovery);
         return dto;
+    }
+
+    @Test
+    public void updateRejectsDiscoveryFromAnotherNamespace() {
+        final ProxySelectorAddDTO dto = buildAddDto("namespace-a", "discovery-1");
+        final DiscoveryRelDO relDO = new DiscoveryRelDO();
+        relDO.setDiscoveryHandlerId("handler-1");
+        final DiscoveryHandlerDO handlerDO = new DiscoveryHandlerDO();
+        handlerDO.setId("handler-1");
+        handlerDO.setDiscoveryId("discovery-1");
+        final DiscoveryDO foreignDiscovery = new DiscoveryDO();
+        foreignDiscovery.setId("discovery-1");
+        foreignDiscovery.setNamespaceId("namespace-b");
+        foreignDiscovery.setDiscoveryType("zookeeper");
+        when(discoveryRelMapper.selectByProxySelectorId(any())).thenReturn(relDO);
+        when(discoveryHandlerMapper.selectById("handler-1")).thenReturn(handlerDO);
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(foreignDiscovery);
+
+        assertThrows(ValidFailException.class, () -> proxySelectorService.update(dto));
+        verify(discoveryMapper, never()).updateSelective(any(DiscoveryDO.class));
+    }
+
+    @Test
+    public void updateAcceptsDiscoveryFromSameNamespace() {
+        final ProxySelectorAddDTO dto = buildAddDto("namespace-a", "discovery-1");
+        final DiscoveryRelDO relDO = new DiscoveryRelDO();
+        relDO.setDiscoveryHandlerId("handler-1");
+        final DiscoveryHandlerDO handlerDO = new DiscoveryHandlerDO();
+        handlerDO.setId("handler-1");
+        handlerDO.setDiscoveryId("discovery-1");
+        final DiscoveryDO ownDiscovery = new DiscoveryDO();
+        ownDiscovery.setId("discovery-1");
+        ownDiscovery.setNamespaceId("namespace-a");
+        ownDiscovery.setDiscoveryType("zookeeper");
+        when(discoveryRelMapper.selectByProxySelectorId(any())).thenReturn(relDO);
+        when(discoveryHandlerMapper.selectById("handler-1")).thenReturn(handlerDO);
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(ownDiscovery);
+        lenient().when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        lenient().when(proxySelectorMapper.update(any())).thenReturn(1);
+        lenient().when(discoveryHandlerMapper.updateSelective(any())).thenReturn(1);
+        lenient().when(discoveryMapper.updateSelective(any())).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, proxySelectorService.update(dto));
     }
 }
