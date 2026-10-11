@@ -33,6 +33,23 @@ The fresh flow executes the complete current initialization schema in a new
 container, not the already upgraded database. Clients abort on SQL errors;
 there is no `--force`, tolerated-error list or fallback to H2.
 
+PostgreSQL and openGauss fresh installations both execute
+`db/init/pg/create-table.sql`, without a compatibility overlay. The openGauss
+upgrade flow still reads its original `db/init/og/create-table.sql` **at the
+immutable released baseline commit**, then executes the unchanged `*-og.sql`
+upgrade script. That historical path is not a current initialization file.
+Storage Compose and Kubernetes E2E initialization also use the shared source.
+
+Both shared fresh flows require the declared columns/nullability, primary keys,
+secondary indexes and unique indexes. They reject orphan seed relations,
+duplicate plugin-handle/permission/namespace-plugin natural keys and invalid
+configuration JSON; require admin permissions for every resource and a default
+namespace relation for every plugin; and compare the reconciled plugin and
+default-namespace configs. Discovery-upstream uniqueness is checked by native
+catalog inspection and an actual duplicate insert that must fail on the intended
+index. See the [initialization guide](../init/init-guide.md) for reconciliation
+decisions and installation commands.
+
 Both flows insert a plugin with a nonempty binary JAR including zero/high-bit
 bytes. The checks execute the actual shared mapper column projections, require
 the list projection to exclude `plugin_jar`, preserve all sentinel list metadata

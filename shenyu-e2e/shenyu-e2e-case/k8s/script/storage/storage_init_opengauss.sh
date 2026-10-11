@@ -24,4 +24,4 @@ wget -O /tmp/shenyu-e2e/opengauss/driver/opengauss-jdbc-5.1.0-og.jar \
   wget -O /tmp/shenyu-e2e/opengauss/driver/opengauss-jdbc-5.1.0-og.jar \
   https://repo1.maven.org/maven2/org/opengauss/opengauss-jdbc/5.1.0-og/opengauss-jdbc-5.1.0-og.jar --no-check-certificate
 
-cp db/init/og/create-table.sql /tmp/shenyu-e2e/opengauss/schema/create-table.sql
+cp db/init/pg/create-table.sql /tmp/shenyu-e2e/opengauss/schema/create-table.sql

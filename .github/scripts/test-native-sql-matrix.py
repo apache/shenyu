@@ -87,6 +87,95 @@ class NativeSqlMatrixTest(unittest.TestCase):
             self.assertTrue((ROOT / schema).is_file())
         self.assertRegex(matrix.BASELINE, r"^[0-9a-f]{40}$")
 
+    def test_opengauss_shares_current_postgres_schema_but_keeps_released_baseline(self):
+        self.assertEqual(matrix.DIALECTS["pg"][1], matrix.DIALECTS["og"][1])
+        self.assertFalse((ROOT / "db/init/og/create-table.sql").exists())
+        engine = MagicMock()
+        engine.sql.return_value = "unchanged"
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(matrix, "Engine", return_value=engine), \
+                    patch.object(matrix, "run", return_value="-- released openGauss schema") as invoke:
+                matrix.execute_matrix("og", ROOT, Path(directory))
+        invoke.assert_called_once_with(["git", "show", f"{matrix.BASELINE}:db/init/og/create-table.sql"])
+        self.assertEqual(engine.sql.call_args_list[0].args[0], "-- released openGauss schema")
+        self.assertIn(unittest.mock.call((ROOT / "db/upgrade/2.7.1-upgrade-2.7.2-og.sql").read_text(encoding="utf-8")),
+                      engine.sql.call_args_list)
+        schema = (ROOT / "db/init/pg/create-table.sql").read_text(encoding="utf-8")
+        self.assertIn(unittest.mock.call(schema, database=False), engine.sql.call_args_list)
+        engine.check_fresh_postgres_schema.assert_called_once_with(schema, engine.indexes.return_value)
+
+    def test_opengauss_storage_initialization_copies_the_shared_schema(self):
+        script = ROOT / "shenyu-e2e/shenyu-e2e-case/k8s/script/storage/storage_init_opengauss.sh"
+        with tempfile.TemporaryDirectory() as directory:
+            capture = Path(directory) / "create-table.sql"
+            command = 'mkdir() { :; }; wget() { :; }; cp() { command cp "$1" "$CAPTURE"; }; export -f mkdir wget cp; bash "$1"'
+            result = subprocess.run(["bash", "-c", command, "storage-init-test", str(script)], cwd=ROOT,
+                                    env=dict(os.environ, CAPTURE=str(capture)), capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(capture.read_bytes(), (ROOT / matrix.DIALECTS["pg"][1]).read_bytes())
+
+    def test_shared_postgres_schema_rejects_missing_column_primary_index_and_uniqueness(self):
+        schema = ('CREATE TABLE IF NOT EXISTS "public"."discovery_upstream" (\n"id" varchar(128) NOT NULL,\n'
+                  '"upstream_url" varchar(128),\nPRIMARY KEY ("id")\n);\n'
+                  'CREATE UNIQUE INDEX discovery_upstream_discovery_handler_id_IDX ON "public"."discovery_upstream" '
+                  'USING btree ("id","upstream_url");')
+        columns = "discovery_upstream|id|NO\ndiscovery_upstream|upstream_url|YES"
+        key = ("discovery_upstream", "discovery_upstream_discovery_handler_id_idx")
+        for replies, indexes, label in (([""], {}, "Fresh columns"),
+                                        ([columns, ""], {}, "Fresh primary keys"),
+                                        ([columns, "discovery_upstream|id", ""], {}, "shared index"),
+                                        ([columns, "discovery_upstream|id", ""], {key: ["id", "upstream_url"]}, "shared unique")):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                engine = matrix.Engine("og", "fresh", Path(directory))
+                with patch.object(engine, "sql", side_effect=replies), self.assertRaisesRegex(AssertionError, label):
+                    engine.check_fresh_postgres_schema(schema, indexes)
+
+    def test_shared_postgres_seeds_reject_orphans_duplicates_and_missing_grants(self):
+        for violation, label in (("FROM permission child LEFT JOIN resource", "permission.resource_id orphan"),
+                                 ("FROM resource child LEFT JOIN resource", "resource.parent_id orphan"),
+                                 ("FROM plugin_handle GROUP BY", "plugin_handle duplicate natural key"),
+                                 ("FROM permission GROUP BY", "permission duplicate natural key"),
+                                 ("FROM namespace_plugin_rel GROUP BY", "namespace_plugin_rel duplicate natural key"),
+                                 ("FROM resource r LEFT JOIN permission", "missing admin resource permission"),
+                                 ("FROM plugin p LEFT JOIN namespace_plugin_rel", "missing default namespace plugin")):
+            with self.subTest(violation=violation), tempfile.TemporaryDirectory() as directory:
+                engine = matrix.Engine("pg", "fresh", Path(directory))
+                with patch.object(engine, "sql", side_effect=lambda query: "1" if violation in query else "0"), \
+                        self.assertRaisesRegex(AssertionError, label):
+                    engine.check_fresh_postgres_seeds()
+
+    def test_shared_postgres_seeds_reject_invalid_json_and_namespace_config_drift(self):
+        for invalid, error, label in ((True, json.JSONDecodeError, ""), (False, AssertionError, "namespace config differs")):
+            def sql(query):
+                if "FROM namespace WHERE" in query:
+                    return "1"
+                if "violations" in query:
+                    return "0"
+                if "WHERE config IS NOT NULL" in query:
+                    return '{"defaultHandleJson":"{"authorization":"test:test123"}"}' if invalid else "{}"
+                if "WHERE ext_obj IS NOT NULL" in query:
+                    return "{}"
+                return '{"ruleHandlePageType":"custom"}' if "FROM plugin WHERE" in query else "{}"
+
+            with self.subTest(invalid=invalid), tempfile.TemporaryDirectory() as directory:
+                engine = matrix.Engine("og", "fresh", Path(directory))
+                with patch.object(engine, "sql", side_effect=sql), self.assertRaisesRegex(error, label):
+                    engine.check_fresh_postgres_seeds()
+
+    def test_discovery_upstream_uniqueness_requires_the_intended_constraint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("og", "fresh", Path(directory))
+            error = RuntimeError('duplicate key violates unique constraint "discovery_upstream_discovery_handler_id_idx"')
+            with patch.object(engine, "sql", side_effect=error) as sql:
+                engine.check_discovery_upstream_uniqueness()
+                self.assertEqual(sql.call_args.args[0].count("INSERT INTO discovery_upstream"), 2)
+                self.assertTrue(sql.call_args.args[0].startswith("BEGIN;"))
+                self.assertTrue(sql.call_args.args[0].endswith("ROLLBACK;"))
+            with patch.object(engine, "sql", return_value=""), self.assertRaisesRegex(AssertionError, "was accepted"):
+                engine.check_discovery_upstream_uniqueness()
+            with patch.object(engine, "sql", side_effect=RuntimeError("connection refused")), self.assertRaisesRegex(RuntimeError, "connection"):
+                engine.check_discovery_upstream_uniqueness()
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)
@@ -129,6 +218,8 @@ class NativeSqlMatrixTest(unittest.TestCase):
             "user_role|user_role_user|CREATE INDEX user_role_user ON public.user_role USING btree (user_id, role_id)",
         ])
         self.assertEqual(matrix.verify_index_rows(rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
+        decorated = rows.replace("(plugin_id)", '(plugin_id COLLATE pg_catalog."default" pg_catalog.text_ops ASC NULLS LAST)')
+        self.assertEqual(matrix.verify_index_rows(decorated, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
         opengauss_rows = "\n".join(line + " TABLESPACE pg_default" for line in rows.splitlines())
         self.assertEqual(matrix.verify_index_rows(opengauss_rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
         partial_rows = rows.replace("(plugin_id)", "(plugin_id) WHERE plugin_id IS NOT NULL")
