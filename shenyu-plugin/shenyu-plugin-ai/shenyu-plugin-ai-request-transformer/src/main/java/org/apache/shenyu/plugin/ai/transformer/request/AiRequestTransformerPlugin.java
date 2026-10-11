@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.transformer.request;
 
 import com.google.gson.JsonElement;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
@@ -31,6 +32,7 @@ import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.request.handler.AiRequestTransformerPluginHandler;
 import org.apache.shenyu.plugin.ai.transformer.request.template.AiRequestTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
@@ -291,6 +293,16 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         ServerWebExchange newExchange = exchange.mutate()
                 .request(newRequest)
                 .build();
+
+        ShenyuContext context = newExchange.getAttribute(Constants.CONTEXT);
+        if (Objects.nonNull(context)) {
+            String rewrittenPath = newUri.getRawPath();
+            // Preserve an already transformed forwarding path.
+            if (Objects.equals(context.getRealUrl(), context.getPath())) {
+                context.setRealUrl(rewrittenPath);
+            }
+            context.setPath(rewrittenPath);
+        }
 
         return Mono.just(newExchange);
     }
