@@ -33,6 +33,12 @@ The fresh flow executes the complete current initialization schema in a new
 container, not the already upgraded database. Clients abort on SQL errors;
 there is no `--force`, tolerated-error list or fallback to H2.
 
+MySQL and OceanBase in MySQL mode both initialize fresh installations from
+`db/init/mysql/schema.sql`, without a compatibility overlay. OceanBase's upgrade
+flow still reads its own `db/init/ob/schema.sql` **at the immutable released
+baseline commit**, then executes the unchanged `*-ob.sql` upgrade script.
+The historical baseline is not a current initialization file.
+
 Both flows insert a plugin with a nonempty binary JAR including zero/high-bit
 bytes. The checks execute the actual shared mapper column projections, require
 the list projection to exclude `plugin_jar`, preserve all sentinel list metadata
@@ -40,6 +46,12 @@ and JAR bytes, preserve pre-upgrade row IDs in plugin/selector/rule/resource/
 permission/user-role/namespace-plugin relation tables, and inspect native index
 catalogs. Composite indexes only count when the requested column leads the index.
 The exact new selector/plugin and permission/resource indexes must also exist.
+
+The shared MySQL/OceanBase fresh flows additionally require all declared tables,
+secondary indexes and unique constraints, reject orphan seed relations and
+duplicate plugin-handle/permission/namespace-plugin natural keys, require admin
+permissions for every seeded resource and default-namespace relations for every
+seeded plugin, and verify the loggingKafka/aiProxy default-namespace configs.
 
 This is not a full migration idempotency test: the existing upgrade scripts are
 one-time migrations. PostgreSQL/openGauss `IF NOT EXISTS` clauses are additionally
@@ -65,6 +77,17 @@ Use `ob`, `pg`, `og` and `oracle` for the other native jobs. The workflow is als
 manually dispatchable to force all jobs even without SQL changes. Offline Python
 tests and workflow lint passing alone do **not** mean the native matrix passed;
 require `sql-matrix` success on the current PR head before claiming verification.
+
+OceanBase needs at least 3 GiB of available memory during startup. If other local
+containers consume that memory, use a separate Docker daemon/context for the
+matrix. The runner sets `nofile=65536:65536` on the OceanBase test container to
+meet its file-descriptor requirement without changing the daemon or host limits.
+On an ARM desktop with amd64 emulation, set `DOCKER_DEFAULT_PLATFORM=linux/amd64`
+to execute the same digest-pinned image architecture used by CI.
+For Oracle on Apple Silicon, the same pinned multi-architecture image also
+provides a native ARM variant (`DOCKER_DEFAULT_PLATFORM=linux/arm64`). Use it if
+amd64 emulation cannot start Oracle, and record the architecture with local
+results; native ARM checks do not replace the required amd64 CI gate.
 
 Image setup follows the [OceanBase container guide](https://hub.docker.com/r/oceanbase/oceanbase-ce)
 and [Oracle Free image documentation](https://github.com/gvenzl/oci-oracle-free).
