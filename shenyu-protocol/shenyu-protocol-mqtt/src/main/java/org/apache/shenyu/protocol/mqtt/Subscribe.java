@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -36,7 +35,6 @@ import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -63,9 +61,12 @@ public class Subscribe extends MessageType {
         int packetId = msg.variableHeader().messageId();
 
         //// todo Regular match
-        List<String> ackTopics = mqttTopicSubscriptions
+        List<MqttTopicSubscription> ackSubscriptions = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
+                .collect(Collectors.toList());
+
+        List<String> ackTopics = ackSubscriptions.stream()
                 .map(MqttTopicSubscription::topicName)
                 .collect(Collectors.toList());
 
@@ -84,22 +85,20 @@ public class Subscribe extends MessageType {
             }
         }
 
-        sendSubAckMessage(packetId, ackTopics, channel);
+        sendSubAckMessage(packetId, ackSubscriptions, channel);
     }
 
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param ackTopics ackTopics
+     * @param ackSubscriptions ackSubscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<String> ackTopics, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> ackSubscriptions, final Channel channel) {
 
-        List<Integer> qos = new ArrayList<>();
-        for (int i = 0; i < ackTopics.size(); i++) {
-            // default qos 0
-            qos.add(MqttQoS.AT_MOST_ONCE.value());
-        }
+        List<Integer> qos = ackSubscriptions.stream()
+                .map(topicSub -> topicSub.qualityOfService().value())
+                .collect(Collectors.toList());
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,
                 false, 0);
