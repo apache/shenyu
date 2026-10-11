@@ -101,6 +101,51 @@ public final class WebsocketDataHandlerTest {
     }
 
     @Test
+    public void testDuplicatedEventIsAppliedOnlyOnce() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).onPluginRefresh(Mockito.anyList());
+    }
+
+    @Test
+    public void testChangedPayloadIsAppliedAgain() {
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test"), DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test_2"), DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
+    }
+
+    @Test
+    public void testSamePayloadWithAnotherEventTypeIsApplied() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
+        List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
+        pluginDataList.forEach(verify(pluginDataSubscriber)::onSubscribe);
+    }
+
+    @Test
+    public void testSnapshotInvalidatesDeduplication() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber).refreshPluginDataNamespace("namespace-a");
+    }
+
+    @Test
+    public void testDeduplicationIsPerGroup() {
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, "[]", DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, "[]", DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.SELECTOR, "[]", DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshSelectorDataAll();
+    }
+
+    @Test
     public void testPluginDeleteExecutor() {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.DELETE.name());
@@ -238,9 +283,13 @@ public final class WebsocketDataHandlerTest {
     }
 
     private String getJson() {
+        return getJson("plugin_test");
+    }
+
+    private String getJson(final String pluginName) {
         PluginData pluginData = new PluginData();
         pluginData.setId("1397952341475799040");
-        pluginData.setName("plugin_test");
+        pluginData.setName(pluginName);
         pluginData.setConfig("config_test");
         pluginData.setNamespaceId("namespace-a");
         pluginData.setEnabled(true);
