@@ -38,9 +38,20 @@ public final class ZipUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZipUtil.class);
 
+    /**
+     * 100 MB per entry.
+     */
+    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024;
+
+    /**
+     * 200 MB total.
+     */
+    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024;
+
+    private static final int MAX_ENTRY_COUNT = 1000;
+
     private ZipUtil() {
     }
-
 
     /**
      * zip method.
@@ -66,23 +77,52 @@ public final class ZipUtil {
     }
 
     /**
-     * unzip method.
+     * unzip method with default size limits.
      *
      * @param source source
      * @return unzip result
      */
     public static UnZipResult unzip(final byte[] source) {
+        return unzip(source, MAX_ENTRY_SIZE, MAX_TOTAL_SIZE, MAX_ENTRY_COUNT);
+    }
+
+    /**
+     * unzip method with configurable size limits.
+     *
+     * @param source source
+     * @param maxEntrySize max entry size
+     * @param maxTotalSize max total size
+     * @param maxEntryCount max entry count
+     * @return unzip result
+     */
+    public static UnZipResult unzip(final byte[] source, final long maxEntrySize,
+                                    final long maxTotalSize, final int maxEntryCount) {
         List<ZipItem> itemList = Lists.newArrayList();
+        long totalSize = 0L;
+        int entryCount = 0;
         try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(source))) {
             ZipEntry entry;
             while (Objects.nonNull(entry = zipIn.getNextEntry())) {
                 if (entry.isDirectory()) {
                     continue;
                 }
+                entryCount++;
+                if (entryCount > maxEntryCount) {
+                    throw new IllegalArgumentException("entry count exceeds maximum of " + maxEntryCount);
+                }
                 try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                     byte[] buffer = new byte[1024];
                     int offset;
+                    long entrySize = 0L;
                     while ((offset = zipIn.read(buffer)) != -1) {
+                        entrySize += offset;
+                        totalSize += offset;
+                        if (entrySize > maxEntrySize) {
+                            throw new IllegalArgumentException("entry size exceeds maximum allowed value.");
+                        }
+                        if (totalSize > maxTotalSize) {
+                            throw new IllegalArgumentException("total size exceeds maximum allowed value.");
+                        }
                         out.write(buffer, 0, offset);
                     }
                     String entryName = entry.getName();

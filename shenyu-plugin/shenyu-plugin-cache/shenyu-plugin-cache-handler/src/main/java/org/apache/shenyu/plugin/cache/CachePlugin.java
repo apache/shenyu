@@ -130,7 +130,11 @@ public class CachePlugin extends AbstractShenyuPlugin {
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                dataBuffer.read(bytes);
+                try {
+                    dataBuffer.read(bytes);
+                } finally {
+                    DataBufferUtils.release(dataBuffer);
+                }
                 return WebFluxResultUtils.result(this.exchange, cacheResponse(bytes));
             });
         }

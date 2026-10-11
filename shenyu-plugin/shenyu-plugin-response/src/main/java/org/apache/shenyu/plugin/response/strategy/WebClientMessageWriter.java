@@ -18,12 +18,17 @@
 package org.apache.shenyu.plugin.response.strategy;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +40,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +54,8 @@ import java.util.regex.Pattern;
  * The type Web client message writer.
  */
 public class WebClientMessageWriter implements MessageWriter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebClientMessageWriter.class);
 
     /**
      * the common binary media type regex.
@@ -67,7 +76,11 @@ public class WebClientMessageWriter implements MessageWriter {
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return chain.execute(exchange).then(Mono.defer(() -> {
+        // Invoke the chain on subscription, converting synchronous failures into cleanable error signals.
+        Mono<Void> chainResult = Mono.defer(() -> chain.execute(exchange))
+                .doOnError(error -> clean(exchange))
+                .doOnCancel(() -> clean(exchange));
+        return chainResult.then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
 
             ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
@@ -77,12 +90,13 @@ public class WebClientMessageWriter implements MessageWriter {
             }
 
             this.redrawResponseHeaders(response, fluxResponseEntity);
+            deduplicateResponseHeaders(exchange);
 
             Mono<Void> responseMono;
             if (Objects.nonNull(fluxResponseEntity.getBody())) {
-                responseMono = exchange.getResponse().writeWith(fluxResponseEntity.getBody())
-                        .onErrorResume(error -> releaseIfNotConsumed(fluxResponseEntity.getBody(), error))
-                        .doOnCancel(() -> clean(exchange));
+                Flux<DataBuffer> body = fluxResponseEntity.getBody()
+                        .doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+                responseMono = exchange.getResponse().writeWith(body);
             } else {
                 responseMono = exchange.getResponse().writeWith(Mono.empty());
             }
@@ -121,14 +135,39 @@ public class WebClientMessageWriter implements MessageWriter {
         response.getHeaders().putAll(httpHeaders);
     }
 
-    private static <T> Mono<T> releaseIfNotConsumed(final Flux<DataBuffer> dataBufferDody, final Throwable ex) {
-        return dataBufferDody.map(DataBufferUtils::release).then(Mono.error(ex));
+    private void deduplicateResponseHeaders(final ServerWebExchange exchange) {
+        String names = exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName());
+        if (StringUtils.isEmpty(names)) {
+            return;
+        }
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        HeaderUniqueStrategyEnum strategy = exchange.getAttributeOrDefault(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.RETAIN_FIRST);
+        for (String name : StringUtils.split(names, Constants.SEPARATOR_CHARS)) {
+            List<String> values = headers.get(name);
+            if (Objects.isNull(values) || values.size() <= 1) {
+                continue;
+            }
+            switch (strategy) {
+                case RETAIN_FIRST:
+                    headers.set(name, values.get(0));
+                    break;
+                case RETAIN_LAST:
+                    headers.set(name, values.get(values.size() - 1));
+                    break;
+                case RETAIN_UNIQUE:
+                    headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected header strategy: " + strategy);
+            }
+        }
     }
 
     private void clean(final ServerWebExchange exchange) {
         ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (Objects.nonNull(fluxResponseEntity) && Objects.nonNull(fluxResponseEntity.getBody())) {
-            fluxResponseEntity.getBody().map(DataBufferUtils::release).subscribe();
+            fluxResponseEntity.getBody().map(DataBufferUtils::release).then()
+                    .subscribe(ignored -> { }, error -> LOG.debug("Unable to drain upstream response body during cleanup", error));
         }
     }
 

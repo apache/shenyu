@@ -25,6 +25,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -41,8 +42,6 @@ import wiremock.org.apache.hc.core5.http.HttpHeaders;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -102,7 +101,7 @@ public class AccessTokenManagerTest {
                         .extensions(mock(ResponseTemplateTransformer.class))
                         .dynamicPort());
         this.wireMockServer.start();
-        wireMockServer.stubFor(get(urlPathEqualTo("/platform/login"))
+        wireMockServer.stubFor(post(urlPathEqualTo("/platform/login"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(this.mockLoginResponseJson())
@@ -134,7 +133,7 @@ public class AccessTokenManagerTest {
     }
 
     @Test
-    public void testDoLoginWithUrlEncodingAndSpecialCharacters() throws Exception {
+    public void testDoLoginWithSpecialCharactersInRequestBody() throws Exception {
 
         HttpConfig testConfig = new HttpConfig();
         testConfig.setUrl("http://localhost:8080");
@@ -166,17 +165,14 @@ public class AccessTokenManagerTest {
         assertEquals("special-token", testManager.getAccessToken());
 
         verify(mockOkHttpClient, times(2)).newCall(argThat(request -> {
-
-            String url = request.url().toString();
-
             try {
-                String expectedUsername = URLEncoder.encode("test user@domain.com", StandardCharsets.UTF_8);
-                String expectedPassword = URLEncoder.encode("pass+word=123&456 789%test", StandardCharsets.UTF_8);
-
-                return url.contains("userName=" + expectedUsername)
-                        && url.contains("password=" + expectedPassword);
+                okio.Buffer buffer = new okio.Buffer();
+                request.body().writeTo(buffer);
+                Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(buffer.readUtf8());
+                return "test user@domain.com".equals(bodyMap.get(Constants.LOGIN_NAME))
+                        && "pass+word=123&456 789%test".equals(bodyMap.get(Constants.PASS_WORD));
             } catch (Exception e) {
-                LOG.error("URL encoding test failed", e);
+                LOG.error("request body inspection failed", e);
                 return false;
             }
         }));
@@ -247,6 +243,86 @@ public class AccessTokenManagerTest {
         Boolean result = (Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080");
 
         assertFalse(result);
+        assertNull(testManager.getAccessToken());
+    }
+
+    @Test
+    public void testDoLoginFailureWhenExpiredTimeMissing() throws Exception {
+        HttpConfig testConfig = new HttpConfig();
+        testConfig.setUrl("http://localhost:8080");
+        testConfig.setUsername("admin");
+        testConfig.setPassword("password");
+
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("token", "token");
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("data", tokenData);
+        responseMap.put("code", CommonErrorCode.SUCCESSFUL);
+
+        when(mockOkHttpClient.newCall(any(Request.class))).thenReturn(mockCall);
+        when(mockCall.execute()).thenReturn(mockResponse);
+        when(mockResponse.isSuccessful()).thenReturn(true);
+        when(mockResponse.body()).thenReturn(mockResponseBody);
+        when(mockResponseBody.string()).thenReturn(GsonUtils.getInstance().toJson(responseMap));
+
+        AccessTokenManager testManager = createTestAccessTokenManager(mockOkHttpClient, testConfig);
+        Method doLoginMethod = AccessTokenManager.class.getDeclaredMethod("doLogin", String.class);
+        doLoginMethod.setAccessible(true);
+
+        assertFalse((Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080"));
+        assertNull(testManager.getAccessToken());
+    }
+
+    @Test
+    public void testDoLoginFailureWhenDataNull() throws Exception {
+        HttpConfig testConfig = new HttpConfig();
+        testConfig.setUrl("http://localhost:8080");
+        testConfig.setUsername("admin");
+        testConfig.setPassword("password");
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("data", null);
+        responseMap.put("code", CommonErrorCode.SUCCESSFUL);
+
+        when(mockOkHttpClient.newCall(any(Request.class))).thenReturn(mockCall);
+        when(mockCall.execute()).thenReturn(mockResponse);
+        when(mockResponse.isSuccessful()).thenReturn(true);
+        when(mockResponse.body()).thenReturn(mockResponseBody);
+        when(mockResponseBody.string()).thenReturn(GsonUtils.getInstance().toJson(responseMap));
+
+        AccessTokenManager testManager = createTestAccessTokenManager(mockOkHttpClient, testConfig);
+        Method doLoginMethod = AccessTokenManager.class.getDeclaredMethod("doLogin", String.class);
+        doLoginMethod.setAccessible(true);
+
+        assertFalse((Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080"));
+        assertNull(testManager.getAccessToken());
+    }
+
+    @Test
+    public void testDoLoginFailureWhenExpiredTimeIsString() throws Exception {
+        HttpConfig testConfig = new HttpConfig();
+        testConfig.setUrl("http://localhost:8080");
+        testConfig.setUsername("admin");
+        testConfig.setPassword("password");
+
+        Map<String, Object> tokenData = new HashMap<>();
+        tokenData.put("token", "token");
+        tokenData.put("expiredTime", "1800");
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("data", tokenData);
+        responseMap.put("code", CommonErrorCode.SUCCESSFUL);
+
+        when(mockOkHttpClient.newCall(any(Request.class))).thenReturn(mockCall);
+        when(mockCall.execute()).thenReturn(mockResponse);
+        when(mockResponse.isSuccessful()).thenReturn(true);
+        when(mockResponse.body()).thenReturn(mockResponseBody);
+        when(mockResponseBody.string()).thenReturn(GsonUtils.getInstance().toJson(responseMap));
+
+        AccessTokenManager testManager = createTestAccessTokenManager(mockOkHttpClient, testConfig);
+        Method doLoginMethod = AccessTokenManager.class.getDeclaredMethod("doLogin", String.class);
+        doLoginMethod.setAccessible(true);
+
+        assertFalse((Boolean) doLoginMethod.invoke(testManager, "http://localhost:8080"));
         assertNull(testManager.getAccessToken());
     }
 

@@ -46,6 +46,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,6 +132,67 @@ public final class JwtPluginTest {
     public void testGetOrder() {
         final int result = jwtPluginUnderTest.getOrder();
         Assertions.assertEquals(PluginEnum.JWT.getCode(), result);
+    }
+
+    @Test
+    public void testBearerWithoutToken() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("Authorization", "Bearer")
+                .build());
+
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testAuthorizationNotBearerPrefix() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("Authorization", "fooBearerbar")
+                .build());
+
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testBearerWithWhitespaceOnlyToken() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("Authorization", "Bearer  ")
+                .build());
+
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testValidBearerAuthorization() {
+        ruleData.setHandle("{\"converter\":[{\"jwtVal\":\"userId\",\"headerVal\":\"id\"}]}");
+        jwtPluginDataHandlerUnderTest.handlerRule(ruleData);
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        final String secreteKey = "shenyu-test-shenyu-test-shenyu-test";
+        Map<String, Object> map = ImmutableMap.<String, Object>builder().put("userId", 1).build();
+        String jwtToken = Jwts.builder()
+                .claims(map)
+                .issuedAt(new Date(1636371125000L))
+                .expiration(new Date(new Date().getTime() + 10000L))
+                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("Authorization", "Bearer " + jwtToken)
+                .build());
+
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+        verify(chain).execute(any());
     }
 
     private void initContext() {

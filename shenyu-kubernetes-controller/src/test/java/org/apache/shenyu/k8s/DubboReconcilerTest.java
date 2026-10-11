@@ -35,6 +35,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -55,6 +56,16 @@ import static org.mockito.Mockito.when;
  */
 public final class DubboReconcilerTest {
 
+    private static final String NAMESPACE = "dubboReconcilerNamespace";
+
+    private static final String INGRESS_NAME = "dubboReconcilerIngress";
+
+    private static final String SERVICE_NAME = "dubboReconcilerService";
+
+    private static final String ZOOKEEPER_SERVICE = "dubboReconcilerZookeeperService";
+
+    private static final String METADATA_SERVICE = "dubboReconcilerMetadataService";
+
     private SharedIndexInformer<V1Ingress> ingressInformer;
 
     private SharedIndexInformer<V1Secret> secretInformer;
@@ -71,6 +82,7 @@ public final class DubboReconcilerTest {
 
     @BeforeEach
     public void init() {
+        IngressCache.getInstance().remove(NAMESPACE, INGRESS_NAME);
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -85,16 +97,16 @@ public final class DubboReconcilerTest {
         final V1IngressRule mockedRule = new V1IngressRuleBuilder().withNewHttp().withPaths(
                         new V1HTTPIngressPathBuilder().withPath("/**")
                                 .withNewBackend()
-                                    .withNewService().withName("testService").withNewPort().withNumber(20888).endPort().endService()
+                                    .withNewService().withName(SERVICE_NAME).withNewPort().withNumber(20888).endPort().endService()
                                 .endBackend().build())
                 .endHttp().build();
         Map<String, String> annotations = new HashMap<>();
         annotations.put("kubernetes.io/ingress.class", "shenyu");
         annotations.put("shenyu.apache.org/plugin-dubbo-enabled", "true");
-        annotations.put("shenyu.apache.org/zookeeper-register-address", "zookeeper://zookeeperService:2181");
+        annotations.put("shenyu.apache.org/zookeeper-register-address", "zookeeper://" + ZOOKEEPER_SERVICE + ":2181");
         annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo://,dubbo://");
         Map<String, String> labels = new HashMap<>();
-        labels.put("shenyu.apache.org/metadata-labels-1", "dubboFindIdService");
+        labels.put("shenyu.apache.org/metadata-labels-1", METADATA_SERVICE);
         Map<String, String> labelsAnnotations = new HashMap<>();
         labelsAnnotations.put("kubernetes.io/ingress.class", "shenyu");
         labelsAnnotations.put("shenyu.apache.org/plugin-dubbo-enabled", "true");
@@ -106,30 +118,30 @@ public final class DubboReconcilerTest {
         labelsAnnotations.put("shenyu.apache.org/plugin-dubbo-params-type", "java.lang.String");
         labelsAnnotations.put("shenyu.apache.org/plugin-dubbo-rpc-expand", "{\"group\":\"\",\"version\":\"v0.0.2\",\"loadbalance\":\"random\","
                     + "\"retries\":2,\"timeout\":10000,\"url\":\"\",\"sent\":false,\"cluster\":\"failover\",\"protocol\":\"dubbo\"}");
-        V1Service dubboFindIdService = new V1ServiceBuilder().withNewMetadata().withName("dubboFindIdService").withNamespace("mockedNamespace").withAnnotations(labelsAnnotations).endMetadata()
+        V1Service dubboFindIdService = new V1ServiceBuilder().withNewMetadata().withName(METADATA_SERVICE).withNamespace(NAMESPACE).withAnnotations(labelsAnnotations).endMetadata()
                 .withNewSpec().endSpec()
                 .withKind("Service").build();
 
-        V1Ingress mockedIngress = new V1IngressBuilder().withNewMetadata().withLabels(labels).withName("mockedIngress").withNamespace("mockedNamespace").withAnnotations(annotations).endMetadata()
+        V1Ingress mockedIngress = new V1IngressBuilder().withNewMetadata().withLabels(labels).withName(INGRESS_NAME).withNamespace(NAMESPACE).withAnnotations(annotations).endMetadata()
                 .withNewSpec().withRules(mockedRule).endSpec()
                 .withKind("Ingress").build();
 
-        when(ingressIndexer.getByKey("mockedNamespace/mockedIngress")).thenReturn(mockedIngress);
-        when(serviceIndexer.getByKey("mockedNamespace/dubboFindIdService")).thenReturn(dubboFindIdService);
+        when(ingressIndexer.getByKey(NAMESPACE + "/" + INGRESS_NAME)).thenReturn(mockedIngress);
+        when(serviceIndexer.getByKey(NAMESPACE + "/" + METADATA_SERVICE)).thenReturn(dubboFindIdService);
         when(serviceInformer.getIndexer()).thenReturn(serviceIndexer);
         when(ingressInformer.getIndexer()).thenReturn(ingressIndexer);
 
         //mock endpointsInformer
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
         V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
-                .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
+                .withNewMetadata().withNamespace(NAMESPACE).withName(SERVICE_NAME).endMetadata()
                 .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
                 .build();
-        V1Endpoints zookeeperEndpoints = new V1EndpointsBuilder().withNewMetadata().withName("zookeeperService").withNamespace("mockedNamespace").endMetadata()
+        V1Endpoints zookeeperEndpoints = new V1EndpointsBuilder().withNewMetadata().withName(ZOOKEEPER_SERVICE).withNamespace(NAMESPACE).endMetadata()
                 .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
                 .build();
-        when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
-        when(endpointsIndexer.getByKey("mockedNamespace/zookeeperService")).thenReturn(zookeeperEndpoints);
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(mockedEndpoints);
+        when(endpointsIndexer.getByKey(NAMESPACE + "/" + ZOOKEEPER_SERVICE)).thenReturn(zookeeperEndpoints);
         when(endpointsInformer.getIndexer()).thenReturn(endpointsIndexer);
 
         IngressParser ingressParser = new IngressParser(serviceInformer, endpointsInformer);
@@ -144,10 +156,78 @@ public final class DubboReconcilerTest {
      */
     @Test
     public void testReconcile() {
-        Result result = ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress"));
+        Result result = ingressReconciler.reconcile(new Request(NAMESPACE, INGRESS_NAME));
         Assertions.assertEquals(new Result(false), result);
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
         verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @Test
+    public void testIngressBeforeEndpointsRecoversOnRetry() {
+        Indexer<V1Endpoints> indexer = endpointsInformer.getIndexer();
+        final V1Endpoints ready = indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME);
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
+        Assertions.assertNull(IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(ready);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(org.mockito.ArgumentMatchers.argThat(selector ->
+                selector.getHandle().contains("127.0.0.1:20888")));
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+        verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @Test
+    public void testUnavailableUpdatePreservesAppliedIngress() {
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        final V1Ingress applied = IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME);
+        V1Ingress updated = new V1IngressBuilder(applied).build();
+        updated.getMetadata().setResourceVersion("2");
+        when(ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME)).thenReturn(updated);
+        when(endpointsInformer.getIndexer().getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        org.mockito.Mockito.clearInvocations(shenyuCacheRepository);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        Assertions.assertSame(applied, IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).deleteSelectorData(any(), any());
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
+    }
+
+    @Test
+    public void testParseSkipsContextPathWhenDubboEnabled() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("kubernetes.io/ingress.class", "shenyu");
+        annotations.put("shenyu.apache.org/plugin-dubbo-enabled", "true");
+        annotations.put("shenyu.apache.org/zookeeper-register-address", "zookeeper://" + ZOOKEEPER_SERVICE + ":2181");
+        annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo://,dubbo://");
+        Map<String, String> labels = new HashMap<>();
+        labels.put("shenyu.apache.org/metadata-labels-1", METADATA_SERVICE);
+
+        V1Ingress ingress = new V1IngressBuilder().withNewMetadata()
+                .withName(INGRESS_NAME)
+                .withNamespace(NAMESPACE)
+                .withAnnotations(annotations)
+                .withLabels(labels)
+                .endMetadata()
+                .withNewSpec()
+                .withRules(new V1IngressRuleBuilder()
+                        .withNewHttp()
+                        .withPaths(new V1HTTPIngressPathBuilder().withPath("/**")
+                                .withNewBackend()
+                                .withNewService().withName(SERVICE_NAME).withNewPort().withNumber(20888).endPort().endService()
+                                .endBackend().build())
+                        .endHttp()
+                        .build())
+                .endSpec()
+                .build();
+
+        IngressParser ingressParser = new IngressParser(serviceInformer, endpointsInformer);
+        Assertions.assertEquals(1, ingressParser.parse(ingress, mock(io.kubernetes.client.openapi.apis.CoreV1Api.class)).size());
     }
 }

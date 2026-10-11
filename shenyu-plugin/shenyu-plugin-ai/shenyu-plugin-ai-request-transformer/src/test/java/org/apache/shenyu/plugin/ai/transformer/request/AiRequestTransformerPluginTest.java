@@ -17,31 +17,44 @@
 
 package org.apache.shenyu.plugin.ai.transformer.request;
 
+import com.google.gson.JsonSyntaxException;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
 import org.apache.shenyu.common.dto.convert.rule.AiRequestTransformerHandle;
-import org.apache.shenyu.common.enums.AiModelProviderEnum;
-import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
+import org.apache.shenyu.plugin.ai.transformer.request.handler.AiRequestTransformerPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Collections;
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,65 +74,73 @@ class AiRequestTransformerPluginTest {
         aiModelFactoryRegistry = mock(AiModelFactoryRegistry.class);
         chatClientCache = mock(ChatClientCache.class);
         chain = mock(ShenyuPluginChain.class);
-        plugin = new AiRequestTransformerPlugin(Collections.emptyList(), aiModelFactoryRegistry);
+        plugin = new AiRequestTransformerPlugin(HandlerStrategies.withDefaults().messageReaders(), aiModelFactoryRegistry);
     }
 
     @Test
     void testDoExecuteWithMissingConfigurations() {
 
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").build());
-        SelectorData selector = new SelectorData();
         RuleData rule = new RuleData();
+        rule.setId("test-request-rule-id");
+        rule.setSelectorId("test-selector-id");
 
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
+        SelectorData selector = new SelectorData();
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule))
                 .verifyComplete();
 
         verify(chain).execute(exchange);
     }
 
-    @Test
-    void testDoExecuteWithValidConfigurations() {
-
-        AiRequestTransformerConfig config = new AiRequestTransformerConfig();
-        config.setBaseUrl("http://test.com");
-        config.setApiKey("test-api-key");
-        config.setProvider("TEST_PROVIDER");
-        config.setModel("test-model");
-
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "[{\"generated\":\"array\",\"nested\":[[1,2],true,null],\"number\":12345678901234567890},1,true,null]",
+            "[]",
+            "{\n  \"generated\": \"object\",\n  \"items\": [1,true],\n  \"missing\": null\n}",
+            "{\"a\":[[1,2]]}"
+    })
+    void testDoExecuteWithValidConfigurations(final String body) {
         AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
         handle.setProvider("TEST_PROVIDER");
         handle.setBaseUrl("http://test.com");
         handle.setApiKey("test-api-key");
         handle.setModel("test-model");
 
-        ChatClient mockClient = mock(ChatClient.class);
-        ChatModel mockModel = mock(ChatModel.class);
-        AiModelFactory mockFactory = mock(AiModelFactory.class);
-
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        String aiResponse = "POST /test HTTP/1.1\nContent-Type: application/json\n\n" + body;
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(Flux.just(aiResponse));
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"key\":\"value\"}"));
-        when(aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName("TEST_PROVIDER"))).thenReturn(mockFactory);
-        when(mockFactory.createAiModel(any())).thenReturn(mockModel);
-        when(chatClientCache.getClient("default")).thenReturn(mockClient);
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
-
-        SelectorData selector = new SelectorData();
+                .body("[{\"original\":true}]"));
         RuleData rule = new RuleData();
-        StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule))
-                .verifyComplete();
+        rule.setId("test-json-body-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+        List<HttpMessageReader<?>> readers = HandlerStrategies.withDefaults().messageReaders();
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        when(chain.execute(any(ServerWebExchange.class))).thenAnswer(invocation ->
+                ServerRequest.create(invocation.getArgument(0), readers).bodyToMono(String.class)
+                        .doOnNext(downstreamBody::set).then());
 
-        verify(chain).execute(exchange);
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            StepVerifier.create(plugin.doExecute(exchange, chain, new SelectorData(), rule)).verifyComplete();
+
+            assertEquals(body, downstreamBody.get());
+            verify(chain).execute(any(ServerWebExchange.class));
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
     }
 
     @Test
-    void testConvertBodyJson() {
-
-        String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\n\n{\"key\":\"value\"}";
-        String result = AiRequestTransformerPlugin.convertBodyJson(aiResponse);
-        assertEquals("{\"key\":\"value\"}", result);
+    void testConvertBodyJsonWithMalformedJson() {
+        String aiResponse = "POST /test HTTP/1.1\nContent-Type: application/json\n\n[{\"broken\":}]";
+        assertThrows(JsonSyntaxException.class, () -> AiRequestTransformerPlugin.convertBodyJson(aiResponse));
     }
 
     @Test
@@ -137,5 +158,76 @@ class AiRequestTransformerPluginTest {
         String aiResponse = "HTTP/1.1 / 200 OK\nContent-Type: application/json\nAuthorization: Bearer token\n\n{\"key\":\"value\"}";
         String result = AiRequestTransformerPlugin.extractRequestPathFromAiResponse(aiResponse);
         assertEquals("/", result);
+    }
+
+    @Test
+    void testRewriteRequestPathWithQueryString() {
+        String aiResponse = "POST /rewritten?new=2 HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original?old=1");
+
+        assertEquals("/rewritten", forwardedUri.getPath());
+        assertEquals("new=2", forwardedUri.getQuery());
+    }
+
+    @Test
+    void testRewriteRequestPathKeepsPercentEncodedQueryString() {
+        String aiResponse = "POST /rewritten?q=a%20b&n=1 HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original");
+
+        assertEquals("/rewritten", forwardedUri.getPath());
+        assertEquals("q=a%20b&n=1", forwardedUri.getRawQuery());
+    }
+
+    @Test
+    void testRewriteRequestPathKeepsOriginalTargetOnMalformedQueryString() {
+        String aiResponse = "POST /rewritten?bad=%zz HTTP/1.1\nContent-Type: application/json\n\n{\"ai\":\"query\"}";
+
+        URI forwardedUri = forwardAndCaptureRequestUri(aiResponse, "/original?old=1");
+
+        assertEquals("/original", forwardedUri.getPath());
+        assertEquals("old=1", forwardedUri.getQuery());
+    }
+
+    /**
+     * Runs the plugin with a mocked model answer and returns the request URI the plugin chain received.
+     *
+     * @param aiResponse  the mocked model answer, a full HTTP request message
+     * @param originalUri the URI of the incoming request
+     * @return the URI handed to the downstream plugin chain
+     */
+    private URI forwardAndCaptureRequestUri(final String aiResponse, final String originalUri) {
+        AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
+        handle.setProvider("TEST_PROVIDER");
+        handle.setBaseUrl("http://test.com");
+        handle.setApiKey("test-api-key");
+        handle.setModel("test-model");
+
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(Flux.just(aiResponse));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(originalUri)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{\"original\":true}"));
+        RuleData rule = new RuleData();
+        rule.setId("test-request-target-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+        AtomicReference<URI> downstreamUri = new AtomicReference<>();
+        when(chain.execute(any(ServerWebExchange.class))).thenAnswer(invocation -> {
+            downstreamUri.set(invocation.getArgument(0, ServerWebExchange.class).getRequest().getURI());
+            return Mono.empty();
+        });
+
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            StepVerifier.create(plugin.doExecute(exchange, chain, new SelectorData(), rule)).verifyComplete();
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
+
+        return downstreamUri.get();
     }
 }

@@ -29,14 +29,16 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -53,7 +55,7 @@ public class Subscribe extends MessageType {
     public void subscribe(final ChannelHandlerContext ctx, final MqttSubscribeMessage msg) {
         Channel channel = ctx.channel();
 
-        if (isConnected()) {
+        if (!isConnected(channel)) {
             channel.close().addListener(FIRE_EXCEPTION_ON_FAILURE);
             return;
         }
@@ -69,9 +71,15 @@ public class Subscribe extends MessageType {
 
         Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
 
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
+        MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+        if (Objects.nonNull(session)) {
+            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+        }
+
         for (String ackTopic : ackTopics) {
-            String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (StringUtils.isNotEmpty(message)) {
+            byte[] message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
+            if (Objects.nonNull(message)) {
                 sendSubMessage(ackTopic, message, packetId, channel);
             }
         }
@@ -107,10 +115,10 @@ public class Subscribe extends MessageType {
      * @param packetId packetId
      * @param channel channel
      */
-    private void sendSubMessage(final String topic, final String message, final int packetId, final Channel channel) {
+    private void sendSubMessage(final String topic, final byte[] message, final int packetId, final Channel channel) {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, AT_MOST_ONCE, true, 0);
         MqttPublishVariableHeader varHeader = new MqttPublishVariableHeader(topic, packetId);
-        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.copiedBuffer(message, CharsetUtil.UTF_8));
+        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.wrappedBuffer(message));
         channel.writeAndFlush(mqttPublishMessage);
     }
 }

@@ -56,6 +56,9 @@
             <if test="condition.phone != null and condition.phone != ''">
                 AND phone = #{condition.phone, jdbcType=VARCHAR}
             </if>
+            <if test="condition.namespaceId != null and condition.namespaceId != ''">
+                AND namespace_id = #{condition.namespaceId, jdbcType=VARCHAR}
+            </if>
         </where>
     </select>
 
@@ -287,7 +290,8 @@
                 enabled = #{enabled, jdbcType=TINYINT},
             </if>
         </set>
-         WHERE id = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">

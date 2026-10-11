@@ -26,6 +26,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
@@ -36,10 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -114,22 +119,92 @@ public class ShenyuCacheRepository {
     }
 
     /**
-     * Save or update SelectorData by SelectorData.
+     * Save or update SelectorData by SelectorData. Idempotent: a selector whose cached
+     * content is already equal (including the upstream list in its handle) is skipped, so
+     * the periodic informer resync does not churn the data plane with no-op updates.
      *
      * @param selectorData SelectorData
      */
     public void saveOrUpdateSelectorData(final SelectorData selectorData) {
-        subscriber.onSelectorSubscribe(selectorData);
+        List<DiscoveryUpstreamData> upstreamDataList = new ArrayList<>(convert(selectorData.getPluginName(), selectorData.getHandle()));
+        Set<String> newKeys = upstreamDataList.stream().map(ShenyuCacheRepository::upstreamKey).collect(Collectors.toSet());
+        List<Upstream> cachedUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorData.getId());
+        Set<String> cachedKeys = CollectionUtils.isEmpty(cachedUpstreams) ? Collections.emptySet()
+                : cachedUpstreams.stream().map(ShenyuCacheRepository::upstreamKey).collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(cachedUpstreams)) {
+            for (Upstream cached : cachedUpstreams) {
+                if (!newKeys.contains(upstreamKey(cached))) {
+                    upstreamDataList.add(buildOfflineUpstreamData(cached.getUrl(), cached.getProtocol()));
+                }
+            }
+        }
+        boolean upstreamsChanged = !cachedKeys.equals(newKeys);
+        SelectorData cachedSelector = findSelectorData(selectorData.getPluginName(), selectorData.getId());
+        boolean selectorChanged = !selectorData.equals(cachedSelector);
+        if (!selectorChanged && !upstreamsChanged) {
+            return;
+        }
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorName(selectorData.getName());
         discoverySyncData.setSelectorId(selectorData.getId());
         discoverySyncData.setPluginName(selectorData.getPluginName());
-        discoverySyncData.setUpstreamDataList(convert(selectorData.getPluginName(), selectorData.getHandle()));
+        discoverySyncData.setUpstreamDataList(upstreamDataList);
         saveOrUpdateDiscoveryUpstreamData(discoverySyncData);
+        if (upstreamsChanged) {
+            LOG.info("Resolved {} upstream(s) for selector {}", newKeys.size(), selectorData.getId());
+        }
+        if (selectorChanged) {
+            subscriber.onSelectorSubscribe(selectorData);
+            LOG.info("Published divide selector {} for HTTPRoute coordinates {}", selectorData.getId(), selectorData.getName());
+        }
+    }
+
+    /**
+     * Upstream identity key, matching {@link UpstreamCacheManager}'s merge key: protocol and
+     * URL together. Comparing URL alone would leave a stale entry routable when the protocol
+     * of an address changes (http:// → https://), since neither submit nor the offline loop
+     * would evict the old-protocol entry.
+     */
+    private static String upstreamKey(final String protocol, final String url) {
+        return Objects.requireNonNullElse(protocol, "") + "_" + Objects.requireNonNullElse(url, "");
+    }
+
+    private static String upstreamKey(final DiscoveryUpstreamData upstreamData) {
+        return upstreamKey(upstreamData.getProtocol(), upstreamData.getUrl());
+    }
+
+    private static String upstreamKey(final Upstream upstream) {
+        return upstreamKey(upstream.getProtocol(), upstream.getUrl());
+    }
+
+    /**
+     * Find a cached SelectorData by plugin name and selector id.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selector id
+     * @return the cached selector, or null
+     */
+    public SelectorData findSelectorData(final String pluginName, final String selectorId) {
+        List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+        if (CollectionUtils.isEmpty(selectors)) {
+            return null;
+        }
+        return selectors.stream()
+                .filter(selector -> selector.getId().equals(selectorId))
+                .findFirst().orElse(null);
+    }
+
+    private DiscoveryUpstreamData buildOfflineUpstreamData(final String url, final String protocol) {
+        DiscoveryUpstreamData upstreamData = new DiscoveryUpstreamData();
+        upstreamData.setUrl(url);
+        upstreamData.setProtocol(protocol);
+        // status 1 marks the entry offline, which is how submit evicts it from the cache
+        upstreamData.setStatus(1);
+        upstreamData.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        return upstreamData;
     }
 
     private List<DiscoveryUpstreamData> convert(final String pluginName, final String handle) {
-        LOG.info("saveOrUpdateSelectorData convert handle={}", handle);
         List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return Collections.emptyList();
@@ -170,21 +245,45 @@ public class ShenyuCacheRepository {
     }
 
     /**
-     * Find RuleData list by selector id.
+     * Delete a selector together with all rules still attached to it. findRuleDataList
+     * exposes the cache's mutable internal list, so iterate over a copy to avoid
+     * ConcurrentModificationException.
      *
+     * @param pluginName plugin name
      * @param selectorId selector id
-     * @return RuleData list
      */
-    public List<RuleData> findRuleDataList(final String selectorId) {
-        return BaseDataCache.getInstance().obtainRuleData(selectorId);
+    public void deleteSelectorWithRules(final String pluginName, final String selectorId) {
+        List<RuleData> rules = findRuleDataList(selectorId);
+        if (CollectionUtils.isNotEmpty(rules)) {
+            for (RuleData rule : new ArrayList<>(rules)) {
+                deleteRuleData(pluginName, selectorId, rule.getId());
+            }
+        }
+        deleteSelectorData(pluginName, selectorId);
     }
 
     /**
-     * Save or update RuleData by RuleData.
+     * Find RuleData list by selector id.
+     *
+     * @param selectorId selector id
+     * @return RuleData list, never null; empty when the selector has no cached rules yet
+     */
+    public List<RuleData> findRuleDataList(final String selectorId) {
+        return Optional.ofNullable(BaseDataCache.getInstance().obtainRuleData(selectorId)).orElse(Collections.emptyList());
+    }
+
+    /**
+     * Save or update RuleData by RuleData. Idempotent like the selector path: an unchanged
+     * rule is skipped so the periodic resync does not churn the data plane.
      *
      * @param ruleData RuleData
      */
     public void saveOrUpdateRuleData(final RuleData ruleData) {
+        boolean unchanged = findRuleDataList(ruleData.getSelectorId()).stream()
+                .anyMatch(cached -> cached.getId().equals(ruleData.getId()) && cached.equals(ruleData));
+        if (unchanged) {
+            return;
+        }
         subscriber.onRuleSubscribe(ruleData);
     }
 

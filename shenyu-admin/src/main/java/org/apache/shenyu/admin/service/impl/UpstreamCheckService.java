@@ -61,7 +61,6 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -183,6 +182,9 @@ public class UpstreamCheckService {
             if (Objects.nonNull(executor)) {
                 executor.shutdown();
             }
+            if (Objects.nonNull(invokeExecutor)) {
+                invokeExecutor.shutdown();
+            }
         }
     }
 
@@ -279,7 +281,7 @@ public class UpstreamCheckService {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType)) {
             return;
         }
-        UPSTREAM_MAP.put(selectorId, commonUpstreams);
+        UPSTREAM_MAP.put(selectorId, toThreadSafeList(commonUpstreams));
     }
 
     private void scheduled() {
@@ -395,7 +397,7 @@ public class UpstreamCheckService {
         }
         removePendingSync(successList);
         if (!successList.isEmpty()) {
-            UPSTREAM_MAP.put(selectorId, successList);
+            UPSTREAM_MAP.put(selectorId, toThreadSafeList(successList));
             updateSelectorHandler(selectorId, successList);
         } else {
             UPSTREAM_MAP.remove(selectorId);
@@ -406,6 +408,10 @@ public class UpstreamCheckService {
     private void removePendingSync(final List<CommonUpstream> successList) {
         PENDING_SYNC.removeIf(NumberUtils.INTEGER_ZERO::equals);
         successList.forEach(commonUpstream -> PENDING_SYNC.remove(commonUpstream.hashCode()));
+    }
+
+    private List<CommonUpstream> toThreadSafeList(final List<CommonUpstream> upstreams) {
+        return upstreams instanceof CopyOnWriteArrayList ? upstreams : new CopyOnWriteArrayList<>(upstreams);
     }
 
     private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
@@ -478,7 +484,7 @@ public class UpstreamCheckService {
                 .filter(Objects::nonNull)
                 .forEach(selectorDO -> {
                     String name = pluginMap.get(selectorDO.getPluginId());
-                    List<CommonUpstream> commonUpstreams = new LinkedList<>();
+                    List<CommonUpstream> commonUpstreams = new CopyOnWriteArrayList<>();
                     discoveryUpstreamService.findBySelectorId(selectorDO.getId()).stream()
                             .map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream)
                             .forEach(commonUpstreams::add);

@@ -38,13 +38,11 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * DiscoveryHandler.
@@ -68,7 +66,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                                                  final KeyValueParser keyValueParser,
                                                  final DiscoverySyncData contextInfo,
                                                  final String discoveryId) {
-        this.discoverySyncDataList = new ArrayList<>();
+        this.discoverySyncDataList = new CopyOnWriteArrayList<>();
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
         this.discoveryId = discoveryId;
@@ -119,6 +117,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             case UPDATED:
                 upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
                     discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                    discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                     int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
                     LOG.info("[DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}, effect = {} ", discoveryUpstreamDO.getUpstreamUrl(), effect);
                 });
@@ -134,6 +133,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             default:
                 throw new IllegalStateException("DiscoveryDataChangedEventSyncListener find IllegalState");
         }
+        syncData.setUpstreamDataList(discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList()));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
@@ -142,7 +143,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         discoveryUpstreamDTOS.forEach(discoveryUpstreamData -> {
             if (StringUtils.isBlank(discoveryUpstreamData.getNamespaceId())) {
-                discoveryUpstreamData.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+                discoveryUpstreamData.setNamespaceId(discoverySyncData.getNamespaceId());
             }
         });
         discoveryUpstreamDTOS = discoveryUpstreamDTOS.stream()

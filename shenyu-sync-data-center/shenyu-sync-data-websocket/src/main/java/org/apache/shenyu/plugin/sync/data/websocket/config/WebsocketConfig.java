@@ -34,6 +34,29 @@ public class WebsocketConfig {
     private String allowOrigin;
 
     /**
+     * WebSocket sync token.
+     */
+    private String token;
+
+    private boolean initialSyncReadiness;
+
+    /**
+     * Whether the opt-in initial synchronization protocol is required.
+     * @return enabled
+     */
+    public boolean isInitialSyncReadiness() {
+        return initialSyncReadiness;
+    }
+
+    /**
+     * Enable initial synchronization readiness.
+     * @param initialSyncReadiness enabled
+     */
+    public void setInitialSyncReadiness(final boolean initialSyncReadiness) {
+        this.initialSyncReadiness = initialSyncReadiness;
+    }
+
+    /**
      * get urls.
      *
      * @return urls
@@ -66,6 +89,22 @@ public class WebsocketConfig {
     public void setAllowOrigin(final String allowOrigin) {
         this.allowOrigin = allowOrigin;
     }
+
+    /**
+     * get token.
+     * @return token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * set token.
+     * @param token token
+     */
+    public void setToken(final String token) {
+        this.token = token;
+    }
     
     @Override
     public boolean equals(final Object o) {
@@ -77,12 +116,14 @@ public class WebsocketConfig {
         }
         WebsocketConfig that = (WebsocketConfig) o;
         return Objects.equals(urls, that.urls)
-                && Objects.equals(allowOrigin, that.allowOrigin);
+                && Objects.equals(allowOrigin, that.allowOrigin)
+                && Objects.equals(token, that.token)
+                && initialSyncReadiness == that.initialSyncReadiness;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness);
     }
 
     @Override
@@ -90,8 +131,11 @@ public class WebsocketConfig {
         return "WebsocketConfig{"
                 + "urls='"
                 + urls
+                + '\''
                 + ", allowOrigin='"
                 + allowOrigin
+                + '\''
+                + ", token='******'"
                 + '}';
     }
 }

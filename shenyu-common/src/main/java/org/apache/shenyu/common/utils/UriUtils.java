@@ -84,7 +84,8 @@ public class UriUtils {
         if (Objects.isNull(uri)) {
             return StringUtils.EMPTY;
         }
-        String params = StringUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
+        // Preserve query encoding so fallback self-target checks compare raw URI values.
+        String params = StringUtils.isEmpty(uri.getRawQuery()) ? "" : "?" + uri.getRawQuery();
         return uri.getRawPath() + params;
     }
 

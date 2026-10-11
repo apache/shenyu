@@ -48,6 +48,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * JsonUtils.
@@ -158,6 +159,21 @@ public final class JsonUtils {
         } catch (IOException e) {
             LOG.warn("write to map error: {}", json, e);
             return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Try to convert a JSON object string to Map.
+     *
+     * @param json the JSON object string
+     * @return the converted map, or empty when the source is not a JSON object
+     */
+    public static Optional<Map<String, Object>> tryJsonToMap(final String json) {
+        try {
+            final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
+            return Optional.of(MAPPER.readValue(json, mapType));
+        } catch (IOException e) {
+            return Optional.empty();
         }
     }
 

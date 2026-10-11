@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -46,7 +47,7 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
 
     @Override
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
-        String name = ANNOTATION.cast(annotation).value();
+        String name = StringUtils.defaultIfBlank(ANNOTATION.cast(annotation).value(), ANNOTATION.cast(annotation).name());
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         checkState(Objects.nonNull(emptyToNull(name)), "RequestHeader.value() was empty on parameter %s", requestTemplate.getMethod().getName());
         Map<String, Collection<String>> headers = shenyuRequest.getHeaders();

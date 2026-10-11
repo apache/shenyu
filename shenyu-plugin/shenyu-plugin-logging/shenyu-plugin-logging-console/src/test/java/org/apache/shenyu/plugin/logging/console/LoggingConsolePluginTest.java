@@ -21,20 +21,33 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
+import org.apache.shenyu.plugin.logging.desensitize.api.factory.DataDesensitizeFactory;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -83,6 +96,79 @@ public final class LoggingConsolePluginTest {
         // Sorry, I do not how to mock this case by an simply way, so I give up.
 
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testDesensitizationAlgorithmIsIsolatedAcrossDecorators() {
+        final String body = "{\"password\":\"secret\"}";
+        final KeyWordMatch matcher = new KeyWordMatch(Collections.singleton("password"));
+        final String md5Algorithm = DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg();
+        final String replaceAlgorithm = DataDesensitizeEnum.CHARACTER_REPLACE.getDataDesensitizeAlg();
+        final String md5Value = DataDesensitizeFactory.selectDesensitize("secret", md5Algorithm);
+        final String replaceValue = DataDesensitizeFactory.selectDesensitize("secret", replaceAlgorithm);
+        final StringBuilder md5RequestLog = new StringBuilder();
+        final StringBuilder replaceRequestLog = new StringBuilder();
+        final LoggingConsolePlugin.LoggingServerHttpRequest md5Request = new LoggingConsolePlugin.LoggingServerHttpRequest(
+                MockServerHttpRequest.post("/").contentType(MediaType.APPLICATION_JSON).body(body),
+                md5RequestLog, true, matcher, md5Algorithm);
+        final LoggingConsolePlugin.LoggingServerHttpRequest replaceRequest = new LoggingConsolePlugin.LoggingServerHttpRequest(
+                MockServerHttpRequest.post("/").contentType(MediaType.APPLICATION_JSON).body(body),
+                replaceRequestLog, true, matcher, replaceAlgorithm);
+
+        Flux.merge(md5Request.getBody(), replaceRequest.getBody()).blockLast();
+
+        assertTrue(md5RequestLog.toString().contains(md5Value));
+        assertFalse(md5RequestLog.toString().contains(replaceValue));
+        assertTrue(replaceRequestLog.toString().contains(replaceValue));
+        assertFalse(replaceRequestLog.toString().contains(md5Value));
+
+        final StringBuilder md5ResponseLog = new StringBuilder();
+        final StringBuilder replaceResponseLog = new StringBuilder();
+        final MockServerHttpResponse md5Response = new MockServerHttpResponse();
+        final MockServerHttpResponse replaceResponse = new MockServerHttpResponse();
+        md5Response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        replaceResponse.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        final LoggingConsolePlugin.LoggingServerHttpResponse md5Decorator = loggingConsolePlugin.new LoggingServerHttpResponse(
+                md5Response, md5ResponseLog, true, matcher, md5Algorithm);
+        final LoggingConsolePlugin.LoggingServerHttpResponse replaceDecorator = loggingConsolePlugin.new LoggingServerHttpResponse(
+                replaceResponse, replaceResponseLog, true, matcher, replaceAlgorithm);
+        final DataBuffer md5Body = md5Response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+        final DataBuffer replaceBody = replaceResponse.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+
+        Mono.when(md5Decorator.writeWith(Mono.just(md5Body)), replaceDecorator.writeWith(Mono.just(replaceBody))).block();
+
+        assertTrue(md5ResponseLog.toString().contains(md5Value));
+        assertFalse(md5ResponseLog.toString().contains(replaceValue));
+        assertTrue(replaceResponseLog.toString().contains(replaceValue));
+        assertFalse(replaceResponseLog.toString().contains(md5Value));
+    }
+
+    @Test
+    public void testGzipResponseLoggedDecompressedAcrossChunks() throws IOException {
+        final StringBuilder responseLog = new StringBuilder();
+        final MockServerHttpResponse response = new MockServerHttpResponse();
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        response.getHeaders().add("Content-Encoding", "gzip");
+        final LoggingConsolePlugin.LoggingServerHttpResponse decorator = loggingConsolePlugin.new LoggingServerHttpResponse(
+                response, responseLog, false, new KeyWordMatch(Collections.emptySet()), null);
+
+        final String plainBody = "{\"msg\":\"hello gzip logging across multiple buffer chunks"
+                + " with a long enough payload to produce several compressed segments\"}";
+        final ByteArrayOutputStream compressed = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(compressed)) {
+            gzipOutputStream.write(plainBody.getBytes(StandardCharsets.UTF_8));
+        }
+        final byte[] gzipBytes = compressed.toByteArray();
+        final int splitAt = gzipBytes.length / 2;
+        final DataBuffer firstChunk = response.bufferFactory()
+                .wrap(java.util.Arrays.copyOfRange(gzipBytes, 0, splitAt));
+        final DataBuffer secondChunk = response.bufferFactory()
+                .wrap(java.util.Arrays.copyOfRange(gzipBytes, splitAt, gzipBytes.length));
+
+        decorator.writeWith(Flux.just(firstChunk, secondChunk)).block();
+
+        assertTrue(responseLog.toString().contains("hello gzip logging"),
+                "the logged body should be the decompressed payload");
     }
 
     @Test

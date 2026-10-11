@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.mcp.server.callback;
 
+import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
@@ -34,17 +36,27 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -253,10 +265,102 @@ class ShenyuToolCallbackTest {
     }
 
     @Test
+    void testToolCallUsesHttpRpcType() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(exchange.getAttribute(Constants.CONTEXT)).thenReturn(shenyuContext);
+        when(exchange.getAttributes()).thenReturn(new HashMap<>());
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "configureShenyuContext", exchange,
+                "session123", "/mcp/order/findAll",
+                "{\"requestTemplate\":{\"url\":\"/mcp/order/findAll\",\"method\":\"GET\"},\"argsPosition\":{}}");
+
+        verify(shenyuContext).setRpcType(RpcTypeEnum.HTTP.getName());
+    }
+
+    @Test
+    void testExecuteToolCallDisposesPluginChainOnTimeout() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+
+        final String sessionId = "session123";
+        final MockServerWebExchange webExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost/original").build());
+        final AtomicBoolean cancelled = new AtomicBoolean();
+
+        when(chain.execute(any())).thenReturn(Mono.<Void>never().doOnCancel(() -> cancelled.set(true)));
+
+        final RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> shenyuToolCallback.executeToolCall(webExchange, chain, sessionId,
+                        "{\"requestTemplate\":{\"url\":\"/test\",\"method\":\"GET\"},\"argsPosition\":{}}",
+                        "{}", 0));
+
+        assertTrue(exception.getMessage().contains("Tool execution timeout or error"));
+        assertTrue(cancelled.get());
+    }
+
+    @Test
     void testConstructorWithNullToolDefinition() {
         assertThrows(NullPointerException.class, () -> {
             new ShenyuToolCallback(null);
         });
+    }
+
+    @Test
+    void testRequestContextTakesPrecedenceOverSessionHolder() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(mcpSyncServerExchange.transportContext()).thenReturn(
+                McpTransportContext.create(Map.of(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY, exchange)));
+        assertSame(exchange, ReflectionTestUtils.invokeMethod(shenyuToolCallback, "getOriginExchange", mcpSyncServerExchange, "shared-session"));
+        exchangeHolderMock.verifyNoInteractions();
+    }
+
+    @Test
+    void testLegacySessionHolderFallback() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        exchangeHolderMock.when(() -> ShenyuMcpExchangeHolder.get("legacy-session")).thenReturn(exchange);
+        assertSame(exchange, ReflectionTestUtils.invokeMethod(shenyuToolCallback, "getOriginExchange", mcpSyncServerExchange, "legacy-session"));
+        exchangeHolderMock.verify(() -> ShenyuMcpExchangeHolder.get("legacy-session"));
+    }
+
+    @Test
+    void testSetTargetUriUsesCompleteUrlAsIs() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        ServerHttpRequest.Builder builder = MockServerHttpRequest.get("http://gateway.example:9195/mcp").build().mutate();
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "setTargetUri", builder, exchange, "https://target.example/api");
+
+        assertEquals(URI.create("https://target.example/api"), builder.build().getURI());
+    }
+
+    @Test
+    void testSetTargetUriPrefixesGatewayOriginForRelativePath() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        when(exchange.getRequest()).thenReturn(request);
+        when(request.getURI()).thenReturn(URI.create("http://gateway.example:9195/mcp"));
+        ServerHttpRequest.Builder builder = MockServerHttpRequest.get("http://gateway.example:9195/mcp").build().mutate();
+
+        ReflectionTestUtils.invokeMethod(shenyuToolCallback, "setTargetUri", builder, exchange, "/api/order");
+
+        assertEquals(URI.create("http://gateway.example:9195/api/order"), builder.build().getURI());
+    }
+
+    @Test
+    void testDecoratedExchangePreservesFixedAndDynamicQueryParameters() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+        ShenyuContext context = new ShenyuContext();
+        originExchange.getAttributes().put(Constants.CONTEXT, context);
+        String config = "{\"requestTemplate\":{\"url\":\"/users?fixed=true\",\"method\":\"GET\"},"
+                + "\"argsPosition\":{\"page\":\"query\"}}";
+
+        ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(shenyuToolCallback, "buildDecoratedExchange",
+                originExchange, new CompletableFuture<String>(), "session123", config, "{\"page\":\"1\"}");
+
+        assertEquals(URI.create("http://gateway.example:9195/users?page=1&fixed=true"), decoratedExchange.getRequest().getURI());
+        assertEquals("1", decoratedExchange.getRequest().getQueryParams().getFirst("page"));
+        assertEquals("true", decoratedExchange.getRequest().getQueryParams().getFirst("fixed"));
+        assertEquals("/users", context.getPath());
+        assertEquals("/users", context.getRealUrl());
     }
 
     @Test

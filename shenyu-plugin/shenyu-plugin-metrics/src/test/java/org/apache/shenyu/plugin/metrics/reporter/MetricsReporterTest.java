@@ -60,11 +60,11 @@ public final class MetricsReporterTest {
     @Test
     public void testRegister() throws Exception {
         Map<String, Counter> map1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(11, map1.size());
+        Assertions.assertEquals(12, map1.size());
         Assertions.assertTrue(map1.containsKey(CanaryMetric.REQUESTS.getName()));
         Assertions.assertTrue(map1.containsKey(CanaryMetric.FALLBACK.getName()));
         Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(2, map2.size());
+        Assertions.assertEquals(3, map2.size());
         Assertions.assertTrue(map2.containsKey(CanaryMetric.DECISION_DURATION.getName()));
         List<String> labels = new ArrayList<>();
         labels.add("shenyu_request_total");
@@ -74,9 +74,9 @@ public final class MetricsReporterTest {
         metrics.add(new Metric(MetricType.HISTOGRAM, "name3", DOCUMENT, labels));
         MetricsReporter.registerMetrics(metrics);
         Map<String, Counter> map3 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(12, map3.size());
+        Assertions.assertEquals(13, map3.size());
         Map<String, Histogram> map4 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(3, map4.size());
+        Assertions.assertEquals(4, map4.size());
         Map<String, Gauge> map5 = getPrivateField(metricsRegister, "GAUGE_MAP", Map.class);
         Assertions.assertEquals(1, map5.size());
     }

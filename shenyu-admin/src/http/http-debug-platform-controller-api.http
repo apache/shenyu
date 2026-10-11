@@ -18,10 +18,14 @@
 # if you debug api, replace your own token
 
 ### login
-GET http://localhost:9095/platform/login?userName=admin&password=123456
+POST http://localhost:9095/platform/login
 Accept: application/json
 Content-Type: application/json
-X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MDA1ODUxfQ.PQKajtOBgL8_it1Ctylk1-TdBTxFv_fneX1ZPWY4DeE
+
+{
+  "userName": "admin",
+  "password": "123456"
+}
 
 ### enum
 GET http://localhost:9095/platform/enum

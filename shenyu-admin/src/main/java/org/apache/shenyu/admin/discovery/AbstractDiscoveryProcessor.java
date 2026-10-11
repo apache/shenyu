@@ -132,7 +132,13 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode());
         Optional.ofNullable(dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId())).ifPresent(cacheKey -> {
             cacheKey.remove(key);
-            shenyuDiscoveryService.unWatchInstances(key);
+            if (cacheKey.isEmpty()) {
+                // converge the map instead of leaving an empty tombstone set behind forever
+                dataChangedEventListenerCache.remove(discoveryHandlerDTO.getDiscoveryId());
+            }
+            // removeDiscovery drops the service entry but leaves the listener-cache key behind;
+            // with the service already closed there is nothing to unwatch, but the delete event must still fire
+            Optional.ofNullable(shenyuDiscoveryService).ifPresent(service -> service.unWatchInstances(key));
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
             eventPublisher.publishEvent(dataChangedEvent);
@@ -252,7 +258,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param proxySelectorDTO proxySelectorDTO
      */
     public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
+        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
         if (Objects.nonNull(changedEventListener)) {
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
@@ -286,27 +292,30 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @return set
      */
     public Set<String> getCacheKey(final String discoveryId) {
-        return dataChangedEventListenerCache.get(discoveryId);
+        // computeIfAbsent keeps re-registration safe after removeProxySelector dropped an emptied set
+        return dataChangedEventListenerCache.computeIfAbsent(discoveryId, k -> new HashSet<>());
     }
 
     /**
      * addChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @param dataChangedEventListener dataChangedEventListener
      */
-    public void addChangedEventListener(final String discoveryId, final DataChangedEventListener dataChangedEventListener) {
-        this.dataChangedEventListenerMap.put(discoveryId, dataChangedEventListener);
+    public void addChangedEventListener(final String discoveryId, final String key, final DataChangedEventListener dataChangedEventListener) {
+        this.dataChangedEventListenerMap.put(discoveryId + ":" + key, dataChangedEventListener);
     }
 
     /**
      * getChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @return {@link DataChangedEventListener}
      */
-    public DataChangedEventListener getChangedEventListener(final String discoveryId) {
-        return this.dataChangedEventListenerMap.get(discoveryId);
+    public DataChangedEventListener getChangedEventListener(final String discoveryId, final String key) {
+        return this.dataChangedEventListenerMap.get(discoveryId + ":" + key);
     }
 
     /**

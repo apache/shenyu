@@ -55,6 +55,7 @@ public class ProxySelectorRefresh extends AbstractDataRefresh<ProxySelectorData>
     protected void refresh(final List<ProxySelectorData> data) {
         if (CollectionUtils.isEmpty(data)) {
             LOG.info("clear all ProxySelector data cache");
+            proxySelectorDataSubscribers.forEach(ProxySelectorDataSubscriber::refresh);
             return;
         }
         data.forEach(d -> proxySelectorDataSubscribers.forEach(pss -> pss.onSubscribe(d)));

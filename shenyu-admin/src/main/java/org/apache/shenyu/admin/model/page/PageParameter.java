@@ -56,7 +56,7 @@ public class PageParameter implements Serializable {
      */
     public PageParameter(final Integer currentPage, final Integer pageSize) {
         this.currentPage = Objects.isNull(currentPage) || currentPage <= 0 ? 1 : currentPage;
-        this.pageSize = Objects.isNull(currentPage) || pageSize <= 0 ? DEFAULT_PAGE_SIZE : pageSize;
+        this.pageSize = Objects.isNull(pageSize) || pageSize <= 0 ? DEFAULT_PAGE_SIZE : pageSize;
         this.offset = (this.currentPage - 1) * this.pageSize;
     }
 

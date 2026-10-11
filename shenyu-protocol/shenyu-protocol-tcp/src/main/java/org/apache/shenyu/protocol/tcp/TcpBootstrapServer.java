@@ -34,6 +34,7 @@ import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpServer;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +56,8 @@ public class TcpBootstrapServer implements BootstrapServer {
 
     private final EventBus eventBus;
 
+    private boolean disposed;
+
     public TcpBootstrapServer(final EventBus eventBus) {
         this.eventBus = eventBus;
     }
@@ -70,15 +73,29 @@ public class TcpBootstrapServer implements BootstrapServer {
         connectionContext.init(tcpServerConfiguration.getProps());
         loopResources = LoopResources.create("shenyu-tcp-bootstrap-server-" + tcpServerConfiguration.getPort(), Integer.parseInt(bossGroupThreadCount),
                 Integer.parseInt(workerGroupThreadCount), true);
-        TcpServer tcpServer = TcpServer.create()
-                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
-                .wiretap(true)
-                .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
-                //.childObserve(connectionObserver)
-                .doOnConnection(this::bridgeConnections)
-                .port(tcpServerConfiguration.getPort())
-                .runOn(loopResources);
-        server = tcpServer.bindNow();
+        try {
+            TcpServer tcpServer = TcpServer.create()
+                    .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
+                    .wiretap(true)
+                    .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
+                    //.childObserve(connectionObserver)
+                    .doOnConnection(this::bridgeConnections)
+                    .port(tcpServerConfiguration.getPort())
+                    .runOn(loopResources);
+            server = tcpServer.bindNow();
+        } catch (RuntimeException startFailure) {
+            try {
+                connectionContext.dispose();
+            } catch (RuntimeException cleanupFailure) {
+                startFailure.addSuppressed(cleanupFailure);
+            }
+            try {
+                loopResources.dispose();
+            } catch (RuntimeException cleanupFailure) {
+                startFailure.addSuppressed(cleanupFailure);
+            }
+            throw startFailure;
+        }
     }
 
     private void bridgeConnections(final Connection serverConn) {
@@ -86,16 +103,27 @@ public class TcpBootstrapServer implements BootstrapServer {
         SocketAddress socketAddress = serverConn.channel().remoteAddress();
         ActivityConnectionObserver connectionObserver = new ActivityConnectionObserver("TcpClient");
         eventBus.register(connectionObserver);
+        serverConn.onDispose(() -> eventBus.unregister(connectionObserver));
         Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress), connectionObserver);
-        client.subscribe(clientConn -> bridge.bridge(serverConn, clientConn));
+        client.subscribe(
+            clientConn -> bridge.bridge(serverConn, clientConn),
+            error -> {
+                LOG.error("Failed to establish client connection for {}", serverConn, error);
+                eventBus.unregister(connectionObserver);
+                serverConn.dispose();
+            }
+        );
     }
 
     private String getIp(final SocketAddress socketAddress) {
         if (Objects.isNull(socketAddress)) {
             throw new NullPointerException("remoteAddress is null");
         }
-        String address = socketAddress.toString();
-        return address.substring(1, address.indexOf(':'));
+        if (socketAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) socketAddress).getHostString();
+        }
+        LOG.error("Unsupported SocketAddress type: {}", socketAddress.getClass().getName());
+        throw new IllegalArgumentException("Unsupported SocketAddress type: " + socketAddress.getClass().getName());
     }
 
     /**
@@ -113,9 +141,45 @@ public class TcpBootstrapServer implements BootstrapServer {
      * shutdown.
      */
     @Override
-    public void shutdown() {
-        server.disposeNow();
-        loopResources.dispose();
+    public synchronized void shutdown() {
+        if (disposed) {
+            return;
+        }
+        RuntimeException failure = null;
+        try {
+            if (Objects.nonNull(server)) {
+                server.disposeNow();
+            }
+        } catch (RuntimeException ex) {
+            failure = ex;
+        }
+        try {
+            if (Objects.nonNull(connectionContext)) {
+                connectionContext.dispose();
+            }
+        } catch (RuntimeException ex) {
+            if (Objects.isNull(failure)) {
+                failure = ex;
+            } else {
+                failure.addSuppressed(ex);
+            }
+        }
+        try {
+            if (Objects.nonNull(loopResources)) {
+                loopResources.dispose();
+            }
+        } catch (RuntimeException ex) {
+            if (Objects.isNull(failure)) {
+                failure = ex;
+            } else {
+                failure.addSuppressed(ex);
+            }
+        } finally {
+            disposed = true;
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
+        }
     }
 
 }

@@ -21,15 +21,13 @@
     <parent>
         <artifactId>shenyu-integrated-test</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.7.1-SNAPSHOT</version>
+        <version>2.7.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>shenyu-integrated-test-websocket</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <websocket.version>1.5.1</websocket.version>
     </properties>
 

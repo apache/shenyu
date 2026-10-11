@@ -21,9 +21,15 @@ on:
       - master
     paths:
       - '**/*.java'
+      - '.github/workflows/codeql-analysis.yml'
   pull_request:
     paths:
       - '**/*.java'
+      - '.github/workflows/codeql-analysis.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -42,12 +48,14 @@ jobs:
         with:
           submodules: true
       - name: Set up JDK 17
+        if: github.event_name != 'pull_request'
         uses: ./actions/setup-java-with-retry
         with:
           java-version: 17
           distribution: 'temurin'
 
       - name: Restore ShenYu Maven Repos
+        if: github.event_name != 'pull_request'
         id: restore-maven-cache
         uses: actions/cache/restore@v3
         with:
@@ -60,9 +68,24 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ github.event_name == 'pull_request' && 'none' || 'manual' }}
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build for CodeQL analysis
+        if: github.event_name != 'pull_request'
+        run: |
+          ./mvnw -B -ntp -T 1C package \
+            -DskipTests \
+            -DskipRemoteResources=true \
+            -Dfindbugs.skip=true \
+            -Dcheckstyle.skip=true \
+            -Dpmd.skip=true \
+            -Dspotbugs.skip=true \
+            -Denforcer.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dlicense.skip=true \
+            -Drat.skip=true \
+            -Dspotless.check.skip=true \
+            -Djacoco.skip=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

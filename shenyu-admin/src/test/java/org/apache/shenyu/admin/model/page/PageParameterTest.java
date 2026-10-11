@@ -37,6 +37,27 @@ public final class PageParameterTest {
     }
 
     @Test
+    public void testNullPageSize() {
+        PageParameter param = new PageParameter(1, null);
+        assertEquals(1, param.getCurrentPage());
+        assertEquals(12, param.getPageSize());
+    }
+
+    @Test
+    public void testNullCurrentPageAndPageSize() {
+        PageParameter param = new PageParameter(null, null);
+        assertEquals(1, param.getCurrentPage());
+        assertEquals(12, param.getPageSize());
+    }
+
+    @Test
+    public void testNegativePageSize() {
+        PageParameter param = new PageParameter(1, -1);
+        assertEquals(1, param.getCurrentPage());
+        assertEquals(12, param.getPageSize());
+    }
+
+    @Test
     public void testEquals() {
         assertEquals(pageParameterUnderTest.getCurrentPage(), 1);
         assertEquals(pageParameterUnderTest.getPageSize(), 10);

@@ -95,5 +95,18 @@ public class ApolloPathConstants {
         return new HashSet<>(Arrays.asList(PLUGIN_DATA_ID, SELECTOR_DATA_ID, RULE_DATA_ID, AUTH_DATA_ID,
                 META_DATA_ID, PROXY_SELECTOR_DATA_ID, DISCOVERY_DATA_ID));
     }
+
+    /**
+     * get path key set with namespace prefix.
+     * for example, if the namespace id is {@code shenyu}, the plugin path key is {@code shenyu.plugin}.
+     *
+     * @param namespaceId namespace id
+     * @return path key set with namespace prefix
+     */
+    public static Set<String> pathKeySet(final String namespaceId) {
+        final Set<String> namespacedPathKeySet = new HashSet<>();
+        pathKeySet().forEach(dataId -> namespacedPathKeySet.add(namespaceId + DefaultNodeConstants.JOIN_POINT + dataId));
+        return namespacedPathKeySet;
+    }
 }
 

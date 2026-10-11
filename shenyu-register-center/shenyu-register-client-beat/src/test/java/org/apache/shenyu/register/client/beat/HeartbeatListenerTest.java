@@ -19,11 +19,14 @@ package org.apache.shenyu.register.client.beat;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.MockedConstruction;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -32,6 +35,8 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,6 +89,26 @@ class HeartbeatListenerTest {
         properties.setPort(8080);
 
         return properties;
+    }
+
+    @Test
+    void testPeriodicHeartbeatSurvivesFailuresOnEveryServer() throws IOException {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> ignored = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            register.when(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()))
+                    .thenThrow(new IOException("admin unavailable"));
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            assertDoesNotThrow(periodic.getValue()::run);
+            assertDoesNotThrow(periodic.getValue()::run);
+            register.verify(() -> RegisterUtils.doHeartBeat(anyString(), Mockito.eq("http://localhost:9095" + Constants.BEAT_URI_PATH),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
+            register.verify(() -> RegisterUtils.doHeartBeat(anyString(), Mockito.eq("http://localhost:9096" + Constants.BEAT_URI_PATH),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
+        }
     }
 
     @Test
@@ -157,9 +182,6 @@ class HeartbeatListenerTest {
                 }
             });
 
-            // Wait a bit to allow the heartbeat to be processed
-            Thread.sleep(100);
-
             // Should be called for both servers in serverList
             registerUtilsMockedStatic.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()),
                     Mockito.times(2));
@@ -183,12 +205,10 @@ class HeartbeatListenerTest {
             org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO beatInfo = 
                     new org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO();
 
-            // Should throw RuntimeException due to login failure
-            try {
-                sendHeartbeatMethod.invoke(heartbeatListener, beatInfo);
-            } catch (Exception e) {
-                assertTrue(e.getCause() instanceof RuntimeException);
-            }
+            assertDoesNotThrow(() -> sendHeartbeatMethod.invoke(heartbeatListener, beatInfo));
+            assertDoesNotThrow(() -> sendHeartbeatMethod.invoke(heartbeatListener, beatInfo));
+            registerUtilsMockedStatic.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()),
+                    Mockito.never());
         }
     }
 
@@ -210,9 +230,6 @@ class HeartbeatListenerTest {
             assertTrue(!executor.isShutdown());
 
             heartbeatListener.onShutdown();
-
-            // Wait a bit for shutdown to complete
-            Thread.sleep(100);
 
             assertTrue(executor.isShutdown());
         }

@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
@@ -267,10 +268,14 @@ class DivideCanaryRoutingTest {
     @Test
     void testSpecifyDomainBypassesCanaryWithoutMutatingSharedNode() {
         Upstream shared = upstream("original:8080", Map.of());
-        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(shared))) {
+        Upstream specified = upstream("override:9090", Map.of());
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(shared, specified))) {
             assertLegacy(exchange("override:9090"), "http://override:9090");
             assertEquals("original:8080", shared.getUrl());
+        }
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(shared))) {
             handle.setCanary(null);
+            assertLegacy(exchange("unconfigured:9090"), "http://original:8080");
             assertLegacy(exchange(null), "http://original:8080");
         }
         verifyNoInteractions(decisions);
@@ -283,6 +288,36 @@ class DivideCanaryRoutingTest {
             StepVerifier.create(plugin.doExecute(exchange("override:9090"), chain, selector, rule)).verifyComplete();
         }
         verifyNoInteractions(chain, decisions);
+    }
+
+    @Test
+    void testCircuitBreakerDoesNotSelectOutsideCanaryPartition() {
+        Upstream blocked = upstream("blocked-canary:8080", Map.of("release", "canary", "region", "east"));
+        Upstream available = upstream("available-canary:8080", Map.of("release", "canary", "region", "east"));
+        Upstream stable = upstream("stable:8080", Map.of("release", "stable"));
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        String key = UpstreamCircuitBreaker.buildKey(selector.getId(), blocked);
+        for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+            breaker.recordFailure(key);
+        }
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(blocked, available, stable))) {
+            ServerWebExchange exchange = exchange(null);
+            StepVerifier.create(plugin.doExecute(exchange, current -> Mono.empty(), selector, rule)).verifyComplete();
+            assertEquals("http://available-canary:8080", exchange.getAttribute(Constants.HTTP_DOMAIN));
+            assertEquals("canary", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+        }
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(blocked, stable))) {
+            ServerWebExchange exchange = exchange(null);
+            ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+            StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule)).verifyComplete();
+            verifyNoInteractions(chain);
+            CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+            assertEquals("canary", observation.getMetricPartition());
+            assertNull(observation.getFallbackReason());
+            assertEquals(CanaryContext.NO_UPSTREAM_SELECTED, observation.getRejectReason());
+        } finally {
+            breaker.reset(key);
+        }
     }
 
     @Test
@@ -382,7 +417,7 @@ class DivideCanaryRoutingTest {
 
     private Upstream upstream(final String url, final Map<String, String> labels) {
         Upstream upstream = Upstream.builder().url(url).protocol("http://").weight(100).build();
-        upstream.setMetadata(labels);
+        upstream.setLabels(labels);
         return upstream;
     }
 }

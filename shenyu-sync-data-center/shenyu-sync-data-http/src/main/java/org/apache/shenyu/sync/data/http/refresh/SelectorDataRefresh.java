@@ -69,14 +69,11 @@ public class SelectorDataRefresh extends AbstractDataRefresh<SelectorData> {
 
     @Override
     protected void refresh(final List<SelectorData> data) {
+        pluginDataSubscriber.refreshSelectorDataAll();
         if (CollectionUtils.isEmpty(data)) {
             LOG.info("clear all selector cache, old cache");
-            data.forEach(pluginDataSubscriber::unSelectorSubscribe);
-            pluginDataSubscriber.refreshSelectorDataAll();
-        } else {
-            // update cache for UpstreamCacheManager
-            pluginDataSubscriber.refreshSelectorDataAll();
-            data.forEach(pluginDataSubscriber::onSelectorSubscribe);
+            return;
         }
+        data.forEach(pluginDataSubscriber::onSelectorSubscribe);
     }
 }

@@ -125,11 +125,18 @@ public class AdminClient extends BaseClient {
      * Login to ShenYu Admin and cache the token.
      */
     public void login() {
-        final String url = baseURL + "/platform/login?userName={username}&password={password}";
-        ResponseEntity<ShenYuResult> response = template.getForEntity(
+        final String url = baseURL + "/platform/login";
+        Map<String, String> loginBody = ImmutableMap.<String, String>builder()
+                .put("userName", loginInfo.get("username"))
+                .put("password", loginInfo.get("password"))
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginBody, headers);
+        ResponseEntity<ShenYuResult> response = template.postForEntity(
                 url,
-                ShenYuResult.class,
-                loginInfo
+                requestEntity,
+                ShenYuResult.class
         );
         ShenYuResult rst = assertAndGet(response, "login dashboard user success");
 

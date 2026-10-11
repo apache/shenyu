@@ -168,6 +168,12 @@ public interface Constants {
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
 
     /**
+     * The constant CACHED_REQUEST_BODY.
+     * Used to cache the request body for replay during retry.
+     */
+    String CACHED_REQUEST_BODY = "cachedRequestBody";
+
+    /**
      * The constant HTTP_URI.
      */
     String HTTP_URI = "httpUri";
@@ -734,6 +740,11 @@ public interface Constants {
     String X_ACCESS_TOKEN = "X-Access-Token";
 
     /**
+     * X-Shenyu-Sync-Token.
+     */
+    String X_SHENYU_SYNC_TOKEN = "X-Shenyu-Sync-Token";
+
+    /**
      * X-API-KEY; AI proxy key header.
      */
     String X_API_KEY = "X-API-KEY";
@@ -831,11 +842,6 @@ public interface Constants {
     String DEFAULT_CLUSTER = "failover";
 
     /**
-     * cache data max size, means map size.
-     */
-    Long LRU_MAP_MAXSIZE = 65536L;
-
-    /**
      * namespace,sush as nacos .
      */
     String NAMESPACE = "namespace";
@@ -909,6 +915,11 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
+
+    /**
+     * Optional server-installed MCP terminal observation callback.
+     */
+    String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
 
     /**
      * The constant shenyu namespace id.
@@ -1026,7 +1037,7 @@ public interface Constants {
     /**
      * Http request retry policy.
      */
-    String HTTP_RETRY_BACK_OFF_SPEC = "default";
+    String HTTP_RETRY_BACK_OFF_SPEC = "httpRetryBackOffSpec";
 
     /**
      * The constant Content.

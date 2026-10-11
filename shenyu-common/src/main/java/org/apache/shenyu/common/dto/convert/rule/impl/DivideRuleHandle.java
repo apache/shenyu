@@ -20,6 +20,7 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
+import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 
@@ -41,6 +42,8 @@ public class DivideRuleHandle implements RuleHandle {
      * {@linkplain RetryEnum}
      */
     private String retryStrategy = RetryEnum.CURRENT.getName();
+
+    private String retryBackOffSpec = HttpRetryBackoffSpecEnum.getDefault();
 
     /**
      * http retry.
@@ -202,6 +205,14 @@ public class DivideRuleHandle implements RuleHandle {
         this.canary = canary;
     }
 
+    public String getRetryBackOffSpec() {
+        return retryBackOffSpec;
+    }
+
+    public void setRetryBackOffSpec(final String retryBackOffSpec) {
+        this.retryBackOffSpec = retryBackOffSpec;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -213,12 +224,13 @@ public class DivideRuleHandle implements RuleHandle {
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
-                && Objects.equals(retryStrategy, that.retryStrategy) && Objects.equals(canary, that.canary);
+                && Objects.equals(retryStrategy, that.retryStrategy)
+                && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retry, timeout, headerMaxSize, requestMaxSize, canary);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary);
     }
 
     @Override
@@ -227,8 +239,11 @@ public class DivideRuleHandle implements RuleHandle {
                 + "loadBalance='"
                 + loadBalance
                 + '\''
-                + "retryStrategy='"
+                + ", retryStrategy='"
                 + retryStrategy
+                + '\''
+                + ", retryBackOffSpec='"
+                + retryBackOffSpec
                 + '\''
                 + ", retry="
                 + retry

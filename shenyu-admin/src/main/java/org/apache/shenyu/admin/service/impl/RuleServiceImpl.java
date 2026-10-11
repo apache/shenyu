@@ -55,6 +55,7 @@ import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -162,6 +163,7 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.nonNull(ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName()))) {
             return "";
         }
+        validateRuleHandle(ruleDTO);
         validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -187,6 +189,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int create(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO);
         validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
@@ -199,6 +202,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public int update(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
         validateCanaryConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
@@ -364,6 +368,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
+            validateRuleHandle(ruleDTO);
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -418,6 +423,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
+            validateRuleHandle(newSelectorId, ruleDTO.getHandle());
             ruleDTO.setNamespaceId(namespace);
             ruleDTO.setSelectorId(newSelectorId);
             String ruleId = UUIDUtils.getInstance().generateShortUuid();
@@ -441,12 +447,34 @@ public class RuleServiceImpl implements RuleService {
         }
         return ConfigImportResult.success(successCount);
     }
+
+    private void validateRuleHandle(final RuleDTO ruleDTO) {
+        validateRuleHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+    }
+
+    private void validateRuleHandle(final String selectorId, final String handle) {
+        final SelectorDO selector = selectorMapper.selectById(selectorId);
+        if (Objects.isNull(selector)) {
+            throw new ShenyuAdminException("rule selector is not found");
+        }
+        final PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
+        if (Objects.isNull(plugin)) {
+            throw new ShenyuAdminException("rule plugin is not found");
+        }
+        if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
+            AgentGatewayRuleHandleValidator.validate(handle);
+        }
+    }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectById(id);
+            if (Objects.isNull(ruleDO) || !Objects.equals(ruleDO.getNamespaceId(), namespaceId)) {
+                // the rule does not belong to the request namespace; skip it
+                return;
+            }
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {
@@ -470,16 +498,21 @@ public class RuleServiceImpl implements RuleService {
      * delete rules by ids and namespaceId.
      *
      * @param ids primary key.
+     * @param namespaceId namespace id.
      * @return rows
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
-        List<RuleDO> rules = ruleMapper.selectByIds(ids);
-        final int deleteCount = ruleMapper.deleteByIds(ids);
+        List<RuleDO> rules = ruleMapper.selectByIdsAndNamespaceId(ids, namespaceId);
+        if (CollectionUtils.isEmpty(rules)) {
+            return 0;
+        }
+        final List<String> ruleIds = map(rules, RuleDO::getId);
+        final int deleteCount = ruleMapper.deleteByIdsAndNamespaceId(ruleIds, namespaceId);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);
-            ruleConditionMapper.deleteByRuleIds(ids);
+            ruleConditionMapper.deleteByRuleIds(ruleIds);
         }
         return deleteCount;
     }

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.7.1-SNAPSHOT</version>
+        <version>2.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>shenyu-admin-listener</artifactId>
@@ -30,10 +30,8 @@
     <modules>
         <module>shenyu-admin-listener-api</module>
         <module>shenyu-admin-listener-apollo</module>
-        <module>shenyu-admin-listener-consul</module>
         <module>shenyu-admin-listener-etcd</module>
         <module>shenyu-admin-listener-nacos</module>
-        <module>shenyu-admin-listener-polaris</module>
         <module>shenyu-admin-listener-zookeeper</module>
     </modules>
 

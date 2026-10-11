@@ -191,6 +191,7 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
             DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
             discoveryUpstreamData.setId(data.getId());
+            discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
             discoveryUpstreamData.setProtocol(data.getProtocol());
             discoveryUpstreamData.setUrl(data.getUpstreamUrl());
             discoveryUpstreamData.setStatus(data.getUpstreamStatus());

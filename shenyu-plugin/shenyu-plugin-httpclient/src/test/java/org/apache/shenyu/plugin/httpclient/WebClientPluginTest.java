@@ -18,14 +18,20 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -34,19 +40,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.client.reactive.MockClientHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -77,7 +94,7 @@ public final class WebClientPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
-        webClientPlugin = new WebClientPlugin(webClient);
+        webClientPlugin = new WebClientPlugin(webClient, Constants.BYTES_PER_MB);
     }
 
     /**
@@ -90,7 +107,7 @@ public final class WebClientPluginTest {
         ServerWebExchange exchangeNoPathTest = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
         exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
-        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
+        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest, Constants.BYTES_PER_MB);
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
@@ -100,19 +117,19 @@ public final class WebClientPluginTest {
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
         exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchangePostTest.getAttributes().put(Constants.HTTP_URI, URI.create("/test123?param=1"));
-        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
+        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest, Constants.BYTES_PER_MB);
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainOkTest = mock(ShenyuPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
-        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
+        WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest, Constants.BYTES_PER_MB);
         Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
         final ShenyuPluginChain chainErrorTest = mock(ShenyuPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
-        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
+        WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest, Constants.BYTES_PER_MB);
         Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
         StepVerifier.create(monoErrorTest).expectSubscription().verifyError();
     }
@@ -147,6 +164,97 @@ public final class WebClientPluginTest {
         assertEquals(PluginEnum.WEB_CLIENT.getName(), webClientPlugin.named());
     }
 
+    /**
+     * Test that a non-binary request body cannot exceed the configured in-memory limit.
+     */
+    @Test
+    public void testRequestBodyExceedsMaxInMemorySize() {
+        final int maxInMemorySize = 4;
+        final WebClientPlugin plugin = new WebClientPlugin(mockWebClientOK(), maxInMemorySize);
+        final DataBuffer body = DefaultDataBufferFactory.sharedInstance
+                .wrap("12345".getBytes(StandardCharsets.UTF_8));
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .build());
+
+        plugin.doRequest(exchange, HttpMethod.POST.name(), URI.create("/test"), Flux.just(body)).subscribe();
+        final ClientRequest request = captor.getValue();
+        final MockClientHttpRequest outputMessage = new MockClientHttpRequest(HttpMethod.POST, URI.create("/test"));
+        final BodyInserter.Context context = mock(BodyInserter.Context.class);
+        when(context.messageWriters()).thenReturn(Collections.emptyList());
+
+        StepVerifier.create(request.body().insert(outputMessage, context))
+                .expectError(DataBufferLimitException.class)
+                .verify();
+    }
+
+    /**
+     * Test that request headers use the configured deduplication strategy.
+     */
+    @Test
+    public void testRequestHeadersAreDeduplicated() {
+        final String headerName = "X-Test-Header";
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header(headerName, "first", "last")
+                .build());
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), headerName);
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.RETAIN_LAST);
+
+        StepVerifier.create(webClientPlugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
+                .expectNextCount(1)
+                .verifyComplete();
+
+        assertEquals(Collections.singletonList("last"), captor.getValue().headers().get(headerName));
+    }
+
+    @Test
+    public void testServerErrorTriggersFailover() {
+        WebClientPlugin plugin = new WebClientPlugin(mockWebClientError(), Constants.BYTES_PER_MB);
+        ServerWebExchange exchange = generateServerWebExchange();
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+
+        StepVerifier.create(plugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
+                .expectError(ShenyuUpstreamStatusException.class)
+                .verify();
+    }
+
+    @ParameterizedTest
+    @EnumSource(HeaderUniqueStrategyEnum.class)
+    public void testOutboundHeaderDeduplication(final HeaderUniqueStrategyEnum strategy) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header("X-Duplicate", "first", "last", "last")
+                .header(HttpHeaders.HOST, "original.example")
+                .build());
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), "X-Duplicate");
+        exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), strategy);
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), "X-Duplicate");
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), strategy);
+        exchange.getResponse().getHeaders().set("X-Gateway", "preserved");
+        ClientResponse response = ClientResponse.create(HttpStatus.OK).header("X-Duplicate", "first", "last", "last").build();
+        when(exchangeFunction.exchange(captor.capture())).thenReturn(Mono.just(response));
+        WebClientPlugin plugin = new WebClientPlugin(WebClient.builder().exchangeFunction(exchangeFunction).build(), Constants.BYTES_PER_MB);
+        StepVerifier.create(plugin.doRequest(exchange, "GET", URI.create("http://upstream.example/test"), Flux.empty()))
+                .expectNextCount(1).verifyComplete();
+        List<String> expected = strategy == HeaderUniqueStrategyEnum.RETAIN_UNIQUE
+                ? List.of("first", "last") : List.of(strategy == HeaderUniqueStrategyEnum.RETAIN_FIRST ? "first" : "last");
+        assertEquals(expected, captor.getValue().headers().get("X-Duplicate"));
+        assertEquals(expected, exchange.getResponse().getHeaders().get("X-Duplicate"));
+        assertEquals(List.of("first", "last", "last"), exchange.getRequest().getHeaders().get("X-Duplicate"));
+        assertFalse(captor.getValue().headers().containsKey(HttpHeaders.HOST));
+        assertEquals("preserved", exchange.getResponse().getHeaders().getFirst("X-Gateway"));
+    }
+
+    @Test
+    public void testDeduplicationPreservesConfiguredHost() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").header(HttpHeaders.HOST, "original.example").build());
+        exchange.getAttributes().put(Constants.PRESERVE_HOST, true);
+        when(exchangeFunction.exchange(captor.capture())).thenReturn(Mono.just(ClientResponse.create(HttpStatus.OK).build()));
+        WebClientPlugin plugin = new WebClientPlugin(WebClient.builder().exchangeFunction(exchangeFunction).build(), Constants.BYTES_PER_MB);
+        StepVerifier.create(plugin.doRequest(exchange, "GET", URI.create("http://upstream.example/test"), Flux.empty()))
+                .expectNextCount(1).verifyComplete();
+        assertEquals("original.example", captor.getValue().headers().getFirst(HttpHeaders.HOST));
+    }
+
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
@@ -161,6 +269,7 @@ public final class WebClientPluginTest {
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.OK);
         when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToFlux(DataBuffer.class)).thenReturn(Flux.empty());
         when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just("{\"test\":\"ok\"}".getBytes()));
         when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
@@ -172,15 +281,8 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
-        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
-        
-        final ClientResponse mockResponse = mock(ClientResponse.class);
-        when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-        when(mockResponse.headers()).thenReturn(headers);
-        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
-        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
-        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
+        final ClientResponse response = ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(response));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)
                 .apply(consumer -> consumer.defaultHeader("Accept", "application/json")

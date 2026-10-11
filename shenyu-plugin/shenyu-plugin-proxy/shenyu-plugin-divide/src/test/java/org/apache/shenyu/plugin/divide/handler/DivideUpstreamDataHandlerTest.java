@@ -18,8 +18,10 @@
 package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCheckTask;
@@ -39,6 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +50,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -83,6 +88,7 @@ public class DivideUpstreamDataHandlerTest {
 
     @AfterEach
     public void tearDown() {
+        UpstreamCacheManager.getInstance().removeByKey("handler");
         mockCheckUtils.close();
         UpstreamCacheManager.getInstance().removeByKey("handler");
     }
@@ -98,6 +104,46 @@ public class DivideUpstreamDataHandlerTest {
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorId(null);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+    }
+
+    @Test
+    public void removeDiscoveryUpstreamDataTest() {
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        assertNotNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler"));
+
+        divideUpstreamDataHandler.removeDiscoveryUpstreamData(DiscoveryUpstreamKey.from(discoverySyncData));
+
+        assertNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler"));
+    }
+
+    /**
+     * Handler discovery upstream props metadata test.
+     */
+    @Test
+    public void handlerDiscoveryUpstreamDataWithPropsMetadataTest() {
+        Properties properties = new Properties();
+        properties.setProperty("warmup", "20");
+        properties.setProperty("gray", "true");
+        properties.setProperty("healthCheckEnabled", "false");
+        properties.setProperty("az", "az1");
+        properties.setProperty("version", "v2");
+        DiscoveryUpstreamData discoveryUpstreamData = DiscoveryUpstreamData.builder()
+                .url("mock-props")
+                .status(0)
+                .weight(10)
+                .props(GsonUtils.getInstance().toJson(properties))
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(discoveryUpstreamData));
+
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        assertEquals("az1", upstream.getMetadata().get("az"));
+        assertEquals("v2", upstream.getMetadata().get("version"));
+        assertEquals("20", upstream.getMetadata().get("warmup"));
+        assertEquals(20, upstream.getWarmup());
+        assertEquals(false, upstream.isHealthCheckEnabled());
     }
 
     /**
@@ -123,7 +169,20 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(12, canary.getWarmup());
         assertTrue(canary.isGray());
         assertFalse(canary.isHealthCheckEnabled());
-        assertEquals(Map.of("release", "canary"), canary.getMetadata());
+        assertEquals(Map.of("release", "canary"), canary.getLabels());
+    }
+
+    @Test
+    public void testRoutingLabelsDoNotOverwriteFlatMetadata() {
+        publish(List.of(instance("backend:8080", "{\"release\":\"metadata-value\",\"labels\":{\"release\":\"canary\"},\"custom\":{\"nested\":true}}")));
+        Upstream original = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        assertEquals("metadata-value", original.getMetadata().get("release"));
+        assertEquals(Map.of("release", "canary"), original.getLabels());
+        publish(List.of(instance("backend:8080", "{\"release\":\"new-metadata\"}")));
+        Upstream updated = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        assertSame(original, updated);
+        assertTrue(updated.getLabels().isEmpty());
+        assertEquals("new-metadata", updated.getMetadata().get("release"));
     }
 
     @Test
@@ -138,12 +197,12 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(17, updated.getSucceeded().get());
         assertEquals(42, updated.getLag());
         assertFalse(updated.isGray());
-        assertEquals(Map.of("release", "stable"), updated.getMetadata());
+        assertEquals(Map.of("release", "stable"), updated.getLabels());
         publish(List.of(instance("backend:8080", "{\"labels\":{}}")));
-        assertTrue(original.getMetadata().isEmpty());
+        assertTrue(original.getLabels().isEmpty());
         publish(List.of(instance("backend:8080", "{\"labels\":{\"release\":\"canary\"}}")));
         publish(List.of(instance("backend:8080", "{}")));
-        assertTrue(original.getMetadata().isEmpty());
+        assertTrue(original.getLabels().isEmpty());
     }
 
     @ParameterizedTest
@@ -154,10 +213,12 @@ public class DivideUpstreamDataHandlerTest {
         publish(List.of(instance("backend:8080", "{\"gray\":true,\"labels\":{\"release\":\"canary\"}}")));
         final List<Upstream> before = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
         assertThrows(RuntimeException.class, () -> publish(List.of(instance("backend:8080", "{}"), instance("bad:8080", invalidProps))));
-        assertSame(before, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler"));
+        List<Upstream> after = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(before, after);
+        assertSame(before.get(0), after.get(0));
         assertEquals(1, before.size());
         assertTrue(before.get(0).isGray());
-        assertEquals(Map.of("release", "canary"), before.get(0).getMetadata());
+        assertEquals(Map.of("release", "canary"), before.get(0).getLabels());
     }
 
     @Test
@@ -167,7 +228,7 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(10, upstream.getWarmup());
         assertFalse(upstream.isGray());
         assertTrue(upstream.isHealthCheckEnabled());
-        assertTrue(upstream.getMetadata().isEmpty());
+        assertTrue(upstream.getLabels().isEmpty());
     }
 
     @Test
@@ -176,8 +237,8 @@ public class DivideUpstreamDataHandlerTest {
                 instance("stable:8080", "{\"labels\":{\"release\":\"stable\"}}")));
         List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
         assertEquals(2, upstreams.size());
-        assertEquals(Map.of("release", "canary"), upstreams.get(0).getMetadata());
-        assertEquals(Map.of("release", "stable"), upstreams.get(1).getMetadata());
+        assertEquals(Map.of("release", "canary"), upstreams.get(0).getLabels());
+        assertEquals(Map.of("release", "stable"), upstreams.get(1).getLabels());
     }
 
     @Test
@@ -192,7 +253,7 @@ public class DivideUpstreamDataHandlerTest {
         task.removeFromMap(task.getHealthyUpstream(), "handler", original);
         publish(List.of(instance("backend:8080", "{}")));
         assertSame(original, task.getUnhealthyUpstream().get("handler").get(0));
-        assertTrue(original.getMetadata().isEmpty());
+        assertTrue(original.getLabels().isEmpty());
         assertFalse(original.isHealthy());
         assertEquals(123, original.getLastUnhealthyTimestamp());
         assertEquals(17, original.getSucceeded().get());

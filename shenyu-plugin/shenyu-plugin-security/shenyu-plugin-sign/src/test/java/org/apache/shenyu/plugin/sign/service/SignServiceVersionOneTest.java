@@ -41,10 +41,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
@@ -66,6 +66,8 @@ import static org.mockito.Mockito.mock;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class SignServiceVersionOneTest {
 
+    private static final int DELAY = 5;
+
     private SignService signService;
 
     private ServerWebExchange exchange;
@@ -76,12 +78,10 @@ public final class SignServiceVersionOneTest {
 
     private ShenyuContext passed;
 
-    @Value("${shenyu.sign.delay:5}")
-    private int delay;
-
     @BeforeEach
     public void setup() {
         this.signService = new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider());
+        ReflectionTestUtils.setField(this.signService, "delay", DELAY);
 
         final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();
@@ -119,6 +119,19 @@ public final class SignServiceVersionOneTest {
     @Test
     public void normalTest() {
         String timestamp = String.valueOf(System.currentTimeMillis());
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                timestamp,
+                appKey,
+                buildSign(secretKey, timestamp, "/test-api/demo/test", null, null));
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
+        assertEquals(ret, VerifyResult.success());
+    }
+
+    @Test
+    public void normalTestWithinConfiguredDelay() {
+        String timestamp = String.valueOf(System.currentTimeMillis() - 60_000L);
         this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
                 timestamp,
                 appKey,
@@ -175,7 +188,7 @@ public final class SignServiceVersionOneTest {
 
     @Test
     public void overdueTest() {
-        String errorTimestamp = String.valueOf(System.currentTimeMillis() - ((long) (delay + 1) * 1000 * 60));
+        String errorTimestamp = String.valueOf(System.currentTimeMillis() - ((long) (DELAY + 1) * 1000 * 60));
         this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
                 errorTimestamp,
                 appKey,
@@ -183,7 +196,7 @@ public final class SignServiceVersionOneTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         VerifyResult ret = this.signService.signatureVerify(this.exchange);
-        assertEquals(ret, VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
+        assertEquals(ret, VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), DELAY)));
     }
 
     @Test

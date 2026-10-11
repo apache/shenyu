@@ -18,17 +18,30 @@
 package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.RuleConditionMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.RuleDTO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.impl.ConfigsServiceImpl;
+import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
+import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.apache.shenyu.common.constant.ExportImportConstants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +49,13 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,6 +63,12 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public final class ConfigsServiceTest {
+
+    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024;
+
+    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024;
+
+    private static final int MAX_ENTRY_COUNT = 1000;
 
     private ConfigsServiceImpl configsService;
 
@@ -84,6 +109,9 @@ public final class ConfigsServiceTest {
     public void setUp() {
         configsService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService, pluginHandleService, selectorService, ruleService,
                 metaDataService, shenyuDictService, proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());
+        ReflectionTestUtils.setField(configsService, "maxEntrySize", MAX_ENTRY_SIZE);
+        ReflectionTestUtils.setField(configsService, "maxTotalSize", MAX_TOTAL_SIZE);
+        ReflectionTestUtils.setField(configsService, "maxEntryCount", MAX_ENTRY_COUNT);
     }
 
     @Test
@@ -135,6 +163,47 @@ public final class ConfigsServiceTest {
         assertThat(resultData.get(ExportImportConstants.PROXY_SELECTOR_IMPORT_SUCCESS_COUNT), is(1));
         assertThat(resultData.get(ExportImportConstants.DISCOVERY_UPSTREAM_IMPORT_SUCCESS_COUNT), is(1));
         assertThat(resultData.get(ExportImportConstants.DISCOVERY_IMPORT_SUCCESS_COUNT), is(1));
+    }
+
+    @Test
+    public void testRuleBeforeSelectorInZipCannotBypassHandleValidation() {
+        RuleMapper ruleMapper = mock(RuleMapper.class);
+        SelectorMapper selectorMapper = mock(SelectorMapper.class);
+        PluginMapper pluginMapper = mock(PluginMapper.class);
+        RuleService ruleServiceImpl = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class),
+                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class));
+        ConfigsServiceImpl importService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService,
+                pluginHandleService, selectorService, ruleServiceImpl, metaDataService, shenyuDictService,
+                proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());
+        ReflectionTestUtils.setField(importService, "maxEntrySize", MAX_ENTRY_SIZE);
+        ReflectionTestUtils.setField(importService, "maxTotalSize", MAX_TOTAL_SIZE);
+        ReflectionTestUtils.setField(importService, "maxEntryCount", MAX_ENTRY_COUNT);
+
+        when(pluginService.importData(any(), isNull())).thenAnswer(invocation -> {
+            when(pluginMapper.selectById("plugin-1")).thenReturn(PluginDO.builder()
+                    .id("plugin-1").name("agentGateway").build());
+            return ConfigImportResult.success(1);
+        });
+        when(selectorService.importData(any())).thenAnswer(invocation -> {
+            when(selectorMapper.selectById("selector-1")).thenReturn(SelectorDO.builder()
+                    .id("selector-1").pluginId("plugin-1").build());
+            return ConfigImportResult.success(1);
+        });
+        when(ruleMapper.selectAll()).thenReturn(Collections.emptyList());
+
+        RuleDTO rule = RuleDTO.builder().selectorId("selector-1").name("agent-rule")
+                .handle("{\"trafficType\":\"LLM\",\"unexpected\":true}")
+                .ruleConditions(Collections.emptyList()).build();
+        byte[] zip = ZipUtil.zip(Lists.newArrayList(
+                new ZipUtil.ZipItem(ExportImportConstants.RULE_JSON, JsonUtils.toJson(Collections.singletonList(rule))),
+                new ZipUtil.ZipItem(ExportImportConstants.SELECTOR_JSON, "[]"),
+                new ZipUtil.ZipItem(ExportImportConstants.PLUGIN_JSON, "[]")));
+
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> importService.configsImport(zip));
+        assertTrue(exception.getMessage().contains("unknown field"));
+        verify(pluginService).importData(any(), isNull());
+        verify(selectorService).importData(any());
+        verify(ruleMapper, never()).insertSelective(any());
     }
 
     private byte[] buildImportData() {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.forward;
 
+import com.google.common.net.InetAddresses;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
@@ -30,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Parses the client address from the X-Forwarded-For header. If header is not present.
@@ -87,7 +89,11 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
         List<String> xForwardedValues = extractXForwardedValues(exchange);
         if (CollectionUtils.isNotEmpty(xForwardedValues)) {
             int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
-            return new InetSocketAddress(xForwardedValues.get(index), 0);
+            try {
+                return new InetSocketAddress(InetAddresses.forString(xForwardedValues.get(index)), 0);
+            } catch (IllegalArgumentException ex) {
+                LOG.warn("Invalid IP address in X-Forwarded-For header, falling back to remote address");
+            }
         }
         return defaultRemoteIpResolver.resolve(exchange);
     }
@@ -102,8 +108,11 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             LOG.warn("Multiple X-Forwarded-For headers found, discarding all");
             return Collections.emptyList();
         }
-        List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-        if (values.size() == 1 && StringUtils.isNotEmpty(values.get(0))) {
+        List<String> values = Arrays.stream(xForwardedValues.get(0).split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toList());
+        if (values.isEmpty()) {
             return Collections.emptyList();
         }
         return values;

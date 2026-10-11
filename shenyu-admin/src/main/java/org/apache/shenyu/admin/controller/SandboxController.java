@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.service.SandboxService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -49,6 +50,7 @@ public class SandboxController {
      * @throws IOException throw io exception
      */
     @PostMapping(path = "/proxyGateway")
+    @RequiresPermissions("system:authen:modify")
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
                             final HttpServletRequest request,
                             final HttpServletResponse response) throws IOException {

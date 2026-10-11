@@ -46,8 +46,8 @@ public final class UpstreamLabelUtils {
             return Collections.emptyList();
         }
         return upstreams.stream().filter(upstream -> {
-            Map<String, String> metadata = upstream.getMetadata();
-            return MapUtils.isNotEmpty(metadata) && metadata.entrySet().containsAll(labels.entrySet());
+            Map<String, String> upstreamLabels = upstream.getLabels();
+            return MapUtils.isNotEmpty(upstreamLabels) && upstreamLabels.entrySet().containsAll(labels.entrySet());
         })
                 .collect(Collectors.toList());
     }

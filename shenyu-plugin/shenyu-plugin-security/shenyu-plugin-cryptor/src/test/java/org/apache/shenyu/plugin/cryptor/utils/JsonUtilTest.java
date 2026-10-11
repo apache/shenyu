@@ -1,0 +1,82 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.plugin.cryptor.utils;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
+public class JsonUtilTest {
+
+    @Test
+    public void testParser() {
+        assertEquals("shenyu", JsonUtil.parser("{\"name\":\"shenyu\"}", "name"));
+        assertEquals("shenyu", JsonUtil.parser("{\"data\":{\"nested\":{\"name\":\"shenyu\"}}}", "data.nested.name"));
+    }
+
+    @Test
+    public void testParserReturnsNullForNonObjectBody() {
+        assertNull(JsonUtil.parser("[{\"name\":\"shenyu\"}]", "name"));
+        assertNull(JsonUtil.parser("\"shenyu\"", "name"));
+        assertNull(JsonUtil.parser("invalid", "name"));
+    }
+
+    @Test
+    public void testParserReturnsNullForInvalidNestedPath() {
+        assertNull(JsonUtil.parser("{}", "data.nested.name"));
+        assertNull(JsonUtil.parser("{\"data\":\"shenyu\"}", "data.nested.name"));
+        assertNull(JsonUtil.parser("{\"data\":{}}", "data.nested.name"));
+        assertNull(JsonUtil.parser("{\"data\":{\"nested\":[]}}", "data.nested.name"));
+        assertNull(JsonUtil.parser("{\"data\":{\"nested\":{}}}", "data.nested.name"));
+        assertNull(JsonUtil.parser("{\"data\":{\"nested\":{\"name\":{}}}}", "data.nested.name"));
+    }
+
+    @Test
+    public void testReplacementStartingDepthIsReadOnlyAndBoundsChecked() {
+        JsonElement source = JsonParser.parseString("{\"b\":1}");
+        AtomicInteger startDepth = new AtomicInteger(1);
+        JsonElement result = JsonUtil.replaceJsonNode(source, startDepth, "encrypted", Arrays.asList("a", "b"));
+        assertEquals("{\"b\":\"encrypted\"}", result.toString());
+        assertEquals(1, startDepth.get());
+        assertEquals("{\"b\":1}", source.toString());
+        for (int invalidDepth : new int[]{-1, 2, 3}) {
+            assertSame(source, JsonUtil.replaceJsonNode(source, new AtomicInteger(invalidDepth), "encrypted", Arrays.asList("a", "b")));
+        }
+    }
+
+    @Test
+    public void testReplaceJsonNodeOnlyUpdatesConfiguredPath() {
+        JsonElement source = JsonParser.parseString("{\"a\":{\"b\":1},\"c\":{\"b\":2}}");
+        JsonElement result = JsonUtil.replaceJsonNode(source, new AtomicInteger(0), "encrypted", Arrays.asList("a", "b"));
+        assertEquals("{\"a\":{\"b\":\"encrypted\"},\"c\":{\"b\":2}}", result.toString());
+    }
+
+    @Test
+    public void testReplaceJsonNodeUpdatesPathInArrayElements() {
+        JsonElement source = JsonParser.parseString("[{\"a\":{\"b\":1}},{\"a\":{\"b\":2}}]");
+        JsonElement result = JsonUtil.replaceJsonNode(source, new AtomicInteger(0), "encrypted", Arrays.asList("a", "b"));
+        assertEquals("[{\"a\":{\"b\":\"encrypted\"}},{\"a\":{\"b\":\"encrypted\"}}]", result.toString());
+    }
+}

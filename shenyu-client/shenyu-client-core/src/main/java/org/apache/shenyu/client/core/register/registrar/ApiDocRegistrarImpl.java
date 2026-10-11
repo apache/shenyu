@@ -110,7 +110,7 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
         apiExt.setServiceName(api.getApiBean().getBeanClass().getName());
         apiExt.setMethodName(api.getApiMethodName());
         apiExt.setParameterTypes(api.getParameterTypes());
-        apiExt.setRpcExt(api.getPropertiesValue("RpcExt"));
+        apiExt.setRpcExt(api.getPropertiesValue("rpcExt"));
         apiExt.setAddPrefixed(clientRegisterConfig.getAddPrefixed());
         final String rpcType = getRpcType(api);
         
@@ -172,7 +172,7 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
     }
     
     private String getProduce(final ApiBean.ApiDefinition api) {
-        final String produce = api.getPropertiesValue("produce");
+        final String produce = api.getPropertiesValue("produces");
         if (StringUtils.isBlank(produce)) {
             return ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         }
@@ -180,7 +180,7 @@ public class ApiDocRegistrarImpl extends BaseApiRegistrarImpl {
     }
     
     private static String getConsume(final ApiBean.ApiDefinition api) {
-        final String consume = api.getPropertiesValue("consume");
+        final String consume = api.getPropertiesValue("consumes");
         if (StringUtils.isBlank(consume)) {
             return ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         }

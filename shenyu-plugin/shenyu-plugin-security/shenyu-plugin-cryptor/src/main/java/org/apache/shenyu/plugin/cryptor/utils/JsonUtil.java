@@ -49,15 +49,32 @@ public final class JsonUtil {
      */
     public static String parser(final String json, final String fieldName) {
         Map<String, Object> map = GsonUtils.getInstance().toObjectMap(json);
+        if (Objects.isNull(map)) {
+            return null;
+        }
         String str = null;
         if (fieldName.contains(".")) {
             String[] split = fieldName.split("\\.");
-            JsonObject jsonObject = (JsonObject) map.get(split[0]);
+            Object firstElement = map.get(split[0]);
+            if (!(firstElement instanceof JsonObject)) {
+                return null;
+            }
+            JsonObject jsonObject = (JsonObject) firstElement;
             for (int i = 1; i < split.length; i++) {
+                JsonElement jsonElement = jsonObject.get(split[i]);
+                if (Objects.isNull(jsonElement)) {
+                    return null;
+                }
                 if (i == split.length - 1) {
-                    str = jsonObject.getAsJsonPrimitive(split[i]).getAsString();
+                    if (!jsonElement.isJsonPrimitive()) {
+                        return null;
+                    }
+                    str = jsonElement.getAsString();
                 } else {
-                    jsonObject = jsonObject.getAsJsonObject(split[i]);
+                    if (!jsonElement.isJsonObject()) {
+                        return null;
+                    }
+                    jsonObject = jsonElement.getAsJsonObject();
                 }
             }
         } else {
@@ -85,26 +102,33 @@ public final class JsonUtil {
     /**
      * operate json.
      * @param jsonElement jsonElement
-     * @param initDeep default 0
+     * @param startDepth starting path index, normally 0; retained as AtomicInteger for compatibility and never mutated
      * @param value The value that needs to be modified
      * @param deepKey json link
      * @return JsonElement
      */
     public static JsonElement replaceJsonNode(final JsonElement jsonElement,
-                                              final AtomicInteger initDeep,
+                                              final AtomicInteger startDepth,
                                               final String value,
                                               final List<String> deepKey) {
         if (CollectionUtils.isEmpty(deepKey)) {
             return jsonElement;
         }
-        if (jsonElement.isJsonPrimitive()) {
+        return replaceJsonNode(jsonElement, startDepth.get(), value, deepKey);
+    }
+
+    private static JsonElement replaceJsonNode(final JsonElement jsonElement,
+                                               final int depth,
+                                               final String value,
+                                               final List<String> deepKey) {
+        if (depth < 0 || depth >= deepKey.size() || jsonElement.isJsonPrimitive()) {
             return jsonElement;
         }
         if (jsonElement.isJsonArray()) {
             JsonArray jsonArray = jsonElement.getAsJsonArray();
             JsonArray jsonArrayNew = new JsonArray();
             for (JsonElement element : jsonArray) {
-                jsonArrayNew.add(replaceJsonNode(element, initDeep, value, deepKey));
+                jsonArrayNew.add(replaceJsonNode(element, depth, value, deepKey));
             }
             return jsonArrayNew;
         }
@@ -113,17 +137,15 @@ public final class JsonUtil {
             JsonObject object = jsonElement.getAsJsonObject();
             JsonObject objectNew = new JsonObject();
             for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                if (deepKey.get(initDeep.get()).equals(entry.getKey())) {
-                    initDeep.incrementAndGet();
-                }
                 String key = entry.getKey();
-                if (initDeep.get() == deepKey.size()) {
-                    initDeep.set(deepKey.size() - 1);
-                    object.addProperty(key, value);
+                JsonElement child = entry.getValue();
+                if (!deepKey.get(depth).equals(key)) {
+                    objectNew.add(key, child);
+                } else if (depth == deepKey.size() - 1) {
+                    objectNew.addProperty(key, value);
+                } else {
+                    objectNew.add(key, replaceJsonNode(child, depth + 1, value, deepKey));
                 }
-                JsonElement jsonEle = object.get(key);
-                JsonElement jsonElementNew = replaceJsonNode(jsonEle, initDeep, value, deepKey);
-                objectNew.add(key, jsonElementNew);
             }
             return objectNew;
         }

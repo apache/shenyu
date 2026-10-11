@@ -18,11 +18,16 @@
 package org.apache.shenyu.common.timer;
 
 import java.util.Objects;
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.constant.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +45,8 @@ public class HierarchicalWheelTimer implements Timer {
 
     private static final AtomicIntegerFieldUpdater<HierarchicalWheelTimer> WORKER_STATE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(HierarchicalWheelTimer.class, "workerState");
+
+    private static final Logger LOG = LoggerFactory.getLogger(HierarchicalWheelTimer.class);
 
     private final ExecutorService taskExecutor;
 
@@ -80,9 +87,9 @@ public class HierarchicalWheelTimer implements Timer {
                                   final Long tickMs,
                                   final Integer wheelSize,
                                   final Long startMs) {
-        ThreadFactory threadFactory = ShenyuThreadFactory.create(executorName, false);
-        taskExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), threadFactory);
+        ThreadFactory threadFactory = ShenyuThreadFactory.create(executorName, true);
+        taskExecutor = new ShenyuThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new MemorySafeTaskQueue<Runnable>(Constants.THE_256_MB), threadFactory, new ThreadPoolExecutor.AbortPolicy());
         workerThread = threadFactory.newThread(new Worker(this));
         timingWheel = new TimingWheel(tickMs, wheelSize, startMs, taskCounter, delayQueue);
     }
@@ -106,17 +113,27 @@ public class HierarchicalWheelTimer implements Timer {
     private void addTimerTaskEntry(final TimerTaskList.TimerTaskEntry timerTaskEntry) {
         if (!timingWheel.add(timerTaskEntry)) {
             if (!timerTaskEntry.cancelled()) {
-                taskExecutor.submit(() -> timerTaskEntry.getTimerTask().run(timerTaskEntry));
+                try {
+                    taskExecutor.submit(() -> timerTaskEntry.getTimerTask().run(timerTaskEntry));
+                } catch (RejectedExecutionException e) {
+                    LOG.warn("Dropping the expired timer task because the timer task queue has no remaining memory", e);
+                }
             }
         }
     }
 
     @Override
     public void advanceClock(final long timeoutMs) throws InterruptedException {
+        if (taskExecutor.isShutdown()) {
+            return;
+        }
         TimerTaskList bucket = delayQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
         if (Objects.nonNull(bucket)) {
             writeLock.lock();
             try {
+                if (taskExecutor.isShutdown()) {
+                    return;
+                }
                 while (Objects.nonNull(bucket)) {
                     timingWheel.advanceClock(bucket.getExpiration());
                     bucket.flush(this::addTimerTaskEntry);
@@ -129,6 +146,9 @@ public class HierarchicalWheelTimer implements Timer {
     }
 
     private void start() {
+        if (taskExecutor.isShutdown()) {
+            throw new IllegalStateException("Timer already shutdown");
+        }
         int state = WORKER_STATE_UPDATER.get(this);
         if (state == 0) {
             if (WORKER_STATE_UPDATER.compareAndSet(this, 0, 1)) {
@@ -144,28 +164,35 @@ public class HierarchicalWheelTimer implements Timer {
 
     @Override
     public void shutdown() {
-        taskExecutor.shutdown();
+        writeLock.lock();
+        try {
+            workerThread.interrupt();
+            taskExecutor.shutdown();
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     private static class Worker implements Runnable {
 
-        private final Timer timer;
+        private final HierarchicalWheelTimer timer;
 
         /**
          * Instantiates a new Worker.
          *
          * @param timer the timer
          */
-        Worker(final Timer timer) {
+        Worker(final HierarchicalWheelTimer timer) {
             this.timer = timer;
         }
 
         @Override
         public void run() {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     timer.advanceClock(100L);
                 } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }

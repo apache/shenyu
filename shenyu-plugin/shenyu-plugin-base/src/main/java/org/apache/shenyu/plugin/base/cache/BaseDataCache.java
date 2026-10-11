@@ -17,16 +17,21 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -39,17 +44,17 @@ public final class BaseDataCache {
     /**
      * pluginName -> PluginData.
      */
-    private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
+    private static volatile ConcurrentMap<String, PluginData> pluginMap = Maps.newConcurrentMap();
 
     /**
      * pluginName -> SelectorData.
      */
-    private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
+    private static volatile ConcurrentMap<String, List<SelectorData>> selectorMap = Maps.newConcurrentMap();
 
     /**
      * selectorId -> RuleData.
      */
-    private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
+    private static volatile ConcurrentMap<String, List<RuleData>> ruleMap = Maps.newConcurrentMap();
 
     private BaseDataCache() {
     }
@@ -69,7 +74,7 @@ public final class BaseDataCache {
      * @param pluginData the plugin data
      */
     public void cachePluginData(final PluginData pluginData) {
-        Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.put(data.getName(), data));
+        Optional.ofNullable(pluginData).ifPresent(data -> pluginMap.put(data.getName(), data));
     }
     
     /**
@@ -78,7 +83,7 @@ public final class BaseDataCache {
      * @param pluginData the plugin data
      */
     public void removePluginData(final PluginData pluginData) {
-        Optional.ofNullable(pluginData).ifPresent(data -> PLUGIN_MAP.remove(data.getName()));
+        Optional.ofNullable(pluginData).ifPresent(data -> pluginMap.remove(data.getName()));
     }
     
     /**
@@ -87,14 +92,14 @@ public final class BaseDataCache {
      * @param pluginName the plugin name
      */
     public void removePluginDataByPluginName(final String pluginName) {
-        PLUGIN_MAP.remove(pluginName);
+        pluginMap.remove(pluginName);
     }
     
     /**
      * Clean plugin data.
      */
     public void cleanPluginData() {
-        PLUGIN_MAP.clear();
+        pluginMap.clear();
     }
     
     /**
@@ -113,7 +118,7 @@ public final class BaseDataCache {
      * @return the plugin data
      */
     public PluginData obtainPluginData(final String pluginName) {
-        return PLUGIN_MAP.get(pluginName);
+        return pluginMap.get(pluginName);
     }
     
     /**
@@ -132,10 +137,21 @@ public final class BaseDataCache {
      */
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
-            final List<SelectorData> selectorDataList = SELECTOR_MAP.get(data.getPluginName());
-            synchronized (SELECTOR_MAP) {
-                Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
+            if (StringUtils.isBlank(data.getPluginName())) {
+                // a dangling selector carries no plugin name, so its entry may live under any plugin bucket
+                selectorMap.keySet().forEach(pluginName -> removeSelectData(pluginName, data.getId()));
+            } else {
+                removeSelectData(data.getPluginName(), data.getId());
             }
+        });
+    }
+
+    private void removeSelectData(final String pluginName, final String selectorId) {
+        selectorMap.computeIfPresent(pluginName, (key, value) -> {
+            final List<SelectorData> result = value.stream()
+                    .filter(selector -> !Objects.equals(selector.getId(), selectorId))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
         });
     }
     
@@ -145,14 +161,14 @@ public final class BaseDataCache {
      * @param pluginName the plugin name
      */
     public void removeSelectDataByPluginName(final String pluginName) {
-        SELECTOR_MAP.remove(pluginName);
+        selectorMap.remove(pluginName);
     }
     
     /**
      * Clean selector data.
      */
     public void cleanSelectorData() {
-        SELECTOR_MAP.clear();
+        selectorMap.clear();
     }
     
     /**
@@ -168,10 +184,10 @@ public final class BaseDataCache {
      * Obtain selector data list list.
      *
      * @param pluginName the plugin name
-     * @return the list
+     * @return the immutable snapshot, or {@code null} if no selector data exists
      */
     public List<SelectorData> obtainSelectorData(final String pluginName) {
-        return SELECTOR_MAP.get(pluginName);
+        return selectorMap.get(pluginName);
     }
     
     /**
@@ -190,10 +206,12 @@ public final class BaseDataCache {
      */
     public void removeRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(data -> {
-            final List<RuleData> ruleDataList = RULE_MAP.get(data.getSelectorId());
-            synchronized (RULE_MAP) {
-                Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
-            }
+            ruleMap.computeIfPresent(data.getSelectorId(), (key, value) -> {
+                final List<RuleData> result = value.stream()
+                        .filter(rule -> !Objects.equals(rule.getId(), data.getId()))
+                        .collect(Collectors.toList());
+                return result.isEmpty() ? null : List.copyOf(result);
+            });
         });
     }
     
@@ -203,14 +221,14 @@ public final class BaseDataCache {
      * @param selectorId the selector id
      */
     public void removeRuleDataBySelectorId(final String selectorId) {
-        RULE_MAP.remove(selectorId);
+        ruleMap.remove(selectorId);
     }
     
     /**
      * Clean rule data.
      */
     public void cleanRuleData() {
-        RULE_MAP.clear();
+        ruleMap.clear();
     }
     
     /**
@@ -226,10 +244,10 @@ public final class BaseDataCache {
      * Obtain rule data list list.
      *
      * @param selectorId the selector id
-     * @return the list
+     * @return the immutable snapshot, or {@code null} if no rule data exists
      */
     public List<RuleData> obtainRuleData(final String selectorId) {
-        return RULE_MAP.get(selectorId);
+        return ruleMap.get(selectorId);
     }
     
     /**
@@ -238,7 +256,7 @@ public final class BaseDataCache {
      * @return the plugin map
      */
     public ConcurrentMap<String, PluginData> getPluginMap() {
-        return PLUGIN_MAP;
+        return pluginMap;
     }
     
     /**
@@ -247,7 +265,7 @@ public final class BaseDataCache {
      * @return the selector map
      */
     public ConcurrentMap<String, List<SelectorData>> getSelectorMap() {
-        return SELECTOR_MAP;
+        return selectorMap;
     }
     
     /**
@@ -256,7 +274,7 @@ public final class BaseDataCache {
      * @return the rule map
      */
     public ConcurrentMap<String, List<RuleData>> getRuleMap() {
-        return RULE_MAP;
+        return ruleMap;
     }
     
 
@@ -266,18 +284,8 @@ public final class BaseDataCache {
      * @param data the rule data
      */
     private void ruleAccept(final RuleData data) {
-        String selectorId = data.getSelectorId();
-        synchronized (RULE_MAP) {
-            if (RULE_MAP.containsKey(selectorId)) {
-                List<RuleData> existList = RULE_MAP.get(selectorId);
-                final List<RuleData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-                resultList.add(data);
-                final List<RuleData> collect = resultList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-                RULE_MAP.put(selectorId, collect);
-            } else {
-                RULE_MAP.put(selectorId, Lists.newArrayList(data));
-            }
-        }
+        ruleMap.compute(data.getSelectorId(), (key, value) ->
+                upsertSorted(value, List.of(data), RuleData::getId, RuleData::getSort));
     }
 
     /**
@@ -286,17 +294,88 @@ public final class BaseDataCache {
      * @param data the selector data
      */
     private void selectorAccept(final SelectorData data) {
-        String key = data.getPluginName();
-        synchronized (SELECTOR_MAP) {
-            if (SELECTOR_MAP.containsKey(key)) {
-                List<SelectorData> existList = SELECTOR_MAP.get(key);
-                final List<SelectorData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
-                resultList.add(data);
-                final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
-                SELECTOR_MAP.put(key, collect);
-            } else {
-                SELECTOR_MAP.put(key, Lists.newArrayList(data));
-            }
+        selectorMap.compute(data.getPluginName(), (key, value) ->
+                upsertSorted(value, List.of(data), SelectorData::getId, SelectorData::getSort));
+    }
+
+    /**
+     * Merge the batch into the current list as an upsert (same-id entries are replaced)
+     * and return a new immutable snapshot sorted by the sort key. The list is sorted once
+     * per merge, so a batch refresh of arbitrary size costs a single sort per key instead
+     * of one sort per element.
+     *
+     * @param current the currently cached list, may be {@code null}
+     * @param batch the incoming entries, must not contain {@code null} elements
+     * @param idOf the id extractor used to replace entries
+     * @param sortOf the sort key extractor
+     * @param <T> the entry type
+     * @return a new immutable list sorted by the sort key
+     */
+    private <T> List<T> upsertSorted(final List<T> current, final List<T> batch,
+                                     final Function<T, String> idOf, final Function<T, Integer> sortOf) {
+        final List<T> result = Objects.isNull(current) ? new ArrayList<>() : new ArrayList<>(current);
+        final Set<String> replacedIds = batch.stream().map(idOf).collect(Collectors.toSet());
+        result.removeIf(item -> replacedIds.contains(idOf.apply(item)));
+        result.addAll(batch);
+        result.sort(Comparator.comparing(sortOf));
+        return List.copyOf(result);
+    }
+
+    /**
+     * Merge a batch without exposing partially refreshed data to readers.
+     * Missing entries are retained because refresh messages may cover only one plugin.
+     *
+     * @param dataList the received data
+     */
+    void refreshPluginData(final List<PluginData> dataList) {
+        if (dataList.isEmpty()) {
+            return;
         }
+        ConcurrentMap<String, PluginData> next = Maps.newConcurrentMap();
+        next.putAll(pluginMap);
+        dataList.forEach(data -> next.put(data.getName(), data));
+        pluginMap = next;
+    }
+
+    /**
+     * Merge a batch without exposing partially refreshed data to readers.
+     * Missing entries are retained because refresh messages may cover only one plugin.
+     * The batch is grouped per plugin, so each plugin's list is merged and sorted once.
+     *
+     * @param dataList the received data
+     */
+    void refreshSelectorData(final List<SelectorData> dataList) {
+        if (dataList.isEmpty()) {
+            return;
+        }
+        ConcurrentMap<String, List<SelectorData>> next = Maps.newConcurrentMap();
+        next.putAll(selectorMap);
+        Map<String, List<SelectorData>> grouped = dataList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(SelectorData::getPluginName));
+        grouped.forEach((pluginName, batch) -> next.compute(pluginName, (key, value) ->
+                upsertSorted(value, batch, SelectorData::getId, SelectorData::getSort)));
+        selectorMap = next;
+    }
+
+    /**
+     * Merge a batch without exposing partially refreshed data to readers.
+     * Missing entries are retained because refresh messages may cover only one selector.
+     * The batch is grouped per selector, so each selector's list is merged and sorted once.
+     *
+     * @param dataList the received data
+     */
+    void refreshRuleData(final List<RuleData> dataList) {
+        if (dataList.isEmpty()) {
+            return;
+        }
+        ConcurrentMap<String, List<RuleData>> next = Maps.newConcurrentMap();
+        next.putAll(ruleMap);
+        Map<String, List<RuleData>> grouped = dataList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(RuleData::getSelectorId));
+        grouped.forEach((selectorId, batch) -> next.compute(selectorId, (key, value) ->
+                upsertSorted(value, batch, RuleData::getId, RuleData::getSort)));
+        ruleMap = next;
     }
 }

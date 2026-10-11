@@ -151,6 +151,13 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (Objects.isNull(appAuthDO)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR);
         }
+        appAuthDO.setUserId(authApplyDTO.getUserId());
+        appAuthDO.setPhone(authApplyDTO.getPhone());
+        appAuthDO.setExtInfo(authApplyDTO.getExtInfo());
+        if (Objects.nonNull(authApplyDTO.getOpen())) {
+            appAuthDO.setOpen(authApplyDTO.getOpen());
+        }
+        appAuthMapper.updateSelective(appAuthDO);
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (Objects.isNull(authParamDO)) {
@@ -158,7 +165,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             authParamMapper.save(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
 
-        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
+        if (Boolean.TRUE.equals(authApplyDTO.getOpen())) {
             List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
             if (CollectionUtils.isNotEmpty(existList)) {
                 authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -181,7 +188,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
-        appAuthMapper.update(appAuthDO);
+        appAuthMapper.updateSelective(appAuthDO);
         List<AuthParamDTO> authParamDTOList = appAuthDTO.getAuthParamList();
         if (CollectionUtils.isNotEmpty(authParamDTOList)) {
             authParamMapper.deleteByAuthId(appAuthDTO.getId());
@@ -270,6 +277,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult syncDataByNamespaceId(final String namespaceId) {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.REFRESH, Collections.emptyList(), namespaceId));
+            return ShenyuAdminResult.success();
+        }
         return syncData(appAuthDOList);
     }
 
@@ -416,8 +428,12 @@ public class AppAuthServiceImpl implements AppAuthService {
             appAuthCount = appAuthMapper.updateSelective(appAuthDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
+        if (appAuthCount == 0) {
+            return 0;
+        }
         // publish AppAuthData's event
         AppAuthData data = AppAuthData.builder()
+                .namespaceId(appAuthDO.getNamespaceId())
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
@@ -573,7 +589,15 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthData> listAll() {
-        List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
+        return buildSyncData(appAuthMapper.selectAll());
+    }
+
+    @Override
+    public List<AppAuthData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(appAuthMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    private List<AppAuthData> buildSyncData(final List<AppAuthDO> appAuthDOList) {
         if (CollectionUtils.isEmpty(appAuthDOList)) {
             return new ArrayList<>();
         }
@@ -631,7 +655,17 @@ public class AppAuthServiceImpl implements AppAuthService {
     
     @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
-        return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
+        int count = appAuthMapper.updateAppSecretByAppKey(appKey, appSecret);
+        if (count > 0) {
+            AppAuthDO appAuthDO = appAuthMapper.findByAppKey(appKey);
+            if (Objects.nonNull(appAuthDO)) {
+                AppAuthData appAuthData = buildByEntity(appAuthDO);
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                        DataEventTypeEnum.UPDATE,
+                        Lists.newArrayList(appAuthData)));
+            }
+        }
+        return ShenyuAdminResult.success(count);
     }
 
     @Override

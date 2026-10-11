@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
@@ -30,17 +32,27 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-        if (msg instanceof MqttMessage) {
-            MqttFactory mqttFactory = new MqttFactory((MqttMessage) msg, ctx);
-            mqttFactory.connect();
-        } else {
-            ctx.close();
+        try {
+            if (msg instanceof MqttMessage) {
+                MqttFactory mqttFactory = new MqttFactory((MqttMessage) msg, ctx);
+                mqttFactory.connect();
+            } else {
+                ctx.close();
+            }
+        } finally {
+            ReferenceCountUtil.release(msg);
         }
     }
 
     @Override
-    public void operationComplete(final Future<? super Void> future) throws Exception {
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+        Disconnect.cleanChannel(ctx.channel());
+        ctx.fireChannelInactive();
+    }
 
+    @Override
+    public void operationComplete(final Future<? super Void> future) throws Exception {
+        Disconnect.cleanChannel(((ChannelFuture) future).channel());
     }
 
 }

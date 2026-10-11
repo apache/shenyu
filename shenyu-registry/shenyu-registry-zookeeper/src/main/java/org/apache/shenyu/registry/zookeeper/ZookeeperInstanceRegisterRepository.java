@@ -19,10 +19,13 @@ package org.apache.shenyu.registry.zookeeper;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -44,11 +47,11 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,13 +65,11 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private ZookeeperClient client;
 
-    private String watchPath;
-
-    private final Map<String, String> nodeDataMap = new HashMap<>();
+    private final Map<String, String> nodeDataMap = new ConcurrentHashMap<>();
 
     private final Multimap<String, CuratorCache> cacheMap = ArrayListMultimap.create();
 
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -79,8 +80,6 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         int baseSleepTime = Integer.parseInt(props.getProperty("baseSleepTime", "1000"));
         int maxRetries = Integer.parseInt(props.getProperty("maxRetries", "3"));
         int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
-        watchPath = props.getProperty("watchPath", null);
-
         ZookeeperConfig zkConfig = ZookeeperConfig.builder()
                 .url(config.getServerLists())
                 .baseSleepTimeMilliseconds(baseSleepTime)
@@ -127,8 +126,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public List<InstanceEntity> selectInstances(final String selectKey) {
         try {
-            final String watchKey = StringUtils.isNotBlank(watchPath)
-                    ? InstancePathConstants.buildRealNode(watchPath, selectKey) : InstancePathConstants.buildInstanceParentPath(selectKey);
+            final String watchKey = buildInstancePath(selectKey);
             final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
                 String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
                 InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
@@ -142,20 +140,19 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 return instanceEntity;
             }).collect(Collectors.toList());
 
-            if (watcherInstanceRegisterMap.containsKey(selectKey)) {
-                return watcherInstanceRegisterMap.get(selectKey);
+            final List<InstanceEntity> cachedInstances = watcherInstanceRegisterMap.get(selectKey);
+            if (Objects.nonNull(cachedInstances)) {
+                return cachedInstances;
             }
 
             List<String> childrenPathList = client.subscribeChildrenChanges(watchKey, new CuratorWatcher() {
                 @Override
                 public void process(final WatchedEvent event) {
                     try {
-                        String path = Objects.isNull(event.getPath()) ? selectKey : event.getPath();
+                        String path = Objects.isNull(event.getPath()) ? watchKey : event.getPath();
                         List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
                                 : Collections.emptyList();
-                        if (!childrenList.isEmpty()) {
-                            watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
-                        }
+                        watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
                     } catch (Exception e) {
                         watcherInstanceRegisterMap.remove(selectKey);
                         LOGGER.error("zookeeper registry client subscribeChildrenChanges watch interrupt error:", e);
@@ -175,7 +172,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public boolean serviceExists(final String key) {
         try {
-            return Objects.nonNull(client.get(key));
+            return client.isExist(buildInstancePath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -184,18 +181,27 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
-            CuratorCache treeCache = client.addCache(key, (type, oldData, data) -> {
-                if (!Objects.nonNull(data) || !Objects.nonNull(data.getData())) {
+            CuratorCache treeCache = client.addCache(buildInstancePath(key), (type, oldData, data) -> {
+                // Curator delivers NODE_DELETED with a null new ChildData and the deleted node in oldData
+                ChildData changedNode = CuratorCacheListener.Type.NODE_DELETED == type ? oldData : data;
+                if (!Objects.nonNull(changedNode) || !Objects.nonNull(changedNode.getData())) {
                     return;
                 }
-                String currentPath = data.getPath();
-                String currentData = new String(data.getData(), StandardCharsets.UTF_8);
+                String currentPath = changedNode.getPath();
+                String currentData = new String(changedNode.getData(), StandardCharsets.UTF_8);
                 LOGGER.info("zookeeper registry watch find resultData ={}", currentData);
-                Stat stat = data.getStat();
+                Stat stat = changedNode.getStat();
                 boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                 if (!isEphemeral) {
                     LOGGER.info("zookeeper registry watch Ignore non-ephemeral node changes path {}", currentPath);
                     return;
+                }
+                if (currentPath.startsWith(InstancePathConstants.buildInstanceParentPath() + "/")) {
+                    JsonObject instanceData = GsonUtils.getInstance().fromJson(currentData, JsonObject.class);
+                    JsonElement host = instanceData.get("host");
+                    String address = Objects.nonNull(host) && !host.isJsonNull() ? host.getAsString() : instanceData.get("address").getAsString();
+                    instanceData.addProperty("url", address + Constants.COLONS + instanceData.get("port").getAsInt());
+                    currentData = GsonUtils.getInstance().toJson(instanceData);
                 }
                 switch (type) {
                     case NODE_CREATED:
@@ -250,6 +256,10 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
             LOGGER.error("zookeeper registry shutting down error", e);
             throw new ShenyuException(e);
         }
+    }
+
+    private String buildInstancePath(final String key) {
+        return key.startsWith("/") ? key : InstancePathConstants.buildInstanceParentPath(key);
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

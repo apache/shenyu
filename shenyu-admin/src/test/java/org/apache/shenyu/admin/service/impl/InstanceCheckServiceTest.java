@@ -25,6 +25,7 @@ import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,6 +41,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +75,16 @@ public final class InstanceCheckServiceTest {
         InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(key);
         assertNotNull(cached);
         assertEquals(vo.getInstanceIp(), cached.getInstanceIp());
+    }
+
+    @Test
+    void testFetchInstanceDataNormalizesNullState() {
+        vo.setInstanceState(null);
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(vo));
+
+        instanceCheckService.fetchInstanceData();
+
+        assertEquals(0, vo.getInstanceState());
     }
 
     @Test
@@ -119,6 +132,11 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testCloseWithoutSetup() {
+        assertDoesNotThrow(instanceCheckService::close);
+    }
+
+    @Test
     void testOnInstanceInfoReport() {
         InstanceInfoReportEvent event = InstanceInfoReportEvent.builder()
                 .instanceIp("10.0.0.1")
@@ -154,6 +172,41 @@ public final class InstanceCheckServiceTest {
         InstanceDataVisualVO nsAData = instanceCheckService.getInstanceDataVisual("nsA");
         assertNotNull(nsAData);
         assertThat(nsAData.getPieData(), hasSize(1));
+    }
+
+    @Test
+    void testGetInstanceDataVisualIgnoresNullState() {
+        InstanceBeatInfoDTO dto = buildDTO("3.3.3.3", "8083", "grpc", "nsC");
+        instanceCheckService.handleBeatInfo(dto);
+        instanceCheckService.getInstanceHealthBeatInfo(dto).setInstanceState(null);
+
+        assertDoesNotThrow(() -> instanceCheckService.getInstanceDataVisual(""));
+    }
+
+    @Test
+    void testDoCheckWithNullStateDoesNotThrow() {
+        InstanceBeatInfoDTO dto = buildDTO("4.4.4.4", "8084", "grpc", "nsD");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(null);
+
+        assertDoesNotThrow(() -> ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck"));
+    }
+
+    @Test
+    void testDoCheckAppendsOneHistorySamplePerCycle() {
+        InstanceInfoVO first = buildVO("10.0.0.1", "8080", "http", "ns");
+        InstanceInfoVO second = buildVO("10.0.0.2", "8080", "http", "ns");
+        when(instanceInfoService.list()).thenReturn(Arrays.asList(first, second));
+        instanceCheckService.fetchInstanceData();
+
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+
+        long sampledPoints = instanceCheckService.getInstanceDataVisual("ns").getLineData().stream()
+                .flatMap(line -> line.getData().stream())
+                .filter(value -> value > 0)
+                .count();
+        assertEquals(1, sampledPoints, "one scheduled check must append exactly one history sample");
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {

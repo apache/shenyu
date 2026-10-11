@@ -24,6 +24,7 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -31,8 +32,10 @@ import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
@@ -40,25 +43,36 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSecretCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressBackendPort;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
+import org.apache.shenyu.k8s.common.IngressUtils;
+import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
+import org.apache.shenyu.k8s.parser.IngressPluginDefinition;
 import org.apache.shenyu.k8s.parser.IngressParser;
+import org.apache.shenyu.k8s.parser.EndpointsUnavailableException;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -129,8 +143,6 @@ public class IngressReconciler implements Reconciler {
         // Do not modify current ingress object directly
         final V1Ingress v1Ingress = this.ingressLister.namespace(request.getNamespace()).get(request.getName());
         final V1Ingress oldIngress = IngressCache.getInstance().get(request.getNamespace(), request.getName());
-        Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
-        enablePluginsBasedOnAnnotations(annotations, request);
         if (Objects.isNull(v1Ingress)) {
             if (Objects.nonNull(oldIngress)) {
                 // Delete ingress binding selectors
@@ -156,42 +168,56 @@ public class IngressReconciler implements Reconciler {
             }
             return new Result(false);
         }
+        Map<String, String> annotations = getAnnotations(v1Ingress);
+        enablePluginsBasedOnAnnotations(v1Ingress, annotations, request);
 
         if (!checkIngressClass(v1Ingress)) {
             LOG.info("IngressClass is not match {}", request);
             return new Result(false);
         }
 
-        if (Objects.isNull(oldIngress)) {
+        if (Objects.isNull(oldIngress) || needUpdate(oldIngress, v1Ingress)) {
             try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
+                // Resolve all backends before replacing the last successfully applied configuration.
+                V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
+                List<ShenyuMemoryConfig> configs = ingressParser.parse(ingressCopy, new CoreV1Api(apiClient));
+                if (Objects.nonNull(oldIngress)) {
+                    doDeleteConfigByIngress(request, oldIngress);
+                }
+                addNewIngressConfigToShenyu(v1Ingress, configs);
+            } catch (EndpointsUnavailableException e) {
+                LOG.info("Retry ingress {}: {}", request, e.getMessage());
+                return new Result(true);
             } catch (IOException e) {
                 LOG.error("add new ingress config error", e);
-            }
-        } else if (needUpdate(oldIngress, v1Ingress)) {
-            // Update logic
-            // 1. clean old config
-            doDeleteConfigByIngress(request, oldIngress);
-
-            // 2. add new config
-            try {
-                addNewIngressConfigToShenyu(v1Ingress, new CoreV1Api(apiClient));
-            } catch (IOException e) {
-                LOG.error("add new ingress config error", e);
+                return new Result(true);
             }
         }
         IngressCache.getInstance().put(request.getNamespace(), request.getName(), v1Ingress);
-        List<Pair<String, String>> serviceList = parseServiceFromIngress(v1Ingress);
-        Objects.requireNonNull(serviceList).forEach(pair -> {
-            ServiceIngressCache.getInstance().putIngressName(pair.getLeft(), pair.getRight(), request.getNamespace(), request.getName());
-            LOG.info("Add service cache {} for ingress {}", pair.getLeft() + "/" + pair.getRight(), request.getNamespace() + "/" + request.getName());
+        final String serviceNamespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
+        parseServiceFromIngress(v1Ingress).forEach((serviceName, port) -> {
+            ServiceIngressCache.getInstance().putIngressName(serviceNamespace, serviceName,
+                    new ServiceIngressRelation(request.getNamespace(), request.getName(), port));
+            LOG.info("Add service cache {} for ingress {}, the backend port is {}", serviceNamespace + "/" + serviceName,
+                    request.getNamespace() + "/" + request.getName(), port);
         });
+
+        // Ensure upstream handles are populated from endpoints
+        // This handles the race condition where EndpointsReconciler may have already
+        // fired before ServiceIngressCache was populated during initial informer sync
+        updateUpstreamFromEndpoints(v1Ingress);
 
         return new Result(false);
     }
 
-    private void enablePluginsBasedOnAnnotations(final Map<String, String> annotations, final Request request) {
-        if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+    private void enablePluginsBasedOnAnnotations(final V1Ingress ingress, final Map<String, String> annotations, final Request request) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(ingress);
+        if (pluginDefinition.isPresent()) {
+            PluginData pluginData = pluginDefinition.get().pluginData(ingress, request, ingressParser.getEndpointsLister());
+            if (Objects.nonNull(pluginData)) {
+                shenyuCacheRepository.saveOrUpdatePluginData(pluginData);
+            }
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             String zookeeperUrl = getZookeeperUrl(annotations, request);
             enablePlugin(shenyuCacheRepository, PluginEnum.DUBBO, zookeeperUrl);
         } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
@@ -205,37 +231,45 @@ public class IngressReconciler implements Reconciler {
     }
 
     private void doDeleteConfigByIngress(final Request request, final V1Ingress oldIngress) {
+        final Map<String, String> annotations = getAnnotations(oldIngress);
         List<String> selectorList = new ArrayList<>();
-        if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(oldIngress);
+        if (pluginDefinition.isPresent()) {
+            List<String> metadataPaths = ingressParser.findMetadataPaths(pluginDefinition.get(), oldIngress);
+            selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), pluginDefinition.get().pluginName(),
+                    metadataPaths);
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+                    annotations.get(IngressConstants.PLUGIN_DUBBO_CONTEXT_PATH));
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName(), "");
-        } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
+        } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName(),
-                    oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_CONTEXT_PATH));
+                    annotations.get(IngressConstants.PLUGIN_SOFA_CONTEXT_PATH));
         } else {
             selectorList = deleteSelectorByIngressName(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName(), "");
         }
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
-            if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
+            if (pluginDefinition.isPresent()) {
+                IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), pluginDefinition.get().pluginName());
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DUBBO.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.WEB_SOCKET.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.GRPC.getName());
-            } else if (Objects.equals(oldIngress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
+            } else if (Objects.equals(annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED), "true")) {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.SOFA.getName());
             } else {
                 IngressSelectorCache.getInstance().remove(request.getNamespace(), request.getName(), PluginEnum.DIVIDE.getName());
             }
         }
-        List<Pair<String, String>> serviceList = parseServiceFromIngress(oldIngress);
-        Objects.requireNonNull(serviceList).forEach(pair -> {
-            ServiceIngressCache.getInstance().removeSpecifiedIngressName(pair.getLeft(), pair.getRight(), request.getNamespace(), request.getName());
-            LOG.info("Delete service cache {} for ingress {}", pair.getLeft() + "/" + pair.getRight(), request.getNamespace() + "/" + request.getName());
+        final String serviceNamespace = Objects.requireNonNull(oldIngress.getMetadata()).getNamespace();
+        parseServiceFromIngress(oldIngress).forEach((serviceName, port) -> {
+            ServiceIngressCache.getInstance().removeSpecifiedIngressName(serviceNamespace, serviceName, request.getNamespace(), request.getName());
+            LOG.info("Delete service cache {} for ingress {}", serviceNamespace + "/" + serviceName, request.getNamespace() + "/" + request.getName());
         });
         deleteGlobalDefaultBackend(request.getNamespace(), request.getName());
     }
@@ -301,17 +335,21 @@ public class IngressReconciler implements Reconciler {
             Lister<V1Endpoints> namespace = endpointsLister.namespace(request.getNamespace());
             LOG.info("namespace:{}", JsonUtils.toJson(namespace));
             V1Endpoints v1Endpoints = namespace.get(zookeeperK8sIpUrl);
-            List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
-                LOG.info("Endpoints do not have subsets");
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Cannot find endpoints for zookeeper service {} in namespace {}", zookeeperK8sIpUrl, request.getNamespace());
             } else {
-                for (V1EndpointSubset subset : subsets) {
-                    List<V1EndpointAddress> addresses = subset.getAddresses();
-                    if (Objects.isNull(addresses) || addresses.isEmpty()) {
-                        continue;
-                    }
-                    for (V1EndpointAddress address : addresses) {
-                        zookeeperUrl = address.getIp();
+                List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+                if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
+                    LOG.info("Endpoints do not have subsets");
+                } else {
+                    for (V1EndpointSubset subset : subsets) {
+                        List<V1EndpointAddress> addresses = subset.getAddresses();
+                        if (Objects.isNull(addresses) || addresses.isEmpty()) {
+                            continue;
+                        }
+                        for (V1EndpointAddress address : addresses) {
+                            zookeeperUrl = address.getIp();
+                        }
                     }
                 }
             }
@@ -346,18 +384,27 @@ public class IngressReconciler implements Reconciler {
 
     private List<String> deleteSelectorByIngressName(final String namespace, final String name,
                                                      final String pluginName, final String path) {
+        List<String> metadataPaths = Objects.isNull(path) || path.isEmpty() ? Collections.emptyList() : Collections.singletonList(path);
+        return deleteSelectorByIngressName(namespace, name, pluginName, metadataPaths);
+    }
+
+    private List<String> deleteSelectorByIngressName(final String namespace, final String name,
+                                                     final String pluginName, final List<String> paths) {
         final List<String> selectorList = IngressSelectorCache.getInstance().get(namespace, name, pluginName);
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
+            Set<String> metadataPaths = new LinkedHashSet<>(CollectionUtils.emptyIfNull(paths));
             for (String selectorId : selectorList) {
                 List<RuleData> ruleList = shenyuCacheRepository.findRuleDataList(selectorId);
                 // To avoid ConcurrentModificationException, copy the ruleId to list
                 List<String> ruleIdList = new ArrayList<>();
                 ruleList.forEach(rule -> ruleIdList.add(rule.getId()));
-                for (String id : ruleIdList) {
+                for (String path : metadataPaths) {
                     MetaData metaData = shenyuCacheRepository.findMetaData(path);
                     if (Objects.nonNull(metaData)) {
                         shenyuCacheRepository.deleteMetaData(metaData);
                     }
+                }
+                for (String id : ruleIdList) {
                     shenyuCacheRepository.deleteRuleData(pluginName, selectorId, id);
                 }
                 shenyuCacheRepository.deleteSelectorData(pluginName, selectorId);
@@ -366,29 +413,40 @@ public class IngressReconciler implements Reconciler {
         return selectorList;
     }
 
-    private List<Pair<String, String>> parseServiceFromIngress(final V1Ingress ingress) {
-        List<Pair<String, String>> res = new ArrayList<>();
+    /**
+     * Parse the backend services referenced by the ingress, mapped to the service port selected by the ingress.
+     *
+     * <p>The result is keyed by service name, so when an ingress routes several paths to the same service
+     * with different service ports, only the port of the first path that references the service is kept.
+     * The relation cached for the ingress is therefore per service rather than per path, and an endpoint
+     * update rebuilds the upstream handle of that single port for every selector of the ingress.
+     *
+     * @param ingress ingress resource
+     * @return the backend service names mapped to the service port selected by the ingress
+     */
+    private Map<String, IngressBackendPort> parseServiceFromIngress(final V1Ingress ingress) {
+        Map<String, IngressBackendPort> res = new HashMap<>(4);
         if (Objects.isNull(ingress) || Objects.isNull(ingress.getSpec())) {
             return res;
         }
         String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
         String name = ingress.getMetadata().getName();
         String namespacedName = namespace + "/" + name;
-        String defaultService = null;
+        V1IngressServiceBackend defaultBackendService = null;
         if (Objects.nonNull(ingress.getSpec().getDefaultBackend()) && Objects.nonNull(ingress.getSpec().getDefaultBackend().getService())) {
-            defaultService = ingress.getSpec().getDefaultBackend().getService().getName();
+            defaultBackendService = ingress.getSpec().getDefaultBackend().getService();
+            String defaultService = defaultBackendService.getName();
             if (Objects.isNull(ingress.getSpec().getRules())) {
                 if (Objects.nonNull(globalDefaultBackend)) {
                     if (globalDefaultBackend.getLeft().getLeft().equals(namespacedName)) {
-                        res.add(Pair.of(namespace, defaultService));
+                        res.put(defaultService, IngressBackendPort.from(defaultBackendService.getPort()));
                     }
                 } else {
-                    res.add(Pair.of(namespace, defaultService));
+                    res.put(defaultService, IngressBackendPort.from(defaultBackendService.getPort()));
                 }
                 return res;
             }
         }
-        Set<String> deduplicateSet = new HashSet<>();
         if (Objects.isNull(ingress.getSpec().getRules())) {
             return res;
         }
@@ -396,15 +454,10 @@ public class IngressReconciler implements Reconciler {
             if (Objects.nonNull(rule.getHttp()) && Objects.nonNull(rule.getHttp().getPaths())) {
                 for (V1HTTPIngressPath path : rule.getHttp().getPaths()) {
                     if (Objects.nonNull(path.getBackend()) && Objects.nonNull(path.getBackend().getService())) {
-                        if (!deduplicateSet.contains(path.getBackend().getService().getName())) {
-                            res.add(Pair.of(namespace, path.getBackend().getService().getName()));
-                            deduplicateSet.add(path.getBackend().getService().getName());
-                        }
-                    } else {
-                        if (Objects.nonNull(defaultService) && !deduplicateSet.contains(defaultService)) {
-                            res.add(Pair.of(namespace, defaultService));
-                            deduplicateSet.add(defaultService);
-                        }
+                        V1IngressServiceBackend backendService = path.getBackend().getService();
+                        res.putIfAbsent(backendService.getName(), IngressBackendPort.from(backendService.getPort()));
+                    } else if (Objects.nonNull(defaultBackendService)) {
+                        res.putIfAbsent(defaultBackendService.getName(), IngressBackendPort.from(defaultBackendService.getPort()));
                     }
                 }
             }
@@ -416,10 +469,8 @@ public class IngressReconciler implements Reconciler {
         return !oldIngress.equals(currentIngress);
     }
 
-    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final CoreV1Api apiClient) throws IOException {
-        V1Ingress ingressCopy = new V1IngressBuilder(v1Ingress).build();
-        List<ShenyuMemoryConfig> shenyuMemoryConfigList = ingressParser.parse(ingressCopy, apiClient);
-        String pluginName = getPluginName(ingressCopy);
+    private void addNewIngressConfigToShenyu(final V1Ingress v1Ingress, final List<ShenyuMemoryConfig> shenyuMemoryConfigList) throws IOException {
+        String pluginName = getPluginName(v1Ingress);
 
         for (ShenyuMemoryConfig shenyuMemoryConfig : shenyuMemoryConfigList) {
             if (Objects.nonNull(shenyuMemoryConfig)) {
@@ -551,13 +602,151 @@ public class IngressReconciler implements Reconciler {
         }
     }
 
+    private void updateUpstreamFromEndpoints(final V1Ingress v1Ingress) {
+        String pluginName = getPluginName(v1Ingress);
+        if (!PluginEnum.DIVIDE.getName().equals(pluginName) && !PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
+            return;
+        }
+        Map<String, IngressBackendPort> serviceList = parseServiceFromIngress(v1Ingress);
+        if (serviceList.isEmpty()) {
+            return;
+        }
+        String namespace = Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace();
+        String ingressName = v1Ingress.getMetadata().getName();
+        Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
+        for (Map.Entry<String, IngressBackendPort> service : serviceList.entrySet()) {
+            String serviceName = service.getKey();
+            V1Endpoints v1Endpoints = endpointsLister.namespace(namespace).get(serviceName);
+            if (Objects.isNull(v1Endpoints)) {
+                LOG.info("Cannot find endpoints for service {}/{} when updating upstream", namespace, serviceName);
+                continue;
+            }
+            List<Pair<V1EndpointAddress, String>> addresses = endpointAddresses(v1Endpoints, service.getValue());
+            if (CollectionUtils.isEmpty(addresses)) {
+                continue;
+            }
+            String handle;
+            if (PluginEnum.WEB_SOCKET.getName().equals(pluginName)) {
+                handle = buildWebSocketUpstreamHandle(addresses);
+            } else {
+                handle = buildDivideUpstreamHandle(addresses, v1Ingress.getMetadata().getAnnotations());
+            }
+            List<String> selectorIdList = IngressSelectorCache.getInstance().get(namespace, ingressName, pluginName);
+            if (CollectionUtils.isEmpty(selectorIdList)) {
+                continue;
+            }
+            List<SelectorData> totalSelectors = shenyuCacheRepository.findSelectorDataList(pluginName);
+            if (CollectionUtils.isEmpty(totalSelectors)) {
+                continue;
+            }
+            for (SelectorData selectorData : totalSelectors) {
+                if (selectorIdList.contains(selectorData.getId())) {
+                    SelectorData newSelectorData = SelectorData.builder()
+                            .id(selectorData.getId())
+                            .pluginId(selectorData.getPluginId())
+                            .pluginName(selectorData.getPluginName())
+                            .name(selectorData.getName())
+                            .matchMode(selectorData.getMatchMode())
+                            .type(selectorData.getType())
+                            .sort(selectorData.getSort())
+                            .enabled(selectorData.getEnabled())
+                            .logged(selectorData.getLogged())
+                            .continued(selectorData.getContinued())
+                            .handle(handle)
+                            .conditionList(selectorData.getConditionList())
+                            .matchRestful(selectorData.getMatchRestful()).build();
+                    shenyuCacheRepository.saveOrUpdateSelectorData(newSelectorData);
+                    LOG.info("Updated upstream handle for selector {} of plugin {} from endpoints {}/{}",
+                            selectorData.getId(), pluginName, namespace, serviceName);
+                }
+            }
+        }
+    }
+
+    private String buildWebSocketUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses) {
+        List<WebSocketUpstream> res = new ArrayList<>();
+        addresses.forEach(pair -> res.add(WebSocketUpstream.builder()
+                .upstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight())
+                .weight(100)
+                .protocol("ws://")
+                .warmup(0)
+                .status(true)
+                .host("")
+                .build()));
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private String buildDivideUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses, final Map<String, String> annotations) {
+        List<DivideUpstream> res = new ArrayList<>();
+        for (int i = 0; i < addresses.size(); i++) {
+            Pair<V1EndpointAddress, String> pair = addresses.get(i);
+            DivideUpstream upstream = new DivideUpstream();
+            upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
+            upstream.setWeight(100);
+            upstream.setProtocol(IngressUtils.getUpstreamProtocol(annotations, i, "http://"));
+            upstream.setWarmup(0);
+            upstream.setStatus(true);
+            upstream.setUpstreamHost("");
+            res.add(upstream);
+        }
+        return GsonUtils.getInstance().toJson(res);
+    }
+
+    private List<Pair<V1EndpointAddress, String>> endpointAddresses(final V1Endpoints v1Endpoints, final IngressBackendPort backendPort) {
+        List<Pair<V1EndpointAddress, String>> res = new ArrayList<>();
+        List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
+        if (CollectionUtils.isNotEmpty(subsets)) {
+            for (V1EndpointSubset subset : subsets) {
+                List<CoreV1EndpointPort> ports = subset.getPorts();
+                List<V1EndpointAddress> addresses = subset.getAddresses();
+                if (CollectionUtils.isEmpty(ports) || CollectionUtils.isEmpty(addresses)) {
+                    continue;
+                }
+                CoreV1EndpointPort endpointPort = IngressBackendPort.selectEndpointPort(ports, backendPort);
+                if (Objects.isNull(endpointPort)) {
+                    continue;
+                }
+                String port = endpointPort.getPort() > 0
+                        ? String.valueOf(endpointPort.getPort())
+                        : endpointPort.getName();
+                if (Objects.isNull(port)) {
+                    continue;
+                }
+                for (V1EndpointAddress address : addresses) {
+                    if (Objects.nonNull(address.getIp())) {
+                        res.add(Pair.of(address, port));
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get the annotations of the ingress, an absent metadata or annotations is treated as an empty annotation map.
+     *
+     * @param ingress ingress resource
+     * @return annotations of the ingress, never null
+     */
+    private Map<String, String> getAnnotations(final V1Ingress ingress) {
+        if (Objects.isNull(ingress) || Objects.isNull(ingress.getMetadata())) {
+            return Collections.emptyMap();
+        }
+        return MapUtils.emptyIfNull(ingress.getMetadata().getAnnotations());
+    }
+
     private String getPluginName(final V1Ingress ingress) {
+        Optional<IngressPluginDefinition> pluginDefinition = ingressParser.findPluginDefinition(ingress);
+        if (pluginDefinition.isPresent()) {
+            return pluginDefinition.get().pluginName();
+        }
+        Map<String, String> annotations = getAnnotations(ingress);
         String pluginName;
-        String pluginDubboEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_DUBBO_ENABLED);
-        String pluginWebSocketEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
-        String pluginBrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_BRPC_ENABLED);
-        String pluginGrpcEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_GRPC_ENABLED);
-        String pluginSofaEnabled = ingress.getMetadata().getAnnotations().get(IngressConstants.PLUGIN_SOFA_ENABLED);
+        String pluginDubboEnabled = annotations.get(IngressConstants.PLUGIN_DUBBO_ENABLED);
+        String pluginWebSocketEnabled = annotations.get(IngressConstants.PLUGIN_WEB_SOCKET_ENABLED);
+        String pluginBrpcEnabled = annotations.get(IngressConstants.PLUGIN_BRPC_ENABLED);
+        String pluginGrpcEnabled = annotations.get(IngressConstants.PLUGIN_GRPC_ENABLED);
+        String pluginSofaEnabled = annotations.get(IngressConstants.PLUGIN_SOFA_ENABLED);
         if ((Boolean.TRUE.toString()).equals(pluginDubboEnabled)) {
             pluginName = PluginEnum.DUBBO.getName();
         } else if ((Boolean.TRUE.toString()).equals(pluginWebSocketEnabled)) {

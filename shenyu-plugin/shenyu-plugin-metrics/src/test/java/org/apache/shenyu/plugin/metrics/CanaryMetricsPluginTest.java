@@ -90,6 +90,7 @@ class CanaryMetricsPluginTest {
     @AfterEach
     void clean() {
         MetricsReporter.clean();
+        new PrometheusMetricsRegister().clean();
         CollectorRegistry.defaultRegistry.clear();
     }
 

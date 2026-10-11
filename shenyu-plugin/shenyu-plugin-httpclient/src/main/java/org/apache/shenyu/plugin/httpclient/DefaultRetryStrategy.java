@@ -20,9 +20,11 @@ package org.apache.shenyu.plugin.httpclient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
@@ -41,6 +43,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -71,12 +74,15 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .maxBackoff(Duration.ofSeconds(20L))
                     .transientErrors(true)
                     .jitter(0.5d)
-                    .filter(t -> t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
+                    .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
                             || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
+                            && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                         throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
                     });
+            Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(20));
             return clientResponse.retryWhen(retryBackoffSpec)
+                    .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
@@ -121,14 +127,18 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 healthyUpstreams = UpstreamLabelUtils.filter(healthyUpstreams, labels);
             }
             final List<Upstream> upstreamList = healthyUpstreams.stream().filter(data -> {
-                final String trimUri = data.getUrl().trim();
+                final URI upstreamUri = URI.create(data.buildDomain());
                 for (URI needToExclude : exclude) {
-                    if ((needToExclude.getHost() + ":" + needToExclude.getPort()).equals(trimUri)) {
+                    if (isSameUpstream(needToExclude, upstreamUri)) {
                         return false;
                     }
                 }
                 return true;
-            }).collect(Collectors.toList());
+            })
+                    //skip upstreams that are still blocked by the built-in circuit breaker
+                    .filter(data -> UpstreamCircuitBreaker.getInstance()
+                            .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
+                    .collect(Collectors.toList());
             if (upstreamList.isEmpty()) {
                 // no need to retry anymore
                 return Mono.error(new FailoverExhaustedException());
@@ -141,10 +151,20 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
-            return httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, exchange.getRequest().getBody())
+            final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+            return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
+                    .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e));
+                    .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
         });
+    }
+
+    private boolean isSameUpstream(final URI first, final URI second) {
+        final String firstScheme = first.getScheme().toLowerCase(Locale.ROOT);
+        final String secondScheme = second.getScheme().toLowerCase(Locale.ROOT);
+        return firstScheme.equals(secondScheme)
+                && first.getHost().equalsIgnoreCase(second.getHost())
+                && UriUtils.getActualPort(firstScheme, first.getPort()) == UriUtils.getActualPort(secondScheme, second.getPort());
     }
 
     private static final class FailoverExhaustedException extends ShenyuException {

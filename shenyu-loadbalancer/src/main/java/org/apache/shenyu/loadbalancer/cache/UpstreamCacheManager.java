@@ -28,6 +28,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +131,8 @@ public final class UpstreamCacheManager {
      * @return the list
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
-        return task.getHealthyUpstream().get(selectorId);
+        List<Upstream> upstreamList = task.getHealthyUpstream().get(selectorId);
+        return Objects.isNull(upstreamList) ? null : new ArrayList<>(upstreamList);
     }
 
     /**
@@ -197,6 +199,7 @@ public final class UpstreamCacheManager {
             Upstream cached = existing.get(upstreamMapKey(upstream));
             if (Objects.nonNull(cached)) {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
+                cached.setLabels(upstream.getLabels());
                 cached.setGray(upstream.isGray());
             }
         });

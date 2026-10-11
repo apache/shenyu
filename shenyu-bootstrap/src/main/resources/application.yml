@@ -223,6 +223,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
+      token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
@@ -250,16 +251,8 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-#    polaris:
-#      url: 127.0.0.1:8093
-#      namespace:
-#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
-#    consul:
-#      url: http://localhost:8500
-#      waitTime: 10000
-#      watchDelay: 10000
   heartbeat:
     enabled: true
     serverLists: http://localhost:9095
@@ -273,7 +266,6 @@ shenyu:
   fallback:
     enabled: false
     paths:
-      - /fallback/hystrix
       - /fallback/resilience4j
       - /fallback/sentinel
   health:

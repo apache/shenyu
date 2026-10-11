@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
@@ -38,6 +39,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
@@ -52,7 +54,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,8 +76,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private final CanaryDecisionService canaryDecisionService;
 
-    private Long beginTime;
-
     public DividePlugin() {
         this(new DefaultCanaryDecisionService());
     }
@@ -81,7 +83,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     public DividePlugin(final CanaryDecisionService canaryDecisionService) {
         this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
     }
-    
+
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
@@ -123,31 +125,18 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        // set the http url
-        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         String domain = upstream.buildDomain();
-        if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            String protocol = StringUtils.defaultIfBlank(upstream.getProtocol(), "http://");
-            domain = protocol + specifyDomains.get(0).trim();
-        }
         // set domain
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
+        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, StringUtils.defaultIfEmpty(ruleHandle.getRetryBackOffSpec(), HttpRetryBackoffSpecEnum.getDefault()));
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
-            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
-            )).doOnError(throwable -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
-            beginTime = System.currentTimeMillis();
-            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
-            ));
-        }
-        return chain.execute(exchange);
+        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, selector.getId(), upstream);
     }
 
     @Override
@@ -174,7 +163,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
-    
+
     private Upstream selectUpstream(final ServerWebExchange exchange, final String selectorId, final RuleData rule,
                                     final DivideRuleHandle ruleHandle, final List<Upstream> upstreams) {
         CanaryConfig config = ruleHandle.getCanary();
@@ -204,7 +193,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
         // The pool is resolved before load balancing. A backend failure must not change this partition.
         exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, actual.getName());
         exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, labels);
-        Upstream upstream = LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
+        candidates = filterByCircuitBreaker(selectorId, candidates);
+        Upstream upstream = candidates.isEmpty() ? null : LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
         context.setActualPartition(Objects.isNull(upstream) ? null : actual.getName());
         context.setRejectReason(Objects.isNull(upstream) ? CanaryContext.NO_UPSTREAM_SELECTED : null);
         if (Objects.nonNull(upstream) && !context.getIntendedPartition().equals(actual.getName())) {
@@ -233,6 +223,18 @@ public class DividePlugin extends AbstractShenyuPlugin {
         if (CollectionUtils.isEmpty(candidates)) {
             return null;
         }
+        candidates = filterByCircuitBreaker(selectorId, candidates);
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        if (CollectionUtils.isNotEmpty(specifyDomains)) {
+            String requested = specifyDomains.get(0);
+            Optional<Upstream> specified = candidates.stream().filter(upstream -> upstream.getUrl().equals(requested)).findFirst();
+            if (specified.isPresent()) {
+                return specified.get();
+            }
+        }
         return LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
     }
 
@@ -241,15 +243,69 @@ public class DividePlugin extends AbstractShenyuPlugin {
         return Objects.isNull(labels) ? Map.of() : Map.copyOf(labels);
     }
 
+    /**
+     * Forward the request through the plugin chain and record its outcome into
+     * the built-in circuit breaker, keeping the load-balance specific triggers.
+     *
+     * @param exchange the current server exchange
+     * @param chain the plugin chain
+     * @param ruleHandle the divide rule handle
+     * @param selectorId the selector id
+     * @param upstream the chosen upstream
+     * @return {@code Mono<Void>} to indicate when request processing is complete
+     */
+    private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                                 final DivideRuleHandle ruleHandle, final String selectorId, final Upstream upstream) {
+        String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+        if (ruleHandle.getLoadBalance().equals(P2C)) {
+            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
+                    .doFinally(signalType -> responseTrigger(upstream)), breakerKey);
+        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+            long beginTime = System.currentTimeMillis();
+            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
+                    .doOnSuccess(e -> successResponseTrigger(upstream, beginTime)), breakerKey);
+        }
+        return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange), breakerKey);
+    }
+
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
         return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    /**
+     * Filter out upstreams blocked by the built-in circuit breaker.
+     *
+     * <p>When every upstream of the selector is blocked, a single half-open
+     * probe request is granted to one of them so the breaker can recover;
+     * otherwise the caller should fail fast.
+     *
+     * @param selectorId the selector id the upstreams belong to
+     * @param upstreamList the healthy upstream list from the cache
+     * @return the upstreams allowed to receive requests, possibly empty
+     */
+    private List<Upstream> filterByCircuitBreaker(final String selectorId, final List<Upstream> upstreamList) {
+        List<Upstream> allowed = new ArrayList<>(upstreamList.size());
+        for (Upstream upstream : upstreamList) {
+            if (UpstreamCircuitBreaker.getInstance().isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, upstream))) {
+                allowed.add(upstream);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(allowed)) {
+            return allowed;
+        }
+        for (Upstream upstream : upstreamList) {
+            if (UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(UpstreamCircuitBreaker.buildKey(selectorId, upstream))) {
+                return Collections.singletonList(upstream);
+            }
+        }
+        return Collections.emptyList();
     }
 
     private void responseTrigger(final Upstream upstream) {
         long now = System.currentTimeMillis();
         upstream.getInflight().decrementAndGet();
-        upstream.setResponseStamp(now);
         long stamp = upstream.getResponseStamp();
+        upstream.setResponseStamp(now);
         long td = now - stamp;
         if (td < 0) {
             td = 0;
@@ -268,9 +324,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.setLag(lag);
     }
 
-    private void successResponseTrigger(final Upstream upstream) {
+    private void successResponseTrigger(final Upstream upstream, final long beginTime) {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
     }
-    
+
 }

@@ -70,4 +70,12 @@ public class DefaultBasicAuthAuthenticationStrategyTest {
             .authenticate(defaultBasicAuthRuleHandle, "test:test456"));
     }
 
+    @Test
+    public void testAuthenticateWithNullAuthentication() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy.authenticate(defaultBasicAuthRuleHandle, null));
+    }
+
 }

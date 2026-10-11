@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.CanaryContext;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
@@ -171,6 +172,27 @@ class DefaultRetryStrategyCanaryTest {
         assertEquals("canary", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
     }
 
+    @Test
+    void testRetryPreservesDefaultPortExclusionAndCircuitBreakerWithinPartition() {
+        ServerWebExchange exchange = exchange("canary", "C1");
+        Upstream blocked = upstream("c2:8080", "canary");
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        String key = UpstreamCircuitBreaker.buildKey("selector", blocked);
+        for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+            breaker.recordFailure(key);
+        }
+        AbstractHttpClientPlugin<String> client = mock(AbstractHttpClientPlugin.class);
+        UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
+        when(manager.findUpstreamListBySelectorId("selector")).thenReturn(List.of(
+                upstream("c1:80", "canary"), blocked, upstream("s1:8080", "stable")));
+        try (MockedStatic<UpstreamCacheManager> cache = cache(manager)) {
+            verifyUnavailable(new DefaultRetryStrategy<>(client).execute(Mono.error(new IllegalStateException("failed")), exchange, Duration.ofSeconds(1), 2));
+            verifyNoInteractions(client);
+        } finally {
+            breaker.reset(key);
+        }
+    }
+
     private void verifyUnavailable(final Mono<String> result) {
         StepVerifier.create(result).expectErrorMatches(error -> error instanceof ResponseStatusException
                 && ((ResponseStatusException) error).getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE).verify();
@@ -199,7 +221,7 @@ class DefaultRetryStrategyCanaryTest {
 
     private Upstream upstream(final String url, final String partition) {
         Upstream upstream = Upstream.builder().url(url).protocol("http://").weight(100).build();
-        upstream.setMetadata(Map.of("release", partition));
+        upstream.setLabels(Map.of("release", partition));
         return upstream;
     }
 }

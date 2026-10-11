@@ -19,6 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -110,6 +111,8 @@ public final class Upstream {
      */
     private boolean healthCheckEnabled = true;
     
+    private volatile Map<String, String> labels = Collections.emptyMap();
+
     private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
@@ -135,6 +138,24 @@ public final class Upstream {
         this.healthCheckEnabled = builder.healthCheckEnabled;
     }
     
+    /**
+     * Gets routing labels, independently of upstream metadata.
+     *
+     * @return routing labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    /**
+     * Sets routing labels.
+     *
+     * @param labels routing labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = labels;
+    }
+
     /**
      * Gets protocol.
      *
