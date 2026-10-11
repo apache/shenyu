@@ -288,6 +288,30 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testImportDataSkipsNullDiscoveryHandlerId() {
+        when(discoveryUpstreamMapper.selectAll()).thenReturn(Collections.emptyList());
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", null, "url-null"));
+        ConfigImportResult result = this.discoveryUpstreamService.importData(upstreamDTOList);
+        assertNotNull(result);
+        Assertions.assertEquals(0, result.getSuccessCount());
+        verify(discoveryUpstreamMapper, never()).insert(any());
+    }
+
+    @Test
+    public void testImportDataWithNamespaceSkipsNullDiscoveryHandlerId() {
+        String namespace = "ns1";
+        ConfigsImportContext context = new ConfigsImportContext();
+        when(discoveryUpstreamMapper.selectByNamespaceId(namespace)).thenReturn(Collections.emptyList());
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", null, "url-null"));
+        ConfigImportResult result = this.discoveryUpstreamService.importData(namespace, upstreamDTOList, context);
+        assertNotNull(result);
+        Assertions.assertEquals(0, result.getSuccessCount());
+        verify(discoveryUpstreamMapper, never()).insert(any());
+    }
+
+    @Test
     public void testUpdateBatch() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
