@@ -62,6 +62,14 @@ class MigrationConsistencyTest(unittest.TestCase):
     def test_formatting_is_ignored(self):
         self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("VALUES (", "VALUES\n  (")))
 
+    def test_null_keyword_case_is_ignored(self):
+        self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("NULL", "null")))
+
+    def test_quoted_null_is_not_a_null_literal(self):
+        changed = self.migration.replace("'68', NULL, 198", "'68', 'NULL', 198")
+        with self.assertRaisesRegex(ValueError, "mismatch"):
+            CHECK.check_pair(self.schema, changed)
+
     def test_commented_out_migration_is_rejected(self):
         disabled = "\n".join("-- " + line for line in self.migration.splitlines())
         with self.assertRaisesRegex(ValueError, "missing seeds"):

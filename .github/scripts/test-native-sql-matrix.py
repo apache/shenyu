@@ -87,6 +87,53 @@ class NativeSqlMatrixTest(unittest.TestCase):
             self.assertTrue((ROOT / schema).is_file())
         self.assertRegex(matrix.BASELINE, r"^[0-9a-f]{40}$")
 
+    def test_oceanbase_shares_current_mysql_schema_but_keeps_released_baseline(self):
+        self.assertEqual(matrix.DIALECTS["mysql"][1], matrix.DIALECTS["ob"][1])
+        engine = MagicMock()
+        engine.sql.return_value = "unchanged"
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(matrix, "Engine", return_value=engine), \
+                    patch.object(matrix, "run", return_value="-- released OceanBase schema") as invoke:
+                matrix.execute_matrix("ob", ROOT, Path(directory))
+        invoke.assert_called_once_with(["git", "show", f"{matrix.BASELINE}:db/init/ob/schema.sql"])
+        self.assertEqual(engine.sql.call_args_list[0].args[0], "-- released OceanBase schema")
+        self.assertIn(unittest.mock.call((ROOT / "db/upgrade/2.7.1-upgrade-2.7.2-ob.sql").read_text(encoding="utf-8")),
+                      engine.sql.call_args_list)
+        schema = (ROOT / "db/init/mysql/schema.sql").read_text(encoding="utf-8")
+        self.assertIn(unittest.mock.call(schema, database=False), engine.sql.call_args_list)
+        engine.check_fresh_mysql_schema.assert_called_once_with(schema, engine.indexes.return_value)
+
+    def test_fresh_shared_schema_rejects_missing_table_index_and_constraint(self):
+        schema = "CREATE TABLE IF NOT EXISTS plugin (id int); CREATE INDEX idx_plugin ON `plugin` (id);"
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("ob", "fresh", Path(directory))
+            with patch.object(engine, "sql", return_value=""), self.assertRaisesRegex(AssertionError, "Fresh tables"):
+                engine.check_fresh_mysql_schema(schema, {})
+            with patch.object(engine, "sql", return_value="plugin"), self.assertRaisesRegex(AssertionError, "secondary index"):
+                engine.check_fresh_mysql_schema(schema, {})
+            with patch.object(engine, "sql", return_value="plugin"), self.assertRaisesRegex(AssertionError, "unique constraint"):
+                engine.check_fresh_mysql_schema(schema, {("plugin", "idx_plugin"): ["id"]})
+
+    def test_fresh_shared_schema_rejects_orphan_and_duplicate_seeds(self):
+        unique = "\n".join(("dashboard_user|unique_user_name", "proxy_api_key_mapping|uk_selector_proxy_key",
+                            "plugin_handle|plugin_id_field_type", "shenyu_dict|dict_type_dict_code_dict_name",
+                            "discovery_upstream|discovery_upstream_discovery_handler_id_IDX"))
+        for violation, label in (("FROM permission child LEFT JOIN resource", "permission.resource_id orphan"),
+                                 ("FROM plugin_handle GROUP BY", "plugin_handle duplicate natural key"),
+                                 ("FROM resource r LEFT JOIN permission", "missing admin resource permission"),
+                                 ("FROM plugin p LEFT JOIN namespace_plugin_rel", "missing default namespace plugin")):
+            def sql(query):
+                if "information_schema.tables" in query:
+                    return "plugin"
+                if "information_schema.statistics" in query:
+                    return unique
+                return "1" if violation in query else "0"
+
+            with self.subTest(violation=violation), tempfile.TemporaryDirectory() as directory:
+                engine = matrix.Engine("mysql", "fresh", Path(directory))
+                with patch.object(engine, "sql", side_effect=sql), self.assertRaisesRegex(AssertionError, label):
+                    engine.check_fresh_mysql_schema("CREATE TABLE `plugin` (id int);", {})
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)
@@ -138,13 +185,16 @@ class NativeSqlMatrixTest(unittest.TestCase):
     def test_oceanbase_waits_for_writable_ddl_not_only_select(self):
         with tempfile.TemporaryDirectory() as directory:
             engine = matrix.Engine("ob", "upgrade", Path(directory))
-            with patch.object(matrix, "run"), patch.object(matrix.time, "monotonic", side_effect=[0, 1, 2]), \
+            with patch.object(matrix, "run") as invoke, patch.object(matrix.time, "monotonic", side_effect=[0, 1, 2]), \
                     patch.object(matrix.time, "sleep") as sleep, \
                     patch.object(engine, "sql", side_effect=["1", RuntimeError("4179 creating tenant"), "1", ""]) as sql:
                 engine.start()
                 self.assertEqual(sql.call_count, 4)
                 self.assertIn("CREATE DATABASE IF NOT EXISTS sql_matrix_ready", sql.call_args_list[1].args[0])
                 self.assertIn("DROP DATABASE sql_matrix_ready", sql.call_args_list[3].args[0])
+                command = invoke.call_args_list[1].args[0]
+                self.assertIn("--ulimit", command)
+                self.assertIn("nofile=65536:65536", command)
                 sleep.assert_called_once_with(5)
 
     def test_scalars_reject_empty_or_multiple_results(self):
