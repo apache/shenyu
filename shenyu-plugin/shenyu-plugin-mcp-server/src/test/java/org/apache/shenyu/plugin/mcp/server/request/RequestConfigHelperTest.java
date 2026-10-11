@@ -251,4 +251,43 @@ class RequestConfigHelperTest {
 
         assertEquals("/items/a%2Fb%20%23%3F+%25", result);
     }
+
+    @Test
+    void testUrlValuedDataDoesNotReplaceFixedEndpoint() {
+        for (String position : new String[]{"query", "body", "body.callback", "header", "path"}) {
+            JsonObject argsPosition = new JsonObject();
+            argsPosition.addProperty("callbackUrl", position);
+            JsonObject inputJson = new JsonObject();
+            inputJson.addProperty("callbackUrl", "https://callback.invalid/return");
+
+            String path = RequestConfigHelper.buildPath("/search", argsPosition, inputJson);
+
+            if ("query".equals(position)) {
+                assertTrue(path.startsWith("/search?callbackUrl="), position);
+                assertTrue(path.contains("callback.invalid"), position);
+            } else {
+                assertEquals("/search", path, position);
+            }
+        }
+    }
+
+    @Test
+    void testExplicitTargetArgumentCanSelectFullUrl() {
+        JsonObject argsPosition = new JsonObject();
+        argsPosition.addProperty("endpoint", "target");
+        JsonObject inputJson = new JsonObject();
+        inputJson.addProperty("endpoint", "https://target.example/api");
+
+        assertEquals("https://target.example/api",
+                RequestConfigHelper.buildPath("/search", argsPosition, inputJson));
+    }
+
+    @Test
+    void testUnmappedUrlValueDoesNotChangeEndpoint() {
+        JsonObject argsPosition = new JsonObject();
+        JsonObject inputJson = new JsonObject();
+        inputJson.addProperty("endpoint", "https://target.example/api");
+
+        assertEquals("/search", RequestConfigHelper.buildPath("/search", argsPosition, inputJson));
+    }
 }

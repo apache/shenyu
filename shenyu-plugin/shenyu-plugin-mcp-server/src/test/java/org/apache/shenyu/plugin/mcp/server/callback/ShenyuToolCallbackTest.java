@@ -364,6 +364,31 @@ class ShenyuToolCallbackTest {
     }
 
     @Test
+    void testUrlValuedArgumentsPreserveToolEndpointAndContext() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        for (String position : new String[]{"query", "body", "body.callback", "header"}) {
+            MockServerWebExchange originExchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+            ShenyuContext context = new ShenyuContext();
+            originExchange.getAttributes().put(Constants.CONTEXT, context);
+            String config = "{\"requestTemplate\":{\"url\":\"/search\",\"method\":\"POST\",\"argsToJsonBody\":true},"
+                    + "\"argsPosition\":{\"callbackUrl\":\"" + position + "\"}}";
+            String input = "{\"callbackUrl\":\"https://callback.invalid/return\"}";
+
+            ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(shenyuToolCallback, "buildDecoratedExchange",
+                    originExchange, new CompletableFuture<String>(), "session123", config, input);
+
+            assertEquals("/search", decoratedExchange.getRequest().getPath().value(), position);
+            assertEquals("/search", context.getPath(), position);
+            assertEquals("/search", context.getRealUrl(), position);
+            if ("query".equals(position)) {
+                assertEquals("https://callback.invalid/return",
+                        decoratedExchange.getRequest().getQueryParams().getFirst("callbackUrl"));
+            }
+        }
+    }
+
+    @Test
     void testConstructorWithValidToolDefinition() {
         ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
         assertNotNull(callback);
