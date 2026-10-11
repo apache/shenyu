@@ -38,6 +38,21 @@ Oracle, PostgreSQL, and openGauss.
   openGauss installations must use their version-specific `*-og.sql` scripts
   in `db/upgrade`; PostgreSQL installations use `*-pg.sql`.
 
+## Fresh-install scope
+
+This consolidation changes fresh **PostgreSQL installations as well as openGauss**,
+not only the openGauss script path. The canonical `pg/create-table.sql` removes
+orphan permissions, gives paramMapping and modifyResponse their custom rule-page
+defaults, adds the request rule-page handle, and puts Kafka security handles at
+selector scope. It also consolidates Dubbo's load-balancing handle, fixes
+loggingKafka's `bootstrapServer` configuration, and aligns plugin/default-namespace
+configs, including aiProxy fallback defaults without the obsolete `prompt` field.
+
+PostgreSQL's table definitions and constraints are retained. Existing resource
+grants remain available, and the upstream removal of SOFA/TARS resources and their
+associated seeds is preserved. These are fresh-install defaults, not changes to
+existing databases; historical PostgreSQL and openGauss upgrade scripts are unchanged.
+
 ## Maintaining the shared PostgreSQL/openGauss schema
 
 Update `pg/create-table.sql` for both engines. The native SQL matrix verifies
@@ -78,4 +93,3 @@ and require admin grants and default-namespace relations. They also attempt a
 duplicate discovery upstream and require the intended unique index to reject it.
 Historical upgrade scripts remain separate and unchanged, and upgrade validation
 still loads the original openGauss schema from the immutable released baseline.
-
