@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.common.dto.convert.rule.canary;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.re2j.PatternSyntaxException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -75,12 +77,33 @@ class CanaryConfigValidatorTest {
         assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(handle(patch)));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"[", "(?=a)a", "(?<=a)b", "(a)\\1"})
+    void testRejectsRegexUnsupportedByGatewayWithFieldError(final String regex) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> CanaryConfigValidator.parseHandle(regexHandle(regex)));
+        assertEquals("canary.conditions[0].paramValue is invalid for regex", exception.getMessage());
+        assertEquals(PatternSyntaxException.class, exception.getCause().getClass());
+    }
+
     @Test
     void testDefaultsRemainStable() {
         CanaryConfig config = CanaryConfigValidator.parseHandle(handle("{}")).getCanary();
         assertEquals(0, config.getPercentage());
         assertEquals(0, config.getMatchMode());
         assertEquals("STABLE", config.getFallbackPolicy());
+    }
+
+    private String regexHandle(final String regex) {
+        JsonObject condition = new JsonObject();
+        condition.addProperty("paramType", "uri");
+        condition.addProperty("operator", "regex");
+        condition.addProperty("paramValue", regex);
+        JsonArray conditions = new JsonArray();
+        conditions.add(condition);
+        JsonObject config = new JsonObject();
+        config.add("conditions", conditions);
+        return handle(config.toString());
     }
 
     private String handle(final String patch) {

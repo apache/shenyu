@@ -20,6 +20,8 @@ package org.apache.shenyu.common.dto.convert.rule.canary;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.re2j.Pattern;
+import com.google.re2j.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
@@ -29,7 +31,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 /**
  * Shared validation of Canary configuration before persistence or gateway caching.
@@ -127,11 +128,12 @@ public final class CanaryConfigValidator {
     private static void validateConditionValue(final String operator, final String value, final String path) {
         try {
             if ("regex".equals(operator)) {
+                // Validate with the same regex engine used by the gateway's RegexPredicateJudge.
                 Pattern.compile(value.trim());
             } else if ("TimeBefore".equals(operator) || "TimeAfter".equals(operator)) {
                 DateUtils.parseLocalDateTime(value.trim());
             }
-        } catch (IllegalArgumentException | java.time.DateTimeException ex) {
+        } catch (PatternSyntaxException | IllegalArgumentException | java.time.DateTimeException ex) {
             throw new IllegalArgumentException(path + ".paramValue is invalid for " + operator, ex);
         }
     }
