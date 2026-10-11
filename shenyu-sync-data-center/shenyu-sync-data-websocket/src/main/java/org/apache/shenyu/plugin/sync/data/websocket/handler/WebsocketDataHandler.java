@@ -19,20 +19,35 @@ package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Websocket cache handler.
  */
 public class WebsocketDataHandler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketDataHandler.class);
+
     private final EnumMap<ConfigGroupEnum, DataHandler> handlers = new EnumMap<>(ConfigGroupEnum.class);
+
+    /**
+     * Fingerprint of the payload that was applied last for each group. Admin re-sends the whole
+     * group payload on every change of that group, so an unchanged payload means the gateway has
+     * already applied exactly this state and re-caching it only burns CPU on the sync thread.
+     */
+    private final Map<ConfigGroupEnum, String> lastAppliedFingerprints = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Websocket data handler.
@@ -65,7 +80,17 @@ public class WebsocketDataHandler {
      * @param eventType the event type
      */
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
+        final String fingerprint = fingerprintOf(json, eventType);
+        if (Objects.equals(fingerprint, lastAppliedFingerprints.get(type))) {
+            LOG.info("ignore duplicated {} event of group {}, this payload has already been applied", eventType, type);
+            return;
+        }
         handlers.get(type).handle(json, eventType);
+        lastAppliedFingerprints.put(type, fingerprint);
+    }
+
+    private static String fingerprintOf(final String json, final String eventType) {
+        return DigestUtils.md5Hex(String.join("|", String.valueOf(eventType), String.valueOf(json)));
     }
 
     /**
@@ -82,6 +107,9 @@ public class WebsocketDataHandler {
             throw new IllegalArgumentException("Snapshot namespace does not match the connection");
         }
         ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json, snapshotNamespace);
+        // a snapshot replaces the whole group, so the next payload must be applied even if it
+        // happens to be identical to the payload applied before the snapshot
+        lastAppliedFingerprints.remove(type);
     }
 
 }
