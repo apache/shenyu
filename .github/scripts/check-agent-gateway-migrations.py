@@ -76,7 +76,8 @@ def check(root):
     """Verify all supported upgrade dialects, regardless of working directory."""
     for dialect in DIALECTS:
         filename = "create-table.sql" if dialect in ("og", "pg") else "schema.sql"
-        schema = root / "db" / "init" / dialect / filename
+        schema_dialect = "pg" if dialect == "og" else dialect
+        schema = root / "db" / "init" / schema_dialect / filename
         migration = root / "db" / "upgrade" / f"2.7.1-upgrade-2.7.2-{dialect}.sql"
         try:
             count = check_pair(schema.read_text(encoding="utf-8"), migration.read_text(encoding="utf-8"))
