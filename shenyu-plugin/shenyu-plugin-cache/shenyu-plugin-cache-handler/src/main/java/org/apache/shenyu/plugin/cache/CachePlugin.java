@@ -52,6 +52,10 @@ public class CachePlugin extends AbstractShenyuPlugin {
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
+        final CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
+        if (Objects.isNull(cacheRuleHandle)) {
+            return chain.execute(exchange);
+        }
         CacheUpstream cacheUpstream = GsonUtils.getInstance().fromJson(selector.getHandle(), CacheUpstream.class);
         ICache cache = getCache(selector.getId(), cacheUpstream);
         if (Objects.nonNull(cache)) {
@@ -67,11 +71,9 @@ public class CachePlugin extends AbstractShenyuPlugin {
                             return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
                                     .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
                         }
-                        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
                         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId())).build());
                     });
         }
-        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId())).build());
     }
 
