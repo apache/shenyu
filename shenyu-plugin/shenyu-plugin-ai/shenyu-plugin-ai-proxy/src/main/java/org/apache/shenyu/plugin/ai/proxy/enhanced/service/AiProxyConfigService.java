@@ -61,6 +61,7 @@ public class AiProxyConfigService {
             handleConfig.setTemperature(handle.getTemperature());
             handleConfig.setMaxTokens(handle.getMaxTokens());
             handleConfig.setStream(handle.getStream());
+            handleConfig.setProtocol(handle.getProtocol());
             primaryConfig.mergeWith(handleConfig);
         }
         return primaryConfig;
