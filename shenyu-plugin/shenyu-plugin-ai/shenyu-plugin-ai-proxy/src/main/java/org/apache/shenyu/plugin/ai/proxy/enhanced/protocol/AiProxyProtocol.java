@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 
 /**
  * Contract for decoding a client AI protocol into ShenYu-owned models.
@@ -51,4 +52,15 @@ public interface AiProxyProtocol {
     ShenyuAiRequest decodeRequest(
             String rawBody,
             ObjectNode payload);
+
+    /**
+     * Encode provider-adapted response bytes for the client protocol.
+     *
+     * @param response provider-adapted response
+     * @param stream whether the client requested streaming
+     * @return client response
+     */
+    default AiUpstreamResponse encodeResponse(final AiUpstreamResponse response, final boolean stream) {
+        return response;
+    }
 }

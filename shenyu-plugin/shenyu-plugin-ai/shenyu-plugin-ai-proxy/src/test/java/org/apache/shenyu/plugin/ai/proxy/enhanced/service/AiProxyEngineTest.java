@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import reactor.core.publisher.Flux;
@@ -103,7 +104,7 @@ class AiProxyEngineTest {
 
         assertEquals("gpt-4o-mini", payload.get("model").asText());
         assertEquals(256, payload.get("max_completion_tokens").intValue());
-        assertFalse(payload.has("max_tokens"));
+        assertEquals(256, payload.get("max_tokens").intValue());
         assertTrue(payload.get("unknown").booleanValue());
         assertTrue(payload.get("stream_options").get("include_usage").booleanValue());
         assertEquals("text/event-stream", request.getHeaders().get("Accept").get(0));
@@ -118,9 +119,10 @@ class AiProxyEngineTest {
     void testExecuteDelegatesBuiltRequestToTransport() throws Exception {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}";
 
-        StepVerifier.create(engine.execute(body, config))
-                .expectNext(upstreamResponse)
-                .verifyComplete();
+        StepVerifier.create(engine.execute(body, config, Optional.empty(), response -> {
+            assertEquals(200, response.getStatusCode());
+            return response.getBody().then();
+        })).verifyComplete();
 
         assertEquals("https://api.openai.com/v1/chat/completions",
                 transportedRequest.get().getUri().toString());

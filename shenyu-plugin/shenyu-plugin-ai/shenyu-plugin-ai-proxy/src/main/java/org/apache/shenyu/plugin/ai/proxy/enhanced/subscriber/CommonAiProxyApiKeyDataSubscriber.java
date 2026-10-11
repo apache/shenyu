@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber;
 
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.OpenAiApiCache;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 
 import java.util.Objects;
@@ -48,6 +47,5 @@ public final class CommonAiProxyApiKeyDataSubscriber implements AiProxyApiKeyDat
     @Override
     public void refresh() {
         AiProxyApiKeyCache.getInstance().refresh();
-        OpenAiApiCache.getInstance().clearAll();
     }
 }

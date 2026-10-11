@@ -20,6 +20,9 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.transport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.springframework.http.HttpMethod;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -43,6 +46,10 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     @Override
     public Mono<AiUpstreamResponse> execute(final AiUpstreamRequest request) {
+        return Mono.defer(() -> exchange(request));
+    }
+
+    private Mono<AiUpstreamResponse> exchange(final AiUpstreamRequest request) {
         final WebClient.RequestBodySpec bodySpec = webClient
                 .method(HttpMethod.valueOf(request.getMethod()))
                 .uri(request.getUri())
@@ -57,10 +64,21 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
         return headersSpec
                 .retrieve()
                 .onRawStatus(status -> status >= 400, response -> Mono.empty())
-                .toEntityFlux(byte[].class)
+                .toEntityFlux(DataBuffer.class)
                 .map(entity -> new AiUpstreamResponse(
                         entity.getStatusCode().value(),
                         entity.getHeaders(),
-                        Objects.requireNonNull(entity.getBody())));
+                        Objects.requireNonNull(entity.getBody()).map(buffer -> {
+                            try {
+                                byte[] bytes = new byte[buffer.readableByteCount()];
+                                buffer.read(bytes);
+                                return bytes;
+                            } finally {
+                                DataBufferUtils.release(buffer);
+                            }
+                        }).doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                                .onErrorMap(error -> new AiProxyException(AiProxyException.Kind.TRANSPORT, "AI upstream body failed", error))))
+                .onErrorMap(error -> !(error instanceof AiProxyException),
+                        error -> new AiProxyException(AiProxyException.Kind.TRANSPORT, "AI upstream exchange failed", error));
     }
 }

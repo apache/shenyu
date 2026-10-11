@@ -25,7 +25,23 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-agent-gateway</artifactId>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/shenyu/agent-gateway-version.properties</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
     <dependencies>
+        <dependency>
+            <groupId>io.modelcontextprotocol.sdk</groupId>
+            <artifactId>mcp-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-common</artifactId>

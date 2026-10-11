@@ -39,6 +39,7 @@ import jakarta.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
@@ -474,12 +475,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     private void changeRegistryAddressNamespace(final RegistryConfig currentRegistryConfig, final ReferenceConfig<GenericService> reference, final String namespace) {
         RegistryConfig registryConfigNew = new RegistryConfig();
         registryConfigNew.setRegister(false);
-        if (!currentRegistryConfig.getAddress().contains(Constants.NAMESPACE)) {
-            registryConfigNew.setAddress(currentRegistryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace);
-        } else {
-            String newAddress = currentRegistryConfig.getAddress().substring(0, currentRegistryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-            registryConfigNew.setAddress(newAddress);
-        }
+        registryConfigNew.setAddress(URL.valueOf(currentRegistryConfig.getAddress())
+                .addParameter(Constants.NAMESPACE, namespace)
+                .toFullString());
         reference.setRegistry(registryConfigNew);
     }
 

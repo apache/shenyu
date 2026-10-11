@@ -17,17 +17,23 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.awaitility.core.ThrowingRunnable;
@@ -75,6 +81,7 @@ public final class MqttTransportHandlerTest {
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
         Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
@@ -91,6 +98,7 @@ public final class MqttTransportHandlerTest {
 
     @AfterEach
     public void tearDown() {
+        Singleton.INST.get(SessionRepository.class).remove(CLIENT_ID);
         MqttPacketIdGenerator.remove(registeredChannel);
         CHANNEL_REPOSITORY.remove(registeredChannel);
         SUBSCRIBE_REPOSITORY.remove(registeredChannel);
@@ -100,6 +108,21 @@ public final class MqttTransportHandlerTest {
 
         new MqttContext().setUserName(null);
         new MqttContext().setPassword(null);
+    }
+
+    @Test
+    public void channelReadReleasesInboundPublishMessage() {
+        EmbeddedChannel channel = new EmbeddedChannel(new MqttTransportHandler());
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, 1);
+        MqttPublishMessage message = new MqttPublishMessage(fixedHeader, variableHeader,
+                Unpooled.copiedBuffer("hello", CharsetUtil.UTF_8));
+        ByteBuf payload = message.payload();
+
+        channel.writeInbound(message);
+
+        assertEquals(0, payload.refCnt());
+        channel.finishAndReleaseAll();
     }
 
     @Test
@@ -146,16 +169,6 @@ public final class MqttTransportHandlerTest {
         channel.finishAndReleaseAll();
     }
 
-    private MqttConnectMessage connectMessage() {
-        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
-        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
-                MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel(),
-                true, true, false, 0, false, false, 60);
-        MqttConnectPayload payload = new MqttConnectPayload(CLIENT_ID, null, null,
-                USER_NAME, PASSWORD.getBytes(StandardCharsets.UTF_8));
-        return new MqttConnectMessage(fixedHeader, variableHeader, payload);
-    }
-
     @Test
     public void testOperationCompleteCleansRepositoriesOnClose() throws Exception {
         assertEquals(1, MqttPacketIdGenerator.next(registeredChannel));
@@ -165,6 +178,16 @@ public final class MqttTransportHandlerTest {
         awaitAssert(() -> assertNull(CHANNEL_REPOSITORY.get(registeredChannel)));
         awaitAssert(() -> assertFalse(SUBSCRIBE_REPOSITORY.get(TOPIC).containsKey(registeredChannel)));
         assertEquals(1, MqttPacketIdGenerator.next(registeredChannel));
+    }
+
+    private MqttConnectMessage connectMessage() {
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
+        MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
+                MqttVersion.MQTT_3_1_1.protocolName(), MqttVersion.MQTT_3_1_1.protocolLevel(),
+                true, true, false, 0, false, false, 60);
+        MqttConnectPayload payload = new MqttConnectPayload(CLIENT_ID, null, null,
+                USER_NAME, PASSWORD.getBytes(StandardCharsets.UTF_8));
+        return new MqttConnectMessage(fixedHeader, variableHeader, payload);
     }
 
     /**

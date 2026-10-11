@@ -58,7 +58,8 @@ public final class OpenAi implements AiProxyProvider {
         }
 
         final ObjectNode payload = request.getRawPayload().deepCopy();
-        boolean changed = false;
+        boolean changed = payload.has("fallbackConfig");
+        payload.remove("fallbackConfig");
 
         if (Objects.nonNull(config.getModel())) {
             payload.put("model", config.getModel());
@@ -69,7 +70,7 @@ public final class OpenAi implements AiProxyProvider {
             changed = true;
         }
         if (Objects.nonNull(config.getMaxTokens())) {
-            payload.remove("max_tokens");
+            payload.put("max_tokens", config.getMaxTokens());
             payload.put("max_completion_tokens", config.getMaxTokens());
             changed = true;
         }
@@ -147,6 +148,16 @@ public final class OpenAi implements AiProxyProvider {
         final String relativePath =
                 path.startsWith("/") ? path.substring(1) : path;
 
-        return URI.create(normalizedBaseUrl).resolve(relativePath);
+        final URI base = URI.create(normalizedBaseUrl);
+        if (!("http".equalsIgnoreCase(base.getScheme()) || "https".equalsIgnoreCase(base.getScheme()))
+                || Objects.isNull(base.getHost()) || Objects.nonNull(base.getRawQuery()) || Objects.nonNull(base.getRawFragment()) || Objects.nonNull(base.getRawUserInfo())) {
+            throw new IllegalArgumentException("AI baseUrl must be an HTTP(S) endpoint without credentials, query or fragment");
+        }
+        return base.resolve(base.getPath().endsWith("/v1/") ? relativePath.substring(3) : relativePath);
+    }
+
+    @Override
+    public boolean supports(final String protocol) {
+        return OpenAiChat.NAME.equals(protocol);
     }
 }

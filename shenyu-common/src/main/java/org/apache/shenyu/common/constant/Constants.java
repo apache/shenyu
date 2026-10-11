@@ -822,11 +822,6 @@ public interface Constants {
     String DEFAULT_CLUSTER = "failover";
 
     /**
-     * cache data max size, means map size.
-     */
-    Long LRU_MAP_MAXSIZE = 65536L;
-
-    /**
      * namespace,sush as nacos .
      */
     String NAMESPACE = "namespace";
@@ -900,6 +895,11 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
+
+    /**
+     * Optional server-installed MCP terminal observation callback.
+     */
+    String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
 
     /**
      * The constant shenyu namespace id.

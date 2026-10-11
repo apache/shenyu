@@ -31,6 +31,11 @@
     </resultMap>
 
     <sql id="Base_Column_List">
+        <include refid="List_Column_List"/>,
+        plugin_jar
+    </sql>
+
+    <sql id="List_Column_List">
         id,
         date_created,
         date_updated,
@@ -38,7 +43,6 @@
         config,
         role,
         sort,
-        plugin_jar,
         enabled
     </sql>
 
@@ -86,7 +90,7 @@
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
             resultMap="BaseResultMap">
         SELECT
-               <include refid="Base_Column_List"/>
+               <include refid="List_Column_List"/>
           FROM plugin
         <where>
             <if test="name != null and name != ''">
@@ -211,10 +215,10 @@
         order by p.sort, p.id
     </select>
 
-    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginListVO">
 
         SELECT
-        <include refid="Base_Column_List"/>
+        <include refid="List_Column_List"/>
         FROM plugin
         <where>
             <if test="condition.keyword != null and condition.keyword != ''">

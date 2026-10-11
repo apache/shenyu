@@ -19,6 +19,7 @@ package org.apache.shenyu.registry.zookeeper;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.api.CuratorWatcher;
@@ -64,8 +65,6 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private ZookeeperClient client;
 
-    private String watchPath;
-
     private final Map<String, String> nodeDataMap = new ConcurrentHashMap<>();
 
     private final Multimap<String, CuratorCache> cacheMap = ArrayListMultimap.create();
@@ -81,8 +80,6 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         int baseSleepTime = Integer.parseInt(props.getProperty("baseSleepTime", "1000"));
         int maxRetries = Integer.parseInt(props.getProperty("maxRetries", "3"));
         int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
-        watchPath = props.getProperty("watchPath", null);
-
         ZookeeperConfig zkConfig = ZookeeperConfig.builder()
                 .url(config.getServerLists())
                 .baseSleepTimeMilliseconds(baseSleepTime)
@@ -129,8 +126,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public List<InstanceEntity> selectInstances(final String selectKey) {
         try {
-            final String watchKey = StringUtils.isNotBlank(watchPath)
-                    ? InstancePathConstants.buildRealNode(watchPath, selectKey) : InstancePathConstants.buildInstanceParentPath(selectKey);
+            final String watchKey = buildInstancePath(selectKey);
             final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
                 String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
                 InstanceEntity instanceEntity = GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
@@ -153,7 +149,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 @Override
                 public void process(final WatchedEvent event) {
                     try {
-                        String path = Objects.isNull(event.getPath()) ? selectKey : event.getPath();
+                        String path = Objects.isNull(event.getPath()) ? watchKey : event.getPath();
                         List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
                                 : Collections.emptyList();
                         watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
@@ -176,7 +172,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public boolean serviceExists(final String key) {
         try {
-            return Objects.nonNull(client.get(key));
+            return client.isExist(buildInstancePath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -185,7 +181,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void watchInstances(final String key, final ChangedEventListener listener) {
         try {
-            CuratorCache treeCache = client.addCache(key, (type, oldData, data) -> {
+            CuratorCache treeCache = client.addCache(buildInstancePath(key), (type, oldData, data) -> {
                 // Curator delivers NODE_DELETED with a null new ChildData and the deleted node in oldData
                 ChildData changedNode = CuratorCacheListener.Type.NODE_DELETED == type ? oldData : data;
                 if (!Objects.nonNull(changedNode) || !Objects.nonNull(changedNode.getData())) {
@@ -199,6 +195,13 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
                 if (!isEphemeral) {
                     LOGGER.info("zookeeper registry watch Ignore non-ephemeral node changes path {}", currentPath);
                     return;
+                }
+                if (currentPath.startsWith(InstancePathConstants.buildInstanceParentPath() + "/")) {
+                    JsonObject instanceData = GsonUtils.getInstance().fromJson(currentData, JsonObject.class);
+                    JsonElement host = instanceData.get("host");
+                    String address = Objects.nonNull(host) && !host.isJsonNull() ? host.getAsString() : instanceData.get("address").getAsString();
+                    instanceData.addProperty("url", address + Constants.COLONS + instanceData.get("port").getAsInt());
+                    currentData = GsonUtils.getInstance().toJson(instanceData);
                 }
                 switch (type) {
                     case NODE_CREATED:
@@ -253,6 +256,10 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
             LOGGER.error("zookeeper registry shutting down error", e);
             throw new ShenyuException(e);
         }
+    }
+
+    private String buildInstancePath(final String key) {
+        return key.startsWith("/") ? key : InstancePathConstants.buildInstanceParentPath(key);
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

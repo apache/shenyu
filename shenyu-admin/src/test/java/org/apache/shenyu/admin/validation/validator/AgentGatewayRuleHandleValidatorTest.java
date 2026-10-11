@@ -34,6 +34,8 @@ public final class AgentGatewayRuleHandleValidatorTest {
     public void testValidHandles() {
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"LLM\"}"));
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"LLM\",\"responseRequestId\":false}"));
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{}}"));
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"],\"responseMode\":\"sse\"}}"));
     }
 
     @ParameterizedTest
@@ -47,7 +49,13 @@ public final class AgentGatewayRuleHandleValidatorTest {
         "{\"trafficType\":true}",
         "{\"trafficType\":\"LLM\",\"responseRequestId\":\"true\"}",
         "{\"trafficType\":\"LLM\",\"responseRequestId\":null}",
-        "{\"trafficType\":\"LLM\",\"extra\":42}"
+        "{\"trafficType\":\"LLM\",\"extra\":42}",
+        "{\"trafficType\":\"mcp\"}",
+        "{\"trafficType\":\"mcp\",\"mcp\":null}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"future\":true}}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"timeoutMs\":0}}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"*\"]}}",
+        "{\"trafficType\":\"LLM\",\"mcp\":{}}"
     })
     public void testInvalidHandles(final String handle) {
         assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));

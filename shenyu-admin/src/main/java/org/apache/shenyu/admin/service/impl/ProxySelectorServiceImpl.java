@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -51,10 +52,13 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -98,11 +102,13 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper, final DiscoveryMapper discoveryMapper,
                                     final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper,
                                     final DiscoveryRelMapper discoveryRelMapper,
                                     final SelectorMapper selectorMapper,
-                                    final DiscoveryProcessorHolder discoveryProcessorHolder) {
+                                    final DiscoveryProcessorHolder discoveryProcessorHolder, final ApplicationEventPublisher eventPublisher) {
 
         this.proxySelectorMapper = proxySelectorMapper;
         this.discoveryMapper = discoveryMapper;
@@ -111,6 +117,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.selectorMapper = selectorMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -236,18 +243,25 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
+            DiscoveryProcessor discoveryProcessor;
             DiscoveryDO discoveryDO;
             String discoveryId;
             boolean fillDiscovery;
             if (StringUtils.hasLength(proxySelectorAddDTO.getDiscovery().getId())) {
                 discoveryDO = discoveryMapper.selectById(proxySelectorAddDTO.getDiscovery().getId());
+                Assert.notNull(discoveryDO, "Discovery does not exist: " + proxySelectorAddDTO.getDiscovery().getId());
+                Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                        "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
                 discoveryId = proxySelectorAddDTO.getDiscovery().getId();
-                fillDiscovery = Objects.nonNull(discoveryDO);
+                fillDiscovery = true;
+                // the stored discovery is the source of truth for the processor type; the
+                // payload could otherwise declare a different type than the referenced row
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
                 discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
                 fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
@@ -388,6 +402,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
         // Validate all related records before performing any update.
         proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler
@@ -427,6 +443,21 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
+        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO))));
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(final int status) {
+                    // Completion runs after synchronization is cleared, so the cluster dispatcher does not defer the event again.
+                    if (status == STATUS_COMMITTED) {
+                        eventPublisher.publishEvent(event);
+                    }
+                }
+            });
+        } else {
+            eventPublisher.publishEvent(event);
+        }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 
