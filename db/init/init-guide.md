@@ -35,6 +35,19 @@ Oracle, PostgreSQL, and openGauss.
 
   > The file is the openGauss initialization script.
 
+## Fresh-install scope
+
+This consolidation changes fresh **MySQL installations as well as OceanBase**,
+not only the OceanBase script path. In the canonical `mysql/schema.sql`, orphan
+permission seeds are removed, loggingKafka uses `bootstrapServer` instead of
+`namesrvAddr`, and its default-namespace configuration is aligned with the plugin
+configuration. Existing resource grants are retained. The upstream removal of
+SOFA/TARS resources and their associated seeds is preserved.
+
+These are initialization defaults, not an upgrade migration. Do not re-run the
+initialization script against an existing database; continue to use the separate
+version-specific MySQL or OceanBase scripts in `db/upgrade`.
+
 ## Maintaining the shared MySQL/OceanBase schema
 
 Update `mysql/schema.sql` for both engines. The native SQL matrix validates MySQL
@@ -54,6 +67,12 @@ sampling/body-size/compression defaults and the `bootstrapServer` field consumed
 by the Kafka plugin. Permissions pointing to absent resources have been removed
 from fresh seeds; every existing resource retains its admin grant.
 
+Known cross-dialect difference: the H2 seed in
+`shenyu-admin/src/main/resources/sql-script/h2/schema.sql` still uses
+`DEFAULT_KEY_RESOLVER` (`default`) rather than `CONTEXT_PATH_KEY_RESOLVER`
+(`contextPath`). `AiTokenLimiterEnum.getByName` falls back to `CONTEXT_PATH`
+for the unsupported value. H2 dictionary alignment remains a separate follow-up;
+this consolidation does not change the H2 schema.
+
 Historical upgrade scripts remain separate and unchanged. The Admin distribution
 packages the whole `db` directory, including this guide and the shared script.
-
