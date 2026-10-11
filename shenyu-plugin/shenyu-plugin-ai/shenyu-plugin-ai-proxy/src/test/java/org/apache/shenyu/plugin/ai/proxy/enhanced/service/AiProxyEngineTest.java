@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import reactor.core.publisher.Flux;
@@ -118,9 +119,10 @@ class AiProxyEngineTest {
     void testExecuteDelegatesBuiltRequestToTransport() throws Exception {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}";
 
-        StepVerifier.create(engine.execute(body, config))
-                .expectNext(upstreamResponse)
-                .verifyComplete();
+        StepVerifier.create(engine.execute(body, config, Optional.empty(), response -> {
+            assertEquals(200, response.getStatusCode());
+            return response.getBody().then();
+        })).verifyComplete();
 
         assertEquals("https://api.openai.com/v1/chat/completions",
                 transportedRequest.get().getUri().toString());

@@ -95,6 +95,15 @@ class OpenAiChatResponseTest {
         assertTrue(response.getHeaders().keySet().stream().noneMatch(name -> name.equalsIgnoreCase("Content-Length")));
     }
 
+    @Test
+    void rejectsAJsonResponseToAStreamingRequestAndReleasesItsBody() {
+        AtomicBoolean cancelled = new AtomicBoolean();
+        AiUpstreamResponse upstream = new AiUpstreamResponse(200, Map.of("Content-Type", List.of("application/json")),
+                Flux.just("{\"unexpected\":true}".getBytes(StandardCharsets.UTF_8)).concatWith(Flux.never()).doOnCancel(() -> cancelled.set(true)));
+        StepVerifier.create(new OpenAiChat().encodeResponse(upstream, true).getBody()).expectError(AiProxyException.class).verify();
+        assertTrue(cancelled.get());
+    }
+
     private Flux<String> encode(final Flux<byte[]> body) {
         return new OpenAiChat().encodeResponse(new AiUpstreamResponse(200, Map.of(), body), true)
                 .getBody().map(bytes -> new String(bytes, StandardCharsets.UTF_8));

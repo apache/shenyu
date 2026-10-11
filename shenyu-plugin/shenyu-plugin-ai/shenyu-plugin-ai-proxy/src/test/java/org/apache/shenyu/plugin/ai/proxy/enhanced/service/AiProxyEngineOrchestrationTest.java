@@ -213,6 +213,23 @@ class AiProxyEngineOrchestrationTest {
         assertFalse(providerAdapted.get());
     }
 
+    @Test
+    void cancellationDuringFallbackReachesOnlyTheActiveBody() {
+        AtomicInteger calls = new AtomicInteger();
+        AtomicBoolean cancelled = new AtomicBoolean();
+        AiProxyEngine engine = engine(request -> {
+            if (calls.incrementAndGet() <= 2) {
+                return Mono.error(networkFailure());
+            }
+            return Mono.just(response(200, Flux.just(bytes("data: {\"fallback\":true}\n\n"))
+                    .concatWith(Flux.never()).doOnCancel(() -> cancelled.set(true))));
+        });
+        StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
+                .thenAwait(Duration.ofMillis(30)).thenCancel().verify(Duration.ofSeconds(3));
+        assertEquals(3, calls.get());
+        assertTrue(cancelled.get());
+    }
+
     private AiProxyEngine engine(final AiProxyTransport transport) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), transport, Duration.ZERO);

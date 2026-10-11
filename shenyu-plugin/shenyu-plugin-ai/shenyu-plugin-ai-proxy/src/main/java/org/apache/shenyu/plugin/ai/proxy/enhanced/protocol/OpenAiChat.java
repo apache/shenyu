@@ -23,6 +23,10 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiMessage;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import reactor.core.publisher.Flux;
+
+import java.util.Locale;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -234,6 +238,13 @@ public final class OpenAiChat implements AiProxyProtocol {
     public AiUpstreamResponse encodeResponse(final AiUpstreamResponse response, final boolean stream) {
         if (!stream || response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
             return response;
+        }
+        String contentType = response.getHeaders().entrySet().stream()
+                .filter(entry -> "Content-Type".equalsIgnoreCase(entry.getKey()))
+                .flatMap(entry -> entry.getValue().stream()).findFirst().orElse(null);
+        if (Objects.nonNull(contentType) && !contentType.toLowerCase(Locale.ROOT).startsWith("text/event-stream")) {
+            AiProxyException error = new AiProxyException(AiProxyException.Kind.PROTOCOL, "Expected an AI event-stream response", null);
+            return new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), response.getBody().take(1).thenMany(Flux.error(error)));
         }
         Map<String, List<String>> headers = new LinkedHashMap<>(response.getHeaders());
         headers.keySet().removeIf(name -> name.equalsIgnoreCase("Content-Length") || name.equalsIgnoreCase("Content-Type"));

@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
-import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
-import org.apache.shenyu.plugin.ai.common.spring.ai.factory.DeepSeekModelFactory;
-import org.apache.shenyu.plugin.ai.common.spring.ai.factory.OpenAiModelFactory;
-import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
@@ -29,10 +25,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStreamCancellation;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
@@ -60,18 +55,18 @@ public class AiProxyPluginConfiguration {
      * Ai proxy plugin.
      *
      * @param aiProxyConfigService   the aiProxyConfigService
-     * @param aiProxyExecutorService the aiProxyExecutorService
+     * @param aiProxyEngine the aiProxyEngine
      * @param aiProxyPluginHandler   the aiProxyPluginHandler
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
-            final AiProxyExecutorService aiProxyExecutorService,
+            final AiProxyEngine aiProxyEngine,
             final AiProxyPluginHandler aiProxyPluginHandler) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
-                aiProxyExecutorService,
+                aiProxyEngine,
                 aiProxyPluginHandler);
     }
 
@@ -88,43 +83,6 @@ public class AiProxyPluginConfiguration {
     @Bean
     public AiProxyConfigService aiProxyConfigService() {
         return new AiProxyConfigService();
-    }
-
-    @Bean
-    public AiProxyExecutorService aiProxyExecutorService() {
-        return new AiProxyExecutorService();
-    }
-
-    /**
-     * Ai model factory registry.
-     *
-     * @param aiModelFactoryList aiModelFactoryList
-     * @return the registry
-     */
-    @Bean
-    public AiModelFactoryRegistry aiModelFactoryRegistry(
-            final List<AiModelFactory> aiModelFactoryList) {
-        return new AiModelFactoryRegistry(aiModelFactoryList);
-    }
-
-    /**
-     * OpenAi model factory.
-     *
-     * @return the factory
-     */
-    @Bean
-    public OpenAiModelFactory openAiModelFactory() {
-        return new OpenAiModelFactory();
-    }
-
-    /**
-     * DeepSeek model factory.
-     *
-     * @return the factory
-     */
-    @Bean
-    public DeepSeekModelFactory deepSeekModelFactory() {
-        return new DeepSeekModelFactory();
     }
 
     /**
@@ -202,8 +160,48 @@ public class AiProxyPluginConfiguration {
     @ConditionalOnMissingBean(AiProxyTransport.class)
     public AiProxyTransport aiProxyTransport() {
         final WebClient webClient = WebClient.builder()
-                .filter(AiStreamCancellation.responseFilter())
                 .build();
         return new WebClientAiProxyTransport(webClient);
     }
+
+    /**
+     * Create the DeepSeek compatible provider profile.
+     *
+     * @return provider profile
+     */
+    @Bean
+    public OpenAiCompatible deepSeekProvider() {
+        return new OpenAiCompatible("DeepSeek");
+    }
+
+    /**
+     * Create the ALiYun compatible provider profile.
+     *
+     * @return provider profile
+     */
+    @Bean
+    public OpenAiCompatible aLiYunProvider() {
+        return new OpenAiCompatible("ALiYun");
+    }
+
+    /**
+     * Create the OpenAPI compatible provider profile.
+     *
+     * @return provider profile
+     */
+    @Bean
+    public OpenAiCompatible openAPIProvider() {
+        return new OpenAiCompatible("OpenAPI");
+    }
+
+    /**
+     * Create the Moonshot compatible provider profile.
+     *
+     * @return provider profile
+     */
+    @Bean
+    public OpenAiCompatible moonshotProvider() {
+        return new OpenAiCompatible("Moonshot");
+    }
+
 }

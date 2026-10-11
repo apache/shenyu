@@ -70,18 +70,6 @@ public final class AiProxyEngine {
     }
 
     /**
-     * Execute a raw exchange without a response consumer, retained for initial contract callers.
-     * The caller owns body consumption. Gateway callers use the scoped exchange overload.
-     *
-     * @param requestBody client request
-     * @param config provider configuration
-     * @return raw upstream response
-     */
-    public Mono<AiUpstreamResponse> execute(final String requestBody, final AiCommonConfig config) {
-        return Mono.defer(() -> aiProxyTransport.execute(buildRequest(requestBody, config)));
-    }
-
-    /**
      * Execute and consume a complete exchange with retry and fallback before body emission.
      * Keeping the consumer inside this scope preserves upstream lifetime and backpressure.
      *
@@ -157,7 +145,7 @@ public final class AiProxyEngine {
     }
 
     private boolean retryableStatus(final int status) {
-        return status == 429 || status >= 500;
+        return status == 429 || (status >= 500 && status < 600);
     }
 
     private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
@@ -174,12 +162,17 @@ public final class AiProxyEngine {
             throw new ShenyuException("AI request body must be a JSON object");
         }
         ObjectNode payload = (ObjectNode) root;
+        String upstreamBody = requestBody;
+        if (payload.has("fallbackConfig")) {
+            payload.remove("fallbackConfig");
+            upstreamBody = payload.toString();
+        }
         AiProxyProtocol protocol = Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()
                 ? aiProxyProtocolFactory.detect(payload) : aiProxyProtocolFactory.getProtocol(config.getProtocol());
         if (!protocol.matches(payload)) {
             throw new ShenyuException("Request body does not match AI protocol: " + protocol.name());
         }
-        ShenyuAiRequest decoded = protocol.decodeRequest(requestBody, payload);
+        ShenyuAiRequest decoded = protocol.decodeRequest(upstreamBody, payload);
         AiProxyProvider provider = aiProxyProviderFactory.getProvider(
                 Objects.isNull(config.getProvider()) || config.getProvider().isBlank() ? "openai" : config.getProvider());
         if (!provider.supports(protocol.name())) {

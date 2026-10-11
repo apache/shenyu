@@ -51,11 +51,6 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-retry</artifactId>
-            <version>${spring-ai.version}</version>
-        </dependency>
         <!--for test-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
