@@ -63,10 +63,18 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     
     @Override
     public void registerHistogram(final String name, final String[] labelNames, final String document) {
+        registerHistogram(name, labelNames, document, null);
+    }
+
+    @Override
+    public void registerHistogram(final String name, final String[] labelNames, final String document, final double[] buckets) {
         if (!HISTOGRAM_MAP.containsKey(name)) {
             Histogram.Builder builder = Histogram.build().name(name).help(document);
             if (Objects.nonNull(labelNames)) {
                 builder.labelNames(labelNames);
+            }
+            if (Objects.nonNull(buckets)) {
+                builder.buckets(buckets);
             }
             HISTOGRAM_MAP.putIfAbsent(name, builder.register());
         }
@@ -113,14 +121,19 @@ public final class PrometheusMetricsRegister implements MetricsRegister {
     
     @Override
     public void recordTime(final String name, final String[] labelValues, final long duration) {
+        observe(name, labelValues, duration);
+    }
+
+    @Override
+    public void observe(final String name, final String[] labelValues, final double value) {
         Histogram histogram = HISTOGRAM_MAP.get(name);
         if (Objects.isNull(histogram)) {
             return;
         }
         if (Objects.nonNull(labelValues)) {
-            histogram.labels(labelValues).observe(duration);
+            histogram.labels(labelValues).observe(value);
         } else {
-            histogram.observe(duration);
+            histogram.observe(value);
         }
     }
     

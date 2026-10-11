@@ -22,10 +22,13 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.DividePlugin;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.context.DivideShenyuContextDecorator;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideMetaDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,11 +43,23 @@ public class DividePluginConfiguration {
     /**
      * init dividePlugin.
      *
+     * @param canaryDecisionService request partition decision service
      * @return {@linkplain DividePlugin}
      */
     @Bean
-    public ShenyuPlugin dividePlugin() {
-        return new DividePlugin();
+    public ShenyuPlugin dividePlugin(final CanaryDecisionService canaryDecisionService) {
+        return new DividePlugin(canaryDecisionService);
+    }
+
+    /**
+     * Default request partition decision service.
+     *
+     * @return Canary decision service
+     */
+    @Bean
+    @ConditionalOnMissingBean(CanaryDecisionService.class)
+    public CanaryDecisionService canaryDecisionService() {
+        return new DefaultCanaryDecisionService();
     }
 
     /**

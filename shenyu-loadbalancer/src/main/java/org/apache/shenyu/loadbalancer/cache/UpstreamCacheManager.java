@@ -26,6 +26,8 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +48,9 @@ public final class UpstreamCacheManager {
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 
     private static final Map<String, List<Upstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+
+    // Presence is based on configured nodes, including unhealthy gray nodes.
+    private static final Map<String, Boolean> LEGACY_GRAY_SELECTORS = Maps.newConcurrentMap();
 
     private UpstreamCheckTask task;
 
@@ -131,12 +136,27 @@ public final class UpstreamCacheManager {
     }
 
     /**
+     * Find healthy nodes using the legacy gray-exclusive pool policy.
+     *
+     * @param selectorId selector identifier
+     * @return gray healthy nodes when gray is configured, otherwise all healthy nodes
+     */
+    public List<Upstream> findLegacyUpstreamListBySelectorId(final String selectorId) {
+        List<Upstream> healthy = findUpstreamListBySelectorId(selectorId);
+        if (Objects.isNull(healthy) || !Boolean.TRUE.equals(LEGACY_GRAY_SELECTORS.get(selectorId))) {
+            return healthy;
+        }
+        return healthy.stream().filter(Upstream::isGray).collect(Collectors.toList());
+    }
+
+    /**
      * Remove by key.
      *
      * @param key the key
      */
     public void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
+        LEGACY_GRAY_SELECTORS.remove(key);
         task.triggerRemoveAll(key);
     }
 
@@ -155,6 +175,7 @@ public final class UpstreamCacheManager {
             return;
         }
 
+        LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
@@ -163,11 +184,25 @@ public final class UpstreamCacheManager {
         List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
+        updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private void updateUpstreamMetadata(final String selectorId, final List<Upstream> upstreams, final List<Upstream> existingHealthy) {
+        Map<String, Upstream> existing = new HashMap<>(getCurrentUnhealthyMap(selectorId));
+        existingHealthy.forEach(upstream -> existing.put(upstreamMapKey(upstream), upstream));
+        upstreams.forEach(upstream -> {
+            Upstream cached = existing.get(upstreamMapKey(upstream));
+            if (Objects.nonNull(cached)) {
+                cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
+                cached.setLabels(upstream.getLabels());
+                cached.setGray(upstream.isGray());
+            }
+        });
     }
 
     private void initializeUpstreamHealthStatus(final List<Upstream> upstreamList) {

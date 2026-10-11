@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
@@ -27,6 +28,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
@@ -43,9 +45,10 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -60,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -72,10 +76,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.times;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.mockito.ArgumentCaptor;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -278,6 +282,7 @@ class ProxySelectorServiceTest {
 
         DiscoveryDO discoveryDO = new DiscoveryDO();
         discoveryDO.setDiscoveryType("local");
+        discoveryDO.setNamespaceId("namespace-1");
         given(discoveryMapper.selectById("discovery-1")).willReturn(discoveryDO);
 
         DiscoveryProcessor discoveryProcessor = mock(DiscoveryProcessor.class);
@@ -446,6 +451,67 @@ class ProxySelectorServiceTest {
 
         assertNotNull(configImportResult);
         assertEquals(configImportResult.getSuccessCount(), proxySelectorDataList.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"labels\":{}}", "{\"labels\":{\"release\":\"stable\"}}", "{\"warmup\":20}", "{}", "{\"warmup\":20,\"extension\":{\"x\":1},\"labels\":{}}"})
+    void testDiscoveryEditorReplacesPropsAndSynchronizesLabels(final String props) {
+        final ProxySelectorAddDTO dto = discoveryEditorRequest(props);
+        when(discoveryRelMapper.selectByProxySelectorId("123")).thenReturn(buildDiscoveryRelDO());
+        DiscoveryUpstreamDO before = new DiscoveryUpstreamDO();
+        before.setProtocol("http://");
+        before.setUpstreamUrl("localhost:8080");
+        before.setProps("{\"warmup\":10,\"gray\":true,\"healthCheckEnabled\":false,\"extension\":{\"x\":1},"
+                + "\"labels\":{\"release\":\"canary\"}}");
+        AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(before);
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("123")).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.insert(any())).thenAnswer(invocation -> {
+            stored.set(invocation.getArgument(0));
+            return 1;
+        });
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("123");
+        handler.setDiscoveryId("discovery");
+        when(discoveryHandlerMapper.selectById("123")).thenReturn(handler);
+        DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setDiscoveryType("local");
+        when(discoveryMapper.selectById("discovery")).thenReturn(discovery);
+        DiscoveryProcessor processor = mock(DiscoveryProcessor.class);
+        when(discoveryProcessorHolder.chooseProcessor("local")).thenReturn(processor);
+        proxySelectorService.update(dto);
+        assertEquals(props, stored.get().getProps());
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(processor).changeUpstream(any(), synced.capture());
+        assertEquals(props, synced.getValue().get(0).getProps());
+    }
+
+    @Test
+    void testDiscoveryEditorRejectsInvalidLabelsBeforeWriting() {
+        final ProxySelectorAddDTO dto = discoveryEditorRequest("{\"labels\":null}");
+        when(discoveryRelMapper.selectByProxySelectorId("123")).thenReturn(buildDiscoveryRelDO());
+        assertThrows(ShenyuAdminException.class, () -> proxySelectorService.update(dto));
+        assertThrows(ShenyuAdminException.class, () -> proxySelectorService.create(dto));
+        assertThrows(ShenyuAdminException.class, () -> proxySelectorService.bindingDiscoveryHandler(dto));
+        verify(proxySelectorMapper, never()).update(any());
+        verify(proxySelectorMapper, never()).insert(any());
+        verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
+        verify(discoveryUpstreamMapper, never()).insert(any());
+        verifyNoInteractions(discoveryHandlerMapper, discoveryMapper, discoveryProcessorHolder);
+    }
+
+    private ProxySelectorAddDTO discoveryEditorRequest(final String props) {
+        ProxySelectorAddDTO dto = new ProxySelectorAddDTO();
+        dto.setId("123");
+        dto.setName("test");
+        dto.setDiscovery(new ProxySelectorAddDTO.Discovery());
+        ProxySelectorAddDTO.DiscoveryUpstream upstream = new ProxySelectorAddDTO.DiscoveryUpstream();
+        upstream.setProtocol("http://");
+        upstream.setUrl("localhost:8080");
+        upstream.setProps(props);
+        upstream.setStatus(0);
+        upstream.setWeight(50);
+        dto.setDiscoveryUpstreams(Collections.singletonList(upstream));
+        return dto;
     }
 
     private ProxySelectorDO buildProxySelectorDO() {

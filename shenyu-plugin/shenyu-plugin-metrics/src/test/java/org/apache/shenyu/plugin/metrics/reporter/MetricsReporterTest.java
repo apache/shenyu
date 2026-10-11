@@ -17,20 +17,20 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
+import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.metrics.config.Metric;
+import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.enums.MetricType;
 import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
-import org.junit.FixMethodOrder;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runners.MethodSorters;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -42,15 +42,17 @@ import java.util.Map;
 /**
  * The Test Case For MetricsReporter.
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class MetricsReporterTest {
 
     private static final String DOCUMENT = "testDocument";
 
     private static MetricsRegister metricsRegister;
 
-    @BeforeAll
-    public static void setUp() {
+    @BeforeEach
+    public void setUp() {
+        MetricsReporter.clean();
+        new PrometheusMetricsRegister().clean();
+        CollectorRegistry.defaultRegistry.clear();
         metricsRegister = new PrometheusMetricsRegister();
         MetricsReporter.register(metricsRegister);
     }
@@ -58,9 +60,12 @@ public final class MetricsReporterTest {
     @Test
     public void testRegister() throws Exception {
         Map<String, Counter> map1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map1.size(), 10);
+        Assertions.assertEquals(12, map1.size());
+        Assertions.assertTrue(map1.containsKey(CanaryMetric.REQUESTS.getName()));
+        Assertions.assertTrue(map1.containsKey(CanaryMetric.FALLBACK.getName()));
         Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(map2.size(), 4);
+        Assertions.assertEquals(3, map2.size());
+        Assertions.assertTrue(map2.containsKey(CanaryMetric.DECISION_DURATION.getName()));
         List<String> labels = new ArrayList<>();
         labels.add("shenyu_request_total");
         Collection<Metric> metrics = new ArrayList<>();
@@ -69,11 +74,11 @@ public final class MetricsReporterTest {
         metrics.add(new Metric(MetricType.HISTOGRAM, "name3", DOCUMENT, labels));
         MetricsReporter.registerMetrics(metrics);
         Map<String, Counter> map3 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map3.size(), 11);
+        Assertions.assertEquals(13, map3.size());
         Map<String, Histogram> map4 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(map4.size(), 5);
+        Assertions.assertEquals(4, map4.size());
         Map<String, Gauge> map5 = getPrivateField(metricsRegister, "GAUGE_MAP", Map.class);
-        Assertions.assertEquals(map5.size(), 3);
+        Assertions.assertEquals(1, map5.size());
     }
 
     @Test
@@ -161,9 +166,10 @@ public final class MetricsReporterTest {
         Assertions.assertTrue(CollectionUtils.isEmpty(counterMap2));
     }
 
-    @AfterAll
-    public static void clean() {
+    @AfterEach
+    public void clean() {
         metricsRegister.clean();
         MetricsReporter.clean();
+        CollectorRegistry.defaultRegistry.clear();
     }
 }

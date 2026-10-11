@@ -143,6 +143,26 @@ public interface Constants {
     String DIVIDE_SELECTOR_ID = "divideSelectorId";
 
     /**
+     * Actual request partition: lowercase stable or canary.
+     */
+    String SHENYU_CANARY_PARTITION = "shenyuCanaryPartition";
+
+    /**
+     * Immutable label constraints of the actual request partition.
+     */
+    String SHENYU_CANARY_LABELS = "shenyuCanaryLabels";
+
+    /**
+     * Request-scoped canary observation, independent of retry routing attributes.
+     */
+    String SHENYU_CANARY_CONTEXT = "shenyuCanaryContext";
+
+    /**
+     * Optional callback receiving the first canary routing observation.
+     */
+    String METRICS_CANARY = "metricsCanary";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";

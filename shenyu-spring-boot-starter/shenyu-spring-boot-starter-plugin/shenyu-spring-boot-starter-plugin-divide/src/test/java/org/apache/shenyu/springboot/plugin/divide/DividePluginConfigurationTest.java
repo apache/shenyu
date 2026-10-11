@@ -21,6 +21,8 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,9 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test case for {@link DividePluginConfiguration}.
@@ -55,6 +60,20 @@ public class DividePluginConfigurationTest {
                 assertNotNull(plugin);
             }
         );
+    }
+
+    @Test
+    public void testDefaultCanaryDecisionService() {
+        applicationContextRunner.run(context -> assertTrue(context.getBean(CanaryDecisionService.class) instanceof DefaultCanaryDecisionService));
+    }
+
+    @Test
+    public void testCustomCanaryDecisionService() {
+        CanaryDecisionService custom = mock(CanaryDecisionService.class);
+        applicationContextRunner.withBean(CanaryDecisionService.class, () -> custom).run(context -> {
+            assertSame(custom, context.getBean(CanaryDecisionService.class));
+            assertNotNull(context.getBean("dividePlugin", ShenyuPlugin.class));
+        });
     }
 
     @Test

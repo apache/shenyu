@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -31,6 +32,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -40,9 +42,14 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -51,7 +58,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Divide Plugin.
@@ -63,6 +73,16 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final String P2C = "p2c";
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private final CanaryDecisionService canaryDecisionService;
+
+    public DividePlugin() {
+        this(new DefaultCanaryDecisionService());
+    }
+
+    public DividePlugin(final CanaryDecisionService canaryDecisionService) {
+        this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
+    }
 
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
@@ -99,37 +119,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final List<Upstream> breakeredUpstreamList = filterByCircuitBreaker(selector.getId(), upstreamList);
-        if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
-            LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
-        Upstream upstream;
-        if (CollectionUtils.isNotEmpty(specifyDomains)) {
-            String requested = specifyDomains.get(0);
-            upstream = breakeredUpstreamList.stream()
-                    .filter(u -> u.getUrl().equals(requested))
-                    .findFirst()
-                    .map(u -> Upstream.builder()
-                            .url(u.getUrl())
-                            .protocol(u.getProtocol())
-                            .weight(u.getWeight())
-                            .warmup(u.getWarmup())
-                            .status(u.isStatus())
-                            .build())
-                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange));
-        } else {
-            upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
-        }
+        Upstream upstream = selectUpstream(exchange, selector.getId(), rule, ruleHandle, upstreamList);
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        // set domain
         String domain = upstream.buildDomain();
+        // set domain
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
@@ -165,6 +162,85 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+
+    private Upstream selectUpstream(final ServerWebExchange exchange, final String selectorId, final RuleData rule,
+                                    final DivideRuleHandle ruleHandle, final List<Upstream> upstreams) {
+        CanaryConfig config = ruleHandle.getCanary();
+        if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN))) {
+            return selectLegacyUpstream(exchange, selectorId, ruleHandle);
+        }
+        if (Objects.isNull(config)) {
+            return selectLegacyUpstream(exchange, selectorId, ruleHandle);
+        }
+        long start = System.nanoTime();
+        CanaryDecision actual = canaryDecisionService.decide(exchange, rule.getId(), config);
+        CanaryContext context = new CanaryContext(selectorId, rule.getId(), actual.getName(), null, null, null, System.nanoTime() - start);
+        exchange.getAttributes().putIfAbsent(Constants.SHENYU_CANARY_CONTEXT, context);
+        Map<String, String> labels = partitionLabels(actual, config);
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        if (candidates.isEmpty() && actual == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
+            actual = CanaryDecision.STABLE;
+            labels = partitionLabels(actual, config);
+            candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        }
+        if (candidates.isEmpty()) {
+            context.setRejectReason(actual == CanaryDecision.CANARY ? CanaryContext.CANARY_POOL_EMPTY : CanaryContext.STABLE_POOL_EMPTY);
+            reportCanary(exchange, context);
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            return null;
+        }
+        // The pool is resolved before load balancing. A backend failure must not change this partition.
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, actual.getName());
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, labels);
+        candidates = filterByCircuitBreaker(selectorId, candidates);
+        Upstream upstream = candidates.isEmpty() ? null : LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
+        context.setActualPartition(Objects.isNull(upstream) ? null : actual.getName());
+        context.setRejectReason(Objects.isNull(upstream) ? CanaryContext.NO_UPSTREAM_SELECTED : null);
+        if (Objects.nonNull(upstream) && !context.getIntendedPartition().equals(actual.getName())) {
+            context.setFallbackReason(CanaryContext.CANARY_POOL_EMPTY);
+        }
+        reportCanary(exchange, context);
+        return upstream;
+    }
+
+    private void reportCanary(final ServerWebExchange exchange, final CanaryContext context) {
+        if (exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT) != context) {
+            return;
+        }
+        LOG.debug("canary routing selector={} rule={} intended={} actual={} fallback={} reject={}", context.getSelectorId(),
+                context.getRuleId(), context.getIntendedPartition(), context.getActualPartition(), context.getFallbackReason(), context.getRejectReason());
+        final Consumer<CanaryContext> consumer = exchange.getAttribute(Constants.METRICS_CANARY);
+        try {
+            Optional.ofNullable(consumer).ifPresent(c -> c.accept(context));
+        } catch (RuntimeException ex) {
+            LOG.debug("Unable to report canary routing observation", ex);
+        }
+    }
+
+    private Upstream selectLegacyUpstream(final ServerWebExchange exchange, final String selectorId, final DivideRuleHandle ruleHandle) {
+        List<Upstream> candidates = UpstreamCacheManager.getInstance().findLegacyUpstreamListBySelectorId(selectorId);
+        if (CollectionUtils.isEmpty(candidates)) {
+            return null;
+        }
+        candidates = filterByCircuitBreaker(selectorId, candidates);
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        if (CollectionUtils.isNotEmpty(specifyDomains)) {
+            String requested = specifyDomains.get(0);
+            Optional<Upstream> specified = candidates.stream().filter(upstream -> upstream.getUrl().equals(requested)).findFirst();
+            if (specified.isPresent()) {
+                return specified.get();
+            }
+        }
+        return LoadbalancerUtils.getForExchange(candidates, ruleHandle.getLoadBalance(), exchange);
+    }
+
+    private Map<String, String> partitionLabels(final CanaryDecision partition, final CanaryConfig config) {
+        Map<String, String> labels = partition == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
+        return Objects.isNull(labels) ? Map.of() : Map.copyOf(labels);
     }
 
     /**

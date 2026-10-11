@@ -102,6 +102,7 @@ public final class DividePluginCircuitBreakerTest {
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
         when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(upstream));
+        when(cacheManager.findLegacyUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(upstream));
         this.cacheMock = mockStatic(UpstreamCacheManager.class);
         cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
     }
@@ -164,6 +165,7 @@ public final class DividePluginCircuitBreakerTest {
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
         List<Upstream> upstreams = List.of(upstream, healthy);
         when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(upstreams);
+        when(cacheManager.findLegacyUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(upstreams);
         cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
         // the blocked upstream is filtered out, the request still goes through the healthy one
         when(chain.execute(exchange)).thenReturn(Mono.empty());

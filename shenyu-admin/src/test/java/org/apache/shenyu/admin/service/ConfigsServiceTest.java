@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -170,7 +171,7 @@ public final class ConfigsServiceTest {
         SelectorMapper selectorMapper = mock(SelectorMapper.class);
         PluginMapper pluginMapper = mock(PluginMapper.class);
         RuleService ruleServiceImpl = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class),
-                selectorMapper, pluginMapper, mock(RuleEventPublisher.class));
+                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class));
         ConfigsServiceImpl importService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService,
                 pluginHandleService, selectorService, ruleServiceImpl, metaDataService, shenyuDictService,
                 proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());
