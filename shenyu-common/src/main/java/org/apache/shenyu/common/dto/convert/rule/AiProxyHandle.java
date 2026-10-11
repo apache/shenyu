@@ -66,6 +66,11 @@ public class AiProxyHandle {
      */
     private FallbackConfig fallbackConfig;
 
+    /**
+     * AI protocol identifier.
+     */
+    private String protocol = "openai-chat";
+
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
 
@@ -245,6 +250,24 @@ public class AiProxyHandle {
      */
     public void setFallbackConfig(final FallbackConfig fallbackConfig) {
         this.fallbackConfig = fallbackConfig;
+    }
+
+    /**
+     * Get AI protocol identifier.
+     *
+     * @return AI protocol identifier
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * Set AI protocol identifier.
+     *
+     * @param protocol AI protocol identifier
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
     }
 
     /**

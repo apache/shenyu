@@ -62,6 +62,11 @@ public class AiCommonConfig {
      */
     private Boolean stream = false;
 
+    /**
+     * AI protocol identifier.
+     */
+    private String protocol = "openai-chat";
+
     public AiCommonConfig() {
     }
 
@@ -82,6 +87,7 @@ public class AiCommonConfig {
         this.temperature = other.getTemperature();
         this.maxTokens = other.getMaxTokens();
         this.stream = other.getStream();
+        this.protocol = other.getProtocol();
     }
 
     /**
@@ -211,6 +217,24 @@ public class AiCommonConfig {
     }
 
     /**
+     * Get AI protocol identifier.
+     *
+     * @return AI protocol identifier
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * Set AI protocol identifier.
+     *
+     * @param protocol AI protocol identifier
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
      * merge with another config.
      *
      * @param overlay overlay config
@@ -227,6 +251,7 @@ public class AiCommonConfig {
         this.setTemperature(Optional.ofNullable(overlay.getTemperature()).orElse(this.getTemperature()));
         this.setMaxTokens(Optional.ofNullable(overlay.getMaxTokens()).orElse(this.getMaxTokens()));
         this.setStream(Optional.ofNullable(overlay.getStream()).orElse(this.getStream()));
+        this.setProtocol(Optional.ofNullable(overlay.getProtocol()).orElse(this.getProtocol()));
         return this;
     }
 
@@ -245,12 +270,13 @@ public class AiCommonConfig {
                 && Objects.equals(model, that.model)
                 && Objects.equals(temperature, that.temperature)
                 && Objects.equals(maxTokens, that.maxTokens)
-                && Objects.equals(stream, that.stream);
+                && Objects.equals(stream, that.stream)
+                && Objects.equals(protocol, that.protocol);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, protocol);
     }
 
     @Override
@@ -263,6 +289,7 @@ public class AiCommonConfig {
                 + ", temperature=" + temperature
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream
+                + ", protocol='" + protocol + '\''
                 + '}';
     }
 }
