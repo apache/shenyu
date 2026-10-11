@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
 /**
@@ -41,4 +42,24 @@ public interface AiProxyProvider {
      * @return upstream request
      */
     AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
+
+    /**
+     * Check whether the provider supports a client protocol.
+     *
+     * @param protocol client protocol identifier
+     * @return whether supported
+     */
+    default boolean supports(final String protocol) {
+        return true;
+    }
+
+    /**
+     * Adapt provider-specific response details before protocol encoding.
+     *
+     * @param response raw upstream response
+     * @return adapted response
+     */
+    default AiUpstreamResponse adaptResponse(final AiUpstreamResponse response) {
+        return response;
+    }
 }
