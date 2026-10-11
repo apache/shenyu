@@ -25,6 +25,10 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-agent-gateway</artifactId>
 
+    <properties>
+        <json-schema-validator.version>2.0.0</json-schema-validator.version>
+    </properties>
+
     <build>
         <resources>
             <resource>
@@ -38,6 +42,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.modelcontextprotocol.sdk</groupId>
             <artifactId>mcp-core</artifactId>

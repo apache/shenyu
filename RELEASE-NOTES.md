@@ -6,6 +6,16 @@
 
 ### Behavior Changes
 
+- Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
+  deletion with strict result-copy handling. Complete JSON text copies are rebuilt
+  from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
+  extensions are refused when a plan is active; disabled plans retain prior behavior.
+  This is declared-field filtering, not arbitrary sensitive-value detection or
+  global log redaction. Advertised outputSchema
+  remains unchanged and filtered results must satisfy the supported bounded
+  Draft 2020-12 contract. Filtering/schema failures return HTTP 502 / JSON-RPC
+  `-32024` without an unfiltered fallback; external schema resource loading is denied.
+
 - Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
   accepts only the `aggregation` field; blank config and `{}` remain valid.
   Previously stored arbitrary fields must be removed or migrated before the next
