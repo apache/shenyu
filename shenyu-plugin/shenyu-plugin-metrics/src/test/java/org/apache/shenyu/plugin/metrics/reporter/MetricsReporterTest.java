@@ -22,6 +22,7 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.metrics.config.Metric;
+import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.enums.MetricType;
 import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
@@ -58,9 +59,15 @@ public final class MetricsReporterTest {
     @Test
     public void testRegister() throws Exception {
         Map<String, Counter> map1 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map1.size(), 10);
+        for (String name : List.of(LabelNames.REQUEST_TOTAL, LabelNames.REQUEST_TYPE_TOTAL, LabelNames.REQUEST_THROW_TOTAL,
+                LabelNames.AGENT_MCP_CALLS_TOTAL, LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL,
+                LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL,
+                LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL)) {
+            Assertions.assertNotNull(map1.get(name), name);
+        }
         Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(map2.size(), 4);
+        Assertions.assertNotNull(map2.get(LabelNames.EXECUTE_LATENCY_NAME));
+        Assertions.assertNotNull(map2.get(LabelNames.AGENT_MCP_CALL_LATENCY));
         List<String> labels = new ArrayList<>();
         labels.add("shenyu_request_total");
         Collection<Metric> metrics = new ArrayList<>();
@@ -69,11 +76,13 @@ public final class MetricsReporterTest {
         metrics.add(new Metric(MetricType.HISTOGRAM, "name3", DOCUMENT, labels));
         MetricsReporter.registerMetrics(metrics);
         Map<String, Counter> map3 = getPrivateField(metricsRegister, "COUNTER_MAP", Map.class);
-        Assertions.assertEquals(map3.size(), 11);
+        Assertions.assertNotNull(map3.get("name1"));
+        Assertions.assertFalse(map3.containsKey("name2"));
         Map<String, Histogram> map4 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
-        Assertions.assertEquals(map4.size(), 5);
+        Assertions.assertNotNull(map4.get("name3"));
+        Assertions.assertFalse(map4.containsKey("name2"));
         Map<String, Gauge> map5 = getPrivateField(metricsRegister, "GAUGE_MAP", Map.class);
-        Assertions.assertEquals(map5.size(), 3);
+        Assertions.assertNotNull(map5.get("name2"));
     }
 
     @Test
