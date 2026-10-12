@@ -278,6 +278,18 @@ final class WasmBridgeTest {
     }
 
     @Test
+    void optionalHooksCanBeOmitted() {
+        try (MinimalPlugin minimal = new MinimalPlugin()) {
+            minimal.setResult(CONTINUE);
+            MockServerWebExchange exchange = request();
+            minimal.before(exchange);
+            complete(minimal.execute(exchange, chain));
+            minimal.after(exchange);
+            verify(chain).execute(exchange);
+        }
+    }
+
+    @Test
     void hooksReceiveMetadataWithNullMatchedConfiguration() throws IOException {
         plugin.before(request());
         assertEquals("before", plugin.input().path("phase").textValue());
@@ -346,7 +358,7 @@ final class WasmBridgeTest {
         MatchDataCache.getInstance().cleanRuleDataData();
     }
 
-    static final class BridgePlugin extends AbstractShenyuWasmPlugin {
+    static class BridgePlugin extends AbstractShenyuWasmPlugin {
 
         void setResult(final String json) {
             byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
@@ -367,6 +379,9 @@ final class WasmBridgeTest {
         public String named() {
             return "WASM_BRIDGE";
         }
+    }
+
+    static final class MinimalPlugin extends BridgePlugin {
     }
 
     static final class BridgeHandler extends AbstractWasmPluginDataHandler {

@@ -238,7 +238,9 @@ From the repository root:
 
 The bridge tests use a small committed WASM fixture built from
 `src/test/wasm-bridge/bridge.wat`. Its mode 3 evaluates the serialized rule
-handle; other modes exercise result handling and failures. Rebuild it with WABT:
+handle; other modes exercise result handling and failures. The minimal fixture
+also verifies that guests may omit the optional before/after hooks. Rebuild them
+with WABT:
 
 ```bash
 cd shenyu-plugin/shenyu-plugin-wasm-base
@@ -246,4 +248,6 @@ wat2wasm src/test/wasm-bridge/bridge.wat \
   -o 'src/test/resources/org.apache.shenyu.plugin.wasm.base.WasmBridgeTest$BridgePlugin.wasm'
 wat2wasm src/test/wasm-bridge/bridge.wat \
   -o 'src/test/resources/org.apache.shenyu.plugin.wasm.base.WasmBridgeTest$BridgeHandler.wasm'
+wat2wasm src/test/wasm-bridge/minimal.wat \
+  -o 'src/test/resources/org.apache.shenyu.plugin.wasm.base.WasmBridgeTest$MinimalPlugin.wasm'
 ```
