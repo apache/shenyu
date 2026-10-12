@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.agent.gateway.protocol;
 
+import org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -42,6 +44,8 @@ public final class AgentMcpExecutionContext {
 
     private final Instant deadline;
 
+    private final AgentGatewayResultFilterConfig resultFilters;
+
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants) {
         this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, Instant.MAX);
@@ -49,7 +53,14 @@ public final class AgentMcpExecutionContext {
 
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, AgentGatewayResultFilterConfig.empty());
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters) {
         this.deadline = Objects.requireNonNull(deadline, "deadline");
+        this.resultFilters = Objects.requireNonNull(resultFilters, "resultFilters");
         this.requestId = requireText(requestId, "requestId");
         this.subject = requireText(subject, "subject");
         this.ruleId = requireText(ruleId, "ruleId");
@@ -89,6 +100,10 @@ public final class AgentMcpExecutionContext {
 
     public Set<String> getAllowedTools() {
         return allowedTools;
+    }
+
+    public AgentGatewayResultFilterConfig getResultFilters() {
+        return resultFilters;
     }
 
     private String requireText(final String value, final String name) {
