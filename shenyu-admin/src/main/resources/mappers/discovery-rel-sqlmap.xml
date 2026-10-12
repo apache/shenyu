@@ -48,10 +48,16 @@
     <select id="selectByDiscoveryHandlerIds" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM discovery_rel
-        WHERE discovery_handler_id IN
-        <foreach collection="handlerIds" item="handlerId" open="(" separator="," close=")">
-            #{handlerId}
-        </foreach>
+        WHERE
+        <choose>
+            <when test="handlerIds != null and handlerIds.size() > 0">
+                discovery_handler_id IN
+                <foreach collection="handlerIds" item="handlerId" open="(" separator="," close=")">
+                    #{handlerId}
+                </foreach>
+            </when>
+            <otherwise>1 = 0</otherwise>
+        </choose>
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">

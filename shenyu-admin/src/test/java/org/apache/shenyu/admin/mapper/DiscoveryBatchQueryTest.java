@@ -68,6 +68,8 @@ class DiscoveryBatchQueryTest {
                 assertTrue(upstreams.selectByDiscoveryHandlerIds(List.of("missing")).isEmpty());
                 assertTrue(upstreams.selectByDiscoveryHandlerIds(List.of()).isEmpty());
                 assertTrue(upstreams.selectByDiscoveryHandlerIds(null).isEmpty());
+                assertTrue(relations.selectByDiscoveryHandlerIds(List.of()).isEmpty());
+                assertTrue(relations.selectByDiscoveryHandlerIds(null).isEmpty());
             }
         } finally {
             jdbc.execute("SHUTDOWN");
