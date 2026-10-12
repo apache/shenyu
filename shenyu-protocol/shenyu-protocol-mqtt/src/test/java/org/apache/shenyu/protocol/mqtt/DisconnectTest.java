@@ -21,6 +21,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +57,9 @@ public class DisconnectTest {
         channelRepository = new ChannelRepository();
         Singleton.INST.single(WillRepository.class, willRepository);
         Singleton.INST.single(ChannelRepository.class, channelRepository);
+        // cleanChannel releases the stored session and subscriptions as well.
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
         when(ctx.channel()).thenReturn(channel);
     }
 
@@ -62,6 +67,8 @@ public class DisconnectTest {
     public void tearDown() {
         Singleton.INST.single(WillRepository.class, new WillRepository());
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
     }
 
     @Test

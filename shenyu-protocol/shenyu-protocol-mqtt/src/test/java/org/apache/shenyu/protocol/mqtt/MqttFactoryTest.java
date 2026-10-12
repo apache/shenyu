@@ -40,6 +40,8 @@ import io.netty.handler.codec.mqtt.MqttUnsubscribePayload;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository.WillEntry;
 import org.junit.jupiter.api.AfterEach;
@@ -75,6 +77,8 @@ public final class MqttFactoryTest {
         willRepository = new WillRepository();
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         Singleton.INST.single(WillRepository.class, willRepository);
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
     }

@@ -85,6 +85,10 @@ public final class UriUtilsTest {
         assertNotNull(uri);
         ret = UriUtils.getPathWithParams(uri);
         assertEquals("/path?key=val", ret);
+
+        uri = UriUtils.createUri("https://example.com/path?key=a%26b");
+        ret = UriUtils.getPathWithParams(uri);
+        assertEquals("/path?key=a%26b", ret);
     }
 
     @Test

@@ -26,9 +26,6 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
-import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
-import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 
 import java.util.Objects;
@@ -55,26 +52,23 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
         final Channel channel = ctx.channel();
-        Singleton.INST.get(ChannelRepository.class).remove(channel);
 
         final WillRepository willRepository = Singleton.INST.get(WillRepository.class);
         final WillRepository.WillEntry will = willRepository.get(channel);
         if (Objects.nonNull(will)) {
-            // a will is published at most once, and the repository keeps a strong reference
-            // to the channel, so it must be removed even if publishing fails.
+            // a will is published at most once; remove it before publishing so a repeated
+            // channelInactive cannot deliver it twice.
             willRepository.remove(channel);
             Publish.publishWill(will);
         }
-        // local state is consistent now, notify the rest of the pipeline exactly once.
-        super.channelInactive(ctx);
+        // release channel state before notifying the rest of the pipeline exactly once.
+        Disconnect.cleanChannel(ctx.channel());
+        ctx.fireChannelInactive();
     }
 
     @Override
     public void operationComplete(final Future<? super Void> future) throws Exception {
-        Channel channel = ((ChannelFuture) future).channel();
-        Singleton.INST.get(ChannelRepository.class).remove(channel);
-        Singleton.INST.get(SubscribeRepository.class).remove(channel);
-        MqttPacketIdGenerator.remove(channel);
+        Disconnect.cleanChannel(((ChannelFuture) future).channel());
     }
 
 }

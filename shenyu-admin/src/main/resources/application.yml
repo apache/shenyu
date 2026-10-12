@@ -108,10 +108,6 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-#    polaris:
-#      url: 127.0.0.1:8093
-#      namespace:
-#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
@@ -271,4 +267,3 @@ logging:
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
 #    org.apache.shenyu.admin.utils.HttpUtils: debug
-

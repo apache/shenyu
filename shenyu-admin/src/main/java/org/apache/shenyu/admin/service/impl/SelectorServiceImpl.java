@@ -626,6 +626,10 @@ public class SelectorServiceImpl implements SelectorService {
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             SelectorDO selectorDO = selectorMapper.selectById(id);
+            if (Objects.isNull(selectorDO) || !Objects.equals(selectorDO.getNamespaceId(), namespaceId)) {
+                // the selector does not belong to the request namespace; skip it
+                return;
+            }
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {

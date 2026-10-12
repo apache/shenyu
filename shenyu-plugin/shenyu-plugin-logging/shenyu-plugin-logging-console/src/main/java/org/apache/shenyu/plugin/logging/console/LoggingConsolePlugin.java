@@ -276,39 +276,44 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 });
             }
             BodyWriter writer = new BodyWriter();
+            final ByteArrayOutputStream gzipBuffer = new ByteArrayOutputStream();
+            final boolean gzipEncoded = serverHttpResponse.getHeaders().containsKey(Constants.CONTENT_ENCODING)
+                    && serverHttpResponse.getHeaders().getFirst(Constants.CONTENT_ENCODING).contains("gzip");
             return Flux.from(body).doOnNext(buffer -> {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
                     bufferIterator.forEachRemaining(byteBuffer -> {
-                        // Handle gzip encoded response
-                        if (serverHttpResponse.getHeaders().containsKey(Constants.CONTENT_ENCODING)
-                                && serverHttpResponse.getHeaders().getFirst(Constants.CONTENT_ENCODING).contains("gzip")) {
-                            try {
-                                ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
-                                byte[] compressed = new byte[readOnlyBuffer.remaining()];
-                                readOnlyBuffer.get(compressed);
-                                
-                                // Decompress gzipped content
-                                byte[] decompressed = decompressGzip(compressed);
-                                writer.write(ByteBuffer.wrap(decompressed));
-                                
-                            } catch (IOException e) {
-                                LOG.error("Failed to decompress gzipped response", e);
-                                writer.write(byteBuffer.asReadOnlyBuffer());
-                            }
+                        ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
+                        if (gzipEncoded) {
+                            // a gzip stream can only be decompressed as a whole, so the raw
+                            // chunks are assembled first and decompressed once at the end
+                            byte[] chunk = new byte[readOnlyBuffer.remaining()];
+                            readOnlyBuffer.get(chunk);
+                            gzipBuffer.writeBytes(chunk);
                         } else {
-                            writer.write(byteBuffer.asReadOnlyBuffer());
+                            writer.write(readOnlyBuffer);
                         }
                     });
                 }
             }).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
                 // desensitize data
-                String responseBody = DataDesensitizeUtils.desensitizeBody(desensitized, writer.output(), keyWordMatch, dataDesensitizeAlg);
+                final String assembledBody = gzipEncoded ? decompressAssembledGzip(gzipBuffer) : writer.output();
+                String responseBody = DataDesensitizeUtils.desensitizeBody(desensitized, assembledBody, keyWordMatch, dataDesensitizeAlg);
                 logInfo.append(responseBody).append(System.lineSeparator());
                 logInfo.append("[Response Body End]").append(System.lineSeparator());
                 // when response, print all request info.
                 print(logInfo.toString());
             });
+        }
+
+        private String decompressAssembledGzip(final ByteArrayOutputStream gzipBuffer) {
+            final byte[] compressed = gzipBuffer.toByteArray();
+            try {
+                return new String(decompressGzip(compressed), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                LOG.error("Failed to decompress gzipped response", e);
+                return new String(compressed, StandardCharsets.UTF_8);
+            }
         }
         
         private byte[] decompressGzip(final byte[] compressed) throws IOException {
