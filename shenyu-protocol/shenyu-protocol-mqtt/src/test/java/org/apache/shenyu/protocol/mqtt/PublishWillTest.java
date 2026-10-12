@@ -22,6 +22,7 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,12 +32,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -58,11 +64,38 @@ public class PublishWillTest {
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
+        Singleton.INST.single(TopicRepository.class, new TopicRepository());
     }
 
     @AfterEach
     public void tearDown() {
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+        Singleton.INST.get(TopicRepository.class).remove("status/retained");
+        Singleton.INST.get(TopicRepository.class).remove("status/cleared");
+    }
+
+    @Test
+    public void testRetainedWillIsStoredForLaterSubscribers() {
+        when(subscribeRepository.getChannelsByTopic("status/retained")).thenReturn(Collections.emptyMap());
+
+        byte[] message = "gone".getBytes(StandardCharsets.UTF_8);
+        Publish.publishWill(new WillRepository.WillEntry("status/retained", message, 0, true));
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                assertArrayEquals(message, Singleton.INST.get(TopicRepository.class).get("status/retained")));
+    }
+
+    @Test
+    public void testEmptyRetainedWillClearsStoredValue() {
+        when(subscribeRepository.getChannelsByTopic("status/cleared")).thenReturn(Collections.emptyMap());
+        TopicRepository topicRepository = Singleton.INST.get(TopicRepository.class);
+        topicRepository.add("status/cleared", "previous".getBytes(StandardCharsets.UTF_8));
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                assertArrayEquals("previous".getBytes(StandardCharsets.UTF_8), topicRepository.get("status/cleared")));
+
+        Publish.publishWill(new WillRepository.WillEntry("status/cleared", new byte[0], 0, true));
+
+        assertNull(topicRepository.get("status/cleared"));
     }
 
     @Test

@@ -33,12 +33,11 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
-import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
-
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -147,6 +146,17 @@ public class Publish extends MessageType {
         if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
             return;
         }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
+        if (will.isRetain()) {
+            if (will.getMessage().length > 0) {
+                Singleton.INST.get(TopicRepository.class).add(will.getTopic(), will.getMessage());
+            } else {
+                Singleton.INST.get(TopicRepository.class).remove(will.getTopic());
+            }
+        }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
         final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
         final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
         subscribers.entrySet().parallelStream().forEach(entry -> {
