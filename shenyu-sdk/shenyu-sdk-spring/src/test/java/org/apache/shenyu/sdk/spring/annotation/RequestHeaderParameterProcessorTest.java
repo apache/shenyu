@@ -62,6 +62,17 @@ public class RequestHeaderParameterProcessorTest {
     }
 
     @Test
+    public void processArgumentNameOnlyTest() {
+        final RequestHeader header = spy(RequestHeader.class);
+        when(header.value()).thenReturn("");
+        when(header.name()).thenReturn("header2");
+
+        processor.processArgument(request, header, "value2");
+
+        assertTrue(headers.get("header2").contains("value2"), "header name alias resolve failed.");
+    }
+
+    @Test
     public void processArgumentEmptyTest() {
         final RequestHeader header = spy(RequestHeader.class);
         when(header.value()).thenReturn("");

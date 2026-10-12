@@ -164,6 +164,7 @@ public final class ShenyuDictServiceTest {
         List<ShenyuDictDO> shenyuDictDOList = Collections.singletonList(buildShenyuDictDO("haha"));
         given(this.shenyuDictMapper.selectByQuery(any())).willReturn(shenyuDictDOList);
         List<ShenyuDictDTO> shenyuDictDTOList = Collections.singletonList(buildShenyuDictDTO(null, "lala"));
+        given(this.shenyuDictMapper.insertSelective(any())).willReturn(1);
         ConfigImportResult configImportResult = shenyuDictService.importData(shenyuDictDTOList);
 
         assertNotNull(configImportResult);

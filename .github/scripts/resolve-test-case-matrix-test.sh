@@ -149,9 +149,11 @@ assert_ci_ignored "${E2E_GRPC}"
 assert_file_output "e2e" "${E2E_GRPC}" "e2e_matrix" \
   '{"include":[{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"}]}'
 assert_file_output "e2e" "${E2E_RABBITMQ}" "e2e_matrix" \
-  '{"include":[{"script":"e2e-logging-rabbitmq-compose","case":"shenyu-e2e-case-logging-rabbitmq","example_projects":":shenyu-examples-http"}]}'
+  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":":shenyu-examples-http"}]}'
 assert_file_output "e2e" "${E2E_RABBITMQ_CASE}" "e2e_matrix" \
-  '{"include":[{"script":"e2e-logging-rabbitmq-compose","case":"shenyu-e2e-case-logging-rabbitmq","example_projects":":shenyu-examples-http"}]}'
+  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":":shenyu-examples-http"}]}'
+assert_file_output "e2e" "pom.xml" "e2e_matrix" \
+  "$(jq -c '.include += [{script:"e2e-logging-rocketmq-compose",case:"shenyu-e2e-case-logging-rocketmq",example_projects:":shenyu-examples-http"}]' <<< "${ADMIN_REGISTER_E2E_MATRIX}")"
 assert_file_output "integration" "${E2E_GRPC}" "run_integration" "false"
 assert_file_output "k8s-ingress" "${E2E_GRPC}" "run_k8s_ingress" "false"
 

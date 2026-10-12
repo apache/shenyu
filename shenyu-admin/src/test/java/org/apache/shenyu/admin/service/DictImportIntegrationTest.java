@@ -21,6 +21,7 @@ package org.apache.shenyu.admin.service;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
+import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Verify dict imports roll back dictionary rows and synchronous audit events.
+ * Verify dict imports deduplicate business keys and retain transactional audit events.
  */
 public class DictImportIntegrationTest extends AbstractSpringIntegrationTest {
 
@@ -50,8 +51,12 @@ public class DictImportIntegrationTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testFailedImportRollsBackRowsAndAuditLog() {
+        final ShenyuDictDTO first = dict("dict-import-first");
+        first.setId("dict-import-collision");
+        final ShenyuDictDTO second = dict("dict-import-second");
+        second.setId(first.getId());
         assertThrows(DataIntegrityViolationException.class,
-                () -> shenyuDictService.importData(List.of(dict("dict-import-first"), dict("dict-import-first"))));
+                () -> shenyuDictService.importData(List.of(first, second)));
         assertEquals(0, dictCount());
         assertEquals(0, auditCount());
     }
@@ -59,6 +64,30 @@ public class DictImportIntegrationTest extends AbstractSpringIntegrationTest {
     @Test
     public void testSuccessfulImportCommitsRowsAndAuditLog() {
         assertEquals(2, shenyuDictService.importData(List.of(dict("dict-import-first"), dict("dict-import-second"))).getSuccessCount());
+        assertEquals(2, dictCount());
+        assertEquals(2, auditCount());
+    }
+
+    @Test
+    public void testDuplicateBusinessKeysReportFailureWithoutDuplicateRowsOrAuditLogs() {
+        final ConfigImportResult result = shenyuDictService.importData(List.of(dict("dict-import-first"),
+                dict("dict-import-first"), dict("dict-import-second")));
+
+        assertEquals(2, result.getSuccessCount());
+        assertEquals("import fail dict: dict-import-first", result.getFailMessage());
+        assertEquals(2, dictCount());
+        assertEquals(2, auditCount());
+    }
+
+    @Test
+    public void testExistingAndBatchDuplicatesShareTheSameDetection() {
+        assertEquals(1, shenyuDictService.importData(List.of(dict("dict-import-first"))).getSuccessCount());
+
+        final ConfigImportResult result = shenyuDictService.importData(List.of(dict("dict-import-first"),
+                dict("dict-import-second"), dict("dict-import-second")));
+
+        assertEquals(1, result.getSuccessCount());
+        assertEquals("import fail dict: dict-import-first,dict-import-second", result.getFailMessage());
         assertEquals(2, dictCount());
         assertEquals(2, auditCount());
     }

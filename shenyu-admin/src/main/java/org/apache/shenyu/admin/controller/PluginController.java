@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.PluginService;
@@ -52,7 +53,7 @@ import java.util.List;
  * this is plugin controller.
  */
 @RestApi("/plugin-template")
-public class PluginController implements PagedController<PluginQueryCondition, PluginVO> {
+public class PluginController implements PagedController<PluginQueryCondition, PluginListVO> {
 
     private final PluginService pluginService;
     
@@ -74,7 +75,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult queryPlugins(final String name, final Integer enabled, final String role,
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
-        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, role, new PageParameter(currentPage, pageSize)));
+        CommonPager<PluginListVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, role, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
     
@@ -194,7 +195,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     }
     
     @Override
-    public PageService<PluginQueryCondition, PluginVO> pageService() {
+    public PageService<PluginQueryCondition, PluginListVO> pageService() {
         return pluginService;
     }
 }
