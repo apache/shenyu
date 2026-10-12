@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.k8s.parser;
 
+import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Indexer;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
@@ -30,8 +32,10 @@ import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.PluginRoleEnum;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
@@ -39,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,6 +151,19 @@ public class IngressParserTest {
     }
 
     @Test
+    public void testDispatchToExternalDefinitionWhenMatched() {
+        ingressParser = new IngressParser(mockInformer(), mockInformer(), Collections.singletonList(new FakeIngressPluginDefinition()));
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("shenyu.apache.org/plugin-fake-enabled", "true");
+        annotations.put(IngressConstants.PLUGIN_DUBBO_ENABLED, "true");
+
+        List<ShenyuMemoryConfig> configs = parse(annotations, "Exact");
+
+        assertEquals(1, configs.size());
+        assertEquals(Collections.singletonList("fake"), pluginNames(configs));
+    }
+
+    @Test
     public void testDispatchToDivideWhenAllPluginAnnotationsDisabled() {
         Map<String, String> annotations = new HashMap<>();
         for (String key : Arrays.asList(IngressConstants.PLUGIN_DUBBO_ENABLED, IngressConstants.PLUGIN_WEB_SOCKET_ENABLED,
@@ -191,5 +209,44 @@ public class IngressParserTest {
                 .filter(Objects::nonNull)
                 .map(SelectorData::getPluginName)
                 .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private SharedIndexInformer mockInformer() {
+        SharedIndexInformer informer = mock(SharedIndexInformer.class);
+        when(informer.getIndexer()).thenReturn(mock(Indexer.class));
+        return informer;
+    }
+
+    private static final class FakeIngressPluginDefinition implements IngressPluginDefinition {
+
+        @Override
+        public boolean matchesIngress(final V1Ingress ingress) {
+            return "true".equals(ingress.getMetadata().getAnnotations().get("shenyu.apache.org/plugin-fake-enabled"));
+        }
+
+        @Override
+        public String pluginName() {
+            return "fake";
+        }
+
+        @Override
+        public String contextPath(final V1Ingress ingress) {
+            return "/fake";
+        }
+
+        @Override
+        public PluginData pluginData(final V1Ingress ingress, final Request request, final Lister<V1Endpoints> endpointsLister) {
+            return PluginData.builder().id("9000").name("fake").config("{}").role(PluginRoleEnum.SYS.getName()).enabled(true).sort(9000).build();
+        }
+
+        @Override
+        public ShenyuMemoryConfig parse(final V1Ingress ingress, final CoreV1Api coreV1Api,
+                                        final Lister<V1Service> serviceLister, final Lister<V1Endpoints> endpointsLister) {
+            ShenyuMemoryConfig config = new ShenyuMemoryConfig();
+            SelectorData selectorData = SelectorData.builder().pluginName("fake").name("fake").enabled(true).build();
+            config.setRouteConfigList(Collections.singletonList(new IngressConfiguration(selectorData, Collections.emptyList(), Collections.emptyList())));
+            return config;
+        }
     }
 }

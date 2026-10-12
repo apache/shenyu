@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.common.dto.PluginData;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * this is plugin service.
  */
-public interface PluginService extends PageService<PluginQueryCondition, PluginVO> {
+public interface PluginService extends PageService<PluginQueryCondition, PluginListVO> {
 
     /**
      * Create or update string.
@@ -72,7 +73,7 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
+    CommonPager<PluginListVO> listByPage(PluginQuery pluginQuery);
     
     /**
      * List all list.

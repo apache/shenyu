@@ -17,12 +17,16 @@
 
 package org.apache.shenyu.common.timer;
 
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -128,6 +132,44 @@ public class HierarchicalWheelTimerTest {
         }));
     }
     
+    /**
+     * Test that the worker and task threads are daemons so the timer cannot block JVM shutdown.
+     *
+     * @throws Exception reflection exception
+     */
+    @Test
+    public void testTimerThreadsAreDaemon() throws Exception {
+        CountDownLatch taskLatch = new CountDownLatch(1);
+        AtomicBoolean taskThreadDaemon = new AtomicBoolean();
+        timer.add(new TimerTask(1) {
+            @Override
+            public void run(final TaskEntity taskEntity) {
+                taskThreadDaemon.set(Thread.currentThread().isDaemon());
+                taskLatch.countDown();
+            }
+        });
+        assertTrue(taskLatch.await(5, TimeUnit.SECONDS));
+
+        Field workerThreadField = HierarchicalWheelTimer.class.getDeclaredField("workerThread");
+        workerThreadField.setAccessible(true);
+        Thread workerThread = (Thread) workerThreadField.get(timer);
+        assertTrue(workerThread.isDaemon());
+        assertTrue(taskThreadDaemon.get());
+    }
+
+    /**
+     * Test that the task executor queue is bounded by available memory instead of growing without limit.
+     *
+     * @throws Exception reflection exception
+     */
+    @Test
+    public void testTaskExecutorQueueIsMemorySafe() throws Exception {
+        Field taskExecutorField = HierarchicalWheelTimer.class.getDeclaredField("taskExecutor");
+        taskExecutorField.setAccessible(true);
+        ShenyuThreadPoolExecutor executor = (ShenyuThreadPoolExecutor) taskExecutorField.get(timer);
+        assertTrue(executor.getQueue() instanceof MemorySafeTaskQueue);
+    }
+
     /**
      * Test list foreach.
      */

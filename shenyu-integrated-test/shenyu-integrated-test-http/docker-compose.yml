@@ -149,20 +149,6 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  shenyu-pulsar:
-    image: apachepulsar/pulsar:2.10.1
-    container_name: shenyu-pulsar
-    restart: always
-    command: bin/pulsar standalone
-    depends_on:
-      shenyu-integrated-test-http:
-        condition: service_healthy
-    networks:
-      - shenyu
-    ports:
-      - "6650:6650"    
-
   shenyu-rocketmq:
     image: apache/rocketmq:4.9.3
     container_name: shenyu-rocketmq
@@ -203,21 +189,6 @@ services:
       shenyu:
         aliases:
           - shenyu-rmqbroker
-
-  shenyu-rabbitmq:
-    image: rabbitmq:3.9.13-management
-    container_name: shenyu-rabbitmq
-    restart: always
-    hostname: shenyu-rabbitmq
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-    volumes:
-      - ./rabbitmq/data:/var/lib/rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
-
 networks:
   shenyu:
     name: shenyu

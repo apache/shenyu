@@ -380,6 +380,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             appAuthDO.setNamespaceId(namespace);
             int inserted = appAuthMapper.insertSelective(appAuthDO);
             if (inserted > 0) {
+                existAppKeySet.add(appKey);
                 successCount++;
                 // auth path
                 List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();

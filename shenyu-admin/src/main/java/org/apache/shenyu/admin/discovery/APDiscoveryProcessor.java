@@ -73,7 +73,7 @@ public class APDiscoveryProcessor extends AbstractDiscoveryProcessor {
             }
         });
         cacheKey.add(key);
-        super.addChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), discoveryDataChangedEventListener);
+        super.addChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), key, discoveryDataChangedEventListener);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         publishEvent(dataChangedEvent);
