@@ -18,10 +18,14 @@
 package org.apache.shenyu.admin.listener;
 
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -148,9 +152,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateAppAuthCache(namespaceId);
-        this.afterAppAuthChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, AppAuthData::getNamespaceId, ConfigGroupEnum.APP_AUTH).forEach((namespaceId, namespaceChanged) -> {
+            this.updateAppAuthCache(namespaceId);
+            this.afterAppAuthChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -167,9 +172,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateMetaDataCache(namespaceId);
-        this.afterMetaDataChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, MetaData::getNamespaceId, ConfigGroupEnum.META_DATA).forEach((namespaceId, namespaceChanged) -> {
+            this.updateMetaDataCache(namespaceId);
+            this.afterMetaDataChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -186,9 +192,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updatePluginCache(namespaceId);
-        this.afterPluginChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, PluginData::getNamespaceId, ConfigGroupEnum.PLUGIN).forEach((namespaceId, namespaceChanged) -> {
+            this.updatePluginCache(namespaceId);
+            this.afterPluginChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -215,9 +222,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateRuleCache(namespaceId);
-        this.afterRuleChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, RuleData::getNamespaceId, ConfigGroupEnum.RULE).forEach((namespaceId, namespaceChanged) -> {
+            this.updateRuleCache(namespaceId);
+            this.afterRuleChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -234,9 +242,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateSelectorCache(namespaceId);
-        this.afterSelectorChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, SelectorData::getNamespaceId, ConfigGroupEnum.SELECTOR).forEach((namespaceId, namespaceChanged) -> {
+            this.updateSelectorCache(namespaceId);
+            this.afterSelectorChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -250,9 +259,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateProxySelectorDataCache(namespaceId);
-        this.afterProxySelectorChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, ProxySelectorData::getNamespaceId, ConfigGroupEnum.PROXY_SELECTOR).forEach((namespaceId, namespaceChanged) -> {
+            this.updateProxySelectorDataCache(namespaceId);
+            this.afterProxySelectorChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -275,9 +285,23 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateDiscoveryUpstreamDataCache(namespaceId);
-        this.afterDiscoveryUpstreamDataChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, DiscoverySyncData::getNamespaceId, ConfigGroupEnum.DISCOVER_UPSTREAM).forEach((namespaceId, namespaceChanged) -> {
+            this.updateDiscoveryUpstreamDataCache(namespaceId);
+            this.afterDiscoveryUpstreamDataChanged(namespaceChanged, eventType, namespaceId);
+        });
+    }
+
+    private <T> Map<String, List<T>> groupByNamespace(final List<T> changed, final Function<T, String> namespaceIdGetter, final ConfigGroupEnum group) {
+        Map<String, List<T>> changedByNamespace = new LinkedHashMap<>();
+        for (T data : changed) {
+            if (Objects.isNull(data)) {
+                LOG.warn("skip null {} change while grouping namespaces", group);
+                continue;
+            }
+            String namespaceId = StringUtils.defaultString(namespaceIdGetter.apply(data), SYS_DEFAULT_NAMESPACE_ID);
+            changedByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        }
+        return changedByNamespace;
     }
 
     /**

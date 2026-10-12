@@ -37,6 +37,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
 import org.apache.shenyu.k8s.cache.ServiceIngressCache;
+import org.apache.shenyu.k8s.common.IngressUtils;
 import org.apache.shenyu.k8s.common.IngressBackendPort;
 import org.apache.shenyu.k8s.common.ServiceIngressRelation;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -129,7 +130,8 @@ public class EndpointsReconciler implements Reconciler {
             }
             // each ingress selects its own service port, so the upstream handle of an ingress must
             // be rebuilt with the endpoints of that port
-            String handle = getUpstreamHandle(endpointAddresses(v1Endpoints, relation.getPort()), pluginName);
+            V1Ingress ingress = ingressLister.namespace(relation.getIngressNamespace()).get(relation.getIngressName());
+            String handle = getUpstreamHandle(endpointAddresses(v1Endpoints, relation.getPort()), pluginName, ingress);
             if (Objects.isNull(handle)) {
                 LOG.info("Cannot find endpoint addresses of the backend port {} for ingress {}/{}",
                         relation.getPort(), relation.getIngressNamespace(), relation.getIngressName());
@@ -156,7 +158,7 @@ public class EndpointsReconciler implements Reconciler {
         }
     }
 
-    private String getUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses, final String pluginName) {
+    private String getUpstreamHandle(final List<Pair<V1EndpointAddress, String>> addresses, final String pluginName, final V1Ingress ingress) {
         if (CollectionUtils.isEmpty(addresses)) {
             return null;
         }
@@ -173,17 +175,17 @@ public class EndpointsReconciler implements Reconciler {
             return GsonUtils.getInstance().toJson(res);
         }
         List<DivideUpstream> res = new ArrayList<>();
-        addresses.forEach(pair -> {
+        for (int i = 0; i < addresses.size(); i++) {
+            Pair<V1EndpointAddress, String> pair = addresses.get(i);
             DivideUpstream upstream = new DivideUpstream();
             upstream.setUpstreamUrl(pair.getLeft().getIp() + ":" + pair.getRight());
             upstream.setWeight(100);
-            // TODO support config protocol in annotation
-            upstream.setProtocol("http://");
+            upstream.setProtocol(IngressUtils.getUpstreamProtocol(Objects.isNull(ingress) ? null : ingress.getMetadata().getAnnotations(), i, "http://"));
             upstream.setWarmup(0);
             upstream.setStatus(true);
             upstream.setUpstreamHost("");
             res.add(upstream);
-        });
+        }
         return GsonUtils.getInstance().toJson(res);
     }
 

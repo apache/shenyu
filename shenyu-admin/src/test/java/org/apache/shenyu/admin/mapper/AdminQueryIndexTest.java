@@ -56,6 +56,8 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
 
     private static Stream<Arguments> indexes() {
         return Stream.of(
+                Arguments.of("selector", "idx_selector_plugin_id", "plugin_id"),
+                Arguments.of("permission", "idx_permission_resource_id", "resource_id"),
                 Arguments.of("selector", "idx_selector_ns_plugin_name", "namespace_id,plugin_id,selector_name"),
                 Arguments.of("rule", "idx_rule_ns_selector_name", "namespace_id,selector_id,rule_name"),
                 Arguments.of("meta_data", "idx_metadata_path_ns", "path,namespace_id"),

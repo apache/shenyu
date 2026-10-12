@@ -19,12 +19,16 @@ package org.apache.shenyu.plugin.response.strategy;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -50,6 +54,7 @@ import reactor.test.StepVerifier;
 
 import org.reactivestreams.Publisher;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -114,6 +119,30 @@ public class WebClientMessageWriterTest {
         when(chain.execute(exchangeGatewayTimeout)).thenReturn(Mono.empty());
         Mono<Void> monoGatewayTimeout = webClientMessageWriter.writeWith(exchangeGatewayTimeout, chain);
         StepVerifier.create(monoGatewayTimeout).expectSubscription().verifyComplete();
+    }
+
+    @ParameterizedTest
+    @EnumSource(HeaderUniqueStrategyEnum.class)
+    public void testFinalResponseRetainsDeduplication(final HeaderUniqueStrategyEnum strategy) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/headers").build());
+        exchange.getResponse().getHeaders().set("X-Duplicate", "already-deduplicated");
+        exchange.getResponse().getHeaders().setAccessControlAllowOrigin("https://allowed.example");
+        HttpHeaders upstream = new HttpHeaders();
+        upstream.put("X-Duplicate", List.of("first", "last", "last"));
+        upstream.put("X-Unconfigured", List.of("one", "two"));
+        upstream.setAccessControlAllowOrigin("*");
+        ResponseEntity<Flux<DataBuffer>> response = new ResponseEntity<>(Flux.empty(), upstream, HttpStatus.OK);
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, response);
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), "X-Duplicate;X-Missing");
+        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), strategy);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(webClientMessageWriter.writeWith(exchange, chain)).verifyComplete();
+        List<String> expected = strategy == HeaderUniqueStrategyEnum.RETAIN_UNIQUE
+                ? List.of("first", "last") : List.of(strategy == HeaderUniqueStrategyEnum.RETAIN_FIRST ? "first" : "last");
+        assertEquals(expected, exchange.getResponse().getHeaders().get("X-Duplicate"));
+        assertEquals(List.of("one", "two"), exchange.getResponse().getHeaders().get("X-Unconfigured"));
+        assertEquals("https://allowed.example", exchange.getResponse().getHeaders().getAccessControlAllowOrigin());
+        assertEquals(List.of("first", "last", "last"), response.getHeaders().get("X-Duplicate"));
     }
 
     @Test

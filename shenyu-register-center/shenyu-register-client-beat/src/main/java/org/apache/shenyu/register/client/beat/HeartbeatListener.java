@@ -112,9 +112,7 @@ public class HeartbeatListener {
     }
 
     private void sendHeartbeat(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
-        int i = 0;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(Constants.BEAT_URI_PATH);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -124,9 +122,7 @@ public class HeartbeatListener {
                 RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), concat, Constants.HEARTBEAT, accessToken);
             } catch (Exception e) {
                 LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
-                }
+                // This is a periodic reporter, not a failback registration: retry on the next tick.
             }
         }
     }

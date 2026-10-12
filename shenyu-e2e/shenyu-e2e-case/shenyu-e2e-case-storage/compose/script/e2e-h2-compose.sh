@@ -18,9 +18,10 @@
 
 set -euo pipefail
 
-# init kubernetes for h2
+# Initialize the h2 storage Compose deployment.
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 curPath=$(readlink -f "$(dirname "$0")")
+HEALTHCHECK_SCRIPT="${curPath}/../../k8s/script/healthcheck.sh"
 PRGDIR=$(dirname "$curPath")
 COMPOSE_FILE="$SHENYU_TESTCASE_DIR/compose/storage/shenyu-storage-h2.yml"
 
@@ -39,6 +40,7 @@ if ! docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 
   dump_logs
   exit 1
 fi
+bash "$HEALTHCHECK_SCRIPT" h2 http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 ## run e2e-test
 
 if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then

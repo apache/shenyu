@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
+import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
 import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +80,7 @@ public final class TcpUpstreamDataHandlerTest {
         DiscoveryUpstreamData added = upstream("127.0.0.1:10003");
         UpstreamProvider.getSingleton().createUpstreams(SELECTOR, Arrays.asList(kept, removed));
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
-        factory.cache(SELECTOR, bootstrapServer);
+        factory.cache(configuration(SELECTOR), bootstrapServer);
 
         dataHandler.handlerDiscoveryUpstreamData(
                 syncData(kept, added));
@@ -114,7 +115,7 @@ public final class TcpUpstreamDataHandlerTest {
     public void removeShouldResolveSelectorNameByIdAndEvictUpstreams() {
         DiscoveryUpstreamData upstream = upstream("127.0.0.1:10001");
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
-        factory.cache(SELECTOR, bootstrapServer);
+        factory.cache(configuration(SELECTOR), bootstrapServer);
         dataHandler.handlerDiscoveryUpstreamData(syncData(upstream));
         assertTrue(UpstreamProvider.getSingleton().inCache(SELECTOR));
         assertEquals(SELECTOR, UpstreamProvider.getSingleton().getSelectorName(SELECTOR_ID));
@@ -133,8 +134,8 @@ public final class TcpUpstreamDataHandlerTest {
         DiscoveryUpstreamData upstream = upstream("127.0.0.1:10001");
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
         BootstrapServer otherServer = mock(BootstrapServer.class);
-        factory.cache(SELECTOR, bootstrapServer);
-        factory.cache("new-name", otherServer);
+        factory.cache(configuration(SELECTOR), bootstrapServer);
+        factory.cache(configuration("new-name"), otherServer);
         UpstreamProvider.getSingleton().createUpstreams("new-name", Collections.singletonList(upstream));
         dataHandler.handlerDiscoveryUpstreamData(syncData(upstream));
 
@@ -150,7 +151,7 @@ public final class TcpUpstreamDataHandlerTest {
     public void removeShouldFallBackToEventNameWithoutLocalMapping() {
         DiscoveryUpstreamData upstream = upstream("127.0.0.1:10001");
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
-        factory.cache(SELECTOR, bootstrapServer);
+        factory.cache(configuration(SELECTOR), bootstrapServer);
         UpstreamProvider.getSingleton().createUpstreams(SELECTOR, Collections.singletonList(upstream));
 
         dataHandler.removeDiscoveryUpstreamData(new DiscoveryUpstreamKey("tcp", "unknown", SELECTOR));
@@ -163,7 +164,7 @@ public final class TcpUpstreamDataHandlerTest {
     public void removeShouldIgnoreUnknownSelectorId() {
         DiscoveryUpstreamData upstream = upstream("127.0.0.1:10001");
         BootstrapServer bootstrapServer = mock(BootstrapServer.class);
-        factory.cache(SELECTOR, bootstrapServer);
+        factory.cache(configuration(SELECTOR), bootstrapServer);
         dataHandler.handlerDiscoveryUpstreamData(syncData(upstream));
         clearInvocations(bootstrapServer);
         DiscoveryUpstreamKey deleteData = new DiscoveryUpstreamKey("tcp", "unknown", null);
@@ -178,6 +179,12 @@ public final class TcpUpstreamDataHandlerTest {
     @Test
     public void removeShouldIgnoreMissingSelectorIdentity() {
         assertDoesNotThrow(() -> dataHandler.removeDiscoveryUpstreamData(new DiscoveryUpstreamKey("tcp", null, null)));
+    }
+
+    private static TcpServerConfiguration configuration(final String selectorName) {
+        TcpServerConfiguration configuration = new TcpServerConfiguration();
+        configuration.setPluginSelectorName(selectorName);
+        return configuration;
     }
 
     private DiscoverySyncData syncData(final DiscoveryUpstreamData... upstreams) {

@@ -178,6 +178,9 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
                             continue;
                         }
                         Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
+                        if (Objects.isNull(metadataAnnotations)) {
+                            continue;
+                        }
                         SofaRuleHandle ruleHandle = createSofaRuleHandle(annotations);
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleHandle, ruleConditionList);

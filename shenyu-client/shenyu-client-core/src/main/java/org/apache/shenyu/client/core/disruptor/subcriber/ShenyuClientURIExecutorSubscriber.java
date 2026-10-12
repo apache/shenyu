@@ -41,6 +41,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Shenyu client uri executor subscriber.
@@ -60,6 +61,8 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
     private final ScheduledThreadPoolExecutor executor;
+
+    private final AtomicBoolean started = new AtomicBoolean();
 
     private final long readinessTimeoutMillis;
     
@@ -85,7 +88,22 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         ThreadFactory requestFactory = ShenyuThreadFactory.create("heartbeat-reporter", true);
         executor = new ScheduledThreadPoolExecutor(1, requestFactory);
         
-        executor.scheduleAtFixedRate(() -> uris.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Start reporting URI heartbeats.
+     */
+    public void start() {
+        if (started.compareAndSet(false, true)) {
+            executor.scheduleAtFixedRate(() -> uris.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Stop reporting URI heartbeats.
+     */
+    public void shutdown() {
+        executor.shutdown();
     }
     
     @Override
@@ -119,9 +137,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             shenyuClientRegisterRepository.offline(offlineDTO);
         } finally {
             // shutdown heartbeat executor
-            if (!executor.isTerminated()) {
-                executor.shutdown();
-            }
+            shutdown();
         }
     }
 
@@ -155,8 +171,14 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
     
     private void sendHeartbeat(final URIRegisterDTO uriRegisterDTO) {
-        uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
-        shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
+        try {
+            uriRegisterDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
+            shenyuClientRegisterRepository.sendHeartbeat(uriRegisterDTO);
+        } catch (Exception ex) {
+            // One unavailable admin must not suppress other URIs or future scheduled executions.
+            LOG.warn("Heartbeat failed for host:{}, port:{}, will retry on the next tick",
+                    uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), ex);
+        }
     }
 
     private void addUriIfAbsent(final URIRegisterDTO uriRegisterDTO) {

@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.PluginData;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -142,6 +144,41 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 .flatMap(List::stream)
                 .filter(data -> namespaceId.equals(data.getNamespaceId()))
                 .collect(Collectors.toList());
+        stale.forEach(this::unRuleSubscribe);
+    }
+
+    @Override
+    public void applyPluginDataSnapshot(final String namespaceId, final List<PluginData> dataList) {
+        Set<String> pluginNames = dataList.stream().map(PluginData::getName).collect(Collectors.toSet());
+        List<PluginData> stale = BaseDataCache.getInstance().getPluginMap().values().stream()
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .filter(data -> !pluginNames.contains(data.getName()))
+                .collect(Collectors.toList());
+        dataList.forEach(this::onSubscribe);
+        stale.forEach(this::unSubscribe);
+    }
+
+    @Override
+    public void applySelectorDataSnapshot(final String namespaceId, final List<SelectorData> dataList) {
+        Set<String> selectorIds = dataList.stream().map(SelectorData::getId).collect(Collectors.toSet());
+        List<SelectorData> stale = BaseDataCache.getInstance().getSelectorMap().values().stream()
+                .flatMap(List::stream)
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .filter(data -> !selectorIds.contains(data.getId()))
+                .collect(Collectors.toList());
+        dataList.forEach(this::onSelectorSubscribe);
+        stale.forEach(this::unSelectorSubscribe);
+    }
+
+    @Override
+    public void applyRuleDataSnapshot(final String namespaceId, final List<RuleData> dataList) {
+        Set<String> ruleIds = dataList.stream().map(RuleData::getId).collect(Collectors.toSet());
+        List<RuleData> stale = BaseDataCache.getInstance().getRuleMap().values().stream()
+                .flatMap(List::stream)
+                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .filter(data -> !ruleIds.contains(data.getId()))
+                .collect(Collectors.toList());
+        dataList.forEach(this::onRuleSubscribe);
         stale.forEach(this::unRuleSubscribe);
     }
 
@@ -288,8 +325,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().removeSelectData(selectorData);
-            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
-                    .ifPresent(handler -> handler.removeSelector(selectorData));
+            // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
+            if (StringUtils.isNotBlank(selectorData.getPluginName())) {
+                Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                        .ifPresent(handler -> handler.removeSelector(selectorData));
+            }
             // remove match cache
             if (selectorMatchConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
@@ -302,8 +342,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
-            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
-                    .ifPresent(handler -> handler.removeRule(ruleData));
+            if (StringUtils.isNotBlank(ruleData.getPluginName())) {
+                Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                        .ifPresent(handler -> handler.removeRule(ruleData));
+            }
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
                 MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());

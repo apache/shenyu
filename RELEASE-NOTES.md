@@ -6,6 +6,33 @@
 
 ### Behavior Changes
 
+- Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
+  deletion with strict result-copy handling. Complete JSON text copies are rebuilt
+  from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
+  extensions are refused when a plan is active; disabled plans retain prior behavior.
+  This is declared-field filtering, not arbitrary sensitive-value detection or
+  global log redaction. Advertised outputSchema
+  remains unchanged and filtered results must satisfy the supported bounded
+  Draft 2020-12 contract. Filtering/schema failures return HTTP 502 / JSON-RPC
+  `-32024` without an unfiltered fallback; external schema resource loading is denied.
+
+- Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
+  accepts only the `aggregation` field; blank config and `{}` remain valid.
+  Previously stored arbitrary fields must be removed or migrated before the next
+  save/import, even when only toggling another plugin property. Other plugins are
+  unaffected. An unavailable enabled remote catalog fails the whole MCP entry,
+  including local tools, with HTTP 503 / JSON-RPC `-32023`; no local-only fallback
+  is implicit. Outbound calls use fixed service credentials without Agent identity
+  headers; request context and identity remain inside the gateway.
+
+- Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
+  Enabling the plugin does not grant MCP access: deployments must supply a trusted
+  `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without
+  a trusted identity adapter, MCP requests are denied with HTTP 401. Existing LLM
+  forwarding and independently configured legacy MCP endpoints remain unchanged.
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
 - HTTP retry strategies budget the entire sequence separately from each attempt:
   `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
   With a 3-second attempt timeout and 3 retries, the `current` strategy has a
@@ -18,6 +45,16 @@
   count returns HTTP 408. The aggregate ceiling now also bounds a source that
   never completes; it does not replace the per-attempt response timeout.
 - The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+- `shenyu.httpclient.responseTimeout` now configures Reactor Netty's response-read
+  deadline (default 3000 ms). It limits gaps between reads throughout the response
+  body, not just the wait for headers. Slow SSE, long-polling and token streams
+  can therefore time out after headers have arrived.
+- A non-positive responseTimeout disables that deadline only. Independently
+  configured read-timeout handlers still apply; use `shenyu.httpclient.readTimeout=0`
+  to disable their deadline as well, and review route, retry and caller deadlines.
+  The client factory now retains its connection-handler configuration, so configured
+  read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
 
 ## [v2.7.0]- 2024-12-23
 
