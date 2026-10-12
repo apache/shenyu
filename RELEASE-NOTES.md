@@ -6,6 +6,14 @@
 
 ### Behavior Changes
 
+- Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
+  HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
+  request-local plugin cursors, attributes and captured responses; upstream
+  configuration remains owned by existing routing plugins. Caller credentials,
+  cookies and web sessions are not delegated. Results pass through existing MCP
+  authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
+  restart is required for rule updates; absent plans preserve previous behavior.
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
