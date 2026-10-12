@@ -30,13 +30,14 @@ import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -69,11 +70,16 @@ public class Subscribe extends MessageType {
 
         Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), validSubscriptions);
 
+        // MQTT-3.3.1-6: a subscription must also receive the retained messages whose
+        // concrete topic name matches its filter, so wildcard filters are matched as well.
+        Set<String> deliveredRetainedTopics = new HashSet<>();
         for (MqttTopicSubscription subscription : validSubscriptions) {
-            String message = Singleton.INST.get(TopicRepository.class).get(subscription.topicName());
-            if (StringUtils.isNotEmpty(message)) {
-                sendSubMessage(subscription.topicName(), message, packetId, channel);
-            }
+            Singleton.INST.get(TopicRepository.class).getMatchingTopics(subscription.topicName())
+                    .forEach((retainedTopic, retainedMessage) -> {
+                        if (deliveredRetainedTopics.add(retainedTopic)) {
+                            sendSubMessage(retainedTopic, retainedMessage, packetId, channel);
+                        }
+                    });
         }
 
         sendSubAckMessage(packetId, mqttTopicSubscriptions, channel);

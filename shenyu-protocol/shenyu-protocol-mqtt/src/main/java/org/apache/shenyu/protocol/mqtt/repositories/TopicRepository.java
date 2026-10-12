@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.protocol.mqtt.repositories;
 
+import org.apache.shenyu.protocol.mqtt.TopicMatcher;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +46,23 @@ public class TopicRepository implements BaseRepository<String, String> {
     @Override
     public String get(final String topic) {
         return TOPIC_FACTORY.getOrDefault(topic, null);
+    }
+
+    /**
+     * Get the retained messages whose concrete topic names match the given topic filter,
+     * honoring MQTT wildcards (+ single-level and # multi-level).
+     *
+     * @param topicFilter the subscription topic filter
+     * @return the matching retained messages keyed by their concrete topic name
+     */
+    public Map<String, String> getMatchingTopics(final String topicFilter) {
+        Map<String, String> matchingTopics = new ConcurrentHashMap<>();
+        TOPIC_FACTORY.forEach((topic, message) -> {
+            if (TopicMatcher.matches(topicFilter, topic)) {
+                matchingTopics.put(topic, message);
+            }
+        });
+        return matchingTopics;
     }
 
 }
