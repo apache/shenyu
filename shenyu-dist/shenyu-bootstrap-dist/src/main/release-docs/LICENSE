@@ -676,7 +676,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 
     HdrHistogram 2.2.2: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
     LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
-    reactive-streams 1.0.4:	https://github.com/reactive-streams/reactive-streams-jvm, CC0 1.0
     xpp3_min 1.1.4c: http://www.extreme.indiana.edu/xgws/xsoap/xpp/mxp1/, CC0 1.0 and Public Domain
 
 ========================================================================
@@ -727,8 +726,6 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    mcp 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-spring-webflux 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
     jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT
@@ -745,13 +742,21 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
-    mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
+    mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT (see licenses/LICENSE-oshi.txt)
+
+========================================================================
+MIT No Attribution licenses
+========================================================================
+
+The following component is provided under the MIT No Attribution (MIT-0) License.
+The license text is included at licenses/LICENSE-reactive-streams.txt.
+
+    reactive-streams 1.0.4: https://github.com/reactive-streams/reactive-streams-jvm, MIT-0
 
 ========================================================================
 MPL licenses
