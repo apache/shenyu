@@ -574,13 +574,20 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jul-to-slf4j 2.0.13: http://www.slf4j.org, MIT
     pagehelper 5.3.3: https://github.com/pagehelper/Mybatis-PageHelper, MIT
     slf4j-api 2.0.13: https://www.slf4j.org, MIT
-    reactive-streams 1.0.4 https://github.com/reactive-streams/reactive-streams-jvm/blob/master/LICENSE, MIT
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://checkerframework.org/, MIT
     jopt-simple 5.0.4: https://github.com/jopt-simple/jopt-simple, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
-    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT (see licenses/LICENSE-oshi.txt)
+
+========================================================================
+MIT No Attribution licenses
+========================================================================
+
+The following component is provided under the MIT No Attribution (MIT-0) License.
+The license text is included at licenses/LICENSE-reactive-streams.txt.
+
+    reactive-streams 1.0.4: https://github.com/reactive-streams/reactive-streams-jvm, MIT-0
 
 ========================================================================
 MPL licenses
@@ -635,7 +642,7 @@ The following components are provided under the MIT License. See project link fo
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
    @babel/polyfill 7.0.0-beta.36: https://babeljs.io/, MIT
-   antd 3.8.2: https://ant.design/index-cn, MIT
+   antd 3.26.20: https://ant.design/index-cn, MIT (see licenses/ui-licenses/LICENSE-antd.txt)
    classnames 2.2.5: https://github.com/JedWatson/classnames, MIT
    dayjs 1.8.17: https://day.js.org/, MIT
    dva 2.2.3: https://github.com/dvajs/dva, MIT
@@ -646,10 +653,10 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
    omit.js 1.0.0: https://github.com/benjycui/omit.js, MIT
    path-to-regexp 2.1.0: https://github.com/pillarjs/path-to-regexp, MIT
    prop-types 15.5.10: https://reactjs.org, MIT
-   react 16.4.1: https://reactjs.org, MIT
+   react 16.14.0: https://reactjs.org, MIT (see licenses/ui-licenses/LICENSE-react.txt)
    react-container-query 0.11.0: https://github.com/react-container-query/react-container-query, MIT
    react-document-title 2.0.3: https://github.com/gaearon/react-document-title, MIT
-   react-dom 16.4.1: http://reactjs.org, MIT
+   react-dom 16.14.0: http://reactjs.org, MIT (see licenses/ui-licenses/LICENSE-react-dom.txt)
    react-fittext 1.0.0: http://softwarepsychonaut.com/react-fittext/, MIT
    react-resizable 1.11.0: https://https://github.com/react-grid-layout/react-resizable, MIT
    redux-logger 3.0.6: https://github.com/LogRocket/redux-logger, MIT

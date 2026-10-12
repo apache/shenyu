@@ -204,10 +204,17 @@
     where id = #{id,jdbcType=VARCHAR}
   </update>
   <select id="existed" resultType="java.lang.Boolean">
-    select true
+    SELECT 1
     from scale_rule
     where id = #{id}
     limit 1
+  </select>
+
+  <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+    SELECT 1
+    from scale_rule
+    where id = #{id}
+    AND ROWNUM = 1
   </select>
   <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.ScaleRuleDO" resultMap="BaseResultMap">
     SELECT

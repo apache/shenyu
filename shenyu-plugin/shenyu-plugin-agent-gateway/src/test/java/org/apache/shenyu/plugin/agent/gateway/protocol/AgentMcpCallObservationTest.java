@@ -160,6 +160,48 @@ class AgentMcpCallObservationTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
+    void errorResponseWriteFailureOverridesOriginalRejection(final String mode) {
+        Recording observer = new Recording();
+        AtomicInteger invocations = new AtomicInteger();
+        MockServerWebExchange exchange = exchange("tools/call", observer);
+        exchange.getResponse().setWriteHandler(buffers -> buffers.doOnNext(DataBufferUtils::release)
+                .then(Mono.error(new IllegalStateException("private-error-response-write"))));
+        AgentMcpHttpHandler handler = handler(tool(Mono.defer(() -> {
+            invocations.incrementAndGet();
+            return Mono.just(new JsonObject());
+        })), Set.of());
+        StepVerifier.create(handler.handle(exchange, config(mode, 30000), traffic, 1))
+                .expectError(IllegalStateException.class).verify();
+        observer.assertOnly(Outcome.SERVER_ERROR);
+        assertEquals(0, invocations.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void errorResponseWriteTimeoutOverridesOriginalRejection(final String mode) {
+        Recording observer = new Recording();
+        MockServerWebExchange exchange = exchange("tools/call", observer);
+        exchange.getResponse().setWriteHandler(buffers -> buffers.doOnNext(DataBufferUtils::release).then(Mono.never()));
+        AgentMcpHttpHandler handler = handler(tool(Mono.just(new JsonObject())), Set.of());
+        StepVerifier.withVirtualTime(() -> handler.handle(exchange, config(mode, 100), traffic, 1))
+                .then(() -> assertTrue(observer.outcomes.isEmpty()))
+                .thenAwait(Duration.ofMillis(101)).expectError(TimeoutException.class).verify();
+        observer.assertOnly(Outcome.TIMEOUT);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void cancellingErrorResponseWriteOverridesOriginalRejection(final String mode) {
+        Recording observer = new Recording();
+        MockServerWebExchange exchange = exchange("tools/call", observer);
+        exchange.getResponse().setWriteHandler(buffers -> buffers.doOnNext(DataBufferUtils::release).then(Mono.never()));
+        StepVerifier.create(handler(tool(Mono.just(new JsonObject())), Set.of()).handle(exchange, config(mode, 30000), traffic, 1))
+                .then(() -> assertTrue(observer.outcomes.isEmpty())).thenCancel().verify();
+        observer.assertOnly(Outcome.CANCELLED);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
     void recordsResponseLimitFailureWithoutLeakingSuccess(final String mode) {
         JsonObject result = new JsonObject();
         result.addProperty("large", "x".repeat(2000));
@@ -274,10 +316,13 @@ class AgentMcpCallObservationTest {
         observer.assertOnly(Outcome.CANCELLED);
     }
 
-    @Test
-    void absentOrWrongTypeCallbackDoesNotRequireMetricsPlugin() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void absentOrWrongTypeCallbackDoesNotRequireMetricsPlugin(final boolean wrongType) {
         MockServerWebExchange exchange = exchange("tools/call", null);
-        exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, "unusable-callback");
+        if (wrongType) {
+            exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, "unusable-callback");
+        }
         StepVerifier.create(handler(tool(Mono.just(new JsonObject())), Set.of("read"))
                 .handle(exchange, config("json", 30000), traffic, 1)).verifyComplete();
         assertEquals(200, exchange.getResponse().getStatusCode().value());
