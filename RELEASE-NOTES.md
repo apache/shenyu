@@ -10,6 +10,38 @@
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
   Validate the expression before deploying a configuration change.
+- HTTP client registration now treats non-success Admin responses as failures,
+  using the same bounded failback policy as transport errors (18 retry attempts
+  per pending task). The text response contract does not reliably distinguish
+  transient failures from permanent validation errors, so both consume that
+  budget. Heartbeat failures are reported to the caller. Unregistration retains
+  its existing policy: any successful Admin response is sufficient, and failure
+  at every Admin is reported without adding a registration retry. (#7440)
+
+- Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
+  deletion with strict result-copy handling. Complete JSON text copies are rebuilt
+  from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
+  extensions are refused when a plan is active; disabled plans retain prior behavior.
+  This is declared-field filtering, not arbitrary sensitive-value detection or
+  global log redaction. Advertised outputSchema
+  remains unchanged and filtered results must satisfy the supported bounded
+  Draft 2020-12 contract. Filtering/schema failures return HTTP 502 / JSON-RPC
+  `-32024` without an unfiltered fallback; external schema resource loading is denied.
+
+- Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
+  accepts only the `aggregation` field; blank config and `{}` remain valid.
+  Previously stored arbitrary fields must be removed or migrated before the next
+  save/import, even when only toggling another plugin property. Other plugins are
+  unaffected. An unavailable enabled remote catalog fails the whole MCP entry,
+  including local tools, with HTTP 503 / JSON-RPC `-32023`; no local-only fallback
+  is implicit. Outbound calls use fixed service credentials without Agent identity
+  headers; request context and identity remain inside the gateway.
+
+- Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
+  Enabling the plugin does not grant MCP access: deployments must supply a trusted
+  `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without
+  a trusted identity adapter, MCP requests are denied with HTTP 401. Existing LLM
+  forwarding and independently configured legacy MCP endpoints remain unchanged.
 - Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
   The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
   but can discard a newer registration failure arriving between those calls.

@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
@@ -83,6 +84,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
         return Flux.from(body)
                 .collectList()
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::processResponseData)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeWith for session: {}", sessionId))
@@ -96,6 +98,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         return Flux.from(body)
                 .flatMap(Flux::from)
                 .collectList()
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::processResponseData)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeAndFlushWith for session: {}", sessionId))
@@ -146,10 +149,14 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
     private String aggregateDataBuffers(final java.util.List<? extends DataBuffer> dataBuffers) {
         final StringBuilder responseBuilder = new StringBuilder();
 
-        for (DataBuffer buffer : dataBuffers) {
-            final byte[] bytes = new byte[buffer.readableByteCount()];
-            buffer.read(bytes);
-            responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
+        try {
+            for (DataBuffer buffer : dataBuffers) {
+                final byte[] bytes = new byte[buffer.readableByteCount()];
+                buffer.read(bytes);
+                responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
+            }
+        } finally {
+            dataBuffers.forEach(DataBufferUtils::release);
         }
 
         return responseBuilder.toString();

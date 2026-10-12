@@ -35,6 +35,12 @@ import static org.apache.shenyu.common.constant.Constants.SUCCESS;
 
 /**
  * RegisterUtils.
+ *
+ * <p>Registration, heartbeat and unregistration responses other than {@link Constants#SUCCESS}
+ * propagate through the existing {@link IOException} contract. Registration failures use the
+ * repository's bounded failback policy, including validation-error responses: the text response
+ * contract cannot reliably distinguish permanent errors from transient failures. Heartbeat and
+ * unregistration failures are handled by the caller without enqueueing a registration retry.
  */
 public final class RegisterUtils {
 
@@ -63,6 +69,7 @@ public final class RegisterUtils {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
             LOGGER.error("{} client register error: {} ", type, json);
+            throw new IOException("Admin returned a non-success response for " + type + " registration at " + url);
         }
     }
     
@@ -80,6 +87,7 @@ public final class RegisterUtils {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
             LOGGER.error("{} client register error: {} ", type, json);
+            throw new IOException("Admin returned a non-success response for " + type + " registration at " + url);
         }
     }
 
@@ -103,6 +111,7 @@ public final class RegisterUtils {
             LOGGER.info("{} success: {} ", type, json);
         } else {
             LOGGER.error("{} error: {} ", type, json);
+            throw new IOException("Admin returned a non-success response for " + type + " at " + url);
         }
     }
     
@@ -125,6 +134,7 @@ public final class RegisterUtils {
             LOGGER.info("{} client unregister success: {} ", Constants.URI, json);
         } else {
             LOGGER.error("{} client unregister error: {} ", Constants.URI, json);
+            throw new IOException("Admin returned a non-success response for unregistration at " + url);
         }
     }
 

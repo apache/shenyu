@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.mcp.server.request;
 
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -100,6 +102,35 @@ class RequestConfigHelperTest {
         assertTrue(result.contains("size=10"));
         assertTrue(result.contains("?"));
         assertTrue(result.contains("&"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "/users?fixed=true, /users?page=1&fixed=true",
+        "/users?page=10, /users?page=10",
+        "/users?homepage=10&note=page=10, /users?page=1&homepage=10&note=page=10"
+    })
+    void testQueryParameterMerging(final String template, final String expected) {
+        JsonObject argsPosition = new JsonObject();
+        argsPosition.addProperty("page", "query");
+        JsonObject inputJson = new JsonObject();
+        inputJson.addProperty("page", "1");
+
+        String result = RequestConfigHelper.buildPath(template, argsPosition, inputJson);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void testQueryMergingPreservesEncoding() {
+        JsonObject argsPosition = new JsonObject();
+        argsPosition.addProperty("query", "query");
+        JsonObject inputJson = new JsonObject();
+        inputJson.addProperty("query", "hello world & 50%");
+
+        String result = RequestConfigHelper.buildPath("/users?fixed=a%26b%3Dc%20d", argsPosition, inputJson);
+
+        assertEquals("/users?query=hello%20world%20%26%2050%25&fixed=a%26b%3Dc%20d", result);
     }
 
     @Test

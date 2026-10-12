@@ -254,7 +254,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
 
-        String configDataCacheKey = buildCacheKey(serverCache.getNamespaceId(), serverCache.getGroup());
+        // updateCache stores the namespace-qualified cache key in ConfigDataCache.group.
+        // Reuse it directly to avoid adding the namespace prefix twice.
+        String configDataCacheKey = serverCache.getGroup();
 
         ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {

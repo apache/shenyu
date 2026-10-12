@@ -158,6 +158,28 @@ class McpServerPluginDataHandlerTest {
     }
 
     @Test
+    void testHandlerSelectorPathUpdateRemovesPreviousServer() {
+        org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer previousServer =
+                new org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer();
+        previousServer.setPath("/mcp/old");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector1", previousServer);
+        when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(false);
+        when(shenyuMcpServerManager.hasMcpServer("/mcp/old")).thenReturn(true);
+
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/mcp/new/**");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector1");
+        selectorData.setConditionList(Arrays.asList(condition));
+        selectorData.setHandle("{\"messageEndpoint\":\"/message\"}");
+
+        dataHandler.handlerSelector(selectorData);
+
+        verify(shenyuMcpServerManager).removeMcpServer("/mcp/old");
+    }
+
+    @Test
     void testHandlerRuleWithValidData() {
         RuleData ruleData = new RuleData();
         ruleData.setId("rule1");
