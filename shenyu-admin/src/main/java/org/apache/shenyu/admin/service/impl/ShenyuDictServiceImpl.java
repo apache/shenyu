@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
@@ -35,6 +34,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,19 +112,16 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
         if (CollectionUtils.isEmpty(dictList)) {
             return ConfigImportResult.success();
         }
-        Map<String, List<ShenyuDictVO>> dictTypeMap = listAllData()
+        Map<String, Set<String>> dictTypeMap = listAllData()
                 .stream()
-                .collect(Collectors.groupingBy(ShenyuDictVO::getType));
+                .collect(Collectors.groupingBy(ShenyuDictVO::getType,
+                        Collectors.mapping(ShenyuDictVO::getDictName, Collectors.toSet())));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (ShenyuDictDTO dictDTO : dictList) {
             String type = dictDTO.getType();
             String dictName = dictDTO.getDictName();
-            Set<String> existDictNameSet = dictTypeMap
-                    .getOrDefault(type, Lists.newArrayList())
-                    .stream()
-                    .map(ShenyuDictVO::getDictName)
-                    .collect(Collectors.toSet());
+            Set<String> existDictNameSet = dictTypeMap.computeIfAbsent(type, key -> new HashSet<>());
             // check if dictName exists for this type
             if (existDictNameSet.contains(dictName)) {
                 errorMsgBuilder
@@ -132,8 +129,10 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
                         .append(",");
                 continue;
             }
-            create(dictDTO);
-            successCount++;
+            if (create(dictDTO) > 0) {
+                existDictNameSet.add(dictName);
+                successCount++;
+            }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);

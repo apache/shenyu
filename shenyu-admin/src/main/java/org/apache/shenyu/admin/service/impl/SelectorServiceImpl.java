@@ -567,9 +567,10 @@ public class SelectorServiceImpl implements SelectorService {
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
-        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
+        Map<String, Map<String, String>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+                .collect(Collectors.groupingBy(SelectorDO::getPluginId,
+                        Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId, (first, second) -> first)));
 
         Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
                 .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
@@ -580,11 +581,7 @@ public class SelectorServiceImpl implements SelectorService {
             List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
 
-                Map<String, String> existSelectorSet = Optional
-                        .ofNullable(pluginSelectorMap.get(pluginId))
-                        .orElseGet(Lists::newArrayList)
-                        .stream()
-                        .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
+                Map<String, String> existSelectorSet = pluginSelectorMap.computeIfAbsent(pluginId, key -> new HashMap<>());
 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName
@@ -598,7 +595,7 @@ public class SelectorServiceImpl implements SelectorService {
                     } else {
                         // gen new id
                         String selectorId = UUIDUtils.getInstance().generateShortUuid();
-                        selectorIdMapping.put(selectorDTO.getId(), selectorId);
+                        final String oldSelectorId = selectorDTO.getId();
                         selectorDTO.setId(selectorId);
                         selectorDTO.setNamespaceId(namespace);
                         selectorDTO.setPluginId(pluginId);
@@ -607,8 +604,11 @@ public class SelectorServiceImpl implements SelectorService {
                                             c.setSelectorId(selectorId);
                                             c.setId(null);
                                         });
-                        create(selectorDTO);
-                        successCount++;
+                        if (create(selectorDTO) > 0) {
+                            existSelectorSet.put(selectorName, selectorId);
+                            selectorIdMapping.put(oldSelectorId, selectorId);
+                            successCount++;
+                        }
                     }
                 }
             }
