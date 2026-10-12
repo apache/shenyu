@@ -29,6 +29,9 @@ import java.util.Objects;
  */
 public final class OpenAiResponses implements AiProxyProtocol {
 
+    /**
+     * Selector handle protocol identifier for Responses clients.
+     */
     public static final String NAME = "openai-responses";
 
     @Override

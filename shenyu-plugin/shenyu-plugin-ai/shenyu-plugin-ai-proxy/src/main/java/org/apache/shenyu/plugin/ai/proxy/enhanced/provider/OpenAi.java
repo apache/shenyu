@@ -49,10 +49,18 @@ public final class OpenAi implements AiProxyProvider {
 
     private final ProviderProfile profile;
 
+    /**
+     * Create a generic OpenAI Chat upstream without provider-specific adaptation.
+     */
     public OpenAi() {
         this(null);
     }
 
+    /**
+     * Create a Chat upstream with an explicitly selected provider dialect.
+     *
+     * @param profile provider profile, or null for generic OpenAI compatibility
+     */
     public OpenAi(final ProviderProfile profile) {
         this.profile = profile;
     }
