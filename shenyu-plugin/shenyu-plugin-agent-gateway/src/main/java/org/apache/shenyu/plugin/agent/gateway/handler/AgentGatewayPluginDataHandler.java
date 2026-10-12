@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 /**
  * Caches parsed agent gateway rule handles.
@@ -40,6 +41,23 @@ public class AgentGatewayPluginDataHandler implements PluginDataHandler {
             new BeanHolder<>(CommonHandleCache::new);
 
     private final AgentGatewayRuleHandleParser parser = new AgentGatewayRuleHandleParser();
+
+    private final Consumer<PluginData> pluginUpdates;
+
+    public AgentGatewayPluginDataHandler() {
+        this(ignored -> { });
+    }
+
+    public AgentGatewayPluginDataHandler(final Consumer<PluginData> pluginUpdates) {
+        this.pluginUpdates = Objects.requireNonNull(pluginUpdates, "pluginUpdates");
+    }
+
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        if (Objects.nonNull(pluginData)) {
+            pluginUpdates.accept(pluginData);
+        }
+    }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
@@ -66,6 +84,9 @@ public class AgentGatewayPluginDataHandler implements PluginDataHandler {
     @Override
     public void removePlugin(final PluginData pluginData) {
         CACHED_HANDLE.get().getAllCache().clear();
+        PluginData removed = new PluginData();
+        removed.setEnabled(false);
+        pluginUpdates.accept(removed);
     }
 
     @Override

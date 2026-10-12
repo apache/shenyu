@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -75,7 +76,7 @@ public final class ExceptionHandlersTest {
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerSpy);
     }
 

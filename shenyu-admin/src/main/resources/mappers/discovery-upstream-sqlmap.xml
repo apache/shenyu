@@ -45,9 +45,15 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM discovery_upstream
         WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM discovery_upstream
+        WHERE id = #{id} AND ROWNUM = 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
@@ -123,7 +129,7 @@
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
-        WHERE discovery_handler_id=#{id, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
+        WHERE discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR} and upstream_url =#{upstreamUrl}
     </update>
 
     <select id="selectAll" resultMap="BaseResultMap">

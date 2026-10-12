@@ -33,6 +33,7 @@ import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,6 +67,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -97,14 +100,21 @@ public final class WebsocketCollectorTest {
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(WebsocketCollector.class)).thenReturn(loggerSpy);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
     @AfterAll
     public static void close() {
         loggerFactoryMockedStatic.close();
+    }
+
+    @Test
+    public void testUnrelatedClassLoggerIsPreserved() {
+        Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+        assertNotNull(logger);
+        assertEquals(JsonUtils.class.getName(), logger.getName());
+        assertNull(JsonUtils.jsonToObject("", Map.class));
     }
 
     @BeforeEach

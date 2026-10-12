@@ -31,11 +31,9 @@
         <module>shenyu-registry-core</module>
         <module>shenyu-registry-zookeeper</module>
         <module>shenyu-registry-etcd</module>
-        <module>shenyu-registry-consul</module>
         <module>shenyu-registry-nacos</module>
         <module>shenyu-registry-apollo</module>
         <module>shenyu-registry-eureka</module>
-        <module>shenyu-registry-polaris</module>
         <module>shenyu-registry-kubernetes</module>
     </modules>
 

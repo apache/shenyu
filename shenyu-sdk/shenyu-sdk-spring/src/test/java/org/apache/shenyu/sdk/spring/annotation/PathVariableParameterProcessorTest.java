@@ -27,6 +27,7 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.Assert;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import static org.mockito.Mockito.mock;
@@ -46,6 +47,21 @@ public class PathVariableParameterProcessorTest {
     @BeforeEach
     public void init() {
         this.processor = new PathVariableParameterProcessor();
+    }
+
+    @Test
+    public void processArgumentNameOnlyTest() {
+        RequestTemplate template = new RequestTemplate();
+        template.setUrl("/url/a/b");
+        template.setPath("/id/{id}");
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("");
+        when(path.name()).thenReturn("id");
+
+        processor.processArgument(request, path, "one");
+
+        assertTrue(request.getUrl().contains("/one"), "path name alias resolve fail");
     }
 
     @ParameterizedTest

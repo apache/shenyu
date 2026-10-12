@@ -23,6 +23,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 
 import java.util.Objects;
 import java.util.Set;
@@ -36,7 +37,7 @@ public final class AgentGatewayRuleHandleValidator {
 
     private static final String RESPONSE_REQUEST_ID = "responseRequestId";
 
-    private static final Set<String> SUPPORTED_FIELDS = Set.of(TRAFFIC_TYPE, RESPONSE_REQUEST_ID);
+    private static final Set<String> SUPPORTED_FIELDS = Set.of(TRAFFIC_TYPE, RESPONSE_REQUEST_ID, "mcp");
 
     private AgentGatewayRuleHandleValidator() {
     }
@@ -62,19 +63,28 @@ public final class AgentGatewayRuleHandleValidator {
         final JsonObject object = element.getAsJsonObject();
         for (String field : object.keySet()) {
             if (!SUPPORTED_FIELDS.contains(field)) {
-                throw new ShenyuAdminException("agentGateway rule handle contains an unknown field; supported fields: trafficType, responseRequestId");
+                throw new ShenyuAdminException("agentGateway rule handle contains an unknown field; supported fields: trafficType, responseRequestId, mcp");
             }
         }
         final JsonElement trafficType = object.get(TRAFFIC_TYPE);
         if (Objects.isNull(trafficType) || !trafficType.isJsonPrimitive() || !trafficType.getAsJsonPrimitive().isString()
-                || !"LLM".equals(trafficType.getAsString())) {
-            throw new ShenyuAdminException("agentGateway trafficType must be LLM");
+                || !Set.of("LLM", "mcp").contains(trafficType.getAsString())) {
+            throw new ShenyuAdminException("agentGateway trafficType must be LLM or mcp");
         }
         if (object.has(RESPONSE_REQUEST_ID)) {
             final JsonElement responseRequestId = object.get(RESPONSE_REQUEST_ID);
             if (!responseRequestId.isJsonPrimitive() || !responseRequestId.getAsJsonPrimitive().isBoolean()) {
                 throw new ShenyuAdminException("agentGateway responseRequestId must be a boolean");
             }
+        }
+        if ("mcp".equals(trafficType.getAsString())) {
+            try {
+                AgentGatewayMcpConfig.parse(object.get("mcp"), true);
+            } catch (IllegalArgumentException error) {
+                throw new ShenyuAdminException("agentGateway " + error.getMessage());
+            }
+        } else if (object.has("mcp")) {
+            throw new ShenyuAdminException("agentGateway mcp configuration requires trafficType mcp");
         }
     }
 }
