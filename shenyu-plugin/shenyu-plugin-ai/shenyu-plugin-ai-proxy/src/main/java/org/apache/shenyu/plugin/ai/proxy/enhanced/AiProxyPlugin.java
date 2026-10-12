@@ -22,235 +22,129 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.common.protocol.OpenAiProtocolAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.OpenAiApiCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyExecutorService.FallbackContext;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.UpstreamErrorLogger;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionChunk;
-import org.springframework.ai.openai.api.OpenAiApi.ChatCompletionRequest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
-/** AI proxy plugin. This plugin is used to proxy requests to AI services. */
+/**
+ * Terminal AI proxy gateway boundary backed exclusively by AiProxyEngine.
+ */
 public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyPlugin.class);
 
-    /**
-     * Maximum request body size: 5MB.
-     */
     private static final int MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024;
+
+    private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+            "te", "trailer", "transfer-encoding", "upgrade");
 
     private final AiProxyConfigService aiProxyConfigService;
 
-    private final AiProxyExecutorService aiProxyExecutorService;
+    private final AiProxyEngine aiProxyEngine;
 
     private final AiProxyPluginHandler aiProxyPluginHandler;
 
-    public AiProxyPlugin(
-            final AiProxyConfigService aiProxyConfigService,
-            final AiProxyExecutorService aiProxyExecutorService,
-            final AiProxyPluginHandler aiProxyPluginHandler) {
+    public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine, final AiProxyPluginHandler aiProxyPluginHandler) {
         this.aiProxyConfigService = aiProxyConfigService;
-        this.aiProxyExecutorService = aiProxyExecutorService;
+        this.aiProxyEngine = aiProxyEngine;
         this.aiProxyPluginHandler = aiProxyPluginHandler;
     }
 
     @Override
-    protected Mono<Void> doExecute(
-            final ServerWebExchange exchange,
-            final ShenyuPluginChain chain,
-            final SelectorData selector,
-            final RuleData rule) {
-        final AiProxyHandle selectorHandle = aiProxyPluginHandler
-                .getSelectorCachedHandle()
-                .obtainHandle(
-                        CacheKeyUtils.INST.getKey(
-                                selector.getId(), Constants.DEFAULT_RULE));
-
-        return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
-                .flatMap(dataBuffer -> {
-                    final String requestBody = dataBuffer.toString(StandardCharsets.UTF_8);
-                    DataBufferUtils.release(dataBuffer);
-
-                    final AiCommonConfig primaryConfig = aiProxyConfigService.resolvePrimaryConfig(selectorHandle);
-
-                    // override apiKey by proxy key if provided in header
-                    final HttpHeaders headers = exchange.getRequest().getHeaders();
-                    final String proxyApiKey = headers.getFirst(Constants.X_API_KEY);
-                    final boolean proxyEnabled = Objects.nonNull(selectorHandle)
-                            && "true".equalsIgnoreCase(String.valueOf(selectorHandle.getProxyEnabled()));
-
-                    if (proxyEnabled) {
-                        // if proxy mode enabled but header missing -> 401
-                        if (Objects.isNull(proxyApiKey) || proxyApiKey.isEmpty()) {
-                            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            return exchange.getResponse().setComplete();
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        return Mono.defer(() -> {
+            AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
+                    .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+            return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
+                    .switchIfEmpty(Mono.error(new ShenyuException("AI request body must not be empty")))
+                    .flatMap(buffer -> {
+                        final String body;
+                        try {
+                            body = buffer.toString(StandardCharsets.UTF_8);
+                        } finally {
+                            DataBufferUtils.release(buffer);
                         }
-
-                        final String realKey = AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(),
-                                proxyApiKey);
-                        if (Objects.nonNull(realKey)) {
-                            primaryConfig.setApiKey(realKey);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("[AiProxy] proxy key hit, selectorId={}, key={}... (masked)",
-                                        selector.getId(), proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())));
+                        AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
+                        if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
+                            String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
+                            String realKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                                    : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                            if (Objects.isNull(realKey)) {
+                                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                return exchange.getResponse().setComplete();
                             }
-                            LOG.info("[AiProxy] proxy key hit, cacheSize={}", AiProxyApiKeyCache.getInstance().size());
-                        } else {
-                            // shenyu proxy api key is invalid
-                            LOG.warn("[AiProxy] proxy key invalid, key={}... (masked), selectorId={}",
-                                    proxyApiKey.substring(0, Math.min(6, proxyApiKey.length())), selector.getId());
-                            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            return exchange.getResponse().setComplete();
+                            config.setApiKey(realKey);
                         }
-                    }
+                        Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, body)
+                                .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
+                        return aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response));
+                    });
+        }).onErrorResume(error -> handleFailure(exchange.getResponse(), error));
+    }
 
-                    final boolean stream = OpenAiProtocolAdapter.resolveStream(requestBody, primaryConfig.getStream());
-                    if (stream) {
-                        return handleStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
+    private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream) {
+        response.setStatusCode(HttpStatusCode.valueOf(upstream.getStatusCode()));
+        Set<String> excluded = new HashSet<>(HOP_HEADERS);
+        upstream.getHeaders().forEach((name, values) -> {
+            if ("connection".equalsIgnoreCase(name)) {
+                values.forEach(value -> {
+                    for (String token : value.split(",")) {
+                        excluded.add(token.trim().toLowerCase(Locale.ROOT));
                     }
-                    return handleNonStreamRequest(exchange, selector, requestBody, primaryConfig, selectorHandle);
-                })
-                .onErrorResume(DataBufferLimitException.class, e -> {
-                    LOG.warn("[AiProxy] Request body exceeds maximum allowed size {} bytes",
-                            MAX_REQUEST_BODY_SIZE_BYTES);
-                    exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
-                    return exchange.getResponse().setComplete();
                 });
+            }
+        });
+        upstream.getHeaders().forEach((name, values) -> {
+            if (!excluded.contains(name.toLowerCase(Locale.ROOT))) {
+                response.getHeaders().put(name, values);
+            }
+        });
+        Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+        return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)));
     }
 
-    private Mono<Void> handleStreamRequest(
-            final ServerWebExchange exchange,
-            final SelectorData selector,
-            final String requestBody,
-            final AiCommonConfig primaryConfig,
-            final AiProxyHandle selectorHandle) {
-        final OpenAiApi mainApi = getCachedOpenAiApi(selector.getId(), "main", primaryConfig);
-        final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, true, primaryConfig);
-        final Optional<FallbackContext> fallbackCtx = resolveFallbackContext(
-                selector.getId(), primaryConfig, selectorHandle, requestBody);
-        final ServerHttpResponse response = exchange.getResponse();
-        response.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
-
-        final Flux<ChatCompletionChunk> chunkFlux = aiProxyExecutorService.executeDirectStream(
-                mainApi, fallbackCtx, request, requestBody, true);
-
-        final Flux<DataBuffer> sseFlux = chunkFlux.map(
-                chunk -> {
-                    final String json = JsonUtils.toJson(chunk);
-                    final String sseData = "data: " + json + "\n\n";
-                    return response.bufferFactory()
-                            .wrap(sseData.getBytes(StandardCharsets.UTF_8));
-                }).concatWith(Mono.fromSupplier(() ->
-                        response.bufferFactory()
-                                .wrap("data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8))))
-                .doOnError(e -> logUpstreamError(e, "stream"));
-
-        return response.writeWith(sseFlux);
-    }
-
-    private Mono<Void> handleNonStreamRequest(
-            final ServerWebExchange exchange,
-            final SelectorData selector,
-            final String requestBody,
-            final AiCommonConfig primaryConfig,
-            final AiProxyHandle selectorHandle) {
-        final OpenAiApi mainApi = getCachedOpenAiApi(selector.getId(), "main", primaryConfig);
-        final ChatCompletionRequest request = OpenAiProtocolAdapter.toChatCompletionRequest(requestBody, false, primaryConfig);
-        final Optional<FallbackContext> fallbackCtx = resolveFallbackContext(
-                selector.getId(), primaryConfig, selectorHandle, requestBody);
-
-        return aiProxyExecutorService
-                .executeDirectCall(mainApi, fallbackCtx, request, requestBody)
-                .flatMap(
-                        responseEntity -> {
-                            final String responseJson = JsonUtils.toJson(responseEntity.getBody());
-                            byte[] jsonBytes = responseJson.getBytes(StandardCharsets.UTF_8);
-                            return WebFluxResultUtils.result(exchange, jsonBytes);
-                        })
-                .doOnError(e -> logUpstreamError(e, "non-stream"));
-    }
-
-    private Optional<FallbackContext> resolveFallbackContext(
-            final String selectorId,
-            final AiCommonConfig primaryConfig,
-            final AiProxyHandle selectorHandle,
-            final String requestBody) {
-        return aiProxyConfigService
-                .resolveDynamicFallbackConfig(primaryConfig, requestBody)
-                .map(cfg -> {
-                    LOG.info("[AiProxy] use dynamic fallback");
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("[AiProxy] dynamic fallback config: {}", cfg);
-                    }
-                    return new FallbackContext(createOpenAiApi(cfg), cfg);
-                })
-                .or(() -> aiProxyConfigService
-                        .resolveAdminFallbackConfig(primaryConfig, selectorHandle)
-                        .map(adminFallbackConfig -> {
-                            LOG.info("[AiProxy] use admin fallback");
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("[AiProxy] admin fallback config: {}", adminFallbackConfig);
-                            }
-                            return new FallbackContext(
-                                    getCachedOpenAiApi(selectorId, "adminFallback", adminFallbackConfig),
-                                    adminFallbackConfig);
-                        }));
-    }
-
-    private OpenAiApi getCachedOpenAiApi(final String selectorId, final String type, final AiCommonConfig config) {
-        final String cacheKey = selectorId + "|" + type + "_" + generateConfigCacheKey(config);
-        return OpenAiApiCache.getInstance().computeIfAbsent(cacheKey, () -> createOpenAiApi(config));
-    }
-
-    private int generateConfigCacheKey(final AiCommonConfig config) {
-        return Objects.hash(
-                config.getBaseUrl(),
-                config.getApiKey(),
-                config.getModel(),
-                config.getTemperature(),
-                config.getMaxTokens()
-        );
-    }
-
-    private OpenAiApi createOpenAiApi(final AiCommonConfig config) {
-        if (Objects.isNull(config.getBaseUrl()) || config.getBaseUrl().isEmpty()) {
-            throw new IllegalArgumentException("baseUrl must not be empty");
+    private Mono<Void> handleFailure(final ServerHttpResponse response, final Throwable error) {
+        if (response.isCommitted()) {
+            return Mono.error(error);
         }
-        if (Objects.isNull(config.getApiKey()) || config.getApiKey().isEmpty()) {
-            throw new IllegalArgumentException("apiKey must not be empty");
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (error instanceof DataBufferLimitException) {
+            status = HttpStatus.PAYLOAD_TOO_LARGE;
+        } else if (error instanceof ShenyuException) {
+            status = HttpStatus.BAD_REQUEST;
+        } else if (error instanceof AiProxyException) {
+            status = ((AiProxyException) error).getKind() == AiProxyException.Kind.REQUEST ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_GATEWAY;
         }
-        return OpenAiApi.builder()
-                .baseUrl(config.getBaseUrl())
-                .apiKey(config.getApiKey())
-                .build();
+        LOG.warn("AI proxy failed before response commitment: {}", error.getClass().getSimpleName());
+        response.setStatusCode(status);
+        return response.setComplete();
     }
 
     @Override
@@ -261,9 +155,5 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.AI_PROXY.getName();
-    }
-
-    private void logUpstreamError(final Throwable e, final String mode) {
-        UpstreamErrorLogger.logUpstreamError(LOG, e, mode);
     }
 }

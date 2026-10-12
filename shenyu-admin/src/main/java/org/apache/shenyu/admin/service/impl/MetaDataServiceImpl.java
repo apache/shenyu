@@ -104,10 +104,15 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
-        return StringUtils.isBlank(metaDataDTO.getId()) ? this.create(metaDataDTO) : this.update(metaDataDTO);
+        if (StringUtils.isBlank(metaDataDTO.getId())) {
+            create(metaDataDTO);
+            return ShenyuResultMessage.CREATE_SUCCESS;
+        }
+        return update(metaDataDTO);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
         List<MetaDataDO> deletedMetaData = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(deletedMetaData)) {
@@ -121,6 +126,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdListAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
@@ -181,6 +187,11 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     public List<MetaData> listAll() {
         return ListUtil.map(metaDataMapper.selectAll(), MetaDataTransfer.INSTANCE::mapToData);
+    }
+
+    @Override
+    public List<MetaData> listAllByNamespaceId(final String namespaceId) {
+        return ListUtil.map(metaDataMapper.findAllByNamespaceId(namespaceId), MetaDataTransfer.INSTANCE::mapToData);
     }
 
     @Override
@@ -269,8 +280,10 @@ public class MetaDataServiceImpl implements MetaDataService {
                 continue;
             }
             metaDataDTO.setNamespaceId(namespace);
-            create(metaDataDTO);
-            successCount++;
+            if (create(metaDataDTO) > 0) {
+                existMetadataPathSet.add(metaDataPath);
+                successCount++;
+            }
         }
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
@@ -279,7 +292,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         return ConfigImportResult.success(successCount);
     }
     
-    private String create(final MetaDataDTO metaDataDTO) {
+    private int create(final MetaDataDTO metaDataDTO) {
         Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath(), metaDataDTO.getNamespaceId()), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -287,18 +300,20 @@ public class MetaDataServiceImpl implements MetaDataService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         metaDataDO.setDateCreated(currentTime);
         metaDataDO.setDateUpdated(currentTime);
-        if (metaDataMapper.insert(metaDataDO) > 0) {
+        final int inserted = metaDataMapper.insert(metaDataDO);
+        if (inserted > 0) {
             publisher.onCreated(metaDataDO);
         }
 
         // publish MetaData's create event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return inserted;
     }
 
     private String update(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), metaDataDTO.getNamespaceId(),
+                Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));

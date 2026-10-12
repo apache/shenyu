@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Collections;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,6 +40,19 @@ public class DiscoveryMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private DiscoveryMapper discoveryMapper;
+
+    @Test
+    public void selectPageDiscoveries() {
+        DiscoveryDO discovery = buildDiscoveryDO();
+        discoveryMapper.insert(discovery);
+        try {
+            assertThat(discoveryMapper.selectByIds(Collections.singletonList(discovery.getId())).get(0).getId(), equalTo(discovery.getId()));
+            assertThat(discoveryMapper.selectByIds(Collections.emptyList()).size(), equalTo(0));
+            assertThat(discoveryMapper.selectByIds(Collections.singletonList("missing")).size(), equalTo(0));
+        } finally {
+            discoveryMapper.delete(discovery.getId(), discovery.getNamespaceId());
+        }
+    }
 
     @Test
     public void deleteScopedByNamespace() {

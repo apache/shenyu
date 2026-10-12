@@ -162,8 +162,9 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
                     compareInstances(new HashSet<>(previousInstances), new HashSet<>(currentInstances), listener);
                     instanceListMap.put(key, currentInstances);
                 } catch (Exception e) {
+                    // an exception escaping a fixed-rate task suppresses all later executions,
+                    // so a single polling failure must only be logged to keep the watch alive
                     LOGGER.error("eureka registry eurekaDiscoveryService watch key: {} error", key, e);
-                    throw new ShenyuException(e);
                 }
             }, 0, 1, TimeUnit.SECONDS);
             listenerThreadsMap.put(key, scheduledFuture);

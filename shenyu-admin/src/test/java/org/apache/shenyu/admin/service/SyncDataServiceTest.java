@@ -17,20 +17,23 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
+import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,12 +43,17 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
-import org.apache.shenyu.admin.service.support.AiProxyRealKeyResolver;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * test for SyncDataService.
@@ -125,6 +133,27 @@ public final class SyncDataServiceTest {
         given(this.selectorService.findByPluginIdAndNamespaceId(pluginVO.getPluginId(), pluginVO.getNamespaceId())).willReturn(Collections.singletonList(selectorData));
 
         assertThat(syncDataService.syncPluginData(pluginVO.getId()), lessThanOrEqualTo(false));
+    }
+
+    @Test
+    public void syncAllByNamespaceIdPublishesEmptySnapshotsTest() {
+        String namespaceId = "namespace-id";
+        given(this.namespacePluginService.listAll(namespaceId)).willReturn(Collections.emptyList());
+        given(this.selectorService.listAllByNamespaceId(namespaceId)).willReturn(Collections.emptyList());
+        given(this.ruleService.listAllByNamespaceId(namespaceId)).willReturn(Collections.emptyList());
+
+        assertTrue(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, namespaceId));
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(3)).publishEvent(eventCaptor.capture());
+        List<DataChangedEvent> events = eventCaptor.getAllValues();
+        assertEquals(ConfigGroupEnum.PLUGIN, events.get(0).getGroupKey());
+        assertEquals(ConfigGroupEnum.SELECTOR, events.get(1).getGroupKey());
+        assertEquals(ConfigGroupEnum.RULE, events.get(2).getGroupKey());
+        events.forEach(event -> {
+            assertEquals(namespaceId, event.getNamespaceId());
+            assertTrue(event.getSource().isEmpty());
+        });
     }
 
 

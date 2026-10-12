@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Websocket sync data service. */
 public class WebsocketSyncDataService implements SyncDataService {
@@ -61,6 +62,9 @@ public class WebsocketSyncDataService implements SyncDataService {
     private static final String ORIGIN_HEADER_NAME = "Origin";
     
     private final WebsocketConfig websocketConfig;
+
+    private final AtomicBoolean initialSyncReady = new AtomicBoolean();
+
     
     private final PluginDataSubscriber pluginDataSubscriber;
     
@@ -209,7 +213,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                 discoveryUpstreamDataSubscribers,
                 this.aiProxyApiKeyDataSubscribers,
                 namespaceId,
-                serverProperties.getPort());
+                serverProperties.getPort(),
+                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null);
     }
     
     /**
@@ -219,6 +224,14 @@ public class WebsocketSyncDataService implements SyncDataService {
      */
     public WebsocketConfig getWebsocketConfig() {
         return websocketConfig;
+    }
+
+    /**
+     * Whether initial configuration callbacks have completed successfully.
+     * @return startup readiness
+     */
+    public boolean isInitialSyncReady() {
+        return initialSyncReady.get();
     }
     
     /**

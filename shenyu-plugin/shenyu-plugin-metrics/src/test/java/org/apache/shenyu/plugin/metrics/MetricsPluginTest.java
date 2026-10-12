@@ -17,15 +17,18 @@
 
 package org.apache.shenyu.plugin.metrics;
 
+import io.prometheus.client.CollectorRegistry;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
+import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.Locale;
 
 /**
  * The Test Case For MetricsPlugin.
@@ -108,6 +112,51 @@ public class MetricsPluginTest {
                     .counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{rpcType}, 1L);
         } finally {
             MetricsReporter.clean();
+        }
+    }
+
+    @Test
+    public void testMcpCallbackUsesOnlyBoundedOutcomes() {
+        MetricsRegister metricsRegister = Mockito.mock(MetricsRegister.class);
+        MetricsReporter.register(metricsRegister);
+        try {
+            Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+            StepVerifier.create(metricsPlugin.execute(exchange, chain)).verifyComplete();
+            AgentMcpCallObserver observer = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
+            Assertions.assertNotNull(observer);
+            for (AgentMcpCallObserver.Outcome outcome : AgentMcpCallObserver.Outcome.values()) {
+                observer.record(outcome, 42);
+                String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};
+                Mockito.verify(metricsRegister).counterIncrement(LabelNames.AGENT_MCP_CALLS_TOTAL, labels, 1L);
+                Mockito.verify(metricsRegister).recordTime(LabelNames.AGENT_MCP_CALL_LATENCY, labels, 42);
+            }
+        } finally {
+            MetricsReporter.clean();
+        }
+    }
+
+    @Test
+    public void testMcpTerminalMetricsAreExposedByExistingPrometheusRegistry() {
+        MetricsReporter.clean();
+        CollectorRegistry.defaultRegistry.clear();
+        MetricsReporter.register(new PrometheusMetricsRegister());
+        try {
+            ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+            Mockito.when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.HTTP.getName());
+            Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+            StepVerifier.create(metricsPlugin.execute(exchange, chain)).verifyComplete();
+            AgentMcpCallObserver observer = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
+            Assertions.assertNotNull(observer);
+            for (AgentMcpCallObserver.Outcome outcome : AgentMcpCallObserver.Outcome.values()) {
+                observer.record(outcome, 42);
+                String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};
+                Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_MCP_CALLS_TOTAL, new String[]{"outcome"}, labels));
+                Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_MCP_CALL_LATENCY + "_count", new String[]{"outcome"}, labels));
+                Assertions.assertEquals(42.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_MCP_CALL_LATENCY + "_sum", new String[]{"outcome"}, labels));
+            }
+        } finally {
+            MetricsReporter.clean();
+            CollectorRegistry.defaultRegistry.clear();
         }
     }
 

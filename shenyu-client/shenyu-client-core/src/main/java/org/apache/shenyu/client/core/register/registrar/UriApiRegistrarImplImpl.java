@@ -41,7 +41,12 @@ public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     
     @Override
     protected void doRegisterApi(final ApiBean.ApiDefinition api) {
+        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerApi(api, namespaceId));
+    }
+
+    private void registerApi(final ApiBean.ApiDefinition api, final String namespaceId) {
         final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .appName(clientRegisterConfig.getAppName())
                 .eventType(EventType.REGISTER)
@@ -54,7 +59,12 @@ public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     
     @Override
     protected void doRegisterBean(final ApiBean apiBean) {
+        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerBean(apiBean, namespaceId));
+    }
+
+    private void registerBean(final ApiBean apiBean, final String namespaceId) {
         final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .appName(clientRegisterConfig.getAppName())
                 .eventType(EventType.REGISTER)
