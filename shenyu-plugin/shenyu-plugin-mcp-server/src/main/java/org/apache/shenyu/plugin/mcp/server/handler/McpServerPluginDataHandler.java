@@ -88,6 +88,13 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         }
         ShenyuMcpServer shenyuMcpServer = GsonUtils.getInstance().fromJson(StringUtils.isBlank(selectorData.getHandle()) ? DEFAULT_MESSAGE_ENDPOINT : selectorData.getHandle(), ShenyuMcpServer.class);
         shenyuMcpServer.setPath(path);
+        // when the selector moves to another path, close the server registered for the old
+        // one, otherwise its routes and transports stay alive under the previous endpoint
+        ShenyuMcpServer previousServer = CACHED_SERVER.get().obtainHandle(selectorData.getId());
+        if (Objects.nonNull(previousServer) && StringUtils.isNotBlank(previousServer.getPath())
+                && !previousServer.getPath().equals(path) && shenyuMcpServerManager.hasMcpServer(previousServer.getPath())) {
+            shenyuMcpServerManager.removeMcpServer(previousServer.getPath());
+        }
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),
                 shenyuMcpServer);

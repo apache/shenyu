@@ -29,8 +29,6 @@ The released version remains the default so a clean standalone checkout can reso
 | `shenyu-spring-boot-starter-client-grpc` | `shenyu-examples-grpc` |
 | `shenyu-spring-boot-starter-client-apache-dubbo` | `shenyu-examples-apache-dubbo-service`, `shenyu-examples-apache-dubbo-service-annotation` |
 | `shenyu-client-apache-dubbo` | `shenyu-examples-apache-dubbo-service-xml`, `shenyu-examples-sdk-apache-dubbo-provider` |
-| `shenyu-spring-boot-starter-client-tars` | `shenyu-examples-tars` |
-| `shenyu-spring-boot-starter-client-sofa` | `shenyu-examples-sofa-service` |
 | `shenyu-spring-boot-starter-client-spring-websocket` | `shenyu-examples-websocket` (annotation, native, reactive) |
 | `shenyu-spring-boot-starter-client-mcp` | `shenyu-examples-mcp` |
 
@@ -40,7 +38,6 @@ The following dependencies remain internal to this repository (`${project.versio
 
 - `shenyu-examples-common` — shared example utilities
 - `shenyu-examples-dubbo-api` — Dubbo API definitions
-- `shenyu-examples-sofa-api` — Sofa API definitions
 - `shenyu-sdk-*` — ShenYu SDK modules (not extracted to shenyu-client-java)
 - `shenyu-spring-boot-starter-sdk-*` — ShenYu SDK starters (not extracted to shenyu-client-java)
 

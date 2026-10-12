@@ -60,7 +60,6 @@
         <commons-collection.verion>4.4</commons-collection.verion>
         <websocket.version>1.5.1</websocket.version>
         <kafka-clients.version>3.9.1</kafka-clients.version>
-        <amqp-client.version>5.16.0</amqp-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
     </properties>
 
