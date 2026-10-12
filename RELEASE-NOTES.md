@@ -6,6 +6,14 @@
 
 ### Behavior Changes
 
+- HTTP client registration now treats non-success Admin responses as failures,
+  using the same bounded failback policy as transport errors (18 retry attempts
+  per pending task). The text response contract does not reliably distinguish
+  transient failures from permanent validation errors, so both consume that
+  budget. Heartbeat failures are reported to the caller. Unregistration retains
+  its existing policy: any successful Admin response is sufficient, and failure
+  at every Admin is reported without adding a registration retry. (#7440)
+
 - Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
   deletion with strict result-copy handling. Complete JSON text copies are rebuilt
   from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
