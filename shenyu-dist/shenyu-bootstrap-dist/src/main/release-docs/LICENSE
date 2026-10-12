@@ -726,6 +726,7 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    connect 0.1.0: https://github.com/agentic-ai-java/connect, MIT (see licenses/LICENSE-connect.txt)
     jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT

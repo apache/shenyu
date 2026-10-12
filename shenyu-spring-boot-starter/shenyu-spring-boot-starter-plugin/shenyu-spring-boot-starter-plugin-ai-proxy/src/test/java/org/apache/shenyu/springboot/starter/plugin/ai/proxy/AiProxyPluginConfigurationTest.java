@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
@@ -42,8 +44,10 @@ class AiProxyPluginConfigurationTest {
             org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class).hasSingleBean(AiProxyEngine.class)
                     .doesNotHaveBean(AiModelFactoryRegistry.class);
             AiProxyProviderFactory factory = context.getBean(AiProxyProviderFactory.class);
+            assertSame(context.getBean(OpenAiResponses.class), context.getBean(AiProxyProtocolFactory.class).getProtocol(OpenAiResponses.NAME));
             for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot")) {
                 assertEquals(provider.toLowerCase(java.util.Locale.ROOT), factory.getProvider(provider).name().toLowerCase(java.util.Locale.ROOT));
+                org.junit.jupiter.api.Assertions.assertTrue(factory.getProvider(provider).supports(OpenAiResponses.NAME));
             }
         });
     }

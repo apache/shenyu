@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
+import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
@@ -28,10 +29,12 @@ public final class OpenAiCompatible implements AiProxyProvider {
 
     private final String name;
 
-    private final OpenAi delegate = new OpenAi();
+    private final OpenAi delegate;
 
     public OpenAiCompatible(final String name) {
         this.name = name;
+        // Only an explicitly selected DeepSeek provider enables its dialect rules.
+        this.delegate = new OpenAi("DeepSeek".equalsIgnoreCase(name) ? ProviderProfile.deepSeekChat() : null);
     }
 
     @Override

@@ -19,11 +19,14 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.ConnectProtocolAdapter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -44,6 +47,16 @@ public final class OpenAi implements AiProxyProvider {
 
     private static final String CHAT_COMPLETIONS_PATH = "/v1/chat/completions";
 
+    private final ProviderProfile profile;
+
+    public OpenAi() {
+        this(null);
+    }
+
+    public OpenAi(final ProviderProfile profile) {
+        this.profile = profile;
+    }
+
     @Override
     public String name() {
         return NAME;
@@ -52,7 +65,7 @@ public final class OpenAi implements AiProxyProvider {
     @Override
     public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         validateConfig(config);
-        if (!OpenAiChat.NAME.equals(request.getProtocol())) {
+        if (!supports(request.getProtocol())) {
             throw new IllegalArgumentException(
                     "Unsupported OpenAI protocol: " + request.getProtocol());
         }
@@ -61,17 +74,17 @@ public final class OpenAi implements AiProxyProvider {
         boolean changed = payload.has("fallbackConfig");
         payload.remove("fallbackConfig");
 
-        if (Objects.nonNull(config.getModel())) {
-            payload.put("model", config.getModel());
-            changed = true;
-        }
         if (Objects.nonNull(config.getTemperature())) {
             payload.put("temperature", config.getTemperature());
             changed = true;
         }
         if (Objects.nonNull(config.getMaxTokens())) {
-            payload.put("max_tokens", config.getMaxTokens());
-            payload.put("max_completion_tokens", config.getMaxTokens());
+            if (OpenAiResponses.NAME.equals(request.getProtocol())) {
+                payload.put("max_output_tokens", config.getMaxTokens());
+            } else {
+                payload.put("max_tokens", config.getMaxTokens());
+                payload.put("max_completion_tokens", config.getMaxTokens());
+            }
             changed = true;
         }
 
@@ -82,8 +95,12 @@ public final class OpenAi implements AiProxyProvider {
             payload.put("stream", stream);
             changed = true;
         }
+        // Gateway overrides precede Connect's final protocol/provider adaptation.
+        final ConnectProtocolAdapter adapter = new ConnectProtocolAdapter(request.getProtocol(), config.getModel(), profile);
+        final ObjectNode converted = adapter.convertRequest(payload);
+        changed = changed || !payload.equals(converted);
         if (stream) {
-            changed = enableStreamUsage(payload) || changed;
+            changed = enableStreamUsage(converted) || changed;
         }
 
         final Map<String, List<String>> headers =
@@ -107,8 +124,9 @@ public final class OpenAi implements AiProxyProvider {
                 config.getBaseUrl(),
                 CHAT_COMPLETIONS_PATH));
         upstreamRequest.setHeaders(headers);
-        final String body = changed ? payload.toString() : request.getRawBody();
+        final String body = changed ? converted.toString() : request.getRawBody();
         upstreamRequest.setBody(body.getBytes(StandardCharsets.UTF_8));
+        upstreamRequest.setResponseAdapter(response -> adapter.convertResponse(response, stream));
 
         return upstreamRequest;
     }
@@ -158,6 +176,6 @@ public final class OpenAi implements AiProxyProvider {
 
     @Override
     public boolean supports(final String protocol) {
-        return OpenAiChat.NAME.equals(protocol);
+        return OpenAiChat.NAME.equals(protocol) || OpenAiResponses.NAME.equals(protocol);
     }
 }
