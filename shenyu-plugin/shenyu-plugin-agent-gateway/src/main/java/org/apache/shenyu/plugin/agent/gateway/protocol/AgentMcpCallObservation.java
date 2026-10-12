@@ -62,7 +62,8 @@ final class AgentMcpCallObservation {
     }
 
     void failure(final Throwable error) {
-        if (error instanceof TimeoutException) {
+        if (error instanceof TimeoutException
+                || error instanceof AgentMcpProtocolException && ((AgentMcpProtocolException) error).getHttpStatus() == 504) {
             outcome = Outcome.TIMEOUT;
         } else if (error instanceof AgentMcpProtocolException && ((AgentMcpProtocolException) error).getHttpStatus() < 500) {
             outcome = Outcome.REJECTED;
