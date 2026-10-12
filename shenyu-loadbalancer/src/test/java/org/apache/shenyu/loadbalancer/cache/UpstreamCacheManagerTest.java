@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -377,6 +378,112 @@ public class UpstreamCacheManagerTest {
         Assertions.assertFalse(finalResult.isEmpty());
 
         upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
+    @Test
+    @Order(12)
+    public void testDiscoveryUpdatesConfigurationAndPreservesRuntimeState() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DISCOVERY_CONFIGURATION_TEST";
+        final Upstream existing = Upstream.builder().protocol("http://").url("discovery:8080")
+                .weight(10).warmup(10).timestamp(123).healthCheckEnabled(false).build();
+        existing.setMetadata(Map.of("az", "old", "removed", "old"));
+        existing.getInflight().set(16);
+        final Upstream other = Upstream.builder().protocol("http://").url("other:8080").healthCheckEnabled(false).build();
+        manager.submitDiscovery(selectorId, List.of(existing, other));
+        final Upstream updated = Upstream.builder().protocol("https://").url(existing.getUrl())
+                .weight(20).warmup(30).gray(true).timestamp(999).healthCheckEnabled(false).build();
+        updated.setMetadata(Map.of("az", "new"));
+
+        manager.submitDiscovery(selectorId, List.of(updated));
+
+        final List<Upstream> result = manager.findUpstreamListBySelectorId(selectorId);
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertSame(existing, result.get(0));
+        Assertions.assertSame(other, result.get(1));
+        Assertions.assertEquals("https://", existing.getProtocol());
+        Assertions.assertEquals(20, existing.getWeight());
+        Assertions.assertEquals(30, existing.getWarmup());
+        Assertions.assertTrue(existing.isGray());
+        Assertions.assertEquals(Map.of("az", "new"), existing.getMetadata());
+        Assertions.assertEquals(123, existing.getTimestamp());
+        Assertions.assertEquals(16, existing.getInflight().get());
+        manager.removeByKey(selectorId);
+    }
+
+    @Test
+    @Order(13)
+    public void testDiscoveryUpdatesUnhealthyInstanceWithoutRecoveringIt() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DISCOVERY_UNHEALTHY_UPDATE_TEST";
+        final Upstream existing = Upstream.builder().protocol("http://").url("unhealthy:8080").weight(10).timestamp(123).build();
+        manager.submitDiscovery(selectorId, List.of(existing));
+        final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        existing.setHealthy(false);
+        existing.setLastUnhealthyTimestamp(12);
+        task.putToMap(task.getUnhealthyUpstream(), selectorId, existing);
+        task.removeFromMap(task.getHealthyUpstream(), selectorId, existing);
+        final Upstream updated = Upstream.builder().protocol("https://").url(existing.getUrl())
+                .weight(20).build();
+
+        manager.submitDiscovery(selectorId, List.of(updated));
+
+        final List<Upstream> unhealthy = task.getUnhealthyUpstream().get(selectorId);
+        Assertions.assertEquals(1, unhealthy.size());
+        Assertions.assertSame(existing, unhealthy.get(0));
+        Assertions.assertEquals("https://", existing.getProtocol());
+        Assertions.assertEquals(20, existing.getWeight());
+        Assertions.assertFalse(existing.isHealthy());
+        Assertions.assertEquals(12, existing.getLastUnhealthyTimestamp());
+        Assertions.assertTrue(manager.findUpstreamListBySelectorId(selectorId).isEmpty());
+        manager.removeByKey(selectorId);
+    }
+
+    @Test
+    @Order(14)
+    public void testDiscoveryPreservesExplicitProtocolDeletion() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DISCOVERY_PROTOCOL_DELETION_TEST";
+        for (boolean deletionFirst : List.of(true, false)) {
+            final Upstream existing = Upstream.builder().protocol("http://").url("protocol:8080").build();
+            manager.submitDiscovery(selectorId, List.of(existing));
+            final Upstream deleted = Upstream.builder().protocol("http://").url(existing.getUrl()).status(false).build();
+            final Upstream added = Upstream.builder().protocol("https://").url(existing.getUrl()).build();
+
+            manager.submitDiscovery(selectorId, deletionFirst ? List.of(deleted, added) : List.of(added, deleted));
+
+            final List<Upstream> result = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertEquals(1, result.size());
+            Assertions.assertSame(added, result.get(0));
+            final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+            Assertions.assertNotNull(task);
+            Assertions.assertFalse(task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()).contains(deleted));
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    @Order(15)
+    public void testSubmitPreservesDistinctProtocolsAtSameUrl() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DISTINCT_PROTOCOLS_TEST";
+        final Upstream http = Upstream.builder().protocol("http://").url("shared:8080").healthCheckEnabled(false).build();
+        final Upstream https = Upstream.builder().protocol("https://").url(http.getUrl()).healthCheckEnabled(false).build();
+        manager.submit(selectorId, List.of(http));
+        manager.submit(selectorId, List.of(https));
+        Assertions.assertEquals(List.of(http, https), manager.findUpstreamListBySelectorId(selectorId));
+        manager.removeByKey(selectorId);
+
+        manager.submitDiscovery(selectorId, List.of(http, https));
+        final Upstream updated = Upstream.builder().protocol("https://").url(http.getUrl()).weight(20).healthCheckEnabled(false).build();
+        manager.submitDiscovery(selectorId, List.of(updated));
+        Assertions.assertEquals(2, manager.findUpstreamListBySelectorId(selectorId).size());
+        Assertions.assertEquals("http://", http.getProtocol());
+        Assertions.assertEquals(50, http.getWeight());
+        Assertions.assertEquals("https://", https.getProtocol());
+        Assertions.assertEquals(20, https.getWeight());
+        manager.removeByKey(selectorId);
     }
 
     /**

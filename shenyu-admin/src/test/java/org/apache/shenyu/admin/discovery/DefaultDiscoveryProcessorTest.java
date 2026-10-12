@@ -19,15 +19,16 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
+import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.Before;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +46,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,12 +58,15 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,9 +80,6 @@ public class DefaultDiscoveryProcessorTest {
 
     @Mock
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
-
-    @Mock
-    private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
     private ShenyuInstanceRegisterRepository shenyuDiscoveryService;
@@ -158,27 +161,94 @@ public class DefaultDiscoveryProcessorTest {
     }
 
     @Test
-    public void testFetchAll() {
-        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
-        discoveryHandlerDO.setDiscoveryId("id");
-        when(discoveryHandlerMapper.selectById(anyString())).thenReturn(discoveryHandlerDO);
+    public void testFetchAllPublishesEmptyListAfterRemovingMissingUpstreams() {
+        final DiscoveryUpstreamDO removed = DiscoveryUpstreamDO.builder().id("removed").url("10.0.0.2:8080").build();
+        when(shenyuDiscoveryService.selectInstances(anyString())).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-id"))
+                .thenReturn(Collections.singletonList(removed), Collections.emptyList());
+        final DiscoveryHandlerDTO handler = new DiscoveryHandlerDTO();
+        handler.setId("handler-id");
+        handler.setDiscoveryId("id");
 
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = new ArrayList<>();
-        DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
-//        List<String> childData =new ArrayList<>();
+        defaultDiscoveryProcessor.fetchAll(handler, new ProxySelectorDTO());
 
-        discoveryUpstreamDOS.add(discoveryUpstreamDO);
-//        childData.add("1");
-        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId(anyString())).thenReturn(discoveryUpstreamDOS);
-//        when(shenyuDiscoveryService.getRegisterData(anyString())).thenReturn(childData);
-//        when(discoveryUpstreamMapper.insert(any(DiscoveryUpstreamDO.class))).thenReturn(1);
-        doNothing().when(eventPublisher).publishEvent(any(Object.class));
-        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
-        discoveryHandlerDTO.setId("1");
-        discoveryHandlerDTO.setDiscoveryId("id");
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        defaultDiscoveryProcessor.fetchAll(discoveryHandlerDTO, proxySelectorDTO);
-        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("removed"));
+        verify(discoveryUpstreamMapper, never()).insert(any(DiscoveryUpstreamDO.class));
+        final ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        final DiscoverySyncData published = (DiscoverySyncData) ((List<?>) eventCaptor.getValue().getSource()).get(0);
+        assertTrue(published.getUpstreamDataList().isEmpty());
+    }
+
+    @Test
+    public void testFetchAllRetainsWatchIpAddressAndConfiguration() {
+        final InstanceEntity selected = InstanceEntity.builder().appName("SHENYU-INSTANCES").host("10.0.0.1").port(8080).build();
+        when(shenyuDiscoveryService.selectInstances(anyString())).thenReturn(Collections.singletonList(selected));
+        final DiscoveryUpstreamDO watched = DiscoveryUpstreamDO.builder().id("watch-row").discoveryHandlerId("handler-id")
+                .url("10.0.0.1:8080").protocol("https://").weight(20).props("{\"warmup\":\"30\",\"az\":\"east\"}")
+                .namespaceId("namespace-id").dateCreated(new Timestamp(123)).dateUpdated(new Timestamp(456)).build();
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-id")).thenReturn(Collections.singletonList(watched));
+        final DiscoveryHandlerDTO handler = new DiscoveryHandlerDTO();
+        handler.setId("handler-id");
+        handler.setDiscoveryId("id");
+        handler.setListenerNode("/SHENYU-INSTANCES");
+        final ProxySelectorDTO selector = new ProxySelectorDTO();
+        selector.setId("selector-id");
+        selector.setNamespaceId("namespace-id");
+
+        defaultDiscoveryProcessor.fetchAll(handler, selector);
+
+        verify(discoveryUpstreamMapper, never()).deleteByIds(anyList());
+        verify(discoveryUpstreamMapper, never()).insert(any(DiscoveryUpstreamDO.class));
+        final ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        final DiscoverySyncData published = (DiscoverySyncData) ((List<?>) eventCaptor.getValue().getSource()).get(0);
+        final DiscoveryUpstreamData upstream = published.getUpstreamDataList().get(0);
+        assertEquals(watched.getUpstreamUrl(), upstream.getUrl());
+        assertEquals(watched.getProtocol(), upstream.getProtocol());
+        assertEquals(watched.getWeight(), upstream.getWeight());
+        assertEquals(watched.getProps(), upstream.getProps());
+        assertEquals(watched.getNamespaceId(), upstream.getNamespaceId());
+    }
+
+    @Test
+    public void testFetchAllPublishesReconciledRecordsWithNewInstanceDefaults() {
+        final InstanceEntity retained = InstanceEntity.builder().host("10.0.0.1").port(8080).build();
+        final InstanceEntity added = InstanceEntity.builder().host("10.0.0.3").port(8080).build();
+        added.setWeight(12);
+        when(shenyuDiscoveryService.selectInstances(anyString())).thenReturn(List.of(retained, added));
+        final DiscoveryUpstreamDO existing = DiscoveryUpstreamDO.builder().id("retained").url("10.0.0.1:8080").status(1).build();
+        final DiscoveryUpstreamDO removed = DiscoveryUpstreamDO.builder().id("removed").url("10.0.0.2:8080").build();
+        final List<DiscoveryUpstreamDO> reconciled = new ArrayList<>(List.of(existing));
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-id")).thenReturn(List.of(existing, removed), reconciled);
+        when(discoveryUpstreamMapper.insert(any(DiscoveryUpstreamDO.class))).thenAnswer(invocation -> {
+            reconciled.add(invocation.getArgument(0));
+            return 1;
+        });
+        final DiscoveryHandlerDTO handler = new DiscoveryHandlerDTO();
+        handler.setId("handler-id");
+        handler.setDiscoveryId("id");
+        final ProxySelectorDTO selector = new ProxySelectorDTO();
+        selector.setId("selector-id");
+        selector.setNamespaceId("namespace-id");
+
+        defaultDiscoveryProcessor.fetchAll(handler, selector);
+
+        verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("removed"));
+        verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));
+        final ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        final DiscoverySyncData published = (DiscoverySyncData) ((List<?>) eventCaptor.getValue().getSource()).get(0);
+        final List<DiscoveryUpstreamData> upstreams = published.getUpstreamDataList();
+        assertEquals(List.of("10.0.0.1:8080", "10.0.0.3:8080"), upstreams.stream().map(DiscoveryUpstreamData::getUrl).toList());
+        assertEquals(1, upstreams.get(0).getStatus());
+        final DiscoveryUpstreamData newUpstream = upstreams.get(1);
+        assertEquals("http://", newUpstream.getProtocol());
+        assertEquals(12, newUpstream.getWeight());
+        assertEquals("handler-id", newUpstream.getDiscoveryHandlerId());
+        assertEquals("namespace-id", newUpstream.getNamespaceId());
+        assertNotNull(newUpstream.getId());
+        assertNotNull(newUpstream.getDateCreated());
     }
 
     @Test
