@@ -425,6 +425,10 @@ public class RuleServiceImpl implements RuleService {
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectById(id);
+            if (Objects.isNull(ruleDO) || !Objects.equals(ruleDO.getNamespaceId(), namespaceId)) {
+                // the rule does not belong to the request namespace; skip it
+                return;
+            }
             RuleDO before = JsonUtils.jsonToObject(JsonUtils.toJson(ruleDO), RuleDO.class);
             ruleDO.setEnabled(enabled);
             if (ruleMapper.updateEnable(id, enabled) > 0) {

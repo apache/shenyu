@@ -55,10 +55,11 @@ public class Publish extends MessageType {
         }
         String topic = msg.variableHeader().topicName();
         ByteBuf payload = msg.payload();
-        String message = byteBufToString(payload);
         MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
         if (msg.fixedHeader().isRetain()) {
             if (payload.isReadable()) {
+                byte[] message = new byte[payload.readableBytes()];
+                payload.getBytes(payload.readerIndex(), message);
                 Singleton.INST.get(TopicRepository.class).add(topic, message);
             } else {
                 Singleton.INST.get(TopicRepository.class).remove(topic);
@@ -114,18 +115,8 @@ public class Publish extends MessageType {
         ctx.writeAndFlush(mqttPubRecMessage);
     }
 
-    private String byteBufToString(final ByteBuf byteBuf) {
-        if (byteBuf.hasArray()) {
-            return new String(byteBuf.array(), byteBuf.arrayOffset() + byteBuf.readerIndex(), byteBuf.readableBytes());
-        } else {
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            return new String(bytes, 0, byteBuf.readableBytes());
-        }
-    }
-
     private void send(final String topic, final ByteBuf payload, final MqttQoS publishQoS) {
-        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).get(topic);
+        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(topic);
         //// todo thread pool
         subscribers.entrySet().parallelStream().forEach(entry -> {
             Channel channel = entry.getKey();

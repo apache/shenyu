@@ -33,6 +33,7 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.awaitility.core.ThrowingRunnable;
@@ -80,6 +81,7 @@ public final class MqttTransportHandlerTest {
     @BeforeEach
     public void setUp() {
         Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
         Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
@@ -96,6 +98,7 @@ public final class MqttTransportHandlerTest {
 
     @AfterEach
     public void tearDown() {
+        Singleton.INST.get(SessionRepository.class).remove(CLIENT_ID);
         MqttPacketIdGenerator.remove(registeredChannel);
         CHANNEL_REPOSITORY.remove(registeredChannel);
         SUBSCRIBE_REPOSITORY.remove(registeredChannel);

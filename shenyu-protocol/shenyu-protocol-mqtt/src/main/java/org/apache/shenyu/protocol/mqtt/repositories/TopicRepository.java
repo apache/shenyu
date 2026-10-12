@@ -28,12 +28,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Save the posted message.
  * {@link org.apache.shenyu.protocol.mqtt.agent.MessageAgent}
  */
-public class TopicRepository implements BaseRepository<String, String> {
+public class TopicRepository implements BaseRepository<String, byte[]> {
 
-    private static final Map<String, String> TOPIC_FACTORY = new ConcurrentHashMap<>();
+    private static final Map<String, byte[]> TOPIC_FACTORY = new ConcurrentHashMap<>();
 
     @Override
-    public void add(final String topic, final String message) {
+    public void add(final String topic, final byte[] message) {
         //// todo MessageAgent.java. Carry out message processing and processing
         CompletableFuture.runAsync(() -> TOPIC_FACTORY.put(topic, message));
     }
@@ -44,7 +44,7 @@ public class TopicRepository implements BaseRepository<String, String> {
     }
 
     @Override
-    public String get(final String topic) {
+    public byte[] get(final String topic) {
         return TOPIC_FACTORY.getOrDefault(topic, null);
     }
 
@@ -55,8 +55,8 @@ public class TopicRepository implements BaseRepository<String, String> {
      * @param topicFilter the subscription topic filter
      * @return the matching retained messages keyed by their concrete topic name
      */
-    public Map<String, String> getMatchingTopics(final String topicFilter) {
-        Map<String, String> matchingTopics = new ConcurrentHashMap<>();
+    public Map<String, byte[]> getMatchingTopics(final String topicFilter) {
+        Map<String, byte[]> matchingTopics = new ConcurrentHashMap<>();
         TOPIC_FACTORY.forEach((topic, message) -> {
             if (TopicMatcher.matches(topicFilter, topic)) {
                 matchingTopics.put(topic, message);

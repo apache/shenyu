@@ -258,7 +258,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param proxySelectorDTO proxySelectorDTO
      */
     public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
+        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
         if (Objects.nonNull(changedEventListener)) {
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
@@ -300,20 +300,22 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * addChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @param dataChangedEventListener dataChangedEventListener
      */
-    public void addChangedEventListener(final String discoveryId, final DataChangedEventListener dataChangedEventListener) {
-        this.dataChangedEventListenerMap.put(discoveryId, dataChangedEventListener);
+    public void addChangedEventListener(final String discoveryId, final String key, final DataChangedEventListener dataChangedEventListener) {
+        this.dataChangedEventListenerMap.put(discoveryId + ":" + key, dataChangedEventListener);
     }
 
     /**
      * getChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @return {@link DataChangedEventListener}
      */
-    public DataChangedEventListener getChangedEventListener(final String discoveryId) {
-        return this.dataChangedEventListenerMap.get(discoveryId);
+    public DataChangedEventListener getChangedEventListener(final String discoveryId, final String key) {
+        return this.dataChangedEventListenerMap.get(discoveryId + ":" + key);
     }
 
     /**

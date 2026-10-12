@@ -33,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -190,6 +191,22 @@ public final class InstanceCheckServiceTest {
         cached.setInstanceState(null);
 
         assertDoesNotThrow(() -> ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck"));
+    }
+
+    @Test
+    void testDoCheckAppendsOneHistorySamplePerCycle() {
+        InstanceInfoVO first = buildVO("10.0.0.1", "8080", "http", "ns");
+        InstanceInfoVO second = buildVO("10.0.0.2", "8080", "http", "ns");
+        when(instanceInfoService.list()).thenReturn(Arrays.asList(first, second));
+        instanceCheckService.fetchInstanceData();
+
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+
+        long sampledPoints = instanceCheckService.getInstanceDataVisual("ns").getLineData().stream()
+                .flatMap(line -> line.getData().stream())
+                .filter(value -> value > 0)
+                .count();
+        assertEquals(1, sampledPoints, "one scheduled check must append exactly one history sample");
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {

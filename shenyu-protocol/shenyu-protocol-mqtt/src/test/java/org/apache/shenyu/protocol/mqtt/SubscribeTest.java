@@ -27,8 +27,11 @@ import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -45,6 +48,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class SubscribeTest {
 
+    private static final String CLIENT_ID = "subscribe-test-client";
+
+    /**
+     * SUBSCRIBE resolves the client session through these repositories, so they must be
+     * present even when a test only exercises topic routing.
+     */
+    @BeforeEach
+    void setUp() {
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+    }
+
     @Test
     void testSubscribeRejectsInvalidTopicFilter() throws InterruptedException {
         EmbeddedChannel channel = new EmbeddedChannel();
@@ -54,6 +69,7 @@ class SubscribeTest {
         Singleton.INST.single(SubscribeRepository.class, repository);
         Singleton.INST.single(TopicRepository.class, new TopicRepository());
         new MessageType().setConnected(channel, true);
+        Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
         ChannelHandlerContext ctx = channel.pipeline().firstContext();
         MqttSubscribeMessage msg = MqttMessageBuilders.subscribe()
@@ -88,10 +104,11 @@ class SubscribeTest {
         TopicRepository topicRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, topicRepository);
         new MessageType().setConnected(channel, true);
+        Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-hash/tennis/player1", "retained-1");
-        topicRepository.add("retained-hash/tennis/player2", "retained-2");
-        topicRepository.add("retained-hash/weather/today", "retained-3");
+        topicRepository.add("retained-hash/tennis/player1", "retained-1".getBytes(CharsetUtil.UTF_8));
+        topicRepository.add("retained-hash/tennis/player2", "retained-2".getBytes(CharsetUtil.UTF_8));
+        topicRepository.add("retained-hash/weather/today", "retained-3".getBytes(CharsetUtil.UTF_8));
         awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-hash/tennis/player1"))
                 && Objects.nonNull(topicRepository.get("retained-hash/tennis/player2")));
 
@@ -125,9 +142,10 @@ class SubscribeTest {
         TopicRepository topicRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, topicRepository);
         new MessageType().setConnected(channel, true);
+        Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-plus/tennis", "retained-level");
-        topicRepository.add("retained-plus/tennis/player1", "retained-deeper");
+        topicRepository.add("retained-plus/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
+        topicRepository.add("retained-plus/tennis/player1", "retained-deeper".getBytes(CharsetUtil.UTF_8));
         awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-plus/tennis")));
 
         try {
@@ -158,8 +176,9 @@ class SubscribeTest {
         TopicRepository topicRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, topicRepository);
         new MessageType().setConnected(channel, true);
+        Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-once/tennis", "retained-level");
+        topicRepository.add("retained-once/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
         awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-once/tennis")));
 
         try {

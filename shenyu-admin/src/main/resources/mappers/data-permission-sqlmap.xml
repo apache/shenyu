@@ -110,10 +110,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true 
-          FROM data_permission 
-         WHERE user_id = #{userId,jdbcType=VARCHAR} 
+        SELECT 1
+          FROM data_permission
+         WHERE user_id = #{userId,jdbcType=VARCHAR}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM data_permission
+         WHERE user_id = #{userId,jdbcType=VARCHAR}
+         AND ROWNUM = 1
     </select>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">
