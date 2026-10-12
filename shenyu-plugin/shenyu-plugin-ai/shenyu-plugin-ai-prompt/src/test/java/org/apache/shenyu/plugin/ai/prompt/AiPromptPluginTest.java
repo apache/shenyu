@@ -17,16 +17,30 @@
 
 package org.apache.shenyu.plugin.ai.prompt;
 
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.plugin.AiPromptConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.ai.prompt.handler.AiPromptPluginDataHandler;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -53,6 +67,44 @@ class AiPromptPluginTest {
     void testGetOrder() {
 
         assertEquals(PluginEnum.AI_PROMPT.getCode(), plugin.getOrder());
+    }
+
+    @Test
+    void testRuleConfigDoesNotMutatePluginConfig() throws Exception {
+        Field singlesField = Singleton.class.getDeclaredField("SINGLES");
+        singlesField.setAccessible(true);
+        Map<?, ?> singles = (Map<?, ?>) singlesField.get(null);
+        AiPromptConfig previousConfig = Singleton.INST.get(AiPromptConfig.class);
+        String baseConfigJson = "{\"prepend\":\"base prefix\",\"preRole\":\"system\","
+                + "\"append\":\"base suffix\",\"postRole\":\"assistant\"}";
+        AiPromptConfig baseConfig = GsonUtils.getInstance().fromJson(baseConfigJson, AiPromptConfig.class);
+        RuleData ruleA = RuleData.builder().selectorId("prompt-isolation").id("a")
+                .handle("{\"prepend\":\"rule-A\",\"preRole\":\"developer\"}").build();
+        RuleData ruleB = RuleData.builder().selectorId("prompt-isolation").id("b").build();
+        AiPromptPluginDataHandler handler = new AiPromptPluginDataHandler();
+        List<HttpMessageReader<?>> readers = ServerCodecConfigurer.create().getReaders();
+        AiPromptPlugin requestPlugin = new AiPromptPlugin(readers);
+        List<Object> results = new ArrayList<>();
+        ShenyuPluginChain chain = exchange -> ServerRequest.create(exchange, readers).bodyToMono(String.class)
+                .doOnNext(body -> results.add(GsonUtils.getInstance().convertToMap(body).get("messages"))).then();
+        try {
+            Singleton.INST.single(AiPromptConfig.class, baseConfig);
+            handler.handlerRule(ruleA);
+            Map<String, String> originalMessage = Map.of("role", "user", "content", "hello");
+            StepVerifier.create(requestPlugin.doExecute(promptExchange(), chain, null, ruleA)).verifyComplete();
+            assertEquals(List.of(Map.of("role", "developer", "content", "rule-A"), originalMessage), results.get(0));
+            assertEquals(GsonUtils.getInstance().fromJson(baseConfigJson, AiPromptConfig.class), Singleton.INST.get(AiPromptConfig.class));
+            StepVerifier.create(requestPlugin.doExecute(promptExchange(), chain, null, ruleB)).verifyComplete();
+            assertEquals(List.of(Map.of("role", "system", "content", "base prefix"), originalMessage,
+                    Map.of("role", "assistant", "content", "base suffix")), results.get(1));
+        } finally {
+            AiPromptPluginDataHandler.CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleA));
+            if (Objects.isNull(previousConfig)) {
+                singles.remove(AiPromptConfig.class.getName());
+            } else {
+                Singleton.INST.single(AiPromptConfig.class, previousConfig);
+            }
+        }
     }
 
     @Test
@@ -189,6 +241,12 @@ class AiPromptPluginTest {
 
         List<Map<String, Object>> messages = (List<Map<String, Object>>) resultMap.get("messages");
         assertEquals(2, messages.size());
+    }
+
+    private MockServerWebExchange promptExchange() {
+        return MockServerWebExchange.from(MockServerHttpRequest.post("/ai/prompt")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}"));
     }
 
     private String invokeDecorateBody(final String body, final AiPromptConfig config) throws Exception {

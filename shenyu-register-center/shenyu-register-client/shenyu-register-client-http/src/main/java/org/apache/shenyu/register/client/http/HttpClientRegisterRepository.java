@@ -44,8 +44,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,9 +58,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
 
-    private static URIRegisterDTO uriRegisterDTO;
+    private final Map<String, URIRegisterDTO> uriRegisterDTOs = new ConcurrentHashMap<>();
 
-    private static ApiDocRegisterDTO apiDocRegisterDTO;
+    private final Map<String, ApiDocRegisterDTO> apiDocRegisterDTOs = new ConcurrentHashMap<>();
 
     private String username;
     
@@ -124,7 +126,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             return;
         }
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
-        uriRegisterDTO = registerDTO;
+        uriRegisterDTOs.put(uriIdentity(registerDTO), registerDTO);
     }
     
     @Override
@@ -154,7 +156,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     @Override
     protected void doPersistApiDoc(final ApiDocRegisterDTO registerDTO) {
         doRegister(registerDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
-        apiDocRegisterDTO = registerDTO;
+        apiDocRegisterDTOs.put(apiDocIdentity(registerDTO), registerDTO);
     }
     
     @Override
@@ -169,14 +171,28 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     @Override
     public void closeRepository() {
-        if (Objects.nonNull(uriRegisterDTO)) {
-            uriRegisterDTO.setEventType(EventType.DELETED);
-            doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
-        }
-        if (Objects.nonNull(apiDocRegisterDTO)) {
-            apiDocRegisterDTO.setEventType(EventType.OFFLINE);
-            doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
-        }
+        uriRegisterDTOs.values().forEach(registerDTO -> {
+            registerDTO.setEventType(EventType.DELETED);
+            doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
+        });
+        apiDocRegisterDTOs.values().forEach(registerDTO -> {
+            registerDTO.setEventType(EventType.OFFLINE);
+            doRegister(registerDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+        });
+    }
+
+    private static String uriIdentity(final URIRegisterDTO registerDTO) {
+        return String.join(":", value(registerDTO.getNamespaceId()), value(registerDTO.getProtocol()), value(registerDTO.getAppName()),
+                value(registerDTO.getContextPath()), value(registerDTO.getRpcType()), value(registerDTO.getHost()), value(registerDTO.getPort()));
+    }
+
+    private static String apiDocIdentity(final ApiDocRegisterDTO registerDTO) {
+        return String.join(":", value(registerDTO.getContextPath()), value(registerDTO.getApiPath()), value(registerDTO.getHttpMethod()),
+                value(registerDTO.getRpcType()), value(registerDTO.getVersion()));
+    }
+
+    private static String value(final Object value) {
+        return Objects.toString(value, "");
     }
 
     /**
@@ -189,9 +205,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     private <T> void doRegister(final T t, final String path, final String type) {
-        int i = 0;
+        RuntimeException failure = null;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(path);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -202,17 +217,22 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
+                if (Objects.isNull(failure)) {
+                    failure = new RuntimeException(e);
+                } else {
+                    failure.addSuppressed(e);
                 }
             }
+        }
+        if (Objects.nonNull(failure)) {
+            // Failback replays the registration to every server, so admin registration endpoints must be idempotent.
+            throw failure;
         }
     }
 
     private <T> void doHeartbeat(final T t, final String path) {
-        int i = 0;
+        RuntimeException failure = null;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(path);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -222,14 +242,20 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(t), concat, Constants.HEARTBEAT, accessToken);
             } catch (Exception e) {
                 LOGGER.error("HeartBeat admin url :{} is fail, will retry.", server, e);
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
+                if (Objects.isNull(failure)) {
+                    failure = new RuntimeException(e);
+                } else {
+                    failure.addSuppressed(e);
                 }
             }
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
         }
     }
     
     private <T> void doUnregister(final T t) {
+        int failureCount = 0;
         for (String server : serverList) {
             String concat = server.concat(Constants.OFFLINE_PATH);
             try {
@@ -240,7 +266,11 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 RegisterUtils.doUnregister(GsonUtils.getInstance().toJson(t), concat, accessToken);
                 // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
-                LOGGER.error("Unregister admin url :{} is fail. cause:{}", server, e.getMessage());
+                failureCount++;
+                LOGGER.error("Unregister admin url :{} is fail.", server, e);
+                if (failureCount == serverList.size()) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

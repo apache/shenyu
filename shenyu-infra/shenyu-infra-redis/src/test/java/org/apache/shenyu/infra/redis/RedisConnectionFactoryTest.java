@@ -21,7 +21,10 @@ import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 import java.time.Duration;
 import java.lang.reflect.Method;
@@ -51,6 +54,38 @@ public class RedisConnectionFactoryTest {
         when(redisConfigProperties.getPassword()).thenReturn("password");
         when(redisConfigProperties.getMaxWait()).thenReturn(Duration.ofMillis(-1));
         Assertions.assertDoesNotThrow(() -> new RedisConnectionFactory(redisConfigProperties));
+    }
+
+    @Test
+    public void destroyDestroysTheLettuceFactory() {
+        RedisConfigProperties redisConfigProperties = new RedisConfigProperties();
+        redisConfigProperties.setUrl("localhost:6379");
+        redisConfigProperties.setMode(RedisModeEnum.STANDALONE.getName());
+        RedisConnectionFactory factory = new RedisConnectionFactory(redisConfigProperties);
+        LettuceConnectionFactory lettuceConnectionFactory = factory.getLettuceConnectionFactory();
+        Assertions.assertTrue(lettuceConnectionFactory.isRunning());
+        factory.destroy();
+        Assertions.assertFalse(lettuceConnectionFactory.isRunning());
+    }
+
+    @Test
+    public void destroyQuietlyDestroysTheFactory() throws Exception {
+        DisposableReactiveFactory connectionFactory = Mockito.mock(DisposableReactiveFactory.class);
+        RedisConnectionFactory.destroyQuietly(connectionFactory);
+        Mockito.verify(connectionFactory).destroy();
+    }
+
+    @Test
+    public void destroyQuietlyIgnoresWhatItCannotDestroy() throws Exception {
+        // nothing to destroy
+        Assertions.assertDoesNotThrow(() -> RedisConnectionFactory.destroyQuietly(null));
+        // a factory of another type, without a lifecycle, is left alone
+        Assertions.assertDoesNotThrow(() -> RedisConnectionFactory.destroyQuietly(
+                Mockito.mock(ReactiveRedisConnectionFactory.class)));
+        // a failure is logged instead of thrown: replacing a client must not fail because of it
+        DisposableReactiveFactory failing = Mockito.mock(DisposableReactiveFactory.class);
+        Mockito.doThrow(new IllegalStateException("boom")).when(failing).destroy();
+        Assertions.assertDoesNotThrow(() -> RedisConnectionFactory.destroyQuietly(failing));
     }
 
     @Test
@@ -117,5 +152,11 @@ public class RedisConnectionFactoryTest {
                 throw new RuntimeException(e.getCause());
             }
         });
+    }
+
+    /**
+     * A reactive factory that has a lifecycle, which is what the lettuce factory is in production.
+     */
+    private interface DisposableReactiveFactory extends ReactiveRedisConnectionFactory, DisposableBean {
     }
 }

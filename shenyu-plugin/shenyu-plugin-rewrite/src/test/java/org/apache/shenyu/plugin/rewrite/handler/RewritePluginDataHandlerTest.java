@@ -52,6 +52,7 @@ public final class RewritePluginDataHandlerTest {
         Supplier<CommonHandleCache<String, RewriteHandle>> cache = RewritePluginDataHandler.CACHED_HANDLE;
         cache.get().cachedHandle("1_test", new RewriteHandle());
         Assertions.assertNotNull(cache.get().obtainHandle("1_test"));
+        ruleData.setHandle(null);
         rewritePluginDataHandler.removeRule(ruleData);
         Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }

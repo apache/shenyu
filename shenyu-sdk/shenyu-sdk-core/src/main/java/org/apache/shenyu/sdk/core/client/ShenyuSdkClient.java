@@ -31,7 +31,7 @@ import java.util.List;
  * ShenyuSdkClient.
  */
 @SPI
-public interface ShenyuSdkClient {
+public interface ShenyuSdkClient extends AutoCloseable {
 
     /**
      * Init.
@@ -51,4 +51,8 @@ public interface ShenyuSdkClient {
      * @throws IOException error
      */
     ShenyuResponse execute(ShenyuRequest request) throws IOException;
+
+    @Override
+    default void close() throws IOException {
+    }
 }

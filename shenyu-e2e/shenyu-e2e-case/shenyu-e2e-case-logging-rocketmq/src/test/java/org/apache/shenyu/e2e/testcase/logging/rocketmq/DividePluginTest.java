@@ -30,6 +30,8 @@ import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.RuleCacheData;
+import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,12 +39,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.awaitility.Awaitility.await;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -75,12 +80,13 @@ public class DividePluginTest {
         spec.getChecker().check(gateway);
 
         ResourcesData resources = spec.getResources();
+        List<String> ruleIds = Lists.newArrayList();
         for (ResourcesData.Resource res : resources.getResources()) {
             SelectorDTO dto = client.create(res.getSelector());
             selectorIds.add(dto.getId());
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
-                client.create(rule);
+                ruleIds.add(client.create(rule).getId());
             });
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
@@ -90,6 +96,10 @@ public class DividePluginTest {
             }
         }
 
+        // Admin creation does not imply that the gateway has received the logging rules.
+        if (!selectorIds.isEmpty()) {
+            waitForLoggingRules(gateway, selectorIds, ruleIds);
+        }
         spec.getWaiting().waitFor(gateway);
     }
 
@@ -98,6 +108,13 @@ public class DividePluginTest {
         spec.getDeleter().delete(client, selectorIds);
         spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
+    }
+
+    static void waitForLoggingRules(final GatewayClient gateway, final List<String> selectors, final List<String> rules) {
+        await().alias("RocketMQ selectors and rules synchronized to gateway")
+                .atMost(Duration.ofSeconds(30))
+                .until(() -> gateway.getSelectorCache().stream().map(SelectorCacheData::getId).collect(Collectors.toSet()).containsAll(selectors)
+                        && gateway.getRuleCache().stream().map(RuleCacheData::getId).collect(Collectors.toSet()).containsAll(rules));
     }
 
     @BeforeAll

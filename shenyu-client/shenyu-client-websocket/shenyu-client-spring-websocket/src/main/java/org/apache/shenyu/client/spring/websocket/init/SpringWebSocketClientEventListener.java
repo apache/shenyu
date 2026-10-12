@@ -55,19 +55,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Shenyu websocket client event listener.
  */
 public class SpringWebSocketClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringWebSocketClient> {
-    
-    private final String[] pathAttributeNames = new String[] {"path", "value"};
+
+    private final String[] pathAttributeNames = new String[]{"path", "value"};
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
 
     private final Boolean isFull;
 
     private final String protocol;
+
+    private final AtomicBoolean endpointsRegistered = new AtomicBoolean();
 
     /**
      * Instantiates a new Spring websocket client event listener.
@@ -107,7 +110,18 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             }
             LOG.info("init spring websocket client success with isFull mode");
             List<String> namespaceIds = super.getNamespace();
-            namespaceIds.forEach(namespaceId -> getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId)));
+            namespaceIds.forEach(namespaceId -> {
+                getPublisher().publishEvent(MetaDataRegisterDTO.builder()
+                        .contextPath(getContextPath())
+                        .appName(getAppName())
+                        .path(getContextPath())
+                        .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
+                        .enabled(true)
+                        .ruleName(getContextPath())
+                        .namespaceId(namespaceId)
+                        .build());
+                getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+            });
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
@@ -134,12 +148,12 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
-    
+
     @Override
     protected String getClientName() {
         return RpcTypeEnum.WEB_SOCKET.getName();
     }
-    
+
     @Override
     protected void handle(final String beanName, final Object bean) {
         Class<?> clazz = getCorrectedClass(bean);
@@ -226,12 +240,13 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .appName(getAppName())
                 .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath())).build().encode().toUriString())
                 .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
-                .enabled(true)
+                .enabled(webSocketClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
+                .registerMetaData(webSocketClient.registerMetaData())
                 .namespaceId(namespaceId)
                 .build();
     }
-    
+
     @Override
     public String getPort() {
         final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
@@ -240,7 +255,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     private void registerEndpointsBeans(final ApplicationContext context, final Map<String, Object> endpointBeans) {
-        if (CollectionUtils.isEmpty(endpointBeans)) {
+        if (CollectionUtils.isEmpty(endpointBeans) || !endpointsRegistered.compareAndSet(false, true)) {
             return;
         }
         ShenyuServerEndpointerExporter exporter = (ShenyuServerEndpointerExporter) registerBean(context, ShenyuServerEndpointerExporter.class, "shenyuServerEndpointerExporter");

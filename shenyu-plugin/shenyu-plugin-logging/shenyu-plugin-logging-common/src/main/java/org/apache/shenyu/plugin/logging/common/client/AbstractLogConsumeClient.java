@@ -91,7 +91,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig, L 
             try {
                 this.close0();
             } catch (Exception e) {
-                LOG.error("{} close error.", this.getClass().getSimpleName());
+                LOG.error("{} close error.", this.getClass().getSimpleName(), e);
             }
         }
     }

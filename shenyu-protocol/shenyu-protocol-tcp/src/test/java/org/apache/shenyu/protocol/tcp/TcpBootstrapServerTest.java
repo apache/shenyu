@@ -229,6 +229,7 @@ public class TcpBootstrapServerTest {
         server.shutdown();
 
         verify(disposableServer).disposeNow();
+        verify(connectionContext).dispose();
         verify(loopResources).dispose();
     }
 
@@ -248,6 +249,7 @@ public class TcpBootstrapServerTest {
         assertSame(serverFailure, actual);
         assertEquals(1, actual.getSuppressed().length);
         assertSame(loopFailure, actual.getSuppressed()[0]);
+        verify(connectionContext).dispose();
         verify(loopResources).dispose();
         assertDoesNotThrow(server::shutdown);
     }

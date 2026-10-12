@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -31,7 +35,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
@@ -42,6 +46,7 @@ import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.ListUtil;
@@ -97,15 +102,25 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
             throw new ShenyuAdminException(AdminConstants.NAMESPACE_PLUGIN_EXIST);
         }
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
+        AgentGatewayPluginConfigValidator.validate(pluginDO.getName(), pluginDO.getConfig());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(pluginDO, namespaceId);
-        namespacePluginRelMapper.insertSelective(namespacePluginRelDO);
-        return namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        if (namespacePluginRelMapper.insertSelective(namespacePluginRelDO) <= 0) {
+            return null;
+        }
+        NamespacePluginVO namespacePluginVO = namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginId, namespaceId);
+        namespacePluginEventPublisher.onCreated(namespacePluginVO);
+        return namespacePluginVO;
     }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String update(final NamespacePluginDTO namespacePluginDTO) {
         final NamespacePluginVO before = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
+        Assert.notNull(before, "Namespace plugin relation does not exist: " + namespacePluginDTO.getId());
+        Assert.isTrue(Objects.equals(before.getNamespaceId(), namespacePluginDTO.getNamespaceId()),
+                "Namespace plugin relation does not belong to namespace: " + namespacePluginDTO.getNamespaceId());
+        AgentGatewayPluginConfigValidator.validate(before.getName(), namespacePluginDTO.getConfig());
+        AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
         NamespacePluginRelDO namespacePluginRelDO = NamespacePluginRelDO.buildNamespacePluginRelDO(namespacePluginDTO);
         if (namespacePluginRelMapper.updateSelective(namespacePluginRelDO) > 0) {
             final NamespacePluginVO now = namespacePluginRelMapper.selectById(namespacePluginDTO.getId());
@@ -133,7 +148,14 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     public CommonPager<NamespacePluginVO> listByPage(final NamespacePluginQuery namespacePluginQuery) {
-        return PageResultUtils.result(namespacePluginQuery.getPageParameter(), () -> namespacePluginRelMapper.selectByQuery(namespacePluginQuery));
+        PageParameter parameter = namespacePluginQuery.getPageParameter();
+        PageHelper.startPage(parameter.getCurrentPage(), parameter.getPageSize());
+        try {
+            PageInfo<NamespacePluginVO> page = new PageInfo<>(namespacePluginRelMapper.selectByQuery(namespacePluginQuery));
+            return new CommonPager<>(new PageParameter(page.getPageNum(), page.getPageSize(), (int) page.getTotal()), page.getList());
+        } finally {
+            PageHelper.clearPage();
+        }
     }
     
     @Override
@@ -253,6 +275,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         int successCount = 0;
         for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
             String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
+            AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
+            PluginDO template = pluginMapper.selectById(pluginId);
+            if (Objects.nonNull(template)) {
+                AgentGatewayPluginConfigValidator.validate(template.getName(), namespacePluginDTO.getConfig());
+            }
             // check plugin base info
             if (existPluginMap.containsKey(pluginId)) {
                 errorMsgBuilder

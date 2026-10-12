@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc;
 
+import io.grpc.MethodDescriptor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -94,21 +95,49 @@ public class GrpcPluginTest {
     @Test
     public void testDoExecute() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange(new InetSocketAddress("127.0.0.1", 8090));
-        executeRequest(exchange, "127.0.0.1");
+        executeRequest(exchange, "127.0.0.1", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
     }
 
     @Test
     public void testDoExecuteWithNullRemoteAddress()
             throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange();
-        executeRequest(exchange, "");
+        executeRequest(exchange, "", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
+    }
+
+    @Test
+    public void testDoExecuteWithNullRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt(null);
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @Test
+    public void testDoExecuteWithEmptyRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt("");
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
+    }
+
+    @Test
+    public void testDoExecuteWithBlankRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        metaData.setRpcExt(" ");
+        executeRequest(exchange, "", metaData, MethodDescriptor.MethodType.UNARY);
     }
 
     @SuppressWarnings("unchecked")
-    private void executeRequest(final ServerWebExchange exchange, final String expectedRemoteAddress)
+    private void executeRequest(final ServerWebExchange exchange, final String expectedRemoteAddress,
+                                final MetaData metaData, final MethodDescriptor.MethodType expectedMethodType)
             throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{message:1}");
-        exchange.getAttributes().put(Constants.META_DATA, getMetaData());
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
 
         Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
         Field clientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
@@ -120,6 +149,7 @@ public class GrpcPluginTest {
         when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(invocation -> {
                     assertEquals(expectedRemoteAddress, GrpcConstants.GRPC_REMOTE_ADDRESS.get());
+                    assertEquals(expectedMethodType, invocation.getArgument(3));
                     return CompletableFuture.completedFuture(response);
                 });
         clientCacheMap.put("grpcId", mockClient);
@@ -171,7 +201,7 @@ public class GrpcPluginTest {
                 .serviceName("echo.EchoService")
                 .methodName("echo")
                 .rpcType(RpcTypeEnum.GRPC.getName())
-                .rpcExt("{timeout:5000}")
+                .rpcExt("{\"timeout\":5000,\"methodType\":\"SERVER_STREAMING\"}")
                 .parameterTypes("param")
                 .enabled(true).build();
     }

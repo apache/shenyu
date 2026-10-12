@@ -77,9 +77,13 @@ public class CachePluginDataHandler implements PluginDataHandler {
             return;
         }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
-        this.closeCacheIfNeed();
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
+        final ICache lastCache = CacheUtils.getCache();
+        ApplicationConfigCache.getInstance().invalidateAll();
+        // install the new cache before closing the previous one: once a cache closes, its client is
+        // released, and a request that is handed that cache fails.
         Singleton.INST.single(ICache.class, cacheBuilder.builderCache(config));
+        this.closeCache(lastCache);
     }
     
     @Override
@@ -129,10 +133,19 @@ public class CachePluginDataHandler implements PluginDataHandler {
     private void closeCacheIfNeed() {
         ICache lastCache = CacheUtils.getCache();
         ApplicationConfigCache.getInstance().invalidateAll();
-        if (Objects.nonNull(lastCache)) {
+        this.closeCache(lastCache);
+    }
+
+    /**
+     * close the given cache, if it exists.
+     *
+     * @param cache the cache to close, may be null
+     */
+    private void closeCache(final ICache cache) {
+        if (Objects.nonNull(cache)) {
             // close last cache.
-            LOG.info("close the last cache {}", lastCache);
-            lastCache.close();
+            LOG.info("close the last cache {}", cache);
+            cache.close();
         }
     }
 }

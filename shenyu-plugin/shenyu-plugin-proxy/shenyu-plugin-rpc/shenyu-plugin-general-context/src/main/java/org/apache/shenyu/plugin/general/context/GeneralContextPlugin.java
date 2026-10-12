@@ -37,6 +37,7 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * GeneralContextPlugin, transfer http headers to rpc context.
@@ -51,7 +52,8 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         Map<String, List<GeneralContextHandle>> generalContextHandleMap = GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (generalContextHandleMap.isEmpty()) {
+        // the rule may have no cached handle, the cache returns null on a miss
+        if (Objects.isNull(generalContextHandleMap) || generalContextHandleMap.isEmpty()) {
             return chain.execute(exchange);
         }
         Map<String, Map<String, String>> generalContextMap = new HashMap<>();

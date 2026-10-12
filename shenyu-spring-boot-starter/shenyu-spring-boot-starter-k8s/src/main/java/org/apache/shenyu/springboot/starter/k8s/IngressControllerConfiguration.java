@@ -39,6 +39,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.config.NettyHttpProperties;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.k8s.parser.IngressPluginDefinition;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.EndpointsReconciler;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
@@ -56,16 +57,18 @@ import reactor.netty.tcp.TcpSslContextSpec;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Duration;
-
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.concurrent.Executors;
 
 /**
  * The type shenyu ingress controller configuration.
  */
 @Configuration
+@ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "ingress", matchIfMissing = true)
 public class IngressControllerConfiguration {
 
     /**
@@ -181,11 +184,14 @@ public class IngressControllerConfiguration {
      *
      * @param serviceInformer serviceInformer
      * @param endpointsInformer endpointsInformer
+     * @param pluginDefinitions external plugin definitions
      * @return IngressParser
      */
     @Bean
-    public IngressParser ingressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer) {
-        return new IngressParser(serviceInformer, endpointsInformer);
+    public IngressParser ingressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer,
+                                       final ObjectProvider<IngressPluginDefinition> pluginDefinitions) {
+        List<IngressPluginDefinition> orderedDefinitions = pluginDefinitions.orderedStream().collect(Collectors.toList());
+        return new IngressParser(serviceInformer, endpointsInformer, orderedDefinitions);
     }
 
     /**

@@ -89,5 +89,7 @@ public final class RedisCache implements ICache {
             connection.close();
         } catch (Exception ignored) {
         }
+        // the factory owns the connection pool and its threads, closing a connection does not release them
+        RedisConnectionFactory.destroyQuietly(connectionFactory);
     }
 }

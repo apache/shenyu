@@ -95,6 +95,14 @@ public interface AiProxyApiKeyService extends PageService<ProxyApiKeyQuery, Prox
     List<org.apache.shenyu.common.dto.ProxyApiKeyData> listAll();
 
     /**
+     * List synchronization data in a single namespace.
+     *
+     * @param namespaceId namespace id
+     * @return synchronization data
+     */
+    List<org.apache.shenyu.common.dto.ProxyApiKeyData> listAllByNamespaceId(String namespaceId);
+
+    /**
      * Publish REFRESH event contains all proxy api key data (all namespaces).
      */
     void syncData();

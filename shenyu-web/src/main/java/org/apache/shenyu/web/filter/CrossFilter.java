@@ -112,10 +112,10 @@ public class CrossFilter implements WebFilter {
                 // "Access-Control-Allow-Credentials"
                 this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
                         String.valueOf(this.filterConfig.isAllowCredentials()));
-            }
-            if (request.getMethod() == HttpMethod.OPTIONS) {
-                response.setStatusCode(HttpStatus.OK);
-                return Mono.empty();
+                if (request.getMethod() == HttpMethod.OPTIONS) {
+                    response.setStatusCode(HttpStatus.OK);
+                    return Mono.empty();
+                }
             }
         }
         return chain.filter(exchange);
