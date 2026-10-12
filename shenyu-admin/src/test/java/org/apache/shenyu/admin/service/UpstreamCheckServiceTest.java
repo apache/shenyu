@@ -121,7 +121,6 @@ public final class UpstreamCheckServiceTest {
         loggerSpy = spy(LoggerFactory.getLogger(UpstreamCheckService.class));
         loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(UpstreamCheckService.class)).thenReturn(loggerSpy);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
     @AfterAll
