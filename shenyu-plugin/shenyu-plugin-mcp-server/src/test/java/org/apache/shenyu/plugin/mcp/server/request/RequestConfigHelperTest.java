@@ -290,4 +290,18 @@ class RequestConfigHelperTest {
 
         assertEquals("/search", RequestConfigHelper.buildPath("/search", argsPosition, inputJson));
     }
+
+    @Test
+    void testExplicitTargetStillAppliesMappedQuery() {
+        JsonObject positions = new JsonObject();
+        positions.addProperty("endpoint", "target");
+        positions.addProperty("page", "query");
+        JsonObject input = new JsonObject();
+        input.addProperty("endpoint", "https://target.example/api?fixed=1");
+        input.addProperty("page", "2");
+
+        assertEquals("https://target.example/api?page=2&fixed=1",
+                RequestConfigHelper.buildPath("/search", positions, input));
+    }
+
 }
