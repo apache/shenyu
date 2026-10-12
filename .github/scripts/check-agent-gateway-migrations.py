@@ -29,7 +29,7 @@ EXPECTED = {
 }
 # The seed statements use SQL literals, including JSON strings and Oracle hints.
 # Tokenize quoted text before stripping comments or normalizing whitespace.
-TOKEN = re.compile(r"'(?:''|[^'])*'|/\*.*?\*/|--[^\n]*|[^\s]", re.S)
+TOKEN = re.compile(r"'(?:''|[^'])*'|/\*.*?\*/|--[^\n]*|\bNULL\b|[^\s]", re.S | re.I)
 INSERT = re.compile(
     r'INSERT\s+(?:/\*.*?\*/\s*)?INTO\s+(?:"public"\.)?'
     r'[`"]?(\w+)[`"]?\s*(.*?)\bVALUES\s*\(\s*\'(\d+)\'', re.I | re.S
@@ -55,8 +55,8 @@ def seeds(sql):
         key = (table, row_id)
         if key in result:
             raise ValueError(f"duplicate seed {key}")
-        # Ignore formatting only; keep column lists, values, case and SQL hints.
-        result[key] = tuple(m.group() for m in TOKEN.finditer(text))
+        # NULL is case-insensitive; preserve quoted values, column lists and hints.
+        result[key] = tuple("NULL" if m.group().lower() == "null" else m.group() for m in TOKEN.finditer(text))
     required = {(table, row_id) for table, ids in EXPECTED.items() for row_id in ids}
     if result.keys() != required:
         raise ValueError(f"missing seeds: {sorted(required - result.keys())}")
@@ -76,7 +76,7 @@ def check(root):
     """Verify all supported upgrade dialects, regardless of working directory."""
     for dialect in DIALECTS:
         filename = "create-table.sql" if dialect in ("og", "pg") else "schema.sql"
-        schema = root / "db" / "init" / dialect / filename
+        schema = root / "db" / "init" / ("mysql" if dialect == "ob" else dialect) / filename
         migration = root / "db" / "upgrade" / f"2.7.1-upgrade-2.7.2-{dialect}.sql"
         try:
             count = check_pair(schema.read_text(encoding="utf-8"), migration.read_text(encoding="utf-8"))

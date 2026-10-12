@@ -428,3 +428,83 @@ per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per c
 5-second directory update and 2-second session DELETE completion. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
+
+## Optional structuredContent field deletion
+
+Configure explicit plans in the matched MCP rule, keyed by complete exposed tool
+name. The default is absent/empty, preserving existing results without schema work.
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["crm.profile"],
+    "structuredContentRemovals": {
+      "crm.profile": ["/internalNote", "/customers/0/privateNote"]
+    }
+  }
+}
+```
+
+Admin and gateway share the immutable validator. Only rule-allowed exact tool
+names may have plans: no suffix/prefix matching or wildcard expansion. Paths are
+relative to structuredContent, use `~0`/`~1` for literal tilde/slash, and end at
+object fields. Root and array-element deletion are forbidden; array indexes may
+reach object fields but do not shift elements. Missing optional fields are no-ops;
+incompatible traversal fails. Limits: 32 tools, 32 paths/tool, 128 paths/rule,
+512 characters/path, 16 path segments. Plans are captured with the request's
+rule snapshot; an update does not change a call already executing.
+
+Authorization precedes filtering preparation and provider execution. Results are
+filtered after the tool completes and before JSON/SSE encoding and response-size
+checks. Active filtering validates/copies at most 32 levels, 16,384 nodes and
+2,097,152 aggregate Java character units. Failures do not retry the tool or return
+the original/partially filtered result. The response is HTTP 502 / JSON-RPC
+`-32024`, `Tool result filtering failed`, using JSON even for an SSE-configured rule.
+
+Advertised remote outputSchema is kept unchanged in tools/list. When a plan is
+active, compile that snapshot before invoking the target, then validate filtered
+structuredContent against it. Active filtering requires a structuredContent object
+for business errors too, and requires every result text block to be its complete
+JSON copy. A server business error without a verifiable object is refused.
+Local providers currently advertise no outputSchema; their results still use
+the same configured deletion path.
+
+Schema validation is intentionally bounded, not unrestricted JSON Schema support:
+reference-free Draft 2020-12, absent or canonical `$schema`, up to 512 schema nodes,
+16 levels and 65,536 aggregate characters; individual strings at most 4,096 and
+arrays at most 128. Instance validation is limited to 2,048 nodes with the same
+depth/string/character/array bounds. Composition nesting is at most two and each
+allOf/anyOf/oneOf/prefixItems array at most four. References, regex pattern keywords,
+unknown assertions/dialects and excessive complexity are explicitly refused;
+standard Draft 2020-12 format remains an annotation, not an added assertion.
+Only bundled standard meta-schema resources may load: no external HTTP, file or
+arbitrary classpath resource fetching. This does not rewrite or weaken the schema.
+
+Active plans use a strict result-copy contract, not best-effort text masking:
+
+- structuredContent must be an object, and content must be an array of at most
+  32 blocks (an empty array is permitted);
+- every block must contain only type=text and a text string whose strict JSON
+  object is equal to the original complete structuredContent. Duplicate keys,
+  trailing documents, malformed/deep or excessive-token JSON are refused;
+- each accepted text copy is rebuilt from filtered structuredContent, so removed
+  fields cannot remain in those JSON copies. Free text, partial/different JSON,
+  images/audio/resources, annotations and block metadata are refused;
+- result metadata must be absent or an empty object. Unknown result extensions
+  are refused. Optional isError must be boolean; optional resultType must be the
+  fixed complete marker. Untrusted result rejection returns the same safe
+  502/-32024 without tool retry or raw-result fallback;
+- local calls under active plans omit generated serverInfo metadata. Known local
+  validation/execution failures use fixed structured error messages and matching
+  JSON text copies; provider exception details are not returned;
+- disabled plans and tools without a configured plan keep existing behavior.
+
+This protects declared object fields and their verified complete result copies.
+**It is not automatic identification of every sensitive value**: values repeated
+under other unconfigured structured fields, encoded/encrypted values, requests,
+discovery/list descriptions and operator/upstream logs are outside this policy.
+It is not arbitrary free-text redaction or prompt-injection prevention. Operators
+must enumerate the fields to remove and use compatible tools; unsupported results
+fail closed rather than being described as safely redacted. The original schema
+is never rewritten or weakened to make a deletion pass.

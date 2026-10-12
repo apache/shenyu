@@ -139,6 +139,7 @@ public final class AgentMcpDispatcher {
                 return Mono.error(failure(request, 403, -32602, "Tool is not available"));
             }
             if (definitions.containsKey(name)) {
+                final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, definitions.get(name).get("outputSchema"));
                 ObjectNode params = request.getParams();
                 JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
                 return snapshot.invoke(name, arguments, context)
@@ -146,7 +147,7 @@ public final class AgentMcpDispatcher {
                         .map(value -> {
                             ObjectNode result = value.deepCopy();
                             result.put("resultType", "complete");
-                            return response(request, result);
+                            return response(request, filterResult(request, filter, result));
                         })
                         .onErrorMap(SecurityException.class, error -> failure(request, 403, -32602, "Tool is not available"));
             }
@@ -192,20 +193,22 @@ public final class AgentMcpDispatcher {
         if (Objects.isNull(definition)) {
             return Mono.error(failure(request, 403, -32602, "Tool is not available"));
         }
+        final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, null);
         JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
         JsonObject capabilities = request.getClientCapabilities();
         return registry.invoke(name, context.getAllowedTools(), () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
                         context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities))
                 .map(value -> {
-                    ObjectNode result = complete();
+                    // Active field policies must not introduce an opaque metadata channel.
+                    ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();
                     JsonNode content = toTree(value);
                     result.set("structuredContent", content);
                     result.putArray("content").addObject().put("type", "text").put("text", content.toString());
                     result.put("isError", false);
-                    return response(request, result);
+                    return response(request, filterResult(request, filter, result));
                 })
-                .onErrorResume(AgentToolArgumentException.class, error -> Mono.just(toolFailure(request, "Invalid tool arguments")))
-                .onErrorResume(AgentToolExecutionException.class, error -> Mono.just(toolFailure(request, "Tool execution failed")))
+                .onErrorResume(AgentToolArgumentException.class, error -> Mono.just(toolFailure(request, "Invalid tool arguments", filter)))
+                .onErrorResume(AgentToolExecutionException.class, error -> Mono.just(toolFailure(request, "Tool execution failed", filter)))
                 .onErrorMap(AgentToolCapabilityException.class, error -> {
                     ObjectNode data = mapper.createObjectNode();
                     data.set("requiredCapabilities", toTree(error.getRequiredCapabilities()));
@@ -214,11 +217,32 @@ public final class AgentMcpDispatcher {
                 .onErrorMap(SecurityException.class, error -> failure(request, 403, -32602, "Tool is not available"));
     }
 
-    private ObjectNode toolFailure(final AgentMcpRequest request, final String message) {
-        ObjectNode result = complete();
-        result.putArray("content").addObject().put("type", "text").put("text", message);
+    private ObjectNode toolFailure(final AgentMcpRequest request, final String message, final AgentMcpResultFilter filter) {
+        ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();
+        if (filter.isActive()) {
+            result.putObject("structuredContent").put("error", message);
+        }
+        String text = filter.isActive() ? result.get("structuredContent").toString() : message;
+        result.putArray("content").addObject().put("type", "text").put("text", text);
         result.put("isError", true);
-        return response(request, result);
+        return response(request, filterResult(request, filter, result));
+    }
+
+    private AgentMcpResultFilter prepareResultFilter(final AgentMcpRequest request, final AgentMcpExecutionContext context,
+                                                    final String name, final JsonNode schema) {
+        try {
+            return new AgentMcpResultFilter(context.getResultFilters(), name, schema);
+        } catch (RuntimeException error) {
+            throw failure(request, 502, -32024, "Tool result filtering failed");
+        }
+    }
+
+    private ObjectNode filterResult(final AgentMcpRequest request, final AgentMcpResultFilter filter, final ObjectNode result) {
+        try {
+            return filter.apply(result);
+        } catch (RuntimeException error) {
+            throw failure(request, 502, -32024, "Tool result filtering failed");
+        }
     }
 
     private ObjectNode complete() {

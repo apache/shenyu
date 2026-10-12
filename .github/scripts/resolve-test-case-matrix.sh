@@ -53,11 +53,6 @@ add_storage_all() {
   add_unique storage_cases "e2e-opengauss-compose"
 }
 
-add_cluster_e2e_cases() {
-  add_unique e2e_cases "e2e-cluster-jdbc-compose"
-  add_unique e2e_cases "e2e-cluster-zookeeper-compose"
-}
-
 add_e2e_all() {
   add_storage_all
   add_unique e2e_cases "e2e-http-sync-compose"
@@ -66,7 +61,8 @@ add_e2e_all() {
   add_unique e2e_cases "e2e-grpc-sync-compose"
   add_unique e2e_cases "e2e-websocket-sync-compose"
   add_unique e2e_cases "e2e-logging-rocketmq-compose"
-  add_cluster_e2e_cases
+  add_unique e2e_cases "e2e-cluster-jdbc-compose"
+  add_unique e2e_cases "e2e-cluster-zookeeper-compose"
 }
 
 add_integration_all() {
@@ -252,9 +248,6 @@ map_direct_case_path() {
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/*)
         add_storage_all
         ;;
-      shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-cluster/*)
-        add_cluster_e2e_cases
-        ;;
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/*)
         add_unique e2e_cases "e2e-http-sync-compose"
         ;;
@@ -272,6 +265,10 @@ map_direct_case_path() {
         ;;
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rocketmq/*)
         add_unique e2e_cases "e2e-logging-rocketmq-compose"
+        ;;
+      shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-cluster/*)
+        add_unique e2e_cases "e2e-cluster-jdbc-compose"
+        add_unique e2e_cases "e2e-cluster-zookeeper-compose"
         ;;
     esac
   else
@@ -324,11 +321,6 @@ map_domain_path() {
         add_unique integration_cases "shenyu-integrated-test-http"
       fi
       ;;
-    shenyu-admin/*cluster*|shenyu-e2e/*cluster*)
-      if [[ "${mode}" == "e2e" ]]; then
-        add_cluster_e2e_cases
-      fi
-      ;;
     *apache-dubbo*|*shenyu-plugin-dubbo*|*shenyu-client-dubbo*|*shenyu-examples-dubbo*)
       if [[ "${mode}" == "e2e" ]]; then
         add_unique e2e_cases "e2e-apache-dubbo-sync-compose"
@@ -370,6 +362,12 @@ map_domain_path() {
         add_unique e2e_cases "e2e-logging-rocketmq-compose"
       else
         add_unique integration_cases "shenyu-integrated-test-http"
+      fi
+      ;;
+    *cluster*|*Cluster*)
+      if [[ "${mode}" == "e2e" ]]; then
+        add_unique e2e_cases "e2e-cluster-jdbc-compose"
+        add_unique e2e_cases "e2e-cluster-zookeeper-compose"
       fi
       ;;
     *rewrite*)

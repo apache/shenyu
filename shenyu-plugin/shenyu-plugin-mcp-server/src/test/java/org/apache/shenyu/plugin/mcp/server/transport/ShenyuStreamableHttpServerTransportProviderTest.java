@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.mcp.server.transport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
+import io.modelcontextprotocol.spec.McpServerTransport;
 import io.modelcontextprotocol.server.McpRequestHandler;
 import org.apache.shenyu.plugin.mcp.server.session.McpSessionHelper;
 import org.springframework.web.server.ServerWebExchange;
@@ -227,6 +228,50 @@ class ShenyuStreamableHttpServerTransportProviderTest {
         reset.invoke(transport, new Object[] {null});
         assertNull(lookup.invoke(transport, "req-1"));
         provider.removeSession(sessionId);
+    }
+
+    /**
+     * Regression test for the reported initialize-path session leak (#6833).
+     *
+     * <p>Before the fix the provider stored the session under the MCP server session ID while the
+     * transport kept its own independently auto-generated {@code sessionId}, so {@code close()}
+     * looked up a key that never existed in {@code sessions} / {@code sessionTransports} and left
+     * both registries plus {@link ShenyuMcpExchangeHolder} populated forever.
+     *
+     * <p>Assertion: after a real initialize handshake the ID returned to the client
+     * ({@code Mcp-Session-Id}) is exactly the key used in both registries, so a later
+     * {@code close()} is able to remove the entry.
+     */
+    @Test
+    void testInitializeRegistersSessionUnderReturnedSessionId() throws Exception {
+        ShenyuStreamableHttpServerTransportProvider provider = providerWithRealSessions();
+
+        MockServerHttpResponse response = performRequest(provider,
+                postRequest(INITIALIZE_REQUEST_BODY, null));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        final String returnedSessionId = response.getHeaders().getFirst(SESSION_ID_HEADER);
+        assertNotNull(returnedSessionId);
+
+        final Map<String, ?> sessions = readMap(provider, "sessions");
+        final Map<String, ?> transports = readMap(provider, "sessionTransports");
+        assertTrue(sessions.containsKey(returnedSessionId),
+                "sessions must be keyed by the session ID returned to the client, otherwise close() cannot clean it up");
+        assertTrue(transports.containsKey(returnedSessionId),
+                "sessionTransports must be keyed by the session ID returned to the client, otherwise close() cannot clean it up");
+
+        // Drive the close path: it is the only thing that exercises the transport's own sessionId,
+        // so without the setSessionId() fix nothing would be removed here. Asserting only the map
+        // keys above would pass on master too (they were always keyed by the returned id); this part
+        // fails when line transport.setSessionId(newSessionId) is reverted.
+        final McpServerTransport transport = (McpServerTransport) transports.get(returnedSessionId);
+        assertNotNull(transport, "the transport must be reachable via the returned session id");
+        transport.closeGracefully().block();
+
+        assertTrue(sessions.isEmpty(), "close() must remove the session from the sessions map");
+        assertTrue(transports.isEmpty(), "close() must remove the transport from the sessionTransports map");
+        assertNull(ShenyuMcpExchangeHolder.get(returnedSessionId),
+                "close() must remove the exchange binding for the returned session id");
     }
 
     @SuppressWarnings("unchecked")

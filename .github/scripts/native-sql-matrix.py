@@ -30,13 +30,21 @@ SENTINEL = "sql-matrix-plugin"
 JAR_HEX = "0001027fff"
 DIALECTS = {
     "mysql": ("mysql:8.0@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b", "db/init/mysql/schema.sql"),
-    "ob": ("oceanbase/oceanbase-ce:4.3.5-lts@sha256:31086a6900c21c479c2bcd942b6a28c53b17a51f4e9b9eb8eafcc596adfcd2e3", "db/init/ob/schema.sql"),
+    "ob": ("oceanbase/oceanbase-ce:4.3.5-lts@sha256:31086a6900c21c479c2bcd942b6a28c53b17a51f4e9b9eb8eafcc596adfcd2e3", "db/init/mysql/schema.sql"),
     "pg": ("postgres:15@sha256:724292da1f2e50bdccfc3302ce75bbba7f4a6076701b588cc795fcac65683550", "db/init/pg/create-table.sql"),
     "og": ("enmotech/opengauss-lite:5.0.1@sha256:b0e9d4e7452007cb0a216e39f1927c889178dac695176af7ab0eec43ce077af3", "db/init/og/create-table.sql"),
     "oracle": ("gvenzl/oracle-free:23.26.3-slim@sha256:6d61d267a3b978c24c5ac1790e62e927416a0aec446bd86e4b3a1527562757bd", "db/init/oracle/schema.sql"),
 }
 TABLES = ("plugin", "selector", "rule", "resource", "permission", "user_role", "namespace_plugin_rel")
 REQUIRED = {"selector": "plugin_id", "resource": "parent_id", "user_role": "user_id"}
+
+
+def schema_source(dialect, flow):
+    # The released OceanBase baseline belongs to the historical upgrade flow.
+    # Only fresh installations share the current MySQL initialization source.
+    if dialect == "ob" and flow == "upgrade":
+        return "db/init/ob/schema.sql"
+    return DIALECTS[dialect][1]
 
 
 def run(command, data=None, timeout=180):
@@ -122,6 +130,10 @@ class Engine:
             "oracle": ["ORACLE_PASSWORD=" + PASSWORD, "APP_USER=sqlmatrix", "APP_USER_PASSWORD=" + PASSWORD],
         }[self.dialect]
         command = ["docker", "run", "-d", "--name", self.name, "--shm-size=1g"]
+        if self.dialect == "ob":
+            # OceanBase requires at least 20000 file descriptors. Docker daemon
+            # defaults vary, so set the limit for this disposable container only.
+            command += ["--ulimit", "nofile=65536:65536"]
         for variable in environment:
             command += ["-e", variable]
         run(command + [image])
@@ -215,11 +227,74 @@ class Engine:
         (self.output / (self.name + ".indexes.txt")).write_text(rows, encoding="utf-8")
         return verify_index_rows(rows, self.dialect in ("pg", "og"))
 
+    def check_fresh_mysql_schema(self, schema, indexes):
+        """Validate the shared fresh-install contract on MySQL and OceanBase."""
+        tables = {name.lower() for name in re.findall(r"CREATE TABLE\s+(?:IF NOT EXISTS\s+)?`?(\w+)`?", schema, re.I)}
+        actual = set(self.sql("SELECT table_name FROM information_schema.tables WHERE table_schema='shenyu';").lower().split())
+        if actual != tables:
+            raise AssertionError(f"Fresh tables differ: missing={tables - actual}, extra={actual - tables}")
+        for name, table, columns in re.findall(r"CREATE INDEX (\w+) ON `(\w+)` \(([^)]+)\)", schema):
+            if indexes.get((table, name)) != [column.strip() for column in columns.split(",")]:
+                raise AssertionError(f"Missing shared secondary index: {table}.{name}")
+        unique = set(self.sql("SELECT DISTINCT CONCAT(table_name,'|',index_name) FROM information_schema.statistics "
+                              "WHERE table_schema='shenyu' AND non_unique=0;").lower().split())
+        for key in ("dashboard_user|unique_user_name", "proxy_api_key_mapping|uk_selector_proxy_key",
+                    "plugin_handle|plugin_id_field_type", "shenyu_dict|dict_type_dict_code_dict_name",
+                    "discovery_upstream|discovery_upstream_discovery_handler_id_IDX"):
+            if key.lower() not in unique:
+                raise AssertionError("Missing shared unique constraint: " + key)
+
+        checks = []
+        for table, column, parent, parent_column in (
+                ("plugin_handle", "plugin_id", "plugin", "id"),
+                ("permission", "resource_id", "resource", "id"),
+                ("permission", "object_id", "role", "id"),
+                ("user_role", "user_id", "dashboard_user", "id"),
+                ("user_role", "role_id", "role", "id"),
+                ("namespace_plugin_rel", "plugin_id", "plugin", "id"),
+                ("namespace_plugin_rel", "namespace_id", "namespace", "namespace_id"),
+                ("namespace_user_rel", "namespace_id", "namespace", "namespace_id"),
+                ("namespace_user_rel", "user_id", "dashboard_user", "id"),
+                ("selector", "plugin_id", "plugin", "id"),
+                ("selector", "namespace_id", "namespace", "namespace_id"),
+                ("rule", "selector_id", "selector", "id"),
+                ("rule", "namespace_id", "namespace", "namespace_id")):
+            # Some legacy tables use different collations. Compare identifier bytes
+            # so validation does not depend on either engine's default collation.
+            checks.append((f"{table}.{column} orphan", f"SELECT child.id FROM {table} child LEFT JOIN {parent} parent "
+                           f"ON BINARY child.{column}=BINARY parent.{parent_column} WHERE parent.{parent_column} IS NULL"))
+        checks.append(("resource.parent_id orphan", "SELECT child.id FROM resource child LEFT JOIN resource parent "
+                       "ON BINARY child.parent_id=BINARY parent.id WHERE child.parent_id NOT IN ('', '0') AND parent.id IS NULL"))
+        for table, columns in (("plugin_handle", "plugin_id,field,type"),
+                               ("permission", "object_id,resource_id"),
+                               ("namespace_plugin_rel", "namespace_id,plugin_id")):
+            checks.append((table + " duplicate natural key",
+                           f"SELECT {columns} FROM {table} GROUP BY {columns} HAVING COUNT(*)>1"))
+        checks.append(("missing admin resource permission", "SELECT r.id FROM resource r LEFT JOIN permission p "
+                       "ON BINARY p.resource_id=BINARY r.id AND p.object_id='1346358560427216896' WHERE p.id IS NULL"))
+        checks.append(("missing default namespace plugin", "SELECT p.id FROM plugin p LEFT JOIN namespace_plugin_rel r "
+                       "ON BINARY r.plugin_id=BINARY p.id AND r.namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385' "
+                       f"WHERE p.id<>'{SENTINEL}' AND r.id IS NULL"))
+        for label, query in checks:
+            if scalar(self.sql("SELECT COUNT(*) FROM (" + query + ") violations;")) != "0":
+                raise AssertionError("Invalid fresh seed: " + label)
+        if scalar(self.sql("SELECT COUNT(*) FROM namespace WHERE namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385' "
+                           "AND name='default';")) != "1":
+            raise AssertionError("Missing default namespace")
+        for plugin_id in ("33", "50"):
+            config = json.loads(scalar(self.sql(f"SELECT config FROM plugin WHERE id='{plugin_id}';")))
+            namespace_config = json.loads(scalar(self.sql("SELECT config FROM namespace_plugin_rel "
+                                                        f"WHERE plugin_id='{plugin_id}' AND "
+                                                        "namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385';")))
+            if config != namespace_config:
+                raise AssertionError("Default namespace config differs for plugin " + plugin_id)
+            if plugin_id == "33" and config.get("bootstrapServer") != "localhost:9092":
+                raise AssertionError("loggingKafka must seed bootstrapServer")
+
 
 def execute_matrix(dialect, root, output):
     output.mkdir(parents=True, exist_ok=True)
     listing, detail = fragment_columns(root / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
-    _, schema_path = DIALECTS[dialect]
     results = {"dialect": dialect, "baseline": BASELINE, "image": DIALECTS[dialect][0], "flows": []}
     for flow in ("upgrade", "fresh"):
         engine = Engine(dialect, flow, output)
@@ -228,6 +303,7 @@ def execute_matrix(dialect, root, output):
         results["flows"].append(report)
         try:
             engine.start()
+            schema_path = schema_source(dialect, flow)
             schema = (run(["git", "show", f"{BASELINE}:{schema_path}"]) if flow == "upgrade"
                       else (root / schema_path).read_text(encoding="utf-8"))
             engine.sql(schema, database=False)
@@ -245,7 +321,9 @@ def execute_matrix(dialect, root, output):
                 after = set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split())
                 if not identifiers.issubset(after):
                     raise AssertionError(f"Migration removed rows from {table}: {sorted(identifiers - after)}")
-            engine.indexes()
+            indexes = engine.indexes()
+            if flow == "fresh" and dialect in ("mysql", "ob"):
+                engine.check_fresh_mysql_schema(schema, indexes)
             report["status"] = "success"
             print(f"{dialect}: {flow} SQL, projections, JAR preservation and index metadata passed", flush=True)
         except Exception as error:
