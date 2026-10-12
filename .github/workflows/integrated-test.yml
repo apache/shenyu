@@ -188,14 +188,12 @@ jobs:
           fi
       - name: Build integrated tests
         shell: bash
+        # mvnd can report success while skipping this entire subreactor.
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build integrated tests"
-            mvnd -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-          else
-            echo "Falling back to maven wrapper for integrated tests"
-            ./mvnw -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-          fi
+          ./mvnw -B -ntp -T 1C clean install -Pit -Dmaven.test.skip=true \
+            -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
+      - name: Verify integrated test image
+        run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
       - name: Start docker compose
         run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
@@ -207,13 +205,8 @@ jobs:
         id: test
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for running tests"
-            mvnd -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          else
-            echo "Falling back to maven wrapper for tests"
-            ./mvnw -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          fi
+          ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
+            -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
         run: |

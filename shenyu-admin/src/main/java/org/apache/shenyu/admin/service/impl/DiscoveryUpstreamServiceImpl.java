@@ -55,6 +55,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -358,18 +359,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
-        Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
+        Map<String, Set<String>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
                 .selectByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId));
+                .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId,
+                        Collectors.mapping(DiscoveryUpstreamDO::getUpstreamUrl, Collectors.toSet())));
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
-            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
-                    .getOrDefault(discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId), Lists.newArrayList())
-                    .stream()
-                    .map(DiscoveryUpstreamDO::getUpstreamUrl)
-                    .collect(Collectors.toSet());
+            String newDiscoveryHandlerId = discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId);
+            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap.computeIfAbsent(newDiscoveryHandlerId, key -> new HashSet<>());
             if (existsUpstreamUrlSet.contains(url)) {
                 errorMsgBuilder
                         .append(url)
@@ -378,10 +377,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             }
             discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
-            discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerIdMapping.getOrDefault(discoveryUpstreamDTO.getDiscoveryHandlerId(), discoveryUpstreamDTO.getDiscoveryHandlerId()));
+            discoveryUpstreamDTO.setDiscoveryHandlerId(newDiscoveryHandlerId);
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
-            discoveryUpstreamMapper.insert(discoveryUpstreamDO);
-            successCount++;
+            if (discoveryUpstreamMapper.insert(discoveryUpstreamDO) > 0) {
+                existsUpstreamUrlSet.add(url);
+                successCount++;
+            }
         }
         if (StringUtils.hasLength(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);

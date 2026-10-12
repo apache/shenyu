@@ -27,7 +27,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>shenyu-plugin-hystrix</module>
         <module>shenyu-plugin-ratelimiter</module>
         <module>shenyu-plugin-resilience4j</module>
         <module>shenyu-plugin-sentinel</module>

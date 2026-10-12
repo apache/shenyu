@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.concurrent;
 
 import net.bytebuddy.agent.ByteBuddyAgent;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -27,13 +28,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for MemoryLimitedLinkedBlcokingQueue.
@@ -93,6 +100,85 @@ public class MemoryLimitedLinkedBlockingQueueTest {
     }
 
     @Test
+    void testIncreaseMemoryLimitWakesEligibleProducer() throws Exception {
+        Instrumentation sizedInstrumentation = mock(Instrumentation.class);
+        Object small = new Object();
+        Object large = new Object();
+        when(sizedInstrumentation.getObjectSize(small)).thenReturn(20L);
+        when(sizedInstrumentation.getObjectSize(large)).thenReturn(50L);
+        MemoryLimitedLinkedBlockingQueue<Object> queue = new MemoryLimitedLinkedBlockingQueue<>(41, sizedInstrumentation);
+        queue.put(small);
+        queue.put(small);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        assertAll(
+                () -> {
+                    try {
+                        final Future<Boolean> largePut = executor.submit(() -> {
+                            queue.put(large);
+                            return true;
+                        });
+                        awaitWaitingProducers(queue, 1);
+                        final Future<Boolean> smallPut = executor.submit(() -> {
+                            queue.put(small);
+                            return true;
+                        });
+                        awaitWaitingProducers(queue, 2);
+
+                        queue.setMemoryLimit(61);
+
+                        assertTrue(smallPut.get(5, TimeUnit.SECONDS));
+                        awaitWaitingProducers(queue, 1);
+                        assertFalse(largePut.isDone());
+                        assertEquals(60, queue.getCurrentMemory());
+                        assertEquals(3, queue.size());
+                    } finally {
+                        executor.shutdownNow();
+                    }
+                },
+                () -> assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS)));
+    }
+
+    @Test
+    void testClearAfterShrinkingMemoryLimitWakesEligibleProducer() throws Exception {
+        Instrumentation sizedInstrumentation = mock(Instrumentation.class);
+        Object small = new Object();
+        Object large = new Object();
+        when(sizedInstrumentation.getObjectSize(small)).thenReturn(20L);
+        when(sizedInstrumentation.getObjectSize(large)).thenReturn(50L);
+        MemoryLimitedLinkedBlockingQueue<Object> queue = new MemoryLimitedLinkedBlockingQueue<>(61, sizedInstrumentation);
+        queue.put(small);
+        queue.put(small);
+        queue.setMemoryLimit(21);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        assertAll(
+                () -> {
+                    try {
+                        final Future<Boolean> largePut = executor.submit(() -> {
+                            queue.put(large);
+                            return true;
+                        });
+                        awaitWaitingProducers(queue, 1);
+                        final Future<Boolean> smallPut = executor.submit(() -> {
+                            queue.put(small);
+                            return true;
+                        });
+                        awaitWaitingProducers(queue, 2);
+
+                        queue.clear();
+
+                        assertTrue(smallPut.get(5, TimeUnit.SECONDS));
+                        awaitWaitingProducers(queue, 1);
+                        assertFalse(largePut.isDone());
+                        assertEquals(20, queue.getCurrentMemory());
+                        assertEquals(1, queue.size());
+                    } finally {
+                        executor.shutdownNow();
+                    }
+                },
+                () -> assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS)));
+    }
+
+    @Test
     public void testPut() throws InterruptedException, ExecutionException {
         Integer testObject = 0;
         long testObjectSize = instrumentation.getObjectSize(testObject);
@@ -140,5 +226,19 @@ public class MemoryLimitedLinkedBlockingQueueTest {
         queue.put(testObject);
         assertTrue(queue.remove(testObject));
         assertEquals(0, queue.getCurrentMemory());
+    }
+
+    private void awaitWaitingProducers(final MemoryLimitedLinkedBlockingQueue<?> queue, final int count) throws IllegalAccessException {
+        MemoryLimiter limiter = (MemoryLimiter) FieldUtils.readField(queue, "memoryLimiter", true);
+        ReentrantLock lock = (ReentrantLock) FieldUtils.readField(limiter, "acquireLock", true);
+        Condition condition = (Condition) FieldUtils.readField(limiter, "notLimited", true);
+        await().atMost(5, TimeUnit.SECONDS).until(() -> {
+            lock.lock();
+            try {
+                return lock.getWaitQueueLength(condition) == count;
+            } finally {
+                lock.unlock();
+            }
+        });
     }
 }

@@ -17,8 +17,16 @@
 
 package org.apache.shenyu.register.client.http;
 
+import okhttp3.Headers;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.timer.TaskEntity;
+import org.apache.shenyu.common.timer.Timer;
+import org.apache.shenyu.common.timer.TimerTask;
+import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
+import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
+import org.apache.shenyu.register.client.http.utils.OkHttpTools;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -33,22 +41,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link HttpClientRegisterRepository}.
@@ -372,6 +389,113 @@ public final class HttpClientRegisterRepositoryTest {
             assertEquals(first, failure.getCause());
             assertEquals(1, failure.getSuppressed().length);
             assertEquals(second, failure.getSuppressed()[0]);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {FIRST_SERVER, SECOND_SERVER})
+    public void responseFailureShouldScheduleRetryAndRetainOtherFailures(final String failedServer) throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+                MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+                MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            when(http.post(anyString(), anyString())).thenReturn("{\"code\":200,\"data\":{\"token\":\"test-token\"}}");
+            when(http.post(anyString(), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+            when(http.post(eq(failedServer + Constants.URI_PATH), anyString(), any(Headers.class)))
+                    .thenReturn("failure", "failure", Constants.SUCCESS);
+            final HttpClientRegisterRepository actual = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+
+            actual.persistURI(uriRegisterDTO());
+
+            final Map<String, ?> failures = failureMap(actual);
+            assertEquals(1, failures.size());
+            final String uriKey = failures.keySet().iterator().next();
+            ArgumentCaptor<TimerTask> scheduled = ArgumentCaptor.forClass(TimerTask.class);
+            verify(timer).add(scheduled.capture());
+            final FailureRegistryTask task = (FailureRegistryTask) scheduled.getValue();
+
+            when(http.post(eq(FIRST_SERVER + Constants.META_PATH), anyString(), any(Headers.class))).thenReturn("failure");
+            actual.persistInterface(metaDataRegisterDTO());
+            assertEquals(2, failures.size());
+            TaskEntity entity = mock(TaskEntity.class);
+            when(entity.getTimer()).thenReturn(timer);
+            when(entity.getTimerTask()).thenReturn(task);
+
+            task.run(entity);
+            assertEquals(2, failures.size());
+            assertTrue(failures.containsKey(uriKey));
+            task.run(entity);
+            assertEquals(1, failures.size());
+            assertFalse(failures.containsKey(uriKey));
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                verify(http, times(3)).post(eq(server + Constants.URI_PATH), anyString(), any(Headers.class));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {FIRST_SERVER, SECOND_SERVER})
+    public void responseHeartbeatFailureShouldPropagateWithoutRegisterRetry(final String failedServer) throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+                MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+                MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            when(http.post(anyString(), anyString())).thenReturn("{\"code\":200,\"data\":{\"token\":\"test-token\"}}");
+            when(http.post(anyString(), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+            when(http.post(eq(failedServer + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn("failure");
+            HttpClientRegisterRepository actual = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+
+            RuntimeException failure = assertThrows(RuntimeException.class, () -> actual.sendHeartbeat(uriRegisterDTO()));
+
+            assertTrue(failure.getCause() instanceof IOException);
+            assertTrue(failureMap(actual).isEmpty());
+            verifyNoInteractions(timer);
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                verify(http).post(eq(server + Constants.URI_PATH), anyString(), any(Headers.class));
+            }
+        }
+    }
+
+    @Test
+    public void responseUnregisterFailureShouldKeepAnyServerSuccessPolicy() throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+                MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            when(http.post(anyString(), anyString())).thenReturn("{\"code\":200,\"data\":{\"token\":\"test-token\"}}");
+            when(http.post(anyString(), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+            when(http.post(eq(FIRST_SERVER + Constants.OFFLINE_PATH), anyString(), any(Headers.class))).thenReturn("failure");
+            HttpClientRegisterRepository actual = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
+
+            assertDoesNotThrow(() -> actual.offline(uriRegisterDTO()));
+            when(http.post(eq(SECOND_SERVER + Constants.OFFLINE_PATH), anyString(), any(Headers.class))).thenReturn("failure");
+            assertThrows(RuntimeException.class, () -> actual.offline(uriRegisterDTO()));
+            assertTrue(failureMap(actual).isEmpty());
+            verifyNoInteractions(timer);
+            for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
+                verify(http, times(2)).post(eq(server + Constants.OFFLINE_PATH), anyString(), any(Headers.class));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> failureMap(final HttpClientRegisterRepository actual) {
+        try {
+            Field field = FailbackRegistryRepository.class.getDeclaredField("concurrentHashMap");
+            field.setAccessible(true);
+            return (Map<String, ?>) field.get(actual);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
         }
     }
 
