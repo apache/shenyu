@@ -36,12 +36,12 @@ public final class Upstream {
     /**
      * protocol.
      */
-    private final String protocol;
+    private String protocol;
 
     /**
-     * Normalized protocol prefix, computed once because the protocol is immutable.
+     * Normalized protocol prefix, refreshed when discovery updates the protocol.
      */
-    private final transient String protocolPrefix;
+    private transient String protocolPrefix;
 
     /**
      * url.
@@ -71,7 +71,7 @@ public final class Upstream {
     /**
      * warmup.
      */
-    private final int warmup;
+    private int warmup;
 
     /**
      * healthy.
@@ -179,6 +179,18 @@ public final class Upstream {
     public String getProtocol() {
         return protocol;
     }
+
+    /**
+     * Refreshes protocol and cached addressing without replacing runtime state.
+     *
+     * @param protocol the protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+        this.protocolPrefix = normalizeProtocol(protocol);
+        this.selectorKey = null;
+        this.identity = null;
+    }
     
     /**
      * Is status boolean.
@@ -214,6 +226,15 @@ public final class Upstream {
      */
     public int getWarmup() {
         return warmup;
+    }
+
+    /**
+     * Sets warmup.
+     *
+     * @param warmup the warmup
+     */
+    public void setWarmup(final int warmup) {
+        this.warmup = warmup;
     }
     
     /**
