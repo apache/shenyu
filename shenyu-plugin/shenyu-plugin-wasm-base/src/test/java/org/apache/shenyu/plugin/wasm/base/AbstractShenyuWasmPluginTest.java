@@ -114,6 +114,15 @@ public final class AbstractShenyuWasmPluginTest {
         verify(shenyuPluginChain).execute(exchange);
     }
 
+    @Test
+    public void customAdapterPreservesEagerInvocationTest() {
+        setupCacheData();
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("go result");
+        Mono<Void> execution = plugin.execute(exchange, shenyuPluginChain);
+        verify(shenyuPluginChain).execute(exchange);
+        StepVerifier.create(execution).verifyComplete();
+    }
+
     /** Plugin not cached → should skip to next chain. */
     @Test
     public void executePluginNotCachedTest() {
