@@ -27,6 +27,7 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.Assert;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import static org.mockito.Mockito.mock;
@@ -48,10 +49,25 @@ public class PathVariableParameterProcessorTest {
         this.processor = new PathVariableParameterProcessor();
     }
 
+    @Test
+    public void processArgumentNameOnlyTest() {
+        RequestTemplate template = new RequestTemplate();
+        template.setUrl("/url/a/b");
+        template.setPath("/id/{id}");
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("");
+        when(path.name()).thenReturn("id");
+
+        processor.processArgument(request, path, "one");
+
+        assertTrue(request.getUrl().contains("/one"), "path name alias resolve fail");
+    }
+
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentNullTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("");
 
@@ -65,7 +81,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentStringTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("id");
 
@@ -77,7 +93,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentMapTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         Map<String, String> pathParam = Maps.newHashMap();
         pathParam.put("id", "idValue");
         pathParam.put("name", "nameValue");

@@ -81,6 +81,25 @@ public class UpstreamCacheManagerTest {
     }
 
     @Test
+    public void findUpstreamListBySelectorIdReturnsSnapshotTest() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_TEST";
+        final Upstream upstream = Upstream.builder().url("snapshot-url:8080").status(true).build();
+        List<Upstream> upstreamList = new ArrayList<>(1);
+        upstreamList.add(upstream);
+        upstreamCacheManager.submit(selectorId, upstreamList);
+
+        List<Upstream> snapshot = upstreamCacheManager.findUpstreamListBySelectorId(selectorId);
+        Upstream added = Upstream.builder().url("added-url:8080").status(true).build();
+        getUpstreamCheckTask(upstreamCacheManager).triggerAddOne(selectorId, added);
+
+        Assertions.assertEquals(1, snapshot.size());
+        Assertions.assertSame(upstream, snapshot.get(0));
+        Assertions.assertEquals(2, upstreamCacheManager.findUpstreamListBySelectorId(selectorId).size());
+        upstreamCacheManager.removeByKey(selectorId);
+    }
+
+    @Test
     @Order(5)
     public void testSubmitSyncsHealthCheckEnabled() {
         final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();

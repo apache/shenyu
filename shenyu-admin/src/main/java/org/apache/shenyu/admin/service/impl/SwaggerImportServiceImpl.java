@@ -184,7 +184,6 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                     .orElse("default");
 
             List<Map<String, ShenyuMcpTool>> maps = result.computeIfAbsent(mainPath, k -> new ArrayList<>());
-            Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
 
             Map<PathItem.HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
             for (Map.Entry<PathItem.HttpMethod, Operation> opEntry : operationsMap.entrySet()) {
@@ -201,9 +200,11 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                 PathItem.HttpMethod httpMethod = opEntry.getKey();
                 tool.setMethod(httpMethod.name().toLowerCase());
 
+                // one entry per operation: a shared path-keyed map would keep only the last HTTP method
+                Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
                 toolMap.put(fullPath, tool);
+                maps.add(toolMap);
             }
-            maps.add(toolMap);
         }
         return result;
     }

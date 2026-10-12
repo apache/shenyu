@@ -21,9 +21,13 @@ import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.query.NamespacePluginQueryCondition;
 import org.apache.shenyu.admin.model.query.NamespacePluginQuery;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
+import org.apache.shenyu.admin.service.NamespacePluginService;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -41,6 +45,39 @@ class NamespacePluginRelMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private PluginMapper pluginMapper;
+
+    @Resource
+    private NamespacePluginService namespacePluginService;
+
+    @Test
+    @Transactional
+    void testPluginListsArePagedWithoutJar() {
+        final byte[] jar = new byte[] {1, 2, 3};
+        String namespace = "lightweight-list";
+        for (int index = 0; index < 2; index++) {
+            String id = "lightweight-plugin-" + index;
+            pluginMapper.insert(PluginDO.builder().id(id).name(id).role("proxy").sort(index).enabled(true).pluginJar(jar)
+                    .dateCreated(new Timestamp(0)).dateUpdated(new Timestamp(0)).build());
+            namespacePluginRelMapper.insertSelective(NamespacePluginRelDO.builder().id(id).pluginId(id).namespaceId(namespace)
+                    .enabled(true).sort(index).build());
+        }
+        NamespacePluginQuery query = new NamespacePluginQuery("lightweight-plugin", 1, new PageParameter(1, 1), namespace);
+        CommonPager<NamespacePluginVO> first = namespacePluginService.listByPage(query);
+        query.setPageParameter(new PageParameter(2, 1));
+        CommonPager<NamespacePluginVO> second = namespacePluginService.listByPage(query);
+        Assertions.assertEquals(2, first.getPage().getTotalCount());
+        Assertions.assertEquals(1, first.getDataList().size());
+        Assertions.assertEquals(1, second.getDataList().size());
+        Assertions.assertNotEquals(first.getDataList().get(0).getId(), second.getDataList().get(0).getId());
+        Assertions.assertNull(first.getDataList().get(0).getPluginJar());
+        Assertions.assertNull(second.getDataList().get(0).getPluginJar());
+        Assertions.assertArrayEquals(jar, namespacePluginRelMapper.selectByPluginIdAndNamespaceId("lightweight-plugin-0", namespace).getPluginJar());
+        NamespacePluginQueryCondition condition = new NamespacePluginQueryCondition();
+        condition.setKeyword("lightweight-plugin");
+        List<NamespacePluginVO> search = namespacePluginRelMapper.searchByCondition(condition);
+        Assertions.assertEquals(2, search.size());
+        search.forEach(plugin -> Assertions.assertNull(plugin.getPluginJar()));
+    }
 
     @Test
     void testSelectByIds() {

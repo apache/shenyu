@@ -51,6 +51,11 @@ public class MemoryLimitedTaskQueue<R extends Runnable> extends MemoryLimitedLin
     }
 
     @Override
+    public boolean offer(final Runnable runnable) {
+        return TaskQueue.super.offer(runnable);
+    }
+
+    @Override
     public boolean doOffer(final Runnable runnable) {
         return super.offer(runnable);
     }

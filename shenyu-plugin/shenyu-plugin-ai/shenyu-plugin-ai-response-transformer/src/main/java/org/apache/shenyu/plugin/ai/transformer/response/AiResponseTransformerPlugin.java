@@ -44,6 +44,7 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.reactivestreams.Publisher;
 
@@ -68,12 +69,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * this is ai response transformer plugin.
+ * The complete response is buffered before transformation; streaming and SSE responses are not supported.
  */
 public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPlugin.class);
 
     private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final List<HttpMessageReader<?>> messageReaders;
 
@@ -223,7 +227,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
             if (body.startsWith("{") && body.endsWith("}") || body.startsWith("[") && body.endsWith("]")) {
                 try {
-                    new ObjectMapper().readTree(body);
+                    MAPPER.readTree(body);
                     return body;
                 } catch (Exception e) {
                     LOG.warn("Body is not valid JSON: {}", body);
@@ -306,7 +310,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
-            return dataBufferMono.flatMap(dataBuffer -> {
+            return dataBufferMono.map(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
@@ -336,15 +340,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
                             String messageWithResponseBody;
                             try {
-                                ObjectMapper objectMapper = new ObjectMapper();
-                                JsonNode messageNode = objectMapper.readTree(message);
+                                JsonNode messageNode = MAPPER.readTree(message);
 
                                 if (messageNode.has("response") && messageNode.get("response").isObject()) {
                                     ObjectNode responseNode = (ObjectNode) messageNode.get("response");
                                     responseNode.put("body", finalResponseBody);
                                 }
                                 
-                                messageWithResponseBody = objectMapper.writeValueAsString(messageNode);
+                                messageWithResponseBody = MAPPER.writeValueAsString(messageNode);
                             } catch (Exception e) {
                                 LOG.error("Failed to update message with response body", e);
                                 messageWithResponseBody = message.replace("\"body\":\"\"", "\"body\":\"" + finalResponseBody.replace("\"", "\\\"") + "\"");
@@ -377,7 +380,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
                                     });
                         });
-            });
+            }).defaultIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())))
+                    .flatMap(response -> response);
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
         private String extractBodyFromAiResponse(final String aiResponse) {

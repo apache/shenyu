@@ -35,11 +35,12 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -54,13 +55,18 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     
     private final AlertReceiverMapper alertReceiverMapper;
     
-    private final AtomicReference<List<AlertReceiverDTO>> alertReceiverReference;
+    /**
+     * Receivers cached per alert namespace. Values are scoped queries (namespace-local
+     * receivers plus namespace-free receivers), so a refresh no longer loads the whole
+     * table across all namespaces.
+     */
+    private final ConcurrentMap<String, List<AlertReceiverDTO>> alertReceiverCache;
 
     private final ThreadPoolExecutor workerExecutor;
     
     public AlertDispatchServiceImpl(final List<AlertNotifyHandler> alertNotifyHandlerList, final AlertReceiverMapper alertReceiverMapper) {
         this.alertReceiverMapper = alertReceiverMapper;
-        this.alertReceiverReference = new AtomicReference<>();
+        this.alertReceiverCache = new ConcurrentHashMap<>();
         alertNotifyHandlerMap = Maps.newHashMapWithExpectedSize(alertNotifyHandlerList.size());
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setUncaughtExceptionHandler((thread, throwable) -> {
@@ -88,7 +94,7 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
     
     @Override
     public void clearCache() {
-        this.alertReceiverReference.set(null);
+        this.alertReceiverCache.clear();
     }
     
     @Override
@@ -146,11 +152,8 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
         }
         
         private List<AlertReceiverDTO> matchReceiverByRules(final AlarmContent alert) {
-            List<AlertReceiverDTO> dtoList = alertReceiverReference.get();
-            if (Objects.isNull(dtoList)) {
-                dtoList = alertReceiverMapper.selectAll();
-                alertReceiverReference.set(dtoList);
-            }
+            final String namespaceId = StringUtils.defaultString(alert.getNamespaceId());
+            List<AlertReceiverDTO> dtoList = alertReceiverCache.computeIfAbsent(namespaceId, this::loadReceivers);
             return dtoList.stream().filter(item -> {
                 if (item.isEnable()) {
                     if (item.isMatchAll()) {
@@ -183,6 +186,15 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Disposabl
                     return false;
                 }
             }).collect(Collectors.toList());
+        }
+        
+        private List<AlertReceiverDTO> loadReceivers(final String namespaceId) {
+            // alerts without a namespace can be matched by any namespace-scoped receiver,
+            // so they keep loading the full list and rely on the in-memory namespace filter
+            if (StringUtils.isBlank(namespaceId)) {
+                return alertReceiverMapper.selectAll();
+            }
+            return alertReceiverMapper.selectByNamespaceId(namespaceId);
         }
     }
 }

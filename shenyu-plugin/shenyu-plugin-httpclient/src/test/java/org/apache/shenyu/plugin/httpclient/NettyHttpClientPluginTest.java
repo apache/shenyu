@@ -22,10 +22,12 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +39,10 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
+import reactor.netty.DisposableServer;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
@@ -86,6 +91,25 @@ public final class NettyHttpClientPluginTest {
         exchange.getAttributes().put(Constants.HTTP_URI, URI.create("/test"));
 
         StepVerifier.create(nettyHttpClientPlugin.execute(exchange, chain)).expectSubscription().verifyError();
+    }
+
+    @Test
+    public void testServerErrorTriggersFailover() {
+        final DisposableServer server = HttpServer.create()
+                .port(0)
+                .handle((request, response) -> response.status(500).sendString(Mono.just("server error")))
+                .bindNow();
+        try {
+            final ServerWebExchange exchange = generateServerWebExchange();
+            exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+            final URI uri = URI.create("http://127.0.0.1:" + server.port() + "/test");
+
+            StepVerifier.create(nettyHttpClientPlugin.doRequest(exchange, "GET", uri, Flux.empty()))
+                    .expectError(ShenyuUpstreamStatusException.class)
+                    .verify();
+        } finally {
+            server.disposeNow();
+        }
     }
 
     /**

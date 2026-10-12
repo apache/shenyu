@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
@@ -41,14 +42,20 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +64,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryUpstreamServiceImpl.class);
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -99,10 +108,30 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createOrUpdateBatch(final List<DiscoveryUpstreamDTO> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return;
+        }
+        Set<String> handlerIds = new LinkedHashSet<>();
+        for (DiscoveryUpstreamDTO upstream : upstreams) {
+            DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
+            if (StringUtils.hasLength(upstream.getId())) {
+                discoveryUpstreamMapper.update(entity);
+            } else {
+                discoveryUpstreamMapper.insert(entity);
+            }
+            handlerIds.add(upstream.getDiscoveryHandlerId());
+        }
+        handlerIds.forEach(this::fetchAll);
     }
 
     @Override
@@ -115,7 +144,16 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
-        this.fetchAll(discoveryHandlerId);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    fetchAll(discoveryHandlerId);
+                }
+            });
+        } else {
+            this.fetchAll(discoveryHandlerId);
+        }
         return 0;
     }
 
@@ -147,27 +185,49 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     public List<DiscoverySyncData> listAll() {
-        List<DiscoveryHandlerDO> discoveryHandlerDOS = discoveryHandlerMapper.selectAll();
+        return buildSyncData(discoveryHandlerMapper.selectAll());
+    }
+
+    @Override
+    public List<DiscoverySyncData> listAllByNamespaceId(final String namespaceId) {
+        return buildSyncData(discoveryHandlerMapper.selectAllByNamespaceId(namespaceId));
+    }
+
+    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> discoveryHandlerDOS) {
         return discoveryHandlerDOS.stream().map(d -> {
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
+            if (Objects.isNull(discoveryRelDO)) {
+                LOG.warn("Skipping discovery handler {} without a relation", d.getId());
+                return null;
+            }
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
             if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
                 String selectorId = discoveryRelDO.getSelectorId();
                 discoverySyncData.setSelectorId(selectorId);
                 SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+                if (Objects.isNull(selectorDO)) {
+                    LOG.warn("Skipping discovery handler {} with missing selector {}", d.getId(), selectorId);
+                    return null;
+                }
                 discoverySyncData.setSelectorName(selectorDO.getSelectorName());
+                discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
             } else {
                 String proxySelectorId = discoveryRelDO.getProxySelectorId();
                 discoverySyncData.setSelectorId(proxySelectorId);
                 ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                if (Objects.isNull(proxySelectorDO)) {
+                    LOG.warn("Skipping discovery handler {} with missing proxy selector {}", d.getId(), proxySelectorId);
+                    return null;
+                }
                 discoverySyncData.setSelectorName(proxySelectorDO.getName());
+                discoverySyncData.setNamespaceId(proxySelectorDO.getNamespaceId());
             }
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
                     .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
             discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
             return discoverySyncData;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override
@@ -331,22 +391,34 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         return ConfigImportResult.success(successCount);
     }
     
+    /**
+     * Validate the binding before pushing the persisted upstream snapshot to discovery.
+     * This method does not undo preceding database writes. Callers own the transaction boundary:
+     * a validation failure prevents the push, but writes outside a transaction remain persisted.
+     *
+     * @param discoveryHandlerId the handler whose upstreams should be published
+     */
     private void fetchAll(final String discoveryHandlerId) {
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        final List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         ProxySelectorDTO proxySelectorDTO;
         if (Objects.isNull(proxySelectorDO)) {
             SelectorDO selectorDO = selectorMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
+            Assert.notNull(selectorDO, "Selector binding does not exist for discovery handler: " + discoveryHandlerId);
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            Assert.notNull(pluginDO, "Plugin does not exist for selector: " + selectorDO.getId());
             proxySelectorDTO = new ProxySelectorDTO();
             proxySelectorDTO.setId(selectorDO.getId());
-            proxySelectorDTO.setPluginName(pluginMapper.selectById(selectorDO.getPluginId()).getName());
+            proxySelectorDTO.setPluginName(pluginDO.getName());
             proxySelectorDTO.setName(selectorDO.getSelectorName());
             proxySelectorDTO.setNamespaceId(selectorDO.getNamespaceId());
         } else {
             proxySelectorDTO = DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO);
         }
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
         List<DiscoveryUpstreamDTO> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
         discoveryProcessor.changeUpstream(proxySelectorDTO, collect);

@@ -19,8 +19,23 @@ package org.apache.shenyu.web.loader;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,15 +58,83 @@ public final class ShenyuPluginClassLoaderHolderTest {
     }
 
     @Test
-    public void createPluginClassLoader() {
+    public void replacePluginClassLoader() {
         ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
-        ShenyuPluginClassLoader pluginClassLoader = singleton.createPluginClassLoader(pluginJar);
-        assertNotNull(pluginClassLoader);
+        singleton.replacePluginClassLoader(pluginJar, classLoader -> assertNotNull(classLoader));
     }
 
     @Test
     public void removePluginClassLoader() {
         ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
         singleton.removePluginClassLoader("testKey");
+    }
+
+    @Test
+    public void replacePluginClassLoaderSerializesLoadingAndClosesEveryDisplacedLoader() throws Exception {
+        int threadCount = 32;
+        String jarKey = "concurrent-test-key";
+        CountingBeanFactory beanFactory = new CountingBeanFactory();
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBeanFactory()).thenReturn(beanFactory);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        PluginJarParser.PluginJar concurrentPluginJar = mock(PluginJarParser.PluginJar.class);
+        when(concurrentPluginJar.getAbsolutePath()).thenReturn(jarKey);
+        when(concurrentPluginJar.getClazzMap()).thenReturn(Collections.singletonMap("sample.Plugin", new byte[0]));
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        AtomicInteger activeLoads = new AtomicInteger();
+        AtomicInteger maximumActiveLoads = new AtomicInteger();
+        List<Future<?>> futures = new ArrayList<>();
+
+        try {
+            List<Runnable> tasks = Collections.nCopies(threadCount, () -> {
+                ready.countDown();
+                try {
+                    start.await();
+                    ShenyuPluginClassLoaderHolder.getSingleton().replacePluginClassLoader(concurrentPluginJar, classLoader -> {
+                        int current = activeLoads.incrementAndGet();
+                        maximumActiveLoads.accumulateAndGet(current, Math::max);
+                        activeLoads.decrementAndGet();
+                    });
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(ex);
+                }
+            });
+            tasks.forEach(task -> futures.add(executor.submit(task)));
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
+            start.countDown();
+            for (Future<?> future : futures) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+
+            assertEquals(1, maximumActiveLoads.get());
+            assertEquals(threadCount - 1, beanFactory.destroyCount.get());
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+            ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(jarKey);
+        }
+    }
+
+    private static final class CountingBeanFactory extends DefaultListableBeanFactory {
+
+        private final AtomicInteger destroyCount = new AtomicInteger();
+
+        @Override
+        public boolean containsBean(final String name) {
+            return true;
+        }
+
+        @Override
+        public void destroySingleton(final String beanName) {
+            destroyCount.incrementAndGet();
+        }
+
+        @Override
+        public void removeBeanDefinition(final String beanName) {
+        }
     }
 }

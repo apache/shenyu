@@ -44,10 +44,17 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM field
         WHERE id = #{id}
         LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM field
+        WHERE id = #{id}
+        AND ROWNUM = 1
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.FieldDO">

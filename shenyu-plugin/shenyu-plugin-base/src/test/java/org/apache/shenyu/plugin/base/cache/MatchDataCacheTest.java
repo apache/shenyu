@@ -37,7 +37,11 @@ public final class MatchDataCacheTest {
 
     private final String mockPluginName1 = "MOCK_PLUGIN_NAME_1";
 
+    private final String mockPluginName2 = "MOCK_PLUGIN_NAME_2";
+
     private final String path1 = "/http/abc";
+
+    private final String path2 = "/http/def";
 
     @Test
     public void testCacheSelectorData() throws NoSuchFieldException, IllegalAccessException {
@@ -67,6 +71,36 @@ public final class MatchDataCacheTest {
         ConcurrentHashMap<String, WindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertNull(selectorMap.get(mockPluginName1));
         selectorMap.clear();
+    }
+
+    @Test
+    public void testRemoveSelectorDataSweepsAllPluginBucketsWhenPluginNameIsMissing() {
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).sort(1).build();
+        MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 100, 100);
+        MatchDataCache.getInstance().cacheSelectorData(path1, secondCachedSelectorData, 100, 100);
+
+        // the deletion event of a dangling selector carries no plugin name
+        MatchDataCache.getInstance().removeSelectorData(null, "1");
+
+        assertNull(MatchDataCache.getInstance().obtainSelectorData(mockPluginName1, path1));
+        assertEquals(secondCachedSelectorData, MatchDataCache.getInstance().obtainSelectorData(mockPluginName2, path1));
+        MatchDataCache.getInstance().cleanSelectorData();
+    }
+
+    @Test
+    public void testRemoveRuleDataBySelectorSweepsAllPluginBucketsWhenPluginNameIsMissing() {
+        RuleData cacheRuleData = RuleData.builder().id("1").selectorId("100").pluginName(mockPluginName1).sort(1).build();
+        RuleData unrelatedRuleData = RuleData.builder().id("2").selectorId("200").pluginName(mockPluginName1).sort(1).build();
+        MatchDataCache.getInstance().cacheRuleData(path1, cacheRuleData, 100, 100);
+        MatchDataCache.getInstance().cacheRuleData(path2, unrelatedRuleData, 100, 100);
+
+        // the deletion event of a dangling selector carries no plugin name
+        MatchDataCache.getInstance().removeRuleDataBySelector(null, "100");
+
+        assertNull(MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1));
+        assertEquals(unrelatedRuleData, MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path2));
+        MatchDataCache.getInstance().cleanRuleDataData();
     }
 
     @SuppressWarnings("rawtypes")

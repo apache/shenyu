@@ -57,6 +57,14 @@ public interface TagRelationMapper extends ExistProvider {
     int deleteByIds(List<String> ids);
 
     /**
+     * Delete relations belonging to the specified tags.
+     *
+     * @param tagIds tag ids
+     * @return deleted rows
+     */
+    int deleteByTagIds(@Param("tagIds") List<String> tagIds);
+
+    /**
      * update record selective.
      *
      * @param record record the updated record
@@ -87,6 +95,14 @@ public interface TagRelationMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<TagRelationDO> selectByQuery(TagRelationQuery tagRelationQuery);
+
+    /**
+     * Select tag relations for one API page.
+     *
+     * @param apiIds API identifiers
+     * @return matching relations
+     */
+    List<TagRelationDO> selectByApiIds(@Param("apiIds") List<String> apiIds);
 
     /**
      * update record.
@@ -125,4 +141,3 @@ public interface TagRelationMapper extends ExistProvider {
      */
     int deleteByApiIds(@Param(value = "apiIds") List<String> apiIds);
 }
-
