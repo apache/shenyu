@@ -31,7 +31,7 @@ import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

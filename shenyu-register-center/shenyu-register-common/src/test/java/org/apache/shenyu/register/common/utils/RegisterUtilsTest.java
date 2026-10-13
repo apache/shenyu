@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.http.utils;
+package org.apache.shenyu.register.common.utils;
 
 import com.google.gson.Gson;
 import okhttp3.Headers;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,14 +79,14 @@ public final class RegisterUtilsTest {
 
     @Test
     public void testDoRegisterWhenSuccess() throws IOException {
-        when(okHttpTools.post(url, json)).thenReturn("success");
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        when(okHttpTools.post(url, json, new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build())).thenReturn("success");
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn("success");
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
-            verify(okHttpTools, times(1)).post(eq(url), eq(json));
+            verify(okHttpTools, times(1)).post(eq(url), eq(json), eq(new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build()));
             RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), accessToken);
             verify(okHttpTools, times(1)).post(eq(url), eq(json), eq(headers));
         }
@@ -95,13 +96,13 @@ public final class RegisterUtilsTest {
     @NullAndEmptySource
     @ValueSource(strings = {"Error parameter！", "{\"code\":400,\"message\":\"invalid parameters\"}"})
     public void testDoRegisterWhenError(final String response) throws IOException {
-        when(okHttpTools.post(url, json)).thenReturn(response);
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        when(okHttpTools.post(url, json, new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build())).thenReturn(response);
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn(response);
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             assertThrows(IOException.class, () -> RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName()));
-            verify(okHttpTools, times(1)).post(eq(url), eq(json));
+            verify(okHttpTools, times(1)).post(eq(url), eq(json), eq(new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build()));
             assertThrows(IOException.class, () -> RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), accessToken));
             verify(okHttpTools, times(1)).post(eq(url), eq(json), eq(headers));
 
@@ -113,7 +114,7 @@ public final class RegisterUtilsTest {
     @NullAndEmptySource
     @ValueSource(strings = {"failure", "{\"code\":400,\"message\":\"invalid parameters\"}"})
     public void testHeartbeatRejectsNonSuccessResponse(final String response) throws IOException {
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn(response);
         try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
             mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
@@ -125,7 +126,7 @@ public final class RegisterUtilsTest {
     @NullAndEmptySource
     @ValueSource(strings = {"failure", "{\"code\":400,\"message\":\"invalid parameters\"}"})
     public void testUnregisterRejectsNonSuccessResponse(final String response) throws IOException {
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn(response);
         try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
             mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
@@ -135,7 +136,7 @@ public final class RegisterUtilsTest {
 
     @Test
     public void testHeartbeatAndUnregisterAcceptSuccess() throws IOException {
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn(Constants.SUCCESS);
         try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
             mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
@@ -147,12 +148,12 @@ public final class RegisterUtilsTest {
 
     @Test
     public void testDoRegisterWhenThrowException() throws IOException {
-        when(okHttpTools.post(url, json)).thenThrow(IOException.class);
+        when(okHttpTools.post(url, json, new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build())).thenThrow(IOException.class);
         assertThrows(IOException.class, () -> {
             try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
                 okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
                 RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
-                verify(okHttpTools, times(1)).post(eq(url), eq(json));
+                verify(okHttpTools, times(1)).post(eq(url), eq(json), eq(new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).build()));
             }
         });
     }
