@@ -9,7 +9,7 @@ This plugin is developed and tested with the following SDK versions:
 | Dependency | Version |
 |------------|---------|
 | MCP SDK (io.modelcontextprotocol.sdk:mcp-bom) | 0.17.0 |
-| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.2 |
+| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.8 |
 | Spring Boot | 3.3.1 |
 
 ### Supported Protocols
