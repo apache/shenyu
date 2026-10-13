@@ -226,7 +226,7 @@ public class ComposableSignService implements SignService {
             paramDataList.stream().filter(p -> p.getAppName().equals(realAppName))
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
-                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+                    .ifPresent(param -> exchange.getAttributes().put(Constants.APP_PARAM, param));
         }
     }
 
