@@ -24,7 +24,7 @@ extern "C" {
 
 #[no_mangle]
 pub unsafe extern "C" fn handlerDiscoveryUpstreamData(arg_id: i64) {
-    let mut buf = [0u8; 32];
+    let mut buf = [0u8; 1024];
     let buf_ptr = buf.as_mut_ptr() as i64;
     eprintln!("rust side-> buffer base address: {}", buf_ptr);
     // get arg from java
@@ -35,4 +35,13 @@ pub unsafe extern "C" fn handlerDiscoveryUpstreamData(arg_id: i64) {
     let rust_result = "rust result".as_bytes();
     let result_ptr = rust_result.as_ptr() as i64;
     _ = put_result(arg_id, result_ptr, rust_result.len() as i32);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn removeDiscoveryUpstreamData(arg_id: i64) {
+    let mut buf = [0u8; 1024];
+    let len = get_args(arg_id, buf.as_mut_ptr() as i64, buf.len() as i32);
+    let input = std::str::from_utf8(&buf[..len as usize]).unwrap();
+    let result = format!("removed:{}", input);
+    _ = put_result(arg_id, result.as_ptr() as i64, result.len() as i32);
 }

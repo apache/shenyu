@@ -134,7 +134,7 @@ public final class WebsocketDataHandlerTest {
         websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
         Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
-        Mockito.verify(pluginDataSubscriber).refreshPluginDataNamespace("namespace-a");
+        Mockito.verify(pluginDataSubscriber).applyPluginDataSnapshot("namespace-a", Collections.emptyList());
     }
 
     @Test
