@@ -149,6 +149,7 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
         final Long argumentId = ARGUMENT_IDS.incrementAndGet();
         final WasmResult result;
         try {
+            // The loader owns linear memory shared by request execution and lifecycle hooks.
             synchronized (wasmLoader) {
                 bridge.begin(argumentId, DO_EXECUTE_METHOD_NAME, exchange,
                         BaseDataCache.getInstance().obtainPluginData(named()), selector, rule);

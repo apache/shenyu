@@ -17,14 +17,16 @@
 
 package org.apache.shenyu.plugin.wasm.api;
 
+import com.dylibso.chicory.wasm.InvalidException;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Export lookup must distinguish callable exports from absent or non-function exports.
+ * Export lookup treats missing exports as optional and rejects non-function exports.
  */
 final class WasmLoaderTest {
 
@@ -33,7 +35,7 @@ final class WasmLoaderTest {
         try (WasmLoader loader = new WasmLoader(AbstractWasmPluginTest.RustWasmPlugin.class, null)) {
             assertTrue(loader.getWasmExtern("execute").isPresent());
             assertFalse(loader.getWasmExtern("does_not_exist").isPresent());
-            assertFalse(loader.getWasmExtern("memory").isPresent());
+            assertThrows(InvalidException.class, () -> loader.getWasmExtern("memory"));
         }
     }
 }

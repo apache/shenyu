@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,16 +69,18 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiRequestTransformerPlugin.class);
 
+    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
+
     /**
      * Valid characters of a generated origin-form path component.
      */
-    private static final String PATH_PATTERN = "^/[a-zA-Z0-9/_\\-]*$";
+    private static final Pattern REQUEST_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-]*$");
 
     /**
      * Valid characters of a generated query component: RFC 3986 query syntax (percent-encoded
      * sequences must be well formed so that the target is always a legal URI reference).
      */
-    private static final String QUERY_PATTERN = "^(%[0-9a-fA-F]{2}|[a-zA-Z0-9\\-._~!$&'()*+,;=:@/?])*$";
+    private static final Pattern QUERY_PATTERN = Pattern.compile("^(%[0-9a-fA-F]{2}|[a-zA-Z0-9\\-._~!$&'()*+,;=:@/?])*$");
 
     private final List<HttpMessageReader<?>> messageReaders;
 
@@ -267,12 +270,12 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             return Mono.just(exchange);
         }
 
-        if (!newPath.matches(PATH_PATTERN)) {
+        if (!REQUEST_PATH_PATTERN.matcher(newPath).matches()) {
             LOG.warn("Extracted path contains invalid characters: {}, Will continue to use the original path.", newPath);
             return Mono.just(exchange);
         }
 
-        if (Objects.nonNull(newQuery) && !newQuery.matches(QUERY_PATTERN)) {
+        if (Objects.nonNull(newQuery) && !QUERY_PATTERN.matcher(newQuery).matches()) {
             LOG.warn("Extracted query contains invalid characters: {}, Will continue to use the original path.", newQuery);
             return Mono.just(exchange);
         }
@@ -320,7 +323,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             boolean headerSectionStarted = false;
             while (Objects.nonNull(line = reader.readLine())) {
                 if (!headerSectionStarted) {
-                    if (line.startsWith("HTTP/1.1") || line.matches("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$")) {
+                    if (line.startsWith("HTTP/1.1") || REQUEST_LINE_PATTERN.matcher(line).matches()) {
                         headerSectionStarted = true;
                         continue;
                     }
@@ -374,4 +377,3 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
     }
 
 }
-

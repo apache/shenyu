@@ -2,9 +2,32 @@
 
 ### API Changes
 
+- `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
+  serialization identifier and existing behavior are retained for downstream
+  source and binary compatibility. No removal release is scheduled; a future
+  removal requires a public API compatibility review and advance release notice.
+  For caches accessed through the `Map` API, consider the existing
+  `WindowTinyLFUMap` with an explicit maximum entry count, for example
+  `new WindowTinyLFUMap<>(maximumEntries)`. Choose that count for the application's
+  working set: the old `maxFreeMemory` argument is a free-memory threshold in
+  bytes, not an entry count. Review the different eviction policy, non-null
+  key/value requirements and absence of `LRUMap`-specific operations. Code that
+  relies on memory-pressure eviction should retain `MemorySafeLRUMap` until an
+  equivalent policy is chosen; `WindowTinyLFUMap` does not implement that
+  threshold. (#7444)
+
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
 ### Behavior Changes
+
+- `AbstractShenyuWasmPlugin()` now selects the JSON request/configuration/result
+  bridge rather than no-op host functions. Results require versioned UTF-8 JSON
+  within 1 MiB; invalid results fail the request with HTTP 500. Subclasses that
+  require the former no-op callbacks can call `super((Consumer<Store>) null)`;
+  the Consumer constructor retains custom adapters and existing overrides.
+  The default Java continuation hook now delegates to the chain and argument
+  IDs are generated automatically. Register a bean destroy method or call
+  `close()` explicitly for shutdown cleanup; no starter wiring is added. (#7561)
 
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts

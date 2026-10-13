@@ -25,9 +25,7 @@ import com.dylibso.chicory.runtime.Memory;
 import com.dylibso.chicory.runtime.Store;
 import com.dylibso.chicory.wasm.Parser;
 import com.dylibso.chicory.wasm.WasmModule;
-import com.dylibso.chicory.wasm.types.Export;
 import com.dylibso.chicory.wasm.types.ExportSection;
-import com.dylibso.chicory.wasm.types.ExternalType;
 import com.dylibso.chicory.wasm.types.FunctionType;
 import com.dylibso.chicory.wasm.types.ValType;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmException;
@@ -279,9 +277,8 @@ public class WasmLoader implements AutoCloseable {
      */
     public Optional<ExportFunction> getWasmExtern(final String funcName) {
         ExportSection exports = instance.module().exportSection();
-        for (int i = 0; i < exports.exportCount(); i++) {
-            Export export = exports.getExport(i);
-            if (export.name().equals(funcName) && export.exportType() == ExternalType.FUNCTION) {
+        for (int index = 0; index < exports.exportCount(); index++) {
+            if (funcName.equals(exports.getExport(index).name())) {
                 return Optional.of(instance.export(funcName));
             }
         }

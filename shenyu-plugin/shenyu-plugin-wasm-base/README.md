@@ -118,7 +118,8 @@ exchange and do not mutate the original request. Response header changes are
 applied before continuation or rejection. A rejection body defaults to empty;
 its default content type is `text/plain;charset=UTF-8`, and the host sets its
 content length. Normal downstream response handling still governs responses
-after `CONTINUE`.
+after `CONTINUE`. These response header changes are not rolled back if the
+downstream chain fails.
 
 Framing and hop-by-hop headers cannot be changed: `Host`, `Content-Length`,
 `Transfer-Encoding`, `Connection`, `Keep-Alive`, `Proxy-Authenticate`,
@@ -210,6 +211,24 @@ be re-created and the handler need not share its guest memory.
 
 ## Custom host functions and compatibility
 
+### Migrating subclasses that used the no-argument constructor
+
+Previously the no-argument constructor registered no-op host callbacks. It now
+selects the JSON bridge, including strict result parsing, a 1 MiB payload limit
+and HTTP 500 on invalid results. Existing subclasses using that constructor
+must supply a compatible guest or explicitly select their previous adapter.
+Use `super((Consumer<Store>) null)` (with `java.util.function.Consumer` imported)
+to retain the built-in no-op callbacks, or pass the existing custom initializer
+to retain application-specific host functions. The five-argument `doExecute`
+hook is now concrete and continues the chain by default; `getArgumentId` is
+concrete and allocates unique IDs. Existing overrides remain compatible.
+
+The constructors therefore select **JSON bridge** versus **custom adapter**.
+Shutdown cleanup requires bean destruction wiring, for example
+`@Bean(destroyMethod = "close")`; this PR adds no starter registration for
+external subclasses. Calling `close()` directly is also supported.
+
+
 The `Consumer<Store>` constructor retains the custom-adapter behavior. It skips
 the supported bridge: the consumer registers all required application imports,
 and the subclass can override the five-argument `doExecute` hook and
@@ -251,3 +270,52 @@ wat2wasm src/test/wasm-bridge/bridge.wat \
 wat2wasm src/test/wasm-bridge/minimal.wat \
   -o 'src/test/resources/org.apache.shenyu.plugin.wasm.base.WasmBridgeTest$MinimalPlugin.wasm'
 ```
+
+# WASM discovery callbacks
+
+`AbstractWasmDiscoveryHandler` forwards discovery updates to the required guest
+export `handlerDiscoveryUpstreamData(argId: i64) -> ()` and deletions to the
+optional export `removeDiscoveryUpstreamData(argId: i64) -> ()`.
+
+Both callbacks use the existing Java argument bridge. `getArgumentId` supplies
+the ID, and `ARGUMENTS.get(argId)` exposes a `DiscoverySyncData` for the duration
+of the callback. A Java subclass can serialize this object from `onGetArgs`,
+which serves the guest's `shenyu.get_args` import.
+
+For deletion, the object contains exactly the identity from `DiscoveryUpstreamKey`:
+
+- `pluginName`: the plugin owning the discovery state.
+- `selectorId`: the selector to remove.
+- `selectorName`: the optional selector name, which can be null.
+
+The remaining fields, including `upstreamDataList`, are null. The guest should
+remove the state identified by this key when the deletion callback runs. For a
+subclass using JSON serialization, a deletion payload can look like:
+
+```json
+{"pluginName":"divide","selectorId":"selector-id","selectorName":"my-selector"}
+```
+
+Guests that omit the deletion export receive no callback, preserving the legacy
+no-op behavior. Existing Java subclasses do not need a new argument-ID method.
+Callback failures propagate to the caller, and the temporary argument is removed
+whether the callback succeeds or fails.
+
+The Go and Rust test guests read the deletion payload and echo it through
+`shenyu.put_result`. Their build instructions are in `src/test/go-discovery-handler`
+and `src/test/rust-discovery-handler`. The `TestLegacyWasmPluginDiscoveryHandler`
+fixture preserves the original Go binary without the deletion export to test
+compatibility with existing guests.
+
+## CI fixture verification
+
+`.github/workflows/wasm-fixtures.yml` runs WABT 1.0.42 and Rust 1.90.0 whenever
+the WASM modules change. `python3 .github/scripts/verify-wasm-fixtures.py` rebuilds
+all available WAT families into a temporary directory and compares every byte
+with the committed resources. It then compiles the five existing Rust guests
+for `wasm32-wasip1` and runs the Java WASM suites against the rebuilt resources,
+restoring the original resource bytes even on failure. Legacy Rust compiler
+versions were not recorded, so those guests are verified by behavior rather
+than by an exact-byte claim. Existing TinyGo guests also run in those suites.
+`--wat-only` performs just the exact WAT check; `--rust-only` performs just the
+Rust rebuild and Java verification. Maven-only builds still use committed guests.

@@ -163,6 +163,7 @@ final class WasmResult {
     }
 
     Mono<Void> apply(final ServerWebExchange exchange, final Function<ServerWebExchange, Mono<Void>> continuation) {
+        // Apply once before continuation; downstream failures do not roll back response headers.
         replaceHeaders(exchange.getResponse().getHeaders(), responseHeaders);
         if (reject) {
             exchange.getResponse().setRawStatusCode(status);
