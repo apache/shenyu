@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -117,6 +118,16 @@ public class AiProxyPluginConfiguration {
     @Bean
     public OpenAiChat openAiChat() {
         return new OpenAiChat();
+    }
+
+    /**
+     * OpenAI Responses protocol backed by Connect conversion to Chat upstreams.
+     *
+     * @return the OpenAI Responses protocol
+     */
+    @Bean
+    public OpenAiResponses openAiResponses() {
+        return new OpenAiResponses();
     }
 
     /**

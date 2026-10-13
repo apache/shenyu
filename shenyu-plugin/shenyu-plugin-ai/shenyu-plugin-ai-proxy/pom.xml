@@ -26,6 +26,13 @@
     <artifactId>shenyu-plugin-ai-proxy</artifactId>
 
     <dependencies>
+        <!-- Protocol conversion only; ShenYu retains transport and gateway policy. -->
+        <dependency>
+            <groupId>io.github.agentic-ai-java</groupId>
+            <artifactId>connect</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-base</artifactId>
