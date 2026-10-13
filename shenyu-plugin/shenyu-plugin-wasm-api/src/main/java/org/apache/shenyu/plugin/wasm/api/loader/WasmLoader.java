@@ -273,6 +273,13 @@ public class WasmLoader implements AutoCloseable {
         return findWasmExtern(funcName);
     }
 
+    /**
+     * Check export names before resolving a function so absent hooks remain optional
+     * while a matching export of the wrong kind still fails validation.
+     *
+     * @param funcName the exported function name
+     * @return the exported function, or empty only when the name is absent
+     */
     private Optional<ExportFunction> findWasmExtern(final String funcName) {
         // Chicory throws InvalidException for an absent export. Check the names first
         // so optional hooks remain optional without hiding invalid export types.
