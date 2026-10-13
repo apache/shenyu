@@ -18,6 +18,11 @@
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
@@ -45,11 +50,27 @@ class AiProxyPluginConfigurationTest {
                     .doesNotHaveBean(AiModelFactoryRegistry.class);
             AiProxyProviderFactory factory = context.getBean(AiProxyProviderFactory.class);
             assertSame(context.getBean(OpenAiResponses.class), context.getBean(AiProxyProtocolFactory.class).getProtocol(OpenAiResponses.NAME));
-            for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot")) {
+            for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
                 assertEquals(provider.toLowerCase(java.util.Locale.ROOT), factory.getProvider(provider).name().toLowerCase(java.util.Locale.ROOT));
                 org.junit.jupiter.api.Assertions.assertTrue(factory.getProvider(provider).supports(OpenAiResponses.NAME));
             }
         });
+    }
+
+    @Test
+    void discoversAnotherCompatibleProviderWithoutEngineProtocolOrTransportChanges() {
+        OpenAiCompatible provider = new OpenAiCompatible("tenant-profile", OpenAiProviderOptions.generic(null));
+        new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class)
+                .withBean("tenantProvider", AiProxyProvider.class, () -> provider).run(context -> {
+                    org.assertj.core.api.Assertions.assertThat(context).hasNotFailed();
+                    assertSame(provider, context.getBean(AiProxyProviderFactory.class).getProvider("TENANT_PROFILE"));
+                    AiCommonConfig config = new AiCommonConfig();
+                    config.setProvider("tenant-profile");
+                    config.setBaseUrl("https://example.org");
+                    config.setApiKey("key");
+                    AiUpstreamRequest request = context.getBean(AiProxyEngine.class).buildRequest("{\"messages\":[{\"role\":\"user\"}]}", config);
+                    assertEquals("https://example.org/v1/chat/completions", request.getUri().toString());
+                });
     }
 
     @Test

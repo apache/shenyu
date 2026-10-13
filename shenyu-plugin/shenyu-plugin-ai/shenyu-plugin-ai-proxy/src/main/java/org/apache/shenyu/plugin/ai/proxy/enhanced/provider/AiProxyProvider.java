@@ -44,6 +44,16 @@ public interface AiProxyProvider {
     AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
 
     /**
+     * Get provider feature and operation declarations.
+     * Existing custom providers retain the general Chat capability default.
+     *
+     * @return provider capabilities
+     */
+    default AiProviderCapabilities capabilities() {
+        return AiProviderCapabilities.chat();
+    }
+
+    /**
      * Check whether the provider supports a client protocol.
      *
      * @param protocol client protocol identifier

@@ -176,6 +176,16 @@ public class AiProxyPluginConfiguration {
     }
 
     /**
+     * Create the generic OpenAI-compatible provider profile.
+     *
+     * @return provider profile
+     */
+    @Bean
+    public OpenAiCompatible openAiCompatibleProvider() {
+        return new OpenAiCompatible("OpenAICompatible");
+    }
+
+    /**
      * Create the DeepSeek compatible provider profile.
      *
      * @return provider profile

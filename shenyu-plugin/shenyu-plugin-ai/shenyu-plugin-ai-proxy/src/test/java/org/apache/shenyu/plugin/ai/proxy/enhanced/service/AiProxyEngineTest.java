@@ -104,7 +104,7 @@ class AiProxyEngineTest {
 
         assertEquals("gpt-4o-mini", payload.get("model").asText());
         assertEquals(256, payload.get("max_completion_tokens").intValue());
-        assertEquals(256, payload.get("max_tokens").intValue());
+        assertFalse(payload.has("max_tokens"));
         assertTrue(payload.get("unknown").booleanValue());
         assertTrue(payload.get("stream_options").get("include_usage").booleanValue());
         assertEquals("text/event-stream", request.getHeaders().get("Accept").get(0));
