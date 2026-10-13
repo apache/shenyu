@@ -25,7 +25,6 @@ import com.dylibso.chicory.runtime.Memory;
 import com.dylibso.chicory.runtime.Store;
 import com.dylibso.chicory.wasm.Parser;
 import com.dylibso.chicory.wasm.WasmModule;
-import com.dylibso.chicory.wasm.types.ExportSection;
 import com.dylibso.chicory.wasm.types.FunctionType;
 import com.dylibso.chicory.wasm.types.ValType;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmException;
@@ -137,15 +136,10 @@ public class WasmLoader implements AutoCloseable {
             }
 
             // Call _initialize if present (required by TinyGo -target wasm-unknown).
-            try {
-                ExportFunction initFn = instance.export("_initialize");
-                if (Objects.nonNull(initFn)) {
-                    initFn.apply();
-                    LOG.debug("Called _initialize for {}", wasmName);
-                }
-            } catch (com.dylibso.chicory.wasm.InvalidException e) {
-                LOG.debug("No _initialize export in {}", wasmName);
-            }
+            findWasmExtern("_initialize").ifPresent(initFn -> {
+                initFn.apply();
+                LOG.debug("Called _initialize for {}", wasmName);
+            });
 
             if (Objects.isNull(instance.memory())) {
                 throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
@@ -276,9 +270,22 @@ public class WasmLoader implements AutoCloseable {
      * @return an Optional containing the ExportFunction if found, otherwise empty
      */
     public Optional<ExportFunction> getWasmExtern(final String funcName) {
-        ExportSection exports = instance.module().exportSection();
-        for (int index = 0; index < exports.exportCount(); index++) {
-            if (funcName.equals(exports.getExport(index).name())) {
+        return findWasmExtern(funcName);
+    }
+
+    /**
+     * Check export names before resolving a function so absent hooks remain optional
+     * while a matching export of the wrong kind still fails validation.
+     *
+     * @param funcName the exported function name
+     * @return the exported function, or empty only when the name is absent
+     */
+    private Optional<ExportFunction> findWasmExtern(final String funcName) {
+        // Chicory throws InvalidException for an absent export. Check the names first
+        // so optional hooks remain optional without hiding invalid export types.
+        var exports = instance.module().exportSection();
+        for (int i = 0; i < exports.exportCount(); i++) {
+            if (exports.getExport(i).name().equals(funcName)) {
                 return Optional.of(instance.export(funcName));
             }
         }

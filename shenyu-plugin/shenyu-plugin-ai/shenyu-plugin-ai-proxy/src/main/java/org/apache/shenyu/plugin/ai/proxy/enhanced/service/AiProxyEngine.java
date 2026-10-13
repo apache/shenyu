@@ -87,6 +87,8 @@ public final class AiProxyEngine {
             Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                 AiCommonConfig copy = new AiCommonConfig(config);
                 copy.setStream(primary.stream());
+                // Fallback changes the upstream, never the already selected client protocol.
+                copy.setProtocol(primary.protocol().name());
                 return copy;
             });
             return attempt(requestBody, primary, fallback, primary.stream() ? 1 : 3, responseConsumer, new AtomicBoolean());
@@ -114,7 +116,7 @@ public final class AiProxyEngine {
                         // Release this response without accumulating the error body before another attempt.
                         return response.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
                     }
-                    AiUpstreamResponse adapted = prepared.provider().adaptResponse(response);
+                    AiUpstreamResponse adapted = prepared.request().adaptResponse(prepared.provider().adaptResponse(response));
                     AiUpstreamResponse encoded = prepared.protocol().encodeResponse(adapted, prepared.stream());
                     return encoded.getBody().switchOnFirst((signal, body) -> {
                         if (signal.isOnError()) {

@@ -56,7 +56,7 @@
             Spring AI and MCP SDK Dependencies
 
             SDK Compatibility Notes:
-            - Current tested version: MCP SDK 0.17.0, Spring AI 1.1.2
+            - Current tested version: MCP SDK 0.17.0, Spring AI 1.1.8
             - McpSessionHelper uses reflection to access McpSyncServerExchange.exchange and
               McpAsyncServerExchange.session fields for session ID extraction
             - ShenyuStreamableHttpServerTransportProvider uses reflection to access
