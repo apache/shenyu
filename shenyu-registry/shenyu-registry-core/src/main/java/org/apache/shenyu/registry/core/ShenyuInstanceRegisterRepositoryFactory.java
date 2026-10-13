@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.registry.core;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,7 +41,28 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository newInstance(final String registerType) {
-        return REPOSITORY_MAP.computeIfAbsent(registerType, ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)::getJoin);
+        checkRegisterType(registerType);
+        return REPOSITORY_MAP.computeIfAbsent(registerType, ShenyuInstanceRegisterRepositoryFactory::loadRepository);
+    }
+
+    /**
+     * Load a repository through SPI without using the factory's per-type cache.
+     * The provider's {@code @Join} singleton setting still applies.
+     *
+     * @param registerType the configured registry type
+     * @return the repository
+     */
+    public static ShenyuInstanceRegisterRepository loadRepository(final String registerType) {
+        checkRegisterType(registerType);
+        ExtensionLoader<ShenyuInstanceRegisterRepository> loader = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class);
+        Map<String, Class<?>> providers = loader.getExtensionClasses1();
+        if (!providers.containsKey(registerType)) {
+            throw new IllegalArgumentException("No registry implementation found for registerType '" + registerType
+                    + "'. Add the matching shenyu-registry-" + registerType
+                    + " dependency (or an external registry SPI provider) to the runtime classpath. Available types: "
+                    + new TreeSet<>(providers.keySet()));
+        }
+        return loader.getJoin(registerType);
     }
     
     /**
@@ -48,8 +72,10 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config) {
+        Objects.requireNonNull(config, "register config is required");
+        checkRegisterType(config.getRegisterType());
         return REPOSITORY_MAP.computeIfAbsent(config.getRegisterType(), registerType -> {
-            ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(registerType);
+            ShenyuInstanceRegisterRepository result = loadRepository(registerType);
             result.init(config);
             return result;
         });
@@ -62,9 +88,16 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository reNewAndInitInstance(final RegisterConfig config) {
-        ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(config.getRegisterType());
+        Objects.requireNonNull(config, "register config is required");
+        ShenyuInstanceRegisterRepository result = loadRepository(config.getRegisterType());
         result.init(config);
         REPOSITORY_MAP.put(config.getRegisterType(), result);
         return result;
+    }
+
+    private static void checkRegisterType(final String registerType) {
+        if (StringUtils.isBlank(registerType)) {
+            throw new IllegalArgumentException("registerType is required; configure a registry type and add its SPI provider to the runtime classpath");
+        }
     }
 }
