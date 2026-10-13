@@ -19,6 +19,9 @@ package org.apache.shenyu.admin.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
+import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.manager.DocManager;
@@ -36,6 +39,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -69,5 +75,60 @@ public class ApiDocControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocMenus"))
                 .andExpect(status().isOk())
                 .andReturn();
+    }
+
+    @Test
+    public void testMenusIncludePersistedDocumentIds() throws Exception {
+        DocItem docItem = new DocItem();
+        docItem.setId("api-id");
+        docItem.setName("/orders/find");
+        docItem.setSummary("Find order");
+        DocModule module = new DocModule();
+        module.setModule("orders");
+        module.setDocItems(List.of(docItem));
+        DocInfo project = new DocInfo();
+        project.setTitle("/orders");
+        project.setDocModuleList(List.of(module));
+        given(docManager.listAll()).willReturn(List.of(project));
+        given(shenyuDictService.list(any())).willReturn(List.of());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocMenus"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.menuProjects[0].label").value("/orders"))
+                .andExpect(jsonPath("$.data.menuProjects[0].children[0].children[0].id").value("api-id"))
+                .andExpect(jsonPath("$.data.menuProjects[0].children[0].children[0].name").value("/orders/find"));
+    }
+
+    @Test
+    public void testGetDocItem() throws Exception {
+        DocItem docItem = new DocItem();
+        docItem.setId("api-id");
+        docItem.setName("/orders/find");
+        docItem.setDescription("Find an order by id");
+        given(docManager.getDocItem("api-id")).willReturn(docItem);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocItem").param("id", "api-id"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.id").value("api-id"))
+                .andExpect(jsonPath("$.data.name").value("/orders/find"))
+                .andExpect(jsonPath("$.data.description").value("Find an order by id"));
+        verify(docManager).getDocItem("api-id");
+    }
+
+    @Test
+    public void testGetDocItemRequiresId() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocItem"))
+                .andExpect(status().isBadRequest());
+        verify(docManager, never()).getDocItem(any());
+    }
+
+    @Test
+    public void testGetDocItemNotFound() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/apidoc/getDocItem").param("id", "missing"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").doesNotExist());
     }
 }

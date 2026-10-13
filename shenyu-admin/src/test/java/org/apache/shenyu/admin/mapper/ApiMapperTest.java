@@ -18,12 +18,16 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
+import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.service.ApiService;
+import org.apache.shenyu.admin.service.manager.DocManager;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for ApiMapper.
@@ -50,6 +55,9 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private ApiService apiService;
+
+    @Resource
+    private DocManager docManager;
 
     private final ApiDO apiDO = buildApiDO();
 
@@ -107,6 +115,38 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
     public void testSelectByPrimaryKey() {
         ApiDO apiDO = apiMapper.selectByPrimaryKey(this.apiDO.getId());
         assertNotNull(apiDO);
+    }
+
+    @Test
+    public void testDocumentViewerReadsPersistedApis() {
+        ApiDO api = buildApiDO();
+        String contextPath = "/document-viewer-" + api.getId();
+        api.setContextPath(contextPath);
+        api.setApiPath(contextPath + "/find");
+        DocItem document = new DocItem();
+        document.setModule("orders");
+        document.setName(api.getApiPath());
+        document.setSummary("Persisted document");
+        api.setDocument(JsonUtils.toJson(document));
+        apiMapper.insert(api);
+        try {
+            ApiDO stored = apiMapper.selectAllWithDocument().stream().filter(item -> api.getId().equals(item.getId())).findFirst().orElseThrow();
+            assertEquals(api.getDocument(), stored.getDocument());
+            DocInfo project = docManager.listAll().stream().filter(item -> contextPath.equals(item.getContextPath())).findFirst().orElseThrow();
+            assertEquals(api.getId(), project.getDocModuleList().get(0).getDocItems().get(0).getId());
+            assertEquals("Persisted document", docManager.getDocItem(api.getId()).getSummary());
+
+            document.setSummary("Updated document");
+            api.setDocument(JsonUtils.toJson(document));
+            apiMapper.updateByPrimaryKeySelective(api);
+            assertEquals("Updated document", docManager.getDocItem(api.getId()).getSummary());
+
+            apiMapper.deleteByPrimaryKey(api.getId());
+            assertNull(docManager.getDocItem(api.getId()));
+            assertTrue(docManager.listAll().stream().noneMatch(item -> contextPath.equals(item.getContextPath())));
+        } finally {
+            apiMapper.deleteByPrimaryKey(api.getId());
+        }
     }
 
     @Test

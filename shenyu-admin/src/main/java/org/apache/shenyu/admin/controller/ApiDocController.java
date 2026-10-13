@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DocVO;
 import org.apache.shenyu.admin.model.vo.MenuDocItemVO;
@@ -30,6 +31,7 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
 import java.util.List;
@@ -83,6 +85,18 @@ public class ApiDocController {
         return ShenyuAdminResult.success(docVO);
     }
 
+    /**
+     * Get document content by the API id returned in the document menu.
+     *
+     * @param id API id
+     * @return document detail
+     */
+    @GetMapping("/getDocItem")
+    public ShenyuAdminResult getDocItem(@RequestParam("id") final String id) {
+        DocItem docItem = docManager.getDocItem(id);
+        return ShenyuAdminResult.success(docItem);
+    }
+
     private Function<DocInfo, MenuProjectVO> getMenuAndDocInfo() {
         return docInfo -> {
             MenuProjectVO menuProjectVO = new MenuProjectVO();
@@ -95,6 +109,7 @@ public class ApiDocController {
                     List<MenuDocItemVO> docItems = docModule.getDocItems().stream()
                         .map(docItem -> {
                             MenuDocItemVO menuDocItemVO = new MenuDocItemVO();
+                            menuDocItemVO.setId(docItem.getId());
                             menuDocItemVO.setLabel(docItem.getSummary());
                             menuDocItemVO.setName(docItem.getName());
                             return menuDocItemVO;

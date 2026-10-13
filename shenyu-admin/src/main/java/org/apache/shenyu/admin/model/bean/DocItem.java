@@ -27,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DocItem {
 
+    private String id;
+
     private String module;
 
     private String name;
@@ -66,6 +68,24 @@ public class DocItem {
     private List<DocParameter> responseParameters;
 
     private List<CustomCode> bizCodeList;
+
+    /**
+     * Get the persisted API id.
+     *
+     * @return API id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Set the persisted API id.
+     *
+     * @param id API id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
 
     /**
      * isUploadRequest.

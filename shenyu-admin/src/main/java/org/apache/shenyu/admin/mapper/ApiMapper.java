@@ -64,6 +64,13 @@ public interface ApiMapper extends ExistProvider {
     ApiDO selectByPrimaryKey(String id);
 
     /**
+     * Select persisted APIs with document content for the document viewer.
+     *
+     * @return APIs including their documents
+     */
+    List<ApiDO> selectAllWithDocument();
+
+    /**
      * update record selective.
      *
      * @param record the updated record

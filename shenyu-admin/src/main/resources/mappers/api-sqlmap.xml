@@ -57,6 +57,12 @@
     delete from api
     where id = #{id,jdbcType=VARCHAR}
   </delete>
+  <select id="selectAllWithDocument" resultMap="BaseResultMap">
+    SELECT id, context_path, api_path, document
+    FROM api
+    WHERE document IS NOT NULL
+    ORDER BY context_path, api_path, id
+  </select>
   <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
     <!--@mbg.generated-->
     insert into api (id, context_path, api_path, 

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.manager;
 import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 
 /**
@@ -43,4 +44,12 @@ public interface DocManager {
      * @return Collection
      */
     Collection<DocInfo> listAll();
+
+    /**
+     * Get a document by its persisted API id.
+     *
+     * @param id API id
+     * @return document item, or null if it is not available
+     */
+    DocItem getDocItem(String id);
 }

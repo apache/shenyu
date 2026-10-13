@@ -25,6 +25,7 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.manager.DocManager;
@@ -219,6 +220,11 @@ public class SwaggerImportServiceImplTest {
         @Override
         public Collection<DocInfo> listAll() {
             return Collections.emptyList();
+        }
+
+        @Override
+        public DocItem getDocItem(final String id) {
+            return null;
         }
 
         private String getDocJson() {
