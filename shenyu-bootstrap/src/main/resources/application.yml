@@ -307,6 +307,9 @@ shenyu:
     jmxConfig:
     props:
       jvm_enabled: true
+  tracing:
+    enabled: false
+    serviceName: shenyu-gateway
 #  plugins:
 #    rate-limiter.enabled: false
   local:

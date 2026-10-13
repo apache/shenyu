@@ -65,6 +65,8 @@ public class ShenyuConfig {
     
     private MetricsConfig metrics = new MetricsConfig();
 
+    private TracingConfig tracing = new TracingConfig();
+
     private SelectorMatchCache selectorMatchCache = new SelectorMatchCache();
     
     private RuleMatchCache ruleMatchCache = new RuleMatchCache();
@@ -145,6 +147,24 @@ public class ShenyuConfig {
      */
     public void setMetrics(final MetricsConfig metrics) {
         this.metrics = metrics;
+    }
+
+    /**
+     * Gets tracing.
+     *
+     * @return the tracing
+     */
+    public TracingConfig getTracing() {
+        return tracing;
+    }
+
+    /**
+     * Sets tracing.
+     *
+     * @param tracing the tracing
+     */
+    public void setTracing(final TracingConfig tracing) {
+        this.tracing = tracing;
     }
     
     /**
@@ -1943,6 +1963,52 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+    }
+
+    /**
+     * The tracing config.
+     */
+    public static class TracingConfig {
+
+        private boolean enabled;
+
+        private String serviceName = "shenyu-gateway";
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Gets service name.
+         *
+         * @return the service name
+         */
+        public String getServiceName() {
+            return serviceName;
+        }
+
+        /**
+         * Sets service name.
+         *
+         * @param serviceName the service name
+         */
+        public void setServiceName(final String serviceName) {
+            this.serviceName = serviceName;
         }
     }
 
