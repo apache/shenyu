@@ -31,7 +31,8 @@ import java.util.Set;
  */
 public final class AgentGatewayMcpConfig {
 
-    private static final Set<String> FIELDS = Set.of("allowedTools", "allowedOrigins", "responseMode", "timeoutMs", "maxRequestBytes", "maxResponseBytes");
+    private static final Set<String> FIELDS = Set.of("allowedTools", "allowedOrigins", "responseMode", "timeoutMs", "maxRequestBytes", "maxResponseBytes",
+            "structuredContentRemovals");
 
     private final Set<String> allowedTools;
 
@@ -45,6 +46,8 @@ public final class AgentGatewayMcpConfig {
 
     private final int maxResponseBytes;
 
+    private final AgentGatewayResultFilterConfig resultFilters;
+
     private AgentGatewayMcpConfig(final JsonObject object) {
         allowedTools = strings(object, "allowedTools", false);
         allowedOrigins = strings(object, "allowedOrigins", true);
@@ -55,6 +58,7 @@ public final class AgentGatewayMcpConfig {
         timeoutMs = integer(object, "timeoutMs", 30000, 100, 120000);
         maxRequestBytes = integer(object, "maxRequestBytes", 262144, 1024, 1048576);
         maxResponseBytes = integer(object, "maxResponseBytes", 1048576, 1024, 4194304);
+        resultFilters = AgentGatewayResultFilterConfig.parse(object.get("structuredContentRemovals"), allowedTools);
     }
 
     /**
@@ -101,6 +105,10 @@ public final class AgentGatewayMcpConfig {
 
     public int getMaxResponseBytes() {
         return maxResponseBytes;
+    }
+
+    public AgentGatewayResultFilterConfig getResultFilters() {
+        return resultFilters;
     }
 
     private Set<String> strings(final JsonObject object, final String field, final boolean origins) {

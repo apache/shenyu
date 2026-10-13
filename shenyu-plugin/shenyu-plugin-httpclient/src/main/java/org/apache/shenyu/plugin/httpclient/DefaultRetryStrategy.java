@@ -119,9 +119,12 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             //always query the latest available list
             String partition = exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION);
             UpstreamCacheManager upstreamCache = UpstreamCacheManager.getInstance();
-            List<Upstream> healthyUpstreams = Optional.ofNullable(Objects.isNull(partition)
+            List<Upstream> healthyUpstreams = Objects.isNull(partition)
                     ? upstreamCache.findLegacyUpstreamListBySelectorId(selectorId)
-                    : upstreamCache.findUpstreamListBySelectorId(selectorId)).orElseGet(Collections::emptyList);
+                    : upstreamCache.findUpstreamListBySelectorId(selectorId);
+            if (Objects.isNull(healthyUpstreams)) {
+                return Mono.error(new FailoverExhaustedException());
+            }
             if (Objects.nonNull(partition)) {
                 Map<String, String> labels = exchange.getAttribute(Constants.SHENYU_CANARY_LABELS);
                 healthyUpstreams = UpstreamLabelUtils.filter(healthyUpstreams, labels);

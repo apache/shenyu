@@ -281,6 +281,7 @@ class ProxySelectorServiceTest {
         given(discoveryHandlerMapper.selectById("handler-1")).willReturn(discoveryHandlerDO);
 
         DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setNamespaceId("namespace-1");
         discoveryDO.setDiscoveryType("local");
         discoveryDO.setNamespaceId("namespace-1");
         given(discoveryMapper.selectById("discovery-1")).willReturn(discoveryDO);

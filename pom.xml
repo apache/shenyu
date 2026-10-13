@@ -121,7 +121,7 @@
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.3</pagehelper.version>
         <apache.dubbo.version>3.2.14</apache.dubbo.version>
-        <gson.version>2.9.0</gson.version>
+        <gson.version>2.13.2</gson.version>
         <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
@@ -136,6 +136,7 @@
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <spring-boot.version>3.3.1</spring-boot.version>
+        <netty.version>4.1.139.Final</netty.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
@@ -178,7 +179,7 @@
         <chicory.version>1.7.3</chicory.version>
         <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
-        <spring-ai.version>1.1.2</spring-ai.version>
+        <spring-ai.version>1.1.8</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
@@ -187,6 +188,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Keep all Netty modules on the patched 4.1 line; this BOM must precede Spring Boot's BOM. -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>

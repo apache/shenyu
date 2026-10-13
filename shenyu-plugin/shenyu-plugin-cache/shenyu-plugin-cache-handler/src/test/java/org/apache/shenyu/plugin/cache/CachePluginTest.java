@@ -146,4 +146,70 @@ public class CachePluginTest {
         StepVerifier.create(result3).expectSubscription().verifyComplete();
     }
 
+    @Test
+    public void testDoExecuteSkipsCacheWhenRuleHandleIsNull() {
+        final ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/cache-null-handle-path").build());
+        final MemoryCache memoryCache = new MemoryCache();
+        Singleton.INST.single(ICache.class, memoryCache);
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("cache-null-handle-selector");
+        ruleData.setId("cache-null-handle-rule");
+        final String key = CacheKeyUtils.INST.getKey(ruleData);
+        try {
+            CachePluginDataHandler.CACHED_HANDLE.get().removeHandle(key);
+            final SelectorData selectorData = new SelectorData();
+            selectorData.setId("cache-null-handle-selector");
+            final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+            when(chain.execute(any())).thenAnswer(invocation -> {
+                final ServerWebExchange downstream = invocation.getArgument(0);
+                downstream.getResponse().getHeaders().setContentType(MediaType.TEXT_PLAIN);
+                return downstream.getResponse().writeWith(Mono.just(
+                        downstream.getResponse().bufferFactory().wrap("body".getBytes(StandardCharsets.UTF_8))));
+            });
+            final Mono<Void> result = new CachePlugin().doExecute(exchange, chain, selectorData, ruleData);
+            StepVerifier.create(result).verifyComplete();
+            Assertions.assertEquals("body", exchange.getResponse().getBodyAsString().block());
+            Assertions.assertNull(memoryCache.getData(CacheUtils.dataKey(exchange)).block());
+        } finally {
+            CachePluginDataHandler.CACHED_HANDLE.get().removeHandle(key);
+            memoryCache.close();
+        }
+    }
+
+    @Test
+    public void testDoExecuteCachesResponseWhenRuleHandleIsPresent() {
+        final ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/cache-with-handle-path").build());
+        final MemoryCache memoryCache = new MemoryCache();
+        Singleton.INST.single(ICache.class, memoryCache);
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("cache-with-handle-selector");
+        ruleData.setId("cache-with-handle-rule");
+        final String key = CacheKeyUtils.INST.getKey(ruleData);
+        try {
+            CachePluginDataHandler.CACHED_HANDLE.get().cachedHandle(key, new CacheRuleHandle());
+            final SelectorData selectorData = new SelectorData();
+            selectorData.setId("cache-with-handle-selector");
+            final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+            when(chain.execute(any())).thenAnswer(invocation -> {
+                final ServerWebExchange downstream = invocation.getArgument(0);
+                downstream.getResponse().getHeaders().setContentType(MediaType.TEXT_PLAIN);
+                return downstream.getResponse().writeWith(Mono.just(
+                        downstream.getResponse().bufferFactory().wrap("body".getBytes(StandardCharsets.UTF_8))));
+            });
+            final Mono<Void> result = new CachePlugin().doExecute(exchange, chain, selectorData, ruleData);
+            StepVerifier.create(result).verifyComplete();
+            Assertions.assertEquals("body", exchange.getResponse().getBodyAsString().block());
+            Assertions.assertArrayEquals("body".getBytes(StandardCharsets.UTF_8), memoryCache.getData(CacheUtils.dataKey(exchange)).block());
+        } finally {
+            CachePluginDataHandler.CACHED_HANDLE.get().removeHandle(key);
+            memoryCache.close();
+        }
+    }
+
 }

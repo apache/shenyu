@@ -62,6 +62,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -487,43 +488,42 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             return ConfigImportResult.success();
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
-        Map<String, List<DiscoveryDO>> pluginDiscoveryMap = discoveryMapper
+        Map<String, Set<String>> pluginDiscoveryMap = discoveryMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName));
+                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName,
+                        Collectors.mapping(DiscoveryDO::getDiscoveryName, Collectors.toSet())));
+        Map<String, Map<String, String>> importedHandlerIdMap = Maps.newHashMap();
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (DiscoveryDTO discoveryDTO : discoveryList) {
             String pluginName = discoveryDTO.getPluginName();
             String discoveryName = discoveryDTO.getName();
-            Set<String> existDiscoveryNameSet = pluginDiscoveryMap
-                    .getOrDefault(pluginName, Lists.newArrayList())
-                    .stream()
-                    .map(DiscoveryDO::getDiscoveryName)
-                    .collect(Collectors.toSet());
+            Set<String> existDiscoveryNameSet = pluginDiscoveryMap.computeIfAbsent(pluginName, key -> new HashSet<>());
+            Map<String, String> importedHandlerIds = importedHandlerIdMap.computeIfAbsent(pluginName, key -> Maps.newHashMap());
             if (existDiscoveryNameSet.contains(discoveryName)) {
                 errorMsgBuilder
                         .append(discoveryName)
                         .append(",");
+                String importedHandlerId = importedHandlerIds.get(discoveryName);
+                if (Objects.nonNull(importedHandlerId) && Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
+                    discoveryHandlerIdMapping.put(discoveryDTO.getDiscoveryHandler().getId(), importedHandlerId);
+                }
                 continue;
             }
             String discoveryId = UUIDUtils.getInstance().generateShortUuid();
             discoveryDTO.setId(discoveryId);
             discoveryDTO.setNamespaceId(namespace);
-            create(discoveryDTO);
+            if (Objects.isNull(create(discoveryDTO))) {
+                continue;
+            }
+            existDiscoveryNameSet.add(discoveryName);
             successCount++;
             
             // import discovery handler data
-            String discoveryHandlerId = null;
-            if (Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
-                DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
-                        .INSTANCE
-                        .mapToDO(discoveryDTO.getDiscoveryHandler());
-                discoveryHandlerDO.setDiscoveryId(discoveryId);
-                discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
-                discoveryHandlerIdMapping.put(discoveryHandlerDO.getId(), discoveryHandlerId);
-                discoveryHandlerDO.setId(discoveryHandlerId);
-                discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+            String discoveryHandlerId = importDiscoveryHandler(discoveryDTO, context);
+            if (Objects.nonNull(discoveryHandlerId)) {
+                importedHandlerIds.put(discoveryName, discoveryHandlerId);
             }
             
             // import discovery rel data
@@ -560,5 +560,18 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .fail(successCount, "import fail discovery: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
+    }
+
+    private String importDiscoveryHandler(final DiscoveryDTO discoveryDTO, final ConfigsImportContext context) {
+        if (Objects.isNull(discoveryDTO.getDiscoveryHandler())) {
+            return null;
+        }
+        DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer.INSTANCE.mapToDO(discoveryDTO.getDiscoveryHandler());
+        discoveryHandlerDO.setDiscoveryId(discoveryDTO.getId());
+        String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
+        context.getDiscoveryHandlerIdMapping().put(discoveryHandlerDO.getId(), discoveryHandlerId);
+        discoveryHandlerDO.setId(discoveryHandlerId);
+        discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        return discoveryHandlerId;
     }
 }

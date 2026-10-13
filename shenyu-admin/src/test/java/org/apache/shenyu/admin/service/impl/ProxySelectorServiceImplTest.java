@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.exception.ValidFailException;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -158,6 +159,7 @@ public final class ProxySelectorServiceImplTest {
 
         assertThrows(ValidFailException.class, () -> proxySelectorService.update(dto));
         verify(discoveryMapper, never()).updateSelective(any(DiscoveryDO.class));
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -181,5 +183,7 @@ public final class ProxySelectorServiceImplTest {
         lenient().when(discoveryMapper.updateSelective(any())).thenReturn(1);
 
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, proxySelectorService.update(dto));
+        // Without transaction synchronization, a successful update publishes immediately.
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
     }
 }
