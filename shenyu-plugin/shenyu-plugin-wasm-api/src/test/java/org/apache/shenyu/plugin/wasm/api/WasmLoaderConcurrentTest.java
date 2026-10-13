@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.LongFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,12 +56,18 @@ public class WasmLoaderConcurrentTest {
 
     @Test
     public void concurrentExportsAreIsolatedTest() throws Exception {
-        assertConcurrentCallsAreIsolated(new TestLoader(4, 0L, null, null));
+        assertConcurrentCallsAreIsolated(new TestLoader(4, 0L, null, null), argId -> EXPECTED_RESULT);
     }
 
     @Test
     public void concurrentExportsAreIsolatedOnInterpreterTest() throws Exception {
-        assertConcurrentCallsAreIsolated(new InterpretedTestLoader(4));
+        assertConcurrentCallsAreIsolated(new InterpretedTestLoader(4), argId -> EXPECTED_RESULT);
+    }
+
+    @Test
+    public void concurrentEchoPayloadsAreIsolatedTest() throws Exception {
+        // the echo guest returns exactly its own input, so input-side swaps between calls are visible
+        assertConcurrentCallsAreIsolated(new EchoTestLoader(4), argId -> "hello from java " + argId);
     }
 
     @Test
@@ -121,7 +128,8 @@ public class WasmLoaderConcurrentTest {
         }
     }
 
-    private static void assertConcurrentCallsAreIsolated(final WasmLoader loader) throws Exception {
+    private static void assertConcurrentCallsAreIsolated(final WasmLoader loader,
+                                                         final LongFunction<String> expectedFor) throws Exception {
         try (loader) {
             final ExportFunction execute = loader.getWasmExtern("execute")
                     .orElseThrow(() -> new IllegalStateException("execute export not found"));
@@ -131,7 +139,7 @@ public class WasmLoaderConcurrentTest {
             try {
                 final List<Future<List<String>>> futures = new ArrayList<>();
                 for (int i = 0; i < threads; i++) {
-                    futures.add(pool.submit(() -> runIterations(execute, iterations)));
+                    futures.add(pool.submit(() -> runIterations(execute, iterations, expectedFor)));
                 }
                 final List<String> failures = new ArrayList<>();
                 for (Future<List<String>> future : futures) {
@@ -145,16 +153,18 @@ public class WasmLoaderConcurrentTest {
         }
     }
 
-    private static List<String> runIterations(final ExportFunction execute, final int iterations) {
+    private static List<String> runIterations(final ExportFunction execute, final int iterations,
+                                              final LongFunction<String> expectedFor) {
         final List<String> failures = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
             final long argumentId = IDS.incrementAndGet();
             try {
                 execute.apply(argumentId);
                 final String result = RESULTS.remove(argumentId);
-                if (!EXPECTED_RESULT.equals(result)) {
+                final String expected = expectedFor.apply(argumentId);
+                if (!expected.equals(result)) {
                     failures.add(String.format("%s argId=%d expected '%s' but got '%s'",
-                            Thread.currentThread().getName(), argumentId, EXPECTED_RESULT, result));
+                            Thread.currentThread().getName(), argumentId, expected, result));
                 }
             } catch (RuntimeException e) {
                 failures.add(String.format("%s argId=%d threw %s: %s",
@@ -240,6 +250,35 @@ public class WasmLoaderConcurrentTest {
                 getWasmExtern("execute").orElseThrow().apply(argId - 1L);
             }
             return super.onGetArgs(argId, addr, len);
+        }
+    }
+
+    /** Name carrier for the echo fixture built from wasm-concurrent/echo.wat. */
+    static class EchoPlugin {
+    }
+
+    /**
+     * Loads the echo guest: {@code put_result} returns exactly the bytes
+     * {@code get_args} delivered, so results must match each call's own input.
+     */
+    static class EchoTestLoader extends WasmLoader {
+
+        EchoTestLoader(final int poolSize) {
+            super(EchoPlugin.class, null, poolSize);
+        }
+
+        @Override
+        protected long onGetArgs(final long argId, final long addr, final int len) {
+            final byte[] data = ("hello from java " + argId).getBytes(StandardCharsets.UTF_8);
+            final int writeLen = Math.min(len, data.length);
+            getMemory().write((int) addr, data, 0, writeLen);
+            return writeLen;
+        }
+
+        @Override
+        protected long onPutResult(final long argId, final long addr, final int len) {
+            RESULTS.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
+            return 0;
         }
     }
 }

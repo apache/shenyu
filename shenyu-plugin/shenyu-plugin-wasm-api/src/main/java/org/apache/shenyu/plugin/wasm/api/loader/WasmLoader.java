@@ -398,14 +398,14 @@ public class WasmLoader implements AutoCloseable {
                 // never re-enter an instance this thread is already executing on, at any nesting depth
                 continue;
             }
-            if (fallback == null) {
+            if (Objects.isNull(fallback)) {
                 fallback = candidate;
             }
             if (candidate.lock.tryLock()) {
                 return candidate;
             }
         }
-        if (fallback == null) {
+        if (Objects.isNull(fallback)) {
             // nesting deeper than the pool: no instance left to lease
             throw new IllegalStateException(
                     "Nested export calls exceed the WASM instance pool size for " + wasmName);
