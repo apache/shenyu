@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,8 +67,9 @@ public class WasmLoader implements AutoCloseable {
     // One instance per processor: matches event-loop parallelism; guest memory is paid per instance.
     private static final int DEFAULT_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
-    // The instance executing on this thread; getMemory() in host callbacks resolves against it.
-    private static final ThreadLocal<Instance> CURRENT_INSTANCE = new ThreadLocal<>();
+    // Instances currently executing on this thread (a stack: nested calls push/pop);
+    // getMemory() in host callbacks resolves against the top entry.
+    private final ThreadLocal<ArrayDeque<Instance>> bindings = ThreadLocal.withInitial(ArrayDeque::new);
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
@@ -156,7 +158,7 @@ public class WasmLoader implements AutoCloseable {
             Function<Instance, Machine> machineFactory;
             Instance firstInstance;
             try {
-                machineFactory = MachineFactoryCompiler.compile(module);
+                machineFactory = compileMachineFactory(module);
                 firstInstance = createInstance(module, importValues, machineFactory);
                 LOG.debug("Using runtime compiler for {}", wasmName);
             } catch (LinkageError | RuntimeException compilerError) {
@@ -173,9 +175,25 @@ public class WasmLoader implements AutoCloseable {
                 this.pool[i] = new PooledInstance(createInstance(module, importValues, machineFactory));
             }
             this.primary = pool[0].instance;
+            // guest initialization runs after the execution mode is fixed,
+            // so its failures are not retried as compiler failures
+            for (int i = 0; i < size; i++) {
+                initialize(pool[i].instance);
+            }
         } catch (IOException e) {
             throw new ShenyuWasmInitException(e);
         }
+    }
+
+    /**
+     * Compiles the module for JVM-bytecode execution. Overriding to return null
+     * forces the interpreter machine (used by tests to cover the fallback path).
+     *
+     * @param module the parsed WASM module
+     * @return the compiled machine factory, or null for the interpreter
+     */
+    protected Function<Instance, Machine> compileMachineFactory(final WasmModule module) {
+        return MachineFactoryCompiler.compile(module);
     }
 
     private Instance createInstance(final WasmModule module, final ImportValues importValues,
@@ -187,18 +205,19 @@ public class WasmLoader implements AutoCloseable {
             builder = builder.withMachineFactory(machineFactory);
         }
         Instance instance = builder.build();
+        if (Objects.isNull(instance.memory())) {
+            throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
+        }
+        return instance;
+    }
 
+    private void initialize(final Instance instance) {
         // Call _initialize if present (required by TinyGo -target wasm-unknown),
         // bound to this instance so init-time host callbacks see its own memory.
         findExport(instance, "_initialize").ifPresent(initFn -> {
             executeBound(instance, initFn, new long[0]);
             LOG.debug("Called _initialize for {}", wasmName);
         });
-
-        if (Objects.isNull(instance.memory())) {
-            throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
-        }
-        return instance;
     }
 
     private void registerWasiStubs(final Store store) {
@@ -358,33 +377,42 @@ public class WasmLoader implements AutoCloseable {
     }
 
     // binds the thread to the instance so guest host callbacks resolve getMemory() to it;
-    // restores the previously bound instance on exit (nested calls)
+    // pops on exit (nested calls each push their own entry)
     private long[] executeBound(final Instance instance, final ExportFunction export, final long[] args) {
-        final Instance previous = CURRENT_INSTANCE.get();
-        CURRENT_INSTANCE.set(instance);
+        final ArrayDeque<Instance> stack = bindings.get();
+        stack.push(instance);
         try {
             return export.apply(args);
         } finally {
-            if (Objects.nonNull(previous)) {
-                CURRENT_INSTANCE.set(previous);
-            } else {
-                CURRENT_INSTANCE.remove();
-            }
+            stack.pop();
         }
     }
 
     private PooledInstance acquire() {
+        final ArrayDeque<Instance> active = bindings.get();
         final int start = Math.floorMod(nextIndex.getAndIncrement(), pool.length);
+        PooledInstance fallback = null;
         for (int offset = 0; offset < pool.length; offset++) {
             final PooledInstance candidate = pool[Math.floorMod(start + offset, pool.length)];
+            if (active.contains(candidate.instance)) {
+                // never re-enter an instance this thread is already executing on, at any nesting depth
+                continue;
+            }
+            if (fallback == null) {
+                fallback = candidate;
+            }
             if (candidate.lock.tryLock()) {
                 return candidate;
             }
         }
-        // every instance is busy: queue on the round-robin candidate
-        final PooledInstance candidate = pool[start];
-        candidate.lock.lock();
-        return candidate;
+        if (fallback == null) {
+            // nesting deeper than the pool: no instance left to lease
+            throw new IllegalStateException(
+                    "Nested export calls exceed the WASM instance pool size for " + wasmName);
+        }
+        // every other instance is busy: queue on the round-robin candidate
+        fallback.lock.lock();
+        return fallback;
     }
 
     /**
@@ -396,7 +424,7 @@ public class WasmLoader implements AutoCloseable {
      * @return the WASM linear memory
      */
     public Memory getMemory() {
-        final Instance current = CURRENT_INSTANCE.get();
+        final Instance current = bindings.get().peek();
         return Objects.nonNull(current) ? current.memory() : primary.memory();
     }
 

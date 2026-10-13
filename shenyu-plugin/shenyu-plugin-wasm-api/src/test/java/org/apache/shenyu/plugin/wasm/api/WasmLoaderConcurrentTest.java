@@ -18,6 +18,9 @@
 package org.apache.shenyu.plugin.wasm.api;
 
 import com.dylibso.chicory.runtime.ExportFunction;
+import com.dylibso.chicory.runtime.Instance;
+import com.dylibso.chicory.runtime.Machine;
+import com.dylibso.chicory.wasm.WasmModule;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.junit.jupiter.api.Test;
 
@@ -32,8 +35,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -50,27 +55,12 @@ public class WasmLoaderConcurrentTest {
 
     @Test
     public void concurrentExportsAreIsolatedTest() throws Exception {
-        try (WasmLoader loader = new TestLoader(4, 0L, null, null)) {
-            final ExportFunction execute = loader.getWasmExtern("execute")
-                    .orElseThrow(() -> new IllegalStateException("execute export not found"));
-            final int threads = 8;
-            final int iterations = 100;
-            final ExecutorService pool = Executors.newFixedThreadPool(threads);
-            try {
-                final List<Future<List<String>>> futures = new ArrayList<>();
-                for (int i = 0; i < threads; i++) {
-                    futures.add(pool.submit(() -> runIterations(execute, iterations)));
-                }
-                final List<String> failures = new ArrayList<>();
-                for (Future<List<String>> future : futures) {
-                    failures.addAll(future.get());
-                }
-                assertTrue(failures.isEmpty(), () -> String.join(System.lineSeparator(), failures));
-                assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
-            } finally {
-                pool.shutdownNow();
-            }
-        }
+        assertConcurrentCallsAreIsolated(new TestLoader(4, 0L, null, null));
+    }
+
+    @Test
+    public void concurrentExportsAreIsolatedOnInterpreterTest() throws Exception {
+        assertConcurrentCallsAreIsolated(new InterpretedTestLoader(4));
     }
 
     @Test
@@ -106,6 +96,55 @@ public class WasmLoaderConcurrentTest {
         }
     }
 
+    @Test
+    public void nestedExportsUseDistinctInstancesTest() throws Exception {
+        try (WasmLoader loader = new RecursiveTestLoader(3, 3)) {
+            final ExportFunction execute = loader.getWasmExtern("execute")
+                    .orElseThrow(() -> new IllegalStateException("execute export not found"));
+            execute.apply(-1L);
+            for (long argId = -1L; argId >= -3L; argId--) {
+                assertEquals(EXPECTED_RESULT, RESULTS.remove(argId), "nested call " + argId + " lost its payload");
+            }
+            assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
+        }
+    }
+
+    @Test
+    public void nestingBeyondPoolSizeFailsExplicitlyTest() throws Exception {
+        try (WasmLoader loader = new RecursiveTestLoader(2, 3)) {
+            final ExportFunction execute = loader.getWasmExtern("execute")
+                    .orElseThrow(() -> new IllegalStateException("execute export not found"));
+            final IllegalStateException ex = assertThrows(IllegalStateException.class, () -> execute.apply(-1L));
+            assertTrue(ex.getMessage().contains("Nested export calls exceed the WASM instance pool size"),
+                    "unexpected message: " + ex.getMessage());
+            assertTrue(RESULTS.isEmpty(), "failed nesting must not leave stray payloads");
+        }
+    }
+
+    private static void assertConcurrentCallsAreIsolated(final WasmLoader loader) throws Exception {
+        try (loader) {
+            final ExportFunction execute = loader.getWasmExtern("execute")
+                    .orElseThrow(() -> new IllegalStateException("execute export not found"));
+            final int threads = 8;
+            final int iterations = 100;
+            final ExecutorService pool = Executors.newFixedThreadPool(threads);
+            try {
+                final List<Future<List<String>>> futures = new ArrayList<>();
+                for (int i = 0; i < threads; i++) {
+                    futures.add(pool.submit(() -> runIterations(execute, iterations)));
+                }
+                final List<String> failures = new ArrayList<>();
+                for (Future<List<String>> future : futures) {
+                    failures.addAll(future.get());
+                }
+                assertTrue(failures.isEmpty(), () -> String.join(System.lineSeparator(), failures));
+                assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+    }
+
     private static List<String> runIterations(final ExportFunction execute, final int iterations) {
         final List<String> failures = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
@@ -130,7 +169,7 @@ public class WasmLoaderConcurrentTest {
      * {@code getMemory()}. A non-zero {@code blockArgId} parks the matching call
      * inside its {@code get_args} callback until {@code releaseBlock} fires.
      */
-    static final class TestLoader extends WasmLoader {
+    static class TestLoader extends WasmLoader {
 
         private final long blockArgId;
 
@@ -166,6 +205,41 @@ public class WasmLoaderConcurrentTest {
         protected long onPutResult(final long argId, final long addr, final int len) {
             RESULTS.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
             return 0;
+        }
+    }
+
+    /** Forces the interpreter machine to cover the fallback execution path. */
+    static final class InterpretedTestLoader extends TestLoader {
+
+        InterpretedTestLoader(final int poolSize) {
+            super(poolSize, 0L, null, null);
+        }
+
+        @Override
+        protected Function<Instance, Machine> compileMachineFactory(final WasmModule module) {
+            return null;
+        }
+    }
+
+    /**
+     * Drives nested export calls from the {@code get_args} callback: a negative
+     * argId {@code -n} recurses to level {@code n + 1} until {@code depth} is reached.
+     */
+    static class RecursiveTestLoader extends TestLoader {
+
+        private final int depth;
+
+        RecursiveTestLoader(final int poolSize, final int depth) {
+            super(poolSize, 0L, null, null);
+            this.depth = depth;
+        }
+
+        @Override
+        protected long onGetArgs(final long argId, final long addr, final int len) {
+            if (argId < 0L && -argId < depth) {
+                getWasmExtern("execute").orElseThrow().apply(argId - 1L);
+            }
+            return super.onGetArgs(argId, addr, len);
         }
     }
 }
