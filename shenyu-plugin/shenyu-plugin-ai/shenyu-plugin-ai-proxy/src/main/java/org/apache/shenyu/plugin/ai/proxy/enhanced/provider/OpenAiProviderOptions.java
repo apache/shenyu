@@ -103,9 +103,8 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
      * @return DeepSeek options
      */
     public static OpenAiProviderOptions deepSeek() {
-        EnumSet<AiProviderCapabilities.Feature> features = EnumSet.allOf(AiProviderCapabilities.Feature.class);
-        features.removeAll(EnumSet.of(AiProviderCapabilities.Feature.JSON_SCHEMA, AiProviderCapabilities.Feature.CUSTOM_TOOLS,
-                AiProviderCapabilities.Feature.AUDIO_OUTPUT));
+        EnumSet<AiProviderCapabilities.Feature> features = EnumSet.of(AiProviderCapabilities.Feature.STREAMING,
+                AiProviderCapabilities.Feature.TOOL_CALLING, AiProviderCapabilities.Feature.JSON_MODE, AiProviderCapabilities.Feature.STREAM_USAGE);
         AiProviderCapabilities all = AiProviderCapabilities.chat();
         return new OpenAiProviderOptions("/chat/completions", Authentication.HEADER, "Authorization", "Bearer ",
                 Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(),

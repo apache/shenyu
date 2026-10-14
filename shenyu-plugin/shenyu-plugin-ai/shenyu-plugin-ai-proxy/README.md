@@ -108,12 +108,17 @@ Responses clients continue to use conversion to a Chat upstream; these declarati
 do not enable native Responses endpoints or other HTTP operations.
 
 `AiProviderCapabilities` declares streaming, function/custom tools, JSON mode, JSON
-schema output, stream usage and audio output. Providers validate the effective stream
-setting and the final converted payload, including provider defaults. Unsupported
+schema output, stream usage and audio output. The default `supports()` follows the
+declared protocols. The engine validates decoded protocol, operation and effective
+stream settings before invoking any provider, including custom implementations.
+Providers also validate the final converted payload, including provider defaults. Unsupported
 features or operations fail as request errors before HTTP execution. Generic capabilities
 describe the service, not a guarantee for every model it hosts; configure a narrower
 profile for a model or deployment with additional restrictions. Unknown fields that
 need no transformation remain in the payload.
+
+Built-in profiles enumerate their supported operations and features explicitly. Adding
+an enum value does not enable it for existing profiles; review and opt in each profile.
 
 OpenAI now emits one Chat token-limit field, `max_completion_tokens`. When both token
 fields are supplied, the modern field takes precedence; gateway `maxTokens` overrides

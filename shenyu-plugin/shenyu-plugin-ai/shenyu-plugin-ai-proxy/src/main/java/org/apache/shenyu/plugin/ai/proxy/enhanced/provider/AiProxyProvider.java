@@ -22,6 +22,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
+import java.util.Objects;
+
 /**
  * Contract for adapting a ShenYu AI request to a provider request.
  */
@@ -60,7 +62,7 @@ public interface AiProxyProvider {
      * @return whether supported
      */
     default boolean supports(final String protocol) {
-        return true;
+        return Objects.nonNull(protocol) && capabilities().protocols().contains(protocol);
     }
 
     /**

@@ -52,7 +52,9 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
      */
     public static AiProviderCapabilities chat() {
         return new AiProviderCapabilities(Set.of(OpenAiChat.NAME, OpenAiResponses.NAME),
-                EnumSet.allOf(ShenyuAiRequest.Operation.class), EnumSet.allOf(Feature.class));
+                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION, ShenyuAiRequest.Operation.RESPONSE),
+                EnumSet.of(Feature.STREAMING, Feature.TOOL_CALLING, Feature.CUSTOM_TOOLS, Feature.JSON_MODE,
+                        Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT));
     }
 
     /**
