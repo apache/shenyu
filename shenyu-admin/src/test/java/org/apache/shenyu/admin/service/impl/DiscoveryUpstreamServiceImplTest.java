@@ -201,13 +201,14 @@ public final class DiscoveryUpstreamServiceImplTest {
     }
 
     @Test
-    void testFallbackMatchMigratesUnbracketedIPv6Format() {
+    void testFallbackMatchSkipsUnbracketedIPv6LegacyRecord() {
         String normalizedUrl = "[2001:db8::1]:9090";
         mockExactMatchReturns("handler-1", normalizedUrl, null);
 
         /*
-         * old record stored without brackets: "2001:db8::1:9090"
-         * parseHostPort splits at last colon, giving host="2001:db8::1", port="9090"
+         * IpUtils.parseHostPort only accepts IPv6 in bracket notation ("[2001:db8::1]:9090"),
+         * so a legacy row stored as "2001:db8::1:9090" cannot be parsed and is skipped by the
+         * host/port fallback: the normalized URL is inserted as a new record instead.
          */
         DiscoveryUpstreamDO oldRecord = new DiscoveryUpstreamDO();
         oldRecord.setId("old-id");
@@ -217,10 +218,8 @@ public final class DiscoveryUpstreamServiceImplTest {
         DiscoveryUpstreamDTO dto = buildDTO("[2001:db8::1]:9090");
         service.nativeCreateOrUpdate(dto);
 
-        verify(discoveryUpstreamMapper, never()).insert(any());
-        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
-        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
-        assertEquals(normalizedUrl, captor.getValue().getUpstreamUrl());
+        verify(discoveryUpstreamMapper).insert(any());
+        verify(discoveryUpstreamMapper, never()).updateSelective(any());
     }
 
     @Test
