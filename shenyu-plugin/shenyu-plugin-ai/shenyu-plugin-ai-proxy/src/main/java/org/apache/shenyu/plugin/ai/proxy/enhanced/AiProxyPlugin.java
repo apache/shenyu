@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -139,6 +140,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             status = HttpStatus.PAYLOAD_TOO_LARGE;
         } else if (error instanceof ShenyuException) {
             status = HttpStatus.BAD_REQUEST;
+        } else if (error instanceof AiTransportException) {
+            status = HttpStatus.BAD_GATEWAY;
         } else if (error instanceof AiProxyException) {
             status = ((AiProxyException) error).getKind() == AiProxyException.Kind.REQUEST ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_GATEWAY;
         }
