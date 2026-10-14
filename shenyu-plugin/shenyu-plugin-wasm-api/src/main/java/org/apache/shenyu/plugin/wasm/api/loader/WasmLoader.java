@@ -161,8 +161,13 @@ public class WasmLoader implements AutoCloseable {
             Instance firstInstance;
             try {
                 machineFactory = compileMachineFactory(module);
-                firstInstance = createInstance(module, importValues, machineFactory);
-                LOG.debug("Using runtime compiler for {}", wasmName);
+                if (machineFactory == null) {
+                    firstInstance = createInstance(module, importValues, null);
+                    LOG.debug("Using interpreter for {}", wasmName);
+                } else {
+                    firstInstance = createInstance(module, importValues, machineFactory);
+                    LOG.debug("Using runtime compiler for {}", wasmName);
+                }
             } catch (LinkageError | RuntimeException compilerError) {
                 LOG.warn("Runtime compiler unavailable, falling back to interpreter for {}: {}",
                         wasmName, compilerError.getMessage());
@@ -411,7 +416,11 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private void release(final Instance lease) {
-        freeInstances.offer(lease);
+        if (!freeInstances.offer(lease)) {
+            throw new IllegalStateException(
+                    "Failed to return pooled WASM instance for " + wasmName
+                            + "; queue is full, which indicates a double-release or pool corruption");
+        }
     }
 
     /**

@@ -207,13 +207,13 @@ public class WasmLoaderConcurrentTest {
             }
             final byte[] data = ("hello from java " + argId).getBytes(StandardCharsets.UTF_8);
             final int writeLen = Math.min(len, data.length);
-            getMemory().write((int) addr, data, 0, writeLen);
+            getMemory().write(Math.toIntExact(addr), data, 0, writeLen);
             return writeLen;
         }
 
         @Override
         protected long onPutResult(final long argId, final long addr, final int len) {
-            results.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
+            results.put(argId, new String(getMemory().readBytes(Math.toIntExact(addr), len), StandardCharsets.UTF_8));
             return 0;
         }
     }
