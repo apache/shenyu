@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -223,7 +224,10 @@ public class AiProxyRealKeyResolver {
         }
 
         if (!missing.isEmpty()) {
-            java.util.List<SelectorDO> selectors = selectorMapper.selectByIdSet(missing);
+            // The ai-proxy plugin runs in the shared default namespace (see AiProxyApiKeyServiceImpl
+            // syncData()), so selectors are resolved against the system default namespace instead of
+            // leaving namespaceId unset, which would silently match no rows.
+            java.util.List<SelectorDO> selectors = selectorMapper.selectByIdSet(missing, Constants.SYS_DEFAULT_NAMESPACE_ID);
             if (Objects.nonNull(selectors)) {
                 for (SelectorDO selector : selectors) {
                     String apiKey = extractApiKey(selector.getHandle());
