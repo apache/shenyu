@@ -21,6 +21,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -84,6 +86,23 @@ final class VersionTwoExtractorTest {
         SignParameters actual = extractor.extract(request);
 
         assertEmpty(actual);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {".", "header.", ".signature", "header.signature.extra", "%%%.signature"})
+    void testMalformedToken(final String token) {
+        HttpRequest request = MockServerHttpRequest.get("/api/orders")
+                .header(Constants.SHENYU_AUTHORIZATION, token).build();
+        assertEmpty(extractor.extract(request));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{", "{\"appKey\":123}", "{\"timestamp\":123}", "{\"alg\":[]}"})
+    void testMalformedParameters(final String json) {
+        String token = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8)) + ".signature";
+        HttpRequest request = MockServerHttpRequest.get("/api/orders")
+                .header(Constants.SHENYU_AUTHORIZATION, token).build();
+        assertEmpty(extractor.extract(request));
     }
 
     private String parameters(final String appKey, final String timestamp, final String algorithm) {
