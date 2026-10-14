@@ -49,7 +49,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long now = System.currentTimeMillis();
         Map<String, Upstream> domainMap = upstreamList.stream()
-                .collect(Collectors.toConcurrentMap(Upstream::buildDomain, upstream -> upstream));
+                .collect(Collectors.toConcurrentMap(upstream -> upstream.identity().leastActiveKey(), upstream -> upstream));
 
         domainMap.keySet().forEach(domain -> {
             ActiveCount activeCount = countMap.computeIfAbsent(domain, key -> new ActiveCount(now));

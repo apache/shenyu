@@ -51,7 +51,7 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         final List<String> ringKey = new ArrayList<>(upstreamList.size());
-        upstreamList.forEach(upstream -> ringKey.add(upstream.getUrl()));
+        upstreamList.forEach(upstream -> ringKey.add(upstream.identity().hashKey()));
         final SortedMap<Long, Integer> treeMap = ringCache.computeIfAbsent(List.copyOf(ringKey), this::buildRing);
         long hash = hash(data.getIp());
         SortedMap<Long, Integer> lastRing = treeMap.tailMap(hash);
