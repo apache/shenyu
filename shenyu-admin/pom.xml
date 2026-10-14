@@ -311,12 +311,6 @@
         <!-- shenyu-admin-listener start -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-consul</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -324,12 +318,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-nacos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-polaris</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -357,6 +345,38 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Explicit providers preserve the existing distribution/classpath. -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-etcd</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-nacos</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-eureka</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-kubernetes</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

@@ -21,6 +21,12 @@ package org.apache.shenyu.plugin.metrics.constant;
  * The Label names.
  */
 public final class LabelNames {
+
+    /** Completed authenticated, parsed MCP logical calls, labelled only by outcome. */
+    public static final String AGENT_MCP_CALLS_TOTAL = "shenyu_agent_mcp_calls_total";
+
+    /** Time from validated MCP call parsing through terminal response writing. */
+    public static final String AGENT_MCP_CALL_LATENCY = "shenyu_agent_mcp_call_latency_millis";
     
     /**
      * The constant REQUEST_TOTAL.

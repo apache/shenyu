@@ -20,7 +20,9 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -79,6 +81,8 @@ public final class AgentMcpHttpHandler {
                              final AgentTrafficContext traffic, final long configurationVersion) {
         return Mono.defer(() -> {
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
+            Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
+            final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null);
             AtomicReference<JsonNode> rpcId = new AtomicReference<>();
             return Mono.fromRunnable(() -> preflight(exchange, config))
                     .then(Mono.defer(() -> securityResolver.resolve(exchange))
@@ -86,12 +90,22 @@ public final class AgentMcpHttpHandler {
                     .flatMap(identity -> read(exchange, config).map(body -> parser.parse(body, exchange.getRequest().getHeaders(), config.getMaxRequestBytes()))
                             .flatMap(request -> {
                                 rpcId.set(request.getId());
+                                observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
-                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline));
+                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters()));
                             }))
-                    .flatMap(response -> write(exchange, response, config, "sse".equals(config.getResponseMode()), 200))
+                    .flatMap(response -> {
+                        observation.response(response);
+                        return write(exchange, response, config, "sse".equals(config.getResponseMode()), 200);
+                    })
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                    .onErrorResume(error -> handleFailure(exchange, config, rpcId.get(), error));
+                    .onErrorResume(error -> {
+                        observation.failure(error);
+                        return handleFailure(exchange, config, rpcId.get(), error);
+                    })
+                    // Recovery writes can fail independently of the execution error classified above.
+                    .doOnError(observation::failure)
+                    .doFinally(observation::finish);
         });
     }
 

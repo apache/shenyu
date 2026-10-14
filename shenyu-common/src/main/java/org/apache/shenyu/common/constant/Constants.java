@@ -897,6 +897,11 @@ public interface Constants {
     String METRICS_HYSTRIX = "metricsHystrix";
 
     /**
+     * Optional server-installed MCP terminal observation callback.
+     */
+    String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
+
+    /**
      * The constant shenyu namespace id.
      */
     String SHENYU_NAMESPACE_ID = "namespaceId";

@@ -635,4 +635,23 @@ public final class RuleServiceTest {
         ruleConditionQuery.setRuleId("123");
         return ruleConditionQuery;
     }
+
+    @Test
+    public void enabledByIdsAndNamespaceIdSkipsForeignRules() {
+        RuleDO own = new RuleDO();
+        own.setId("rule-own");
+        own.setNamespaceId("ns-a");
+        RuleDO foreign = new RuleDO();
+        foreign.setId("rule-foreign");
+        foreign.setNamespaceId("ns-b");
+        when(ruleMapper.selectById("rule-own")).thenReturn(own);
+        when(ruleMapper.selectById("rule-foreign")).thenReturn(foreign);
+        when(ruleMapper.updateEnable(anyString(), any())).thenReturn(1);
+        when(ruleConditionMapper.selectByQuery(any())).thenReturn(Collections.emptyList());
+
+        ruleService.enabledByIdsAndNamespaceId(Arrays.asList("rule-own", "rule-foreign"), false, "ns-a");
+
+        verify(ruleMapper).updateEnable("rule-own", false);
+        verify(ruleMapper, never()).updateEnable("rule-foreign", false);
+    }
 }
