@@ -131,6 +131,10 @@ public class ClusterSelectMasterServiceJdbcImpl implements ClusterSelectMasterSe
     @Override
     public String getMasterUrl() {
         ClusterMasterDO master = clusterMasterMapper.selectById(MASTER_ID);
+        if (Objects.isNull(master)) {
+            // same anticipated state getMaster() guards: no row until the first selectMaster persists it
+            return StringUtils.EMPTY;
+        }
         String contextPath = master.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
             return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort();

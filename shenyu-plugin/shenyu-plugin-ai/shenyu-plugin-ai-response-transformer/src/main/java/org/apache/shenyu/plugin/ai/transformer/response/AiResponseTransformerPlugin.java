@@ -44,6 +44,7 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.reactivestreams.Publisher;
 
@@ -57,6 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -66,10 +68,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * this is ai response transformer plugin.
+ * The complete response is buffered before transformation; streaming and SSE responses are not supported.
  */
 public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPlugin.class);
+
+    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -260,7 +265,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 boolean headerSectionStarted = false;
                 while (Objects.nonNull(line = reader.readLine())) {
                     if (!headerSectionStarted) {
-                        if (line.startsWith("HTTP/1.1") || line.matches("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$")) {
+                        if (line.startsWith("HTTP/1.1") || REQUEST_LINE_PATTERN.matcher(line).matches()) {
                             headerSectionStarted = true;
                             continue;
                         }
@@ -304,7 +309,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
-            return dataBufferMono.flatMap(dataBuffer -> {
+            return dataBufferMono.map(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
@@ -374,7 +379,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                         return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
                                     });
                         });
-            });
+            }).defaultIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())))
+                    .flatMap(response -> response);
+        }
+
+        @Override
+        @NonNull
+        public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
         private String extractBodyFromAiResponse(final String aiResponse) {

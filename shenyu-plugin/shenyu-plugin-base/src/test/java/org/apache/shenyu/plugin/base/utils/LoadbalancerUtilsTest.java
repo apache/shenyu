@@ -20,17 +20,21 @@ package org.apache.shenyu.plugin.base.utils;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -42,9 +46,6 @@ public final class LoadbalancerUtilsTest {
     public void testMissingRemoteAddressAndMethodUseDefaults() {
         ServerHttpRequest request = mock(ServerHttpRequest.class);
         when(request.getURI()).thenReturn(URI.create("http://localhost/test"));
-        when(request.getHeaders()).thenReturn(HttpHeaders.EMPTY);
-        when(request.getCookies()).thenReturn(new LinkedMultiValueMap<>());
-        when(request.getQueryParams()).thenReturn(new LinkedMultiValueMap<>());
         ServerWebExchange exchange = mock(ServerWebExchange.class);
         when(exchange.getRequest()).thenReturn(request);
         when(exchange.getAttributes()).thenReturn(new HashMap<>());
@@ -54,5 +55,25 @@ public final class LoadbalancerUtilsTest {
                 LoadBalanceEnum.RANDOM.getName(), exchange);
 
         assertSame(upstream, selected);
+    }
+
+    @Test
+    public void testGetForExchangeDoesNotCopyUnusedRequestData() {
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        when(request.getURI()).thenReturn(URI.create("http://localhost/test"));
+        when(request.getRemoteAddress()).thenReturn(new InetSocketAddress("127.0.0.1", 8080));
+        ServerWebExchange exchange = mock(ServerWebExchange.class);
+        when(exchange.getRequest()).thenReturn(request);
+        when(exchange.getAttributes()).thenReturn(new HashMap<>());
+        List<Upstream> upstreamList = new ArrayList<>();
+        upstreamList.add(Upstream.builder().url("http://1.1.1.1/api").build());
+        upstreamList.add(Upstream.builder().url("http://2.2.2.2/api").build());
+
+        Upstream selected = LoadbalancerUtils.getForExchange(upstreamList, LoadBalanceEnum.HASH.getName(), exchange);
+
+        assertNotNull(selected);
+        verify(request, never()).getHeaders();
+        verify(request, never()).getCookies();
+        verify(request, never()).getQueryParams();
     }
 }

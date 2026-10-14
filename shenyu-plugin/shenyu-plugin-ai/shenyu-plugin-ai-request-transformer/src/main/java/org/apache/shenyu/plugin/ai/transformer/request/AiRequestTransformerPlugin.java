@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.ai.transformer.request;
 
+import com.google.gson.JsonElement;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiRequestTransformerConfig;
@@ -30,6 +32,7 @@ import org.apache.shenyu.plugin.ai.transformer.request.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.request.handler.AiRequestTransformerPluginHandler;
 import org.apache.shenyu.plugin.ai.transformer.request.template.AiRequestTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
@@ -55,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -63,6 +67,19 @@ import java.util.stream.Stream;
 public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiRequestTransformerPlugin.class);
+
+    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
+
+    /**
+     * Valid characters of a generated origin-form path component.
+     */
+    private static final Pattern REQUEST_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9/_\\-]*$");
+
+    /**
+     * Valid characters of a generated query component: RFC 3986 query syntax (percent-encoded
+     * sequences must be well formed so that the target is always a legal URI reference).
+     */
+    private static final Pattern QUERY_PATTERN = Pattern.compile("^(%[0-9a-fA-F]{2}|[a-zA-Z0-9\\-._~!$&'()*+,;=:@/?])*$");
 
     private final List<HttpMessageReader<?>> messageReaders;
 
@@ -196,8 +213,8 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         String body = bodyBuilder.toString().trim();
 
         if (body.startsWith("{") && body.endsWith("}") || body.startsWith("[") && body.endsWith("]")) {
-            Map<String, Object> requestBodyMap = GsonUtils.getInstance().convertToMap(body);
-            return GsonUtils.getInstance().toJson(requestBodyMap);
+            GsonUtils.getInstance().fromJson(body, JsonElement.class);
+            return body;
         }
 
         return null;
@@ -230,33 +247,46 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
     }
 
     private static Mono<ServerWebExchange> rewriteRequestPath(final ServerWebExchange exchange, final String aiResponse) {
-        String newPath = extractRequestPathFromAiResponse(aiResponse);
+        String newTarget = extractRequestPathFromAiResponse(aiResponse);
 
-        if (Objects.isNull(newPath) || newPath.isEmpty()) {
+        if (Objects.isNull(newTarget) || newTarget.isEmpty()) {
             return Mono.just(exchange);
         }
 
-        if (newPath.contains("..")) {
-            LOG.warn("Detected potential path traversal attempt in extracted path: {} , Will continue to use the original path.", newPath);
+        if (newTarget.contains("..")) {
+            LOG.warn("Detected potential path traversal attempt in extracted path: {} , Will continue to use the original path.", newTarget);
             return Mono.just(exchange);
         }
+
+        // The model answers with an origin-form request target, so it may carry a query string.
+        // Validate the path and the query separately, then apply both to the request URI.
+        int queryIndex = newTarget.indexOf('?');
+        String newPath = queryIndex < 0 ? newTarget : newTarget.substring(0, queryIndex);
+        String newQuery = queryIndex < 0 ? null : newTarget.substring(queryIndex + 1);
 
         if (!newPath.startsWith("/")) {
             LOG.warn("Extracted path does not start with '/': {} , Will continue to use the original path.", newPath);
             return Mono.just(exchange);
         }
 
-        if (!newPath.matches("^/[a-zA-Z0-9/_\\-]*$")) {
+        if (!REQUEST_PATH_PATTERN.matcher(newPath).matches()) {
             LOG.warn("Extracted path contains invalid characters: {}, Will continue to use the original path.", newPath);
             return Mono.just(exchange);
         }
 
-        LOG.debug("Request path after validation and rewriting: {}", newPath);
+        if (Objects.nonNull(newQuery) && !QUERY_PATTERN.matcher(newQuery).matches()) {
+            LOG.warn("Extracted query contains invalid characters: {}, Will continue to use the original path.", newQuery);
+            return Mono.just(exchange);
+        }
+
+        String rewrittenTarget = Objects.isNull(newQuery) ? newPath : newPath + "?" + newQuery;
+
+        LOG.debug("Request path after validation and rewriting: {}", rewrittenTarget);
 
         ServerHttpRequest originalRequest = exchange.getRequest();
         URI originalUri = originalRequest.getURI();
 
-        URI newUri = originalUri.resolve(newPath);
+        URI newUri = originalUri.resolve(rewrittenTarget);
 
         ServerHttpRequest newRequest = originalRequest.mutate()
                 .uri(newUri)
@@ -265,6 +295,16 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         ServerWebExchange newExchange = exchange.mutate()
                 .request(newRequest)
                 .build();
+
+        ShenyuContext context = newExchange.getAttribute(Constants.CONTEXT);
+        if (Objects.nonNull(context)) {
+            String rewrittenPath = newUri.getRawPath();
+            // Preserve an already transformed forwarding path.
+            if (Objects.equals(context.getRealUrl(), context.getPath())) {
+                context.setRealUrl(rewrittenPath);
+            }
+            context.setPath(rewrittenPath);
+        }
 
         return Mono.just(newExchange);
     }
@@ -282,7 +322,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             boolean headerSectionStarted = false;
             while (Objects.nonNull(line = reader.readLine())) {
                 if (!headerSectionStarted) {
-                    if (line.startsWith("HTTP/1.1") || line.matches("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$")) {
+                    if (line.startsWith("HTTP/1.1") || REQUEST_LINE_PATTERN.matcher(line).matches()) {
                         headerSectionStarted = true;
                         continue;
                     }
@@ -336,4 +376,3 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
     }
 
 }
-

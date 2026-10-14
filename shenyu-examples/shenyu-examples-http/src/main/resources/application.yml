@@ -35,11 +35,12 @@ shenyu:
   #          port: 8189
 #  discovery:
 #    enable: true
+#    register: true
 #    protocol: http://  # https://
 #    type: zookeeper
 #    serverList: 127.0.0.1:2181
-#    registerPath: /shenyu/discovery/http_example
 #    props:
+#      name: ${shenyu.client.http.props.appName}
 #      baseSleepTimeMilliseconds: 1000
 #      maxRetries: 4
 #      maxSleepTimeMilliseconds: 5000

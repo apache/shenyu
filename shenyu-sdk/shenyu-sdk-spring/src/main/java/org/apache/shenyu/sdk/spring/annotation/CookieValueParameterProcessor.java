@@ -49,7 +49,7 @@ public class CookieValueParameterProcessor implements AnnotatedParameterProcesso
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         CookieValue cookie = ANNOTATION.cast(annotation);
-        String name = cookie.value().trim();
+        String name = StringUtils.defaultIfBlank(cookie.value(), StringUtils.defaultIfBlank(cookie.name(), StringUtils.EMPTY)).trim();
         checkState(StringUtils.isNotBlank(name), "Cookie.name() was empty on parameter %s", requestTemplate.getMethod());
         Collection<String> cookieExpression = requestTemplate.getHeaders().getOrDefault(HttpHeaders.COOKIE, Lists.newArrayList());
         cookieExpression.add(String.format("%s=%s", name, arg));

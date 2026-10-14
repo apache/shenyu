@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
@@ -84,6 +85,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         LOG.debug("Processing writeWith for session: {}", sessionId);
 
         return Flux.from(body)
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::appendBuffer)
                 .doOnComplete(this::completeResponseFuture)
                 .then()
@@ -97,6 +99,7 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
         return Flux.from(body)
                 .concatMap(Flux::from)
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnNext(this::appendBuffer)
                 .doOnComplete(this::completeResponseFuture)
                 .then()
@@ -121,10 +124,14 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
      * @param buffer the emitted data buffer chunk
      */
     private void appendBuffer(final DataBuffer buffer) {
-        final byte[] bytes = new byte[buffer.readableByteCount()];
-        buffer.read(bytes);
-        synchronized (body) {
-            body.append(new String(bytes, StandardCharsets.UTF_8));
+        try {
+            final byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            synchronized (body) {
+                body.append(new String(bytes, StandardCharsets.UTF_8));
+            }
+        } finally {
+            DataBufferUtils.release(buffer);
         }
     }
 
