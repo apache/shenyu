@@ -161,7 +161,7 @@ public class WasmLoader implements AutoCloseable {
             Instance firstInstance;
             try {
                 machineFactory = compileMachineFactory(module);
-                if (machineFactory == null) {
+                if (Objects.isNull(machineFactory)) {
                     firstInstance = createInstance(module, importValues, null);
                     LOG.debug("Using interpreter for {}", wasmName);
                 } else {
