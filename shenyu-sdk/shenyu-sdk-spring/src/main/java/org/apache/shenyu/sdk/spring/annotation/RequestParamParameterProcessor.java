@@ -19,6 +19,7 @@ package org.apache.shenyu.sdk.spring.annotation;
 
 import com.google.common.collect.Maps;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -45,7 +47,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
-        String name = requestParam.value();
+        String name = StringUtils.defaultIfBlank(requestParam.value(), requestParam.name());
         checkState(StringUtils.isNotBlank(name) || arg instanceof Map, "RequestParam.value() was empty on parameter %s#%s",
             requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
         StringBuilder urlResult = new StringBuilder(shenyuRequest.getUrl());
@@ -61,7 +63,9 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
             } else {
                 urlResult.append("?");
             }
-            urlResult.append(key).append("=").append(value);
+            urlResult.append(UriUtils.encodeQueryParam(String.valueOf(key), StandardCharsets.UTF_8))
+                    .append('=')
+                    .append(UriUtils.encodeQueryParam(String.valueOf(value), StandardCharsets.UTF_8));
         });
         shenyuRequest.setUrl(urlResult.toString());
         return true;

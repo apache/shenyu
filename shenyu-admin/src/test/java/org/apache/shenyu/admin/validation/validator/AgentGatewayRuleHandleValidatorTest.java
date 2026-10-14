@@ -65,4 +65,18 @@ public final class AgentGatewayRuleHandleValidatorTest {
     public void testNullHandle() {
         assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(null));
     }
+
+    @Test
+    public void testValidStructuredContentDeletion() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"crm.profile\"],"
+                + "\"structuredContentRemovals\":{\"crm.profile\":[\"/secret\"]}}}"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{\"crm.profile\":[]}", "{\"other.profile\":[\"/secret\"]}",
+            "{\"crm.profile\":[\"secret\"]}", "{\"crm.profile\":[\"/a~2\"]}", "{\"crm.profile\":[\"/secret\",\"/secret\"]}"})
+    public void testInvalidStructuredContentDeletion(final String deletion) {
+        String handle = "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"crm.profile\"],\"structuredContentRemovals\":" + deletion + "}}";
+        assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));
+    }
 }

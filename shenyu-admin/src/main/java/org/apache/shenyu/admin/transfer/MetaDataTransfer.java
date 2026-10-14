@@ -188,6 +188,7 @@ public enum MetaDataTransfer {
                     metaDataVO.setRpcExt(metaDataDO.getRpcExt());
                     metaDataVO.setId(metaDataDO.getId());
                     metaDataVO.setEnabled(metaDataDO.getEnabled());
+                    metaDataVO.setNamespaceId(metaDataDO.getNamespaceId());
                     metaDataVO.setDateCreated(Optional.ofNullable(metaDataDO.getDateCreated())
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
                     metaDataVO.setDateUpdated(Optional.ofNullable(metaDataDO.getDateUpdated())

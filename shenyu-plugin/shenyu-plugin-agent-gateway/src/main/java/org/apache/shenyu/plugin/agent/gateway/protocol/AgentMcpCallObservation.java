@@ -46,8 +46,8 @@ final class AgentMcpCallObservation {
 
     private volatile Outcome outcome = Outcome.SERVER_ERROR;
 
-    AgentMcpCallObservation(final Object observer) {
-        this.observer = observer instanceof AgentMcpCallObserver ? (AgentMcpCallObserver) observer : null;
+    AgentMcpCallObservation(final AgentMcpCallObserver observer) {
+        this.observer = observer;
     }
 
     void parsed(final AgentMcpRequest request) {

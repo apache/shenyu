@@ -243,18 +243,25 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
-            DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
+            DiscoveryProcessor discoveryProcessor;
             DiscoveryDO discoveryDO;
             String discoveryId;
             boolean fillDiscovery;
             if (StringUtils.hasLength(proxySelectorAddDTO.getDiscovery().getId())) {
                 discoveryDO = discoveryMapper.selectById(proxySelectorAddDTO.getDiscovery().getId());
+                Assert.notNull(discoveryDO, "Discovery does not exist: " + proxySelectorAddDTO.getDiscovery().getId());
+                Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                        "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
                 discoveryId = proxySelectorAddDTO.getDiscovery().getId();
-                fillDiscovery = Objects.nonNull(discoveryDO);
+                fillDiscovery = true;
+                // the stored discovery is the source of truth for the processor type; the
+                // payload could otherwise declare a different type than the referenced row
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getDiscoveryType());
             } else {
                 discoveryId = UUIDUtils.getInstance().generateShortUuid();
                 discoveryDO = buildDiscovery(proxySelectorAddDTO, currentTime, discoveryId);
                 fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
+                discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
                 discoveryProcessor.createDiscovery(discoveryDO);
             }
             if (fillDiscovery) {
@@ -395,6 +402,8 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         Assert.notNull(discoveryHandlerDO, "Discovery handler does not exist: " + discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         Assert.notNull(discoveryDO, "Discovery does not exist: " + discoveryHandlerDO.getDiscoveryId());
+        Assert.isTrue(Objects.equals(discoveryDO.getNamespaceId(), proxySelectorAddDTO.getNamespaceId()),
+                "Discovery does not belong to namespace: " + proxySelectorAddDTO.getNamespaceId());
         // Validate all related records before performing any update.
         proxySelectorMapper.update(proxySelectorDO);
         // update discovery handler
@@ -572,19 +581,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             return ConfigImportResult.success();
         }
         Map<String, String> proxySelectorIdMapping = new HashMap<>();
-        Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
+        Map<String, Map<String, String>> pluginProxySelectorMap = proxySelectorMapper
                 .selectByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName));
+                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName,
+                        Collectors.toMap(ProxySelectorDO::getName, ProxySelectorDO::getId, (first, second) -> first)));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (ProxySelectorData selectorData : proxySelectorList) {
             String pluginName = selectorData.getPluginName();
             String proxySelectorName = selectorData.getName();
-            Map<String, String> existProxySelectorNameSet = pluginProxySelectorMap
-                    .getOrDefault(pluginName, Lists.newArrayList())
-                    .stream()
-                    .collect(Collectors.toMap(ProxySelectorDO::getName, ProxySelectorDO::getId));
+            Map<String, String> existProxySelectorNameSet = pluginProxySelectorMap.computeIfAbsent(pluginName, key -> new HashMap<>());
             
             if (existProxySelectorNameSet.containsKey(proxySelectorName)) {
                 errorMsgBuilder
@@ -599,6 +606,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             proxySelectorDO.setId(newProxySelectorId);
             proxySelectorDO.setNamespaceId(namespace);
             if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+                existProxySelectorNameSet.put(proxySelectorName, newProxySelectorId);
                 proxySelectorIdMapping.put(oldProxySelectorId, newProxySelectorId);
                 successCount++;
             }

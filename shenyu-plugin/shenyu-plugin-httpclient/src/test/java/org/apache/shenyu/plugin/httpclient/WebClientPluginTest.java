@@ -23,6 +23,8 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -55,6 +57,7 @@ import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
@@ -69,7 +72,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -216,6 +223,40 @@ public final class WebClientPluginTest {
         StepVerifier.create(plugin.doRequest(exchange, HttpMethod.GET.name(), URI.create("/test"), Flux.empty()))
                 .expectError(ShenyuUpstreamStatusException.class)
                 .verify();
+    }
+
+    @Test
+    public void testServerErrorAfterUpstreamRemoval() {
+        final String selectorId = "webclient-removed-upstream";
+        final UpstreamCacheManager cacheManager = UpstreamCacheManager.getInstance();
+        final Upstream upstream = Upstream.builder().url("localhost:8080").healthCheckEnabled(false).build();
+        cacheManager.submit(selectorId, Collections.singletonList(upstream));
+        final ServerWebExchange exchange = generateServerWebExchange();
+        exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://localhost:8080/test"));
+        exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
+        exchange.getAttributes().put(Constants.HTTP_RETRY, 1);
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selectorId);
+        final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+        when(exchangeFunction.exchange(any())).thenAnswer(invocation -> Mono.defer(() -> {
+            cacheManager.removeByKey(selectorId);
+            return Mono.just(ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build());
+        }));
+        final WebClientPlugin plugin = new WebClientPlugin(WebClient.builder().exchangeFunction(exchangeFunction).build(), Constants.BYTES_PER_MB);
+
+        try {
+            StepVerifier.create(plugin.execute(exchange, chain))
+                    .expectErrorSatisfies(error -> {
+                        assertTrue(error instanceof ResponseStatusException);
+                        ResponseStatusException exception = (ResponseStatusException) error;
+                        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getStatusCode());
+                        assertEquals("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", exception.getReason());
+                    })
+                    .verify();
+            verify(exchangeFunction, times(1)).exchange(any());
+            verifyNoInteractions(chain);
+        } finally {
+            cacheManager.removeByKey(selectorId);
+        }
     }
 
     @ParameterizedTest

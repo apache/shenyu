@@ -127,17 +127,16 @@ public class RequestConfigHelper {
      */
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
-        // First, check if the input value is already a complete URL
-        if (isCompleteUrl(argsPosition, inputJson)) {
-            return getCompleteUrl(argsPosition, inputJson);
-        }
+        // Only an explicitly target-mapped argument may replace the configured endpoint.
+        String requestUrl = isCompleteUrl(argsPosition, inputJson)
+                ? getCompleteUrl(argsPosition, inputJson) : urlTemplate;
 
         StringBuilder queryBuilder = new StringBuilder();
 
         // Check whether the URL template already contains the query parameters
-        boolean hasExistingQuery = urlTemplate.contains("?");
-        String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
-        String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
+        boolean hasExistingQuery = requestUrl.contains("?");
+        String basePath = hasExistingQuery ? requestUrl.substring(0, requestUrl.indexOf("?")) : requestUrl;
+        String existingQuery = hasExistingQuery ? requestUrl.substring(requestUrl.indexOf("?") + 1) : "";
 
         // Handle new query parameters
         basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder, existingQuery);
@@ -158,7 +157,7 @@ public class RequestConfigHelper {
      */
     private static boolean isCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
         for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
+            if ("target".equals(argsPosition.get(key).getAsString()) && inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
                     if (value.startsWith("http://") || value.startsWith("https://")) {
@@ -181,7 +180,7 @@ public class RequestConfigHelper {
      */
     private static String getCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
         for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
+            if ("target".equals(argsPosition.get(key).getAsString()) && inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
                     if (value.startsWith("http://") || value.startsWith("https://")) {

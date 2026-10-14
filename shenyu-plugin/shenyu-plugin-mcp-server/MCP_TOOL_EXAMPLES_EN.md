@@ -9,7 +9,7 @@ This plugin is developed and tested with the following SDK versions:
 | Dependency | Version |
 |------------|---------|
 | MCP SDK (io.modelcontextprotocol.sdk:mcp-bom) | 0.17.0 |
-| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.2 |
+| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.8 |
 | Spring Boot | 3.3.1 |
 
 ### Supported Protocols
@@ -429,6 +429,8 @@ This plugin is developed and tested with the following SDK versions:
 1. **URL Path Parameters**: `"path"` - Corresponds to `{{.paramName}}` in URL template
 2. **Query Parameters**: `"query"` - Corresponds to parameters in `queryParams` array
 3. **Request Body**: `"body"` - Used with `argsToJsonBody: true`
+4. **Request Headers**: `"header"` - Use `{{.paramName}}` in a configured header value
+5. **Complete URL Target**: `"target"` - Only for a tool explicitly configured to accept a complete `http://` or `https://` URL as the request target. Ordinary callback/resource URLs must keep their `query`, `body`, or `header` mapping.
 
 ### Mapping Examples:
 ```json
@@ -492,6 +494,7 @@ This plugin is developed and tested with the following SDK versions:
 5. **Query Parameters**: Configure using `queryParams` array with `${paramName}` format values
 6. **Path Parameters**: Use `{{.paramName}}` format in URL
 7. **Parameter Mapping**: Use `argsPosition` to specify parameter location: `path`, `query`, `body`, `header`
+8. **Explicit Complete URL**: To intentionally replace the configured request target, use `"argsPosition": {"endpoint": "target"}` with a trusted URL input. Do not grant arbitrary target control to untrusted callers.
 
 ## Best Practices
 

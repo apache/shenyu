@@ -15,6 +15,7 @@
 -- limitations under the License.
 
 
+-- Shared fresh-install schema for PostgreSQL and openGauss.
 -- ----------------------------
 -- Table structure for api
 -- ----------------------------
@@ -532,13 +533,10 @@ INSERT INTO "public"."permission" VALUES ('1386680049203195906', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1386680049203195907', '1346358560427216896', '1386680049203195916', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."permission" VALUES ('1529403932797964288', '1346358560427216896', '1529403932772798464', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964289', '1346358560427216896', '1529403932781187072', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932797964290', '1346358560427216896', '1529403932781187073', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964291', '1346358560427216896', '1529403932781187074', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932797964292', '1346358560427216896', '1529403932781187075', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964293', '1346358560427216896', '1529403932781187076', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964294', '1346358560427216896', '1529403932781187077', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964295', '1346358560427216896', '1529403932781187078', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932797964296', '1346358560427216896', '1529403932781187079', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964297', '1346358560427216896', '1529403932781187080', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964298', '1346358560427216896', '1529403932781187081', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964299', '1346358560427216896', '1529403932781187082', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -553,7 +551,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932797964307', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932797964308', '1346358560427216896', '1529403932781187091', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964309', '1346358560427216896', '1529403932781187092', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964310', '1346358560427216896', '1529403932781187093', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932797964311', '1346358560427216896', '1529403932781187094', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964313', '1346358560427216896', '1529403932781187096', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964314', '1346358560427216896', '1529403932781187097', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932797964315', '1346358560427216896', '1529403932781187098', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -576,15 +573,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932881850526', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932881850527', '1346358560427216896', '1529403932877656079', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850528', '1346358560427216896', '1529403932877656080', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850529', '1346358560427216896', '1529403932877656081', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850530', '1346358560427216896', '1529403932877656082', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850531', '1346358560427216896', '1529403932877656083', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850532', '1346358560427216896', '1529403932877656084', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850533', '1346358560427216896', '1529403932877656085', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850534', '1346358560427216896', '1529403932877656086', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850535', '1346358560427216896', '1529403932877656087', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850536', '1346358560427216896', '1529403932877656088', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850537', '1346358560427216896', '1529403932877656089', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850538', '1346358560427216896', '1529403932877656090', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850539', '1346358560427216896', '1529403932877656091', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850540', '1346358560427216896', '1529403932877656092', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850541', '1346358560427216896', '1529403932877656093', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -594,15 +582,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932881850544', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932881850545', '1346358560427216896', '1529403932877656097', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850546', '1346358560427216896', '1529403932877656098', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850547', '1346358560427216896', '1529403932877656099', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850548', '1346358560427216896', '1529403932877656100', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850549', '1346358560427216896', '1529403932877656101', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850550', '1346358560427216896', '1529403932877656102', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850551', '1346358560427216896', '1529403932877656103', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850552', '1346358560427216896', '1529403932877656104', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850553', '1346358560427216896', '1529403932877656105', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850554', '1346358560427216896', '1529403932877656106', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850555', '1346358560427216896', '1529403932877656107', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850556', '1346358560427216896', '1529403932877656108', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850557', '1346358560427216896', '1529403932877656109', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850558', '1346358560427216896', '1529403932877656110', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850559', '1346358560427216896', '1529403932877656111', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -630,15 +609,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932881850580', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932881850581', '1346358560427216896', '1529403932877656133', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850582', '1346358560427216896', '1529403932877656134', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850583', '1346358560427216896', '1529403932877656135', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850584', '1346358560427216896', '1529403932877656136', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850585', '1346358560427216896', '1529403932877656137', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850586', '1346358560427216896', '1529403932877656138', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850587', '1346358560427216896', '1529403932877656139', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850588', '1346358560427216896', '1529403932877656140', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850589', '1346358560427216896', '1529403932877656141', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850590', '1346358560427216896', '1529403932877656142', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850591', '1346358560427216896', '1529403932877656143', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932881850592', '1346358560427216896', '1529403932877656144', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850593', '1346358560427216896', '1529403932877656145', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850594', '1346358560427216896', '1529403932877656146', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932881850595', '1346358560427216896', '1529403932877656147', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -765,15 +735,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044709', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932886044710', '1346358560427216896', '1529403932881850455', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932886044711', '1346358560427216896', '1529403932881850456', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932886044712', '1346358560427216896', '1529403932881850457', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044713', '1346358560427216896', '1529403932881850458', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044714', '1346358560427216896', '1529403932881850459', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044715', '1346358560427216896', '1529403932881850460', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044716', '1346358560427216896', '1529403932881850461', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044717', '1346358560427216896', '1529403932881850462', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044718', '1346358560427216896', '1529403932881850463', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044719', '1346358560427216896', '1529403932881850464', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044720', '1346358560427216896', '1529403932881850465', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."permission" VALUES ('1529403932886044721', '1346358560427216896', '1529403932881850466', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932886044731', '1346358560427216896', '1529403932881850476', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932886044732', '1346358560427216896', '1529403932881850477', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."permission" VALUES ('1529403932886044733', '1346358560427216896', '1529403932881850478', '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -814,16 +775,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044767', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932886044768', '1346358560427216896', '1534585430311051264', '2022-06-09 01:17:33', '2022-06-09 01:17:32');
 INSERT INTO "public"."permission" VALUES ('1529403932886044769', '1346358560427216896', '1534585531108564992', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 
-INSERT INTO "public"."permission" VALUES ('1529403932886044770', '1346358560427216896', '1534585531108564993', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044771', '1346358560427216896', '1534585531108564994', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044772', '1346358560427216896', '1534585531108564995', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044773', '1346358560427216896', '1534585531108564996', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044774', '1346358560427216896', '1534585531108564997', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044775', '1346358560427216896', '1534585531108564998', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044776', '1346358560427216896', '1534585531108564999', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044777', '1346358560427216896', '1534585531108565000', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044778', '1346358560427216896', '1534585531108565001', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
-INSERT INTO "public"."permission" VALUES ('1529403932886044779', '1346358560427216896', '1534585531108565002', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 
 
 INSERT INTO "public"."permission" VALUES ('1529403932886044790', '1346358560427216896', '1534585531108565013', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
@@ -850,16 +801,6 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044818', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932886044819', '1346358560427216896', '1534585531108565042', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 
 
-INSERT INTO "public"."permission" VALUES ('1572525965658820609', '1346358560427216896', '1572525965625266177', '2023-07-07 23:20:04.962', '2023-07-07 23:20:14.170');
-INSERT INTO "public"."permission" VALUES ('1572525965658820610', '1346358560427216896', '1572525965625266178', '2023-07-07 23:21:23.648', '2023-07-07 23:21:23.648');
-INSERT INTO "public"."permission" VALUES ('1572525965658820611', '1346358560427216896', '1572525965625266179', '2023-07-07 23:23:40.409', '2023-07-07 23:23:40.409');
-INSERT INTO "public"."permission" VALUES ('1572525965658820612', '1346358560427216896', '1572525965625266180', '2023-07-07 23:24:03.398', '2023-07-07 23:24:03.398');
-INSERT INTO "public"."permission" VALUES ('1572525965658820613', '1346358560427216896', '1572525965625266181', '2023-07-07 23:24:19.165', '2023-07-07 23:24:19.165');
-INSERT INTO "public"."permission" VALUES ('1572525965658820614', '1346358560427216896', '1572525965625266182', '2023-07-07 23:24:52.339', '2023-07-07 23:24:52.339');
-INSERT INTO "public"."permission" VALUES ('1572525965658820615', '1346358560427216896', '1572525965625266183', '2023-07-07 23:25:30.528', '2023-07-07 23:25:30.528');
-INSERT INTO "public"."permission" VALUES ('1572525965658820616', '1346358560427216896', '1572525965625266184', '2023-07-07 23:25:50.772', '2023-07-07 23:25:50.772');
-INSERT INTO "public"."permission" VALUES ('1572525965658820617', '1346358560427216896', '1572525965625266185', '2023-07-07 23:26:11.518', '2023-07-07 23:26:11.518');
-INSERT INTO "public"."permission" VALUES ('1572525965658820618', '1346358560427216896', '1572525965625266186', '2023-07-07 23:26:37.388', '2023-07-07 23:26:37.388');
 
 INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 INSERT INTO "public"."permission" VALUES ('1697141926281318400', '1346358560427216896', '1697141926247763968', '2023-08-31 14:59:01', '2023-08-31 06:59:01');
@@ -945,9 +886,7 @@ COMMENT ON COLUMN "public"."plugin"."plugin_jar" IS 'plugin jar';
 -- ----------------------------
 INSERT INTO "public"."plugin" VALUES ('1', 'sign', NULL, 'Authentication', 20, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('10', 'sentinel', NULL, 'FaultTolerance', 140, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('11', 'sofa', '{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('12', 'resilience4j', NULL, 'FaultTolerance', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('13', 'tars', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('14', 'contextPath', NULL, 'HttpProcess', 80, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('15', 'grpc', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('16', 'redirect', NULL, 'HttpProcess', 110, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
@@ -956,8 +895,8 @@ INSERT INTO "public"."plugin" VALUES ('19', 'jwt', '{"secretKey":"key"}', 'Authe
 INSERT INTO "public"."plugin" VALUES ('2', 'waf', '{"model":"black"}', 'Authentication', 50, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('20', 'request', NULL, 'HttpProcess', 120, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('21', 'oauth2', NULL, 'Authentication', 40, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('22', 'paramMapping', NULL, 'HttpProcess', 70, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('23', 'modifyResponse', NULL, 'HttpProcess', 220, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('22', 'paramMapping', '{"ruleHandlePageType":"custom"}', 'HttpProcess', 70, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('23', 'modifyResponse', '{"ruleHandlePageType":"custom"}', 'HttpProcess', 220, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('24', 'cryptorRequest', NULL, 'Cryptor', 100, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('25', 'cryptorResponse', NULL, 'Cryptor', 410, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('26', 'websocket', '{"multiSelectorHandle":"1"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
@@ -971,11 +910,11 @@ INSERT INTO "public"."plugin" VALUES ('29', 'loggingRocketMQ', '{"topic":"shenyu
 INSERT INTO "public"."plugin" VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55', null);
 INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00', null);
-INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00', null);
+INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging","bootstrapServer":"localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
 INSERT INTO "public"."plugin" VALUES ('42', 'tcp', null, 'Proxy', 320, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('44', 'basicAuth', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00', null);
-INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1","prompt":""}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
+INSERT INTO "public"."plugin" VALUES ('50', 'aiProxy', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1"}', 'Ai', 199, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('51', 'aiTokenLimiter', NULL, 'Ai', 171, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('53', 'aiRequestTransformer', NULL, 'Ai', 65, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
 INSERT INTO "public"."plugin" VALUES ('66', 'aiResponseTransformer', NULL, 'Ai', 66, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', null);
@@ -1057,10 +996,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136285', '4', 'mode',
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136286', '4', 'master', 'master', 2, 3, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136287', '4', 'url', 'url', 2, 3, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136288', '4', 'password', 'password', 2, 3, 4, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136289', '11', 'protocol', 'protocol', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136290', '11', 'register', 'register', 2, 3, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136289', '11', 'protocol', 'protocol', 2, 1, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1729403902775136290', '11', 'register', 'register', 2, 1, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136291', '2', 'model', 'model', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136292', '6', 'register', 'register', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136293', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1081,18 +1016,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330565', '5', 'header
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330566', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330567', '5', 'retryStrategy', 'retryStrategy', 3, 2, 0, '{"required":"0","defaultValue":"current","placeholder":"retryStrategy","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613199979560', '5', 'retryBackOffSpec', 'retryBackOffSpec', 3, 2, 1, '{"required":"0","defaultValue":"default","placeholder":"retryBackOffSpec","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330568', '13', 'upstreamHost', 'host', 2, 1, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330569', '13', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330570', '13', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330571', '13', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330572', '13', 'timestamp', 'startupTime', 1, 1, 3, '{"defaultValue":"0","placeholder":"startup timestamp","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330573', '13', 'warmup', 'warmupTime', 1, 1, 5, '{"defaultValue":"0","placeholder":"warmup time ms)","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330574', '13', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330575', '13', 'loadBalance', 'loadStrategy', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330576', '13', 'retry', 'retryCount', 1, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330577', '13', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330578', '13', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330579', '13', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330580', '15', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330581', '15', 'weight', 'weight', 1, 1, 3, '{"defaultValue":"50","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330582', '15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1101,6 +1024,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330584', '15', 'multi
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330585', '15', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330586', '14', 'contextPath', 'contextPath', 2, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330587', '14', 'addPrefix', 'addPrefix', 2, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330588', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330589', '19', 'secretKey', 'secretKey', 2, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330590', '24', 'strategyName', 'strategyName', 3, 2, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330591', '24', 'fieldNames', 'fieldNames', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1116,7 +1040,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330599', '25', 'way',
 INSERT INTO "public"."plugin_handle" VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{"required":"0","defaultValue":"all","rule":""}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330600', '6', 'gray', 'gray', 3, 1, 9, '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330601', '6', 'group', 'group', 2, 1, 3, '{"required":"0","placeholder":"group","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330602', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{"required":"0","placeholder":"loadbalance","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330603', '6', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330604', '6', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"http://","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330605', '6', 'status', 'status', 3, 1, 8, '{"defaultValue":"true","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1185,14 +1108,6 @@ INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524909', '30', 'minId
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524910', '30', 'maxActive', 'maxActive', 1, 1, 9, '{"required":"0","defaultValue":"8","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524911', '30', 'maxWait', 'maxWait', 3, 1, 10, '{"required":"0","defaultValue":"-1","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524912', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{"required":"0","defaultValue":"60","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524913', '13', 'corethreads', 'corethreads', 1, 3, 3, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524914', '13', 'threads', 'threads', 1, 3, 4, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524915', '13', 'queues', 'queues', 1, 3, 5, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524916', '13', 'threadpool', 'threadpool', 3, 3, 2, '{"required":"0","defaultValue":"default","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524917', '11', 'corethreads', 'corethreads', 1, 3, 4, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524918', '11', 'threads', 'threads', 1, 3, 5, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524919', '11', 'queues', 'queues', 1, 3, 6, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524920', '11', 'threadpool', 'threadpool', 3, 3, 3, '{"required":"0","defaultValue":"default","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1537326008606343168', '31', 'responseContent', 'responseContent', 2, 2, 0, '{"required":"0","rule":""}', '2022-06-16 14:47:37', '2022-06-16 14:50:39');
 INSERT INTO "public"."plugin_handle" VALUES ('1537325892176658432', '31', 'httpStatusCode', 'httpStatusCode', 1, 2, 0, '{"required":"0","defaultValue":"200","rule":""}', '2022-06-16 14:47:09', '2022-06-16 14:50:39');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524921', '32', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"localhost"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
@@ -1221,10 +1136,10 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172860', '33', 'userN
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172861', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524951', '33', 'bootstrapServer', 'bootstrapServer', 2, 1, 2, '{"required":"0","defaultValue":""}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1729403902783524955', '33', 'compressAlg', 'compressAlg', 3, 1, 7, '{"required":"0","defaultValue":"none"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 0, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 0, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172860', '33', 'userName', 'userName', 2, 0, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172861', '33', 'passWord', 'passWord', 2, 0, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 1, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 1, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172860', '33', 'userName', 'userName', 2, 1, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1729402613204172861', '33', 'passWord', 'passWord', 2, 1, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172803', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{"required":"0","defaultValue":"500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172804', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{"required":"0","defaultValue":"10"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
@@ -1253,7 +1168,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1678997769998467072', '42', 'clien
 INSERT INTO "public"."plugin_handle" VALUES ('1678997277012557824', '42', 'clientMaxConnections', 'clientMaxConnections', 2, 1, 6, '{"required":"0","defaultValue":"20","rule":""}');
 INSERT INTO "public"."plugin_handle" VALUES ('1678997557628272640', '42', 'clientPendingAcquireTimeout', 'clientPendingAcquireTimeout', 2, 1, 5, '{"required":"0","defaultValue":"5","rule":""}');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312085', '6', 'loadBalance', 'loadStrategy', 3, 2, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312085', '6', 'loadBalance', 'loadBalance', 3, 2, 3, '{"required":"0","defaultValue":"random","rule":""}', '2023-09-05 18:08:01', '2023-09-05 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312086', '44', 'defaultHandleJson', 'defaultHandleJson', 2, 3, 2, '{"required":"0","defaultValue":"{\"authorization\":\"test:test123\"}","placeholder":""}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
 
@@ -1406,9 +1321,7 @@ INSERT INTO "public"."resource" VALUES ('1386680049203195915', '1346777157943259
 INSERT INTO "public"."resource" VALUES ('1386680049203195916', '1346777157943259136', 'SHENYU.COMMON.IMPORT', '', '', '', 2, 0, '', 1, 0, 'system:manager:importConfig', 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."resource" VALUES ('1529403932772798464', '1346775491550474240', 'sign', 'sign', '/plug/sign', 'sign', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932781187072', '1346775491550474240', 'sentinel', 'sentinel', '/plug/sentinel', 'sentinel', 1, 0, 'database', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932781187073', '1346775491550474240', 'sofa', 'sofa', '/plug/sofa', 'sofa', 1, 0, 'key', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932781187074', '1346775491550474240', 'resilience4j', 'resilience4j', '/plug/resilience4j', 'resilience4j', 1, 0, 'align-left', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932781187075', '1346775491550474240', 'tars', 'tars', '/plug/tars', 'tars', 1, 0, 'align-left', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932781187076', '1346775491550474240', 'contextPath', 'contextPath', '/plug/contextPath', 'contextPath', 1, 0, 'thunderbolt', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932781187077', '1346775491550474240', 'grpc', 'grpc', '/plug/grpc', 'grpc', 1, 0, 'highlight', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932781187078', '1346775491550474240', 'redirect', 'redirect', '/plug/redirect', 'redirect', 1, 0, 'align-left', 0, 0, '', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -1448,15 +1361,6 @@ INSERT INTO "public"."resource" VALUES ('1529403932877656078', '1529403932781187
 INSERT INTO "public"."resource" VALUES ('1529403932877656079', '1529403932781187072', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sentinelRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656080', '1529403932781187072', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sentinelRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656081', '1529403932781187072', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:sentinel:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656082', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaSelector:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656083', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaSelector:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656084', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaSelector:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656085', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaSelector:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656086', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaRule:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656087', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaRule:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656088', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656089', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:sofaRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656090', '1529403932781187073', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:sofa:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656091', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4jSelector:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656092', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4jSelector:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656093', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4jSelector:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -1466,15 +1370,6 @@ INSERT INTO "public"."resource" VALUES ('1529403932877656096', '1529403932781187
 INSERT INTO "public"."resource" VALUES ('1529403932877656097', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4jRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656098', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4jRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656099', '1529403932781187074', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:resilience4j:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656100', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsSelector:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656101', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsSelector:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656102', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsSelector:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656103', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsSelector:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656104', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsRule:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656105', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsRule:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656106', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656107', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:tarsRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
-INSERT INTO "public"."resource" VALUES ('1529403932877656108', '1529403932781187075', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:tars:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656109', '1529403932781187076', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:contextPathSelector:add', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656110', '1529403932781187076', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:contextPathSelector:query', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1529403932877656111', '1529403932781187076', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:contextPathSelector:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
@@ -2588,9 +2483,7 @@ COMMENT ON COLUMN "public"."namespace_plugin_rel"."date_updated" IS 'Update time
 
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822145','649330b6-c2d7-4edc-be8e-8a54df9eb385','1', NULL, 20, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822146','649330b6-c2d7-4edc-be8e-8a54df9eb385','10', NULL, 140, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822147','649330b6-c2d7-4edc-be8e-8a54df9eb385','11', '{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822148','649330b6-c2d7-4edc-be8e-8a54df9eb385','12', NULL, 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822149','649330b6-c2d7-4edc-be8e-8a54df9eb385','13', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822150','649330b6-c2d7-4edc-be8e-8a54df9eb385','14', NULL, 80, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822151','649330b6-c2d7-4edc-be8e-8a54df9eb385','15', '{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822152','649330b6-c2d7-4edc-be8e-8a54df9eb385','16', NULL, 110, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -2599,8 +2492,8 @@ INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822155','64933
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822156','649330b6-c2d7-4edc-be8e-8a54df9eb385','2', '{"model":"black"}', 50, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822157','649330b6-c2d7-4edc-be8e-8a54df9eb385','20', NULL, 120, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822158','649330b6-c2d7-4edc-be8e-8a54df9eb385','21', NULL, 40, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822159','649330b6-c2d7-4edc-be8e-8a54df9eb385','22', NULL, 70, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822160','649330b6-c2d7-4edc-be8e-8a54df9eb385','23', NULL, 220, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822159','649330b6-c2d7-4edc-be8e-8a54df9eb385','22', '{"ruleHandlePageType":"custom"}', 70, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822160','649330b6-c2d7-4edc-be8e-8a54df9eb385','23', '{"ruleHandlePageType":"custom"}', 220, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822161','649330b6-c2d7-4edc-be8e-8a54df9eb385','24', NULL, 100, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822162','649330b6-c2d7-4edc-be8e-8a54df9eb385','25', NULL, 410, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822163','649330b6-c2d7-4edc-be8e-8a54df9eb385','26', '{"multiSelectorHandle":"1"}', 200, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
@@ -2611,14 +2504,14 @@ INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822167','64933
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822168','649330b6-c2d7-4edc-be8e-8a54df9eb385','30', '{"cacheType":"memory"}', 10, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822169','649330b6-c2d7-4edc-be8e-8a54df9eb385','31', NULL, 1, 0, '2022-06-16 14:40:35.000', '2022-06-16 14:40:55.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822170','649330b6-c2d7-4edc-be8e-8a54df9eb385','32', '{"host":"localhost", "port": "9200"}', 190, 0, '2022-06-19 22:00:00.000', '2022-06-19 22:00:00.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822171','649330b6-c2d7-4edc-be8e-8a54df9eb385','33', '{"host":"localhost", "port": "9092"}', 180, 0, '2022-07-04 22:00:00.000', '2022-07-02 22:00:00.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822171','649330b6-c2d7-4edc-be8e-8a54df9eb385','33', '{"topic":"shenyu-access-logging","bootstrapServer":"localhost:9092"}', 180, 0, '2022-07-04 22:00:00.000', '2022-07-02 22:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822177','649330b6-c2d7-4edc-be8e-8a54df9eb385','4', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 60, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822178','649330b6-c2d7-4edc-be8e-8a54df9eb385','40', NULL, 150, 0, '2022-07-24 19:00:00.000', '2022-07-24 19:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822179','649330b6-c2d7-4edc-be8e-8a54df9eb385','42', NULL, 320, 1, '2023-05-30 18:02:53.000', '2022-05-30 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822181','649330b6-c2d7-4edc-be8e-8a54df9eb385','44', '{"defaultHandleJson":"{\"authorization\":\"test:test123\"}"}', 150, 0, '2022-07-24 19:00:00.000', '2022-07-24 19:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822183','649330b6-c2d7-4edc-be8e-8a54df9eb385','5', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 200, 1, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822184','649330b6-c2d7-4edc-be8e-8a54df9eb385','6', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 310, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","prompt":""}', 199, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822187','649330b6-c2d7-4edc-be8e-8a54df9eb385','50', '{"provider":"OpenAI","baseUrl":"https://api.openai.com/v1/chat/completions","model":"gpt-4o-mini","apiKey":"your_api_key","temperature":"0.5","maxTokens":"1000","stream":"false","proxyEnabled":"false","fallbackEnabled":"false","fallbackProvider":"OpenAI","fallbackModel":"gpt-4.1"}', 199, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822188','649330b6-c2d7-4edc-be8e-8a54df9eb385','51', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822190','649330b6-c2d7-4edc-be8e-8a54df9eb385','53', NULL, 65, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882822300','649330b6-c2d7-4edc-be8e-8a54df9eb385','66', NULL, 66, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');

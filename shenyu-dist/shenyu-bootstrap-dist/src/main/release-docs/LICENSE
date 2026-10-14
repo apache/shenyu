@@ -462,8 +462,6 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: https://github.com/prometheus/client_java, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
     snappy-java 1.1.10.5: https://github.com/xerial/snappy-java, Apache 2.0
-    sofa-common-tools 2.1.1: https://github.com/sofastack/sofa-common-tools/sofa-common-tools, Apache 2.0
-    sofa-rpc-all 5.13.0: http://github.com/sofastack/sofa-rpc, Apache 2.0
     jsonschema-generator 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     spring-ai-template-st 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-deepseek 1.0.0: https://github.com/spring-projects/spring-ai, Apache 2.0
@@ -656,9 +654,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jakarta.xml.bind-api 4.0.2: https://github.com/eclipse-ee4j/jaxb-api, BSD 3-Clause
     protobuf-java 3.25.5: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
     protobuf-java-util 3.21.7: https://github.com/protocolbuffers/protobuf/, BSD 3-Clause
-    tars-client 1.7.2: https://github.com/TarsCloud/Tars/tars-client, BSD 3-Clause
-    tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
-    tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
     zstd-jni 1.5.6-3: https://github.com/luben/zstd-jni, BSD 2-Clause
     zstd-jni 1.5.6-4: https://github.com/luben/zstd-jni, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause
@@ -681,7 +676,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 
     HdrHistogram 2.2.2: https://github.com/HdrHistogram, CC0 1.0 and BSD-2-Clause
     LatencyUtils 2.0.3: http://latencyutils.github.io/LatencyUtils, CC0 1.0
-    reactive-streams 1.0.4:	https://github.com/reactive-streams/reactive-streams-jvm, CC0 1.0
     xpp3_min 1.1.4c: http://www.extreme.indiana.edu/xgws/xsoap/xpp/mxp1/, CC0 1.0 and Public Domain
 
 ========================================================================
@@ -732,8 +726,7 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    mcp 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-spring-webflux 0.10.0: https://github.com/modelcontextprotocol/java-sdk, MIT
+    connect 0.1.0: https://github.com/agentic-ai-java/connect, MIT (see licenses/LICENSE-connect.txt)
     jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT
@@ -750,13 +743,21 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     content-type 2.1: http://webjars.org, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
-    oshi-core 6.7.0: https://github.com/oshi/oshi, MIT
-    mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT
-    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT
+    mcp 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-core 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-json 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-json-jackson2 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    mcp-spring-webflux 0.17.0: https://github.com/modelcontextprotocol/java-sdk, MIT (see licenses/LICENSE-mcp.txt)
+    oshi-core 6.10.0: https://github.com/oshi/oshi, MIT (see licenses/LICENSE-oshi.txt)
+
+========================================================================
+MIT No Attribution licenses
+========================================================================
+
+The following component is provided under the MIT No Attribution (MIT-0) License.
+The license text is included at licenses/LICENSE-reactive-streams.txt.
+
+    reactive-streams 1.0.4: https://github.com/reactive-streams/reactive-streams-jvm, MIT-0
 
 ========================================================================
 MPL licenses

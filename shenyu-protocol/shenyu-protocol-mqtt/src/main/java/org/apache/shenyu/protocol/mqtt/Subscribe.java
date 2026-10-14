@@ -29,8 +29,6 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
@@ -80,8 +78,8 @@ public class Subscribe extends MessageType {
         }
 
         for (String ackTopic : ackTopics) {
-            String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (StringUtils.isNotEmpty(message)) {
+            byte[] message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
+            if (Objects.nonNull(message)) {
                 sendSubMessage(ackTopic, message, packetId, channel);
             }
         }
@@ -117,10 +115,10 @@ public class Subscribe extends MessageType {
      * @param packetId packetId
      * @param channel channel
      */
-    private void sendSubMessage(final String topic, final String message, final int packetId, final Channel channel) {
+    private void sendSubMessage(final String topic, final byte[] message, final int packetId, final Channel channel) {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, AT_MOST_ONCE, true, 0);
         MqttPublishVariableHeader varHeader = new MqttPublishVariableHeader(topic, packetId);
-        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.copiedBuffer(message, CharsetUtil.UTF_8));
+        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.wrappedBuffer(message));
         channel.writeAndFlush(mqttPublishMessage);
     }
 }
