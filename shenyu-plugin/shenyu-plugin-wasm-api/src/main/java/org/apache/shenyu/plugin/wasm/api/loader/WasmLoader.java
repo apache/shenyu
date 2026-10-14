@@ -75,6 +75,9 @@ public class WasmLoader implements AutoCloseable {
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
+    // becomes true after the instance pool is fully populated
+    private volatile boolean ready;
+
     private final String wasmName;
 
     private final Store store;
@@ -190,6 +193,7 @@ public class WasmLoader implements AutoCloseable {
                 initialize(instance);
                 freeInstances.offer(instance);
             }
+            this.ready = true;
         } catch (IOException e) {
             throw new ShenyuWasmInitException(e);
         }
@@ -399,6 +403,14 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private Instance acquire() {
+        if (!ready) {
+            // reached only from a host callback during construction (e.g. a nested
+            // export call from _initialize): no initialized instance is free yet,
+            // so waiting could never succeed
+            throw new IllegalStateException(
+                    "Nested export call during construction of " + wasmName
+                            + "; the instance pool is not ready yet");
+        }
         final ArrayDeque<Instance> active = bindings.get();
         if (active.size() >= poolSize) {
             // nesting deeper than the pool: this thread already leases every instance,
