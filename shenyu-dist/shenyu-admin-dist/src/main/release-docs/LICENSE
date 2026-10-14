@@ -449,9 +449,6 @@ The text of each license is the standard Apache 2.0 license.
     curator-client 5.7.0: https://github.com/apache/curator, Apache 2.0
     curator-framework 5.7.0: https://github.com/apache/curator, Apache 2.0
     curator-recipes 5.7.0: https://github.com/apache/curator, Apache 2.0
-    apollo-client 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
-    apollo-openapi 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
-    apollo-core 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
     reactor-netty-core 1.1.20 https://github.com/reactor/reactor/blob/main/LICENSE, Apache 2.0
     reactor-netty-http 1.1.20 https://github.com/reactor/reactor-netty/blob/main/LICENSE, Apache 2.0
     javax.inject 1 http://www.apache.org/licenses/LICENSE-2.0, Apache 2.0
