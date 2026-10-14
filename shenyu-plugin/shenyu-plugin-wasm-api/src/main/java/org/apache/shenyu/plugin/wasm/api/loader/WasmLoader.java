@@ -37,12 +37,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -64,8 +65,9 @@ public class WasmLoader implements AutoCloseable {
 
     private static final String IMPORT_WASM_MODULE_NAME = "shenyu";
 
-    // One instance per processor: matches event-loop parallelism; guest memory is paid per instance.
-    private static final int DEFAULT_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+    // Upper bound on parallel executions; capped so worst-case memory (grown guest
+    // heaps persist per instance) stays bounded.
+    private static final int DEFAULT_POOL_SIZE = Math.min(Runtime.getRuntime().availableProcessors(), 8);
 
     // Instances currently executing on this thread (a stack: nested calls push/pop);
     // getMemory() in host callbacks resolves against the top entry.
@@ -79,16 +81,16 @@ public class WasmLoader implements AutoCloseable {
 
     private final Instance primary;
 
-    private final PooledInstance[] pool;
+    private final BlockingQueue<Instance> freeInstances;
 
-    private final AtomicInteger nextIndex = new AtomicInteger();
+    private final int poolSize;
 
     public WasmLoader() {
         this(null, null);
     }
 
     /**
-     * Constructs a WasmLoader with the default pool size (one instance per processor).
+     * Constructs a WasmLoader with the default pool size (at most 8 instances).
      *
      * <p>Initialization order:
      * <ol>
@@ -169,16 +171,19 @@ public class WasmLoader implements AutoCloseable {
             }
 
             final int size = Math.max(1, poolSize);
-            this.pool = new PooledInstance[size];
-            this.pool[0] = new PooledInstance(firstInstance);
+            final List<Instance> instances = new ArrayList<>(size);
+            instances.add(firstInstance);
             for (int i = 1; i < size; i++) {
-                this.pool[i] = new PooledInstance(createInstance(module, importValues, machineFactory));
+                instances.add(createInstance(module, importValues, machineFactory));
             }
-            this.primary = pool[0].instance;
+            this.poolSize = size;
+            this.primary = firstInstance;
+            this.freeInstances = new ArrayBlockingQueue<>(size);
             // guest initialization runs after the execution mode is fixed,
             // so its failures are not retried as compiler failures
-            for (int i = 0; i < size; i++) {
-                initialize(pool[i].instance);
+            for (Instance instance : instances) {
+                initialize(instance);
+                freeInstances.offer(instance);
             }
         } catch (IOException e) {
             throw new ShenyuWasmInitException(e);
@@ -368,11 +373,11 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private long[] executeOnPool(final String funcName, final long[] args) {
-        final PooledInstance lease = acquire();
+        final Instance lease = acquire();
         try {
-            return executeBound(lease.instance, lease.instance.export(funcName), args);
+            return executeBound(lease, lease.export(funcName), args);
         } finally {
-            lease.lock.unlock();
+            release(lease);
         }
     }
 
@@ -388,31 +393,25 @@ public class WasmLoader implements AutoCloseable {
         }
     }
 
-    private PooledInstance acquire() {
+    private Instance acquire() {
         final ArrayDeque<Instance> active = bindings.get();
-        final int start = Math.floorMod(nextIndex.getAndIncrement(), pool.length);
-        PooledInstance fallback = null;
-        for (int offset = 0; offset < pool.length; offset++) {
-            final PooledInstance candidate = pool[Math.floorMod(start + offset, pool.length)];
-            if (active.contains(candidate.instance)) {
-                // never re-enter an instance this thread is already executing on, at any nesting depth
-                continue;
-            }
-            if (Objects.isNull(fallback)) {
-                fallback = candidate;
-            }
-            if (candidate.lock.tryLock()) {
-                return candidate;
-            }
-        }
-        if (Objects.isNull(fallback)) {
-            // nesting deeper than the pool: no instance left to lease
+        if (active.size() >= poolSize) {
+            // nesting deeper than the pool: this thread already leases every instance,
+            // so waiting could never succeed
             throw new IllegalStateException(
                     "Nested export calls exceed the WASM instance pool size for " + wasmName);
         }
-        // every other instance is busy: queue on the round-robin candidate
-        fallback.lock.lock();
-        return fallback;
+        try {
+            return freeInstances.take();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "Interrupted while waiting for a pooled WASM instance of " + wasmName, e);
+        }
+    }
+
+    private void release(final Instance lease) {
+        freeInstances.offer(lease);
     }
 
     /**
@@ -454,20 +453,6 @@ public class WasmLoader implements AutoCloseable {
             // No explicit cleanup is required. Add cleanup logic here if
             // the underlying WASM runtime changes in the future.
             return;
-        }
-    }
-
-    /**
-     * One pooled WASM instance with its single-owner lease lock.
-     */
-    private static final class PooledInstance {
-
-        private final Instance instance;
-
-        private final ReentrantLock lock = new ReentrantLock();
-
-        private PooledInstance(final Instance instance) {
-            this.instance = instance;
         }
     }
 }

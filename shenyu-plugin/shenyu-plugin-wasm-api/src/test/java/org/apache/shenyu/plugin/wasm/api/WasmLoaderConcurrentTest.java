@@ -48,20 +48,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class WasmLoaderConcurrentTest {
 
-    private static final String EXPECTED_RESULT = "go result";
+    private final String expectedResult = "go result";
 
-    private static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
+    private final Map<Long, String> results = new ConcurrentHashMap<>();
 
-    private static final AtomicLong IDS = new AtomicLong();
+    private final AtomicLong ids = new AtomicLong();
 
     @Test
     public void concurrentExportsAreIsolatedTest() throws Exception {
-        assertConcurrentCallsAreIsolated(new TestLoader(4, 0L, null, null), argId -> EXPECTED_RESULT);
+        assertConcurrentCallsAreIsolated(new TestLoader(4, 0L, null, null), argId -> expectedResult);
     }
 
     @Test
     public void concurrentExportsAreIsolatedOnInterpreterTest() throws Exception {
-        assertConcurrentCallsAreIsolated(new InterpretedTestLoader(4), argId -> EXPECTED_RESULT);
+        assertConcurrentCallsAreIsolated(new InterpretedTestLoader(4), argId -> expectedResult);
     }
 
     @Test
@@ -85,17 +85,17 @@ public class WasmLoaderConcurrentTest {
 
                 // must complete on a free instance, not queue behind the parked one
                 final Future<String> secondCall = pool.submit(() -> {
-                    final long argumentId = IDS.incrementAndGet();
+                    final long argumentId = ids.incrementAndGet();
                     execute.apply(argumentId);
-                    return RESULTS.remove(argumentId);
+                    return results.remove(argumentId);
                 });
-                assertEquals(EXPECTED_RESULT, secondCall.get(10, TimeUnit.SECONDS),
+                assertEquals(expectedResult, secondCall.get(10, TimeUnit.SECONDS),
                         "second call should complete on a free pooled instance, not queue behind the parked one");
 
                 releaseBlock.countDown();
                 blockedCall.get(10, TimeUnit.SECONDS);
-                assertEquals(EXPECTED_RESULT, RESULTS.remove(blockedArgId));
-                assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
+                assertEquals(expectedResult, results.remove(blockedArgId));
+                assertTrue(results.isEmpty(), "stray results indicate cross-call payload leakage");
             } finally {
                 releaseBlock.countDown();
                 pool.shutdownNow();
@@ -110,9 +110,9 @@ public class WasmLoaderConcurrentTest {
                     .orElseThrow(() -> new IllegalStateException("execute export not found"));
             execute.apply(-1L);
             for (long argId = -1L; argId >= -3L; argId--) {
-                assertEquals(EXPECTED_RESULT, RESULTS.remove(argId), "nested call " + argId + " lost its payload");
+                assertEquals(expectedResult, results.remove(argId), "nested call " + argId + " lost its payload");
             }
-            assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
+            assertTrue(results.isEmpty(), "stray results indicate cross-call payload leakage");
         }
     }
 
@@ -124,12 +124,12 @@ public class WasmLoaderConcurrentTest {
             final IllegalStateException ex = assertThrows(IllegalStateException.class, () -> execute.apply(-1L));
             assertTrue(ex.getMessage().contains("Nested export calls exceed the WASM instance pool size"),
                     "unexpected message: " + ex.getMessage());
-            assertTrue(RESULTS.isEmpty(), "failed nesting must not leave stray payloads");
+            assertTrue(results.isEmpty(), "failed nesting must not leave stray payloads");
         }
     }
 
-    private static void assertConcurrentCallsAreIsolated(final WasmLoader loader,
-                                                         final LongFunction<String> expectedFor) throws Exception {
+    private void assertConcurrentCallsAreIsolated(final WasmLoader loader,
+                                                  final LongFunction<String> expectedFor) throws Exception {
         try (loader) {
             final ExportFunction execute = loader.getWasmExtern("execute")
                     .orElseThrow(() -> new IllegalStateException("execute export not found"));
@@ -146,21 +146,21 @@ public class WasmLoaderConcurrentTest {
                     failures.addAll(future.get());
                 }
                 assertTrue(failures.isEmpty(), () -> String.join(System.lineSeparator(), failures));
-                assertTrue(RESULTS.isEmpty(), "stray results indicate cross-call payload leakage");
+                assertTrue(results.isEmpty(), "stray results indicate cross-call payload leakage");
             } finally {
                 pool.shutdownNow();
             }
         }
     }
 
-    private static List<String> runIterations(final ExportFunction execute, final int iterations,
-                                              final LongFunction<String> expectedFor) {
+    private List<String> runIterations(final ExportFunction execute, final int iterations,
+                                       final LongFunction<String> expectedFor) {
         final List<String> failures = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
-            final long argumentId = IDS.incrementAndGet();
+            final long argumentId = ids.incrementAndGet();
             try {
                 execute.apply(argumentId);
-                final String result = RESULTS.remove(argumentId);
+                final String result = results.remove(argumentId);
                 final String expected = expectedFor.apply(argumentId);
                 if (!expected.equals(result)) {
                     failures.add(String.format("%s argId=%d expected '%s' but got '%s'",
@@ -179,7 +179,7 @@ public class WasmLoaderConcurrentTest {
      * {@code getMemory()}. A non-zero {@code blockArgId} parks the matching call
      * inside its {@code get_args} callback until {@code releaseBlock} fires.
      */
-    static class TestLoader extends WasmLoader {
+    class TestLoader extends WasmLoader {
 
         private final long blockArgId;
 
@@ -213,13 +213,13 @@ public class WasmLoaderConcurrentTest {
 
         @Override
         protected long onPutResult(final long argId, final long addr, final int len) {
-            RESULTS.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
+            results.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
             return 0;
         }
     }
 
     /** Forces the interpreter machine to cover the fallback execution path. */
-    static final class InterpretedTestLoader extends TestLoader {
+    final class InterpretedTestLoader extends TestLoader {
 
         InterpretedTestLoader(final int poolSize) {
             super(poolSize, 0L, null, null);
@@ -235,7 +235,7 @@ public class WasmLoaderConcurrentTest {
      * Drives nested export calls from the {@code get_args} callback: a negative
      * argId {@code -n} recurses to level {@code n + 1} until {@code depth} is reached.
      */
-    static class RecursiveTestLoader extends TestLoader {
+    class RecursiveTestLoader extends TestLoader {
 
         private final int depth;
 
@@ -261,7 +261,7 @@ public class WasmLoaderConcurrentTest {
      * Loads the echo guest: {@code put_result} returns exactly the bytes
      * {@code get_args} delivered, so results must match each call's own input.
      */
-    static class EchoTestLoader extends WasmLoader {
+    class EchoTestLoader extends WasmLoader {
 
         EchoTestLoader(final int poolSize) {
             super(EchoPlugin.class, null, poolSize);
@@ -277,7 +277,7 @@ public class WasmLoaderConcurrentTest {
 
         @Override
         protected long onPutResult(final long argId, final long addr, final int len) {
-            RESULTS.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
+            results.put(argId, new String(getMemory().readBytes((int) addr, len), StandardCharsets.UTF_8));
             return 0;
         }
     }
