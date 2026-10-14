@@ -133,6 +133,7 @@ The name reflects three ideas:
 ## Community and Support
 
 * [Contribute to ShenYu](https://shenyu.apache.org/community/contributor-guide)
+* [Split Java client migration and contribution guide](docs/split-client-contribution.md)
 * [Join the development mailing list](mailto:dev@shenyu.apache.org)
 
 ## Known Users
