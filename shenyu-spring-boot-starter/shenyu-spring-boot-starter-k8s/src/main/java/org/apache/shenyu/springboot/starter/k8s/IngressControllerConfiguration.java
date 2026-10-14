@@ -99,7 +99,6 @@ public class IngressControllerConfiguration {
     public ExecutorService ingressControllerExecutorService() {
         return Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "shenyu-k8s-ingress-controller");
-            thread.setDaemon(true);
             return thread;
         });
     }
@@ -174,7 +173,7 @@ public class IngressControllerConfiguration {
                 .withResyncPeriod(properties.getResyncPeriod())
                 .build());
         builder.withWorkerCount(properties.getWorkerCount());
-        return builder.withReconciler(endpointsReconciler).withName("ingressController").build();
+        return builder.withReconciler(endpointsReconciler).withName("endpointsController").build();
     }
 
     /**
