@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.junit.jupiter.api.Test;
@@ -28,7 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DiscoveryTransferTest {
+/**
+ * Test cases for discovery namespace mapping and upstream properties.
+ */
+public final class DiscoveryTransferTest {
 
     @Test
     void shouldAcceptNestedLabelsWithoutChangingProps() {
@@ -58,6 +63,33 @@ class DiscoveryTransferTest {
             assertTrue(DiscoveryTransfer.INSTANCE.mapToCommonUpstream(upstream(props)).isHealthCheckEnabled());
         }
         assertNull(DiscoveryTransfer.INSTANCE.mapToCommonUpstream(null));
+    }
+
+    @Test
+    public void testMapToDTOKeepsNamespaceId() {
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setId("1");
+        discoveryDO.setDiscoveryName("prod-registry");
+        discoveryDO.setDiscoveryType("zookeeper");
+        discoveryDO.setNamespaceId("ns-1");
+
+        DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
+
+        assertEquals("ns-1", discoveryDTO.getNamespaceId());
+        assertEquals("prod-registry", discoveryDTO.getName());
+        assertEquals("zookeeper", discoveryDTO.getType());
+    }
+
+    @Test
+    public void testMapToDTOWithoutNamespaceId() {
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setId("1");
+        discoveryDO.setDiscoveryName("prod-registry");
+        discoveryDO.setDiscoveryType("zookeeper");
+
+        DiscoveryDTO discoveryDTO = DiscoveryTransfer.INSTANCE.mapToDTO(discoveryDO);
+
+        assertNull(discoveryDTO.getNamespaceId());
     }
 
     private DiscoveryUpstreamData upstream(final String props) {
