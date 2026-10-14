@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
@@ -32,6 +31,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -176,6 +177,41 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void responseTooLargeDoesNotRetryTheSameProvider() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(responseTooLargeFailure());
+        });
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(), response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_TOO_LARGE,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void responseTooLargeCanUseConfiguredFallback() {
+        AtomicInteger calls = new AtomicInteger();
+        AtomicBoolean fallbackUsed = new AtomicBoolean();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            String requestBody = new String(request.getBody(), StandardCharsets.UTF_8);
+            if (!requestBody.contains("\"model\":\"fallback\"")) {
+                return Mono.error(responseTooLargeFailure());
+            }
+            fallbackUsed.set(true);
+            return Mono.just(response(200, Flux.just(bytes("fallback response"))));
+        });
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(config(false, "fallback")),
+                response -> response.getBody().then())).verifyComplete();
+        assertEquals(2, calls.get());
+        assertTrue(fallbackUsed.get());
+    }
+
+    @Test
     void neverRetriesOrFallsBackAfterBodyEmission() {
         AtomicInteger calls = new AtomicInteger();
         List<String> received = new ArrayList<>();
@@ -184,7 +220,7 @@ class AiProxyEngineOrchestrationTest {
             return Mono.just(response(200, Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
         });
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> consume(response, received)))
-                .expectError(AiProxyException.class).verify();
+                .expectError(AiTransportException.class).verify();
         assertEquals(1, calls.get());
         assertEquals(List.of("data: {\"first\":true}\n\n"), received);
     }
@@ -197,7 +233,7 @@ class AiProxyEngineOrchestrationTest {
             return Mono.error(networkFailure());
         });
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .expectError(AiProxyException.class).verify();
+                .expectError(AiTransportException.class).verify();
         assertEquals(3, calls.get());
     }
 
@@ -305,7 +341,11 @@ class AiProxyEngineOrchestrationTest {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
-    private AiProxyException networkFailure() {
-        return new AiProxyException(AiProxyException.Kind.TRANSPORT, "test failure", null);
+    private AiTransportException networkFailure() {
+        return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "test failure", null);
+    }
+
+    private AiTransportException responseTooLargeFailure() {
+        return new AiTransportException(AiTransportException.Kind.RESPONSE_TOO_LARGE, "test response too large", null);
     }
 }

@@ -129,19 +129,28 @@ public final class AiProxyEngine {
                     }).then();
                 })
                 .onErrorResume(error -> {
-                    boolean transportFailure = error instanceof AiTransportException
-                            || error instanceof AiProxyException
-                            && ((AiProxyException) error).getKind() == AiProxyException.Kind.TRANSPORT;
-                    boolean statusFailure = error instanceof UpstreamStatusFailure;
+                    final boolean transportFailure = error instanceof AiTransportException;
+                    final boolean statusFailure = error instanceof UpstreamStatusFailure;
                     if (emitted.get() || !(transportFailure || statusFailure)) {
                         return Mono.error(error);
                     }
-                    boolean retryable = transportFailure || retryableStatus(((UpstreamStatusFailure) error).status);
+                    final AiTransportException transportException = transportFailure
+                            ? (AiTransportException) error
+                            : null;
+                    final boolean retryable = Objects.nonNull(transportException)
+                            ? retryableTransportFailure(transportException)
+                            : retryableStatus(((UpstreamStatusFailure) error).status);
                     if (retryable && retries > 0) {
-                        Duration delay = prepared.stream() ? Duration.ZERO : retryBackoff.multipliedBy(1L << (3 - retries));
+                        final Duration delay = prepared.stream()
+                                ? Duration.ZERO
+                                : retryBackoff.multipliedBy(1L << (3 - retries));
                         return Mono.delay(delay).then(attempt(requestBody, prepared, fallback, retries - 1, consumer, emitted));
                     }
-                    if (fallback.isPresent()) {
+                    final boolean fallbackEligible =
+                            Objects.nonNull(transportException)
+                                    ? fallbackEligibleTransportFailure(transportException)
+                                    : statusFailure;
+                    if (fallbackEligible && fallback.isPresent()) {
                         return Mono.defer(() -> attempt(requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, consumer, emitted));
                     }
                     return Mono.error(error);
@@ -150,6 +159,32 @@ public final class AiProxyEngine {
 
     private boolean retryableStatus(final int status) {
         return status == 429 || (status >= 500 && status < 600);
+    }
+
+    private boolean retryableTransportFailure(final AiTransportException exception) {
+        return switch (exception.getKind()) {
+            case CONNECT_TIMEOUT,
+                 RESPONSE_HEADER_TIMEOUT,
+                 STREAM_IDLE_TIMEOUT,
+                 CONNECTION_RESET,
+                 IO_FAILURE -> true;
+            default -> false;
+        };
+    }
+
+    private boolean fallbackEligibleTransportFailure(final AiTransportException exception) {
+        return switch (exception.getKind()) {
+            case CONNECT_TIMEOUT,
+                 RESPONSE_HEADER_TIMEOUT,
+                 STREAM_IDLE_TIMEOUT,
+                 STREAM_DURATION_TIMEOUT,
+                 RESPONSE_TOO_LARGE,
+                 DNS_FAILURE,
+                 TLS_FAILURE,
+                 CONNECTION_RESET,
+                 IO_FAILURE,
+                 UNKNOWN -> true;
+        };
     }
 
     private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
