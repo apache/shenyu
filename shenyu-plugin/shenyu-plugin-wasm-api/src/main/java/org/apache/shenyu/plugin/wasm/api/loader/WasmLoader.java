@@ -136,15 +136,10 @@ public class WasmLoader implements AutoCloseable {
             }
 
             // Call _initialize if present (required by TinyGo -target wasm-unknown).
-            try {
-                ExportFunction initFn = instance.export("_initialize");
-                if (Objects.nonNull(initFn)) {
-                    initFn.apply();
-                    LOG.debug("Called _initialize for {}", wasmName);
-                }
-            } catch (com.dylibso.chicory.wasm.InvalidException e) {
-                LOG.debug("No _initialize export in {}", wasmName);
-            }
+            findWasmExtern("_initialize").ifPresent(initFn -> {
+                initFn.apply();
+                LOG.debug("Called _initialize for {}", wasmName);
+            });
 
             if (Objects.isNull(instance.memory())) {
                 throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
@@ -275,11 +270,20 @@ public class WasmLoader implements AutoCloseable {
      * @return an Optional containing the ExportFunction if found, otherwise empty
      */
     public Optional<ExportFunction> getWasmExtern(final String funcName) {
-        ExportFunction fn = instance.export(funcName);
-        if (Objects.isNull(fn)) {
-            LOG.debug("WASM export function '{}' not found in {}", funcName, wasmName);
+        return findWasmExtern(funcName);
+    }
+
+    private Optional<ExportFunction> findWasmExtern(final String funcName) {
+        // Chicory throws InvalidException for an absent export. Check the names first
+        // so optional hooks remain optional without hiding invalid export types.
+        var exports = instance.module().exportSection();
+        for (int i = 0; i < exports.exportCount(); i++) {
+            if (exports.getExport(i).name().equals(funcName)) {
+                return Optional.of(instance.export(funcName));
+            }
         }
-        return Optional.ofNullable(fn);
+        LOG.debug("WASM export function '{}' not found in {}", funcName, wasmName);
+        return Optional.empty();
     }
     
     /**

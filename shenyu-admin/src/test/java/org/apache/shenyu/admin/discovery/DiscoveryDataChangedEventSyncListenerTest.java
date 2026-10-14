@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -239,7 +240,9 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         discoveryDataChangedEventSyncListener.onChange(event);
 
         verify(discoveryUpstreamMapper).deleteByUrl("discoveryHandlerId", normalizedUrl);
-        verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(anyString());
+        // only the post-update reload of the sync payload may read the upstream list;
+        // the host/port fallback lookup must not run
+        verify(discoveryUpstreamMapper, times(1)).selectByDiscoveryHandlerId(anyString());
         verify(discoveryUpstreamMapper, never()).deleteByIds(anyList());
     }
 

@@ -18,9 +18,14 @@
 package org.apache.shenyu.common.concurrent;
 
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Can completely solve the OOM problem caused by {@link java.util.concurrent.LinkedBlockingQueue}.
@@ -49,6 +54,11 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
                                             final Instrumentation inst) {
         super(c);
         this.memoryLimiter = new MemoryLimiter(memoryLimit, inst);
+        for (final E element : this) {
+            if (!this.memoryLimiter.acquire(element)) {
+                throw new IllegalStateException("memory limit exceeded");
+            }
+        }
     }
 
     /**
@@ -131,6 +141,85 @@ public class MemoryLimitedLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> 
             memoryLimiter.release(o);
         }
         return success;
+    }
+
+    @Override
+    public int drainTo(final Collection<? super E> c) {
+        return drainTo(c, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public int drainTo(final Collection<? super E> c, final int maxElements) {
+        if (Objects.isNull(c)) {
+            throw new NullPointerException();
+        }
+        if (c == this) {
+            throw new IllegalArgumentException();
+        }
+        final List<E> drained = new ArrayList<>();
+        final int count = super.drainTo(drained, maxElements);
+        try {
+            for (final E element : drained) {
+                c.add(element);
+            }
+        } finally {
+            for (final E element : drained) {
+                memoryLimiter.release(element);
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        final Iterator<E> delegate = super.iterator();
+        return new Iterator<E>() {
+
+            private E current;
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public E next() {
+                current = delegate.next();
+                return current;
+            }
+
+            @Override
+            public void remove() {
+                delegate.remove();
+                memoryLimiter.release(current);
+            }
+        };
+    }
+
+    @Override
+    public boolean removeIf(final Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        boolean modified = false;
+        final Iterator<E> elements = iterator();
+        while (elements.hasNext()) {
+            if (filter.test(elements.next())) {
+                elements.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean removeAll(final Collection<?> c) {
+        Objects.requireNonNull(c);
+        return removeIf(c::contains);
+    }
+
+    @Override
+    public boolean retainAll(final Collection<?> c) {
+        Objects.requireNonNull(c);
+        return removeIf(element -> !c.contains(element));
     }
 
     @Override

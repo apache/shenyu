@@ -1,0 +1,139 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: native-sql-matrix
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-sql-matrix-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.scope.outputs.required }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine SQL scope without skipping the aggregate check
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python3 - <<'PY'
+          import os, re, subprocess
+          from pathlib import Path
+          base = os.environ.get('BASE_SHA', '')
+          required = True
+          if os.environ['EVENT_NAME'] != 'workflow_dispatch' and re.fullmatch(r'[0-9a-f]{40}', base) and set(base) != {'0'}:
+              subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', base], check=True)
+              paths = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()
+              required = any(path.startswith(('db/init/', 'db/upgrade/', 'shenyu-admin/'))
+                             or path in ('.github/workflows/native-sql-matrix.yml', '.github/scripts/native-sql-matrix.py',
+                                         '.github/scripts/test-native-sql-matrix.py') for path in paths)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('required=' + str(required).lower() + '\n')
+          PY
+
+  runner-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/test-native-sql-matrix.py
+
+  list-contract:
+    needs: scope
+    if: needs.scope.outputs.required == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Verify list/detail/export and index contracts
+        run: >-
+          ./mvnw -B -ntp -pl shenyu-admin -am test
+          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest
+          -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
+
+  native-sql:
+    needs: [scope, runner-tests]
+    if: needs.scope.outputs.required == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        dialect: [mysql, ob, pg, og, oracle]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable 2.7.1 baseline
+        run: git fetch --no-tags --depth=1 origin 218c5634ebffb1f0ce7e8ea921b85cd5a633cde7
+      - name: Run native fresh-install and upgrade checks
+        env:
+          DIALECT: ${{ matrix.dialect }}
+          RESULTS: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
+        run: python3 .github/scripts/native-sql-matrix.py --dialect "$DIALECT" --output "$RESULTS"
+      - name: Upload results and database startup logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sql-matrix-${{ matrix.dialect }}
+          path: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
+          if-no-files-found: warn
+      - name: Remove this job's test containers
+        if: always()
+        env:
+          DIALECT: ${{ matrix.dialect }}
+        run: docker ps -aq --filter "name=^/shenyu-sql-${DIALECT}-" | xargs -r docker rm -f
+
+  sql-matrix:
+    name: sql-matrix
+    if: always()
+    needs: [scope, runner-tests, list-contract, native-sql]
+    runs-on: ubuntu-latest
+    env:
+      SCOPE_RESULT: ${{ needs.scope.result }}
+      RUNNER_RESULT: ${{ needs.runner-tests.result }}
+      REQUIRED: ${{ needs.scope.outputs.required }}
+      LIST_RESULT: ${{ needs.list-contract.result }}
+      SQL_RESULT: ${{ needs.native-sql.result }}
+    steps:
+      - name: Require every applicable database and list contract
+        run: |
+          python3 - <<'PY'
+          import os
+          assert os.environ['SCOPE_RESULT'] == 'success', 'Scope detection failed'
+          assert os.environ['RUNNER_RESULT'] == 'success', 'SQL harness tests failed'
+          if os.environ['REQUIRED'] == 'true':
+              assert os.environ['LIST_RESULT'] == 'success', 'List contract failed or was canceled/skipped'
+              assert os.environ['SQL_RESULT'] == 'success', 'Native SQL matrix failed or was canceled/skipped'
+          else:
+              assert os.environ['REQUIRED'] == 'false', 'Missing scope output'
+              assert os.environ['LIST_RESULT'] == os.environ['SQL_RESULT'] == 'skipped', 'Unexpected SQL result'
+              print('No SQL/Admin changes; native matrix is not applicable.')
+          PY

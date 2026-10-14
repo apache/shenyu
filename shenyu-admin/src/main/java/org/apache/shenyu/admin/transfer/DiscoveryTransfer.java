@@ -168,6 +168,7 @@ public enum DiscoveryTransfer {
             discoveryDTO.setServerList(data.getServerList());
             discoveryDTO.setPluginName(data.getPluginName());
             discoveryDTO.setProps(data.getProps());
+            discoveryDTO.setNamespaceId(data.getNamespaceId());
             return discoveryDTO;
         }).orElse(null);
     }
@@ -194,6 +195,7 @@ public enum DiscoveryTransfer {
         return Optional.ofNullable(discoveryUpstreamDO).map(data -> {
             DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
             discoveryUpstreamData.setId(data.getId());
+            discoveryUpstreamData.setNamespaceId(data.getNamespaceId());
             discoveryUpstreamData.setProtocol(data.getProtocol());
             discoveryUpstreamData.setUrl(data.getUpstreamUrl());
             discoveryUpstreamData.setStatus(data.getUpstreamStatus());

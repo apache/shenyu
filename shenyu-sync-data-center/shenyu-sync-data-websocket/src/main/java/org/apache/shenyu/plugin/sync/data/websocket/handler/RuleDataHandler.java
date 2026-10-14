@@ -49,8 +49,7 @@ public class RuleDataHandler extends AbstractDataHandler<RuleData> {
         if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
             throw new IllegalArgumentException("Snapshot row namespace does not match the connection");
         }
-        pluginDataSubscriber.refreshRuleDataNamespace(namespaceId);
-        doUpdate(dataList);
+        pluginDataSubscriber.applyRuleDataSnapshot(namespaceId, dataList);
     }
 
     @Override

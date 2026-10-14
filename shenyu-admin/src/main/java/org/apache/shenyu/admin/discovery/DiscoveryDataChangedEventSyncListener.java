@@ -110,6 +110,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             default:
                 throw new IllegalStateException("DiscoveryDataChangedEventSyncListener find IllegalState");
         }
+        syncData.setUpstreamDataList(discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
+                .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList()));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
@@ -151,6 +153,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         upstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(discoveryUpstreamDO -> {
             try {
                 discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
+                discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                 discoveryUpstreamDO.setUpstreamUrl(CommonUpstreamUtils.normalizeUrl(discoveryUpstreamDO.getUpstreamUrl()));
                 int effect = discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(discoveryUpstreamDO);
                 if (effect == 0) {
