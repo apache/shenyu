@@ -54,6 +54,13 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303973', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 
+-- add indexes to speed up the admin plugin snapshot and permission queries
+CREATE INDEX IF NOT EXISTS "idx_selector_plugin_id" ON "public"."selector" USING btree ("plugin_id");
+CREATE INDEX IF NOT EXISTS "idx_permission_object_id" ON "public"."permission" USING btree ("object_id");
+CREATE INDEX IF NOT EXISTS "idx_permission_resource_id" ON "public"."permission" USING btree ("resource_id");
+CREATE INDEX IF NOT EXISTS "idx_resource_parent_id" ON "public"."resource" USING btree ("parent_id");
+CREATE INDEX IF NOT EXISTS "idx_user_role_user_id" ON "public"."user_role" USING btree ("user_id");
+
 -- Agent Gateway: keep upgrade seeds consistent with the fresh-install schema.
 INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
 INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
@@ -81,3 +88,12 @@ INSERT INTO "public"."permission" VALUES ('1960000000000001029', '13463585604272
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 -- add index to speed up the meta data path uniqueness check
 CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree ("namespace_id","path");
+
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE FROM data_permission duplicate_permission
+USING data_permission retained_permission
+WHERE duplicate_permission.user_id = retained_permission.user_id
+  AND duplicate_permission.data_type = retained_permission.data_type
+  AND duplicate_permission.data_id = retained_permission.data_id
+  AND duplicate_permission.id > retained_permission.id;
+CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");

@@ -32,7 +32,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-core</artifactId>
+            <artifactId>shenyu-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -2,10 +2,64 @@
 
 ### API Changes
 
+- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
+  deprecated for transfer to plugin-store (#7599). All four remain available in
+  the release carrying this notice. Removal requires dev-list consensus, a full
+  released deprecation cycle, compatible external artifact publication and an
+  announced rollback window; no removal release is scheduled. See the
+  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
+  keys and `ApolloPathConstants` remain compatibility contracts.
+
+- `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
+  serialization identifier and existing behavior are retained for downstream
+  source and binary compatibility. No removal release is scheduled; a future
+  removal requires a public API compatibility review and advance release notice.
+  For caches accessed through the `Map` API, consider the existing
+  `WindowTinyLFUMap` with an explicit maximum entry count, for example
+  `new WindowTinyLFUMap<>(maximumEntries)`. Choose that count for the application's
+  working set: the old `maxFreeMemory` argument is a free-memory threshold in
+  bytes, not an entry count. Review the different eviction policy, non-null
+  key/value requirements and absence of `LRUMap`-specific operations. Code that
+  relies on memory-pressure eviction should retain `MemorySafeLRUMap` until an
+  equivalent policy is chosen; `WindowTinyLFUMap` does not implement that
+  threshold. (#7444)
+
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
 ### Behavior Changes
 
+- HTTP client registration now treats non-success Admin responses as failures,
+  using the same bounded failback policy as transport errors (18 retry attempts
+  per pending task). The text response contract does not reliably distinguish
+  transient failures from permanent validation errors, so both consume that
+  budget. Heartbeat failures are reported to the caller. Unregistration retains
+  its existing policy: any successful Admin response is sufficient, and failure
+  at every Admin is reported without adding a registration retry. (#7440)
+
+- Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
+  deletion with strict result-copy handling. Complete JSON text copies are rebuilt
+  from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
+  extensions are refused when a plan is active; disabled plans retain prior behavior.
+  This is declared-field filtering, not arbitrary sensitive-value detection or
+  global log redaction. Advertised outputSchema
+  remains unchanged and filtered results must satisfy the supported bounded
+  Draft 2020-12 contract. Filtering/schema failures return HTTP 502 / JSON-RPC
+  `-32024` without an unfiltered fallback; external schema resource loading is denied.
+
+- Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
+  accepts only the `aggregation` field; blank config and `{}` remain valid.
+  Previously stored arbitrary fields must be removed or migrated before the next
+  save/import, even when only toggling another plugin property. Other plugins are
+  unaffected. An unavailable enabled remote catalog fails the whole MCP entry,
+  including local tools, with HTTP 503 / JSON-RPC `-32023`; no local-only fallback
+  is implicit. Outbound calls use fixed service credentials without Agent identity
+  headers; request context and identity remain inside the gateway.
+
+- Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
+  Enabling the plugin does not grant MCP access: deployments must supply a trusted
+  `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without
+  a trusted identity adapter, MCP requests are denied with HTTP 401. Existing LLM
+  forwarding and independently configured legacy MCP endpoints remain unchanged.
 - Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
   The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
   but can discard a newer registration failure arriving between those calls.
@@ -30,6 +84,7 @@
   to disable their deadline as well, and review route, retry and caller deadlines.
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
 
 ## [v2.7.0]- 2024-12-23
 

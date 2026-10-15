@@ -17,26 +17,37 @@
 
 package org.apache.shenyu.registry.eureka;
 
+import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.EurekaEventListener;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
+import org.apache.shenyu.registry.api.event.ChangedEventListener;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public final class EurekaInstanceRegisterRepositoryTest {
 
@@ -102,6 +113,36 @@ public final class EurekaInstanceRegisterRepositoryTest {
         repository.selectInstances(instance.getAppName());
         repository.close();
         assertTrue(eurekaEventStorage.isEmpty());
+    }
+
+    @Test
+    public void testWatchInstancesKeepsPollingAfterFailure() throws Exception {
+        InstanceInfo info = mock(InstanceInfo.class);
+        when(info.getAppName()).thenReturn(instance.getAppName());
+        when(info.getIPAddr()).thenReturn("10.0.0.1");
+        when(info.getPort()).thenReturn(8080);
+        when(info.getInstanceId()).thenReturn("instance-1");
+        when(info.getMetadata()).thenReturn(new HashMap<>());
+        when(info.isPortEnabled(InstanceInfo.PortType.SECURE)).thenReturn(false);
+        when(info.getStatus()).thenReturn(InstanceInfo.InstanceStatus.UP);
+
+        EurekaClient failingThenRecovering = mock(EurekaClient.class);
+        when(failingThenRecovering.getApplicationInfoManager()).thenReturn(mock(ApplicationInfoManager.class));
+        when(failingThenRecovering.getInstancesByVipAddressAndAppName(nullable(String.class), eq(instance.getAppName()), anyBoolean()))
+                .thenReturn(new ArrayList<>())
+                .thenThrow(new RuntimeException("eureka temporarily unavailable"))
+                .thenReturn(Collections.singletonList(info));
+
+        Field eurekaClientField = repository.getClass().getDeclaredField("eurekaClient");
+        eurekaClientField.setAccessible(true);
+        eurekaClientField.set(repository, failingThenRecovering);
+
+        ChangedEventListener listener = mock(ChangedEventListener.class);
+        repository.watchInstances(instance.getAppName(), listener);
+
+        verify(listener, timeout(5000).atLeastOnce())
+                .onEvent(eq(instance.getAppName()), anyString(), eq(ChangedEventListener.Event.ADDED));
+        repository.close();
     }
 
     @AfterEach

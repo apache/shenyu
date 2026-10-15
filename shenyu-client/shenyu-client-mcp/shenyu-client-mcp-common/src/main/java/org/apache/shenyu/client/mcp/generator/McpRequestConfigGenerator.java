@@ -17,14 +17,9 @@
 
 package org.apache.shenyu.client.mcp.generator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.shenyu.client.mcp.common.constants.OpenApiConstants;
-import org.apache.shenyu.client.mcp.common.constants.RequestTemplateConstants;
 import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig;
 
-import java.util.Objects;
 
 
 /**
@@ -34,67 +29,6 @@ public class McpRequestConfigGenerator {
 
     public static JsonObject generateRequestConfig(final JsonObject openApiJson, final ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
 
-        // requestConfig
-        JsonObject root = new JsonObject();
-
-        // requestTemplate
-        JsonObject requestTemplate = new JsonObject();
-        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
-
-        // url
-        JsonObject paths = openApiJson.get(OpenApiConstants.OPEN_API_PATH_KEY).getAsJsonObject();
-        String path = null;
-        for (String methodKey : paths.keySet()) {
-            path = methodKey;
-            break;
-        }
-        requestTemplate.addProperty(RequestTemplateConstants.URL_KEY, path);
-
-        // method
-        JsonObject method = paths.get(path).getAsJsonObject();
-        String methodType = null;
-        for (String methodKey : method.keySet()) {
-            methodType = methodKey;
-            break;
-        }
-        requestTemplate.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
-
-        // argsPosition
-        JsonObject argsPosition = new JsonObject();
-        JsonObject methodTypeJson = method.getAsJsonObject(methodType);
-        JsonArray parameters = methodTypeJson.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
-        if (Objects.nonNull(parameters)) {
-            for (JsonElement parameter : parameters) {
-                JsonObject paramObj = parameter.getAsJsonObject();
-
-                if (paramObj.has(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY)
-                        && paramObj.has(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY)) {
-
-                    String name = paramObj.get(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_NAME_KEY).getAsString();
-                    String inValue = paramObj.get(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY).getAsString();
-
-                    argsPosition.addProperty(name, inValue);
-                }
-            }
-        }
-        // Keep root-level argsPosition as canonical format used by gateway parser.
-        root.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition.deepCopy());
-        // Keep requestTemplate-level argsPosition for backward compatibility.
-        requestTemplate.add(RequestTemplateConstants.ARGS_POSITION_KEY, argsPosition);
-
-        // argsToJsonBody
-        requestTemplate.addProperty(RequestTemplateConstants.BODY_JSON_KEY, shenyuMcpRequestConfig.getBodyToJson());
-
-        // header
-        JsonArray headers = new JsonArray();
-        shenyuMcpRequestConfig.getHeaders().forEach((key, value) -> {
-            JsonObject headerJson = new JsonObject();
-            headerJson.addProperty("key", key);
-            headerJson.addProperty("value", value);
-            headers.add(headerJson);
-        });
-        requestTemplate.add(RequestTemplateConstants.HEADERS_KEY, headers);
-
-        return root;
+        return org.apache.shenyu.register.mcp.generator.McpRequestConfigGenerator.generateRequestConfig(openApiJson, shenyuMcpRequestConfig);
     }
 }

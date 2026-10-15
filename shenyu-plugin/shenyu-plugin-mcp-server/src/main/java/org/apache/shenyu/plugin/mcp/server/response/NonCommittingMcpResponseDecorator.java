@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
@@ -58,6 +59,8 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     private final JsonObject responseTemplate;
 
+    private final StringBuilder body = new StringBuilder();
+
     /**
      * Constructs a new non-committing MCP response decorator.
      *
@@ -82,8 +85,9 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         LOG.debug("Processing writeWith for session: {}", sessionId);
 
         return Flux.from(body)
-                .collectList()
-                .doOnNext(this::processResponseData)
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                .doOnNext(this::appendBuffer)
+                .doOnComplete(this::completeResponseFuture)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeWith for session: {}", sessionId))
                 .doOnError(error -> handleProcessingError("writeWith", error));
@@ -94,9 +98,10 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         LOG.debug("Processing writeAndFlushWith for session: {}", sessionId);
 
         return Flux.from(body)
-                .flatMap(Flux::from)
-                .collectList()
-                .doOnNext(this::processResponseData)
+                .concatMap(Flux::from)
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                .doOnNext(this::appendBuffer)
+                .doOnComplete(this::completeResponseFuture)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeAndFlushWith for session: {}", sessionId))
                 .doOnError(error -> handleProcessingError("writeAndFlushWith", error));
@@ -113,18 +118,38 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
     }
 
     /**
-     * Processes the collected response data buffers and completes the response future.
+     * Appends a data buffer chunk to the accumulated response body as it is emitted,
+     * so that chunks are processed incrementally instead of being buffered as a list first.
      *
-     * <p>Aggregates all data buffers into a single response string, applies response template
-     * transformations if configured, and completes the response future with the processed result.
-     *
-     * @param dataBuffers the collected response data buffers
+     * @param buffer the emitted data buffer chunk
      */
-    private void processResponseData(final java.util.List<? extends DataBuffer> dataBuffers) {
+    private void appendBuffer(final DataBuffer buffer) {
         try {
-            final String responseBody = aggregateDataBuffers(dataBuffers);
-            LOG.debug("Captured response data for session {}, length: {} chars", sessionId, responseBody.length());
+            final byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            synchronized (body) {
+                body.append(new String(bytes, StandardCharsets.UTF_8));
+            }
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
+    }
 
+    /**
+     * Completes the response future with the accumulated response data after all chunks
+     * have been received.
+     *
+     * <p>Applies response template transformations if configured, and completes the response
+     * future with the processed result.
+     */
+    private void completeResponseFuture() {
+        final String responseBody;
+        synchronized (body) {
+            responseBody = body.toString();
+        }
+        LOG.debug("Captured response data for session {}, length: {} chars", sessionId, responseBody.length());
+
+        try {
             final String processedResponse = processResponse(responseBody);
             LOG.debug("Processed response for session {}, final length: {} chars", sessionId, processedResponse.length());
 
@@ -135,24 +160,6 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
             LOG.error("Error processing response data for session {}: {}", sessionId, e.getMessage(), e);
             responseFuture.completeExceptionally(e);
         }
-    }
-
-    /**
-     * Aggregates multiple data buffers into a single response string.
-     *
-     * @param dataBuffers the list of data buffers to aggregate
-     * @return the aggregated response string
-     */
-    private String aggregateDataBuffers(final java.util.List<? extends DataBuffer> dataBuffers) {
-        final StringBuilder responseBuilder = new StringBuilder();
-
-        for (DataBuffer buffer : dataBuffers) {
-            final byte[] bytes = new byte[buffer.readableByteCount()];
-            buffer.read(bytes);
-            responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
-        }
-
-        return responseBuilder.toString();
     }
 
     /**

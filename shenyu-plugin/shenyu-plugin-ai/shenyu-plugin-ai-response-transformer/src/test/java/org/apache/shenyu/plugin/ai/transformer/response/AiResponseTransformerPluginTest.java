@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -62,12 +64,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
 
@@ -178,6 +182,55 @@ class AiResponseTransformerPluginTest {
             assertEquals(1, gzipStreams.constructed().size());
             verify(gzipStreams.constructed().get(0)).close();
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2})
+    void testEmptyResponseIsCommitted(final int mode) {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.NO_CONTENT);
+        response.getHeaders().set("X-Original", "retained");
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        ChatClient client = mock(ChatClient.class);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, client);
+        Mono<Void> completion;
+        if (mode == 0) {
+            completion = decorator.writeWith(Flux.empty());
+        } else if (mode == 1) {
+            completion = decorator.writeAndFlushWith(Flux.empty());
+        } else {
+            completion = decorator.writeAndFlushWith(Flux.just(Flux.empty(), Flux.empty()));
+        }
+        StepVerifier.create(completion).verifyComplete();
+        assertTrue(response.isCommitted());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals("retained", response.getHeaders().getFirst("X-Original"));
+        verifyNoInteractions(template, client);
+    }
+
+    @Test
+    void testWriteAndFlushWithTransformsResponse() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"transformed\":true}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer first = response.bufferFactory().wrap("orig".getBytes(StandardCharsets.UTF_8));
+        DataBuffer second = response.bufferFactory().wrap("inal".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeAndFlushWith(Flux.just(Flux.just(first), Flux.just(second))))
+                .verifyComplete();
+
+        StepVerifier.create(response.getBodyAsString())
+                .expectNext("{\"transformed\":true}")
+                .verifyComplete();
     }
 
     @Test

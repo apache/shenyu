@@ -18,13 +18,36 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
+import io.opentelemetry.api.OpenTelemetry;
+import org.springframework.boot.test.context.FilteredClassLoader;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 class AgentGatewayPluginConfigurationTest {
 
@@ -40,6 +63,55 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
+    void tracingIsOffByDefaultEvenWithApplicationTelemetry() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(OpenTelemetry.class, OpenTelemetry::noop)
+                .run(context -> assertFalse(context.containsBean("agentGatewayCallTracer")));
+    }
+
+    @Test
+    void enabledTracingUsesApplicationTelemetry() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean(OpenTelemetry.class, OpenTelemetry::noop)
+                .run(context -> {
+                    assertTrue(context.getBean(AgentMcpCallTracer.class) instanceof OpenTelemetryAgentMcpCallTracer);
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    assertEquals(context.getBean(AgentMcpCallTracer.class), ReflectionTestUtils.getField(handler, "tracer"));
+                });
+    }
+
+    @Test
+    void enabledTracingRequiresApplicationTelemetry() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void optionalTelemetryApiIsNotRequiredWhenDisabled() {
+        contextRunner.withClassLoader(new FilteredClassLoader("io.opentelemetry"))
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .run(context -> {
+                    assertNotNull(context.getBean(AgentGatewayPlugin.class));
+                    assertFalse(context.containsBean("agentGatewayCallTracer"));
+                });
+    }
+
+    @Test
+    void explicitlyEnabledTracingCannotSilentlyDisappearWithoutApi() {
+        contextRunner.withClassLoader(new FilteredClassLoader("io.opentelemetry"))
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void customTracingBridgeDoesNotRequireAnotherSdk() {
+        AgentMcpCallTracer tracer = ignored -> mock(AgentMcpCallTracer.Trace.class);
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean(AgentMcpCallTracer.class, () -> tracer)
+                .run(context -> assertEquals(tracer, context.getBean(AgentMcpCallTracer.class)));
+    }
+
+    @Test
     void shouldAssemblePluginWhenEnabled() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
                 .run(context -> {
@@ -47,5 +119,86 @@ class AgentGatewayPluginConfigurationTest {
                     assertTrue(context.getBean(ShenyuPlugin.class) instanceof AgentGatewayPlugin);
                     assertTrue(context.getBean("agentGatewayPluginDataHandler") instanceof PluginDataHandler);
                 });
+    }
+
+    @Test
+    void shouldDenyMcpWhenNoSecurityAdapterIsRegistered() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").run(context -> {
+            AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+            MockServerWebExchange exchange = exchange();
+            StepVerifier.withVirtualTime(() -> handler.handle(exchange, AgentGatewayMcpConfig.parse(new JsonObject(), true),
+                    new AgentTrafficContext("server-id", "mcp", "selector", "rule"), 1)).verifyComplete();
+            assertEquals(401, exchange.getResponse().getStatusCode().value());
+        });
+    }
+
+    @Test
+    void shouldWireExplicitToolAndTrustedSecurityAdapter() {
+        AgentToolProvider tool = mock(AgentToolProvider.class);
+        when(tool.getName()).thenReturn("read");
+        when(tool.getDescription()).thenReturn("Read a resource");
+        when(tool.getInputSchema()).thenReturn(JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject());
+        when(tool.getRequiredClientCapabilities()).thenReturn(JsonParser.parseString("{}").getAsJsonObject());
+        when(tool.invoke(any())).thenReturn(Mono.just(new JsonObject()));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentToolProvider.class, () -> tool)
+                .withBean(AgentMcpSecurityResolver.class, () -> next -> Mono.just(new AgentMcpIdentity("verified", Set.of("read"))))
+                .run(context -> {
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    MockServerWebExchange exchange = exchange();
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedTools\":[\"read\"]}"), true);
+                    StepVerifier.withVirtualTime(() -> handler.handle(exchange, config,
+                            new AgentTrafficContext("server-id", "mcp", "selector", "rule"), 1)).verifyComplete();
+                    assertEquals(200, exchange.getResponse().getStatusCode().value());
+                    assertTrue(exchange.getResponse().getBodyAsString().block().contains("\"isError\":false"));
+                });
+    }
+
+    @Test
+    void shouldFailAssemblyForAmbiguousSecurityAdapters() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean("firstSecurity", AgentMcpSecurityResolver.class, () -> next -> Mono.empty())
+                .withBean("secondSecurity", AgentMcpSecurityResolver.class, () -> next -> Mono.empty())
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void shouldRequireDeploymentAllowlistForAggregation() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void shouldAssembleOptInCatalogAndWireTrustedPluginSync() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp")
+                .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
+                    throw new SecurityException("Missing fixture credentials");
+                }).run(context -> {
+                    final var catalog = context.getBean(org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog.class);
+                    var event = new org.apache.shenyu.common.dto.PluginData();
+                    event.setEnabled(true);
+                    event.setConfig("{}");
+                    context.getBean(PluginDataHandler.class).handlerPlugin(event);
+                    assertNotNull(catalog);
+                    assertEquals(0, catalog.diagnostics().get("clients"));
+                });
+    }
+
+    @Test
+    void shouldRejectDomainAllowlistWithoutRelaxingTlsPolicy() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://example.com:443/mcp")
+                .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
+                    throw new SecurityException("unused");
+                }).run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    private MockServerWebExchange exchange() {
+        return MockServerWebExchange.from(MockServerHttpRequest.post("/agent/mcp")
+                .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")
+                .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "tools/call").header("Mcp-Name", "read")
+                .body("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"read\",\"_meta\":{"
+                        + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}"));
     }
 }

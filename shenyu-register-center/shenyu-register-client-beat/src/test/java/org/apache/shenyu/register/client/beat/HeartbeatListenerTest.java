@@ -20,7 +20,7 @@ package org.apache.shenyu.register.client.beat;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -182,9 +182,6 @@ class HeartbeatListenerTest {
                 }
             });
 
-            // Wait a bit to allow the heartbeat to be processed
-            Thread.sleep(100);
-
             // Should be called for both servers in serverList
             registerUtilsMockedStatic.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()),
                     Mockito.times(2));
@@ -233,9 +230,6 @@ class HeartbeatListenerTest {
             assertTrue(!executor.isShutdown());
 
             heartbeatListener.onShutdown();
-
-            // Wait a bit for shutdown to complete
-            Thread.sleep(100);
 
             assertTrue(executor.isShutdown());
         }

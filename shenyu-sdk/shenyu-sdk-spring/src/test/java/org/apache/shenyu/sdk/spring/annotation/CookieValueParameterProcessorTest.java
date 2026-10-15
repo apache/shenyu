@@ -60,6 +60,16 @@ public class CookieValueParameterProcessorTest {
     }
 
     @Test
+    public void processArgumentNameOnlyTest() {
+        final CookieValue cookie = spy(CookieValue.class);
+        when(cookie.value()).thenReturn("");
+        when(cookie.name()).thenReturn("name2");
+        processor.processArgument(request, cookie, "two");
+
+        assertTrue(request.getHeaders().get(HttpHeaders.COOKIE).contains("name2=two"), "cookie name alias resolve error");
+    }
+
+    @Test
     public void processArgumentNullTest() {
         final CookieValue cookie = spy(CookieValue.class);
         when(cookie.value()).thenReturn("");

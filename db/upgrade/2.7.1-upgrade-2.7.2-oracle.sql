@@ -54,6 +54,13 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);
 
+-- add indexes to speed up the admin plugin snapshot and permission queries
+create index idx_selector_plugin_id on selector (plugin_id);
+create index idx_permission_object_id on permission (object_id);
+create index idx_permission_resource_id on permission (resource_id);
+create index idx_resource_parent_id on "resource" (parent_id);
+create index idx_user_role_user_id on user_role (user_id);
+
 -- Agent Gateway: keep upgrade seeds consistent with the fresh-install schema.
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
 VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, sysdate, sysdate);
@@ -95,3 +102,14 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespa
 VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0);
 -- add index to speed up the meta data path uniqueness check
 create index idx_meta_data_namespace_path on meta_data (namespace_id, path);
+
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE FROM data_permission duplicate_permission
+WHERE EXISTS (
+    SELECT 1 FROM data_permission retained_permission
+    WHERE duplicate_permission.user_id = retained_permission.user_id
+      AND duplicate_permission.data_type = retained_permission.data_type
+      AND duplicate_permission.data_id = retained_permission.data_id
+      AND duplicate_permission.id > retained_permission.id
+);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);

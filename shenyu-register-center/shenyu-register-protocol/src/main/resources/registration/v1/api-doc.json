@@ -1,0 +1,19 @@
+{
+  "contextPath": "/protocol-v1",
+  "apiPath": "/protocol-v1/orders",
+  "httpMethod": 0,
+  "consume": "application/json",
+  "produce": "application/json",
+  "version": "v1",
+  "rpcType": "http",
+  "state": 1,
+  "ext": "{\"host\": \"127.0.0.1\", \"port\": 18080, \"addPrefixed\": false}",
+  "apiOwner": "protocol-fixture",
+  "apiDesc": "Orders",
+  "apiSource": 1,
+  "document": "{}",
+  "eventType": "REGISTER",
+  "tags": [
+    "orders"
+  ]
+}

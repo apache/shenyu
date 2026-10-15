@@ -1,0 +1,7 @@
+{
+  "instanceIp": "127.0.0.1",
+  "instancePort": "19195",
+  "instanceType": "bootstrap",
+  "namespaceId": "649330b6-c2d7-4edc-be8e-8a54df9eb385",
+  "instanceInfo": "{\"arch\":\"test\",\"availableProcessors\":1}"
+}

@@ -54,6 +54,10 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', null, 197, 0, '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 
+-- add indexes to speed up the admin plugin snapshot and permission queries
+ALTER TABLE `selector` ADD INDEX `idx_selector_plugin_id` (`plugin_id`) USING BTREE;
+ALTER TABLE `permission` ADD INDEX `idx_permission_resource_id` (`resource_id`) USING BTREE;
+
 -- Agent Gateway: keep upgrade seeds consistent with the fresh-install schema.
 INSERT INTO `plugin` VALUES ('68', 'agentGateway', null, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', null);
 INSERT INTO `plugin_handle` VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
@@ -92,7 +96,14 @@ CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
 CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
 CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
 CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
-CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE duplicate_permission FROM data_permission duplicate_permission
+JOIN data_permission retained_permission
+  ON duplicate_permission.user_id = retained_permission.user_id
+ AND duplicate_permission.data_type = retained_permission.data_type
+ AND duplicate_permission.data_id = retained_permission.data_id
+ AND duplicate_permission.id > retained_permission.id;
+CREATE UNIQUE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
 CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
 CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
 CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);
