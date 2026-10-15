@@ -29,7 +29,9 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,6 +63,19 @@ public final class AbstractWasmPluginDataHandlerTest {
         when(ruleData.getId()).thenReturn("RULE_1");
         when(ruleData.getSelectorId()).thenReturn("SELECTOR_1");
         when(ruleData.getPluginName()).thenReturn("SHENYU");
+    }
+
+
+    /** Default argument-id generators must never collide. */
+    @Test
+    public void defaultArgumentIdsAreUniqueAcrossTypesAndCalls() {
+        final DefaultIdGoWasmPluginDataHandler handler = new DefaultIdGoWasmPluginDataHandler();
+        final Set<Long> ids = new HashSet<>();
+        ids.add(handler.getPluginArgumentId(pluginData));
+        ids.add(handler.getPluginArgumentId(pluginData));
+        ids.add(handler.getSelectorArgumentId(selectorData));
+        ids.add(handler.getRuleArgumentId(ruleData));
+        assertEquals(4, ids.size(), "default argument ids must be unique across types and calls");
     }
 
     /** Go WASM handlerPlugin test. */
@@ -195,6 +210,16 @@ public final class AbstractWasmPluginDataHandlerTest {
         protected Long getSelectorArgumentId(final SelectorData selectorData) {
             return ID.incrementAndGet();
         }
+
+        @Override
+        public String pluginNamed() {
+            return "SHENYU_TEST";
+        }
+    }
+
+
+    /** Loads a copy of the Go fixture but keeps the default argument-id generators. */
+    static class DefaultIdGoWasmPluginDataHandler extends AbstractWasmPluginDataHandler {
 
         @Override
         public String pluginNamed() {

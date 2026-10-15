@@ -107,6 +107,7 @@ public class DefaultDiscoveryProcessorTest {
         MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);
         ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
         mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(extensionLoader);
+        when(extensionLoader.getExtensionClasses1()).thenReturn(Collections.singletonMap(type, ShenyuInstanceRegisterRepository.class));
         when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
         doNothing().when(shenyuDiscoveryService).init(any(RegisterConfig.class));
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
@@ -136,6 +137,36 @@ public class DefaultDiscoveryProcessorTest {
             throw new RuntimeException(e);
         }
         mocked.close();
+    }
+
+    @Test
+    public void testCreateSeparateDiscoveriesOfSameType() throws Exception {
+        ShenyuInstanceRegisterRepository first = mock(ShenyuInstanceRegisterRepository.class);
+        ShenyuInstanceRegisterRepository second = mock(ShenyuInstanceRegisterRepository.class);
+        try (MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class)) {
+            ExtensionLoader<ShenyuInstanceRegisterRepository> loader = mock(ExtensionLoader.class);
+            mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(loader);
+            when(loader.getExtensionClasses1()).thenReturn(Collections.singletonMap("zookeeper", ShenyuInstanceRegisterRepository.class));
+            when(loader.getJoin("zookeeper")).thenReturn(first, second);
+            DiscoveryDO firstDiscovery = new DiscoveryDO();
+            firstDiscovery.setId("first-discovery");
+            firstDiscovery.setDiscoveryType("zookeeper");
+            firstDiscovery.setProps("{}");
+            firstDiscovery.setServerList("first:2181");
+            DiscoveryDO secondDiscovery = new DiscoveryDO();
+            secondDiscovery.setId("second-discovery");
+            secondDiscovery.setDiscoveryType("zookeeper");
+            secondDiscovery.setProps("{}");
+            secondDiscovery.setServerList("second:2181");
+            defaultDiscoveryProcessor.createDiscovery(firstDiscovery);
+            defaultDiscoveryProcessor.createDiscovery(secondDiscovery);
+            verify(first).init(new RegisterConfig("zookeeper", "first:2181", new Properties()));
+            verify(second).init(new RegisterConfig("zookeeper", "second:2181", new Properties()));
+            defaultDiscoveryProcessor.removeDiscovery(firstDiscovery);
+            verify(first).close();
+            defaultDiscoveryProcessor.removeDiscovery(secondDiscovery);
+            verify(second).close();
+        }
     }
 
     @Test

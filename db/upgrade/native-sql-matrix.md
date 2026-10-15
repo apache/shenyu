@@ -39,6 +39,23 @@ flow still reads its own `db/init/ob/schema.sql` **at the immutable released
 baseline commit**, then executes the unchanged `*-ob.sql` upgrade script.
 The historical baseline is not a current initialization file.
 
+PostgreSQL and openGauss fresh installations both execute
+`db/init/pg/create-table.sql`, without a compatibility overlay. The openGauss
+upgrade flow still reads its original `db/init/og/create-table.sql` **at the
+immutable released baseline commit**, then executes the unchanged `*-og.sql`
+upgrade script. That historical path is not a current initialization file.
+Storage Compose and Kubernetes E2E initialization also use the shared source.
+
+The PostgreSQL/openGauss fresh flows require the declared columns/nullability, primary keys,
+secondary indexes and unique indexes. They reject orphan seed relations,
+duplicate plugin-handle/permission/namespace-plugin natural keys and invalid
+configuration JSON; require admin permissions for every resource and a default
+namespace relation for every plugin; and compare the reconciled plugin and
+default-namespace configs. Discovery-upstream uniqueness is checked by native
+catalog inspection and an actual duplicate insert that must fail on the intended
+index. See the [initialization guide](../init/init-guide.md) for reconciliation
+decisions and installation commands.
+
 Both flows insert a plugin with a nonempty binary JAR including zero/high-bit
 bytes. The checks execute the actual shared mapper column projections, require
 the list projection to exclude `plugin_jar`, preserve all sentinel list metadata
@@ -46,6 +63,8 @@ and JAR bytes, preserve pre-upgrade row IDs in plugin/selector/rule/resource/
 permission/user-role/namespace-plugin relation tables, and inspect native index
 catalogs. Composite indexes only count when the requested column leads the index.
 The exact new selector/plugin and permission/resource indexes must also exist.
+Both flows verify data-permission uniqueness; the upgrade flow also verifies
+duplicate-grant cleanup preserves distinct grants.
 
 The shared MySQL/OceanBase fresh flows additionally require all declared tables,
 secondary indexes and unique constraints, reject orphan seed relations and

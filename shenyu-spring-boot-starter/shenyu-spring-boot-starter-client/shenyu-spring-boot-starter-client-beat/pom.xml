@@ -34,11 +34,6 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-client-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-beat</artifactId>
             <version>${project.version}</version>
         </dependency>

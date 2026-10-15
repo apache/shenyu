@@ -27,6 +27,9 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,10 +39,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /** Tests for {@link RegisterApiDocServiceImpl}. */
@@ -104,14 +109,14 @@ public final class RegisterApiDocServiceImplTest {
         verify(apiService).createOrUpdate(any());
     }
 
-    @Test
-    public void testRegisterIgnoresOtherEventTypes() {
-        ReflectionTestUtils.setField(service, "apiService", apiService);
-        ReflectionTestUtils.setField(service, "tagService", tagService);
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(value = EventType.class, names = {"REGISTER", "OFFLINE"}, mode = EnumSource.Mode.EXCLUDE)
+    public void testRegisterIgnoresMissingOrUnsupportedEventTypes(final EventType eventType) {
         ApiDocRegisterDTO dto = new ApiDocRegisterDTO();
-        dto.setEventType(EventType.UPDATED);
-        service.registerApiDocument(dto);
-        org.mockito.Mockito.verifyNoInteractions(apiService, tagService);
+        dto.setEventType(eventType);
+        assertDoesNotThrow(() -> service.registerApiDocument(dto));
+        verifyNoInteractions(apiService, tagService);
     }
 
     @Test

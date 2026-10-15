@@ -22,7 +22,9 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRequestParser;
@@ -42,6 +44,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
+import reactor.util.context.Context;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -53,6 +56,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -60,6 +64,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The fixture selects the rule directly; it does not claim an Admin/WebSocket network test.
  */
 class AgentHttpToolRoutingTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void preservesTracingContextThroughConfiguredHttpDispatch(final String mode) {
+        final Object span = new Object();
+        final AtomicInteger starts = new AtomicInteger();
+        final AtomicInteger finishes = new AtomicInteger();
+        final AtomicInteger calls = new AtomicInteger();
+        AgentMcpCallTracer tracer = parent -> {
+            assertEquals("caller-parent", parent.get("test-parent"));
+            starts.incrementAndGet();
+            return new AgentMcpCallTracer.Trace() {
+                @Override
+                public Context attach(final Context context) {
+                    return context.put("test-span", span);
+                }
+
+                @Override
+                public void finish(final Outcome outcome) {
+                    assertEquals(Outcome.SUCCESS, outcome);
+                    finishes.incrementAndGet();
+                }
+            };
+        };
+        Fixture fixture = new Fixture(mode, child -> Mono.deferContextual(context -> {
+            assertEquals("caller-parent", context.get("test-parent"));
+            assertSame(span, context.get("test-span"));
+            calls.incrementAndGet();
+            return write(child, "{\"orderId\":\"A\"}");
+        }), tracer);
+        MockServerWebExchange call = request("tools/call", "A", false);
+        StepVerifier.create(fixture.handler.handle(call).contextWrite(Context.of("test-parent", "caller-parent"))).verifyComplete();
+        assertEquals(200, call.getResponse().getStatusCode().value());
+        assertEquals("A", result(call).getAsJsonObject("structuredContent").getAsJsonObject("body").get("orderId").getAsString());
+        assertEquals(1, calls.get());
+        assertEquals(1, starts.get());
+        assertEquals(1, finishes.get());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
@@ -199,9 +241,13 @@ class AgentHttpToolRoutingTest {
         private final ShenyuWebHandler handler;
 
         Fixture(final String mode, final Function<ServerWebExchange, Mono<Void>> action) {
+            this(mode, action, null);
+        }
+
+        Fixture(final String mode, final Function<ServerWebExchange, Mono<Void>> action, final AgentMcpCallTracer tracer) {
             AgentMcpHttpHandler mcp = new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"),
                     exchange -> Mono.just(new AgentMcpIdentity("trusted", "true".equals(exchange.getRequest().getHeaders().getFirst("Test-Denied"))
-                            ? Set.of() : Set.of("lookup"))));
+                            ? Set.of() : Set.of("lookup"))), tracer);
             gateway = new SelectedGateway(mcp);
             update(config(mode, "/orders/status"));
             handler = new ShenyuWebHandler(List.of(gateway, new Route(action)), null, new ShenyuConfig());

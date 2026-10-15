@@ -22,11 +22,21 @@ import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases for DataPermissionMapper.
@@ -36,6 +46,72 @@ public class DataPermissionMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private DataPermissionMapper dataPermissionMapper;
+
+    @Resource
+    private PlatformTransactionManager transactionManager;
+
+    @Test
+    public void testDuplicateGrantIsRejected() {
+        DataPermissionDO permission = buildDataPermissionDO();
+        dataPermissionMapper.insertSelective(permission);
+        DataPermissionDO duplicate = DataPermissionDO.buildCreatePermissionDO(permission.getDataId(), permission.getUserId(), permission.getDataType());
+
+        assertThrows(DuplicateKeyException.class, () -> dataPermissionMapper.insertSelective(duplicate));
+        assertEquals(permission.getId(), dataPermissionMapper.findOneByUniqueKey(permission.getDataId(), permission.getUserId(), permission.getDataType()).getId());
+    }
+
+    @Test
+    public void testDuplicateBatchDoesNotInsertOtherGrants() {
+        DataPermissionDO permission = buildDataPermissionDO();
+        dataPermissionMapper.insertSelective(permission);
+        DataPermissionDO duplicate = DataPermissionDO.buildCreatePermissionDO(permission.getDataId(), permission.getUserId(), permission.getDataType());
+        DataPermissionDO other = DataPermissionDO.buildCreatePermissionDO(UUIDUtils.getInstance().generateShortUuid(), permission.getUserId(), permission.getDataType());
+
+        assertThrows(DuplicateKeyException.class, () -> dataPermissionMapper.insertBatch(List.of(other, duplicate)));
+        assertEquals(1, dataPermissionMapper.listByUserId(permission.getUserId()).size());
+    }
+
+    @Test
+    public void testDistinctGrantKeysArePreserved() {
+        DataPermissionDO permission = buildDataPermissionDO();
+        List<DataPermissionDO> permissions = List.of(permission,
+                DataPermissionDO.buildCreatePermissionDO(permission.getDataId(), UUIDUtils.getInstance().generateShortUuid(), permission.getDataType()),
+                DataPermissionDO.buildCreatePermissionDO(UUIDUtils.getInstance().generateShortUuid(), permission.getUserId(), permission.getDataType()),
+                DataPermissionDO.buildCreatePermissionDO(permission.getDataId(), permission.getUserId(), permission.getDataType() + 1));
+
+        assertEquals(4, dataPermissionMapper.insertBatch(permissions));
+        assertEquals(3, dataPermissionMapper.listByUserId(permission.getUserId()).size());
+    }
+
+    @Test
+    public void testConcurrentGrantCommitsOnlyOnce() throws Exception {
+        DataPermissionDO permission = buildDataPermissionDO();
+        DataPermissionDO duplicate = DataPermissionDO.buildCreatePermissionDO(permission.getDataId(), permission.getUserId(), permission.getDataType());
+        CyclicBarrier barrier = new CyclicBarrier(2);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Boolean> first = executor.submit(() -> insertConcurrentGrant(permission, barrier));
+            Future<Boolean> second = executor.submit(() -> insertConcurrentGrant(duplicate, barrier));
+            int committed = (first.get(20, TimeUnit.SECONDS) ? 1 : 0) + (second.get(20, TimeUnit.SECONDS) ? 1 : 0);
+            assertEquals(1, committed);
+            assertEquals(1, dataPermissionMapper.listByUserId(permission.getUserId()).size());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private boolean insertConcurrentGrant(final DataPermissionDO permission, final CyclicBarrier barrier) {
+        try {
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                assertEquals(List.of(), dataPermissionMapper.selectUserIds(permission.getDataId(), permission.getDataType()));
+                assertDoesNotThrow(() -> barrier.await(10, TimeUnit.SECONDS));
+                dataPermissionMapper.insertSelective(permission);
+            });
+            return true;
+        } catch (DuplicateKeyException e) {
+            return false;
+        }
+    }
 
     @Test
     public void insertBatch() {
