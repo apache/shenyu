@@ -103,6 +103,17 @@ VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL,
 -- add index to speed up the meta data path uniqueness check
 create index idx_meta_data_namespace_path on meta_data (namespace_id, path);
 
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE FROM data_permission duplicate_permission
+WHERE EXISTS (
+    SELECT 1 FROM data_permission retained_permission
+    WHERE duplicate_permission.user_id = retained_permission.user_id
+      AND duplicate_permission.data_type = retained_permission.data_type
+      AND duplicate_permission.data_id = retained_permission.data_id
+      AND duplicate_permission.id > retained_permission.id
+);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
 -- index the audit log by time and operator, matching the fresh-install schema
 create index idx_operation_log_time on operation_record_log (operation_time);
 create index idx_operation_log_operator_time on operation_record_log (operator, operation_time);

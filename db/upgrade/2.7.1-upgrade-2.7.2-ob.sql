@@ -89,6 +89,15 @@ INSERT INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `
 -- add index to speed up the meta data path uniqueness check
 ALTER TABLE `meta_data` ADD INDEX `idx_meta_data_namespace_path` (`namespace_id`, `path`) USING BTREE;
 
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE duplicate_permission FROM data_permission duplicate_permission
+JOIN data_permission retained_permission
+  ON duplicate_permission.user_id = retained_permission.user_id
+ AND duplicate_permission.data_type = retained_permission.data_type
+ AND duplicate_permission.data_id = retained_permission.data_id
+ AND duplicate_permission.id > retained_permission.id;
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
 -- index the audit log by time and operator, matching the fresh-install schema
 ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_time` (`operation_time`) USING BTREE;
 ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_operator_time` (`operator`, `operation_time`) USING BTREE;

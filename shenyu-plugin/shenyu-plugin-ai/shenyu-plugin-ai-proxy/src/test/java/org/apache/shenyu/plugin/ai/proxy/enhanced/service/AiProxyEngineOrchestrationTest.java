@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -232,6 +233,7 @@ class AiProxyEngineOrchestrationTest {
         AiProxyProvider provider = mock(AiProxyProvider.class);
         when(provider.name()).thenReturn("custom");
         when(provider.supports("openai-chat")).thenReturn(true);
+        when(provider.capabilities()).thenReturn(AiProviderCapabilities.chat());
         when(provider.buildRequest(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(new AiUpstreamRequest());
         when(provider.adaptResponse(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
             providerAdapted.set(true);
