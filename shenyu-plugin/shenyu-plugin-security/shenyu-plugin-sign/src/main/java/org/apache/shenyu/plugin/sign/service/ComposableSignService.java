@@ -181,7 +181,13 @@ public class ComposableSignService implements SignService {
     }
 
     private VerifyResult verifyExpires(final SignParameters signParameters) {
-        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(signParameters.getTimestamp()));
+        final long timestamp;
+        try {
+            timestamp = Long.parseLong(signParameters.getTimestamp());
+        } catch (NumberFormatException e) {
+            return VerifyResult.fail(Constants.SIGN_PARAMS_ERROR);
+        }
+        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(timestamp);
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (Math.abs(between) <= delay) {
