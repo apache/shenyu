@@ -36,7 +36,9 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Modifier;
@@ -48,6 +50,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -87,6 +90,39 @@ public final class ShenyuWebHandlerTest {
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
         StepVerifier.create(handle).expectSubscription().verifyComplete();
 
+    }
+
+
+    @Test
+    public void handleKeepsChainTimingUntilTerminalSignal() {
+        final Sinks.Empty<Void> neverEnding = Sinks.empty();
+        final ShenyuPlugin controlledPlugin = new ShenyuPlugin() {
+            @Override
+            public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+                return neverEnding.asMono();
+            }
+
+            @Override
+            public String named() {
+                return "controlled";
+            }
+
+            @Override
+            public int getOrder() {
+                return 0;
+            }
+        };
+        final ShenyuWebHandler handler = new ShenyuWebHandler(
+                Collections.singletonList(controlledPlugin), shenyuLoaderService, new ShenyuConfig());
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+
+        final Disposable subscription = handler.handle(exchange).subscribe();
+        assertTrue(exchange.getAttributes().containsKey(Constants.CHAIN_START_TIME),
+                "chain timing must stay active while the request is still processing");
+
+        neverEnding.tryEmitEmpty();
+        assertFalse(exchange.getAttributes().containsKey(Constants.CHAIN_START_TIME),
+                "chain timing must end with the terminal signal");
     }
 
     @Test

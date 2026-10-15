@@ -122,16 +122,14 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        try {
-            before(exchange);
-            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
-            if (scheduled) {
-                return execute.subscribeOn(scheduler);
-            }
-            return execute;
-        } finally {
-            after(exchange);
+        before(exchange);
+        Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+        if (scheduled) {
+            execute = execute.subscribeOn(scheduler);
         }
+        // the chain is lazy: timing and cleanup must reflect the terminal signal
+        // of the returned publisher, not its construction
+        return execute.doFinally(signal -> after(exchange));
     }
     
     /**
