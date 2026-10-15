@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -128,7 +129,8 @@ public final class AiProxyEngine {
                     }).then();
                 })
                 .onErrorResume(error -> {
-                    boolean transportFailure = error instanceof AiProxyException
+                    boolean transportFailure = error instanceof AiTransportException
+                            || error instanceof AiProxyException
                             && ((AiProxyException) error).getKind() == AiProxyException.Kind.TRANSPORT;
                     boolean statusFailure = error instanceof UpstreamStatusFailure;
                     if (emitted.get() || !(transportFailure || statusFailure)) {
