@@ -82,6 +82,10 @@ is_ignored_change() {
   local file="$1"
 
   case "${file}" in
+    # The opt-in reactor is packaged and smoke-tested by minimal-http.yml.
+    shenyu-bootstrap-http/*|script/performance/minimal-http/*)
+      return 0
+      ;;
     *.png|*.jpg|*.jpeg|*.gif|*.svg|*.ico|*.pdf|*.doc|*.docx|DISCLAIMER|*/resources/static/*)
       return 0
       ;;

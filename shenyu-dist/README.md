@@ -48,4 +48,9 @@ Put your `application.yml` in xxx directory, then run like this.
 
 _Note_: The Docker environment uses an H2 database by default.
 
+An opt-in HTTP-only gateway archive is available through the `minimal-http` Maven
+profile. See [minimal HTTP assembly and benchmarks](../docs/performance/minimal-http.md)
+for its five-plugin runtime, WebSocket synchronization, packaging and validation.
+The existing full distributions above remain the default.
+
 
