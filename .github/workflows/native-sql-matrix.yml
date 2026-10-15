@@ -77,7 +77,7 @@ jobs:
       - name: Verify list/detail/export and index contracts
         run: >-
           ./mvnw -B -ntp -pl shenyu-admin -am test
-          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest
+          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest,DataPermissionMapperTest,PermissionListenerIntegrationTest
           -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
 
   native-sql:

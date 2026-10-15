@@ -63,6 +63,8 @@ and JAR bytes, preserve pre-upgrade row IDs in plugin/selector/rule/resource/
 permission/user-role/namespace-plugin relation tables, and inspect native index
 catalogs. Composite indexes only count when the requested column leads the index.
 The exact new selector/plugin and permission/resource indexes must also exist.
+Both flows verify data-permission uniqueness; the upgrade flow also verifies
+duplicate-grant cleanup preserves distinct grants.
 
 The shared MySQL/OceanBase fresh flows additionally require all declared tables,
 secondary indexes and unique constraints, reject orphan seed relations and
