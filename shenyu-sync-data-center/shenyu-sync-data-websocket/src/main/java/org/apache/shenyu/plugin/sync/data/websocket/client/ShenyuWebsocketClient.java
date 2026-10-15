@@ -31,6 +31,7 @@ import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -436,7 +437,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param result result
      */
     private void handleResult(final String result) {
-        LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
+        LogUtils.debug(LOG, "server [{}] handleResult({})", this.getURI().toString(), result);
         WebsocketData<?> websocketData;
         try {
             websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
@@ -447,6 +448,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
             return;
         }
+        LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
+                this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
+                websocketData.getNamespaceId(), result.length());
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
