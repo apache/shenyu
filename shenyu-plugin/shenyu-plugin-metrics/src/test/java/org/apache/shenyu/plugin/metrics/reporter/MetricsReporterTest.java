@@ -17,21 +17,21 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
+import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.metrics.config.Metric;
+import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.enums.MetricType;
 import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
-import org.junit.FixMethodOrder;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runners.MethodSorters;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -43,15 +43,17 @@ import java.util.Map;
 /**
  * The Test Case For MetricsReporter.
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class MetricsReporterTest {
 
     private static final String DOCUMENT = "testDocument";
 
     private static MetricsRegister metricsRegister;
 
-    @BeforeAll
-    public static void setUp() {
+    @BeforeEach
+    public void setUp() {
+        MetricsReporter.clean();
+        new PrometheusMetricsRegister().clean();
+        CollectorRegistry.defaultRegistry.clear();
         metricsRegister = new PrometheusMetricsRegister();
         MetricsReporter.register(metricsRegister);
     }
@@ -62,12 +64,14 @@ public final class MetricsReporterTest {
         for (String name : List.of(LabelNames.REQUEST_TOTAL, LabelNames.REQUEST_TYPE_TOTAL, LabelNames.REQUEST_THROW_TOTAL,
                 LabelNames.AGENT_MCP_CALLS_TOTAL, LabelNames.SENTINEL_REQUEST_RESTRICT_TOTAL, LabelNames.SENTINEL_REQUEST_CIRCUITBREAKER_TOTAL,
                 LabelNames.RESILIENCE4J_REQUEST_RESTRICT_TOTAL, LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL,
-                LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL)) {
+                LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL,
+                CanaryMetric.REQUESTS.getName(), CanaryMetric.FALLBACK.getName())) {
             Assertions.assertNotNull(map1.get(name), name);
         }
         Map<String, Histogram> map2 = getPrivateField(metricsRegister, "HISTOGRAM_MAP", Map.class);
         Assertions.assertNotNull(map2.get(LabelNames.EXECUTE_LATENCY_NAME));
         Assertions.assertNotNull(map2.get(LabelNames.AGENT_MCP_CALL_LATENCY));
+        Assertions.assertNotNull(map2.get(CanaryMetric.DECISION_DURATION.getName()));
         List<String> labels = new ArrayList<>();
         labels.add("shenyu_request_total");
         Collection<Metric> metrics = new ArrayList<>();
@@ -170,9 +174,10 @@ public final class MetricsReporterTest {
         Assertions.assertTrue(CollectionUtils.isEmpty(counterMap2));
     }
 
-    @AfterAll
-    public static void clean() {
+    @AfterEach
+    public void clean() {
         metricsRegister.clean();
         MetricsReporter.clean();
+        CollectorRegistry.defaultRegistry.clear();
     }
 }

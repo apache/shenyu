@@ -116,7 +116,7 @@ public class RequestBodyReplayRetryTest {
 
         Upstream standby = Upstream.builder().url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId(anyString())).thenReturn(Collections.singletonList(standby));
+        when(cacheManager.findLegacyUpstreamListBySelectorId(anyString())).thenReturn(Collections.singletonList(standby));
 
         try (MockedStatic<UpstreamCacheManager> cacheMock = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
              MockedStatic<LoadbalancerUtils> lbMock = org.mockito.Mockito.mockStatic(LoadbalancerUtils.class);

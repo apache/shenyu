@@ -160,7 +160,8 @@ public final class ConfigsImportDuplicateTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     public void testRulesDeduplicateAfterSelectorRemapping(final boolean existing) {
-        final RuleServiceImpl service = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class), selectorMapper, pluginMapper, mock(RuleEventPublisher.class));
+        final RuleServiceImpl service = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class), selectorMapper, pluginMapper,
+                mock(RuleEventPublisher.class), dictMapper);
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getSelectorIdMapping().put("source", "target");
         context.getSelectorIdMapping().put("alias", "target");

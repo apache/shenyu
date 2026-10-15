@@ -51,6 +51,19 @@ public interface MetricsRegister {
      * @param document document for histogram
      */
     void registerHistogram(String name, String[] labelNames, String document);
+
+    /**
+     * Registers a histogram with explicit bucket boundaries, in the metric's unit.
+     * Existing providers may continue to use their default buckets.
+     *
+     * @param name metric name
+     * @param labelNames label names
+     * @param document metric description
+     * @param buckets bucket boundaries
+     */
+    default void registerHistogram(final String name, final String[] labelNames, final String document, final double[] buckets) {
+        registerHistogram(name, labelNames, document);
+    }
     
     /**
      * Counter increment by count.
@@ -85,6 +98,19 @@ public interface MetricsRegister {
      * @param duration duration
      */
     void recordTime(String name, String[] labelValues, long duration);
+
+    /**
+     * Records a floating-point histogram observation without changing its unit.
+     * Providers must override this optional operation to support fractional observations.
+     * The default deliberately skips the sample rather than truncating it to zero.
+     *
+     * @param name metric name
+     * @param labelValues label values
+     * @param value observation in the metric's unit
+     */
+    default void observe(final String name, final String[] labelValues, final double value) {
+        // Optional for existing MetricsRegister implementations.
+    }
     
     /**
      * Clean.

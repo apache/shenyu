@@ -23,6 +23,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -35,10 +37,14 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.restassured.RestAssured.given;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
@@ -103,7 +109,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
-                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
+                                    String requestPath = "/http/order/findById?id=23&e2eRequestId=" + UUID.randomUUID();
+                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP + "-" + UUID.randomUUID());
                                     try {
                                         consumer.setNamesrvAddr(NAMESERVER);
                                         consumer.subscribe(TOPIC, "*");
@@ -111,7 +118,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                             LOG.info("Msg:{}", msgs);
                                             if (CollectionUtils.isNotEmpty(msgs)) {
                                                 msgs.forEach(e -> {
-                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
+                                                    if (new String(e.getBody(), StandardCharsets.UTF_8).contains(requestPath)) {
                                                         isLog.set(true);
                                                     }
                                                 });
@@ -120,7 +127,17 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         });
                                         consumer.start();
                                         LOG.info("RocketMQ consumer started");
-                                        request.request(Method.GET, "/http/order/findById?id=23");
+                                        // Create the topic through the logging plugin before waiting for subscription readiness.
+                                        given().spec(request).request(Method.GET, TEST);
+                                        await().alias("RocketMQ subscription queues assigned")
+                                                .atMost(LOG_CONSUME_TIMEOUT)
+                                                .ignoreException(MQClientException.class)
+                                                .until(() -> {
+                                                    Set<MessageQueue> queues = consumer.fetchSubscribeMessageQueues(TOPIC);
+                                                    return !queues.isEmpty() && consumer.getDefaultMQPushConsumerImpl().getRebalanceImpl()
+                                                            .getProcessQueueTable().keySet().containsAll(queues);
+                                                });
+                                        request.request(Method.GET, requestPath);
                                         await().atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
                                         LOG.info("isLog.get():{}", isLog.get());
                                     } catch (Exception e) {
