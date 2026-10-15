@@ -2,6 +2,14 @@
 
 ### API Changes
 
+- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
+  deprecated for transfer to plugin-store (#7599). All four remain available in
+  the release carrying this notice. Removal requires dev-list consensus, a full
+  released deprecation cycle, compatible external artifact publication and an
+  announced rollback window; no removal release is scheduled. See the
+  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
+  keys and `ApolloPathConstants` remain compatibility contracts.
+
 - `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
   serialization identifier and existing behavior are retained for downstream
   source and binary compatibility. No removal release is scheduled; a future
