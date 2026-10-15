@@ -98,7 +98,9 @@ public class TracingPluginTest {
         Assertions.assertEquals(PARENT_SPAN_ID, span.getParentSpanId());
         Assertions.assertTrue(span.getParentSpanContext().isRemote());
         Assertions.assertEquals(SpanKind.SERVER, span.getKind());
-        Assertions.assertEquals("GET " + PATH, span.getName());
+        // the name follows the http conventions: the method and the matched route, here no api is
+        // registered, so the request is named by its method alone.
+        Assertions.assertEquals("GET", span.getName());
         Assertions.assertEquals(TRACE_ID, exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
     }
 
