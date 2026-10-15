@@ -39,11 +39,8 @@ final class LogCapture implements AutoCloseable {
 
     private final ListAppender<ILoggingEvent> appender;
 
-    private final Level originalLevel;
-
-    private LogCapture(final Logger logger, final Level originalLevel) {
+    private LogCapture(final Logger logger) {
         this.logger = logger;
-        this.originalLevel = originalLevel;
         this.appender = new ListAppender<>();
         this.appender.setContext(logger.getLoggerContext());
         this.appender.start();
@@ -58,8 +55,7 @@ final class LogCapture implements AutoCloseable {
      */
     static LogCapture attach(final Class<?> type) {
         Logger logger = (Logger) LoggerFactory.getLogger(type);
-        Level originalLevel = logger.getLevel();
-        return new LogCapture(logger, originalLevel);
+        return new LogCapture(logger);
     }
 
     /**
@@ -78,6 +74,5 @@ final class LogCapture implements AutoCloseable {
     public void close() {
         logger.detachAppender(appender);
         appender.stop();
-        logger.setLevel(originalLevel);
     }
 }

@@ -50,6 +50,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -450,7 +451,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         }
         LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
                 this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
-                websocketData.getNamespaceId(), result.length());
+                websocketData.getNamespaceId(), result.getBytes(StandardCharsets.UTF_8).length);
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
