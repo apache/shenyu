@@ -29,6 +29,8 @@ import java.net.URI;
  */
 public final class CacheUtils {
 
+    private static final String DATA_KEY_VERSION = "v2";
+
     private static final String CONTENT_TYPEKEY_SUFFIX = "contentType";
 
     private static final String KEY_JOIN_RULE = "-";
@@ -37,15 +39,14 @@ public final class CacheUtils {
     }
 
     /**
-     * the cache data key.
+     * The cache data key, including the method and complete raw request URI.
      *
      * @param exchange the exchange.
      * @return data key
      */
     public static String dataKey(final ServerWebExchange exchange) {
-        //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
         URI uri = exchange.getRequest().getURI();
-        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getRawPath()));
+        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, DATA_KEY_VERSION, exchange.getRequest().getMethod().name(), uri.toASCIIString()));
     }
 
     /**

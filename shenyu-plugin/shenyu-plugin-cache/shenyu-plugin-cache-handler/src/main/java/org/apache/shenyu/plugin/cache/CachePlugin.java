@@ -34,9 +34,13 @@ import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.annotation.NonNull;
@@ -45,17 +49,42 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * CacheWritePlugin.
+ * Caches responses only for bodyless GET requests.
  */
 public class CachePlugin extends AbstractShenyuPlugin {
 
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
+        if (!HttpMethod.GET.equals(exchange.getRequest().getMethod())
+                || exchange.getRequest().getHeaders().getContentLength() > 0
+                || exchange.getRequest().getHeaders().containsKey(HttpHeaders.TRANSFER_ENCODING)) {
+            return chain.execute(exchange);
+        }
         final CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
         if (Objects.isNull(cacheRuleHandle)) {
             return chain.execute(exchange);
         }
+        return exchange.getRequest().getBody().switchOnFirst((signal, body) -> {
+            if (signal.isOnError()) {
+                return Mono.error(Objects.requireNonNull(signal.getThrowable()));
+            }
+            if (signal.hasValue()) {
+                ServerHttpRequestDecorator request = new ServerHttpRequestDecorator(exchange.getRequest()) {
+                    @Override
+                    @NonNull
+                    public Flux<DataBuffer> getBody() {
+                        return body;
+                    }
+                };
+                return Mono.defer(() -> chain.execute(exchange.mutate().request(request).build()));
+            }
+            return executeCache(exchange, chain, selector, cacheRuleHandle);
+        }).doOnDiscard(DataBuffer.class, DataBufferUtils::release).then();
+    }
+
+    private Mono<Void> executeCache(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final CacheRuleHandle cacheRuleHandle) {
         CacheUpstream cacheUpstream = GsonUtils.getInstance().fromJson(selector.getHandle(), CacheUpstream.class);
         ICache cache = getCache(selector.getId(), cacheUpstream);
         if (Objects.nonNull(cache)) {
