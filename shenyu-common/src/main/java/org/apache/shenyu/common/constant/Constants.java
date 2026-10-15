@@ -877,6 +877,11 @@ public interface Constants {
     String CHAIN_END_TIME = "chainEndTime:";
 
     /**
+     * the trace id of the current request, it is filled by the tracing plugin and read by the logging plugins.
+     */
+    String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
+
+    /**
      * ratelimiter plugin metrics.
      */
     String METRICS_RATE_LIMITER = "metricsRateLimiter";
