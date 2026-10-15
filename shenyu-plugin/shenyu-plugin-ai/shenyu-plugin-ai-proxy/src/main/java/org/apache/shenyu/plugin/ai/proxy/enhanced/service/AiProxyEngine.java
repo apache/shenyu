@@ -50,6 +50,8 @@ public final class AiProxyEngine {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
+    private static final AiProxyRetryPolicy RETRY_POLICY = new AiProxyRetryPolicy();
+
     private final AiProxyProtocolFactory aiProxyProtocolFactory;
 
     private final AiProxyProviderFactory aiProxyProviderFactory;
@@ -113,78 +115,72 @@ public final class AiProxyEngine {
         return Mono.defer(() -> aiProxyTransport.execute(prepared.request()))
                 .flatMap(response -> {
                     int status = response.getStatusCode();
-                    if (status >= 400 && ((retryableStatus(status) && retries > 0) || fallback.isPresent())) {
-                        // Release this response without accumulating the error body before another attempt.
+                    if (status >= 400) {
+                        final AiProxyRetryPolicy.Decision decision =
+                                RETRY_POLICY.decideStatus(status, retries, fallback.isPresent());
+                        if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
+                            return consumeResponse(response, consumer, emitted);
+                        }
                         return response.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
                     }
                     AiUpstreamResponse adapted = prepared.request().adaptResponse(prepared.provider().adaptResponse(response));
                     AiUpstreamResponse encoded = prepared.protocol().encodeResponse(adapted, prepared.stream());
-                    return encoded.getBody().switchOnFirst((signal, body) -> {
-                        if (signal.isOnError()) {
-                            return Flux.error(Objects.requireNonNull(signal.getThrowable()));
-                        }
-                        AiUpstreamResponse ready = new AiUpstreamResponse(encoded.getStatusCode(), encoded.getHeaders(),
-                                body.doOnNext(bytes -> emitted.set(true)));
-                        return Mono.defer(() -> consumer.apply(ready)).flux();
-                    }).then();
+                    return consumeResponse(encoded, consumer, emitted);
                 })
                 .onErrorResume(error -> {
-                    final boolean transportFailure = error instanceof AiTransportException;
-                    final boolean statusFailure = error instanceof UpstreamStatusFailure;
-                    if (emitted.get() || !(transportFailure || statusFailure)) {
+                    final AiProxyRetryPolicy.Decision decision;
+                    if (emitted.get()) {
                         return Mono.error(error);
                     }
-                    final AiTransportException transportException = transportFailure
-                            ? (AiTransportException) error
-                            : null;
-                    final boolean retryable = Objects.nonNull(transportException)
-                            ? retryableTransportFailure(transportException)
-                            : retryableStatus(((UpstreamStatusFailure) error).status);
-                    if (retryable && retries > 0) {
+                    if (error instanceof AiTransportException transportException) {
+                        decision = RETRY_POLICY.decideTransport(
+                                transportException.getKind(),
+                                retries,
+                                fallback.isPresent());
+                    } else if (error instanceof UpstreamStatusFailure statusFailure) {
+                        decision = RETRY_POLICY.decideStatus(
+                                statusFailure.status,
+                                retries,
+                                fallback.isPresent());
+                    } else {
+                        return Mono.error(error);
+                    }
+                    if (decision == AiProxyRetryPolicy.Decision.RETRY) {
                         final Duration delay = prepared.stream()
                                 ? Duration.ZERO
                                 : retryBackoff.multipliedBy(1L << (3 - retries));
                         return Mono.delay(delay).then(attempt(requestBody, prepared, fallback, retries - 1, consumer, emitted));
                     }
-                    final boolean fallbackEligible =
-                            Objects.nonNull(transportException)
-                                    ? fallbackEligibleTransportFailure(transportException)
-                                    : statusFailure;
-                    if (fallbackEligible && fallback.isPresent()) {
+                    if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
                         return Mono.defer(() -> attempt(requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, consumer, emitted));
                     }
                     return Mono.error(error);
                 });
     }
 
-    private boolean retryableStatus(final int status) {
-        return status == 429 || (status >= 500 && status < 600);
-    }
+    private Mono<Void> consumeResponse(
+            final AiUpstreamResponse response,
+            final Function<AiUpstreamResponse, Mono<Void>> consumer,
+            final AtomicBoolean emitted) {
+        return response.getBody()
+                .switchOnFirst((signal, body) -> {
+                    if (signal.isOnError()) {
+                        return Flux.error(
+                                Objects.requireNonNull(
+                                        signal.getThrowable()));
+                    }
 
-    private boolean retryableTransportFailure(final AiTransportException exception) {
-        return switch (exception.getKind()) {
-            case CONNECT_TIMEOUT,
-                 RESPONSE_HEADER_TIMEOUT,
-                 STREAM_IDLE_TIMEOUT,
-                 CONNECTION_RESET,
-                 IO_FAILURE -> true;
-            default -> false;
-        };
-    }
+                    final AiUpstreamResponse ready =
+                            new AiUpstreamResponse(
+                                    response.getStatusCode(),
+                                    response.getHeaders(),
+                                    body.doOnNext(
+                                            bytes -> emitted.set(true)));
 
-    private boolean fallbackEligibleTransportFailure(final AiTransportException exception) {
-        return switch (exception.getKind()) {
-            case CONNECT_TIMEOUT,
-                 RESPONSE_HEADER_TIMEOUT,
-                 STREAM_IDLE_TIMEOUT,
-                 STREAM_DURATION_TIMEOUT,
-                 RESPONSE_TOO_LARGE,
-                 DNS_FAILURE,
-                 TLS_FAILURE,
-                 CONNECTION_RESET,
-                 IO_FAILURE,
-                 UNKNOWN -> true;
-        };
+                    return Mono.defer(
+                            () -> consumer.apply(ready)).flux();
+                })
+                .then();
     }
 
     private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {

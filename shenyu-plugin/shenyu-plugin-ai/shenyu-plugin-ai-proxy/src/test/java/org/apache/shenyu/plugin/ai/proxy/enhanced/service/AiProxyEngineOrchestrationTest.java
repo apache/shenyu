@@ -33,6 +33,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -151,18 +154,48 @@ class AiProxyEngineOrchestrationTest {
         assertEquals(List.of("data: {\"vendor\":true}\n\n", "data: [DONE]\n\n"), received);
     }
 
-    @Test
-    void clientErrorsAreForwardedWithoutRetryAndMayUseConfiguredFallback() {
+    @ParameterizedTest
+    @ValueSource(ints = {400, 401, 403, 404, 408, 422})
+    void clientErrorsAreForwardedWithoutRetryOrFallback(final int status) {
         AtomicInteger calls = new AtomicInteger();
+        List<String> received = new ArrayList<>();
         AiProxyEngine engine = engine(request -> {
             calls.incrementAndGet();
-            return Mono.just(response(401, Flux.just(bytes("unauthorized"))));
+            return Mono.just(response(status, Flux.just(bytes("client error"))));
         });
-        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(), response -> response.getBody().then())).verifyComplete();
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(config(false, "fallback")), response -> {
+            assertEquals(status, response.getStatusCode());
+            assertEquals(List.of("kept"), response.getHeaders().get("X-Upstream"));
+            return consume(response, received);
+        })).verifyComplete();
+
         assertEquals(1, calls.get());
-        calls.set(0);
-        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(config(false, "fallback")), response -> response.getBody().then())).verifyComplete();
-        assertEquals(2, calls.get());
+        assertEquals(List.of("client error"), received);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {429, 500, 502, 503, 504, 599})
+    void retryableStatusesRetryBeforeUsingFallback(final int status) {
+        AtomicInteger primaryCalls = new AtomicInteger();
+        AtomicInteger fallbackCalls = new AtomicInteger();
+        List<String> received = new ArrayList<>();
+        AiProxyEngine engine = engine(request -> {
+            String requestBody = new String(request.getBody(), StandardCharsets.UTF_8);
+            if (requestBody.contains("\"model\":\"fallback\"")) {
+                fallbackCalls.incrementAndGet();
+                return Mono.just(response(200, Flux.just(bytes("fallback response"))));
+            }
+            primaryCalls.incrementAndGet();
+            return Mono.just(response(status, Flux.just(bytes("retryable error"))));
+        });
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(config(false, "fallback")),
+                response -> consume(response, received))).verifyComplete();
+
+        assertEquals(4, primaryCalls.get());
+        assertEquals(1, fallbackCalls.get());
+        assertEquals(List.of("fallback response"), received);
     }
 
     @Test
@@ -174,6 +207,77 @@ class AiProxyEngineOrchestrationTest {
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.empty(), response -> consume(response, received))).verifyComplete();
         assertEquals(2, calls.get());
         assertEquals(List.of("data: {\"ok\":true}\n\n", "data: [DONE]\n\n"), received);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "CONNECT_TIMEOUT, 2",
+        "RESPONSE_HEADER_TIMEOUT, 2",
+        "STREAM_IDLE_TIMEOUT, 2",
+        "STREAM_DURATION_TIMEOUT, 1",
+        "RESPONSE_TOO_LARGE, 1",
+        "DNS_FAILURE, 1",
+        "TLS_FAILURE, 1",
+        "CONNECTION_RESET, 2",
+        "IO_FAILURE, 2",
+        "UNKNOWN, 1"
+    })
+    void transportFailuresFollowTheRetryWhitelist(final AiTransportException.Kind kind, final int expectedCalls) {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(transportFailure(kind));
+        });
+
+        StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.empty(), response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(kind,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+
+        assertEquals(expectedCalls, calls.get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "CONNECT_TIMEOUT, 2, true",
+        "RESPONSE_HEADER_TIMEOUT, 2, true",
+        "STREAM_IDLE_TIMEOUT, 2, false",
+        "STREAM_DURATION_TIMEOUT, 1, false",
+        "RESPONSE_TOO_LARGE, 1, true",
+        "DNS_FAILURE, 1, false",
+        "TLS_FAILURE, 1, false",
+        "CONNECTION_RESET, 2, true",
+        "IO_FAILURE, 2, true",
+        "UNKNOWN, 1, false"
+    })
+    void transportFailuresFollowTheFallbackWhitelist(final AiTransportException.Kind kind,
+                                                      final int expectedPrimaryCalls,
+                                                      final boolean fallbackExpected) {
+        AtomicInteger primaryCalls = new AtomicInteger();
+        AtomicInteger fallbackCalls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            String requestBody = new String(request.getBody(), StandardCharsets.UTF_8);
+            if (requestBody.contains("\"model\":\"fallback\"")) {
+                fallbackCalls.incrementAndGet();
+                return Mono.just(response(200, Flux.just(bytes("fallback response"))));
+            }
+            primaryCalls.incrementAndGet();
+            return Mono.error(transportFailure(kind));
+        });
+
+        Mono<Void> execution = engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")),
+                response -> response.getBody().then());
+        if (fallbackExpected) {
+            StepVerifier.create(execution).verifyComplete();
+        } else {
+            StepVerifier.create(execution)
+                    .expectErrorSatisfies(error -> assertEquals(kind,
+                            assertInstanceOf(AiTransportException.class, error).getKind()))
+                    .verify();
+        }
+
+        assertEquals(expectedPrimaryCalls, primaryCalls.get());
+        assertEquals(fallbackExpected ? 1 : 0, fallbackCalls.get());
     }
 
     @Test
@@ -342,10 +446,14 @@ class AiProxyEngineOrchestrationTest {
     }
 
     private AiTransportException networkFailure() {
-        return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "test failure", null);
+        return transportFailure(AiTransportException.Kind.IO_FAILURE);
     }
 
     private AiTransportException responseTooLargeFailure() {
-        return new AiTransportException(AiTransportException.Kind.RESPONSE_TOO_LARGE, "test response too large", null);
+        return transportFailure(AiTransportException.Kind.RESPONSE_TOO_LARGE);
+    }
+
+    private AiTransportException transportFailure(final AiTransportException.Kind kind) {
+        return new AiTransportException(kind, "test transport failure: " + kind, null);
     }
 }
