@@ -180,6 +180,7 @@
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.1.8</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
+        <swagger-models.version>2.2.34</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
         <!-- dependency version end -->
