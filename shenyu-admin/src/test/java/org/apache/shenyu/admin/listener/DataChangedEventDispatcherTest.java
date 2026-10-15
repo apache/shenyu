@@ -34,6 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -121,6 +123,28 @@ public final class DataChangedEventDispatcherTest {
         clusterPropertiesField.setAccessible(false);
         
         dataChangedEventDispatcher.afterPropertiesSet();
+    }
+
+
+    /**
+     * standalone mode must not dispatch inside an active transaction before commit.
+     */
+    @Test
+    public void onApplicationEventStandaloneWaitsForCommit() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        ConfigGroupEnum configGroupEnum = ConfigGroupEnum.RULE;
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+            verify(websocketDataChangedListener, times(0)).onRuleChanged(anyList(), any(), any());
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.setActualTransactionActive(false);
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+        verify(websocketDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
     }
 
     /**
