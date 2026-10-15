@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
@@ -123,6 +124,54 @@ class AiProxyEngineOrchestrationTest {
         })).verifyComplete();
         assertEquals(4, calls.get());
         assertEquals(List.of("upstream unavailable"), received);
+    }
+
+    @Test
+    void configuredRetryCountsControlPrimaryAttempts() {
+        AtomicInteger nonStreamingCalls = new AtomicInteger();
+        AiProxyEngine nonStreamingEngine = engine(request -> {
+            nonStreamingCalls.incrementAndGet();
+            return Mono.just(response(503, Flux.just(bytes("unavailable"))));
+        }, new AiProxyRetryProperties(2, 0, Duration.ZERO));
+
+        StepVerifier.create(nonStreamingEngine.execute(BODY, config(false, "main"), Optional.empty(),
+                response -> response.getBody().then())).verifyComplete();
+        assertEquals(3, nonStreamingCalls.get());
+
+        AtomicInteger streamingCalls = new AtomicInteger();
+        AiProxyEngine streamingEngine = engine(request -> {
+            streamingCalls.incrementAndGet();
+            return Mono.error(networkFailure());
+        }, new AiProxyRetryProperties(2, 0, Duration.ZERO));
+
+        StepVerifier.create(streamingEngine.execute(BODY, config(true, "main"), Optional.empty(),
+                response -> response.getBody().then())).expectError(AiTransportException.class).verify();
+        assertEquals(1, streamingCalls.get());
+    }
+
+    @Test
+    void nonStreamingRetriesUseExponentialBackoff() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            int attempt = calls.incrementAndGet();
+            return Mono.just(attempt < 4
+                    ? response(503, Flux.just(bytes("unavailable")))
+                    : response(200, Flux.just(bytes("ok"))));
+        }, new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1)));
+
+        StepVerifier.withVirtualTime(() -> engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectSubscription()
+                .then(() -> assertEquals(1, calls.get()))
+                .thenAwait(Duration.ofMillis(999))
+                .then(() -> assertEquals(1, calls.get()))
+                .thenAwait(Duration.ofMillis(1))
+                .then(() -> assertEquals(2, calls.get()))
+                .thenAwait(Duration.ofSeconds(2))
+                .then(() -> assertEquals(3, calls.get()))
+                .thenAwait(Duration.ofSeconds(4))
+                .then(() -> assertEquals(4, calls.get()))
+                .verifyComplete();
     }
 
     @Test
@@ -421,6 +470,11 @@ class AiProxyEngineOrchestrationTest {
     private AiProxyEngine engine(final AiProxyTransport transport) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), transport, Duration.ZERO);
+    }
+
+    private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
+        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), transport, retryProperties);
     }
 
     private AiCommonConfig config(final boolean stream, final String model) {

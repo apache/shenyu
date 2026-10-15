@@ -58,18 +58,30 @@ public final class AiProxyEngine {
 
     private final AiProxyTransport aiProxyTransport;
 
-    private final Duration retryBackoff;
+    private final AiProxyRetryProperties retryProperties;
 
-    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
-        this(protocols, providers, transport, Duration.ofSeconds(1));
+    public AiProxyEngine(
+            final AiProxyProtocolFactory protocols,
+            final AiProxyProviderFactory providers,
+            final AiProxyTransport transport) {
+        this(
+                protocols,
+                providers,
+                transport,
+                new AiProxyRetryProperties());
+    }
+
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
+        this.aiProxyProtocolFactory = protocols;
+        this.aiProxyProviderFactory = providers;
+        this.aiProxyTransport = transport;
+        this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                         final AiProxyTransport transport, final Duration retryBackoff) {
-        this.aiProxyProtocolFactory = protocols;
-        this.aiProxyProviderFactory = providers;
-        this.aiProxyTransport = transport;
-        this.retryBackoff = retryBackoff;
+        this(protocols, providers, transport, new AiProxyRetryProperties(3, 1, retryBackoff));
     }
 
     /**
@@ -94,7 +106,8 @@ public final class AiProxyEngine {
                 copy.setProtocol(primary.protocol().name());
                 return copy;
             });
-            return attempt(requestBody, primary, fallback, primary.stream() ? 1 : 3, responseConsumer, new AtomicBoolean());
+            final int maxRetries = retryProperties.maxRetries(primary.stream());
+            return attempt(requestBody, primary, fallback, maxRetries, maxRetries, responseConsumer, new AtomicBoolean());
         });
     }
 
@@ -110,14 +123,14 @@ public final class AiProxyEngine {
     }
 
     private Mono<Void> attempt(final String requestBody, final PreparedExchange prepared,
-                               final Optional<AiCommonConfig> fallback, final int retries,
+                               final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
                                final Function<AiUpstreamResponse, Mono<Void>> consumer, final AtomicBoolean emitted) {
         return Mono.defer(() -> aiProxyTransport.execute(prepared.request()))
                 .flatMap(response -> {
                     int status = response.getStatusCode();
                     if (status >= 400) {
                         final AiProxyRetryPolicy.Decision decision =
-                                RETRY_POLICY.decideStatus(status, retries, fallback.isPresent());
+                                RETRY_POLICY.decideStatus(status, retriesRemaining, fallback.isPresent());
                         if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
                             return consumeResponse(response, consumer, emitted);
                         }
@@ -135,24 +148,25 @@ public final class AiProxyEngine {
                     if (error instanceof AiTransportException transportException) {
                         decision = RETRY_POLICY.decideTransport(
                                 transportException.getKind(),
-                                retries,
+                                retriesRemaining,
                                 fallback.isPresent());
                     } else if (error instanceof UpstreamStatusFailure statusFailure) {
                         decision = RETRY_POLICY.decideStatus(
                                 statusFailure.status,
-                                retries,
+                                retriesRemaining,
                                 fallback.isPresent());
                     } else {
                         return Mono.error(error);
                     }
                     if (decision == AiProxyRetryPolicy.Decision.RETRY) {
-                        final Duration delay = prepared.stream()
-                                ? Duration.ZERO
-                                : retryBackoff.multipliedBy(1L << (3 - retries));
-                        return Mono.delay(delay).then(attempt(requestBody, prepared, fallback, retries - 1, consumer, emitted));
+                        final int retryIndex = maxRetries - retriesRemaining;
+                        final Duration delay = retryProperties.retryDelay(prepared.stream(), retryIndex);
+                        return Mono.delay(delay).then(attempt(
+                                requestBody, prepared, fallback, maxRetries, retriesRemaining - 1, consumer, emitted));
                     }
                     if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
-                        return Mono.defer(() -> attempt(requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, consumer, emitted));
+                        return Mono.defer(() -> attempt(
+                                requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, 0, consumer, emitted));
                     }
                     return Mono.error(error);
                 });
