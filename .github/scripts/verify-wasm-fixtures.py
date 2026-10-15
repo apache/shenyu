@@ -43,21 +43,26 @@ def verify_wat():
     version = subprocess.check_output(["wat2wasm", "--version"], text=True).strip()
     if version != "1.0.42":
         raise RuntimeError("WAT verification requires WABT 1.0.42, found " + version)
+    families = [
+        (BASE, ["wasm-bridge", "wasm-gateway"]),
+        (API, ["wasm-concurrent"]),
+    ]
     count = 0
-    for family in ["wasm-bridge", "wasm-gateway"]:
-        directory = BASE / family
-        if not directory.exists():
-            continue
-        with tempfile.TemporaryDirectory(prefix="shenyu-wat-") as temporary:
-            run(["make", "-C", str(directory), "build", "RESOURCES=" + temporary])
-            binaries = list(Path(temporary).glob("*.wasm"))
-            if not binaries:
-                raise RuntimeError("No fixtures generated for " + family)
-            for rebuilt in binaries:
-                committed = BASE / "resources" / rebuilt.name
-                if rebuilt.read_bytes() != committed.read_bytes():
-                    raise RuntimeError("WAT fixture differs from committed binary: " + rebuilt.name)
-                count += 1
+    for source_root, names in families:
+        for family in names:
+            directory = source_root / family
+            if not directory.exists():
+                continue
+            with tempfile.TemporaryDirectory(prefix="shenyu-wat-") as temporary:
+                run(["make", "-C", str(directory), "build", "RESOURCES=" + temporary])
+                binaries = list(Path(temporary).glob("*.wasm"))
+                if not binaries:
+                    raise RuntimeError("No fixtures generated for " + family)
+                for rebuilt in binaries:
+                    committed = source_root / "resources" / rebuilt.name
+                    if rebuilt.read_bytes() != committed.read_bytes():
+                        raise RuntimeError("WAT fixture differs from committed binary: " + rebuilt.name)
+                    count += 1
     if not count:
         raise RuntimeError("No WAT fixture families found")
     print("Verified " + str(count) + " byte-identical WAT fixtures", flush=True)
