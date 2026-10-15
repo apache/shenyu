@@ -28,6 +28,13 @@
 
 ### Behavior Changes
 
+- HTTP `ELASTIC` pools now honor the configured connection count, acquisition
+  queue and timeout instead of forcing unlimited capacity. `FIXED` remains the
+  default with the same effective default limits. Configure
+  `shenyu.httpclient.pool.pendingAcquireMaxCount` for an explicit queue bound;
+  `-1` retains an intentional unbounded opt-in. See the
+  [capacity and migration guide](docs/performance/http-connection-pools.md). (#7644)
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish

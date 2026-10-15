@@ -409,15 +409,21 @@ public class HttpClientProperties {
         private String name = "shenyu-proxy";
 
         /**
-         * Only for type FIXED, the maximum number of connections before starting pending
-         * acquisition on existing ones.
+         * Maximum connections per remote-address pool for FIXED and ELASTIC.
          */
         private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
 
         /**
-         * Only for type FIXED, the maximum time in millis to wait for acquiring, defaults to 3 seconds.
+         * Maximum time in millis to wait for acquiring in FIXED and ELASTIC, defaults to 3 seconds.
          */
         private Long acquireTimeout = 3000L;
+
+        /**
+         * Maximum queued acquisitions per remote-address pool. Null retains Reactor Netty's
+         * default of twice maxConnections; positive values set an explicit finite limit.
+         * Minus one explicitly opts into an unbounded queue for compatibility.
+         */
+        private Integer pendingAcquireMaxCount;
 
         /**
          * Time in millis after which the channel will be closed,
@@ -510,6 +516,24 @@ public class HttpClientProperties {
          */
         public void setAcquireTimeout(final Long acquireTimeout) {
             this.acquireTimeout = acquireTimeout;
+        }
+
+        /**
+         * Gets the maximum pending acquisition count.
+         *
+         * @return the count, or null for Reactor Netty's default
+         */
+        public Integer getPendingAcquireMaxCount() {
+            return pendingAcquireMaxCount;
+        }
+
+        /**
+         * Sets the maximum pending acquisition count.
+         *
+         * @param pendingAcquireMaxCount the count, or null for Reactor Netty's default
+         */
+        public void setPendingAcquireMaxCount(final Integer pendingAcquireMaxCount) {
+            this.pendingAcquireMaxCount = pendingAcquireMaxCount;
         }
 
         /**
