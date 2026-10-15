@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -56,8 +57,9 @@ import java.util.function.Function;
  *
  * <p>Concurrency model: a Chicory {@link Instance} is not thread-safe (interpreter
  * stacks, guest heap, linear memory), so every exported call leases one pooled instance
- * exclusively; host callbacks run inside the lease and {@link #getMemory()} resolves to
- * the instance executing on the calling thread.
+ * exclusively, waiting at most {@link #leaseTimeoutMillis()} for a free one; host
+ * callbacks run inside the lease and {@link #getMemory()} resolves to the instance
+ * executing on the calling thread, failing fast outside a call.
  */
 public class WasmLoader implements AutoCloseable {
 
@@ -68,6 +70,10 @@ public class WasmLoader implements AutoCloseable {
     // Upper bound on parallel executions; capped so worst-case memory (grown guest
     // heaps persist per instance) stays bounded.
     private static final int DEFAULT_POOL_SIZE = Math.min(Runtime.getRuntime().availableProcessors(), 8);
+
+    // Bounded wait for a pooled instance: pool exhaustion (or a nested-call circular
+    // wait) fails the request after this timeout instead of hanging it forever.
+    private static final long DEFAULT_LEASE_TIMEOUT_MILLIS = 30_000L;
 
     // Instances currently executing on this thread (a stack: nested calls push/pop);
     // getMemory() in host callbacks resolves against the top entry.
@@ -82,6 +88,8 @@ public class WasmLoader implements AutoCloseable {
 
     private final Store store;
 
+    // first created instance; probes export existence for getWasmExtern (all pooled
+    // instances share one module, so any of them answers for all)
     private final Instance primary;
 
     private final BlockingQueue<Instance> freeInstances;
@@ -239,7 +247,9 @@ public class WasmLoader implements AutoCloseable {
         // WASI function coverage, matching the previous wasmtime-java behavior.
         // Only inherit stdout/stderr so WASM guest output (e.g. Go println,
         // Rust eprintln!) is visible for debugging. Avoid inheriting the full
-        // system context (env/args/filesystem) for security hardening.
+        // system context (env/args/filesystem): besides security hardening,
+        // preopened files would add mutable state to the WASI object shared
+        // by all pooled instances.
         var options = com.dylibso.chicory.wasi.WasiOptions.builder()
                 .withStdout(System.out)
                 .withStderr(System.err)
@@ -354,6 +364,10 @@ public class WasmLoader implements AutoCloseable {
      * <p>The returned function leases a pooled instance for the whole call,
      * making concurrent invocations safe.
      *
+     * <p>Reentrancy constraint: exports must not be invoked from a host callback
+     * that runs during construction (e.g. triggered by {@code _initialize}) —
+     * the pool is not populated yet, so such calls fail fast.
+     *
      * @param funcName the name of the WASM exported function
      * @return an Optional containing the ExportFunction if found, otherwise empty
      */
@@ -382,11 +396,24 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private long[] executeOnPool(final String funcName, final long[] args) {
-        final Instance lease = acquire();
+        final Instance lease = acquire(funcName);
+        Throwable failure = null;
         try {
             return executeBound(lease, lease.export(funcName), args);
+        } catch (final Throwable t) {
+            // remembered so a release failure below cannot mask the original failure
+            failure = t;
+            throw t;
         } finally {
-            release(lease);
+            try {
+                release(lease);
+            } catch (final RuntimeException e) {
+                if (Objects.nonNull(failure)) {
+                    failure.addSuppressed(e);
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -402,7 +429,17 @@ public class WasmLoader implements AutoCloseable {
         }
     }
 
-    private Instance acquire() {
+    /**
+     * Max time to wait for a free pooled instance before failing the call.
+     * Overridable so tests can exercise the timeout path quickly.
+     *
+     * @return the lease timeout in milliseconds
+     */
+    protected long leaseTimeoutMillis() {
+        return DEFAULT_LEASE_TIMEOUT_MILLIS;
+    }
+
+    private Instance acquire(final String funcName) {
         if (!ready) {
             // reached only from a host callback during construction (e.g. a nested
             // export call from _initialize): no initialized instance is free yet,
@@ -418,13 +455,23 @@ public class WasmLoader implements AutoCloseable {
             throw new IllegalStateException(
                     "Nested export calls exceed the WASM instance pool size for " + wasmName);
         }
+        final long timeoutMillis = leaseTimeoutMillis();
+        final Instance lease;
         try {
-            return freeInstances.take();
+            lease = freeInstances.poll(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException(
+            throw new ShenyuWasmException(
                     "Interrupted while waiting for a pooled WASM instance of " + wasmName, e);
         }
+        if (Objects.isNull(lease)) {
+            final int inUse = poolSize - freeInstances.size();
+            throw new ShenyuWasmException(
+                    "Timed out after " + timeoutMillis + "ms waiting for a pooled WASM instance of "
+                            + wasmName + " for export '" + funcName + "' (pool size " + poolSize
+                            + ", " + inUse + " in use, " + active.size() + " held by this thread)");
+        }
+        return lease;
     }
 
     private void release(final Instance lease) {
@@ -436,16 +483,23 @@ public class WasmLoader implements AutoCloseable {
     }
 
     /**
-     * Get the WASM module's linear memory for use in host functions.
+     * Get the WASM linear memory of the instance executing on the current thread.
      *
-     * <p>During an exported call (including host callbacks) this returns the memory of
-     * the instance executing on the current thread; otherwise the primary instance's.
+     * <p>Only valid inside an exported call or a host callback on the calling thread
+     * (where it resolves to the leased instance): pooled instances each own their
+     * memory, so there is no safe fallback and unbound callers fail fast.
      *
-     * @return the WASM linear memory
+     * @return the WASM linear memory of the currently executing instance
+     * @throws IllegalStateException when no instance is executing on this thread
      */
     public Memory getMemory() {
         final Instance current = bindings.get().peek();
-        return Objects.nonNull(current) ? current.memory() : primary.memory();
+        if (Objects.isNull(current)) {
+            throw new IllegalStateException(
+                    "getMemory() called outside an exported call or host callback of " + wasmName
+                            + "; pooled instances have per-instance memory");
+        }
+        return current.memory();
     }
 
     /**

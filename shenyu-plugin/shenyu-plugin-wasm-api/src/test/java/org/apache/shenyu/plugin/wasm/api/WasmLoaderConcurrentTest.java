@@ -21,6 +21,7 @@ import com.dylibso.chicory.runtime.ExportFunction;
 import com.dylibso.chicory.runtime.Instance;
 import com.dylibso.chicory.runtime.Machine;
 import com.dylibso.chicory.wasm.WasmModule;
+import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmException;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.junit.jupiter.api.Test;
 
@@ -125,6 +126,48 @@ public class WasmLoaderConcurrentTest {
             assertTrue(ex.getMessage().contains("Nested export calls exceed the WASM instance pool size"),
                     "unexpected message: " + ex.getMessage());
             assertTrue(results.isEmpty(), "failed nesting must not leave stray payloads");
+        }
+    }
+
+    @Test
+    public void poolExhaustionTimesOutInsteadOfHangingTest() throws Exception {
+        final long blockedArgId = -1L;
+        final CountDownLatch blockEntered = new CountDownLatch(1);
+        final CountDownLatch releaseBlock = new CountDownLatch(1);
+        try (WasmLoader loader = new TimeoutTestLoader(1, blockedArgId, blockEntered, releaseBlock)) {
+            final ExportFunction execute = loader.getWasmExtern("execute")
+                    .orElseThrow(() -> new IllegalStateException("execute export not found"));
+            final ExecutorService pool = Executors.newFixedThreadPool(1);
+            try {
+                final Future<?> blockedCall = pool.submit(() -> execute.apply(blockedArgId));
+                assertTrue(blockEntered.await(10, TimeUnit.SECONDS), "first call never reached its host callback");
+
+                // the only instance is parked in the blocked callback: the pool must
+                // fail this call after the (shortened) timeout instead of hanging it
+                final ShenyuWasmException ex = assertThrows(ShenyuWasmException.class,
+                        () -> execute.apply(ids.incrementAndGet()));
+                assertTrue(ex.getMessage().contains("Timed out"), "unexpected message: " + ex.getMessage());
+                // the parked call deterministically holds the only instance, so the
+                // diagnostics must report the pool as fully in use
+                assertTrue(ex.getMessage().contains("pool size 1, 1 in use"),
+                        "unexpected message: " + ex.getMessage());
+
+                releaseBlock.countDown();
+                blockedCall.get(10, TimeUnit.SECONDS);
+                assertEquals(expectedResult, results.remove(blockedArgId));
+            } finally {
+                releaseBlock.countDown();
+                pool.shutdownNow();
+            }
+        }
+    }
+
+    @Test
+    public void getMemoryOutsideExecutionFailsFastTest() {
+        try (WasmLoader loader = new TestLoader(1, 0L, null, null)) {
+            final IllegalStateException ex = assertThrows(IllegalStateException.class, loader::getMemory);
+            assertTrue(ex.getMessage().contains("outside an exported call or host callback"),
+                    "unexpected message: " + ex.getMessage());
         }
     }
 
@@ -250,6 +293,20 @@ public class WasmLoaderConcurrentTest {
                 getWasmExtern("execute").orElseThrow().apply(argId - 1L);
             }
             return super.onGetArgs(argId, addr, len);
+        }
+    }
+
+    /** Shortens the lease wait so pool-exhaustion timeouts surface in milliseconds. */
+    final class TimeoutTestLoader extends TestLoader {
+
+        TimeoutTestLoader(final int poolSize, final long blockArgId,
+                          final CountDownLatch blockEntered, final CountDownLatch releaseBlock) {
+            super(poolSize, blockArgId, blockEntered, releaseBlock);
+        }
+
+        @Override
+        protected long leaseTimeoutMillis() {
+            return 200L;
         }
     }
 
