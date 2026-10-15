@@ -37,6 +37,7 @@ without requiring a business application to adopt the gateway's JDK baseline.
 
 The main reactor still includes `shenyu-client`, `shenyu-register-center`, and
 client starters. The split is a migration, not a completed removal of those modules.
+The in-tree client modules remain part of the main repository CI build scope.
 Check which artifact and version the application actually consumes before choosing
 a repository. A fix to the split client does not automatically fix its in-tree
 counterpart; describe whether the affected implementation also needs a corresponding
@@ -209,8 +210,8 @@ For a main-repository PR affecting clients:
 - [ ] Verify the intended client/admin pair, including older clients where required.
 - [ ] Link coordinated client changes and explain rollout order or version constraints.
 
-Use the official commit format, for example
-`docs (client) : document split client contribution workflow.`
+For example, a client documentation commit can use
+`docs(client): document split client contribution workflow.`
 A corresponding PR title is
 `[ISSUE #6373] Document split client migration and contribution workflow.`
 Push the branch to your fork and open the PR against the upstream default branch.
