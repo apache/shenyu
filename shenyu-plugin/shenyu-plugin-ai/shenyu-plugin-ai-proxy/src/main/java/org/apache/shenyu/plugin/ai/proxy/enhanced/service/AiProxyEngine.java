@@ -182,9 +182,10 @@ public final class AiProxyEngine {
         if (!provider.supports(protocol.name())) {
             throw new ShenyuException("Unsupported AI protocol/provider combination");
         }
+        boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
+        provider.capabilities().validate(decoded, stream);
         try {
             AiUpstreamRequest request = provider.buildRequest(decoded, config);
-            boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
             return new PreparedExchange(protocol, provider, request, stream);
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
