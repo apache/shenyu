@@ -53,6 +53,14 @@ class CacheUtilsTest {
         assertEquals(key("GET", "http://gateway.example/quote?v=1"), key("GET", "http://gateway.example/quote?v=1"));
     }
 
+    @Test
+    void testMatchedSelectorAndRuleSeparateEntries() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://gateway.example/quote").build());
+        assertNotEquals(CacheUtils.responseKey(exchange, "first-selector", "rule"), CacheUtils.responseKey(exchange, "second-selector", "rule"));
+        assertNotEquals(CacheUtils.responseKey(exchange, "selector", "first-rule"), CacheUtils.responseKey(exchange, "selector", "second-rule"));
+        assertNotEquals(CacheUtils.responseKey(exchange, "a-b", "c"), CacheUtils.responseKey(exchange, "a", "b-c"));
+    }
+
     private static String key(final String method, final String uri) {
         return CacheUtils.dataKey(MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.valueOf(method), URI.create(uri)).build()));
     }

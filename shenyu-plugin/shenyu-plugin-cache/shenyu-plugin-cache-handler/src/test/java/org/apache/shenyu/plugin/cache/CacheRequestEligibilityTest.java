@@ -45,6 +45,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.Disposable;
@@ -118,7 +119,7 @@ class CacheRequestEligibilityTest {
         StepVerifier.create(execute(exchange, this::echo)).verifyComplete();
 
         assertEquals("fresh body", exchange.getResponse().getBodyAsString().block());
-        assertArrayEquals("cached body".getBytes(StandardCharsets.UTF_8), cache.getData(CacheUtils.dataKey(exchange)).block());
+        assertArrayEquals("cached body".getBytes(StandardCharsets.UTF_8), cachedBody(exchange));
     }
 
     @ParameterizedTest
@@ -129,7 +130,7 @@ class CacheRequestEligibilityTest {
         StepVerifier.create(execute(exchange, this::echo)).verifyComplete();
 
         assertEquals("fresh body", exchange.getResponse().getBodyAsString().block());
-        assertNull(cache.getData(CacheUtils.dataKey(exchange)).block());
+        assertNull(cache.getData(CacheUtils.responseKey(exchange, selector.getId(), rule.getId())).block());
         assertNull(cache.getData(CacheUtils.contentTypeKey(exchange)).block());
     }
 
@@ -152,7 +153,7 @@ class CacheRequestEligibilityTest {
             assertEquals("first second", exchange.getResponse().getBodyAsString().block());
             assertEquals(0, first.getNativeBuffer().refCnt());
             assertEquals(0, second.getNativeBuffer().refCnt());
-            assertArrayEquals("cached body".getBytes(StandardCharsets.UTF_8), cache.getData(CacheUtils.dataKey(exchange)).block());
+            assertArrayEquals("cached body".getBytes(StandardCharsets.UTF_8), cachedBody(exchange));
         } finally {
             release(first);
             release(second);
@@ -244,8 +245,14 @@ class CacheRequestEligibilityTest {
     }
 
     private void seed(final ServerWebExchange exchange, final String body) {
-        cache.cacheData(CacheUtils.dataKey(exchange), body.getBytes(StandardCharsets.UTF_8), 60).block();
-        cache.cacheData(CacheUtils.contentTypeKey(exchange), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8), 60).block();
+        MockServerHttpResponse response = new MockServerHttpResponse();
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        byte[] packet = CachedResponse.capture(response, body.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode();
+        cache.cacheData(CacheUtils.responseKey(exchange, selector.getId(), rule.getId()), packet, 60).block();
+    }
+
+    private byte[] cachedBody(final ServerWebExchange exchange) {
+        return CachedResponse.decode(cache.getData(CacheUtils.responseKey(exchange, selector.getId(), rule.getId())).block()).orElseThrow().getBody();
     }
 
     private static MockServerWebExchange request(final String method, final String body) {

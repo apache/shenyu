@@ -18,11 +18,13 @@
 package org.apache.shenyu.plugin.cache.utils;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.ICache;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
+import java.util.Arrays;
 
 /**
  * CacheUtils.
@@ -57,6 +59,19 @@ public final class CacheUtils {
      */
     public static String contentTypeKey(final ServerWebExchange exchange) {
         return String.join(KEY_JOIN_RULE, dataKey(exchange), CONTENT_TYPEKEY_SUFFIX);
+    }
+
+    /**
+     * The versioned key for a complete cached HTTP response.
+     *
+     * @param exchange the exchange
+     * @param selectorId the matched selector
+     * @param ruleId the matched rule
+     * @return response key
+     */
+    public static String responseKey(final ServerWebExchange exchange, final String selectorId, final String ruleId) {
+        String identity = GsonUtils.getInstance().toJson(Arrays.asList(dataKey(exchange), selectorId, ruleId));
+        return String.join(KEY_JOIN_RULE, DigestUtils.md5Hex(identity), "response-v1");
     }
 
     /**
