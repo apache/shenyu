@@ -19,11 +19,11 @@ package org.apache.shenyu.e2e.testcase.logging.rocketmq;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
+import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.protocol.ResponseCode;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -38,7 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,7 +60,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private static final String TEST = "/http/order/findById?id=123";
 
-    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(60);
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
 
@@ -80,6 +82,42 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         .addExists("/http/order/findById?id=123")
                         .build())
                 .build();
+    }
+
+    static void awaitRequestLog(final DefaultLitePullConsumer consumer, final String endpoint) {
+        AtomicBoolean assigned = new AtomicBoolean();
+        await().alias("RocketMQ access log for " + endpoint)
+                .atMost(LOG_CONSUME_TIMEOUT).pollInterval(Duration.ofMillis(200))
+                .until(() -> {
+                    if (!assigned.get()) {
+                        Collection<MessageQueue> queues;
+                        try {
+                            queues = consumer.fetchMessageQueues(TOPIC);
+                        } catch (MQClientException ex) {
+                            Throwable cause = ex;
+                            while (Objects.nonNull(cause)) {
+                                if (cause instanceof MQClientException && ((MQClientException) cause).getResponseCode() == ResponseCode.TOPIC_NOT_EXIST) {
+                                    return false;
+                                }
+                                cause = cause.getCause();
+                            }
+                            throw ex;
+                        }
+                        if (queues.isEmpty()) {
+                            return false;
+                        }
+                        consumer.assign(queues);
+                        for (MessageQueue queue : queues) {
+                            consumer.seekToBegin(queue);
+                        }
+                        assigned.set(true);
+                    }
+                    return consumer.poll(200).stream().anyMatch(message -> {
+                        String body = new String(message.getBody(), StandardCharsets.UTF_8);
+                        LOG.info("RocketMQ access log: {}", body);
+                        return body.contains(endpoint);
+                    });
+                });
     }
 
     private ShenYuScenarioSpec testRocketMQHello() {
@@ -105,31 +143,17 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
-                                    AtomicBoolean isLog = new AtomicBoolean(false);
                                     String requestId = UUID.randomUUID().toString();
                                     String endpoint = "/http/order/findById?id=23&e2e=" + requestId;
-                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP + "-" + requestId);
+                                    DefaultLitePullConsumer consumer = new DefaultLitePullConsumer(CONSUMERGROUP + "-" + requestId);
                                     try {
                                         consumer.setNamesrvAddr(NAMESERVER);
-                                        // Queue assignment may happen after the request has already been logged.
                                         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
-                                        consumer.subscribe(TOPIC, "*");
-                                        consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
-                                            LOG.info("Msg:{}", msgs);
-                                            if (CollectionUtils.isNotEmpty(msgs)) {
-                                                msgs.forEach(e -> {
-                                                    if (new String(e.getBody(), StandardCharsets.UTF_8).contains(endpoint)) {
-                                                        isLog.set(true);
-                                                    }
-                                                });
-                                            }
-                                            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                                        });
+                                        consumer.setAutoCommit(false);
                                         consumer.start();
                                         LOG.info("RocketMQ consumer started");
                                         request.request(Method.GET, endpoint).then().statusCode(200);
-                                        await().atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
-                                        LOG.info("isLog.get():{}", isLog.get());
+                                        awaitRequestLog(consumer, endpoint);
                                     } catch (Exception e) {
                                         LOG.error("error", e);
                                         Assertions.fail("Failed to consume RocketMQ access log", e);
