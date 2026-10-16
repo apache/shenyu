@@ -255,10 +255,7 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     private int doHealthCheck(final AtomicLong maxEndpointLatencyMillis) {
-        int submitted = 0;
-        submitted += check(healthyUpstream, maxEndpointLatencyMillis);
-        submitted += check(unhealthyUpstream, maxEndpointLatencyMillis);
-        return submitted;
+        return check(healthyUpstream, maxEndpointLatencyMillis) + check(unhealthyUpstream, maxEndpointLatencyMillis);
     }
 
     private int check(final Map<String, List<Upstream>> map, final AtomicLong maxEndpointLatencyMillis) {
