@@ -23,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -35,8 +36,10 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
@@ -103,15 +106,19 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
                                     AtomicBoolean isLog = new AtomicBoolean(false);
-                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP);
+                                    String requestId = UUID.randomUUID().toString();
+                                    String endpoint = "/http/order/findById?id=23&e2e=" + requestId;
+                                    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMERGROUP + "-" + requestId);
                                     try {
                                         consumer.setNamesrvAddr(NAMESERVER);
+                                        // Queue assignment may happen after the request has already been logged.
+                                        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
                                         consumer.subscribe(TOPIC, "*");
                                         consumer.registerMessageListener((MessageListenerConcurrently) (msgs, consumeConcurrentlyContext) -> {
                                             LOG.info("Msg:{}", msgs);
                                             if (CollectionUtils.isNotEmpty(msgs)) {
                                                 msgs.forEach(e -> {
-                                                    if (new String(e.getBody()).contains("/http/order/findById?id=23")) {
+                                                    if (new String(e.getBody(), StandardCharsets.UTF_8).contains(endpoint)) {
                                                         isLog.set(true);
                                                     }
                                                 });
@@ -120,7 +127,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         });
                                         consumer.start();
                                         LOG.info("RocketMQ consumer started");
-                                        request.request(Method.GET, "/http/order/findById?id=23");
+                                        request.request(Method.GET, endpoint).then().statusCode(200);
                                         await().atMost(LOG_CONSUME_TIMEOUT).untilTrue(isLog);
                                         LOG.info("isLog.get():{}", isLog.get());
                                     } catch (Exception e) {
