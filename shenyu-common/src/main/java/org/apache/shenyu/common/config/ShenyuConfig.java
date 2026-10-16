@@ -690,6 +690,32 @@ public class ShenyuConfig {
         private long maximumSize = 10000L;
         
         /**
+         * Match result lifetime in milliseconds. Shorter values reduce stale reuse but increase matching work.
+         */
+        private long ttl = 60000L;
+
+        /**
+         * Get the match result lifetime.
+         *
+         * @return lifetime in milliseconds
+         */
+        public long getTtl() {
+            return ttl;
+        }
+
+        /**
+         * Set the match result lifetime.
+         *
+         * @param ttl positive lifetime in milliseconds
+         */
+        public void setTtl(final long ttl) {
+            if (ttl <= 0) {
+                throw new IllegalArgumentException("Match cache ttl must be positive");
+            }
+            this.ttl = ttl;
+        }
+
+        /**
          * get rule cache enabled.
          *
          * @return rule cache enabled

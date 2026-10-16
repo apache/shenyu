@@ -100,7 +100,7 @@ public class CachePluginTest {
         }
         try (MockedStatic<CacheUtils> cacheUtils = Mockito.mockStatic(CacheUtils.class, Mockito.CALLS_REAL_METHODS)) {
             cacheUtils.when(CacheUtils::getCache).thenReturn(memoryCache);
-            CachePlugin.CacheHttpResponse response = new CachePlugin.CacheHttpResponse(exchange, new CacheRuleHandle(), "buffer-release");
+            CachePlugin.CacheHttpResponse response = new CachePlugin.CacheHttpResponse(exchange, new CacheRuleHandle(), "buffer-release", CacheUtils.responseKey(exchange, "buffer-release", null));
             StepVerifier.create(response.writeWith(chunks == 1 ? Mono.just(buffers[0]) : Flux.fromArray(buffers))).verifyComplete();
 
             for (NettyDataBuffer buffer : buffers) {
@@ -108,9 +108,8 @@ public class CachePluginTest {
             }
             Assertions.assertEquals("body", exchange.getResponse().getBodyAsString().block());
             Assertions.assertEquals(4L, exchange.getResponse().getHeaders().getContentLength());
-            Assertions.assertArrayEquals("body".getBytes(StandardCharsets.UTF_8), memoryCache.getData(CacheUtils.dataKey(exchange)).block());
-            Assertions.assertArrayEquals(MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8),
-                    memoryCache.getData(CacheUtils.contentTypeKey(exchange)).block());
+            Assertions.assertArrayEquals("body".getBytes(StandardCharsets.UTF_8),
+                    CachedResponse.decode(memoryCache.getData(CacheUtils.responseKey(exchange, "buffer-release", null)).block()).orElseThrow().getBody());
         } finally {
             for (NettyDataBuffer buffer : buffers) {
                 if (buffer.getNativeBuffer().refCnt() > 0) {
@@ -137,10 +136,8 @@ public class CachePluginTest {
         final Mono<Void> result2 = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result2).expectSubscription().verifyComplete();
 
-        memoryCache.cacheData(CacheUtils.dataKey(exchange), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8),
-                60L).subscribeOn(Schedulers.boundedElastic()).subscribe();
-
-        memoryCache.cacheData(CacheUtils.contentTypeKey(exchange), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8),
+        memoryCache.cacheData(CacheUtils.responseKey(exchange, ruleData.getSelectorId(), ruleData.getId()),
+                CachedResponse.capture(exchange.getResponse(), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode(),
                 60L).subscribeOn(Schedulers.boundedElastic()).subscribe();
         final Mono<Void> result3 = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result3).expectSubscription().verifyComplete();
@@ -172,7 +169,7 @@ public class CachePluginTest {
             final Mono<Void> result = new CachePlugin().doExecute(exchange, chain, selectorData, ruleData);
             StepVerifier.create(result).verifyComplete();
             Assertions.assertEquals("body", exchange.getResponse().getBodyAsString().block());
-            Assertions.assertNull(memoryCache.getData(CacheUtils.dataKey(exchange)).block());
+            Assertions.assertNull(memoryCache.getData(CacheUtils.responseKey(exchange, ruleData.getSelectorId(), ruleData.getId())).block());
         } finally {
             CachePluginDataHandler.CACHED_HANDLE.get().removeHandle(key);
             memoryCache.close();
@@ -205,7 +202,8 @@ public class CachePluginTest {
             final Mono<Void> result = new CachePlugin().doExecute(exchange, chain, selectorData, ruleData);
             StepVerifier.create(result).verifyComplete();
             Assertions.assertEquals("body", exchange.getResponse().getBodyAsString().block());
-            Assertions.assertArrayEquals("body".getBytes(StandardCharsets.UTF_8), memoryCache.getData(CacheUtils.dataKey(exchange)).block());
+            Assertions.assertArrayEquals("body".getBytes(StandardCharsets.UTF_8),
+                    CachedResponse.decode(memoryCache.getData(CacheUtils.responseKey(exchange, ruleData.getSelectorId(), ruleData.getId())).block()).orElseThrow().getBody());
         } finally {
             CachePluginDataHandler.CACHED_HANDLE.get().removeHandle(key);
             memoryCache.close();
