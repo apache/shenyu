@@ -33,11 +33,15 @@ class WatFixtureTest(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.base = Path(temporary.name)
+        self.base = Path(temporary.name) / "base"
+        self.base.mkdir()
+        self.api = Path(temporary.name) / "api"
+        (self.api / "resources").mkdir(parents=True)
         (self.base / "resources").mkdir()
         self.outputs = {}
         self.addCleanup(patch.stopall)
         patch.object(CHECK, "BASE", self.base).start()
+        patch.object(CHECK, "API", self.api).start()
         patch.object(CHECK.subprocess, "check_output", return_value="1.0.42\n").start()
         patch.object(CHECK, "run", side_effect=self.build).start()
 
@@ -65,6 +69,15 @@ class WatFixtureTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "WAT fixture differs.*wasm-future.wasm"):
             CHECK.verify_wat()
         self.assertEqual(b"committed fixture", (self.base / "resources/wasm-future.wasm").read_bytes())
+
+    def test_api_fixture_families_are_verified(self):
+        self.family("wasm-gateway")
+        (self.api / "wasm-concurrent").mkdir()
+        self.outputs["wasm-concurrent"] = {"concurrent.wasm": b"rebuilt API fixture"}
+        (self.api / "resources/concurrent.wasm").write_bytes(b"committed API fixture")
+        with self.assertRaisesRegex(RuntimeError, "WAT fixture differs.*concurrent.wasm"):
+            CHECK.verify_wat()
+        self.assertEqual(b"committed API fixture", (self.api / "resources/concurrent.wasm").read_bytes())
 
     def test_empty_family_is_rejected(self):
         self.family("wasm-gateway")
