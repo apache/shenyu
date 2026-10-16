@@ -20,7 +20,6 @@ package org.apache.shenyu.e2e.testcase.springcloud;
 import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -31,9 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
+
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Testing spring-cloud plugin.
@@ -74,17 +75,20 @@ public class SpringCloudPluginTest {
         List<SelectorCacheData> selectorCache = gatewayClient.getSelectorCache();
         LOG.info("selectorCache: {}", selectorCache);
 
-        Map<String, String> reqBody = new HashMap<>();
-        reqBody.put("pluginId", "5");
-        reqBody.put("name", "divide");
-        reqBody.put("enabled", "true");
-        reqBody.put("role", "Proxy");
-        reqBody.put("sort", "200");
-        reqBody.put("config", "{\"enabled\":true}");
-        reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
-        adminClient.changePluginStatus("1801816010882822185", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.divide.DividePlugin");
+        waitForRegisteredRoute(gatewayClient);
+    }
 
+    static void waitForRegisteredRoute(final GatewayClient gatewayClient) {
+        // Selector/rule synchronization can complete before Eureka publishes the upstream.
+        await().alias("Spring Cloud discovery upstream routes through the gateway")
+                .atMost(Duration.ofSeconds(90))
+                .pollInterval(Duration.ofMillis(200))
+                .untilAsserted(() -> gatewayClient.getHttpRequesterSupplier().get()
+                        .get("/springcloud/order/path/123/hahah")
+                        .then().statusCode(200)
+                        .body("id", equalTo("123"))
+                        .body("name", equalTo("hahah")));
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
