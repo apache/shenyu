@@ -222,6 +222,10 @@ shenyu:
   file:
     enabled: true
     maxSize : 10
+  # Standalone file mode (opt-in): see shenyu-spring-boot-starter-sync-data-file/README.md.
+  # It suppresses the shipped Admin WebSocket/heartbeat defaults and disables local writers.
+  # sync.file.enabled: true
+  # sync.file.path: /etc/shenyu/gateway.yaml
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
