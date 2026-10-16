@@ -47,9 +47,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
@@ -147,5 +150,29 @@ public class LoadServiceDocEntryImplTest {
         when(shenyuDictService.findByDictCodeName(any(), any())).thenReturn(null);
         loadServiceDocEntry.loadDocOnUpstreamChanged(changedList, eventType);
         verify(pullSwaggerDocService).pullApiDocument((Set<UpstreamInstance>) any());
+    }
+
+    @Test
+    public void testLoadDocOnUpstreamChangedFromAnotherThread() throws Exception {
+        this.testLoadApiDocument();
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setUrl("127.0.0.1:8080");
+        DiscoverySyncData supported = new DiscoverySyncData();
+        supported.setPluginName("divide");
+        supported.setSelectorName("test");
+        supported.setUpstreamDataList(Collections.singletonList(discoveryUpstreamData));
+        DiscoverySyncData unsupported = new DiscoverySyncData();
+        unsupported.setPluginName("dubbo");
+        unsupported.setSelectorName("test");
+        unsupported.setUpstreamDataList(Collections.singletonList(discoveryUpstreamData));
+
+        // discovery sync callbacks run on a different thread from the one that loaded the supported plugins
+        CompletableFuture.runAsync(() -> {
+            loadServiceDocEntry.loadDocOnUpstreamChanged(Collections.singletonList(unsupported), DataEventTypeEnum.CREATE);
+            loadServiceDocEntry.loadDocOnUpstreamChanged(Collections.singletonList(supported), DataEventTypeEnum.CREATE);
+        }).get(10, TimeUnit.SECONDS);
+
+        // once by testLoadApiDocument, once for the supported plugin, never for the unsupported one
+        verify(pullSwaggerDocService, times(2)).pullApiDocument((Set<UpstreamInstance>) any());
     }
 }
