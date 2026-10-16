@@ -37,7 +37,7 @@ class SpringCloudRouteReadinessTest {
         server.createContext("/springcloud/order/path/123/hahah", exchange -> {
             int attempt = requests.incrementAndGet();
             byte[] body = (attempt < 3 ? "{\"code\":-107,\"message\":\"upstream not ready\"}"
-                    : "{\"id\":\"123\",\"name\":\"hahah\"}").getBytes(StandardCharsets.UTF_8);
+                    : "{\"id\":\"123\",\"name\":\"hello world spring cloud restful: hahah\"}").getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(attempt == 1 ? 503 : 200, body.length);
             try (var output = exchange.getResponseBody()) {
