@@ -33,7 +33,7 @@ public final class Upstream {
     /**
      * protocol.
      */
-    private final String protocol;
+    private String protocol;
 
     /**
      * url.
@@ -58,7 +58,7 @@ public final class Upstream {
     /**
      * warmup.
      */
-    private final int warmup;
+    private int warmup;
 
     /**
      * healthy.
@@ -143,6 +143,15 @@ public final class Upstream {
     public String getProtocol() {
         return protocol;
     }
+
+    /**
+     * Sets protocol.
+     *
+     * @param protocol the protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
     
     /**
      * Is status boolean.
@@ -178,6 +187,15 @@ public final class Upstream {
      */
     public int getWarmup() {
         return warmup;
+    }
+
+    /**
+     * Sets warmup.
+     *
+     * @param warmup the warmup
+     */
+    public void setWarmup(final int warmup) {
+        this.warmup = warmup;
     }
     
     /**

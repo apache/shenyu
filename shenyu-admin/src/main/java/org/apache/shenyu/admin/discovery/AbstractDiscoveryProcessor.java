@@ -210,11 +210,18 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
                     discoveryUpstreamMapper.insert(discoveryUpstreamDO);
                 }
             }
+            // Publish persisted configuration instead of registry defaults for existing upstreams.
+            List<DiscoveryUpstreamData> persistedUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDTO.getId()).stream()
+                    .map(upstream -> {
+                        DiscoveryUpstreamData data = DiscoveryTransfer.INSTANCE.mapToData(upstream);
+                        data.setNamespaceId(upstream.getNamespaceId());
+                        return data;
+                    }).collect(Collectors.toList());
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setSelectorId(proxySelectorDTO.getId());
             discoverySyncData.setSelectorName(proxySelectorDTO.getName());
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
-            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            discoverySyncData.setUpstreamDataList(persistedUpstreamDataList);
             discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
             DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);
