@@ -29,12 +29,19 @@ public final class AgentMcpIdentity {
 
     private final Set<String> toolGrants;
 
+    private final Set<String> resourceGrants;
+
     public AgentMcpIdentity(final String subject, final Set<String> toolGrants) {
+        this(subject, toolGrants, Set.of());
+    }
+
+    public AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> resourceGrants) {
         if (Objects.requireNonNull(subject, "subject").isBlank()) {
             throw new IllegalArgumentException("subject must not be blank");
         }
         this.subject = subject;
         this.toolGrants = Set.copyOf(toolGrants);
+        this.resourceGrants = Set.copyOf(resourceGrants);
     }
 
     public String getSubject() {
@@ -43,5 +50,9 @@ public final class AgentMcpIdentity {
 
     public Set<String> getToolGrants() {
         return toolGrants;
+    }
+
+    public Set<String> getResourceGrants() {
+        return resourceGrants;
     }
 }

@@ -28,6 +28,8 @@ import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceProvider;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -59,26 +61,30 @@ public class AgentGatewayPluginConfiguration {
      * @param providers local providers
      * @param resolvers trusted identity adapters
      * @param catalogs optional, unambiguous managed remote catalog
+     * @param resources explicitly registered local resources
      * @param tracers optional tracing bridge
      * @param environment deployment-controlled tracing opt-in
      * @return the plugin
      */
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                         final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
+                                         final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentResourceProvider> resources,
+                                         final ObjectProvider<AgentMcpCallTracer> tracers,
                                          final Environment environment) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
         }
-        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer);
+        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer, resources);
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer) {
+                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer, final ObjectProvider<AgentResourceProvider> resources) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer));
+        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
+                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer));
     }
 
     /**
@@ -109,7 +115,8 @@ public class AgentGatewayPluginConfiguration {
         Set<URI> allowed = Arrays.stream(endpoints.split(",")).map(String::trim).map(URI::create).collect(Collectors.toUnmodifiableSet());
         RemoteServiceCredentialResolver resolver = credentials.getIfAvailable(() -> new FileRemoteServiceCredentialResolver(
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
-        return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver);
+        return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver,
+                environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false));
     }
 
     /**

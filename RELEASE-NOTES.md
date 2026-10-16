@@ -28,6 +28,14 @@
 
 ### Behavior Changes
 
+- Agent Gateway adds explicit local/remote resource lists, simple URI templates
+  and reads, with independent `allowedResources`/trusted resource grants and
+  server-namespaced remote identifiers. Remote resource discovery is disabled
+  by default and requires `aggregation.resources-enabled=true` in deployment
+  configuration. Existing tools-only deployments retain their discovery behavior;
+  resource reads reuse the owned cancellation/deadline and directory-generation
+  lifecycle. No generic file/URL fetching, prompts or subscriptions are added.
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish

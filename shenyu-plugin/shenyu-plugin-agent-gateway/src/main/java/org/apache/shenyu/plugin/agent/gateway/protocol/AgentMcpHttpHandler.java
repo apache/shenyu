@@ -100,7 +100,8 @@ public final class AgentMcpHttpHandler {
                                 rpcId.set(request.getId());
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
-                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters()))
+                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters(),
+                                        config.getAllowedResources(), identity.getResourceGrants()))
                                         .contextWrite(observation::traceContext);
                             }))
                     .flatMap(response -> {

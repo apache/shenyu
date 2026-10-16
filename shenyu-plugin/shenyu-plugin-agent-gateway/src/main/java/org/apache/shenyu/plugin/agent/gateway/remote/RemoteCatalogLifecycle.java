@@ -54,6 +54,8 @@ public final class RemoteCatalogLifecycle {
 
     private final int maxGenerations;
 
+    private final boolean resourcesEnabled;
+
     private Generation current;
 
     private Generation updatingGeneration;
@@ -67,10 +69,15 @@ public final class RemoteCatalogLifecycle {
      * @param maxGenerations trusted maxGenerations value
      */
     public RemoteCatalogLifecycle(final int maxGenerations) {
+        this(maxGenerations, false);
+    }
+
+    public RemoteCatalogLifecycle(final int maxGenerations, final boolean resourcesEnabled) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
         this.maxGenerations = maxGenerations;
+        this.resourcesEnabled = resourcesEnabled;
     }
 
     /**
@@ -190,7 +197,13 @@ public final class RemoteCatalogLifecycle {
                     return client
                         .initialize()
                         .switchIfEmpty(Mono.error(new IllegalStateException("Empty handshake")))
-                        .map(ignored -> new RemoteToolDirectory.Target(config.name(), client::listTools, client::callTool, client::callRaw));
+                        .map(handshake -> {
+                            RemoteResourceDirectory.Target resources = resourcesEnabled && Objects.nonNull(handshake.capabilities().resources())
+                                    ? new RemoteResourceDirectory.Target(config.name(), client::listResources, client::listResourceTemplates, client::readResource) : null;
+                            Function<String, Mono<McpSchema.ListToolsResult>> tools = Objects.nonNull(handshake.capabilities().tools())
+                                    ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
+                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
+                        });
                 })
             )
             .collectList()
