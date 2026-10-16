@@ -322,9 +322,11 @@ class RemoteCatalogLifecycleTest {
     void parallelRefreshClosesEveryAllocatedClientWhenOneTargetFails() {
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, 4);
         Fake good = new Fake("good");
+        good.handshake = Sinks.one();
         Fake bad = new Fake("bad");
         bad.failHandshake = true;
         assertThrows(RuntimeException.class, () -> manager.refresh(List.of(config("good", good), config("bad", bad))).block(WAIT));
+        assertEquals(0, good.handshake.currentSubscriberCount());
         // Nothing is published and no allocated client leaks even though both handshakes started concurrently.
         assertEquals(0L, manager.diagnosticsState().currentVersion());
         assertEquals(1, good.closes.get());

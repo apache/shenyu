@@ -81,10 +81,33 @@ class RemoteToolDirectoryTest {
 
     @Test
     void defaultDiscoverOverloadStaysSerialized() {
-        List<RemoteToolDirectory.Target> source = List.of(target("alpha"), target("beta"));
-        RemoteToolDirectory directory = RemoteToolDirectory.discover(source, 4, 16).block(WAIT);
-        assertNotNull(directory);
-        assertEquals(Set.of("alpha.lookup", "beta.lookup"), directory.names());
+        var first = reactor.core.publisher.Sinks.<McpSchema.ListToolsResult>one();
+        var second = reactor.core.publisher.Sinks.<McpSchema.ListToolsResult>one();
+        List<RemoteToolDirectory.Target> source = List.of(
+            new RemoteToolDirectory.Target(
+                "alpha", cursor -> first.asMono(),
+                request -> Mono.error(new UnsupportedOperationException()),
+                request -> Mono.error(new UnsupportedOperationException())
+            ),
+            new RemoteToolDirectory.Target(
+                "beta", cursor -> second.asMono(),
+                request -> Mono.error(new UnsupportedOperationException()),
+                request -> Mono.error(new UnsupportedOperationException())
+            )
+        );
+        var pending = RemoteToolDirectory.discover(source, 4, 16).toFuture();
+        try {
+            assertEquals(1, first.currentSubscriberCount());
+            assertEquals(0, second.currentSubscriberCount());
+            first.tryEmitValue(page("lookup"));
+            assertEquals(1, second.currentSubscriberCount());
+            second.tryEmitValue(page("lookup"));
+            RemoteToolDirectory directory = Mono.fromFuture(pending).block(WAIT);
+            assertNotNull(directory);
+            assertEquals(Set.of("alpha.lookup", "beta.lookup"), directory.names());
+        } finally {
+            pending.cancel(true);
+        }
     }
 
     @Test
