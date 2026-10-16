@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -69,6 +70,7 @@ public class HttpClientPluginConfigurationTest {
                         "shenyu.httpclient.pool.name=proxy",
                         "shenyu.httpclient.pool.maxConnections=1",
                         "shenyu.httpclient.pool.acquireTimeout=45000",
+                        "shenyu.httpclient.pool.maxPendingAcquires=100",
                         "shenyu.httpclient.proxy.host=http://localhost",
                         "shenyu.httpclient.proxy.port=18848",
                         "shenyu.httpclient.proxy.username=itmiwang",
@@ -88,6 +90,7 @@ public class HttpClientPluginConfigurationTest {
                     assertThat(properties.getPool().getName(), is("proxy"));
                     assertThat(properties.getPool().getMaxConnections(), is(1));
                     assertThat(properties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
+                    assertThat(properties.getPool().getMaxPendingAcquires(), is(100));
                     assertThat(properties.getProxy().getHost(), is("http://localhost"));
                     assertThat(properties.getProxy().getPort(), is(18848));
                     assertThat(properties.getProxy().getUsername(), is("itmiwang"));
@@ -111,6 +114,44 @@ public class HttpClientPluginConfigurationTest {
         verify(builder).maxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
         verify(builder).pendingAcquireTimeout(Duration.ofMillis(3000L));
         verify(builder, never()).pendingAcquireMaxCount(anyInt());
+    }
+
+    @Test
+    public void testFixedConnectionPoolExplicitMaxPendingAcquires() {
+        HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
+        pool.setMaxPendingAcquires(100);
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        HttpClientFactory factory = new HttpClientFactory(new HttpClientProperties(), null, new ServerProperties());
+
+        factory.buildFixedConnectionPool(pool, builder);
+
+        verify(builder).maxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+        verify(builder).pendingAcquireTimeout(Duration.ofMillis(3000L));
+        verify(builder).pendingAcquireMaxCount(100);
+    }
+
+    @Test
+    public void testFixedConnectionPoolInvalidMaxPendingAcquires() {
+        HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
+        pool.setMaxPendingAcquires(0);
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        HttpClientFactory factory = new HttpClientFactory(new HttpClientProperties(), null, new ServerProperties());
+
+        assertThrows(IllegalArgumentException.class, () -> factory.buildFixedConnectionPool(pool, builder));
+    }
+
+    @Test
+    public void testElasticConnectionPoolExplicitMaxPendingAcquires() {
+        HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
+        pool.setMaxPendingAcquires(50);
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        HttpClientFactory factory = new HttpClientFactory(new HttpClientProperties(), null, new ServerProperties());
+
+        factory.buildElasticConnectionPool(pool, builder);
+
+        verify(builder).maxConnections(Integer.MAX_VALUE);
+        verify(builder).pendingAcquireTimeout(Duration.ofMillis(0));
+        verify(builder).pendingAcquireMaxCount(50);
     }
 
     @Test

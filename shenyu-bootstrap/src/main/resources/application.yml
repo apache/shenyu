@@ -158,10 +158,11 @@ shenyu:
 #    keepAlive: false
 #    maxInMemorySize: 1 #1mb
 #    pool:
-#      type: ELASTIC
-#      name: proxy
-#      maxConnections: 16
-#      acquireTimeout: 45000
+#      type: FIXED
+#      name: shenyu-proxy
+#      maxConnections: 500
+#      acquireTimeout: 3000
+#      maxPendingAcquires: 1000 # default is 2 * maxConnections if omitted
 #      maxIdleTime: 3000 # unit: ms
 #      maxLifeTime:  # unit: ms
 #      evictionInterval:  # unit: ms
