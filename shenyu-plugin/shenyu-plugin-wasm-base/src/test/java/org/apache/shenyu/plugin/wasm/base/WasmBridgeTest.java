@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.wasm.base;
 
+import com.dylibso.chicory.runtime.Instance;
+import com.dylibso.chicory.runtime.Memory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.config.ShenyuConfig;
@@ -31,6 +33,8 @@ import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.wasm.base.handler.AbstractWasmPluginDataHandler;
+import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.BlockingQueue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -136,7 +141,7 @@ final class WasmBridgeTest {
         assertEquals("selector-first", payload.path("selector").path("handle").textValue());
         assertEquals("rule-first", payload.path("rule").path("handle").textValue());
         assertEquals("/bridge/**", payload.path("rule").path("conditionDataList").get(0).path("paramValue").textValue());
-        assertEquals(-plugin.getMemory().readInt(0), plugin.getMemory().readInt(32));
+        assertEquals(-plugin.fixtureMemory().readInt(0), plugin.fixtureMemory().readInt(32));
         verify(chain).execute(exchange);
         StepVerifier.create(exchange.getRequest().getBody().map(buffer -> buffer.toString(StandardCharsets.UTF_8)))
                 .expectNext("request body").verifyComplete();
@@ -172,7 +177,7 @@ final class WasmBridgeTest {
 
     @Test
     void missingResultContinues() {
-        plugin.getMemory().writeI32(4, -1);
+        plugin.writeControl(4, -1);
         MockServerWebExchange exchange = request();
         complete(plugin.execute(exchange, chain));
         verify(chain).execute(exchange);
@@ -180,9 +185,9 @@ final class WasmBridgeTest {
 
     @Test
     void independentHandlerUpdatesAreVisibleAndDeletedRulesStopGuestExecution() throws IOException {
-        assertNotSame(handler.getMemory(), plugin.getMemory());
+        assertNotSame(handler.fixtureMemory(), plugin.fixtureMemory());
         complete(plugin.execute(request(), chain));
-        final long firstId = plugin.getMemory().readLong(8);
+        final long firstId = plugin.fixtureMemory().readLong(8);
         pluginData.setConfig("{\"mode\":\"updated\"}");
         selector.setHandle("selector-updated");
         rule.setHandle("rule-updated");
@@ -194,23 +199,23 @@ final class WasmBridgeTest {
         assertEquals(pluginData.getConfig(), payload.path("plugin").path("config").textValue());
         assertEquals("selector-updated", payload.path("selector").path("handle").textValue());
         assertEquals("rule-updated", payload.path("rule").path("handle").textValue());
-        final long secondId = plugin.getMemory().readLong(8);
+        final long secondId = plugin.fixtureMemory().readLong(8);
         assertNotEquals(firstId, secondId);
-        assertEquals(6, handler.getMemory().readInt(28));
+        assertEquals(6, fixtureMemories(handler).stream().mapToInt(memory -> memory.readInt(28)).sum());
         subscriber.unRuleSubscribe(rule);
         complete(plugin.execute(request(), chain));
-        assertEquals(secondId, plugin.getMemory().readLong(8));
+        assertEquals(secondId, plugin.fixtureMemory().readLong(8));
         subscriber.unSelectorSubscribe(selector);
         complete(plugin.execute(request(), chain));
         subscriber.unSubscribe(pluginData);
         complete(plugin.execute(request(), chain));
-        assertEquals(secondId, plugin.getMemory().readLong(8));
+        assertEquals(secondId, plugin.fixtureMemory().readLong(8));
         verify(chain, times(5)).execute(any());
     }
 
     @Test
     void guestDecisionsReflectUpdatedRuleConfiguration() {
-        plugin.getMemory().writeI32(16, 3);
+        plugin.writeControl(16, 3);
         MockServerWebExchange allowed = request();
         complete(plugin.execute(allowed, chain));
         verify(chain).execute(allowed);
@@ -244,13 +249,13 @@ final class WasmBridgeTest {
     @Test
     void guestTrapDiscardsAnAlreadySubmittedResult() {
         plugin.setResult("{\"version\":1,\"action\":\"REJECT\",\"status\":403,\"responseHeaders\":{\"X-Invalid\":[\"unused\"]}}");
-        plugin.getMemory().writeI32(16, 1);
+        plugin.writeControl(16, 1);
         MockServerWebExchange failed = request();
         complete(plugin.execute(failed, chain));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, failed.getResponse().getStatusCode());
         assertNull(failed.getResponse().getHeaders().getFirst("X-Invalid"));
         verifyNoInteractions(chain);
-        plugin.getMemory().writeI32(16, 0);
+        plugin.writeControl(16, 0);
         plugin.setResult(CONTINUE);
         complete(plugin.execute(request(), chain));
         verify(chain).execute(any());
@@ -258,7 +263,7 @@ final class WasmBridgeTest {
 
     @Test
     void invalidGuestAddressFailsClosed() {
-        plugin.getMemory().writeI32(16, 2);
+        plugin.writeControl(16, 2);
         MockServerWebExchange exchange = request();
         complete(plugin.execute(exchange, chain));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
@@ -297,8 +302,8 @@ final class WasmBridgeTest {
         assertTrue(plugin.input().path("rule").isNull());
         plugin.after(request());
         assertEquals("after", plugin.input().path("phase").textValue());
-        assertEquals(1, plugin.getMemory().readInt(20));
-        assertEquals(1, plugin.getMemory().readInt(24));
+        assertEquals(1, plugin.counter(20));
+        assertEquals(1, plugin.counter(24));
         complete(plugin.execute(request(), chain));
         verify(chain).execute(any());
     }
@@ -307,14 +312,14 @@ final class WasmBridgeTest {
     void invocationIsLazyAndCancellationDoesNotRetainState() {
         when(chain.execute(any())).thenReturn(Mono.never());
         Mono<Void> execution = plugin.execute(request(), chain);
-        assertEquals(0, plugin.getMemory().readLong(8));
+        assertEquals(0, plugin.fixtureMemory().readLong(8));
         Disposable subscription = execution.subscribe();
-        long firstId = plugin.getMemory().readLong(8);
+        long firstId = plugin.fixtureMemory().readLong(8);
         assertTrue(firstId > 0);
         subscription.dispose();
         when(chain.execute(any())).thenReturn(Mono.empty());
         complete(execution);
-        assertNotEquals(firstId, plugin.getMemory().readLong(8));
+        assertNotEquals(firstId, plugin.fixtureMemory().readLong(8));
     }
 
     @Test
@@ -358,16 +363,44 @@ final class WasmBridgeTest {
         MatchDataCache.getInstance().cleanRuleDataData();
     }
 
+    // Fixtures are configured and inspected only while all guest calls are idle. Seed every
+    // pooled instance and inspect the last returned one; getMemory() remains restricted to calls.
+    @SuppressWarnings("unchecked")
+    private static List<Memory> fixtureMemories(final WasmLoader loader) {
+        BlockingQueue<Instance> instances = (BlockingQueue<Instance>) ReflectionTestUtils.getField(loader, "freeInstances");
+        assertEquals(ReflectionTestUtils.getField(loader, "poolSize"), instances.size());
+        return instances.stream().map(Instance::memory).collect(java.util.stream.Collectors.toList());
+    }
+
     static class BridgePlugin extends AbstractShenyuWasmPlugin {
 
         void setResult(final String json) {
             byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-            getMemory().write(1200000, bytes);
-            getMemory().writeI32(4, bytes.length);
+            for (Memory memory : memories()) {
+                memory.write(1200000, bytes);
+                memory.writeI32(4, bytes.length);
+            }
         }
 
         JsonNode input() throws IOException {
-            return new ObjectMapper().readTree(getMemory().readBytes(4096, getMemory().readInt(0)));
+            return new ObjectMapper().readTree(fixtureMemory().readBytes(4096, fixtureMemory().readInt(0)));
+        }
+
+        private List<Memory> memories() {
+            return fixtureMemories((WasmLoader) ReflectionTestUtils.getField(this, "wasmLoader"));
+        }
+
+        Memory fixtureMemory() {
+            List<Memory> memories = memories();
+            return memories.get(memories.size() - 1);
+        }
+
+        void writeControl(final int address, final int value) {
+            memories().forEach(memory -> memory.writeI32(address, value));
+        }
+
+        int counter(final int address) {
+            return memories().stream().mapToInt(memory -> memory.readInt(address)).sum();
         }
 
         @Override
@@ -385,6 +418,11 @@ final class WasmBridgeTest {
     }
 
     static final class BridgeHandler extends AbstractWasmPluginDataHandler {
+
+        Memory fixtureMemory() {
+            List<Memory> memories = fixtureMemories(this);
+            return memories.get(memories.size() - 1);
+        }
 
         @Override
         public String pluginNamed() {
