@@ -174,11 +174,15 @@ public class DefaultDiscoveryProcessorTest {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         Assertions.assertThrows(NullPointerException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
-        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setDiscoveryId("missing-discovery");
 
         Assertions.assertThrows(ShenyuAdminException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
+        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setHandler("{}");
         doNothing().when(shenyuDiscoveryService).watchInstances(anyString(), any(ChangedEventListener.class));
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
+        Assertions.assertDoesNotThrow(() -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
+        verify(shenyuDiscoveryService).watchInstances(anyString(), any(ChangedEventListener.class));
     }
 
     @Test

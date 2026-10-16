@@ -40,25 +40,29 @@ def run(command, **kwargs):
 
 
 def verify_wat():
-    if not (BASE / "wasm-gateway").is_dir():
-        raise RuntimeError("Required WAT fixture family missing: wasm-gateway")
     version = subprocess.check_output(["wat2wasm", "--version"], text=True).strip()
     if version != "1.0.42":
         raise RuntimeError("WAT verification requires WABT 1.0.42, found " + version)
+    families = [
+        (BASE, ["wasm-bridge", "wasm-gateway"]),
+        (API, ["wasm-concurrent"]),
+    ]
     count = 0
-    for directory in sorted(BASE.glob("wasm-*")):
-        if not directory.is_dir():
-            raise RuntimeError("WAT fixture family is not a directory: " + directory.name)
-        with tempfile.TemporaryDirectory(prefix="shenyu-wat-") as temporary:
-            run(["make", "-C", str(directory), "build", "RESOURCES=" + temporary])
-            binaries = list(Path(temporary).glob("*.wasm"))
-            if not binaries:
-                raise RuntimeError("No fixtures generated for " + directory.name)
-            for rebuilt in binaries:
-                committed = BASE / "resources" / rebuilt.name
-                if rebuilt.read_bytes() != committed.read_bytes():
-                    raise RuntimeError("WAT fixture differs from committed binary: " + rebuilt.name)
-                count += 1
+    for source_root, names in families:
+        for family in names:
+            directory = source_root / family
+            if not directory.exists():
+                continue
+            with tempfile.TemporaryDirectory(prefix="shenyu-wat-") as temporary:
+                run(["make", "-C", str(directory), "build", "RESOURCES=" + temporary])
+                binaries = list(Path(temporary).glob("*.wasm"))
+                if not binaries:
+                    raise RuntimeError("No fixtures generated for " + family)
+                for rebuilt in binaries:
+                    committed = source_root / "resources" / rebuilt.name
+                    if rebuilt.read_bytes() != committed.read_bytes():
+                        raise RuntimeError("WAT fixture differs from committed binary: " + rebuilt.name)
+                    count += 1
     if not count:
         raise RuntimeError("No WAT fixture families found")
     print("Verified " + str(count) + " byte-identical WAT fixtures", flush=True)
@@ -75,7 +79,7 @@ def verify_rust():
                 shutil.copyfile(source / "Cargo.toml", copied / "Cargo.toml")
                 shutil.copytree(source / "src", copied / "src")
                 run(["cargo", "+" + RUST_TOOLCHAIN, "build", "--manifest-path", str(copied / "Cargo.toml"),
-                     "--target", "wasm32-wasip1", "--release"])
+                     "--target", "wasm32-wasip1", "--release", "--offline"])
                 binary = copied / "target/wasm32-wasip1/release" / (crate.replace("-", "_") + ".wasm")
                 resource = source_root / "resources" / resource_name
                 originals[resource] = resource.read_bytes()

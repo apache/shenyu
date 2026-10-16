@@ -2047,6 +2047,7 @@ ALTER TABLE "public"."dashboard_user" ADD CONSTRAINT "dashboard_user_pkey" PRIMA
 -- Primary Key structure for table data_permission
 -- ----------------------------
 ALTER TABLE "public"."data_permission" ADD CONSTRAINT "data_permission_pkey" PRIMARY KEY ("id");
+CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");
 
 -- ----------------------------
 -- Primary Key structure for table meta_data

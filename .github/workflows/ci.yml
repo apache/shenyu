@@ -122,6 +122,15 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+      - name: Replay registration contract and check resolved client boundaries
+        run: |
+          python3 .github/scripts/test-client-boundary.py
+          python3 .github/scripts/check-client-boundary.py
+          ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
+            -Dtest=RegistrationProtocolCompatibilityTest,ZookeeperClientDiscoveryIntegrationTest,HeartbeatListenerConfigurationTest \
+            -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
+            -Dscope=test -DoutputType=tgf -DoutputFile=target/client-boundary.tgf
+          python3 .github/scripts/check-client-boundary.py --trees
       - name: Check resolved registry dependency boundaries
         run: |
           python3 .github/scripts/test-registry-dependencies.py

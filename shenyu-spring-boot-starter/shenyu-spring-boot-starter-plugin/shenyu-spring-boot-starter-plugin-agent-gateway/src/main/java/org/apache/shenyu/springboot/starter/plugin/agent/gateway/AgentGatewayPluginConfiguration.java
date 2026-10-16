@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
+import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
@@ -29,6 +31,7 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
@@ -56,19 +59,26 @@ public class AgentGatewayPluginConfiguration {
      * @param providers local providers
      * @param resolvers trusted identity adapters
      * @param catalogs optional, unambiguous managed remote catalog
+     * @param tracers optional tracing bridge
+     * @param environment deployment-controlled tracing opt-in
      * @return the plugin
      */
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                         final ObjectProvider<AgentMcpRemoteCatalog> catalogs) {
-        return createPlugin(providers, resolvers, catalogs.getIfAvailable());
+                                         final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
+                                         final Environment environment) {
+        AgentMcpCallTracer tracer = tracers.getIfAvailable();
+        if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
+            throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
+        }
+        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer);
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                     final AgentMcpRemoteCatalog catalog) {
+                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver));
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer));
     }
 
     /**
@@ -100,5 +110,25 @@ public class AgentGatewayPluginConfiguration {
         RemoteServiceCredentialResolver resolver = credentials.getIfAvailable(() -> new FileRemoteServiceCredentialResolver(
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
         return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver);
+    }
+
+    /**
+     * Optional API bridge; SDK, exporters and their lifecycle belong to the application.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(OpenTelemetry.class)
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.tracing.enabled", havingValue = "true")
+    static class TracingConfiguration {
+
+        /**
+         * Use the explicitly supplied application telemetry, never a second SDK or global singleton.
+         * @param telemetry application-owned telemetry
+         * @return request-local tracing bridge
+         */
+        @Bean
+        @ConditionalOnMissingBean(AgentMcpCallTracer.class)
+        AgentMcpCallTracer agentGatewayCallTracer(final OpenTelemetry telemetry) {
+            return new OpenTelemetryAgentMcpCallTracer(telemetry);
+        }
     }
 }

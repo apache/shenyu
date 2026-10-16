@@ -33,6 +33,7 @@ public interface ProxySelectorDataSubscriber {
 
     /**
      * Un subscribe.
+     * Node and path deletion notifications may contain only the plugin name and selector id.
      *
      * @param proxySelectorData the proxySelector data
      */

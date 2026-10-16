@@ -123,6 +123,34 @@ public class RequestPluginTest {
     }
 
     @Test
+    public void testParameterOnlyRule() {
+        ruleData.setHandle("{\"parameter\":{\"addParameters\":{\"partial\":\"value\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        assertEquals("value", captor.getValue().getRequest().getQueryParams().getFirst("partial"));
+        assertEquals("oldValue", captor.getValue().getRequest().getHeaders().getFirst("addKey"));
+    }
+
+    @Test
+    public void testCookieOnlyRule() {
+        ruleData.setHandle("{\"cookie\":{\"addCookies\":{\"partial\":\"value\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        assertTrue(captor.getValue().getRequest().getHeaders().getFirst(HttpHeaders.COOKIE).contains("partial=value"));
+        assertEquals("oldValue", captor.getValue().getRequest().getQueryParams().getFirst("addKey"));
+    }
+
+    @Test
     public void testResponseDedupDoesNotRequireRequestStrategy() {
         RequestHandle handle = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         handle.setRequestHeaderUniqueStrategy(null);
