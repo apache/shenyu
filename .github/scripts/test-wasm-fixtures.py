@@ -33,23 +33,24 @@ class WatFixtureTest(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.base = Path(temporary.name) / "base"
-        self.base.mkdir()
-        self.api = Path(temporary.name) / "api"
-        (self.api / "resources").mkdir(parents=True)
+        self.base = Path(temporary.name)
         (self.base / "resources").mkdir()
+        self.api = self.base / "api"
+        (self.api / "resources").mkdir(parents=True)
         self.outputs = {}
         self.addCleanup(patch.stopall)
         patch.object(CHECK, "BASE", self.base).start()
         patch.object(CHECK, "API", self.api).start()
         patch.object(CHECK.subprocess, "check_output", return_value="1.0.42\n").start()
         patch.object(CHECK, "run", side_effect=self.build).start()
+        self.family("wasm-concurrent", self.api)
 
-    def family(self, name):
-        (self.base / name).mkdir()
+    def family(self, name, root=None):
+        root = self.base if root is None else root
+        (root / name).mkdir()
         binary = name + ".wasm"
         self.outputs[name] = {binary: b"committed fixture"}
-        (self.base / "resources" / binary).write_bytes(b"committed fixture")
+        (root / "resources" / binary).write_bytes(b"committed fixture")
 
     def build(self, command):
         family = Path(command[2]).name
@@ -70,19 +71,42 @@ class WatFixtureTest(unittest.TestCase):
             CHECK.verify_wat()
         self.assertEqual(b"committed fixture", (self.base / "resources/wasm-future.wasm").read_bytes())
 
-    def test_api_fixture_families_are_verified(self):
-        self.family("wasm-gateway")
-        (self.api / "wasm-concurrent").mkdir()
-        self.outputs["wasm-concurrent"] = {"concurrent.wasm": b"rebuilt API fixture"}
-        (self.api / "resources/concurrent.wasm").write_bytes(b"committed API fixture")
-        with self.assertRaisesRegex(RuntimeError, "WAT fixture differs.*concurrent.wasm"):
-            CHECK.verify_wat()
-        self.assertEqual(b"committed API fixture", (self.api / "resources/concurrent.wasm").read_bytes())
-
     def test_empty_family_is_rejected(self):
         self.family("wasm-gateway")
         self.outputs["wasm-gateway"] = {}
         with self.assertRaisesRegex(RuntimeError, "No fixtures generated for wasm-gateway"):
+            CHECK.verify_wat()
+
+    def test_missing_concurrent_family_is_rejected(self):
+        self.family("wasm-gateway")
+        (self.api / "wasm-concurrent").rmdir()
+        with self.assertRaisesRegex(RuntimeError, "Required WAT fixture family missing: wasm-concurrent"):
+            CHECK.verify_wat()
+
+    def test_concurrent_binary_uses_api_resources(self):
+        self.family("wasm-gateway")
+        self.outputs["wasm-concurrent"]["wasm-concurrent.wasm"] = b"different binary"
+        with self.assertRaisesRegex(RuntimeError, "WAT fixture differs.*wasm-concurrent.wasm"):
+            CHECK.verify_wat()
+        self.assertEqual(b"committed fixture", (self.api / "resources/wasm-concurrent.wasm").read_bytes())
+
+    def test_additional_api_families_are_verified(self):
+        self.family("wasm-gateway")
+        self.family("wasm-future-api", self.api)
+        self.outputs["wasm-future-api"]["wasm-future-api.wasm"] = b"different binary"
+        with self.assertRaisesRegex(RuntimeError, "WAT fixture differs.*wasm-future-api.wasm"):
+            CHECK.verify_wat()
+
+    def test_empty_api_family_is_rejected(self):
+        self.family("wasm-gateway")
+        self.outputs["wasm-concurrent"] = {}
+        with self.assertRaisesRegex(RuntimeError, "No fixtures generated for wasm-concurrent"):
+            CHECK.verify_wat()
+
+    def test_api_family_path_must_be_a_directory(self):
+        self.family("wasm-gateway")
+        (self.api / "wasm-invalid").write_text("not a directory", encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "WAT fixture family is not a directory: wasm-invalid"):
             CHECK.verify_wat()
 
     def test_matching_binaries_do_not_modify_resources(self):

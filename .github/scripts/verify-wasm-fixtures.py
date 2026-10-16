@@ -40,11 +40,12 @@ def run(command, **kwargs):
 
 
 def verify_wat():
+    for source_root, required in ((BASE, "wasm-gateway"), (API, "wasm-concurrent")):
+        if not (source_root / required).is_dir():
+            raise RuntimeError("Required WAT fixture family missing: " + required)
     version = subprocess.check_output(["wat2wasm", "--version"], text=True).strip()
     if version != "1.0.42":
         raise RuntimeError("WAT verification requires WABT 1.0.42, found " + version)
-    if not (BASE / "wasm-gateway").is_dir():
-        raise RuntimeError("Required WAT fixture family missing: wasm-gateway")
     count = 0
     for source_root in (BASE, API):
         for directory in sorted(source_root.glob("wasm-*")):
