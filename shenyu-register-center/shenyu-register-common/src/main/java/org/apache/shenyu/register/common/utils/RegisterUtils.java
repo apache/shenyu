@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.http.utils;
+package org.apache.shenyu.register.common.utils;
 
 import okhttp3.Headers;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public final class RegisterUtils {
             LOGGER.error("{} client register error accessToken is null, please check the config : {} ", type, json);
             return;
         }
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = registrationHeaders(accessToken);
         String result = OkHttpTools.getInstance().post(url, json, headers);
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} client register success: {} ", type, json);
@@ -82,7 +83,7 @@ public final class RegisterUtils {
      * @throws IOException the io exception
      */
     public static void doRegister(final String json, final String url, final String type) throws IOException {
-        String result = OkHttpTools.getInstance().post(url, json);
+        String result = OkHttpTools.getInstance().post(url, json, registrationHeaders(null));
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
@@ -105,7 +106,7 @@ public final class RegisterUtils {
             LOGGER.error("{} client heartbeat error accessToken is null, please check the config : {} ", type, json);
             return;
         }
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = registrationHeaders(accessToken);
         String result = OkHttpTools.getInstance().post(url, json, headers);
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} success: {} ", type, json);
@@ -128,7 +129,7 @@ public final class RegisterUtils {
             LOGGER.error("{} client unregister error accessToken is null, please check the config : {} ", Constants.URI, json);
             return;
         }
-        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        Headers headers = registrationHeaders(accessToken);
         String result = OkHttpTools.getInstance().post(url, json, headers);
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} client unregister success: {} ", Constants.URI, json);
@@ -136,6 +137,14 @@ public final class RegisterUtils {
             LOGGER.error("{} client unregister error: {} ", Constants.URI, json);
             throw new IOException("Admin returned a non-success response for unregistration at " + url);
         }
+    }
+
+    private static Headers registrationHeaders(final String accessToken) {
+        Headers.Builder headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1);
+        if (Objects.nonNull(accessToken)) {
+            headers.add(Constants.X_ACCESS_TOKEN, accessToken);
+        }
+        return headers.build();
     }
 
     /**

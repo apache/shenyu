@@ -41,7 +41,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;

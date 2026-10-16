@@ -33,6 +33,8 @@ public final class ShenyuAiRequest {
 
     private String protocol;
 
+    private Operation operation = Operation.CHAT_COMPLETION;
+
     private String model;
 
     private Integer maxTokens;
@@ -66,6 +68,24 @@ public final class ShenyuAiRequest {
      */
     public String getProtocol() {
         return protocol;
+    }
+
+    /**
+     * Get the operation established by the protocol decoder.
+     *
+     * @return requested operation
+     */
+    public Operation getOperation() {
+        return operation;
+    }
+
+    /**
+     * Set the operation established by the protocol decoder.
+     *
+     * @param operation requested operation
+     */
+    public void setOperation(final Operation operation) {
+        this.operation = operation;
     }
 
     /**
@@ -174,5 +194,12 @@ public final class ShenyuAiRequest {
      */
     public void setMessages(final List<ShenyuAiMessage> messages) {
         this.messages = messages;
+    }
+
+    /**
+     * Generation operations supported by the current protocol decoders.
+     */
+    public enum Operation {
+        CHAT_COMPLETION, RESPONSE
     }
 }

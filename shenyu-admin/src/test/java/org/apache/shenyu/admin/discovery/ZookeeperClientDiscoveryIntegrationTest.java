@@ -23,50 +23,44 @@ import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
-import org.apache.shenyu.client.core.register.ClientDiscoveryConfigRefreshedEventListener;
-import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
-import org.apache.shenyu.client.core.register.InstanceRegisterListener;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
-import org.apache.shenyu.register.common.config.ShenyuClientConfig;
-import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
-import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
 import org.apache.shenyu.registry.api.path.InstancePathConstants;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Registers through the real client HTTP sender, Admin and ZooKeeper.
+ * Replays the discovery wire contract through Admin and main-owned ZooKeeper APIs.
  */
 @TestPropertySource(properties = "shenyu.sync.websocket.token=zk-6525-sync")
 public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringIntegrationTest {
@@ -83,9 +77,11 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
     @Resource
     private DiscoveryMapper discoveryMapper;
 
-    private final List<GenericApplicationContext> clients = new ArrayList<>();
+    private final List<ShenyuInstanceRegisterRepository> clients = new CopyOnWriteArrayList<>();
 
     private final List<DiscoverySyncData> snapshots = new CopyOnWriteArrayList<>();
+
+    private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
     private WebSocket websocket;
 
@@ -94,7 +90,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
         if (Objects.nonNull(websocket)) {
             websocket.abort();
         }
-        clients.forEach(this::stopClient);
+        clients.forEach(this::stopInstance);
         List<DiscoveryDO> discoveries = registeredDiscoveries();
         discoveries.forEach(discovery -> processorHolder.chooseProcessor("zookeeper").removeDiscovery(discovery));
         jdbcTemplate.update("DELETE FROM discovery_upstream WHERE discovery_handler_id IN "
@@ -107,7 +103,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     @Test
     public void testClientRegistrationAndInstanceChanges() throws Exception {
-        websocket = HttpClient.newHttpClient().newWebSocketBuilder().header(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID)
+        websocket = httpClient.newWebSocketBuilder().header(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .header(Constants.X_SHENYU_SYNC_TOKEN, "zk-6525-sync")
                 .header(Constants.CLIENT_PORT_NAME, "19194")
                 .buildAsync(URI.create("ws://127.0.0.1:" + adminPort + "/websocket"), new WebSocket.Listener() {
@@ -130,99 +126,92 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
         try (TestingServer server = new TestingServer()) {
             createSelector("a");
             createSelector("b");
-            GenericApplicationContext first = startClient(server, "a", 19195, "/shenyu/discovery/http_example");
+            final ShenyuInstanceRegisterRepository first = startInstance(server, "a", 19195);
             awaitUpstreams("a", List.of("127.0.0.1:19195"));
             assertEquals(InstancePathConstants.buildInstanceParentPath("zk-6525-a"), listenerNode("a"));
-            ShenyuDiscoveryConfig config = first.getBean(ShenyuDiscoveryConfig.class);
-            assertNull(config.getProps().getProperty("watchPath"));
+            String registerPath = InstancePathConstants.buildInstanceParentPath("zk-6525-a");
             ShenyuInstanceRegisterRepository reader = reader();
-            assertTrue(reader.serviceExists(config.getRegisterPath()));
+            assertTrue(reader.serviceExists(registerPath));
             assertTrue(reader.serviceExists("zk-6525-a"));
-            assertEquals(1, reader.selectInstances(config.getRegisterPath()).size());
+            assertEquals(1, reader.selectInstances(registerPath).size());
             assertFalse(reader.serviceExists("/shenyu/discovery"));
             assertFalse(reader.serviceExists("/shenyu/discovery/http_example"));
             assertTrue(reader.selectInstances("/shenyu/discovery/http_example").isEmpty());
-            final GenericApplicationContext other = startClient(server, "b", 19196, null);
+            final ShenyuInstanceRegisterRepository other = startInstance(server, "b", 19196);
             awaitUpstreams("b", List.of("127.0.0.1:19196"));
             assertEquals(InstancePathConstants.buildInstanceParentPath("zk-6525-b"), listenerNode("b"));
-            final GenericApplicationContext second = startClient(server, "a", 19197, null);
+            final ShenyuInstanceRegisterRepository second = startInstance(server, "a", 19197);
             awaitUpstreams("a", List.of("127.0.0.1:19195", "127.0.0.1:19197"));
             assertSyncSnapshot("a", List.of("127.0.0.1:19195", "127.0.0.1:19197"));
             InstanceEntity update = InstanceEntity.builder().appName("zk-6525-a").host("127.0.0.1").port(19197).build();
             update.setStatus(0);
             update.setWeight(80);
-            writer(second).persistInstance(update);
+            second.persistInstance(update);
             await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> assertEquals(80,
                     jdbcTemplate.queryForObject("SELECT weight FROM discovery_upstream WHERE upstream_url = '127.0.0.1:19197'", Integer.class)));
             assertSyncPublished("a", "127.0.0.1:19197", 80);
             // Discovery configuration registration is drained by the Admin subscriber every two seconds.
             Thread.sleep(3000);
-            final GenericApplicationContext otherSecond = startClient(server, "b", 19198, null);
+            final ShenyuInstanceRegisterRepository otherSecond = startInstance(server, "b", 19198);
             awaitUpstreams("b", List.of("127.0.0.1:19196", "127.0.0.1:19198"));
             awaitUpstreams("a", List.of("127.0.0.1:19195", "127.0.0.1:19197"));
-            stopClient(otherSecond);
+            stopInstance(otherSecond);
             awaitUpstreams("b", List.of("127.0.0.1:19196"));
-            stopClient(second);
+            stopInstance(second);
             awaitUpstreams("a", List.of("127.0.0.1:19195"));
             assertSyncSnapshot("a", List.of("127.0.0.1:19195"));
             awaitUpstreams("b", List.of("127.0.0.1:19196"));
-            stopClient(first);
+            stopInstance(first);
             awaitUpstreams("a", List.of());
             assertSyncSnapshot("a", List.of());
             awaitUpstreams("b", List.of("127.0.0.1:19196"));
-            stopClient(other);
+            stopInstance(other);
             awaitUpstreams("b", List.of());
             registeredDiscoveries().forEach(discovery -> processorHolder.chooseProcessor("zookeeper").removeDiscovery(discovery));
         }
     }
 
-    private GenericApplicationContext startClient(final TestingServer server, final String app, final int port, final String registerPath) {
-        GenericApplicationContext context = new GenericApplicationContext();
-        clients.add(context);
-        ShenyuClientConfig client = new ShenyuClientConfig();
-        client.setNamespace(Constants.SYS_DEFAULT_NAMESPACE_ID);
-        ShenyuClientConfig.ClientPropertiesConfig properties = new ShenyuClientConfig.ClientPropertiesConfig();
-        properties.getProps().setProperty("contextPath", "/zk-6525-" + app);
-        properties.getProps().setProperty("appName", "zk-6525-" + app);
-        properties.getProps().setProperty("host", "127.0.0.1");
-        properties.getProps().setProperty("port", String.valueOf(port));
-        client.getClient().put("http", properties);
-        final ClientRegisterConfig register = new ClientRegisterConfigImpl(client, RpcTypeEnum.HTTP, context, context.getEnvironment());
-        ShenyuDiscoveryConfig discovery = new ShenyuDiscoveryConfig();
-        discovery.setType("zookeeper");
-        discovery.setServerList(server.getConnectString());
-        discovery.setRegisterPath(registerPath);
-        discovery.getProps().setProperty("name", register.getAppName());
-        DiscoveryUpstreamData upstream = new DiscoveryUpstreamData();
-        upstream.setUrl(register.getHost() + ":" + register.getPort());
-        upstream.setProtocol("http://");
-        upstream.setStatus(0);
-        upstream.setWeight(50);
-        ShenyuRegisterCenterConfig admin = new ShenyuRegisterCenterConfig();
-        admin.setServerLists("http://127.0.0.1:" + adminPort);
-        admin.getProps().setProperty("username", "admin");
-        admin.getProps().setProperty("password", "123456");
-        HttpClientRegisterRepository sender = new HttpClientRegisterRepository(admin);
-        context.registerBean(ShenyuDiscoveryConfig.class, () -> discovery);
-        context.registerBean(InstanceRegisterListener.class, () -> new InstanceRegisterListener(upstream, discovery));
-        context.registerBean(ClientDiscoveryConfigRefreshedEventListener.class,
-                () -> new ClientDiscoveryConfigRefreshedEventListener(discovery, sender, register, PluginEnum.DIVIDE, client));
-        context.refresh();
-        return context;
-    }
-
-    private void stopClient(final GenericApplicationContext context) {
-        if (!context.isActive()) {
-            return;
+    private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {
+        String appName = "zk-6525-" + app;
+        Properties properties = new Properties();
+        properties.setProperty("name", appName);
+        RegisterConfig config = new RegisterConfig("zookeeper", server.getConnectString(), properties);
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.loadRepository("zookeeper");
+        clients.add(repository);
+        repository.init(config);
+        repository.persistInstance(InstanceEntity.builder().appName(appName).host("127.0.0.1").port(port).build());
+        JsonObject discovery;
+        try (InputStream input = Objects.requireNonNull(getClass().getResourceAsStream("/registration/v1/discovery-config.json"))) {
+            discovery = GsonUtils.getInstance().fromJson(new String(input.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
         }
-        InstanceRegisterListener listener = context.getBean(InstanceRegisterListener.class);
-        writer(context).close();
-        ReflectionTestUtils.setField(listener, "discoveryService", null);
-        context.close();
+        discovery.addProperty("selectorName", "/" + appName);
+        discovery.addProperty("serverList", server.getConnectString());
+        discovery.addProperty("listenerNode", InstancePathConstants.buildInstanceParentPath(appName));
+        discovery.getAsJsonObject("props").addProperty("name", appName);
+        String login = post(RegistrationProtocol.LOGIN_PATH, "{\"userName\":\"admin\",\"password\":\"123456\"}", "");
+        String token = GsonUtils.getInstance().fromJson(login, JsonObject.class).getAsJsonObject("data").get("token").getAsString();
+        assertEquals(RegistrationProtocol.SUCCESS, post(RegistrationProtocol.DISCOVERY_CONFIG_PATH, discovery.toString(), token));
+        return repository;
     }
 
-    private ShenyuInstanceRegisterRepository writer(final GenericApplicationContext context) {
-        return (ShenyuInstanceRegisterRepository) ReflectionTestUtils.getField(context.getBean(InstanceRegisterListener.class), "discoveryService");
+    private String post(final String path, final String json, final String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + adminPort + path))
+                .timeout(Duration.ofSeconds(15))
+                .header("Content-Type", "application/json")
+                .header(Constants.X_ACCESS_TOKEN, token)
+                .POST(HttpRequest.BodyPublishers.ofString(json)).build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode(), response.body());
+        if (!RegistrationProtocol.LOGIN_PATH.equals(path)) {
+            assertEquals(RegistrationProtocol.V1, response.headers().firstValue(RegistrationProtocol.VERSION_HEADER).orElseThrow());
+        }
+        return response.body();
+    }
+
+    private void stopInstance(final ShenyuInstanceRegisterRepository repository) {
+        if (clients.remove(repository)) {
+            repository.close();
+        }
     }
 
     private ShenyuInstanceRegisterRepository reader() {

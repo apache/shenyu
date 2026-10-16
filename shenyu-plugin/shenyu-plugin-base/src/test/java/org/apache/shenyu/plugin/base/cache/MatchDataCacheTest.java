@@ -24,9 +24,11 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.awaitility.Awaitility.await;
 
 @SuppressWarnings("unchecked")
 public final class MatchDataCacheTest {
@@ -101,6 +103,36 @@ public final class MatchDataCacheTest {
         assertNull(MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1));
         assertEquals(unrelatedRuleData, MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path2));
         MatchDataCache.getInstance().cleanRuleDataData();
+    }
+
+    @Test
+    public void testPositiveAndNegativeMatchesExpire() {
+        MatchDataCache cache = MatchDataCache.getInstance();
+        cache.cleanSelectorData();
+        cache.cleanRuleDataData();
+        SelectorData selector = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData emptySelector = SelectorData.builder().pluginName(mockPluginName1).build();
+        RuleData rule = RuleData.builder().id("1").pluginName(mockPluginName1).build();
+        RuleData emptyRule = RuleData.builder().pluginName(mockPluginName1).build();
+        try {
+            cache.cacheSelectorData(path1, selector, 100, 100, 500);
+            cache.cacheSelectorData(path2, emptySelector, 100, 100, 500);
+            cache.cacheRuleData(path1, rule, 100, 100, 500);
+            cache.cacheRuleData(path2, emptyRule, 100, 100, 500);
+            assertEquals(selector, cache.obtainSelectorData(mockPluginName1, path1));
+            assertEquals(emptySelector, cache.obtainSelectorData(mockPluginName1, path2));
+            assertEquals(rule, cache.obtainRuleData(mockPluginName1, path1));
+            assertEquals(emptyRule, cache.obtainRuleData(mockPluginName1, path2));
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertNull(cache.obtainSelectorData(mockPluginName1, path1));
+                assertNull(cache.obtainSelectorData(mockPluginName1, path2));
+                assertNull(cache.obtainRuleData(mockPluginName1, path1));
+                assertNull(cache.obtainRuleData(mockPluginName1, path2));
+            });
+        } finally {
+            cache.cleanSelectorData();
+            cache.cleanRuleDataData();
+        }
     }
 
     @SuppressWarnings("rawtypes")

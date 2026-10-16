@@ -85,6 +85,9 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
+            if (!StringUtils.startsWith(context.getPath(), contextPath)) {
+                return;
+            }
             realURI = context.getPath().substring(contextPath.length());
             attributes.put(Constants.CONTEXT_PATH, contextPath);
         }

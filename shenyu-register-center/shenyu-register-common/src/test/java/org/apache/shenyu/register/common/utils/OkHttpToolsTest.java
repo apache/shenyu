@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.http.utils;
+package org.apache.shenyu.register.common.utils;
 
 import okhttp3.Call;
 import okhttp3.Headers;

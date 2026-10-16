@@ -305,10 +305,12 @@ public class UpstreamCheckService {
     }
 
     private void waitFinish() {
-        // wait all check success
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        // clear, for next time
-        futures.clear();
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } finally {
+            // A failed check must not remain in the next cycle.
+            futures.clear();
+        }
     }
 
     private void checkZombie(final ZombieUpstream zombieUpstream) {

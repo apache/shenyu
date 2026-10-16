@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -159,6 +160,10 @@ public class NamespaceServiceImpl implements NamespaceService {
         List<AppAuthDO> appPathDOList = appAuthMapper.findByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
+        }
+        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(discoveryDOList)) {
+            throw new ShenyuAdminException("discovery exist under those namespace!");
         }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;

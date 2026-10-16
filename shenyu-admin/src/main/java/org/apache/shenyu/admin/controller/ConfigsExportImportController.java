@@ -22,6 +22,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.ExportImportConstants;
@@ -58,10 +59,14 @@ public class ConfigsExportImportController {
 
     private final SyncDataService syncDataService;
 
+    private final NamespaceService namespaceService;
+
     public ConfigsExportImportController(final ConfigsService configsService,
-                                         final SyncDataService syncDataService) {
+                                         final SyncDataService syncDataService,
+                                         final NamespaceService namespaceService) {
         this.configsService = configsService;
         this.syncDataService = syncDataService;
+        this.namespaceService = namespaceService;
     }
 
     /**
@@ -133,6 +138,9 @@ public class ConfigsExportImportController {
     public ShenyuAdminResult importConfigs(final String namespace, final MultipartFile file) {
         if (StringUtils.isBlank(namespace) || Objects.isNull(file)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+        }
+        if (Objects.isNull(namespaceService.findByNamespaceId(namespace))) {
+            return ShenyuAdminResult.error("namespace is not exist");
         }
         try {
             ShenyuAdminResult importResult = configsService.configsImport(namespace, file.getBytes());
