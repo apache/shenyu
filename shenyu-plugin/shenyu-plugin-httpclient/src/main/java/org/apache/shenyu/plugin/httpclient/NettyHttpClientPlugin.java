@@ -89,6 +89,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
             if (preserveHost) {
                 headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
             }
+            // the headers of the client have been copied by now, so the trace context of the gateway
+            // wins and the upstream continues the trace of the gateway span. The headers handed to a
+            // propagator are the ones of the outgoing request, they are always writable.
+            this.injectTraceContext(exchange, new NettyHttpHeadersTraceContextCarrier(headers));
         }).request(HttpMethod.valueOf(httpMethod)).uri(uri.toASCIIString())
                 .send((req, nettyOutbound) -> {
                     // Do not send a request body for GET/HEAD. Otherwise Reactor Netty may add
