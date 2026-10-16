@@ -157,7 +157,9 @@ negative lengths and ranges outside memory are errors.
   traps. IDs expire at that point and cannot be reused to read another request.
   No exchange references or result maps survive for a downstream subscription.
 - Request guest calls run on subscription. Calls to one default-bridge plugin
-  instance, including hooks, are serialized because its linear memory is shared.
+  instance, including hooks, are serialized because the host bridge has one shared
+  invocation slot across the loader's pooled guest instances. Each guest owns its
+  linear memory and mutable globals; later calls can lease a different guest.
   The lock is released before the reactive chain runs. Downstream cancellation
   cannot retain bridge state. This does not add a guest execution timeout.
 - Close the plugin at shutdown (for example, with a Spring bean destroy method).
