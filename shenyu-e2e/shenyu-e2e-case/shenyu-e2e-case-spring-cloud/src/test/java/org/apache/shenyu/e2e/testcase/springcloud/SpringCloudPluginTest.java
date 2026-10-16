@@ -88,7 +88,7 @@ public class SpringCloudPluginTest {
                         .get("/springcloud/order/path/123/hahah")
                         .then().statusCode(200)
                         .body("id", equalTo("123"))
-                        .body("name", equalTo("hahah")));
+                        .body("name", equalTo("hello world spring cloud restful: hahah")));
     }
 
     @ShenYuScenario(provider = SpringCloudPluginCases.class)
