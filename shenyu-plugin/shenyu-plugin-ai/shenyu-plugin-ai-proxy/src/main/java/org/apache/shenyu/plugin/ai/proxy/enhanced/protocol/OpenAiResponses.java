@@ -65,6 +65,7 @@ public final class OpenAiResponses implements AiProxyProtocol {
         }
         ShenyuAiRequest request = new ShenyuAiRequest();
         request.setProtocol(NAME);
+        request.setOperation(ShenyuAiRequest.Operation.RESPONSE);
         request.setRawBody(rawBody);
         request.setRawPayload(payload.deepCopy());
         request.setModel(Objects.isNull(model) || model.isNull() ? null : model.textValue());

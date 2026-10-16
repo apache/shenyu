@@ -23,9 +23,13 @@ Infrastructure is etcd-specific; no retained core module imports it.
 
 ## Release gates
 
-The main removal PR must remain draft until the community agrees to externalization,
-the receiving build and real-server/full-deployment tests pass, and the external
-artifacts are published. This source change does not mean artifacts are released.
+The main removal PR must remain draft until dev-list consensus is recorded, an
+advance deprecation notice has shipped in a core release, the full released
+deprecation cycle is complete, receiving builds and real-server/full-deployment
+tests pass, external artifacts are published, and a rollback window is announced.
+The deprecation release retains the in-tree integration; this branch prepares a
+later cutover. No removal release is scheduled. Source changes and local snapshots
+do not complete these release gates.
 The store currently uses `2.7.1-SNAPSHOT` and compiles against ShenYu `2.7.2-SNAPSHOT`;
 select the announced compatible store release when deploying. Do not publish the
 same group/artifact/version from both repositories. Retain the last in-tree release

@@ -29,6 +29,7 @@ import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test cases for ShenyuConfig.
@@ -36,6 +37,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ShenyuConfigTest {
     
     private final ShenyuConfig config = new ShenyuConfig();
+
+    @Test
+    public void testMatchCacheTtl() {
+        ShenyuConfig.MatchCacheConfig config = new ShenyuConfig.MatchCacheConfig();
+        assertEquals(60000L, config.getTtl());
+        config.setTtl(30000L);
+        assertEquals(30000L, config.getTtl());
+        assertThrows(IllegalArgumentException.class, () -> config.setTtl(0));
+        assertThrows(IllegalArgumentException.class, () -> config.setTtl(-1));
+    }
 
     @Test
     public void testSharedPoolMaximumDefaultsToCoreSize() {

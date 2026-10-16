@@ -132,9 +132,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(final List<String> ids) {
-        // select namespace plugin by ns plugin rel Ids.
-        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids);
+    public String delete(final List<String> ids, final String namespaceId) {
+        // select namespace plugin by ns plugin rel Ids, scoped to the request namespace.
+        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids).stream()
+                .filter(vo -> Objects.equals(vo.getNamespaceId(), namespaceId))
+                .toList();
         if (CollectionUtils.isEmpty(namespacePluginVOS)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }

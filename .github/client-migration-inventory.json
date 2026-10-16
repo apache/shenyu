@@ -1,0 +1,40 @@
+{
+  "description": "Staged source ownership for #7602; remove these exemptions only after main foundation and external client releases pass compatibility gates. Beat modules stay in main.",
+  "client_source_roots": [
+    "shenyu-client",
+    "shenyu-register-center/shenyu-register-client/shenyu-register-client-api",
+    "shenyu-register-center/shenyu-register-client/shenyu-register-client-http",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-apache-dubbo",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-common",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-grpc",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-mcp",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-sofa",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-spring-websocket",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-springmvc",
+    "shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-tars"
+  ],
+  "client_example_roots": [
+    "shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service",
+    "shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-annotation",
+    "shenyu-examples/shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml",
+    "shenyu-examples/shenyu-examples-grpc",
+    "shenyu-examples/shenyu-examples-http",
+    "shenyu-examples/shenyu-examples-http-swagger3",
+    "shenyu-examples/shenyu-examples-https",
+    "shenyu-examples/shenyu-examples-mcp",
+    "shenyu-examples/shenyu-examples-sdk/shenyu-examples-sdk-dubbo/shenyu-examples-sdk-apache-dubbo-provider",
+    "shenyu-examples/shenyu-examples-sdk/shenyu-examples-sdk-feign",
+    "shenyu-examples/shenyu-examples-sdk/shenyu-examples-sdk-grpc/shenyu-examples-sdk-grpc-provider",
+    "shenyu-examples/shenyu-examples-sdk/shenyu-examples-sdk-http",
+    "shenyu-examples/shenyu-examples-sdk/shenyu-examples-sdk-springcloud/shenyu-examples-sdk-springcloud-provider",
+    "shenyu-examples/shenyu-examples-springcloud",
+    "shenyu-examples/shenyu-examples-springmvc",
+    "shenyu-examples/shenyu-examples-springmvc-tomcat",
+    "shenyu-examples/shenyu-examples-websocket/shenyu-example-spring-annotation-websocket",
+    "shenyu-examples/shenyu-examples-websocket/shenyu-example-spring-native-websocket",
+    "shenyu-examples/shenyu-examples-websocket/shenyu-example-spring-reactive-websocket"
+  ],
+  "staged_dependency_management": [
+    "shenyu-examples/pom.xml"
+  ]
+}

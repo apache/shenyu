@@ -425,7 +425,13 @@ The text of each license is the standard Apache 2.0 license.
     opentracing-noop 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentracing-util 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentelemetry-api 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api, Apache 2.0
+    opentelemetry-api-incubator 1.37.0-alpha: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api-incubator, Apache 2.0
     opentelemetry-context 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-context, Apache 2.0
+    opentelemetry-sdk 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk, Apache 2.0
+    opentelemetry-sdk-common 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-common, Apache 2.0
+    opentelemetry-sdk-logs 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-logs, Apache 2.0
+    opentelemetry-sdk-metrics 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-metrics, Apache 2.0
+    opentelemetry-sdk-trace 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-trace, Apache 2.0
     perfmark-api 0.25.0: https://github.com/perfmark/perfmark, Apache 2.0
     proto-google-common-protos 2.29.0: https://github.com/googleapis/common-protos-java, Apache 2.0
     reactor-core 3.6.7: https://github.com/reactor/reactor-core, Apache 2.0

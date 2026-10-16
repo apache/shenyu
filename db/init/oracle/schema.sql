@@ -818,6 +818,7 @@ create table data_permission
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
 -- Add comments to the table
 comment on table DATA_PERMISSION
   is 'data permission table';

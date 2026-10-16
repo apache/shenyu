@@ -59,13 +59,20 @@ public final class AgentMcpHttpHandler {
 
     private final AgentMcpSecurityResolver securityResolver;
 
+    private final AgentMcpCallTracer tracer;
+
     private final AgentMcpRequestParser parser = new AgentMcpRequestParser();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     public AgentMcpHttpHandler(final AgentMcpDispatcher dispatcher, final AgentMcpSecurityResolver securityResolver) {
+        this(dispatcher, securityResolver, null);
+    }
+
+    public AgentMcpHttpHandler(final AgentMcpDispatcher dispatcher, final AgentMcpSecurityResolver securityResolver, final AgentMcpCallTracer tracer) {
         this.dispatcher = Objects.requireNonNull(dispatcher, "dispatcher");
         this.securityResolver = Objects.requireNonNull(securityResolver, "securityResolver");
+        this.tracer = tracer;
     }
 
     /**
@@ -79,10 +86,11 @@ public final class AgentMcpHttpHandler {
      */
     public Mono<Void> handle(final ServerWebExchange exchange, final AgentGatewayMcpConfig config,
                              final AgentTrafficContext traffic, final long configurationVersion) {
-        return Mono.defer(() -> {
+        return Mono.deferContextual(parentContext -> {
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
             Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
-            final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null);
+            final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null,
+                    tracer, parentContext);
             AtomicReference<JsonNode> rpcId = new AtomicReference<>();
             return Mono.fromRunnable(() -> preflight(exchange, config))
                     .then(Mono.defer(() -> securityResolver.resolve(exchange))
@@ -92,7 +100,8 @@ public final class AgentMcpHttpHandler {
                                 rpcId.set(request.getId());
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
-                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters()));
+                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters()))
+                                        .contextWrite(observation::traceContext);
                             }))
                     .flatMap(response -> {
                         observation.response(response);
