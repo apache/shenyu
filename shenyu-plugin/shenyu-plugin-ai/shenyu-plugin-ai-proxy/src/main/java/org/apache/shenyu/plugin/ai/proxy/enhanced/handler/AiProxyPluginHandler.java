@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -37,14 +39,33 @@ public class AiProxyPluginHandler implements PluginDataHandler {
 
     private final CommonHandleCache<String, AiProxyHandle> selectorCachedHandle = new CommonHandleCache<>();
 
+    private volatile AiCommonConfig globalConfig;
+
     public AiProxyPluginHandler() {
     }
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        // Note: The logic for handling global plugin configuration with Singleton has been removed
-        // as it's part of the legacy pattern we are moving away from.
-        // No global plugin configuration handling is performed.
+        if (Objects.isNull(pluginData)) {
+            return;
+        }
+        globalConfig = Boolean.FALSE.equals(pluginData.getEnabled()) || StringUtils.isBlank(pluginData.getConfig())
+                ? null : GsonUtils.getInstance().fromJson(pluginData.getConfig(), AiCommonConfig.class);
+    }
+
+    @Override
+    public void removePlugin(final PluginData pluginData) {
+        globalConfig = null;
+    }
+
+    /**
+     * Return a request-local copy of the latest plugin defaults.
+     *
+     * @return global configuration, or null when cleared or disabled
+     */
+    public AiCommonConfig getGlobalConfig() {
+        AiCommonConfig snapshot = globalConfig;
+        return Objects.isNull(snapshot) ? null : new AiCommonConfig(snapshot);
     }
 
     @Override

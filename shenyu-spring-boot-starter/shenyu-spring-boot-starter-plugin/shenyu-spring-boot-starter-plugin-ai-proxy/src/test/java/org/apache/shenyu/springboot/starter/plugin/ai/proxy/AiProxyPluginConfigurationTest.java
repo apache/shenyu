@@ -19,6 +19,10 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
@@ -153,5 +157,21 @@ class AiProxyPluginConfigurationTest {
         contextRunner
                 .withPropertyValues("shenyu.plugins.ai.proxy.transport.max-response-bytes=-1")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void resolvesPluginUpdatesFromTheAutoConfiguredHandler() {
+        contextRunner.run(context -> {
+            PluginData plugin = new PluginData();
+            plugin.setConfig("{\"provider\":\"OpenAI\",\"baseUrl\":\"https://example.org\",\"apiKey\":\"global-key\",\"model\":\"global-model\"}");
+            AiProxyPluginHandler handler = context.getBean(AiProxyPluginHandler.class);
+            handler.handlerPlugin(plugin);
+            AiCommonConfig resolved = context.getBean(AiProxyConfigService.class).resolvePrimaryConfig(new AiProxyHandle());
+            assertEquals("global-model", resolved.getModel());
+            assertEquals("global-key", resolved.getApiKey());
+            assertEquals("https://example.org", resolved.getBaseUrl());
+            handler.removePlugin(plugin);
+            org.junit.jupiter.api.Assertions.assertNull(context.getBean(AiProxyConfigService.class).resolvePrimaryConfig(null).getModel());
+        });
     }
 }
