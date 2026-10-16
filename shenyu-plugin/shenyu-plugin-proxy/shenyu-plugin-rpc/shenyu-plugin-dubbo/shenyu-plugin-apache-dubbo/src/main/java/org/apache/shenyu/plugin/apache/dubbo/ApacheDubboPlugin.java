@@ -67,7 +67,7 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
                                         final MetaData metaData,
                                         final String param) {
         DubboRuleHandle dubboRuleHandle = ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().obtainHandle(rule.getId());
-        if (dubboRuleHandle.getTimeout() > 0) {
+        if (Objects.nonNull(dubboRuleHandle) && dubboRuleHandle.getTimeout() > 0) {
             RpcContext.getClientAttachment().setAttachment(CommonConstants.TIMEOUT_KEY, dubboRuleHandle.getTimeout());
         }
         RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());

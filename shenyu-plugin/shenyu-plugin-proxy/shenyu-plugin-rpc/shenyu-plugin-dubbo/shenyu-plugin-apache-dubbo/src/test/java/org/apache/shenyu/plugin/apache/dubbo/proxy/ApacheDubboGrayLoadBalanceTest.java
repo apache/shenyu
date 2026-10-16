@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,6 +73,8 @@ public class ApacheDubboGrayLoadBalanceTest {
     @Mock
     private URL url;
 
+    private MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic;
+
     @BeforeEach
     public void setup() {
         apacheDubboGrayLoadBalance = new ApacheDubboGrayLoadBalance();
@@ -84,12 +87,17 @@ public class ApacheDubboGrayLoadBalanceTest {
         when(dubboRuleHandle.getLoadBalance()).thenReturn("random");
         mockInvoker = new MockInvoker<>(URL.valueOf("localhost"), Object.class);
         invokers = Collections.singletonList(mockInvoker);
-        MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
+        loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(upstream);
         when(invocation.getAttachment(Constants.DUBBO_SELECTOR_ID)).thenReturn(Constants.DUBBO_SELECTOR_ID);
         when(invocation.getAttachment(Constants.DUBBO_RULE_ID)).thenReturn(Constants.DUBBO_RULE_ID);
         when(invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS)).thenReturn("localhost");
+    }
+
+    @AfterEach
+    public void tearDown() {
+        loadBalancerFactoryMockedStatic.close();
     }
 
     @Test
@@ -107,5 +115,12 @@ public class ApacheDubboGrayLoadBalanceTest {
         ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
                 .removeHandle(Constants.DUBBO_SELECTOR_ID);
         assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
+    }
+
+    @Test
+    public void testSelectWithNullRuleHandle() {
+        ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get()
+                .removeHandle(Constants.DUBBO_RULE_ID);
+        assertEquals(mockInvoker, apacheDubboGrayLoadBalance.select(invokers, url, invocation));
     }
 }
