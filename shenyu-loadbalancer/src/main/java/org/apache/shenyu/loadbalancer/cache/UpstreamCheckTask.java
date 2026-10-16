@@ -39,7 +39,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -74,15 +73,6 @@ public final class UpstreamCheckTask implements Runnable {
     private int healthyThreshold = 1;
 
     private int unhealthyThreshold = 1;
-
-    /**
-     * Per-round scratch counters. Reset at the start of every {@link #healthCheck()} invocation
-     * and copied into the {@code lastRound*} fields once the round terminates, so callers never
-     * observe a half-updated snapshot.
-     */
-    private final AtomicInteger currentRoundSubmittedChecks = new AtomicInteger();
-
-    private final AtomicLong currentRoundMaxEndpointLatencyMillis = new AtomicLong();
 
     private volatile long lastRoundDurationMillis;
 
@@ -186,8 +176,9 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void healthCheck() {
         final long startNanos = System.nanoTime();
-        currentRoundSubmittedChecks.set(0);
-        currentRoundMaxEndpointLatencyMillis.set(0L);
+        // Per-round scratch counters. maxEndpointLatencyMillis is mutated by the async probe
+        // tasks running on the executor, so it stays an AtomicLong captured by the lambdas.
+        final AtomicLong maxEndpointLatencyMillis = new AtomicLong();
         int submitted = 0;
         int pendingAtWait = 0;
         try {
@@ -197,8 +188,7 @@ public final class UpstreamCheckTask implements Runnable {
              */
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
-                    doHealthCheck();
-                    submitted = currentRoundSubmittedChecks.get();
+                    submitted = doHealthCheck(maxEndpointLatencyMillis);
                     pendingAtWait = countPendingFutures();
                     waitFinish();
                 }
@@ -207,7 +197,7 @@ public final class UpstreamCheckTask implements Runnable {
             LOG.error("[Health Check] Meet problem: ", e);
         } finally {
             finishHealthCheck();
-            recordRoundMetrics(startNanos, submitted, pendingAtWait);
+            recordRoundMetrics(startNanos, submitted, pendingAtWait, maxEndpointLatencyMillis.get());
         }
     }
 
@@ -221,9 +211,9 @@ public final class UpstreamCheckTask implements Runnable {
         return pending;
     }
 
-    private void recordRoundMetrics(final long startNanos, final int submitted, final int pendingAtWait) {
+    private void recordRoundMetrics(final long startNanos, final int submitted, final int pendingAtWait,
+                                    final long maxEndpointLatencyMillis) {
         final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
-        final long maxEndpointLatencyMillis = currentRoundMaxEndpointLatencyMillis.get();
         final long oldestHealthStateMillis = computeOldestHealthStateMillis();
         final long completedAtMillis = System.currentTimeMillis();
         this.lastRoundDurationMillis = durationMillis;
@@ -264,24 +254,30 @@ public final class UpstreamCheckTask implements Runnable {
         return oldest;
     }
 
-    private void doHealthCheck() {
-        check(healthyUpstream);
-        check(unhealthyUpstream);
+    private int doHealthCheck(final AtomicLong maxEndpointLatencyMillis) {
+        int submitted = 0;
+        submitted += check(healthyUpstream, maxEndpointLatencyMillis);
+        submitted += check(unhealthyUpstream, maxEndpointLatencyMillis);
+        return submitted;
     }
 
-    private void check(final Map<String, List<Upstream>> map) {
+    private int check(final Map<String, List<Upstream>> map, final AtomicLong maxEndpointLatencyMillis) {
+        int submitted = 0;
         for (Map.Entry<String, List<Upstream>> entry : map.entrySet()) {
             String key = entry.getKey();
             List<Upstream> value = entry.getValue();
             for (Upstream upstream : value) {
-                CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> check(key, upstream), executor);
+                CompletableFuture<UpstreamWithSelectorId> future =
+                        CompletableFuture.supplyAsync(() -> check(key, upstream, maxEndpointLatencyMillis), executor);
                 futures.add(future);
-                currentRoundSubmittedChecks.incrementAndGet();
+                submitted++;
             }
         }
+        return submitted;
     }
 
-    private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream) {
+    private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream,
+                                         final AtomicLong maxEndpointLatencyMillis) {
         if (!upstream.isHealthCheckEnabled()) {
             if (!upstream.isHealthy()) {
                 upstream.setHealthy(true);
@@ -295,7 +291,7 @@ public final class UpstreamCheckTask implements Runnable {
             pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
         } finally {
             final long latencyMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - probeStart);
-            currentRoundMaxEndpointLatencyMillis.accumulateAndGet(latencyMillis, Math::max);
+            maxEndpointLatencyMillis.accumulateAndGet(latencyMillis, Math::max);
             totalEndpointLatencyMillis.addAndGet(latencyMillis);
         }
         if (pass) {
