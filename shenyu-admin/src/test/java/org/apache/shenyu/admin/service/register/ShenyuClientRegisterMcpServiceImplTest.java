@@ -100,7 +100,7 @@ public final class ShenyuClientRegisterMcpServiceImplTest {
         assertEquals("ns", rule.getNamespaceId());
         assertEquals(MatchModeEnum.AND.getCode(), rule.getMatchMode());
         assertEquals(Boolean.TRUE, rule.getEnabled());
-        assertEquals(Boolean.TRUE, rule.getLoged());
+        assertEquals(Boolean.TRUE, rule.getLogged());
         assertEquals(Boolean.FALSE, rule.getMatchRestful());
         assertEquals(1, rule.getSort());
         assertEquals(1, rule.getRuleConditions().size());

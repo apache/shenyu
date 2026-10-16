@@ -74,7 +74,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchRestful(false)
                 .sort(1).build();
         this.conditionData = new ConditionData();
@@ -207,7 +207,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -218,7 +218,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))

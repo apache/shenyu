@@ -487,6 +487,6 @@ public final class LocalPluginControllerTest {
         buildDefaultRuleData.setAccessible(true);
         LocalPluginController localPluginController = mock(LocalPluginController.class);
 
-        buildDefaultRuleData.invoke(localPluginController, RuleData.builder().sort(1).enabled(true).loged(true).build());
+        buildDefaultRuleData.invoke(localPluginController, RuleData.builder().sort(1).enabled(true).logged(true).build());
     }
 }

@@ -36,7 +36,7 @@ public class RuleDataTest {
     @Test
     public void testBuilderAndGetterSetter() {
         RuleData ruleData = RuleData.builder().id("id").name("name").pluginName("pluginName")
-                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).loged(true)
+                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).logged(true)
                 .handle("handle").conditionDataList(new ArrayList<>()).build();
         
         assertThat(ruleData.getId(), is("id"));
@@ -46,7 +46,7 @@ public class RuleDataTest {
         assertThat(ruleData.getMatchMode(), is(1));
         assertThat(ruleData.getSort(), is(0));
         assertThat(ruleData.getEnabled(), is(true));
-        assertThat(ruleData.getLoged(), is(true));
+        assertThat(ruleData.getLogged(), is(true));
         assertThat(ruleData.getHandle(), is("handle"));
         assertThat(ruleData.getConditionDataList(), hasSize(0));
         
@@ -57,7 +57,7 @@ public class RuleDataTest {
         ruleData.setMatchMode(0);
         ruleData.setSort(99);
         ruleData.setEnabled(false);
-        ruleData.setLoged(false);
+        ruleData.setLogged(false);
         ruleData.setHandle("newHandle");
         ruleData.setConditionDataList(null);
     
@@ -68,7 +68,7 @@ public class RuleDataTest {
         assertThat(ruleData.getMatchMode(), is(0));
         assertThat(ruleData.getSort(), is(99));
         assertThat(ruleData.getEnabled(), is(false));
-        assertThat(ruleData.getLoged(), is(false));
+        assertThat(ruleData.getLogged(), is(false));
         assertThat(ruleData.getHandle(), is("newHandle"));
         assertThat(ruleData.getConditionDataList(), is(nullValue()));
     }
@@ -76,10 +76,10 @@ public class RuleDataTest {
     @Test
     public void testEqualsAndHashCode() {
         RuleData ruleData1 = RuleData.builder().id("id").name("name").pluginName("pluginName")
-                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).loged(true)
+                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).logged(true)
                 .handle("handle").conditionDataList(new ArrayList<>()).build();
         RuleData ruleData2 = RuleData.builder().id("id").name("name").pluginName("pluginName")
-                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).loged(true)
+                .selectorId("selectorId").matchMode(1).sort(0).enabled(true).logged(true)
                 .handle("handle").conditionDataList(new ArrayList<>()).build();
         
         Set<RuleData> set = new HashSet<>();
