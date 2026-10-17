@@ -2065,6 +2065,12 @@ CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree 
 ALTER TABLE "public"."operation_record_log" ADD CONSTRAINT "operation_record_log_pkey" PRIMARY KEY ("id");
 
 -- ----------------------------
+-- Index structure for table operation_record_log
+-- ----------------------------
+CREATE INDEX "idx_operation_log_time" ON "public"."operation_record_log" USING btree ("operation_time");
+CREATE INDEX "idx_operation_log_operator_time" ON "public"."operation_record_log" USING btree ("operator","operation_time");
+
+-- ----------------------------
 -- Primary Key structure for table permission
 -- ----------------------------
 ALTER TABLE "public"."permission" ADD CONSTRAINT "permission_pkey" PRIMARY KEY ("id");

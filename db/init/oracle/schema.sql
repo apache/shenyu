@@ -426,6 +426,9 @@ create sequence operation_record_log_seq
     NOCYCLE
     NOCACHE;
 
+create index idx_operation_log_time on operation_record_log (operation_time);
+create index idx_operation_log_operator_time on operation_record_log (operator, operation_time);
+
 create table api
 (
     id VARCHAR2 (128) not null,

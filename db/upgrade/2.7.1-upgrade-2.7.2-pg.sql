@@ -97,3 +97,7 @@ WHERE duplicate_permission.user_id = retained_permission.user_id
   AND duplicate_permission.data_id = retained_permission.data_id
   AND duplicate_permission.id > retained_permission.id;
 CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");
+
+-- index the audit log by time and operator, matching the fresh-install schema
+CREATE INDEX IF NOT EXISTS "idx_operation_log_time" ON "public"."operation_record_log" USING btree ("operation_time");
+CREATE INDEX IF NOT EXISTS "idx_operation_log_operator_time" ON "public"."operation_record_log" USING btree ("operator","operation_time");

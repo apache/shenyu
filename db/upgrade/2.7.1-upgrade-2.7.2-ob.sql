@@ -97,3 +97,7 @@ JOIN data_permission retained_permission
  AND duplicate_permission.data_id = retained_permission.data_id
  AND duplicate_permission.id > retained_permission.id;
 CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- index the audit log by time and operator, matching the fresh-install schema
+ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_time` (`operation_time`) USING BTREE;
+ALTER TABLE `operation_record_log` ADD INDEX `idx_operation_log_operator_time` (`operator`, `operation_time`) USING BTREE;

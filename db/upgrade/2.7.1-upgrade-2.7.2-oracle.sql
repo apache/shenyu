@@ -113,3 +113,7 @@ WHERE EXISTS (
       AND duplicate_permission.id > retained_permission.id
 );
 CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- index the audit log by time and operator, matching the fresh-install schema
+create index idx_operation_log_time on operation_record_log (operation_time);
+create index idx_operation_log_operator_time on operation_record_log (operator, operation_time);
