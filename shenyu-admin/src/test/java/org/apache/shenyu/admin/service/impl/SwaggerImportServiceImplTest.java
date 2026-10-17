@@ -48,8 +48,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -214,11 +212,6 @@ public class SwaggerImportServiceImplTest {
         public void addDocInfo(final UpstreamInstance instance, final String docJson, final String oldMd5,
                                final Consumer<DocInfo> callback) {
             this.docJson = docJson;
-        }
-
-        @Override
-        public Collection<DocInfo> listAll() {
-            return Collections.emptyList();
         }
 
         private String getDocJson() {
