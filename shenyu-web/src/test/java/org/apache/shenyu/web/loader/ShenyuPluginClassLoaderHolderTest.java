@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.web.loader;
 
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +63,11 @@ public final class ShenyuPluginClassLoaderHolderTest {
     @Test
     public void replacePluginClassLoader() {
         ShenyuPluginClassLoaderHolder singleton = ShenyuPluginClassLoaderHolder.getSingleton();
-        singleton.replacePluginClassLoader(pluginJar, classLoader -> assertNotNull(classLoader));
+        try {
+            singleton.replacePluginClassLoader(pluginJar, classLoader -> assertNotNull(classLoader));
+        } finally {
+            singleton.removePluginClassLoader("testKey");
+        }
     }
 
     @Test
@@ -71,15 +78,17 @@ public final class ShenyuPluginClassLoaderHolderTest {
 
     @Test
     public void replacePluginClassLoaderSerializesLoadingAndClosesEveryDisplacedLoader() throws Exception {
-        int threadCount = 32;
+        final int threadCount = 32;
         String jarKey = "concurrent-test-key";
         CountingBeanFactory beanFactory = new CountingBeanFactory();
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBeanFactory()).thenReturn(beanFactory);
+        GenericApplicationContext context = new GenericApplicationContext(beanFactory);
+        context.refresh();
         SpringBeanUtils.getInstance().setApplicationContext(context);
         PluginJarParser.PluginJar concurrentPluginJar = mock(PluginJarParser.PluginJar.class);
         when(concurrentPluginJar.getAbsolutePath()).thenReturn(jarKey);
-        when(concurrentPluginJar.getClazzMap()).thenReturn(Collections.singletonMap("sample.Plugin", new byte[0]));
+        byte[] classBytes = new ByteBuddy().subclass(Object.class).name("sample.Plugin")
+                .annotateType(AnnotationDescription.Builder.ofType(Component.class).build()).make().getBytes();
+        when(concurrentPluginJar.getClazzMap()).thenReturn(Collections.singletonMap("sample.Plugin", classBytes));
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch ready = new CountDownLatch(threadCount);
         CountDownLatch start = new CountDownLatch(1);
@@ -95,6 +104,7 @@ public final class ShenyuPluginClassLoaderHolderTest {
                     ShenyuPluginClassLoaderHolder.getSingleton().replacePluginClassLoader(concurrentPluginJar, classLoader -> {
                         int current = activeLoads.incrementAndGet();
                         maximumActiveLoads.accumulateAndGet(current, Math::max);
+                        classLoader.loadUploadedJarPlugins();
                         activeLoads.decrementAndGet();
                     });
                 } catch (InterruptedException ex) {
@@ -116,6 +126,7 @@ public final class ShenyuPluginClassLoaderHolderTest {
             executor.shutdownNow();
             assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
             ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(jarKey);
+            context.close();
         }
     }
 
@@ -124,17 +135,11 @@ public final class ShenyuPluginClassLoaderHolderTest {
         private final AtomicInteger destroyCount = new AtomicInteger();
 
         @Override
-        public boolean containsBean(final String name) {
-            return true;
-        }
-
-        @Override
         public void destroySingleton(final String beanName) {
-            destroyCount.incrementAndGet();
-        }
-
-        @Override
-        public void removeBeanDefinition(final String beanName) {
+            if (containsSingleton(beanName)) {
+                destroyCount.incrementAndGet();
+            }
+            super.destroySingleton(beanName);
         }
     }
 }
