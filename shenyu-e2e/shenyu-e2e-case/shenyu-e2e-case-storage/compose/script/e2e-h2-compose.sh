@@ -36,7 +36,20 @@ dump_logs() {
   echo "------------------"
   docker compose -f "$COMPOSE_FILE" logs shenyu-bootstrap || true
 }
-if ! docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 300; then
+# Retry compose up to survive transient Docker Hub image pull limits / timeouts.
+wait_for_compose() {
+  local attempt
+  for attempt in 1 2 3; do
+    if docker compose -f "$COMPOSE_FILE" up -d --quiet-pull --wait --wait-timeout 600; then
+      return 0
+    fi
+    echo "docker compose up attempt ${attempt} failed, retrying in 15s..."
+    docker compose -f "$COMPOSE_FILE" down || true
+    sleep 15
+  done
+  return 1
+}
+if ! wait_for_compose; then
   dump_logs
   exit 1
 fi
