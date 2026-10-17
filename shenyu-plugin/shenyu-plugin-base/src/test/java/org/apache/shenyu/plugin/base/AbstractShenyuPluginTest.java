@@ -104,6 +104,15 @@ public final class AbstractShenyuPluginTest {
      * The plugin is null test.
      */
     @Test
+    public void printLogToleratesNullLoggedFlag() throws Exception {
+        java.lang.reflect.Method printLog = AbstractShenyuPlugin.class
+                .getDeclaredMethod("printLog", RuleData.class, String.class);
+        printLog.setAccessible(true);
+        RuleData nullLogged = RuleData.builder().id("id").name("rule").pluginName("plugin").build();
+        printLog.invoke(testShenyuPlugin, nullLogged, "plugin");
+    }
+
+    @Test
     public void executePluginIsNullTest() {
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);

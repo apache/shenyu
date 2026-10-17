@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -36,6 +38,7 @@ public class RuleData extends BaseData {
      */
     private Integer matchMode;
 
+    @SerializedName(value = "logged", alternate = "loged")
     private Boolean logged;
 
     /**

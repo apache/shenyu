@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.dto;
 
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -32,6 +33,17 @@ import static org.hamcrest.core.IsNull.nullValue;
  * Test case for RuleData.
  */
 public class RuleDataTest {
+
+    @Test
+    public void testDeserializationAcceptsLegacyLogedKey() {
+        String legacyJson = "{\"id\":\"id\",\"name\":\"rule\",\"pluginName\":\"plugin\",\"selectorId\":\"selector\",\"loged\":true}";
+        RuleData fromLegacy = GsonUtils.getInstance().fromJson(legacyJson, RuleData.class);
+        assertThat(fromLegacy.getLogged(), is(true));
+
+        String currentJson = "{\"id\":\"id\",\"name\":\"rule\",\"pluginName\":\"plugin\",\"selectorId\":\"selector\",\"logged\":false}";
+        RuleData fromCurrent = GsonUtils.getInstance().fromJson(currentJson, RuleData.class);
+        assertThat(fromCurrent.getLogged(), is(false));
+    }
     
     @Test
     public void testBuilderAndGetterSetter() {

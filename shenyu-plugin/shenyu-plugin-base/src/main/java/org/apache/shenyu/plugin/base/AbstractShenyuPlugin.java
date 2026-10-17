@@ -349,7 +349,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      * @param pluginName plugin name
      */
     private void printLog(final RuleData ruleData, final String pluginName) {
-        if (ruleData.getLogged()) {
+        if (Boolean.TRUE.equals(ruleData.getLogged())) {
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
