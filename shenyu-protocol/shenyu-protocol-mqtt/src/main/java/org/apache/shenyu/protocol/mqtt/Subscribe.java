@@ -37,8 +37,10 @@ import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -62,43 +64,52 @@ public class Subscribe extends MessageType {
         List<MqttTopicSubscription> mqttTopicSubscriptions = msg.payload().topicSubscriptions();
         int packetId = msg.variableHeader().messageId();
 
-        //// todo Regular match
-        List<String> ackTopics = mqttTopicSubscriptions
+        // MQTT-4.7.1-1: invalid topic filters must be rejected with 0x80 and never stored.
+        List<MqttTopicSubscription> validSubscriptions = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
-                .map(MqttTopicSubscription::topicName)
+                .filter(topicSub -> TopicMatcher.isValidFilter(topicSub.topicName()))
                 .collect(Collectors.toList());
 
-        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
+        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), validSubscriptions);
 
         String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
         MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
         if (Objects.nonNull(session)) {
-            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+            validSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
         }
 
-        for (String ackTopic : ackTopics) {
-            byte[] message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (Objects.nonNull(message)) {
-                sendSubMessage(ackTopic, message, packetId, channel);
-            }
+        // MQTT-3.3.1-6: a subscription must also receive the retained messages whose
+        // concrete topic name matches its filter, so wildcard filters are matched as well.
+        Set<String> deliveredRetainedTopics = new HashSet<>();
+        for (MqttTopicSubscription subscription : validSubscriptions) {
+            Singleton.INST.get(TopicRepository.class).getMatchingTopics(subscription.topicName())
+                    .forEach((retainedTopic, retainedMessage) -> {
+                        if (deliveredRetainedTopics.add(retainedTopic)) {
+                            sendSubMessage(retainedTopic, retainedMessage, packetId, channel);
+                        }
+                    });
         }
 
-        sendSubAckMessage(packetId, ackTopics, channel);
+        sendSubAckMessage(packetId, mqttTopicSubscriptions, channel);
     }
 
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param ackTopics ackTopics
+     * @param subscriptions subscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<String> ackTopics, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> subscriptions, final Channel channel) {
 
         List<Integer> qos = new ArrayList<>();
-        for (int i = 0; i < ackTopics.size(); i++) {
-            // default qos 0
-            qos.add(MqttQoS.AT_MOST_ONCE.value());
+        for (MqttTopicSubscription subscription : subscriptions) {
+            // invalid topic filters are rejected with 0x80, otherwise default qos 0
+            if (TopicMatcher.isValidFilter(subscription.topicName())) {
+                qos.add(MqttQoS.AT_MOST_ONCE.value());
+            } else {
+                qos.add(MqttQoS.FAILURE.value());
+            }
         }
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,

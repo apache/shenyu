@@ -116,7 +116,7 @@ public class Publish extends MessageType {
     }
 
     private void send(final String topic, final ByteBuf payload, final MqttQoS publishQoS) {
-        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).get(topic);
+        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(topic);
         //// todo thread pool
         subscribers.entrySet().parallelStream().forEach(entry -> {
             Channel channel = entry.getKey();
