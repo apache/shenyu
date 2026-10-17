@@ -22,6 +22,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpServer;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
+import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,6 +43,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -53,6 +69,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -64,6 +81,109 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RequestScopedMcpClientTest {
 
     private static final Duration WAIT = Duration.ofSeconds(5);
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void expiredDeadlineIsATimeoutWithoutAnUpstreamRequest(final boolean sse) throws Exception {
+        List<Map<String, Object>> events = new CopyOnWriteArrayList<>();
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client(events::add);
+            try {
+                client.initialize().block(WAIT);
+                int before = events.size();
+                int requestsBefore = fixture.requests.size();
+                StepVerifier.create(client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "expired")))
+                                .contextWrite(context -> context.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", Instant.EPOCH)))))
+                        .expectError(TimeoutException.class).verify(WAIT);
+                assertEquals(before, events.size());
+                assertEquals(requestsBefore, fixture.requests.size());
+                assertEquals(0, client.pending());
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void realRequestDeadlineReleasesItsFutureAndKeepsPeerHealthy(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                client.initialize().block(WAIT);
+                call(client, "warm-deadline", 0, "a").block(WAIT);
+                StepVerifier.create(client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "deadline", "delay", 3000)))
+                                .contextWrite(context -> context.put(McpTransportContext.KEY,
+                                        McpTransportContext.create(Map.of("deadline", Instant.now().plusSeconds(1))))))
+                        .expectErrorMatches(error -> error instanceof TimeoutException || error instanceof java.net.http.HttpTimeoutException).verify(WAIT);
+                awaitIdle(client);
+                assertEquals("peer", call(client, "peer", 0, "b").block(WAIT).path("structuredContent").path("token").textValue());
+                assertEquals(3, fixture.requests.stream().filter(request -> "tools/call".equals(request.get("method"))).count());
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void realRemoteDeadlineHasStableResponseMetricAndHealthyPeer(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                client.initialize().block(WAIT);
+                call(client, "warm-handler", 0, "a").block(WAIT);
+                AgentMcpRemoteCatalog.Snapshot snapshot = new AgentMcpRemoteCatalog.Snapshot() {
+                    @Override
+                    public Map<String, ObjectNode> definitions() {
+                        ObjectNode tool = new ObjectMapper().createObjectNode().put("name", "orders.lookup").put("description", "Read fixture");
+                        tool.putObject("inputSchema").put("type", "object");
+                        return Map.of("orders.lookup", tool);
+                    }
+
+                    @Override
+                    public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
+                        return client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", arguments.get("token").getAsString(),
+                                        "delay", arguments.get("delay").getAsInt())))
+                                .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", context.getDeadline()))));
+                    }
+                };
+                AgentMcpRemoteCatalog catalog = operation -> operation.apply(snapshot);
+                final AgentMcpHttpHandler handler = new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1", catalog),
+                        ignored -> Mono.just(new AgentMcpIdentity("trusted-fixture", Set.of("orders.lookup"))));
+                final AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedTools\":[\"orders.lookup\"],\"timeoutMs\":3000,"
+                        + "\"responseMode\":\"" + (sse ? "sse" : "json") + "\"}").getAsJsonObject(), true);
+                final AgentTrafficContext traffic = new AgentTrafficContext("private-request", "mcp", "selector", "rule");
+                List<Outcome> outcomes = new CopyOnWriteArrayList<>();
+                AgentMcpCallObserver observer = (outcome, millis) -> outcomes.add(outcome);
+                MockServerWebExchange timedOut = gatewayRequest("slow-handler", 6000, observer);
+                StepVerifier.create(handler.handle(timedOut, config, traffic, 1)).verifyComplete();
+                assertEquals(504, timedOut.getResponse().getStatusCode().value());
+                assertEquals("{\"error\":\"Request deadline exceeded\"}", timedOut.getResponse().getBodyAsString().block(WAIT));
+                awaitIdle(client);
+                MockServerWebExchange peer = gatewayRequest("peer", 0, observer);
+                StepVerifier.create(handler.handle(peer, config, traffic, 2)).verifyComplete();
+                assertEquals(200, peer.getResponse().getStatusCode().value());
+                assertTrue(peer.getResponse().getBodyAsString().block(WAIT).contains("peer"));
+                assertEquals(List.of(Outcome.TIMEOUT, Outcome.TOOL_ERROR), outcomes);
+                assertEquals(3, fixture.requests.stream().filter(request -> "tools/call".equals(request.get("method"))).count());
+                awaitIdle(client);
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
+    private MockServerWebExchange gatewayRequest(final String token, final int delay, final AgentMcpCallObserver observer) {
+        String body = "{\"jsonrpc\":\"2.0\",\"id\":\"same-id\",\"method\":\"tools/call\",\"params\":{\"name\":\"orders.lookup\","
+                + "\"arguments\":{\"token\":\"" + token + "\",\"delay\":" + delay + "},\"_meta\":{\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\","
+                + "\"io.modelcontextprotocol/clientCapabilities\":{}}}}";
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/mcp").contentType(MediaType.APPLICATION_JSON)
+                .header("Accept", "application/json, text/event-stream").header("MCP-Protocol-Version", "2026-07-28")
+                .header("Mcp-Method", "tools/call").header("Mcp-Name", "orders.lookup").body(body));
+        exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, observer);
+        return exchange;
+    }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
