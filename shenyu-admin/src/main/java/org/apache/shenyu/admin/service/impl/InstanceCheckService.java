@@ -172,8 +172,12 @@ public class InstanceCheckService {
     }
 
     public void syncDB() {
-        instanceHealthBeatInfo.values().forEach(vo -> {
-            instanceInfoService.createOrUpdate(vo);
+        instanceHealthBeatInfo.forEach((instanceKey, instanceInfo) -> {
+            try {
+                instanceInfoService.createOrUpdate(instanceInfo);
+            } catch (Exception e) {
+                LOG.error("sync instance {} to database error", instanceKey, e);
+            }
         });
     }
 
