@@ -103,9 +103,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private TimerTask timerTask;
 
-    private String runningMode;
+    private volatile String runningMode;
 
-    private String masterUrl;
+    private volatile String masterUrl;
 
     private volatile boolean isConnectedToMaster;
 
@@ -263,6 +263,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
+        runningMode = null;
+        masterUrl = null;
+        isConnectedToMaster = false;
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
@@ -292,11 +295,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
             } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                String mode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), mode)) {
                     this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                     this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
                 }
+                this.runningMode = mode;
             } else if (Objects.nonNull(initialSyncState)) {
                 initialSyncState.applyIncremental(() -> handleResult(result));
             } else {
