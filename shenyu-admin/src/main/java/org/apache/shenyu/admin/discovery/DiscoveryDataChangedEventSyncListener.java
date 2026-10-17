@@ -133,6 +133,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             default:
                 throw new IllegalStateException("DiscoveryDataChangedEventSyncListener find IllegalState");
         }
+        // Registry events contain individual instances, but gateways consume a complete snapshot.
         syncData.setUpstreamDataList(discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList()));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
