@@ -328,6 +328,13 @@ shenyu:
 #  plugins:
 #    ai:
 #      proxy:
+#        retry:
+#          # Maximum retries after the initial non-streaming request. Default: 3.
+#          max-retries: 3
+#          # Maximum retries before a streaming response emits its first chunk. Default: 1.
+#          streaming-max-retries: 1
+#          # Initial backoff for non-streaming retries. Subsequent delays double. Default: 1s.
+#          initial-backoff: 1s
 #        transport:
 #          # Maximum time allowed to establish a connection to the AI upstream.
 #          # Default: 30s.
