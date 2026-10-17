@@ -120,6 +120,12 @@ public class InstanceCheckService {
     }
 
     public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        if (isBlankIdentity(instanceBeatInfoDTO)) {
+            LOG.warn("ignored heartbeat report with incomplete identity: ip:{}, port:{}, type:{}, namespace:{}",
+                    instanceBeatInfoDTO.getInstanceIp(), instanceBeatInfoDTO.getInstancePort(),
+                    instanceBeatInfoDTO.getInstanceType(), instanceBeatInfoDTO.getNamespaceId());
+            return;
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
@@ -136,6 +142,13 @@ public class InstanceCheckService {
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
+    }
+
+    private boolean isBlankIdentity(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        return StringUtils.isBlank(instanceBeatInfoDTO.getInstanceIp())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstancePort())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstanceType())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getNamespaceId());
     }
 
     private void scheduled() {
