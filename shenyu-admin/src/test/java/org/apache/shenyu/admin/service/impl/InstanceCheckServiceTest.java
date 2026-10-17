@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -129,6 +130,21 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.handleBeatInfo(dto);
         instanceCheckService.syncDB();
         verify(instanceInfoService, times(1)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testSyncDBContinuesOnException() {
+        InstanceBeatInfoDTO dto1 = buildDTO("127.0.0.1", "8080", "grpc", "ns1");
+        InstanceBeatInfoDTO dto2 = buildDTO("127.0.0.2", "8081", "grpc", "ns2");
+        instanceCheckService.handleBeatInfo(dto1);
+        instanceCheckService.handleBeatInfo(dto2);
+
+        doThrow(new RuntimeException("db error"))
+                .doNothing()
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
+        verify(instanceInfoService, times(2)).createOrUpdate(any(InstanceInfoVO.class));
     }
 
     @Test
