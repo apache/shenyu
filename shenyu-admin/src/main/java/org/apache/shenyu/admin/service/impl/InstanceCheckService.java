@@ -59,6 +59,8 @@ public class InstanceCheckService {
 
     private ScheduledThreadPoolExecutor executor;
 
+    private ScheduledThreadPoolExecutor syncExecutor;
+
     private final int scheduledTime;
 
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
@@ -87,7 +89,8 @@ public class InstanceCheckService {
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
+        syncExecutor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-db-sync-task", false));
+        syncExecutor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
     }
 
     /**
@@ -174,10 +177,29 @@ public class InstanceCheckService {
         collectStateData();
     }
 
-    public void syncDB() {
-        instanceHealthBeatInfo.values().forEach(vo -> {
-            instanceInfoService.createOrUpdate(vo);
-        });
+    public synchronized void syncDB() {
+        try {
+            List<InstanceInfoVO> snapshot = new ArrayList<>(instanceHealthBeatInfo.values());
+            for (InstanceInfoVO vo : snapshot) {
+                instanceInfoService.createOrUpdate(copyInstanceInfoVO(vo));
+            }
+        } catch (Exception e) {
+            LOG.error("sync instance info to db error", e);
+        }
+    }
+
+    private InstanceInfoVO copyInstanceInfoVO(final InstanceInfoVO vo) {
+        InstanceInfoVO copy = new InstanceInfoVO();
+        copy.setInstanceIp(vo.getInstanceIp());
+        copy.setInstancePort(vo.getInstancePort());
+        copy.setInstanceType(vo.getInstanceType());
+        copy.setInstanceInfo(vo.getInstanceInfo());
+        copy.setNamespaceId(vo.getNamespaceId());
+        copy.setInstanceState(vo.getInstanceState());
+        copy.setDateCreated(vo.getDateCreated());
+        copy.setDateUpdated(vo.getDateUpdated());
+        copy.setLastHeartBeatTime(vo.getLastHeartBeatTime());
+        return copy;
     }
 
     /**
@@ -185,11 +207,14 @@ public class InstanceCheckService {
      */
     @PreDestroy
     public void close() {
-        syncDB();
-        instanceHealthBeatInfo.clear();
         if (Objects.nonNull(executor)) {
             executor.shutdown();
         }
+        if (Objects.nonNull(syncExecutor)) {
+            syncExecutor.shutdown();
+        }
+        syncDB();
+        instanceHealthBeatInfo.clear();
     }
 
     /**

@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -39,6 +41,8 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -282,6 +286,64 @@ public final class InstanceCheckServiceTest {
                 .filter(value -> value > 0)
                 .count();
         assertEquals(1, sampledPoints, "one scheduled check must append exactly one history sample");
+    }
+
+    @Test
+    void testBlockedSyncDoesNotBlockLivenessCheck() throws Exception {
+        InstanceBeatInfoDTO dto = buildDTO("192.168.1.10", "8080", "http", "ns-test");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        assertNotNull(cached);
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), cached.getInstanceState());
+
+        // Expire heartbeat beyond timeout threshold (20 seconds)
+        cached.setLastHeartBeatTime(System.currentTimeMillis() - 25000);
+
+        CountDownLatch syncStartedLatch = new CountDownLatch(1);
+        CountDownLatch syncUnblockLatch = new CountDownLatch(1);
+
+        Mockito.doAnswer(invocation -> {
+            syncStartedLatch.countDown();
+            syncUnblockLatch.await(5, TimeUnit.SECONDS);
+            return null;
+        }).when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        Thread syncThread = new Thread(() -> instanceCheckService.syncDB());
+        syncThread.start();
+
+        boolean started = syncStartedLatch.await(5, TimeUnit.SECONDS);
+        assertThat(started, equalTo(true));
+
+        // Independent liveness check must advance state to OFFLINE without being blocked by syncDB
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+        assertEquals(InstanceStatusEnum.OFFLINE.getCode(), cached.getInstanceState());
+
+        syncUnblockLatch.countDown();
+        syncThread.join(5000);
+        assertThat(syncThread.isAlive(), equalTo(false));
+    }
+
+    @Test
+    void testSetupAndCloseWithMultipleNamespaces() {
+        InstanceInfoVO vo1 = buildVO("10.0.0.1", "8080", "http", "ns1");
+        InstanceInfoVO vo2 = buildVO("10.0.0.2", "8080", "http", "ns2");
+        when(instanceInfoService.list()).thenReturn(Arrays.asList(vo1, vo2));
+
+        assertDoesNotThrow(() -> {
+            instanceCheckService.setup();
+            instanceCheckService.close();
+        });
+        verify(instanceInfoService, times(2)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testSyncDBExceptionHandling() {
+        InstanceBeatInfoDTO dto = buildDTO("10.0.0.3", "8080", "http", "ns");
+        instanceCheckService.handleBeatInfo(dto);
+        Mockito.doThrow(new RuntimeException("database failure"))
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
