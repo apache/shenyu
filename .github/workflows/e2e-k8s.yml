@@ -131,18 +131,26 @@ jobs:
             echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
           fi
 
+      - name: Restore ShenYu Maven Repos
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       - name: Build with Maven
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
           else
             echo "Falling back to maven wrapper"
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
+              exec bash .github/scripts/maven-with-retry.sh ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             else
-              ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
+              exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
             fi
           fi
 
@@ -338,13 +346,13 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd to build ${EXAMPLE_PROJECTS}"
-            mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper to build ${EXAMPLE_PROJECTS}"
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+              exec bash .github/scripts/maven-with-retry.sh ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
             else
-              ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
+              exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
             fi
           fi
 
