@@ -23,29 +23,45 @@ import java.util.Base64;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RSAStrategyTest {
 
-    private final String encKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6HhUnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ";
+    // 2048-bit RSA keypair. OAEP/SHA-256 needs a key large enough that
+    // keyBytes - 2*hashBytes - 2 >= plaintext; a 512-bit key cannot encrypt
+    // anything under SHA-256, so the legacy 512-bit fixture is replaced here.
+    private final String encKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtxADsITceaH5ubXIISZHpRU7nH89rVzbxkp9l9u3Qr3NAYCrx5kOffMtiik/ndD6iCTusKrJkGqJqmkgT3V2PG/o72FMvxGMQGgI6X+Lwr"
+            + "WMuShiF/WBB1aEirII1151J9L6vBzr2JxAb96612CYgB4ZodYW9my569UI0DovLP68L29VS4r+Zndxx3C3EASfdjllgPHysZWIv8iA2t4g7Zap/xnHNIgEJ3MC50nl7gtu+I3aTF6WV/SkzhxZat4G"
+            + "EXfzErDfoFvZwVqtRTwG6SDtdxXPpMGWUELOdICVr9hJ4sNKbIacjEuwTvdf9w9sRrTv//Um+8fg9uUS3e9xMQIDAQAB";
 
-    private final String decKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96NyuWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPT"
-            + "vgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBWukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCuPTgECIQDR"
-            + "SOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/ogECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs";
+    private final String decKey = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3EAOwhNx5ofm5tcghJkelFTucfz2tXNvGSn2X27dCvc0BgKvHmQ598y2KKT+d0PqIJO6wqsmQaomqaSBPdXY8b+jvYUy/EYxAaA"
+            + "jpf4vCtYy5KGIX9YEHVoSKsgjXXnUn0vq8HOvYnEBv3rrXYJiAHhmh1hb2bLnr1QjQOi8s/rwvb1VLiv5md3HHcLcQBJ92OWWA8fKxlYi/yIDa3iDtlqn/Gcc0iAQncwLnSeXuC274jdpMXpZX9KTO"
+            + "HFlq3gYRd/MSsN+gW9nBWq1FPAbpIO13Fc+kwZZQQs50gJWv2Eniw0pshpyMS7BO91/3D2xGtO//9Sb7x+D25RLd73ExAgMBAAECggEADQvyY154sx+A44Qp3Pj0MrcCblsgK26aiDWPYWcKltJdnb"
+            + "2MoJdPMdlGtdnOO6Jk9JaDP2qQnn8FTDSdVaRmtpR4OrVJybVHtGBlwDRzor8bJigTY6c+2KXJIPRizmygN2QhNA5wnZm3OvHaCZcMD1d11rOiI9JoZr8iV2rKKW/n+qyNckJTFNC88O5RFxmdMx2Q"
+            + "6iGoSS3LGdXxCKhdKXdzGwD2cFDSIMMFCiO2SJDfzyj6mWVZipnduFuc2q9jD4nIcxeDXv1+wYHkUV301CJYvm/Cluw10+pJB193fuC15ZMMrOEuMtTWLAyG0BLSsU6831aqZHhra2RJw4Q2sQKBgQ"
+            + "D+KkYhpep0vHDwvpq26cpvvj34f4BdevKPZxhu5INkQiVBffIfo/WiWgBMn6IrE+Mp2hf7HvvYmQNIDpW15fhutxnKhM4AnaGLNaWndSa/EiLNcATmVD9i+RowA+ZpELtWiG6pstn/DP5C17ttPhY5"
+            + "wPCVxqN0amHUuBL+yo8JWQKBgQC4YlW2wsjRSsblyryYae7Orh2ZAa+2rvO/Vmkuf684tlEGlyg0ruF5i0kKYDkrl9ffLAmN+/3hzJ9ur5XrO/zGlsMsIyy+A+1cnitykUU93A2L//fSME4zR14PmT"
+            + "PPyIYZxa1kLcEcDRCByuO2glk/44kfChzVygNbMdVKOWNTmQKBgQCm0QwyrXkSoVPnTtKw1wV9DfoSjWys7jMhl+LbdbQfK6LUN1uhFLX1lui3YdbIO0dPgstWkOFvKg6TTq9IMeY6lIai+0NR+CO9"
+            + "ALr3C9cgdUDOYYV1vznTNffQJ98kekza4LTxQGgAFIEVUg68BpID2fSN+U/y6pfHTAF7pWr4EQKBgAYqw9MpEK5vYdetwEEYyfP/vt2vQMFLeLudmEcF3kZ3Up51z9JzRvdZwUenkEH1AjNkta0aEJ"
+            + "PM1EhPdyQ3DW1W/ZAsXQK9/uJqJ+ndEgPPqGRWW2OcWgE9EdhTt3frrRCPnA0NurfFeBffQV6JXZLVeXCgVfaQmywhrpCc+sWBAoGAZIk5MEk+zrQt3CrH2UC/ly+1/DsrwAtYpWFlLR7KmFL9p+X8"
+            + "rF6NdeaqiPNZ7KFLB+veOyriNRQ7oT3i8zmd2uv+DVokxlZ/QowBgUd2AGBudX5unAT0lEykf+4hK7mrvkePv+K2UsxPm+BfpIDI7ggq+4SWeDcx7OqGt6rU3Xc=";
 
     private final CryptorStrategy cryptorStrategy = new RsaStrategy();
-
-    private final byte[] encryptedData = Base64.getMimeDecoder().decode("pB+N5TUdavjwxQZaMItpad5kEXgFJwlN02FfNnz97Zx6vXfxoVTAuLyrlTde72Sep7dBu/BEfl5ubRWpXmdsUA==");
 
     private final String decryptedData = "shenyu";
 
     @Test
     public void testEncrypt() throws Exception {
-        byte[] encryptedData = Base64.getMimeDecoder().decode(cryptorStrategy.encrypt(encKey, decryptedData));
+        byte[] encryptedData = Base64.getDecoder().decode(cryptorStrategy.encrypt(encKey, decryptedData));
         assertThat(cryptorStrategy.decrypt(decKey, encryptedData), is(decryptedData));
     }
 
     @Test
-    public void testDecrypt() throws Exception {
-        assertThat(cryptorStrategy.decrypt(decKey, encryptedData), is(decryptedData));
+    public void shouldFailWhenCiphertextIsTampered() throws Exception {
+        // OAEP embeds an integrity check: a flipped bit must fail decryption
+        // instead of silently yielding corrupted plaintext.
+        byte[] encryptedData = Base64.getDecoder().decode(cryptorStrategy.encrypt(encKey, decryptedData));
+        encryptedData[encryptedData.length - 1] ^= 0x01;
+        assertThrows(Exception.class, () -> cryptorStrategy.decrypt(decKey, encryptedData));
     }
 }
