@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
@@ -195,16 +197,21 @@ public class WebsocketCollector {
         }
         if (message.contains(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("bootstrap report instance info: {}", message);
+                LOG.debug("Received bootstrap instance information report");
             }
             String namespaceId = getNamespaceId(session);
-            Map<String, Object> infoMap = GsonUtils.getInstance().convertToMap(message);
-            Object o = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
+            JsonObject infoMap = GsonUtils.getInstance().fromJson(message, JsonObject.class);
+            JsonElement information = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
+            String instanceInfo = null;
+            if (Objects.nonNull(information) && !information.isJsonNull()) {
+                instanceInfo = information.isJsonPrimitive() && information.getAsJsonPrimitive().isString()
+                        ? information.getAsString() : information.toString();
+            }
             InstanceInfoReportEvent instanceInfoRegisterDTO = InstanceInfoReportEvent.builder()
                     .instanceIp(getClientIp(session))
                     .instancePort(getClientPort(session))
                     .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
-                    .instanceInfo(GsonUtils.getInstance().toJson(o))
+                    .instanceInfo(instanceInfo)
                     .instanceState(1)
                     .namespaceId(namespaceId)
                     .build();
