@@ -84,6 +84,8 @@ public class ScaleService {
                     stopDynamicTask();
                     throw new IllegalStateException("Unknown scaling policy: " + activePolicy.getId());
             }
+        } else {
+            stopDynamicTask();
         }
     }
 
