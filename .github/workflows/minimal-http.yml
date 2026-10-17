@@ -1,0 +1,84 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: minimal-http
+on:
+  pull_request:
+    paths:
+      - 'pom.xml'
+      - 'shenyu-bootstrap-http/**'
+      - 'shenyu-common/**'
+      - 'shenyu-admin/**'
+      - 'shenyu-admin-listener/**'
+      - 'shenyu-web/**'
+      - 'shenyu-plugin/**'
+      - 'shenyu-spring-boot-starter/**'
+      - 'shenyu-sync-data-center/**'
+      - 'shenyu-loadbalancer/**'
+      - 'shenyu-spi/**'
+      - 'script/performance/minimal-http/**'
+      - '.github/workflows/minimal-http.yml'
+      - '.github/scripts/resolve-ci-modules.sh'
+      - '.github/scripts/test-minimal-http-routing.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build opt-in assembly with Checkstyle and RAT
+        run: |
+          bash .github/scripts/test-minimal-http-routing.sh
+          ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http -am clean install -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
+      - name: Record resolved runtime dependencies
+        run: ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http dependency:list -DincludeScope=runtime -DoutputFile=target/runtime-dependencies.txt
+      - name: Check harness and packaged routing
+        run: |
+          python -m pip install -r script/performance/minimal-http/requirements.txt
+          python -m unittest discover -s script/performance/minimal-http -p 'test_*.py'
+          python script/performance/minimal-http/benchmark.py \
+            --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+            --java "$JAVA_HOME/bin/java" --smoke-only \
+            --output shenyu-bootstrap-http/target/smoke
+      - name: Build disposable Admin and test real centrally synchronized routes
+        run: |
+          ./mvnw -B -Prelease -pl shenyu-dist/shenyu-admin-dist -am package -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
+          tar -xzf shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin.tar.gz -C shenyu-dist/shenyu-admin-dist/target
+          python script/performance/minimal-http/admin_smoke.py \
+            --admin shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin \
+            --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+            --java "$JAVA_HOME/bin/java" --output shenyu-bootstrap-http/target/admin-smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: minimal-http-package-and-smoke
+          path: |
+            shenyu-bootstrap-http/target/*-bin.tar.gz
+            shenyu-bootstrap-http/target/runtime-dependencies.txt
+            shenyu-bootstrap-http/target/smoke/
+            shenyu-bootstrap-http/target/admin-smoke/
