@@ -1,4 +1,3 @@
-#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,6 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-provides: shenyu-admin-listener-apollo
+services:
+  httpbin:
+    image: python:3.12-alpine
+    command: ["python", "-B", "-u", "/opt/httpbin.py"]
+    volumes:
+      - ./httpbin.py:/opt/httpbin.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1/anything', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    networks:
+      shenyu:
+        # Existing routing scenarios resolve their upstream on this test network.
+        aliases:
+          - httpbin.org
