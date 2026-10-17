@@ -119,16 +119,16 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
             return;
         }
         String pluginName = pathInfoArray[pathInfoArray.length - 2];
-        String proxySelectorName = pathInfoArray[pathInfoArray.length - 1];
+        String proxySelectorId = pathInfoArray[pathInfoArray.length - 1];
         if (EventType.DELETE.equals(eventType)) {
             ProxySelectorData proxySelectorData = new ProxySelectorData();
             proxySelectorData.setPluginName(pluginName);
-            proxySelectorData.setName(proxySelectorName);
+            proxySelectorData.setId(proxySelectorId);
             unCacheProxySelectorData(proxySelectorData);
             return;
         }
         ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(updateData, ProxySelectorData.class);
-        proxySelectorData.setName(proxySelectorName);
+        proxySelectorData.setId(proxySelectorId);
         proxySelectorData.setPluginName(pluginName);
         Optional.ofNullable(updateData)
                 .ifPresent(e -> cacheProxySelectorData(proxySelectorData));

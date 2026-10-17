@@ -56,6 +56,8 @@ public final class RemoteCatalogLifecycle {
 
     private final boolean resourcesEnabled;
 
+    private final int refreshConcurrency;
+
     private Generation current;
 
     private Generation updatingGeneration;
@@ -69,15 +71,43 @@ public final class RemoteCatalogLifecycle {
      * @param maxGenerations trusted maxGenerations value
      */
     public RemoteCatalogLifecycle(final int maxGenerations) {
-        this(maxGenerations, false);
+        this(maxGenerations, 1, false);
     }
 
+    /**
+     * Remote Catalog Lifecycle with serialized refresh.
+     * @param maxGenerations trusted generation budget
+     * @param resourcesEnabled opt in to resource discovery
+     */
     public RemoteCatalogLifecycle(final int maxGenerations, final boolean resourcesEnabled) {
+        this(maxGenerations, 1, resourcesEnabled);
+    }
+
+    /**
+     * Remote Catalog Lifecycle.
+     * @param maxGenerations trusted maxGenerations value
+     * @param refreshConcurrency bounded parallel target refresh; 1 retains the historical serialized discovery
+     */
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency) {
+        this(maxGenerations, refreshConcurrency, false);
+    }
+
+    /**
+     * Remote Catalog Lifecycle with independent refresh and resource discovery settings.
+     * @param maxGenerations trusted generation budget
+     * @param refreshConcurrency bounded parallel target refresh, from 1 to 8
+     * @param resourcesEnabled opt in to resource discovery
+     */
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
+        if (refreshConcurrency < 1 || refreshConcurrency > 8) {
+            throw new IllegalArgumentException("Refresh concurrency budget");
+        }
         this.maxGenerations = maxGenerations;
         this.resourcesEnabled = resourcesEnabled;
+        this.refreshConcurrency = refreshConcurrency;
     }
 
     /**
@@ -175,7 +205,10 @@ public final class RemoteCatalogLifecycle {
     private Mono<RemoteToolDirectory> build(final Generation candidate, final List<Config> configs) {
         Objects.requireNonNull(candidate, "A reserved generation is required to build a directory");
         return Flux.fromIterable(configs)
-            .concatMap(config ->
+            // Bounded, order-preserving overlap of handshakes; refreshConcurrency 1 subscribes one config at a time
+            // and is exactly the historical serialized concatMap. Allocation and ownership stay atomic under the lock,
+            // so a cancelled or failed refresh still closes every client already added to the candidate generation.
+            .flatMapSequential(config ->
                 Mono.defer(() -> {
                     RemoteMcpEndpoint client;
                     synchronized (lock) {
@@ -204,10 +237,11 @@ public final class RemoteCatalogLifecycle {
                                     ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
                             return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
                         });
-                })
+                }),
+                refreshConcurrency
             )
             .collectList()
-            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16));
+            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16, refreshConcurrency));
     }
 
     private Mono<Void> finishUpdate(final Generation candidate) {
