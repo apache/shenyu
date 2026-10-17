@@ -31,6 +31,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.tracing.context.ReactorTracingContext;
+import org.apache.shenyu.plugin.tracing.extract.TraceContextExtractor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -257,6 +258,31 @@ public class TracingPluginTest {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/health").build());
         StepVerifier.create(tracingPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
         Assertions.assertEquals(TracingConstants.DEFAULT_SPAN_NAME, spanExporter.getFinishedSpanItems().get(0).getName());
+    }
+
+    @Test
+    public void testSpanCreationCanBeDisabled() {
+        TracingPlugin plugin = new TracingPlugin(tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME),
+                new TraceContextExtractor(), false);
+        Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+        ServerWebExchange exchange = createExchange("00-" + TRACE_ID + "-" + PARENT_SPAN_ID + "-01");
+        StepVerifier.create(plugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        // the deployment instruments the gateway itself, so no span is created while the incoming
+        // trace is still propagated to the access log and to the upstream call
+        Assertions.assertTrue(spanExporter.getFinishedSpanItems().isEmpty());
+        Assertions.assertEquals(TRACE_ID, exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
+    }
+
+    @Test
+    public void testSpanCreationDisabledWithoutAnIncomingTrace() {
+        TracingPlugin plugin = new TracingPlugin(tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME),
+                new TraceContextExtractor(), false);
+        Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+        ServerWebExchange exchange = createExchange(null);
+        StepVerifier.create(plugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        // a request without an incoming trace has nothing to propagate either
+        Assertions.assertTrue(spanExporter.getFinishedSpanItems().isEmpty());
+        Assertions.assertNull(exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
     }
 
     @Test
