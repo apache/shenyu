@@ -56,14 +56,17 @@
     </select>
 
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">
+        SELECT * FROM (
         SELECT
         <include refid="Base_Column_List"/>
         FROM operation_record_log
-        where rownum <![CDATA[<=]]> #{limit}
-        <if test="username != null">
-            and operator = #{username}
-        </if>
+        <where>
+            <if test="username != null">
+                operator = #{username}
+            </if>
+        </where>
         order by operation_time desc
+        ) WHERE ROWNUM <![CDATA[<=]]> #{limit}
     </select>
 
     <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
