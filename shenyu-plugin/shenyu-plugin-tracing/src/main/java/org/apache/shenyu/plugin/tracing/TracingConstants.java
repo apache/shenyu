@@ -38,6 +38,11 @@ public final class TracingConstants {
     public static final String TRACEPARENT = "traceparent";
 
     /**
+     * The W3C trace state header.
+     */
+    public static final String TRACESTATE = "tracestate";
+
+    /**
      * The exchange attribute that carries the active tracing context of the current request.
      */
     public static final String TRACING_CONTEXT = "shenyuTracingContext";
