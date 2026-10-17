@@ -88,6 +88,37 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testFetchInstanceDataKeepsLiveHeartbeatOverStaleSnapshot() {
+        InstanceInfoVO dbVo = buildVO("127.0.0.1", "8080", "grpc", "ns");
+        dbVo.setInstanceState(0);
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(dbVo));
+
+        // a heartbeat for the same identity was accepted before the restore completes
+        instanceCheckService.handleBeatInfo(buildDTO("127.0.0.1", "8080", "grpc", "ns"));
+        String key = "127.0.0.1:8080@grpc#ns";
+        InstanceInfoVO live = instanceCheckService.getInstanceHealthBeatInfo(key);
+        assertNotNull(live);
+        long liveBeat = live.getLastHeartBeatTime();
+
+        instanceCheckService.fetchInstanceData();
+
+        InstanceInfoVO after = instanceCheckService.getInstanceHealthBeatInfo(key);
+        assertNotNull(after);
+        assertEquals(liveBeat, after.getLastHeartBeatTime());
+        assertEquals(1, after.getInstanceState());
+    }
+
+    @Test
+    void testFetchInstanceDataRestoresAbsentIdentity() {
+        InstanceInfoVO dbVo = buildVO("10.1.1.1", "9090", "http", "ns2");
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(dbVo));
+
+        instanceCheckService.fetchInstanceData();
+
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo("10.1.1.1:9090@http#ns2"));
+    }
+
+    @Test
     void testGetInstanceKeyForVOAndDTO() {
         String keyVo = instanceCheckService.getInstanceKey(vo);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
