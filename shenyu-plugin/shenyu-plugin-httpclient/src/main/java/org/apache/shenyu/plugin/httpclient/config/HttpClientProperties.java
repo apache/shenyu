@@ -420,6 +420,13 @@ public class HttpClientProperties {
         private Long acquireTimeout = 3000L;
 
         /**
+         * The maximum number of registered requests for acquire to keep in a pending queue.
+         * When not specified (null), Reactor Netty defaults to 2 * maxConnections.
+         * Set to a positive integer to explicitly bound the queue, or -1 for unbounded.
+         */
+        private Integer maxPendingAcquires;
+
+        /**
          * Time in millis after which the channel will be closed,
          * if NULL there is no max idle time.
          */
@@ -582,6 +589,44 @@ public class HttpClientProperties {
          */
         public Boolean getMetrics() {
             return metrics;
+        }
+
+        /**
+         * Gets max pending acquires.
+         *
+         * @return the max pending acquires
+         */
+        public Integer getMaxPendingAcquires() {
+            return maxPendingAcquires;
+        }
+
+        /**
+         * Sets max pending acquires.
+         *
+         * @param maxPendingAcquires the max pending acquires
+         */
+        public void setMaxPendingAcquires(final Integer maxPendingAcquires) {
+            this.maxPendingAcquires = maxPendingAcquires;
+        }
+
+        /**
+         * Gets pending acquire max count.
+         * Alias of {@link #getMaxPendingAcquires()}.
+         *
+         * @return the pending acquire max count
+         */
+        public Integer getPendingAcquireMaxCount() {
+            return maxPendingAcquires;
+        }
+
+        /**
+         * Sets pending acquire max count.
+         * Alias of {@link #setMaxPendingAcquires(Integer)}; when both are configured, the last one bound wins.
+         *
+         * @param pendingAcquireMaxCount the pending acquire max count
+         */
+        public void setPendingAcquireMaxCount(final Integer pendingAcquireMaxCount) {
+            this.maxPendingAcquires = pendingAcquireMaxCount;
         }
         
         /**
