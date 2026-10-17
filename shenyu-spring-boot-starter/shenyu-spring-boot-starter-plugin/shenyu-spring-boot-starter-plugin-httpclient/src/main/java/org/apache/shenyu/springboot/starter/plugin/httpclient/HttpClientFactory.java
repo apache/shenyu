@@ -66,6 +66,11 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         return HttpClient.class;
     }
 
+    @Override
+    protected void destroyInstance(final HttpClient instance) {
+        instance.configuration().connectionProvider().dispose();
+    }
+
     /**
      * set http proxy.
      * @param httpClient http client
@@ -113,6 +118,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+        if (pool.getType() != Pool.PoolType.DISABLED) {
+            httpClient = httpClient.mapConnect(HttpClientConnectionProvider::propagateCancellation);
+        }
         Duration responseTimeout = properties.getResponseTimeout();
         if (!responseTimeout.isZero() && !responseTimeout.isNegative()) {
             httpClient = httpClient.responseTimeout(responseTimeout);
@@ -167,7 +175,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             Optional.ofNullable(pool.getMaxLifeTime()).map(Duration::ofMillis).ifPresent(builder::maxLifeTime);
             Optional.ofNullable(pool.getEvictionInterval()).map(Duration::ofMillis).ifPresent(builder::evictInBackground);
             builder.metrics(pool.getMetrics());
-            return builder.build();
+            ConnectionProvider provider = builder.build();
+            return new HttpClientConnectionProvider(provider, pool.getMetrics());
         }
     }
 
@@ -179,26 +188,30 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
      */
     public void buildFixedConnectionPool(final Pool pool,
                                          final Builder builder) {
-        if (pool.getMaxConnections() <= 0) {
+        if (Objects.isNull(pool.getMaxConnections()) || pool.getMaxConnections() <= 0) {
             throw new IllegalArgumentException("Max Connections value must be strictly positive");
         }
-        if (pool.getAcquireTimeout() < 0) {
-            throw new IllegalArgumentException("Acquire Timeout value must be positive");
+        if (Objects.isNull(pool.getAcquireTimeout()) || pool.getAcquireTimeout() < 0) {
+            throw new IllegalArgumentException("Acquire Timeout value must be non-negative");
+        }
+        int pendingAcquireMaxCount = Optional.ofNullable(pool.getPendingAcquireMaxCount())
+                .orElseGet(() -> (int) Math.min(2L * pool.getMaxConnections(), Integer.MAX_VALUE));
+        if (pendingAcquireMaxCount != -1 && pendingAcquireMaxCount <= 0) {
+            throw new IllegalArgumentException("Pending Acquire Max Count must be positive or -1");
         }
         builder.maxConnections(pool.getMaxConnections())
-                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
+                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
+                .pendingAcquireMaxCount(pendingAcquireMaxCount);
     }
 
     /**
-     * build elastic connection provider pool.
+     * Build a lazily allocated pool using the configured connection and acquisition limits.
+     * The ELASTIC name is retained for configuration compatibility; it no longer forces unbounded capacity.
      *
      * @param builder connection provider builder
      */
     public void buildElasticConnectionPool(final Builder builder) {
-        // about the args, please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
-        builder.maxConnections(Integer.MAX_VALUE)
-                .pendingAcquireTimeout(Duration.ofMillis(0))
-                .pendingAcquireMaxCount(-1);
+        buildFixedConnectionPool(properties.getPool(), builder);
     }
 
 }

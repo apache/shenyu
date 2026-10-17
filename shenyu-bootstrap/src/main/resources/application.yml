@@ -158,9 +158,10 @@ shenyu:
 #    keepAlive: false
 #    maxInMemorySize: 1 #1mb
 #    pool:
-#      type: ELASTIC
+#      type: FIXED # ELASTIC also honors the limits below; DISABLED bypasses pooling
 #      name: proxy
 #      maxConnections: 16
+#      pendingAcquireMaxCount: 32 # omitted: twice maxConnections; -1: explicitly unbounded
 #      acquireTimeout: 45000
 #      maxIdleTime: 3000 # unit: ms
 #      maxLifeTime:  # unit: ms
