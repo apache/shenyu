@@ -275,6 +275,42 @@ public class RequestPluginTest {
     }
 
     @Test
+    public void testRemoveParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"removeParameterKeys\":[\"x\"]}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world&keep=1"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("keep=1", requestUri.getRawQuery());
+    }
+
+    @Test
+    public void testReplaceParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"replaceParameterKeys\":{\"old\":\"new\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?old=1"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("new=1", requestUri.getRawQuery());
+    }
+
+    @Test
     public void testGetOrder() {
         assertEquals(this.requestPlugin.getOrder(), PluginEnum.REQUEST.getCode());
     }
