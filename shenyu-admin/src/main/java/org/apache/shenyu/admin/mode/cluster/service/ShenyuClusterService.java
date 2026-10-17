@@ -22,10 +22,10 @@ import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -74,8 +74,9 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {
         // try getting lock
+        boolean selected = false;
         try {
-            boolean selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
+            selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
             if (!selected) {
                 LOG.info("select master fail, wait for next period");
                 return;
@@ -95,21 +96,28 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
                 TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
                 
                 renewed = shenyuClusterSelectMasterService.checkMasterStatus();
-                if (renewed) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("renew master success");
-                    }
+                if (renewed && LOG.isDebugEnabled()) {
+                    LOG.debug("renew master success");
                 }
             }
+        } catch (InterruptedException e) {
+            LOG.info("select master task interrupted");
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             LOG.error("select master error", e);
-            // close the upstream check service
-            upstreamCheckService.close();
-            instanceCheckService.close();
-            
-            String message = String.format("renew master fail, %s", e.getMessage());
-            throw new ShenyuException(message);
         } finally {
+            if (selected) {
+                try {
+                    upstreamCheckService.close();
+                } catch (Exception e) {
+                    LOG.error("close upstream check service error", e);
+                }
+                try {
+                    instanceCheckService.close();
+                } catch (Exception e) {
+                    LOG.error("close instance check service error", e);
+                }
+            }
             try {
                 shenyuClusterSelectMasterService.releaseMaster();
             } catch (Exception e) {
@@ -125,6 +133,8 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     @Override
     public void shutdown() {
-    
+        if (Objects.nonNull(executorService)) {
+            executorService.shutdown();
+        }
     }
 }
