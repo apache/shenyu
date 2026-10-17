@@ -18,12 +18,16 @@
 package org.apache.shenyu.admin.listener.http;
 
 import jakarta.servlet.AsyncContext;
+import jakarta.servlet.AsyncEvent;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
+import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -37,6 +41,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,14 +65,20 @@ import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * The TestCase for {@link HttpLongPollingDataChangedListener}.
@@ -804,6 +815,321 @@ public final class HttpLongPollingDataChangedListenerTest {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod("afterInitialize");
         method.setAccessible(true);
         method.invoke(listener);
+    }
+
+    /**
+     * Demonstrates issue #7693: a healthy long-polling client held past 20 seconds
+     * without heartbeat refreshes triggers a false offline status in InstanceCheckService.
+     */
+    @Test
+    public void testFalseOfflineTimeoutReproduction() throws Exception {
+        InstanceInfoService instanceInfoService = Mockito.mock(InstanceInfoService.class);
+        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService);
+
+        Mockito.doAnswer(invocation -> {
+            InstanceInfoReportEvent event = invocation.getArgument(0);
+            instanceCheckService.onInstanceInfoReport(event);
+            return null;
+        }).when(instanceInfoReportEventPublisher).publish(any(InstanceInfoReportEvent.class));
+
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "sameMd5");
+
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        final AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+            Mockito.when(mockRequest.getParameter(group.name())).thenReturn("sameMd5,500");
+        }
+        Mockito.when(mockRequest.getParameter("namespaceId")).thenReturn(DEFAULT_NAMESPACE);
+        Mockito.when(mockRequest.getHeader("X-Forwarded-For")).thenReturn(null);
+        Mockito.when(mockRequest.getHeader(X_REAL_IP)).thenReturn("127.0.0.1");
+        Mockito.when(mockRequest.getHeader("X-Real-PORT")).thenReturn("8080");
+        Mockito.when(mockRequest.getHeader("bootstrapInstanceInfo")).thenReturn("info");
+        Mockito.when(mockRequest.startAsync()).thenReturn(asyncContext);
+        Mockito.when(asyncContext.getRequest()).thenReturn(mockRequest);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        // Request arrives at t=0
+        listener.doLongPolling(mockRequest, this.httpServletResponse);
+
+        String instanceKey = "127.0.0.1:8080@" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE + "#" + DEFAULT_NAMESPACE;
+        InstanceInfoVO vo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+        assertNotNull(vo);
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), vo.getInstanceState());
+
+        // Simulate 25 seconds elapsed during long-polling hold without heartbeat refresh
+        vo.setLastHeartBeatTime(System.currentTimeMillis() - 25000L);
+
+        Method doCheckMethod = InstanceCheckService.class.getDeclaredMethod("doCheck");
+        doCheckMethod.setAccessible(true);
+        doCheckMethod.invoke(instanceCheckService);
+
+        // Without held refresh, the instance is falsely marked OFFLINE
+        assertEquals(InstanceStatusEnum.OFFLINE.getCode(), vo.getInstanceState());
+
+        clearAllGroupsInCache(DEFAULT_NAMESPACE);
+    }
+
+    /**
+     * Verifies that active held long-polling requests refresh liveness,
+     * ensuring the healthy instance stays ONLINE during holds.
+     */
+    @Test
+    public void testHeldLongPollingRefreshesLiveness() throws Exception {
+        InstanceInfoService instanceInfoService = Mockito.mock(InstanceInfoService.class);
+        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService);
+
+        Mockito.doAnswer(invocation -> {
+            InstanceInfoReportEvent event = invocation.getArgument(0);
+            instanceCheckService.onInstanceInfoReport(event);
+            return null;
+        }).when(instanceInfoReportEventPublisher).publish(any(InstanceInfoReportEvent.class));
+
+        final String namespaceId = "testNamespaceHeld";
+        populateAllGroupsInCache(namespaceId, "sameMd5");
+
+        AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        setAllGroupParamsForNamespace(req, namespaceId);
+        Mockito.when(asyncContext.getRequest()).thenReturn(req);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        Class<?> longPollingClientClass = Class.forName(
+                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
+        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
+                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
+                String.class, long.class, String.class);
+        clientCtor.setAccessible(true);
+
+        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+
+        // Run client to register in clientsMap and start hold
+        Method runMethod = longPollingClientClass.getMethod("run");
+        runMethod.invoke(client);
+
+        // Liveness refresh runs during hold
+        Method refreshMethod = longPollingClientClass.getDeclaredMethod("refreshLiveness");
+        refreshMethod.setAccessible(true);
+        refreshMethod.invoke(client);
+
+        String instanceKey = "127.0.0.1:8080@" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE + "#" + namespaceId;
+        InstanceInfoVO vo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+        assertNotNull(vo);
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), vo.getInstanceState());
+
+        // Simulate time advancing towards timeout
+        vo.setLastHeartBeatTime(System.currentTimeMillis() - 19000L);
+
+        // Subsequent liveness refresh during hold updates lastHeartBeatTime
+        refreshMethod.invoke(client);
+
+        // Verify lastHeartBeatTime was updated to current time
+        assertTrue(System.currentTimeMillis() - vo.getLastHeartBeatTime() < 5000L);
+
+        // Check instance status with doCheck
+        Method doCheckMethod = InstanceCheckService.class.getDeclaredMethod("doCheck");
+        doCheckMethod.setAccessible(true);
+        doCheckMethod.invoke(instanceCheckService);
+
+        // Instance remains ONLINE!
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), vo.getInstanceState());
+
+        // Clean up client
+        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
+        cleanUpMethod.setAccessible(true);
+        cleanUpMethod.invoke(client);
+
+        clearAllGroupsInCache(namespaceId);
+    }
+
+    /**
+     * Verifies that the scheduler periodically publishes heartbeat events during the hold.
+     */
+    @Test
+    public void testScheduledHeartbeatRefreshesLivenessAutomatically() throws Exception {
+        HttpLongPollingDataChangedListener customListener = new HttpLongPollingDataChangedListener(httpSyncProperties, 100L);
+        assertEquals(100L, customListener.getHeartbeatIntervalMs());
+
+        final String namespaceId = "testNamespaceAutoHeartbeat";
+        populateAllGroupsInCache(namespaceId, "sameMd5");
+
+        AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        setAllGroupParamsForNamespace(req, namespaceId);
+        Mockito.when(asyncContext.getRequest()).thenReturn(req);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        Class<?> longPollingClientClass = Class.forName(
+                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
+        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
+                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
+                String.class, long.class, String.class);
+        clientCtor.setAccessible(true);
+
+        Object client = clientCtor.newInstance(customListener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+
+        Method runMethod = longPollingClientClass.getMethod("run");
+        runMethod.invoke(client);
+
+        // Await periodic executions from scheduler
+        await().atMost(Duration.ofMillis(1200)).untilAsserted(() -> {
+            Mockito.verify(instanceInfoReportEventPublisher, Mockito.atLeast(2)).publish(any(InstanceInfoReportEvent.class));
+        });
+
+        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
+        cleanUpMethod.setAccessible(true);
+        cleanUpMethod.invoke(client);
+
+        clearAllGroupsInCache(namespaceId);
+    }
+
+    /**
+     * Verifies that when a long-poll request completes, all resources and futures are cleanly cleaned up.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCleanUpWhenRequestCompletes() throws Exception {
+        final String namespaceId = "testNamespaceCleanupComplete";
+        populateAllGroupsInCache(namespaceId, "sameMd5");
+
+        AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        setAllGroupParamsForNamespace(req, namespaceId);
+        Mockito.when(asyncContext.getRequest()).thenReturn(req);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        Class<?> longPollingClientClass = Class.forName(
+                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
+        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
+                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
+                String.class, long.class, String.class);
+        clientCtor.setAccessible(true);
+
+        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+
+        Method runMethod = longPollingClientClass.getMethod("run");
+        runMethod.invoke(client);
+
+        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
+        clientsMapField.setAccessible(true);
+        Map<String, BlockingQueue<Object>> clientsMap = (Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
+        assertTrue(clientsMap.get(namespaceId).contains(client));
+
+        // Complete request with sendResponse
+        Method sendResponseMethod = longPollingClientClass.getDeclaredMethod("sendResponse", List.class);
+        sendResponseMethod.setAccessible(true);
+        sendResponseMethod.invoke(client, List.of(ConfigGroupEnum.PLUGIN));
+
+        // Client should be marked completed and removed from clientsMap
+        Method isCompletedMethod = longPollingClientClass.getDeclaredMethod("isCompleted");
+        isCompletedMethod.setAccessible(true);
+        assertTrue((boolean) isCompletedMethod.invoke(client));
+
+        assertFalse(clientsMap.get(namespaceId).contains(client));
+
+        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
+        getHeartbeatFutureMethod.setAccessible(true);
+        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
+        assertNotNull(heartbeatFuture);
+        assertTrue(heartbeatFuture.isCancelled());
+
+        clearAllGroupsInCache(namespaceId);
+    }
+
+    /**
+     * Verifies that when a client unexpectedly disconnects or times out,
+     * AsyncListener callbacks trigger immediate cleanup and prevent further reports.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCleanUpOnUnexpectedDisconnect() throws Exception {
+        final String namespaceId = "testNamespaceDisconnect";
+        populateAllGroupsInCache(namespaceId, "sameMd5");
+
+        AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        setAllGroupParamsForNamespace(req, namespaceId);
+        Mockito.when(asyncContext.getRequest()).thenReturn(req);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        Class<?> longPollingClientClass = Class.forName(
+                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
+        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
+                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
+                String.class, long.class, String.class);
+        clientCtor.setAccessible(true);
+
+        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+
+        Method runMethod = longPollingClientClass.getMethod("run");
+        runMethod.invoke(client);
+
+        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
+        clientsMapField.setAccessible(true);
+        Map<String, BlockingQueue<Object>> clientsMap = (Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
+        assertTrue(clientsMap.get(namespaceId).contains(client));
+
+        // Simulate unexpected disconnect / error from servlet container
+        Method onErrorMethod = longPollingClientClass.getMethod("onError", AsyncEvent.class);
+        onErrorMethod.invoke(client, new AsyncEvent(asyncContext));
+
+        Method isCompletedMethod = longPollingClientClass.getDeclaredMethod("isCompleted");
+        isCompletedMethod.setAccessible(true);
+        assertTrue((boolean) isCompletedMethod.invoke(client));
+
+        assertFalse(clientsMap.get(namespaceId).contains(client));
+
+        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
+        getHeartbeatFutureMethod.setAccessible(true);
+        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
+        assertNotNull(heartbeatFuture);
+        assertTrue(heartbeatFuture.isCancelled());
+
+        // Subsequent refresh or sendResponse does not execute
+        Mockito.clearInvocations(instanceInfoReportEventPublisher);
+        Method refreshMethod = longPollingClientClass.getDeclaredMethod("refreshLiveness");
+        refreshMethod.setAccessible(true);
+        refreshMethod.invoke(client);
+        Mockito.verifyNoInteractions(instanceInfoReportEventPublisher);
+
+        clearAllGroupsInCache(namespaceId);
+    }
+
+    /**
+     * Verifies that when client port is '0', no heartbeat future is scheduled.
+     */
+    @Test
+    public void testClientPortZeroDoesNotScheduleHeartbeat() throws Exception {
+        final String namespaceId = "testNamespacePortZero";
+        populateAllGroupsInCache(namespaceId, "sameMd5");
+
+        AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        setAllGroupParamsForNamespace(req, namespaceId);
+        Mockito.when(asyncContext.getRequest()).thenReturn(req);
+        Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
+
+        Class<?> longPollingClientClass = Class.forName(
+                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
+        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
+                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
+                String.class, long.class, String.class);
+        clientCtor.setAccessible(true);
+
+        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "0", "info", 60000L, namespaceId);
+
+        Method runMethod = longPollingClientClass.getMethod("run");
+        runMethod.invoke(client);
+
+        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
+        getHeartbeatFutureMethod.setAccessible(true);
+        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
+        assertNull(heartbeatFuture);
+
+        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
+        cleanUpMethod.setAccessible(true);
+        cleanUpMethod.invoke(client);
+
+        clearAllGroupsInCache(namespaceId);
     }
 
     // ---- helper methods ----
