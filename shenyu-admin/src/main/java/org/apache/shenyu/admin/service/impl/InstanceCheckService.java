@@ -204,14 +204,17 @@ public class InstanceCheckService {
      */
     @PreDestroy
     public void close() {
-        if (Objects.nonNull(executor)) {
-            executor.shutdown();
+        try {
+            if (Objects.nonNull(executor)) {
+                executor.shutdown();
+            }
+            if (Objects.nonNull(syncExecutor)) {
+                syncExecutor.shutdown();
+            }
+            syncDB();
+        } finally {
+            instanceHealthBeatInfo.clear();
         }
-        if (Objects.nonNull(syncExecutor)) {
-            syncExecutor.shutdown();
-        }
-        syncDB();
-        instanceHealthBeatInfo.clear();
     }
 
     /**
