@@ -74,7 +74,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchRestful(false)
                 .sort(1).build();
         this.conditionData = new ConditionData();
@@ -103,6 +103,15 @@ public final class AbstractShenyuPluginTest {
     /**
      * The plugin is null test.
      */
+    @Test
+    public void printLogToleratesNullLoggedFlag() throws Exception {
+        java.lang.reflect.Method printLog = AbstractShenyuPlugin.class
+                .getDeclaredMethod("printLog", RuleData.class, String.class);
+        printLog.setAccessible(true);
+        RuleData nullLogged = RuleData.builder().id("id").name("rule").pluginName("plugin").build();
+        printLog.invoke(testShenyuPlugin, nullLogged, "plugin");
+    }
+
     @Test
     public void executePluginIsNullTest() {
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
@@ -207,7 +216,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -218,7 +227,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))

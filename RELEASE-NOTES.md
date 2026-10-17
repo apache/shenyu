@@ -28,6 +28,20 @@
 
 ### Behavior Changes
 
+- The misspelled `loged` column of the `selector` and `rule` tables is renamed
+  to `logged`, together with the matching fields of the Admin REST DTOs/VOs
+  (`SelectorDTO`, `RuleDTO`, `SelectorVO`, `RuleVO`) and the gateway-side
+  `RuleData`. Existing deployments must run the `2.7.2-upgrade-2.7.3-*.sql`
+  script for their database dialect (MySQL, PostgreSQL, Oracle, openGauss,
+  OceanBase) before upgrading. Upgrade order matters: the field is part of the
+  admin-to-bootstrap sync contract, so upgrade all bootstrap instances before,
+  or together with, admin — a new admin emitting `logged` is not understood by
+  old bootstraps, and that direction cannot be tolerated in code. For one release the Admin REST layer keeps
+  accepting the old `loged` request field via a JSON alias, but responses
+  always use `logged`; stored rate-limiter handle JSON keeps parsing the old
+  `loged` key via a Gson alternate. REST API clients that read `loged` from
+  responses must switch to `logged`. (#7589)
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
