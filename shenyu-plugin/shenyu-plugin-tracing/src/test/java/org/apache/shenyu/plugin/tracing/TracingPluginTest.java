@@ -21,6 +21,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -283,6 +284,46 @@ public class TracingPluginTest {
         // a request without an incoming trace has nothing to propagate either
         Assertions.assertTrue(spanExporter.getFinishedSpanItems().isEmpty());
         Assertions.assertNull(exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
+    }
+
+    @Test
+    public void testPropagatesTheActiveContextOfAnInstrumentation() {
+        TracingPlugin plugin = new TracingPlugin(tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME),
+                new TraceContextExtractor(), false);
+        Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+        ServerWebExchange exchange = createExchange("00-" + TRACE_ID + "-" + PARENT_SPAN_ID + "-01");
+        Span agentSpan = tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME)
+                .spanBuilder("agent-server").startSpan();
+        try (Scope scope = Context.root().with(agentSpan).makeCurrent()) {
+            StepVerifier.create(plugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        }
+        // the context of the instrumentation which runs in this process wins over the headers of the
+        // client, so that the access log and the outgoing call carry the trace of the agent
+        Assertions.assertEquals(agentSpan.getSpanContext().getTraceId(),
+                exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
+        Assertions.assertNotEquals(TRACE_ID, exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
+        Assertions.assertTrue(spanExporter.getFinishedSpanItems().isEmpty());
+        agentSpan.end();
+    }
+
+    @Test
+    public void testTheGatewaySpanContinuesTheActiveContext() {
+        Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
+        ServerWebExchange exchange = createExchange("00-" + TRACE_ID + "-" + PARENT_SPAN_ID + "-01");
+        Span agentSpan = tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME)
+                .spanBuilder("agent-server").startSpan();
+        try (Scope scope = Context.root().with(agentSpan).makeCurrent()) {
+            StepVerifier.create(tracingPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
+        }
+        // the gateway span is a child of the span of the instrumentation instead of a child of the
+        // remote parent, so the agent span does not drop out of the trace
+        SpanData gatewaySpan = spanExporter.getFinishedSpanItems().stream()
+                .filter(span -> "GET".equals(span.getName()))
+                .findFirst()
+                .orElseThrow();
+        Assertions.assertEquals(agentSpan.getSpanContext().getSpanId(), gatewaySpan.getParentSpanId());
+        Assertions.assertEquals(agentSpan.getSpanContext().getTraceId(), gatewaySpan.getTraceId());
+        agentSpan.end();
     }
 
     @Test

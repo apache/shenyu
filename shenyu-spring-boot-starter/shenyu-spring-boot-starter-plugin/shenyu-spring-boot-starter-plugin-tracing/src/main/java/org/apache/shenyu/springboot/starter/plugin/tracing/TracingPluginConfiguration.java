@@ -286,11 +286,11 @@ public class TracingPluginConfiguration {
             }
             return Optional.of(builder.build());
         } catch (RuntimeException | LinkageError ex) {
-            // the message of the failure may quote the endpoint, so only its type is logged at warn
-            // level while the details stay at debug level
+            // the message of the failure may quote the endpoint, and an endpoint may carry a token in
+            // its user information or its query, so neither the throwable nor its message is logged,
+            // at any level: only the redacted endpoint and the type of the failure.
             LOG.warn("shenyu tracing could not create the OTLP exporter of {}, the spans are not exported: {}",
                     redactedEndpoint(otlp.getEndpoint()), ex.getClass().getSimpleName());
-            LOG.debug("shenyu tracing could not create the OTLP exporter", ex);
             return Optional.empty();
         }
     }
