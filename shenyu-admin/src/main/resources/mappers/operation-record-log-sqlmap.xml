@@ -72,10 +72,10 @@
         from operation_record_log
         where operation_time between #{condition.startTime} and #{condition.endTime}
         <if test="condition.keyword != null and condition.keyword != ''">
-            and context like concat('%',#{condition.keyword},'%')
+            and context like concat(concat('%',#{condition.keyword}),'%')
         </if>
         <if test="condition.excluded != null and condition.excluded != ''">
-            and context not like concat('%',#{condition.excluded},'%')
+            and context not like concat(concat('%',#{condition.excluded}),'%')
         </if>
         <if test="condition.type != null">
             and operation_type = #{condition.type}
