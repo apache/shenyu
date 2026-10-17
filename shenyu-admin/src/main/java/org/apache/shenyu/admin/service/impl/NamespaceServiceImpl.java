@@ -183,7 +183,9 @@ public class NamespaceServiceImpl implements NamespaceService {
     public List<NamespaceVO> list(final String name) {
         
         if (SessionUtil.isAdmin()) {
-            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            NamespaceQuery namespaceQuery = new NamespaceQuery();
+            namespaceQuery.setName(name);
+            List<NamespaceDO> allList = namespaceMapper.selectByQuery(namespaceQuery);
             return allList.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
         }
         
