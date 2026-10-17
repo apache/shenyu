@@ -59,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -176,6 +177,24 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.fetchInstanceData();
 
         assertNotNull(instanceCheckService.getInstanceHealthBeatInfo("10.1.1.1:9090@http#ns2"));
+    }
+
+    @Test
+    void testHandleBeatInfoIgnoresIncompleteIdentity() {
+        InstanceBeatInfoDTO blankIp = buildDTO("", "8080", "grpc", "ns");
+        InstanceBeatInfoDTO blankPort = buildDTO("127.0.0.1", "", "grpc", "ns");
+        InstanceBeatInfoDTO blankType = buildDTO("127.0.0.1", "8080", "", "ns");
+        InstanceBeatInfoDTO blankNs = buildDTO("127.0.0.1", "8080", "grpc", "");
+        InstanceBeatInfoDTO whitespace = buildDTO(" ", "8080", "grpc", "ns");
+
+        for (InstanceBeatInfoDTO dto : Arrays.asList(blankIp, blankPort, blankType, blankNs, whitespace)) {
+            instanceCheckService.handleBeatInfo(dto);
+            assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto),
+                    "an incomplete identity must not create a live entry");
+        }
+
+        instanceCheckService.syncDB();
+        verify(instanceInfoService, times(0)).createOrUpdate(any(InstanceInfoVO.class));
     }
 
     @Test
