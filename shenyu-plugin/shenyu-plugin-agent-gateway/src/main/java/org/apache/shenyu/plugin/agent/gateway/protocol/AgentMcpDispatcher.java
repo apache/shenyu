@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolDefinition;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -45,6 +46,8 @@ public final class AgentMcpDispatcher {
 
     private final AgentMcpRemoteCatalog remoteCatalog;
 
+    private final AgentMcpResourceDispatcher resources;
+
     private final String serverName;
 
     private final String serverVersion;
@@ -56,8 +59,14 @@ public final class AgentMcpDispatcher {
     }
 
     public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion, final AgentMcpRemoteCatalog remoteCatalog) {
+        this(registry, serverName, serverVersion, remoteCatalog, new AgentResourceRegistry(java.util.List.of()));
+    }
+
+    public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion, final AgentMcpRemoteCatalog remoteCatalog,
+                              final AgentResourceRegistry resourceRegistry) {
         this.registry = Objects.requireNonNull(registry, "registry");
         this.remoteCatalog = remoteCatalog;
+        resources = new AgentMcpResourceDispatcher(resourceRegistry);
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
             throw new IllegalArgumentException("Server identity must not be blank");
         }
@@ -85,6 +94,10 @@ public final class AgentMcpDispatcher {
             if (!registry.listDefinitions(context.getRuleTools()).keySet().containsAll(context.getRuleTools())) {
                 return Mono.error(failure(request, 500, -32603, "Configured tool is not registered"));
             }
+            resources.validate(context, null);
+            if (request.getMethod().startsWith("resources/")) {
+                return resource(request, context, null).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
+            }
             return route(request, context).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
         }).onErrorMap(error -> {
             if (error instanceof AgentMcpProtocolException) {
@@ -105,6 +118,7 @@ public final class AgentMcpDispatcher {
     private Mono<ObjectNode> routeWithRemote(final AgentMcpRequest request, final AgentMcpExecutionContext context,
                                            final AgentMcpRemoteCatalog.Snapshot snapshot) {
         Map<String, ObjectNode> definitions = snapshot.definitions();
+        resources.validate(context, snapshot);
         for (String name : definitions.keySet()) {
             if (registry.isRegistered(name)) {
                 return Mono.error(failure(request, 500, -32603, "Tool namespace collision"));
@@ -114,6 +128,9 @@ public final class AgentMcpDispatcher {
             if (!registry.isRegistered(name) && !definitions.containsKey(name)) {
                 return Mono.error(failure(request, 500, -32603, "Configured tool is not registered"));
             }
+        }
+        if (request.getMethod().startsWith("resources/")) {
+            return resource(request, context, snapshot);
         }
         if ("tools/list".equals(request.getMethod())) {
             if (request.getParams().has("cursor")) {
@@ -161,7 +178,11 @@ public final class AgentMcpDispatcher {
                 ObjectNode discovery = complete();
                 cacheMetadata(discovery);
                 discovery.putArray("supportedVersions").add(AgentMcpRequestParser.VERSION);
-                discovery.putObject("capabilities").putObject("tools");
+                ObjectNode capabilities = discovery.putObject("capabilities");
+                capabilities.putObject("tools");
+                if (!context.getRuleResources().isEmpty()) {
+                    capabilities.putObject("resources");
+                }
                 return Mono.fromSupplier(() -> response(request, discovery.deepCopy()));
             case "tools/list":
                 return Mono.fromSupplier(() -> list(request, context));
@@ -184,6 +205,17 @@ public final class AgentMcpDispatcher {
             tool.set("inputSchema", toTree(definition.getInputSchema()));
         });
         return response(request, result);
+    }
+
+    private Mono<ObjectNode> resource(final AgentMcpRequest request, final AgentMcpExecutionContext context, final AgentMcpRemoteCatalog.Snapshot snapshot) {
+        return resources.dispatch(request, context, snapshot).map(payload -> {
+            ObjectNode result = complete();
+            result.setAll(payload);
+            if (!"resources/read".equals(request.getMethod())) {
+                cacheMetadata(result);
+            }
+            return response(request, result);
+        }).onErrorMap(SecurityException.class, error -> failure(request, 403, -32002, "Resource is not available"));
     }
 
     private Mono<ObjectNode> call(final AgentMcpRequest request, final AgentMcpExecutionContext context) {

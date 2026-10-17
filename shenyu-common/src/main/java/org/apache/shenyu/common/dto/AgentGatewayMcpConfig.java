@@ -32,9 +32,11 @@ import java.util.Set;
 public final class AgentGatewayMcpConfig {
 
     private static final Set<String> FIELDS = Set.of("allowedTools", "allowedOrigins", "responseMode", "timeoutMs", "maxRequestBytes", "maxResponseBytes",
-            "structuredContentRemovals");
+            "structuredContentRemovals", "allowedResources");
 
     private final Set<String> allowedTools;
+
+    private final Set<String> allowedResources;
 
     private final Set<String> allowedOrigins;
 
@@ -50,6 +52,7 @@ public final class AgentGatewayMcpConfig {
 
     private AgentGatewayMcpConfig(final JsonObject object) {
         allowedTools = strings(object, "allowedTools", false);
+        allowedResources = strings(object, "allowedResources", false);
         allowedOrigins = strings(object, "allowedOrigins", true);
         responseMode = text(object, "responseMode", "json");
         if (!Set.of("json", "sse").contains(responseMode)) {
@@ -85,6 +88,10 @@ public final class AgentGatewayMcpConfig {
 
     public Set<String> getAllowedTools() {
         return allowedTools;
+    }
+
+    public Set<String> getAllowedResources() {
+        return allowedResources;
     }
 
     public Set<String> getAllowedOrigins() {

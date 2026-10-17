@@ -42,6 +42,10 @@ public final class AgentMcpExecutionContext {
 
     private final Set<String> allowedTools;
 
+    private final Set<String> ruleResources;
+
+    private final Set<String> allowedResources;
+
     private final Instant deadline;
 
     private final AgentGatewayResultFilterConfig resultFilters;
@@ -59,6 +63,12 @@ public final class AgentMcpExecutionContext {
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, Set.of(), Set.of());
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                   final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                   final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources, final Set<String> resourceGrants) {
         this.deadline = Objects.requireNonNull(deadline, "deadline");
         this.resultFilters = Objects.requireNonNull(resultFilters, "resultFilters");
         this.requestId = requireText(requestId, "requestId");
@@ -72,6 +82,10 @@ public final class AgentMcpExecutionContext {
         Set<String> intersection = new HashSet<>(this.ruleTools);
         intersection.retainAll(Set.copyOf(securityGrants));
         allowedTools = Set.copyOf(intersection);
+        this.ruleResources = Set.copyOf(ruleResources);
+        Set<String> resources = new HashSet<>(this.ruleResources);
+        resources.retainAll(Set.copyOf(resourceGrants));
+        allowedResources = Set.copyOf(resources);
     }
 
     public String getRequestId() {
@@ -100,6 +114,14 @@ public final class AgentMcpExecutionContext {
 
     public Set<String> getAllowedTools() {
         return allowedTools;
+    }
+
+    public Set<String> getRuleResources() {
+        return ruleResources;
+    }
+
+    public Set<String> getAllowedResources() {
+        return allowedResources;
     }
 
     public AgentGatewayResultFilterConfig getResultFilters() {

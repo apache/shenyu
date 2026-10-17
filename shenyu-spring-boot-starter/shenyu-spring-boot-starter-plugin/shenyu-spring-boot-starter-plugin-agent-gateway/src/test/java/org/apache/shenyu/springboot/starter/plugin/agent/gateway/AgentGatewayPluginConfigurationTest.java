@@ -26,6 +26,10 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceProvider;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceDefinition;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceInvocation;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -40,6 +44,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Set;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -118,6 +123,36 @@ class AgentGatewayPluginConfigurationTest {
                     assertTrue(context.getBean("agentGatewayPlugin") instanceof AgentGatewayPlugin);
                     assertTrue(context.getBean(ShenyuPlugin.class) instanceof AgentGatewayPlugin);
                     assertTrue(context.getBean("agentGatewayPluginDataHandler") instanceof PluginDataHandler);
+                });
+    }
+
+    @Test
+    void shouldAssembleExplicitResourcesWithSeparatePermissions() {
+        AgentResourceProvider provider = new AgentResourceProvider() {
+            @Override
+            public AgentResourceDefinition getDefinition() {
+                return new AgentResourceDefinition("status", "test://status", "Status", null, false);
+            }
+
+            @Override
+            public Mono<List<AgentResourceContent>> read(final AgentResourceInvocation invocation) {
+                return Mono.just(List.of(AgentResourceContent.text(invocation.getUri(), null, invocation.getContext().getSubject())));
+            }
+        };
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").withBean(AgentResourceProvider.class, () -> provider)
+                .withBean(AgentMcpSecurityResolver.class, () -> exchange -> Mono.just(new AgentMcpIdentity("owner", Set.of(), Set.of("status"))))
+                .run(context -> {
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    String body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"resources/read\",\"params\":{\"uri\":\"test://status\",\"_meta\":{"
+                            + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}";
+                    MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/agent")
+                            .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")
+                            .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "resources/read").header("Mcp-Name", "test://status").body(body));
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedResources\":[\"status\"]}"), true);
+                    StepVerifier.create(handler.handle(exchange, config, new AgentTrafficContext("request", "mcp", "selector", "rule"), 1)).verifyComplete();
+                    assertEquals(200, exchange.getResponse().getStatusCode().value());
+                    assertTrue(exchange.getResponse().getBodyAsString().block().contains("\"text\":\"owner\""));
+                    assertTrue(config.getAllowedTools().isEmpty());
                 });
     }
 
