@@ -34,6 +34,7 @@
         <module>shenyu-web</module>
         <module>shenyu-spring-boot-starter</module>
         <module>shenyu-bootstrap</module>
+        <module>shenyu-bootstrap-http</module>
         <module>shenyu-client</module>
         <module>shenyu-plugin</module>
         <module>shenyu-sync-data-center</module>
