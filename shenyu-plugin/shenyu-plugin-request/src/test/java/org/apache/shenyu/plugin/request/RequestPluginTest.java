@@ -42,6 +42,7 @@ import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -52,6 +53,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -234,6 +236,42 @@ public class RequestPluginTest {
                     current.addAll(added);
                     return current;
                 })));
+    }
+
+    @Test
+    public void testHeaderOnlyRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"header\":{\"setHeaders\":{\"X-Demo\":\"1\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        assertEquals("/files/a%2Fb", captor.getValue().getRequest().getURI().getRawPath());
+        assertEquals("x=hello%20world", captor.getValue().getRequest().getURI().getRawQuery());
+        assertEquals("1", captor.getValue().getRequest().getHeaders().getFirst("X-Demo"));
+    }
+
+    @Test
+    public void testParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"addParameters\":{\"added\":\"a b\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("x=hello%20world&added=a%20b", requestUri.getRawQuery());
     }
 
     @Test
