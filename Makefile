@@ -20,6 +20,7 @@ REGISTRY ?= "docker.io"
 REPOSITORY_PREF ?= "apache/shenyu"
 ADMIN_REPOSITORY ?= "${REPOSITORY_PREF}-admin"
 BOOTSTRAP_REPOSITORY ?= "${REPOSITORY_PREF}-bootstrap"
+BOOTSTRAP_HTTP_REPOSITORY ?= "${REPOSITORY_PREF}-bootstrap-http"
 
 TAG ?= latest
 COMMIT_ID := $(shell git rev-parse HEAD)
@@ -51,6 +52,17 @@ build-bootstrap:
 		-Prelease \
 		clean package
 
+build-bootstrap-http:
+	@echo "build bootstrap-http"
+	@${SHENYU_HOME}/mvnw -am \
+		-pl shenyu-dist/shenyu-bootstrap-http-dist \
+		-Dmaven.javadoc.skip=true \
+		-Drat.skip=true \
+		-Djacoco.skip=true \
+		-DskipTests \
+		-Prelease \
+		clean package
+
 build-all-image: build-admin-image build-bootstrap-image ## build images on local, does not support multi platforms.
 	@echo "build images"
 
@@ -71,6 +83,15 @@ build-bootstrap-image: build-bootstrap ## build bootstrap image for local
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
 		--label "commit.id=${COMMIT_ID}" \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist
+
+build-bootstrap-http-image: build-bootstrap-http ## build bootstrap-http image for local
+	@echo "build bootstrap-http image"
+	@docker buildx build --load \
+		-t ${REGISTRY}/${BOOTSTRAP_HTTP_REPOSITORY}:${TAG} \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-http-dist/docker/Dockerfile \
+		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-http-bin \
+		--label "commit.id=${COMMIT_ID}" \
+		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-http-dist
 
 publish-all-images: init publish-admin-image publish-bootstrap-image ## build and publish images on buildx, for producing multi platform images
 	@docker buildx rm shenyu
@@ -95,9 +116,20 @@ publish-bootstrap-image: build-bootstrap
 	@echo "build and push bootstrap image"
 	@docker buildx build --push \
 		--platform=linux/arm64,linux/amd64 \
-		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:latest \
-		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:${VERSION} \
+		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:latest \
+		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
 		--label "commit.id=${COMMIT_ID}" \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist
+
+publish-bootstrap-http-image: build-bootstrap-http
+	@echo "build and push bootstrap-http image"
+	@docker buildx build --push \
+		--platform=linux/arm64,linux/amd64 \
+		-t ${REGISTRY}/${BOOTSTRAP_HTTP_REPOSITORY}:latest \
+		-t ${REGISTRY}/${BOOTSTRAP_HTTP_REPOSITORY}:${VERSION} \
+		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-http-bin \
+		--label "commit.id=${COMMIT_ID}" \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-http-dist/docker/Dockerfile \
+		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-http-dist
