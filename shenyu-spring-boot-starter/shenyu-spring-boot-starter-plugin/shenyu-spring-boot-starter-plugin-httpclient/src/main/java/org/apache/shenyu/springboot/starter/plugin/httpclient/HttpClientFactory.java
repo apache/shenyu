@@ -188,12 +188,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         builder.maxConnections(pool.getMaxConnections())
                 .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
         // when maxPendingAcquires is not configured, Reactor Netty defaults to 2 * maxConnections
-        if (Objects.nonNull(pool.getMaxPendingAcquires())) {
-            if (pool.getMaxPendingAcquires() <= 0 && pool.getMaxPendingAcquires() != -1) {
-                throw new IllegalArgumentException("Max Pending Acquires value must be strictly positive or -1");
-            }
-            builder.pendingAcquireMaxCount(pool.getMaxPendingAcquires());
-        }
+        validateAndApplyMaxPendingAcquires(pool, builder);
     }
 
     /**
@@ -218,6 +213,11 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                                            final Builder builder) {
         // default to unbounded (-1), but allow explicit acquisition bounds if configured
         this.buildElasticConnectionPool(builder);
+        validateAndApplyMaxPendingAcquires(pool, builder);
+    }
+
+    private void validateAndApplyMaxPendingAcquires(final Pool pool,
+                                                    final Builder builder) {
         if (Objects.nonNull(pool.getMaxPendingAcquires())) {
             if (pool.getMaxPendingAcquires() <= 0 && pool.getMaxPendingAcquires() != -1) {
                 throw new IllegalArgumentException("Max Pending Acquires value must be strictly positive or -1");
@@ -225,5 +225,4 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             builder.pendingAcquireMaxCount(pool.getMaxPendingAcquires());
         }
     }
-
 }

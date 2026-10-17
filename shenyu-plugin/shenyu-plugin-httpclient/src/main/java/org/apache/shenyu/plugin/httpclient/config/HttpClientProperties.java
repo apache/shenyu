@@ -611,6 +611,7 @@ public class HttpClientProperties {
 
         /**
          * Gets pending acquire max count.
+         * Alias of {@link #getMaxPendingAcquires()}.
          *
          * @return the pending acquire max count
          */
@@ -620,6 +621,7 @@ public class HttpClientProperties {
 
         /**
          * Sets pending acquire max count.
+         * Alias of {@link #setMaxPendingAcquires(Integer)}; when both are configured, the last one bound wins.
          *
          * @param pendingAcquireMaxCount the pending acquire max count
          */
