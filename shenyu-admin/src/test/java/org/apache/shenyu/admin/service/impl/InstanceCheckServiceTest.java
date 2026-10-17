@@ -42,6 +42,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -344,6 +345,28 @@ public final class InstanceCheckServiceTest {
                 .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
 
         assertDoesNotThrow(() -> instanceCheckService.syncDB());
+    }
+
+    @Test
+    void testCloseShutsDownExecutorsWhenFinalSyncFails() {
+        InstanceBeatInfoDTO dto = buildDTO("10.0.0.9", "8080", "http", "ns");
+        instanceCheckService.handleBeatInfo(dto);
+        instanceCheckService.setup();
+
+        Mockito.doThrow(new RuntimeException("db error on close"))
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> instanceCheckService.close());
+
+        ScheduledThreadPoolExecutor exec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "executor");
+        ScheduledThreadPoolExecutor syncExec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "syncExecutor");
+        assertNotNull(exec);
+        assertNotNull(syncExec);
+        assertThat(exec.isShutdown(), equalTo(true));
+        assertThat(syncExec.isShutdown(), equalTo(true));
+
+        // repeated close should also be safe and not throw
+        assertDoesNotThrow(() -> instanceCheckService.close());
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
