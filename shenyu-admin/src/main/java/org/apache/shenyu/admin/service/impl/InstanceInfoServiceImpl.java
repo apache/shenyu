@@ -107,6 +107,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     private InstanceInfoVO buildInstanceInfoVO(final InstanceInfoDO instanceInfoDO) {
         InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
+        instanceInfoVO.setId(instanceInfoDO.getId());
         instanceInfoVO.setInstanceIp(instanceInfoDO.getInstanceIp());
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
