@@ -17,10 +17,14 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -60,6 +64,22 @@ public final class PathMatchUtilsTest {
     }
 
     @Test
+    public void testCompiledPatternsAreCached() throws ReflectiveOperationException {
+        Cache<?, ?> matcherCache = getCache("MATCHER_CACHE");
+        Cache<?, ?> pathPatternCache = getCache("PATH_PATTERN_CACHE");
+        matcherCache.invalidateAll();
+        pathPatternCache.invalidateAll();
+
+        assertTrue(PathMatchUtils.match("/cached/**", "/cached/path"));
+        assertTrue(PathMatchUtils.match("/cached/**", "/cached/path"));
+        assertTrue(PathMatchUtils.pathPattern("/cached/**", "/cached/path"));
+        assertTrue(PathMatchUtils.pathPattern("/cached/**", "/cached/path"));
+
+        assertEquals(1, matcherCache.estimatedSize());
+        assertEquals(1, pathPatternCache.estimatedSize());
+    }
+
+    @Test
     public void testPathVariableHandle() {
         //test filter PathVariable
         assertTrue(PathMatchUtils.match("{id}/{name}", "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{"))));
@@ -70,5 +90,11 @@ public final class PathMatchUtilsTest {
                 "/demo/order/path/{id}/{name}".substring("/demo/order/path/{id}/{name}".indexOf("{")),
                 "/demo/order/path/1/godfje@".substring("demo/order/path/{id}/{name}".indexOf("{") + 1));
         assertThat(realPath, is("demo/order/path/1/godfje@"));
+    }
+
+    private Cache<?, ?> getCache(final String fieldName) throws ReflectiveOperationException {
+        Field cacheField = PathMatchUtils.class.getDeclaredField(fieldName);
+        cacheField.setAccessible(true);
+        return (Cache<?, ?>) cacheField.get(null);
     }
 }
