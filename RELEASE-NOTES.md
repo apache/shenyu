@@ -28,6 +28,15 @@
 
 ### Behavior Changes
 
+- `AbstractShenyuWasmPlugin()` now selects the JSON request/configuration/result
+  bridge rather than no-op host functions. Results require versioned UTF-8 JSON
+  within 1 MiB; invalid results fail the request with HTTP 500. Subclasses that
+  require the former no-op callbacks can call `super((Consumer<Store>) null)`;
+  the Consumer constructor retains custom adapters and existing overrides.
+  The default Java continuation hook now delegates to the chain and argument
+  IDs are generated automatically. Register a bean destroy method or call
+  `close()` explicitly for shutdown cleanup; no starter wiring is added. (#7561)
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
