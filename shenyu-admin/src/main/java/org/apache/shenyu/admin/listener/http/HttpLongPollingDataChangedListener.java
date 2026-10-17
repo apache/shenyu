@@ -48,6 +48,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
 import jakarta.servlet.AsyncContext;
+import jakarta.servlet.AsyncEvent;
+import jakarta.servlet.AsyncListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -65,6 +67,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
@@ -78,6 +81,8 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  */
 @SuppressWarnings("all")
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
+
+    public static final long DEFAULT_HEARTBEAT_INTERVAL_MS = 10000L;
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
@@ -102,17 +107,41 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private final HttpSyncProperties httpSyncProperties;
 
+    private final long heartbeatIntervalMs;
+
     /**
      * Instantiates a new Http long polling data changed listener.
      *
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
+        this(httpSyncProperties, DEFAULT_HEARTBEAT_INTERVAL_MS);
+    }
+
+    /**
+     * Instantiates a new Http long polling data changed listener with custom heartbeat interval.
+     *
+     * @param httpSyncProperties  the HttpSyncProperties
+     * @param heartbeatIntervalMs the heartbeat interval in milliseconds
+     */
+    public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties, final long heartbeatIntervalMs) {
         this.clientsMap = new ConcurrentHashMap<>();
         this.refreshLocks = new ConcurrentHashMap<>();
-        this.scheduler = new ScheduledThreadPoolExecutor(1,
+        ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("long-polling", true));
+        poolExecutor.setRemoveOnCancelPolicy(true);
+        this.scheduler = poolExecutor;
         this.httpSyncProperties = httpSyncProperties;
+        this.heartbeatIntervalMs = heartbeatIntervalMs;
+    }
+
+    /**
+     * Gets the heartbeat interval in milliseconds.
+     *
+     * @return the heartbeat interval in milliseconds
+     */
+    public long getHeartbeatIntervalMs() {
+        return heartbeatIntervalMs;
     }
 
     @Override
@@ -145,17 +174,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         final String namespaceId = getNamespaceId(request);
         final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
         final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
-        if (!CLIENT_PORT_ZERO.equals(clientPort)) {
-            InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
-                    .instanceIp(clientIp)
-                    .instancePort(clientPort)
-                    .instanceInfo(GsonUtils.getInstance().toJson(bootstrapInfo))
-                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
-                    .instanceState(1)
-                    .namespaceId(namespaceId)
-                    .build();
-            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoReportEvent);
-        }
+        reportInstanceInfo(clientIp, clientPort, bootstrapInfo, namespaceId);
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);
@@ -168,7 +187,33 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
         asyncContext.setTimeout(0L);
         // block client's thread.
-        scheduler.execute(new LongPollingClient(asyncContext, clientIp, HttpConstants.SERVER_MAX_HOLD_TIMEOUT, namespaceId));
+        scheduler.execute(new LongPollingClient(asyncContext, clientIp, clientPort, bootstrapInfo, HttpConstants.SERVER_MAX_HOLD_TIMEOUT, namespaceId));
+    }
+
+    private void reportInstanceInfo(final String clientIp, final String clientPort,
+                                    final String bootstrapInfo, final String namespaceId) {
+        if (shouldReportInstance(clientPort)) {
+            try {
+                InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
+                        .instanceIp(clientIp)
+                        .instancePort(clientPort)
+                        .instanceInfo(GsonUtils.getInstance().toJson(bootstrapInfo))
+                        .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
+                        .instanceState(1)
+                        .namespaceId(namespaceId)
+                        .build();
+                InstanceInfoReportEventPublisher publisher = SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class);
+                if (Objects.nonNull(publisher)) {
+                    publisher.publish(instanceInfoReportEvent);
+                }
+            } catch (Exception ex) {
+                LOG.error("report instance info error", ex);
+            }
+        }
+    }
+
+    private boolean shouldReportInstance(final String clientPort) {
+        return !CLIENT_PORT_ZERO.equals(clientPort);
     }
 
     @Override
@@ -381,7 +426,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * empty data is returned. If the data changes within this time frame, the DataChangeTask
      * cancellations the timed task and responds to the changed group data.
      */
-    class LongPollingClient implements Runnable {
+    class LongPollingClient implements Runnable, AsyncListener {
 
         private final Logger log = LoggerFactory.getLogger(LongPollingClient.class);
 
@@ -394,6 +439,16 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          * The Ip.
          */
         private final String ip;
+
+        /**
+         * The Port.
+         */
+        private final String port;
+
+        /**
+         * The Bootstrap info.
+         */
+        private final String bootstrapInfo;
 
         /**
          * The Timeout time.
@@ -411,33 +466,110 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         private Future<?> asyncTimeoutFuture;
 
         /**
+         * The Heartbeat future.
+         */
+        private Future<?> heartbeatFuture;
+
+        /**
+         * Completed flag to prevent duplicate execution or responses.
+         */
+        private final AtomicBoolean isCompleted = new AtomicBoolean(false);
+
+        /**
          * Instantiates a new Long polling client.
          *
          * @param ac          the ac
          * @param ip          the ip
          * @param timeoutTime the timeout time
+         * @param namespaceId the namespaceId
          */
         LongPollingClient(final AsyncContext ac, final String ip, final long timeoutTime, final String namespaceId) {
+            this(ac, ip, StringUtils.EMPTY, StringUtils.EMPTY, timeoutTime, namespaceId);
+        }
+
+        /**
+         * Instantiates a new Long polling client with port and bootstrap info.
+         *
+         * @param ac            the ac
+         * @param ip            the ip
+         * @param port          the port
+         * @param bootstrapInfo the bootstrap info
+         * @param timeoutTime   the timeout time
+         * @param namespaceId   the namespaceId
+         */
+        LongPollingClient(final AsyncContext ac, final String ip, final String port,
+                          final String bootstrapInfo, final long timeoutTime, final String namespaceId) {
             this.asyncContext = ac;
             this.ip = ip;
+            this.port = port;
+            this.bootstrapInfo = bootstrapInfo;
             this.timeoutTime = timeoutTime;
             this.namespaceId = namespaceId;
+            if (Objects.nonNull(ac)) {
+                try {
+                    ac.addListener(this);
+                } catch (Exception ex) {
+                    log.warn("failed to add async listener", ex);
+                }
+            }
         }
 
         @Override
         public void run() {
             try {
-                BlockingQueue<LongPollingClient> namespaceClients = clientsMap.getOrDefault(namespaceId, new ArrayBlockingQueue<>(1024));
+                BlockingQueue<LongPollingClient> namespaceClients = clientsMap.computeIfAbsent(
+                        namespaceId, k -> new ArrayBlockingQueue<>(1024));
                 this.asyncTimeoutFuture = scheduler.schedule(() -> {
-                    namespaceClients.remove(LongPollingClient.this);
                     List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                     sendResponse(changedGroups);
                     log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
+                if (shouldReportInstance(port)) {
+                    this.heartbeatFuture = scheduler.scheduleWithFixedDelay(
+                            this::refreshLiveness,
+                            heartbeatIntervalMs,
+                            heartbeatIntervalMs,
+                            TimeUnit.MILLISECONDS);
+                }
                 namespaceClients.add(this);
-                clientsMap.put(namespaceId, namespaceClients);
             } catch (Exception ex) {
                 log.error("add long polling client error", ex);
+            }
+        }
+
+        /**
+         * Refreshes the liveness of active held client.
+         */
+        void refreshLiveness() {
+            try {
+                if (isCompleted.get()) {
+                    return;
+                }
+                BlockingQueue<LongPollingClient> namespaceClients = clientsMap.get(namespaceId);
+                if (Objects.isNull(namespaceClients) || !namespaceClients.contains(this)) {
+                    cleanUp();
+                    return;
+                }
+                reportInstanceInfo(ip, port, bootstrapInfo, namespaceId);
+                log.debug("LongPollingClient refreshed liveness for ip={}, port={}, namespaceId={}", ip, port, namespaceId);
+            } catch (Exception e) {
+                log.error("refresh long polling client liveness error", e);
+            }
+        }
+
+        /**
+         * Cleans up futures and removes client from queue.
+         */
+        void cleanUp() {
+            if (Objects.nonNull(asyncTimeoutFuture)) {
+                asyncTimeoutFuture.cancel(false);
+            }
+            if (Objects.nonNull(heartbeatFuture)) {
+                heartbeatFuture.cancel(false);
+            }
+            BlockingQueue<LongPollingClient> namespaceClients = clientsMap.get(namespaceId);
+            if (Objects.nonNull(namespaceClients)) {
+                namespaceClients.remove(this);
             }
         }
 
@@ -447,12 +579,45 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          * @param changedGroups the changed groups
          */
         void sendResponse(final List<ConfigGroupEnum> changedGroups) {
-            // cancel scheduler
-            if (Objects.nonNull(asyncTimeoutFuture)) {
-                asyncTimeoutFuture.cancel(false);
+            if (!isCompleted.compareAndSet(false, true)) {
+                return;
             }
+            cleanUp();
             generateResponse((HttpServletResponse) asyncContext.getResponse(), changedGroups);
             asyncContext.complete();
+        }
+
+        @Override
+        public void onComplete(final AsyncEvent event) {
+            cleanUp();
+        }
+
+        @Override
+        public void onTimeout(final AsyncEvent event) {
+            isCompleted.set(true);
+            cleanUp();
+        }
+
+        @Override
+        public void onError(final AsyncEvent event) {
+            isCompleted.set(true);
+            cleanUp();
+        }
+
+        @Override
+        public void onStartAsync(final AsyncEvent event) {
+        }
+
+        Future<?> getHeartbeatFuture() {
+            return heartbeatFuture;
+        }
+
+        Future<?> getAsyncTimeoutFuture() {
+            return asyncTimeoutFuture;
+        }
+
+        boolean isCompleted() {
+            return isCompleted.get();
         }
     }
 }
