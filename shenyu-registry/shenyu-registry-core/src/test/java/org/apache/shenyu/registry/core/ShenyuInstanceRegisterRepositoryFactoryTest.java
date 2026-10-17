@@ -88,15 +88,17 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
 
     @Test
     void multipleExternalProvidersKeepTheirSpiKeys() throws Exception {
-        useProviders(provider("consul") + provider("polaris"));
+        useProviders(provider("consul") + provider("etcd") + provider("polaris"));
         ShenyuInstanceRegisterRepository consul = ShenyuInstanceRegisterRepositoryFactory.newInstance("consul");
         ShenyuInstanceRegisterRepository polaris = ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris");
+        ShenyuInstanceRegisterRepository etcd = ShenyuInstanceRegisterRepositoryFactory.loadRepository("etcd");
+        assertNotSame(etcd, ShenyuInstanceRegisterRepositoryFactory.loadRepository("etcd"));
         assertNotSame(consul, polaris);
         assertSame(consul, ShenyuInstanceRegisterRepositoryFactory.newInstance("consul"));
         assertSame(polaris, ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris"));
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> ShenyuInstanceRegisterRepositoryFactory.newInstance("unknown"));
-        assertTrue(exception.getMessage().contains("Available types: [consul, polaris]"));
+        assertTrue(exception.getMessage().contains("Available types: [consul, etcd, polaris]"));
     }
 
     @Test

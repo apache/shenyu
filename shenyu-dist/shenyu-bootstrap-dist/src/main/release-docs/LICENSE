@@ -331,10 +331,6 @@ The text of each license is the standard Apache 2.0 license.
     javapoet 1.8.0: https://github.com/square/javapoet, Apache 2.0
     javassist 3.29.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
     jboss-logging 3.5.3.Final: http://www.jboss.org, Apache 2.0
-    jetcd-api 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-common 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-core 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-grpc 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jettison 1.5.4: https://github.com/jettison-json/jettison, Apache 2.0
 	jcommander 1.78: https://mvnrepository.com/artifact/com.beust/jcommander, Apache 2.0
     jjwt-api 0.12.3: https://jwt.io, Apache 2.0

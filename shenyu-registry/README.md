@@ -38,7 +38,7 @@ runtime classpath, using the same ShenYu version as the application:
 | SPI key | Implementation artifact |
 | --- | --- |
 | `zookeeper` | `shenyu-registry-zookeeper` |
-| `etcd` | `shenyu-registry-etcd` |
+| `etcd` | External `shenyu-registry-etcd` from plugin-store; see [migration](../docs/plugin-store-etcd.md) |
 | `nacos` | `shenyu-registry-nacos` |
 | `apollo` | `shenyu-registry-apollo`; in-tree deprecation and planned external ownership: [migration guide](../docs/plugin-store-apollo.md) |
 | `eureka` | `shenyu-registry-eureka` |
@@ -59,17 +59,17 @@ example selects Eureka, and the gRPC example selects no registry implementation.
 
 ## Compatibility and migration
 
-For the 2.7.2 transition, `shenyu-spring-boot-starter-registry` retains the five providers
-previously supplied by core: ZooKeeper, etcd, Nacos, Eureka and Kubernetes. Existing users
-of that starter keep the same classpath and configuration keys. Apollo was not part of
-the previous aggregate and remains an explicit choice. Removing the compatibility
-aggregate is deferred to a separately announced change.
+The compatibility starter retains ZooKeeper, Nacos, Eureka and Kubernetes.
+etcd is now an explicit external dependency: add the compatible plugin-store
+`shenyu-registry-etcd` artifact before upgrading a deployment configured with `etcd`.
+Its SPI key and configuration remain unchanged; see [migration and rollback](../docs/plugin-store-etcd.md).
+Apollo remains an explicit choice.
 
 Applications depending directly on core, SDK libraries, or SDK starters should add
 their configured provider before upgrading. For gateway registration with a smaller
 classpath, retain the registry starter, exclude the unused implementation dependencies,
 and declare the selected implementation explicitly. The SDK integration tests show
-this arrangement for ZooKeeper. Admin declares its five supported discovery providers
+this arrangement for ZooKeeper. Admin declares its four in-tree discovery providers
 explicitly and preserves independent connections for separate discovery configurations.
 
 To roll back a dependency selection, restore the application's previous explicit
@@ -79,7 +79,7 @@ key migration is required. The factory's cache and reinitialization behavior is 
 
 ## External implementations
 
-External providers, including Consul and Polaris extensions, implement
+External providers, including etcd, Consul and Polaris extensions, implement
 `org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository`, carry `@Join`, and
 publish this resource in their JAR:
 
@@ -90,7 +90,7 @@ META-INF/shenyu/org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository
 For example, `consul=com.example.ConsulInstanceRegisterRepository` preserves the existing
 registration key. Add the extension JAR and its client dependencies to the runtime
 classpath; no core POM change is needed. Existing ShenYu SPI classloader rules continue
-to apply. Factory tests load external `consul` and `polaris` keys from isolated resources
+to apply. Factory tests load external `consul`, `etcd` and `polaris` keys from isolated resources
 without any built-in provider dependency.
 
 ## Dependency and release inventory
@@ -98,26 +98,18 @@ without any built-in provider dependency.
 | Consumer | Registry implementation inventory |
 | --- | --- |
 | Registry API/core, SDK libraries and SDK starters | None |
-| Compatibility registry starter | ZooKeeper, etcd, Nacos, Eureka, Kubernetes |
-| Admin distribution | ZooKeeper, etcd, Nacos, Eureka, Kubernetes, explicitly declared |
+| Compatibility registry starter | ZooKeeper, Nacos, Eureka, Kubernetes |
+| Admin distribution | ZooKeeper, Nacos, Eureka, Kubernetes, explicitly declared |
 | Bootstrap distribution | Registry API only; client libraries also arrive through sync/register/plugin modules |
 | SDK HTTP/Dubbo integration gateways | ZooKeeper |
 | Upload-plugin integration gateway | None; registry registration is not enabled |
 
-The packaged Admin client inventory includes Curator 5.7.0, ZooKeeper 3.9.5, jetcd
-0.7.3, Nacos 2.2.4, Eureka 2.0.2, and Kubernetes Java client 17.0.2. Bootstrap still
-packages Curator, ZooKeeper, jetcd and Nacos through its other selected modules. Both
-release archives include their LICENSE/NOTICE files. No registry client license entry
-is removed by this change.
+etcd clients are no longer part of the default Admin/Bootstrap dependency graphs;
+their jetcd LICENSE/NOTICE entries move with the external stack. The remaining
+client notices stay in the distributions. Custom packages enabling etcd must
+include the notices for the external artifacts and their runtime dependencies.
 
-Admin retains the same client libraries, so its existing distribution LICENSE/NOTICE
-entries still apply. Bootstrap distribution client libraries also come from selected
-plugin, registration and synchronization starters; removing an edge from registry-core
-alone does not remove those libraries. Keep the existing license and notice entries
-for libraries still shipped. Custom distributions must inventory the actual packaged
-`lib/` JARs and include their notices when selecting or removing providers.
-
-CI checks resolved runtime trees for the API/core, both SDK libraries/starters, all six
+CI checks resolved runtime trees for the API/core, both SDK libraries/starters, all five
 in-repository implementations and the compatibility starter. The checks reject registry
 implementations and client libraries in lean consumers, reverse implementation-to-core
 dependencies, and loss of a compatibility provider. Run locally:

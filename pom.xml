@@ -138,7 +138,6 @@
         <netty.version>4.1.139.Final</netty.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
-        <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>5.11.0</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
@@ -477,30 +476,6 @@
                 <groupId>jakarta.json</groupId>
                 <artifactId>jakarta.json-api</artifactId>
                 <version>${jakarta.json-api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.etcd</groupId>
-                <artifactId>jetcd-core</artifactId>
-                <version>${jetcd-core.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>grpc-protobuf</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-stub</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.grpc</groupId>
-                        <artifactId>grpc-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>grpc-netty</artifactId>
-                        <groupId>io.grpc</groupId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>

@@ -280,7 +280,7 @@ class ApolloDataServiceTest {
         ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
         verify(proxySelectorDataSubscriber, times(1)).unSubscribe(captor.capture());
         assertEquals("test-plugin", captor.getValue().getPluginName());
-        assertEquals("test-proxy", captor.getValue().getName());
+        assertEquals("test-proxy", captor.getValue().getId());
     }
 
     @Test
