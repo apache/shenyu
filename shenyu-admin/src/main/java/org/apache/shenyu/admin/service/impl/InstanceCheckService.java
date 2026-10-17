@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.vo.InstanceDataVisualLineVO;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.utils.InstanceInfoUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
@@ -128,7 +129,7 @@ public class InstanceCheckService {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
             instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
             instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
-            instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
+            instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());

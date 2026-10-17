@@ -149,7 +149,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
                     .instanceIp(clientIp)
                     .instancePort(clientPort)
-                    .instanceInfo(GsonUtils.getInstance().toJson(bootstrapInfo))
+                    .instanceInfo(bootstrapInfo)
                     .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
                     .instanceState(1)
                     .namespaceId(namespaceId)
