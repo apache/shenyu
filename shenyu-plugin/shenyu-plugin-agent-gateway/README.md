@@ -429,6 +429,75 @@ per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per c
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
 
+## Configured HTTP tools
+
+The matched MCP rule can expose existing gateway HTTP routes without one Java
+Provider per tool. Plans use the MCP Server plugin's `requestTemplate` /
+`argsPosition` vocabulary, but not its session holder or blocking callback.
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["order_http"],
+    "httpTools": {
+      "order_http": {
+        "description": "Look up an order through the existing HTTP route",
+        "inputSchema": {
+          "type": "object",
+          "properties": {"orderId": {"type": "string"}},
+          "required": ["orderId"]
+        },
+        "requestConfig": {
+          "requestTemplate": {"method": "GET", "url": "/orders/status"},
+          "argsPosition": {"orderId": "query"}
+        }
+      }
+    }
+  }
+}
+```
+
+Operators must separately configure the ordinary gateway route and its upstream.
+The fixed URL is a relative gateway path, not an upstream address or client
+template: only letters, digits, underscores, hyphens and single slashes are
+supported initially. No query, fragment, percent escapes, dot segments, absolute
+URLs or path substitutions are accepted. Upstream network controls remain the
+responsibility of existing routing plugins and deployment policy.
+
+The bounded first contract supports GET/query and POST/query or flat JSON-body
+mapping. Each scalar property must have an exact query/body mapping, with string,
+boolean, number or integer types; no implicit coercion, nested body paths, header
+templates or arbitrary JSON Schema assertions. At most 16 tools and 16 properties
+per tool; names/parameters at most 64 characters, descriptions 2048, paths 512,
+argument representations 2048. Unknown fields and unallowed names fail validation
+in Admin and the gateway. Plans are immutable and follow the existing rule sync;
+new requests see updates without restarting, while in-flight calls keep their plan.
+
+Authorization and namespace collision checks precede HTTP execution. Each
+subscription forks the existing web-handler plugin snapshot with a new cursor,
+fresh attributes, a newly constructed HTTP body and a bounded private response.
+Internal markers skip both MCP entries, not the other gateway plugins. Parent
+headers/cookies/principal/web session are not delegated. Business authentication
+must be provided by the configured HTTP route; this does not bypass downstream
+security plugins or provide per-record business authorization.
+
+Successful JSON responses become `structuredContent: {httpStatus, body}` and the
+matching JSON text copy, then pass through the merged field-filter/metrics path.
+No upstream response headers or cookies reach the MCP client. Non-2xx, session
+cookies, missing route completion or unsupported content are refused without tool
+retry; body size and request construction share the configured byte budgets.
+The captured HTTP deadline propagates cancellation; its classified failure is
+HTTP 504 / JSON-RPC -32025 before the outer handler deadline. The outer handler's
+existing deadline response remains unchanged. No rollback of remote side effects
+or guarantees about detached backend work are made.
+
+The default remains no HTTP plans. Startup Java Providers and remote MCP tools
+remain available with exact-name collision rejection. Custom plugin chains must
+explicitly implement `fork()`; unsupported chains fail closed for HTTP invocation
+without changing ordinary traffic. Dynamic Java/JAR loading, OTel, Token accounting,
+field mapping, prompts/resources and model fallback are outside this feature.
+
 ## Optional structuredContent field deletion
 
 Configure explicit plans in the matched MCP rule, keyed by complete exposed tool

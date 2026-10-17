@@ -32,4 +32,13 @@ public interface ShenyuPluginChain {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     Mono<Void> execute(ServerWebExchange exchange);
+
+    /**
+     * Create an independent cursor over this request's plugin snapshot from the first plugin.
+     * Custom chains must explicitly support internal dispatch rather than sharing a mutable cursor.
+     * @return independent chain
+     */
+    default ShenyuPluginChain fork() {
+        throw new UnsupportedOperationException("This plugin chain does not support isolated internal dispatch");
+    }
 }
