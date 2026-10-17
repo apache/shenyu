@@ -46,6 +46,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+
 /**
  * This is the client check service.
  */
@@ -119,7 +121,16 @@ public class InstanceCheckService {
         return instanceHealthBeatInfo.get(instanceKey);
     }
 
-    public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public boolean handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        // every in-repo producer defaults a blank namespace, so treat it as the default namespace
+        // rather than an incomplete identity (review feedback on #7776)
+        instanceBeatInfoDTO.setNamespaceId(StringUtils.defaultIfBlank(instanceBeatInfoDTO.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID));
+        if (isBlankIdentity(instanceBeatInfoDTO)) {
+            LOG.warn("ignored heartbeat report with incomplete identity: ip:{}, port:{}, type:{}, namespace:{}",
+                    instanceBeatInfoDTO.getInstanceIp(), instanceBeatInfoDTO.getInstancePort(),
+                    instanceBeatInfoDTO.getInstanceType(), instanceBeatInfoDTO.getNamespaceId());
+            return false;
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
@@ -133,9 +144,15 @@ public class InstanceCheckService {
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
+        return true;
+    }
+
+    private boolean isBlankIdentity(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        return StringUtils.isBlank(instanceBeatInfoDTO.getInstanceIp())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstancePort())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstanceType());
     }
 
     private void scheduled() {

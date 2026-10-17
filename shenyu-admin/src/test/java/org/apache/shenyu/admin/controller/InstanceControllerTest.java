@@ -115,11 +115,24 @@ public final class InstanceControllerTest {
     @Test
     public void testBeat() throws Exception {
         String json = "{\"instanceIp\":\"127.0.0.1\",\"instancePort\":\"8080\",\"instanceType\":\"grpc\",\"instanceInfo\":\"info\",\"namespaceId\":\"ns\"}";
+        given(this.instanceCheckService.handleBeatInfo(any())).willReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/instance/beat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is(ShenyuResultMessage.SUCCESS)));
         verify(instanceCheckService).handleBeatInfo(any());
+    }
+
+    @Test
+    public void testBeatRejectedReportSignalsError() throws Exception {
+        String json = "{\"instanceIp\":\"\",\"instancePort\":\"8080\",\"instanceType\":\"grpc\",\"instanceInfo\":\"info\",\"namespaceId\":\"ns\"}";
+        given(this.instanceCheckService.handleBeatInfo(any())).willReturn(false);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/instance/beat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is(ShenyuResultMessage.PARAMETER_ERROR)));
     }
 
     @Test

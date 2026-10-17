@@ -114,8 +114,8 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      */
     @PostMapping("/beat")
     public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
-        instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
-        return ShenyuResultMessage.SUCCESS;
+        boolean accepted = instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
+        return accepted ? ShenyuResultMessage.SUCCESS : ShenyuResultMessage.PARAMETER_ERROR;
     }
 
     /**
