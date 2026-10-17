@@ -87,8 +87,8 @@ public class AiProxyPluginConfiguration {
     }
 
     @Bean
-    public AiProxyConfigService aiProxyConfigService() {
-        return new AiProxyConfigService();
+    public AiProxyConfigService aiProxyConfigService(final AiProxyPluginHandler aiProxyPluginHandler) {
+        return new AiProxyConfigService(aiProxyPluginHandler);
     }
 
     /**
