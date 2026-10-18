@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.MediaType;
 
+import jakarta.annotation.PreDestroy;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.AsyncEvent;
 import jakarta.servlet.AsyncListener;
@@ -67,6 +68,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,10 +107,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private final ScheduledExecutorService scheduler;
 
-    private final HttpSyncProperties httpSyncProperties;
+    private final ScheduledExecutorService livenessScheduler;
 
     private final HttpCacheRebuildCoordinator cacheRebuildCoordinator;
     private final long heartbeatIntervalMs;
+    private final HttpSyncProperties httpSyncProperties;
 
     /**
      * Instantiates a new Http long polling data changed listener.
@@ -116,22 +119,37 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @param httpSyncProperties the HttpSyncProperties
      */
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
-        this(httpSyncProperties, DEFAULT_HEARTBEAT_INTERVAL_MS);
+        this(httpSyncProperties, null, null);
     }
 
     /**
-     * Instantiates a new Http long polling data changed listener with custom heartbeat interval.
+     * Instantiates a new Http long polling data changed listener with custom schedulers.
      *
-     * @param httpSyncProperties  the HttpSyncProperties
-     * @param heartbeatIntervalMs the heartbeat interval in milliseconds
+     * @param httpSyncProperties the HttpSyncProperties
+     * @param scheduler           the scheduler
+     * @param livenessScheduler   the liveness scheduler
      */
-    public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties, final long heartbeatIntervalMs) {
+    HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties,
+                                       final ScheduledExecutorService scheduler,
+                                       final ScheduledExecutorService livenessScheduler) {
         this.clientsMap = new ConcurrentHashMap<>();
         this.refreshLocks = new ConcurrentHashMap<>();
-        ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1,
-                ShenyuThreadFactory.create("long-polling", true));
-        poolExecutor.setRemoveOnCancelPolicy(true);
-        this.scheduler = poolExecutor;
+        if (Objects.nonNull(scheduler)) {
+            this.scheduler = scheduler;
+        } else {
+            ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1,
+                    ShenyuThreadFactory.create("long-polling", true));
+            poolExecutor.setRemoveOnCancelPolicy(true);
+            this.scheduler = poolExecutor;
+        }
+        if (Objects.nonNull(livenessScheduler)) {
+            this.livenessScheduler = livenessScheduler;
+        } else {
+            ScheduledThreadPoolExecutor livenessPoolExecutor = new ScheduledThreadPoolExecutor(1,
+                    ShenyuThreadFactory.create("shenyu-http-long-polling-liveness-", true));
+            livenessPoolExecutor.setRemoveOnCancelPolicy(true);
+            this.livenessScheduler = livenessPoolExecutor;
+        }
         this.httpSyncProperties = httpSyncProperties;
         this.cacheRebuildCoordinator = Objects.nonNull(httpSyncProperties.getCacheRebuildWindow()) && !httpSyncProperties.getCacheRebuildWindow().isZero()
                 ? new HttpCacheRebuildCoordinator(new ScheduledThreadPoolExecutor(httpSyncProperties.getCacheRebuildThreads(),
@@ -215,6 +233,21 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         LOG.info("http sync strategy refresh interval: {}ms", syncInterval);
     }
 
+    @Override
+    @PreDestroy
+    public void destroy() {
+        if (Objects.nonNull(this.scheduler)) {
+            this.scheduler.shutdown();
+        }
+        if (Objects.nonNull(this.livenessScheduler)) {
+            this.livenessScheduler.shutdown();
+        }
+    }
+
+    Map<String, BlockingQueue<LongPollingClient>> getClientsMap() {
+        return clientsMap;
+    }
+
     /**
      * If the configuration data changes, the group information for the change is immediately responded.
      * Otherwise, the client's request thread is blocked until any data changes or the specified timeout is reached.
@@ -280,7 +313,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private boolean shouldReportInstance(final String clientPort) {
-        return !CLIENT_PORT_ZERO.equals(clientPort);
+        return !StringUtils.isBlank(clientPort) && !CLIENT_PORT_ZERO.equals(clientPort);
     }
 
     @Override
@@ -530,12 +563,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         /**
          * The Async timeout future.
          */
-        private Future<?> asyncTimeoutFuture;
+        private ScheduledFuture<?> asyncTimeoutFuture;
 
         /**
          * The Heartbeat future.
          */
-        private Future<?> heartbeatFuture;
+        private ScheduledFuture<?> heartbeatFuture;
 
         /**
          * Completed flag to prevent duplicate execution or responses.
@@ -583,6 +616,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         @Override
         public void run() {
+            if (isCompleted.get()) {
+                return;
+            }
             try {
                 if (Objects.nonNull(cacheRebuildCoordinator)) {
                     // Publication may race the request thread's first comparison. Registration and
@@ -601,10 +637,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                     log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 if (shouldReportInstance(port)) {
-                    this.heartbeatFuture = scheduler.scheduleWithFixedDelay(
+                    long interval = Objects.nonNull(httpSyncProperties) && httpSyncProperties.getHeartbeatInterval() > 0
+                            ? httpSyncProperties.getHeartbeatInterval() : 10000L;
+                    ScheduledExecutorService executor = Objects.nonNull(livenessScheduler) ? livenessScheduler : scheduler;
+                    this.heartbeatFuture = executor.scheduleWithFixedDelay(
                             this::refreshLiveness,
-                            heartbeatIntervalMs,
-                            heartbeatIntervalMs,
+                            interval,
+                            interval,
                             TimeUnit.MILLISECONDS);
                 }
                 namespaceClients.add(this);
@@ -656,6 +695,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          */
         void sendResponse(final List<ConfigGroupEnum> changedGroups) {
             if (!isCompleted.compareAndSet(false, true)) {
+                cleanUp();
                 return;
             }
             cleanUp();
@@ -684,11 +724,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         public void onStartAsync(final AsyncEvent event) {
         }
 
-        Future<?> getHeartbeatFuture() {
+        ScheduledFuture<?> getHeartbeatFuture() {
             return heartbeatFuture;
         }
 
-        Future<?> getAsyncTimeoutFuture() {
+        ScheduledFuture<?> getAsyncTimeoutFuture() {
             return asyncTimeoutFuture;
         }
 

@@ -44,6 +44,7 @@ public class HttpSyncProperties {
     private int notifyBatchSize = 100;
 
     /**
+<<<<<<< HEAD
      * Fixed cache rebuild coalescing window. Zero preserves synchronous event processing.
      */
     private Duration cacheRebuildWindow = Duration.ZERO;
@@ -123,6 +124,11 @@ public class HttpSyncProperties {
         }
         this.cacheRebuildThreads = cacheRebuildThreads;
     }
+=======
+     * The heartbeat interval in milliseconds for liveness refresh during long-polling holds, default: 10000ms.
+     */
+    private long heartbeatInterval = 10000L;
+>>>>>>> c845870af ([ISSUE #7693] Address review feedback: fix clientsMap leak, isolate scheduler, make interval configurable)
 
     /**
      * Gets the value of enabled.
@@ -176,5 +182,23 @@ public class HttpSyncProperties {
      */
     public void setNotifyBatchSize(final int notifyBatchSize) {
         this.notifyBatchSize = notifyBatchSize;
+    }
+
+    /**
+     * Gets the value of heartbeatInterval.
+     *
+     * @return the value of heartbeatInterval
+     */
+    public long getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    /**
+     * Sets the heartbeatInterval.
+     *
+     * @param heartbeatInterval heartbeatInterval
+     */
+    public void setHeartbeatInterval(final long heartbeatInterval) {
+        this.heartbeatInterval = heartbeatInterval;
     }
 }
