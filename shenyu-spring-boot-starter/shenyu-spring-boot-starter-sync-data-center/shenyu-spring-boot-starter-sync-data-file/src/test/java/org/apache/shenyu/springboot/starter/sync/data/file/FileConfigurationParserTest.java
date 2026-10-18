@@ -84,6 +84,8 @@ class FileConfigurationParserTest {
         assertThat(first.plugins()).isEqualTo(second.plugins());
         assertThat(first.selectors()).isEqualTo(second.selectors());
         assertThat(first.rules()).isEqualTo(second.rules());
+        assertThat(first.selectors()).allSatisfy(selector -> assertThat(selector.getLogged()).isFalse());
+        assertThat(first.rules()).allSatisfy(rule -> assertThat(rule.getLogged()).isFalse());
         assertThat(first.upstreams().get(0).getUpstreamDataList()).isEqualTo(second.upstreams().get(0).getUpstreamDataList());
         assertThat(first.upstreams().get(0).getUpstreamDataList().get(0).getUrl()).isEqualTo("localhost:8443");
         assertThat(first.upstreams().get(0).getUpstreamDataList().get(0).getProtocol()).isEqualTo("https://");

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Execute fresh schemas and the complete released-2.7.1 upgrade on native engines."""
+"""Execute fresh schemas and the upgrade chain from released-2.7.1 on native engines."""
 
 import argparse
 import json
@@ -25,6 +25,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BASELINE = "218c5634ebffb1f0ce7e8ea921b85cd5a633cde7"  # v2.7.1, peeled commit
+# Upgrade scripts applied in order on top of the BASELINE schema, newest last.
+# Adding a released migration here keeps every ALTER/DROP gated on real engines.
+MIGRATIONS_FROM_BASELINE = ("2.7.1-upgrade-2.7.2", "2.7.2-upgrade-2.7.3")
 PASSWORD = "SqlMatrix@2026"
 SENTINEL = "sql-matrix-plugin"
 JAR_HEX = "0001027fff"
@@ -466,8 +469,9 @@ def execute_matrix(dialect, root, output):
             before = {table: set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split()) for table in TABLES}
             if flow == "upgrade":
                 engine.insert_data_permissions(duplicates=True)
-                migration = root / f"db/upgrade/2.7.1-upgrade-2.7.2-{dialect}.sql"
-                engine.sql(migration.read_text(encoding="utf-8"))
+                for step in MIGRATIONS_FROM_BASELINE:
+                    migration = root / f"db/upgrade/{step}-{dialect}.sql"
+                    engine.sql(migration.read_text(encoding="utf-8"))
             else:
                 engine.insert_data_permissions()
             engine.check_data(listing, detail)

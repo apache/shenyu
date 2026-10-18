@@ -191,7 +191,7 @@ final class FileConfigurationParser {
             require(orders.add(selectorId + ":" + sort), at + ".sort", "rule order must be unique within its selector");
             String handle = handle(entry.path("handle"), plugin, at + ".handle");
             result.add(RuleData.builder().id(id).name(optionalText(entry, "name", at, id)).selectorId(selectorId).pluginName(plugin)
-                    .enabled(bool(entry, "enabled", at, true)).sort(sort).matchMode(matchMode(entry, at)).loged(false).matchRestful(false)
+                    .enabled(bool(entry, "enabled", at, true)).sort(sort).matchMode(matchMode(entry, at)).logged(false).matchRestful(false)
                     .handle(handle).conditionDataList(conditions(entry, at)).namespaceId(namespace).build());
         }
         return result;

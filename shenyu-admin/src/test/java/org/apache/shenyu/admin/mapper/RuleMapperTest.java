@@ -241,7 +241,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
                 .ruleName("test-name-" + new Random().nextInt())
                 .enabled(true)
                 .handle("test-handle")
-                .loged(true)
+                .logged(true)
                 .matchMode(1)
                 .selectorId("test-selector-1")
                 .matchRestful(false)
