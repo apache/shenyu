@@ -26,6 +26,11 @@
     <artifactId>shenyu-register-protocol</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Override inherited runtime dependencies: the wire contract uses only the JDK. -->
         <dependency>
             <groupId>com.google.guava</groupId>
