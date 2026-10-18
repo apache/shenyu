@@ -143,6 +143,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
         final String clientIp = getRemoteIp(request);
         final String namespaceId = getNamespaceId(request);
+        // The header already contains JSON text; encoding it again adds a string wrapper.
         final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
         final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
         if (!CLIENT_PORT_ZERO.equals(clientPort)) {

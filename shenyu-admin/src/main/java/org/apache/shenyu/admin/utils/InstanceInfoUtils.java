@@ -35,10 +35,7 @@ public final class InstanceInfoUtils {
     }
 
     /**
-     * Keep instance information as JSON object text, without changing the string field contract.
-     * Decode at most one legacy JSON-string wrapper; never decode nested object values.
-     * Missing, malformed or non-object information becomes an empty object so that optional
-     * diagnostics do not interrupt heartbeat processing or dashboard rendering.
+     * Normalize optional instance information to JSON object text.
      *
      * @param information reported or persisted instance information
      * @return JSON object text that consumers can parse once
@@ -49,10 +46,12 @@ public final class InstanceInfoUtils {
         }
         try {
             JsonElement element = JsonParser.parseString(information);
+            // Older reporters may wrap the object text in one JSON string.
             if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
                 element = JsonParser.parseString(element.getAsString());
             }
             if (element.isJsonObject()) {
+                // Compact whitespace without decoding nested string values or sorting keys.
                 return element.toString();
             }
         } catch (JsonParseException | IllegalStateException ex) {

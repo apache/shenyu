@@ -395,6 +395,23 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
+    void testMalformedBootstrapFrameDoesNotPreventNextHeartbeat() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String[] messages = {"{\"bootstrapInstanceInfo\":", "[\"bootstrapInstanceInfo\"]", "\"bootstrapInstanceInfo\"", "null /* bootstrapInstanceInfo */"};
+        for (String message : messages) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(message, session));
+        }
+        verify(publisher, never()).publish(any(InstanceInfoReportEvent.class));
+
+        websocketCollector.onMessage("{\"bootstrapInstanceInfo\":\"{\\\"cpu\\\":4}\"}", session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals("{\"cpu\":4}", event.getValue().getInstanceInfo());
+    }
+
+    @Test
     void testOnClose() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());

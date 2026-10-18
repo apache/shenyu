@@ -111,6 +111,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         instanceInfoVO.setInstanceIp(instanceInfoDO.getInstanceIp());
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
+        // Normalize legacy rows for display without rewriting the stored value.
         instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceInfoDO.getInstanceInfo()));
         instanceInfoVO.setInstanceState(instanceInfoDO.getInstanceState());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());

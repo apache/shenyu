@@ -42,6 +42,16 @@ class InstanceInfoUtilsTest {
     }
 
     @Test
+    void testFormattedInformationIsCompacted() {
+        String information = "{\n  \"os\": \"Windows\",\n  \"cpu\": 4\n}";
+        String compact = "{\"os\":\"Windows\",\"cpu\":4}";
+
+        assertEquals(compact, InstanceInfoUtils.normalize(information));
+        assertEquals(compact, InstanceInfoUtils.normalize(GsonUtils.getInstance().toJson(information)));
+        assertEquals(compact, InstanceInfoUtils.normalize(compact));
+    }
+
+    @Test
     void testNestedStringsAreNotDecoded() {
         String information = "{\"note\":\"{\\\"nested\\\":true}\",\"path\":\"C:\\\\test\",\"label\":\"机器\"}";
 

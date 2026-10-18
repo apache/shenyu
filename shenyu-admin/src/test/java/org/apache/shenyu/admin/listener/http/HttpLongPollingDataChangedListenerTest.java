@@ -439,6 +439,32 @@ public final class HttpLongPollingDataChangedListenerTest {
     }
 
     /**
+     * test doLongPolling without optional instance information.
+     */
+    @Test
+    public void testDoLongPollingWithoutInstanceInformation() throws Exception {
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "serverMd5");
+        try {
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            this.httpServletRequest.addHeader("X-Real-PORT", "8080");
+            this.httpServletRequest.addHeader(X_REAL_IP, "10.0.0.1");
+
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+
+            ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+            Mockito.verify(instanceInfoReportEventPublisher).publish(event.capture());
+            assertEquals("", event.getValue().getInstanceInfo());
+            assertEquals("10.0.0.1", event.getValue().getInstanceIp());
+            assertEquals("8080", event.getValue().getInstancePort());
+            assertEquals(1, event.getValue().getInstanceState());
+            assertEquals(200, this.httpServletResponse.getStatus());
+        } finally {
+            clearAllGroupsInCache(DEFAULT_NAMESPACE);
+        }
+    }
+
+    /**
      * test doLongPolling with no changed groups (async path).
      */
     @Test
