@@ -44,15 +44,19 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -367,6 +371,75 @@ public final class InstanceCheckServiceTest {
 
         // repeated close should also be safe and not throw
         assertDoesNotThrow(() -> instanceCheckService.close());
+    }
+
+    @Test
+    void testSyncDBContinuesOnException() {
+        InstanceBeatInfoDTO dto1 = buildDTO("127.0.0.1", "8080", "grpc", "ns1");
+        InstanceBeatInfoDTO dto2 = buildDTO("127.0.0.2", "8081", "grpc", "ns2");
+        instanceCheckService.handleBeatInfo(dto1);
+        instanceCheckService.handleBeatInfo(dto2);
+
+        Mockito.doThrow(new RuntimeException("db error"))
+                .doNothing()
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
+        verify(instanceInfoService, times(2)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testSetupClosesExistingExecutorsOnReelection() {
+        instanceCheckService.setup();
+        ScheduledThreadPoolExecutor firstExec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "executor");
+        ScheduledThreadPoolExecutor firstSyncExec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "syncExecutor");
+        assertNotNull(firstExec);
+        assertNotNull(firstSyncExec);
+        assertFalse(firstExec.isShutdown());
+        assertFalse(firstSyncExec.isShutdown());
+
+        instanceCheckService.setup();
+        assertTrue(firstExec.isShutdown());
+        assertTrue(firstSyncExec.isShutdown());
+
+        ScheduledThreadPoolExecutor secondExec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "executor");
+        ScheduledThreadPoolExecutor secondSyncExec = (ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(instanceCheckService, "syncExecutor");
+        assertNotNull(secondExec);
+        assertNotNull(secondSyncExec);
+        assertFalse(secondExec.isShutdown());
+        assertFalse(secondSyncExec.isShutdown());
+
+        instanceCheckService.close();
+    }
+
+    @Test
+    void testCloseWithHungSyncDoesNotBlockIndefinitely() throws Exception {
+        CountDownLatch lockAcquiredLatch = new CountDownLatch(1);
+        CountDownLatch testFinishedLatch = new CountDownLatch(1);
+        ReentrantLock lock = (ReentrantLock) ReflectionTestUtils.getField(instanceCheckService, "syncLock");
+        assertNotNull(lock);
+
+        Thread holdingThread = new Thread(() -> {
+            lock.lock();
+            try {
+                lockAcquiredLatch.countDown();
+                testFinishedLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            } finally {
+                lock.unlock();
+            }
+        });
+        holdingThread.start();
+        assertTrue(lockAcquiredLatch.await(5, TimeUnit.SECONDS));
+
+        long start = System.currentTimeMillis();
+        assertDoesNotThrow(() -> instanceCheckService.syncDB(50, TimeUnit.MILLISECONDS));
+        long elapsed = System.currentTimeMillis() - start;
+        assertThat(elapsed, lessThan(2000L));
+
+        testFinishedLatch.countDown();
+        holdingThread.join(5000);
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
