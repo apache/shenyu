@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.handler;
 
+import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -29,6 +30,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -36,6 +39,8 @@ import java.util.Objects;
  * this is ai proxy plugin handler.
  */
 public class AiProxyPluginHandler implements PluginDataHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AiProxyPluginHandler.class);
 
     private final CommonHandleCache<String, AiProxyHandle> selectorCachedHandle = new CommonHandleCache<>();
 
@@ -49,8 +54,13 @@ public class AiProxyPluginHandler implements PluginDataHandler {
         if (Objects.isNull(pluginData)) {
             return;
         }
-        globalConfig = Boolean.FALSE.equals(pluginData.getEnabled()) || StringUtils.isBlank(pluginData.getConfig())
-                ? null : GsonUtils.getInstance().fromJson(pluginData.getConfig(), AiCommonConfig.class);
+        try {
+            globalConfig = Boolean.FALSE.equals(pluginData.getEnabled()) || StringUtils.isBlank(pluginData.getConfig())
+                    ? null : GsonUtils.getInstance().fromJson(pluginData.getConfig(), AiCommonConfig.class);
+        } catch (JsonParseException e) {
+            globalConfig = null;
+            LOG.warn("Invalid configuration for plugin {}; cleared global defaults", pluginData.getName());
+        }
     }
 
     @Override

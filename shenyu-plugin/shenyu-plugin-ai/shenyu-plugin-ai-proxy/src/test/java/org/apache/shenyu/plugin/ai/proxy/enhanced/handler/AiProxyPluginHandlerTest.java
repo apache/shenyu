@@ -31,6 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -163,6 +164,24 @@ class AiProxyPluginHandlerTest {
         assertNull(handler.getGlobalConfig());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"not-json", "{", "[]", "{\"maxTokens\":\"invalid\"}"})
+    void testInvalidPluginConfigurationClearsDefaultsAndAllowsRecovery(final String config) {
+        handler.handlerPlugin(plugin("{\"apiKey\":\"old-key\",\"model\":\"old-model\"}"));
+        assertNotNull(handler.getGlobalConfig());
+
+        assertDoesNotThrow(() -> handler.handlerPlugin(plugin(config)));
+
+        assertNull(handler.getGlobalConfig());
+        AiCommonConfig cleared = new AiProxyConfigService(handler).resolvePrimaryConfig(null);
+        assertNull(cleared.getApiKey());
+        assertNull(cleared.getModel());
+
+        handler.handlerPlugin(plugin("{\"apiKey\":\"new-key\",\"model\":\"new-model\"}"));
+        assertEquals("new-key", handler.getGlobalConfig().getApiKey());
+        assertEquals("new-model", handler.getGlobalConfig().getModel());
+    }
+
     @Test
     void testHandlerInstancesDoNotShareGlobalConfiguration() {
         AiProxyPluginHandler other = new AiProxyPluginHandler();
@@ -177,6 +196,7 @@ class AiProxyPluginHandlerTest {
 
     private PluginData plugin(final String config) {
         PluginData data = new PluginData();
+        data.setName(PluginEnum.AI_PROXY.getName());
         data.setConfig(config);
         return data;
     }

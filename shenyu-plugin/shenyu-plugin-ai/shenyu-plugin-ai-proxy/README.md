@@ -81,6 +81,8 @@ Plugin updates replace the defaults rather than retaining omitted fields.
 Blank, `null` or `{}` configuration clears the previous connection/model values;
 disabling or deleting the plugin also clears its defaults. Each request receives
 a copy, so request-specific proxy credentials do not alter later requests.
+Malformed plugin configuration clears the defaults and logs a warning without
+interrupting configuration synchronization. A later valid update restores them.
 Defaults belong to the handler/resolver instance wired by the starter; separate
 application contexts do not share plugin configuration through a process-wide
 `Singleton`. Programmatic construction must pass the same `AiProxyPluginHandler`
