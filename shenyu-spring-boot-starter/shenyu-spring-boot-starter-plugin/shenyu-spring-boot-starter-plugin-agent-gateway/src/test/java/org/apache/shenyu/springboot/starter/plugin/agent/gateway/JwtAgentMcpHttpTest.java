@@ -74,6 +74,17 @@ class JwtAgentMcpHttpTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
+    void missingBearerRetainsCsrfProtectionAndRequiresAuthentication(final String mode) {
+        try (Fixture fixture = new Fixture(mode, "explicit-default")) {
+            fixture.request(null, "tools/call").header("X-Tenant-Id", "forged").header("X-Agent-Subject", "agent")
+                    .exchange().expectStatus().isForbidden();
+            fixture.client.get().uri("/").exchange().expectStatus().isUnauthorized();
+            assertEquals(0, fixture.calls.get());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
     void signedJwtControlsListingAndCallingWithDenyPrecedence(final String mode) {
         try (Fixture fixture = new Fixture(mode, null)) {
             String allowed = token(Map.of("tenant_id", "tenant-a", "tool_grants", List.of("read")), KEY, ISSUER);
@@ -92,10 +103,8 @@ class JwtAgentMcpHttpTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
-    void missingForgedExpiredWrongIssuerAndWrongAudienceNeverReachTool(final String mode) {
+    void forgedExpiredWrongIssuerAndWrongAudienceNeverReachTool(final String mode) {
         try (Fixture fixture = new Fixture(mode, "explicit-default")) {
-            fixture.request(null, "tools/call").header("X-Tenant-Id", "forged").header("X-Agent-Subject", "agent")
-                    .exchange().expectStatus().isUnauthorized();
             fixture.request(token(Map.of("tool_grants", List.of("read")), "another-untrusted-test-key-at-least-32-bytes".getBytes(StandardCharsets.UTF_8), ISSUER),
                     "tools/call").exchange().expectStatus().isUnauthorized();
             fixture.request(token(Map.of("tool_grants", List.of("read")), KEY, "https://untrusted.example"), "tools/call")
@@ -206,7 +215,8 @@ class JwtAgentMcpHttpTest {
             NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withSecretKey(new SecretKeySpec(KEY, "HmacSHA256"))
                     .macAlgorithm(MacAlgorithm.HS256).build();
             decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(ISSUER));
-            var security = ServerHttpSecurity.http().csrf(ServerHttpSecurity.CsrfSpec::disable)
+            // Resource Server handles bearer requests; retain default CSRF protection for requests without a bearer token.
+            var security = ServerHttpSecurity.http()
                     .authorizeExchange(exchanges -> exchanges.anyExchange().authenticated())
                     .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.jwtDecoder(decoder))).build();
             var httpHandler = WebHttpHandlerBuilder.webHandler(exchange -> handler.handle(exchange, config,
