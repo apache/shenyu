@@ -22,6 +22,9 @@ import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.function.Supplier;
 
@@ -60,5 +63,53 @@ public final class RewritePluginDataHandlerTest {
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(rewritePluginDataHandler.pluginNamed(), "rewrite");
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testBlankHandleClearsCachedRule(final String handle) {
+        ruleData.setSelectorId("clear-selector");
+        ruleData.setId("clear-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+
+        ruleData.setHandle(handle);
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+    }
+
+    @Test
+    public void testNullHandleRetainsCachedRule() {
+        ruleData.setSelectorId("null-selector");
+        ruleData.setId("null-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        RewriteHandle cached = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("null-selector_null-rule");
+
+        ruleData.setHandle(null);
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertSame(cached, RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("null-selector_null-rule"));
+    }
+
+    @Test
+    public void testEmptyObjectReplacesCachedRule() {
+        ruleData.setSelectorId("empty-selector");
+        ruleData.setId("empty-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        ruleData.setHandle("{}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        RewriteHandle cached = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("empty-selector_empty-rule");
+        Assertions.assertNotNull(cached);
+        Assertions.assertNull(cached.getRegex());
+        Assertions.assertNull(cached.getReplace());
     }
 }
