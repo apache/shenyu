@@ -169,6 +169,14 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
+    void primaryMustNotHideConflictingIdentityAuthorities() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean("firstSecurity", AgentMcpSecurityResolver.class, () -> next -> Mono.empty(), definition -> definition.setPrimary(true))
+                .withBean("secondSecurity", AgentMcpSecurityResolver.class, () -> next -> Mono.empty())
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
     void shouldAssembleOptInCatalogAndWireTrustedPluginSync() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
                         "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp")
@@ -192,6 +200,41 @@ class AgentGatewayPluginConfigurationTest {
                 .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
                     throw new SecurityException("unused");
                 }).run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void jwtBridgeIsOptInAndRequiresItsExactAuthorityPolicy() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").run(context ->
+                assertFalse(context.containsBean("agentGatewayJwtSecurityResolver")));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.jwt.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        jwtContext().run(context -> assertTrue(context.getBean(AgentMcpSecurityResolver.class) instanceof JwtAgentMcpSecurityResolver));
+    }
+
+    @Test
+    void jwtBridgeCannotCompeteWithACustomPrimaryAuthority() {
+        jwtContext().withBean("custom", AgentMcpSecurityResolver.class, () -> next -> Mono.empty(), definition -> definition.setPrimary(true))
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void optionalJwtClassesAreNotRequiredWhenOffButCannotSilentlyDisappearWhenEnabled() {
+        contextRunner.withClassLoader(new FilteredClassLoader("org.springframework.security.oauth2"))
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .run(context -> assertNotNull(context.getBean(AgentGatewayPlugin.class)));
+        jwtContext().withClassLoader(new FilteredClassLoader("org.springframework.security.oauth2"))
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void blankDefaultTenantIsAConfigurationFailure() {
+        jwtContext().withPropertyValues("shenyu.plugins.agent.gateway.security.jwt.default-tenant=")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    private ApplicationContextRunner jwtContext() {
+        return contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.jwt.enabled=true",
+                "shenyu.plugins.agent.gateway.security.jwt.issuer=https://issuer.example", "shenyu.plugins.agent.gateway.security.jwt.audience=mcp");
     }
 
     private MockServerWebExchange exchange() {

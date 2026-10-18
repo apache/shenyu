@@ -43,6 +43,7 @@ import org.apache.shenyu.plugin.agent.gateway.remote.FileRemoteServiceCredential
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
@@ -71,13 +72,21 @@ public class AgentGatewayPluginConfiguration {
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
         }
-        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer);
+        List<AgentMcpSecurityResolver> authorities = resolvers.stream().toList();
+        if (authorities.size() > 1) {
+            throw new IllegalStateException("MCP requires one authoritative identity resolver; multiple resolvers are not allowed");
+        }
+        if (environment.getProperty("shenyu.plugins.agent.gateway.security.jwt.enabled", Boolean.class, false)
+                && authorities.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.JwtAgentMcpSecurityResolver".equals(resolver.getClass().getName()))) {
+            throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
+        }
+        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer);
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
                                      final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
+        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer));
     }
 
@@ -110,6 +119,28 @@ public class AgentGatewayPluginConfiguration {
         RemoteServiceCredentialResolver resolver = credentials.getIfAvailable(() -> new FileRemoteServiceCredentialResolver(
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
         return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver);
+    }
+
+    /**
+     * Optional bridge for an application-owned, authenticated Resource Server JWT principal.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = {"org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken",
+        "org.springframework.security.oauth2.jwt.Jwt"})
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.security.jwt.enabled", havingValue = "true")
+    static class JwtIdentityConfiguration {
+
+        /**
+         * Adapt verified claims without creating a decoder or authentication filter chain.
+         * @param environment deployment-owned identity policy
+         * @return the sole identity authority
+         */
+        @Bean
+        AgentMcpSecurityResolver agentGatewayJwtSecurityResolver(final Environment environment) {
+            String prefix = "shenyu.plugins.agent.gateway.security.jwt.";
+            return new JwtAgentMcpSecurityResolver(environment.getRequiredProperty(prefix + "issuer"),
+                    environment.getRequiredProperty(prefix + "audience"), environment.getProperty(prefix + "default-tenant"));
+        }
     }
 
     /**
