@@ -17,78 +17,47 @@
 
 package org.apache.shenyu.plugin.divide.handler;
 
-import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
+import org.apache.shenyu.plugin.base.handler.AbstractDiscoveryUpstreamDataHandler;
+import org.apache.shenyu.plugin.base.utils.UpstreamProps;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * upstreamList data change.
  */
-public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
-
-    @Override
-    public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
-        if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
-            return;
-        }
-        List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
-        final List<Upstream> upstreams = convertUpstreamList(upstreamList);
-        final List<Upstream> grayUpstreamList = upstreams.stream().filter(Upstream::isGray).toList();
-        if (!grayUpstreamList.isEmpty()) {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), grayUpstreamList);
-        } else {
-            UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
-        }
-        // the update is also need to clean, but there is no way to
-        // distinguish between crate and update, so it is always clean
-        MetaDataCache.getInstance().clean();
-    }
-
-    @Override
-    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
-        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
-            return;
-        }
-        UpstreamCacheManager.getInstance().removeByKey(key.selectorId());
-    }
+public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHandler<Upstream> {
 
     @Override
     public String pluginName() {
         return PluginEnum.DIVIDE.getName();
     }
 
-    private List<Upstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
+    @Override
+    protected List<Upstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
         if (ObjectUtils.isEmpty(upstreamList)) {
             return Collections.emptyList();
         }
         return upstreamList.stream().map(u -> {
-            Map<String, String> metadata = Optional.ofNullable(u.getProps())
-                    .map(ps -> GsonUtils.getInstance().toObjectMap(ps, String.class))
-                    .map(HashMap::new)
-                    .orElseGet(HashMap::new);
+            UpstreamProps props = UpstreamProps.parse(u.getProps());
+            Map<String, String> metadata = props.toMap();
             Upstream upstream = Upstream.builder()
                     .protocol(u.getProtocol())
                     .url(u.getUrl())
                     .weight(u.getWeight())
-                    .warmup(Integer.parseInt(metadata.getOrDefault("warmup", "10")))
-                    .gray(Boolean.parseBoolean(metadata.getOrDefault("gray", "false")))
-                    .healthCheckEnabled(Boolean.parseBoolean(metadata.getOrDefault("healthCheckEnabled", "true")))
+                    .warmup(props.getWarmup())
+                    .gray(props.isGray())
+                    .healthCheckEnabled(props.isHealthCheckEnabled())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
@@ -97,4 +66,25 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    protected boolean isGray(final Upstream upstream) {
+        return upstream.isGray();
+    }
+
+    @Override
+    protected void submitUpstreamData(final String selectorId, final List<Upstream> upstreamList) {
+        UpstreamCacheManager.getInstance().submit(selectorId, upstreamList);
+    }
+
+    @Override
+    protected void afterSubmitUpstreamData(final String selectorId) {
+        // the update is also need to clean, but there is no way to
+        // distinguish between crate and update, so it is always clean
+        MetaDataCache.getInstance().clean();
+    }
+
+    @Override
+    protected void removeUpstreamData(final String selectorId) {
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
+    }
 }

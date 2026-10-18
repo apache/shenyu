@@ -88,3 +88,14 @@ INSERT INTO "public"."permission" VALUES ('1960000000000001029', '13463585604272
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 -- add index to speed up the meta data path uniqueness check
 CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree ("namespace_id","path");
+CREATE INDEX "idx_operation_log_time" ON "public"."operation_record_log" USING btree ("operation_time");
+CREATE INDEX "idx_operation_log_operator_time" ON "public"."operation_record_log" USING btree ("operator","operation_time");
+
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE FROM data_permission duplicate_permission
+USING data_permission retained_permission
+WHERE duplicate_permission.user_id = retained_permission.user_id
+  AND duplicate_permission.data_type = retained_permission.data_type
+  AND duplicate_permission.data_id = retained_permission.data_id
+  AND duplicate_permission.id > retained_permission.id;
+CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");

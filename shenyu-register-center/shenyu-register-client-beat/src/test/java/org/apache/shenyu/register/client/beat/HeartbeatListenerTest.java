@@ -20,7 +20,7 @@ package org.apache.shenyu.register.client.beat;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1567,7 +1567,7 @@ CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
 CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
 CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
 CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
-CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
 CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
 CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
 CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);

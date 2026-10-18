@@ -51,7 +51,7 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
 
     @Override
     public void registerApiDocument(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
+        if (EventType.REGISTER == apiDocRegisterDTO.getEventType()) {
             ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
             apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
             List<String> tagsIds = new ArrayList<>();
@@ -75,7 +75,7 @@ public class RegisterApiDocServiceImpl implements RegisterApiDocService {
             }
             apiDTO.setTagIds(tagsIds);
             apiService.createOrUpdate(apiDTO);
-        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
+        } else if (EventType.OFFLINE == apiDocRegisterDTO.getEventType()) {
             String contextPath = apiDocRegisterDTO.getContextPath();
             apiService.offlineByContextPath(contextPath);
         }

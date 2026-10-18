@@ -40,6 +40,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -73,6 +74,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * JSON-RPC 2.0 version identifier.
      */
     private static final String JSONRPC_VERSION = "2.0";
+
+    private static final Object REQUEST_RESPONSE_CONTEXT_KEY = new Object();
 
     /**
      * MCP initialize method name.
@@ -551,18 +554,27 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         // Let MCP framework handle the message - framework will send response through transport
         final McpTransportContext transportContext = McpTransportContext.create(
                 Map.of(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY, exchange));
-        return Mono.defer(() -> session.handle(message))
-                // The exchange belongs to this JSON-RPC request, not to the session.
-                .contextWrite(context -> context.put(McpTransportContext.KEY, transportContext))
-                .cast(Object.class)
-                .doOnSuccess(result -> LOGGER.debug("Successfully processed message for session: {}", sessionId))
-                .then(waitForTransportResponse(transport, sessionId, messageId))
-                .doFinally(signal -> {
-                    // Release only this request's response on completion, error or cancellation.
-                    if (Objects.nonNull(transport)) {
-                        transport.resetCapturedMessage(messageId);
-                    }
-                })
+        return Mono.defer(() -> {
+            if (Objects.isNull(transport)) {
+                return Mono.error(new IllegalStateException("MCP session is closed"));
+            }
+            final boolean requestMessage = message instanceof McpSchema.JSONRPCRequest;
+            final PendingResponse pending = requestMessage && Objects.nonNull(messageId) ? transport.registerRequest(messageId) : null;
+            if (requestMessage && Objects.isNull(pending)) {
+                return Mono.just(createMessageHandlingResult(HttpStatus.BAD_REQUEST.value(),
+                        createJsonRpcError(messageId, -32600, "Invalid or duplicate pending request id"), sessionId));
+            }
+            Mono<MessageHandlingResult> result = Mono.defer(() -> session.handle(message))
+                    .contextWrite(context -> Objects.isNull(pending) ? context.put(McpTransportContext.KEY, transportContext)
+                            : context.put(McpTransportContext.KEY, transportContext).put(REQUEST_RESPONSE_CONTEXT_KEY, pending))
+                    .then(waitForTransportResponse(transport, sessionId, messageId, pending));
+            if (Objects.nonNull(pending)) {
+                final Mono<MessageHandlingResult> closed = pending.closed.asMono().then(Mono.error(new IllegalStateException("MCP session is closed")));
+                result = Mono.firstWithSignal(closed, result)
+                        .doFinally(signal -> transport.finishRequest(pending));
+            }
+            return result;
+        })
                 .onErrorResume(error -> {
                     LOGGER.error("Error processing message for session {}: {}", sessionId, error.getMessage(), error);
                     final Object errorResponse = createJsonRpcError(messageId, -32603,
@@ -809,8 +821,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         final McpServerSession removedSession = sessions.remove(sessionId);
         final StreamableHttpSessionTransport removedTransport = sessionTransports.remove(sessionId);
         if (Objects.nonNull(removedTransport)) {
-            removedTransport.closed = true;
-            removedTransport.resetCapturedMessage();
+            removedTransport.closeRequests();
         }
         ShenyuMcpExchangeHolder.remove(sessionId);
         if (Objects.nonNull(removedSession) || Objects.nonNull(removedTransport)) {
@@ -836,14 +847,17 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * @param transport the session transport to check for responses
      * @param sessionId the session identifier for logging
      * @param messageId the original message ID for correlation
+     * @param pending the response owned by this request, or null for non-request messages
      * @return a Mono containing the message handling result
      */
     private Mono<MessageHandlingResult> waitForTransportResponse(final StreamableHttpSessionTransport transport,
                                                                  final String sessionId,
-                                                                 final Object messageId) {
+                                                                 final Object messageId,
+                                                                 final PendingResponse pending) {
         return Mono.fromCallable(() -> {
-            if (Objects.nonNull(transport) && transport.isResponseReady(messageId)) {
-                final McpSchema.JSONRPCMessage sentMessage = transport.getResponse(messageId);
+            final McpSchema.JSONRPCMessage sentMessage = Objects.nonNull(pending)
+                    ? transport.getRequestResponse(pending) : transport.getResponse(messageId);
+            if (Objects.nonNull(sentMessage)) {
                 LOGGER.debug("Retrieved captured response from transport for session: {}", sessionId);
                 return createMessageHandlingResult(200, sentMessage, sessionId);
             } else {
@@ -1047,12 +1061,21 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         }
     }
 
-    /**
-     * Session transport implementation for Streamable HTTP with proper lifecycle management.
-     * This transport handles the communication between the MCP framework and the Streamable HTTP
-     * protocol. It captures responses from the MCP session and makes them available for
-     * HTTP response correlation.
-     */
+    /** Response and close signal belonging to one subscribed HTTP request, never just to an RPC id. */
+    private static final class PendingResponse {
+
+        private final Object messageId;
+
+        private final Sinks.Empty<Void> closed = Sinks.empty();
+
+        private McpSchema.JSONRPCMessage response;
+
+        private PendingResponse(final Object messageId) {
+            this.messageId = messageId;
+        }
+    }
+
+    /** Session transport with request-owned response capture and cancellation. */
     private class StreamableHttpSessionTransport implements McpServerTransport {
 
         private String sessionId;
@@ -1062,6 +1085,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         private volatile McpSchema.JSONRPCMessage lastSentMessage;
 
         private final ConcurrentHashMap<Object, McpSchema.JSONRPCMessage> responses = new ConcurrentHashMap<>();
+
+        private final Map<Object, PendingResponse> pendingResponses = new ConcurrentHashMap<>();
 
         private volatile boolean responseReady;
 
@@ -1138,17 +1163,65 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             return responses.get(messageId);
         }
 
+        private synchronized PendingResponse registerRequest(final Object messageId) {
+            if (closed) {
+                throw new IllegalStateException("MCP session is closed");
+            }
+            if (pendingResponses.containsKey(messageId)) {
+                return null;
+            }
+            final PendingResponse pending = new PendingResponse(messageId);
+            pendingResponses.put(messageId, pending);
+            return pending;
+        }
+
+        private synchronized McpSchema.JSONRPCMessage getRequestResponse(final PendingResponse pending) {
+            if (closed || pendingResponses.get(pending.messageId) != pending) {
+                throw new IllegalStateException("MCP request is no longer active");
+            }
+            return pending.response;
+        }
+
+        private synchronized void finishRequest(final PendingResponse pending) {
+            pendingResponses.remove(pending.messageId, pending);
+            pending.response = null;
+        }
+
+        private void closeRequests() {
+            final List<PendingResponse> pending;
+            synchronized (this) {
+                closed = true;
+                pending = List.copyOf(pendingResponses.values());
+                pendingResponses.clear();
+                pending.forEach(response -> response.response = null);
+                resetCapturedMessage();
+            }
+            // Signal outside the lock: cancellation can execute arbitrary handler cleanup.
+            pending.forEach(response -> response.closed.tryEmitEmpty());
+        }
+
         @Override
         public Mono<Void> sendMessage(final McpSchema.JSONRPCMessage message) {
-            if (!closed) {
-                this.lastSentMessage = message;
-                if (message instanceof McpSchema.JSONRPCResponse response && Objects.nonNull(response.id())) {
-                    responses.put(response.id(), message);
+            return Mono.deferContextual(context -> {
+                synchronized (this) {
+                    if (closed) {
+                        return Mono.empty();
+                    }
+                    final PendingResponse pending = context.getOrDefault(REQUEST_RESPONSE_CONTEXT_KEY, null);
+                    if (Objects.nonNull(pending)) {
+                        if (pendingResponses.get(pending.messageId) == pending && message instanceof McpSchema.JSONRPCResponse response
+                                && Objects.equals(pending.messageId, response.id())) {
+                            pending.response = message;
+                        }
+                    } else if (message instanceof McpSchema.JSONRPCResponse response && "__backend_init".equals(response.id())) {
+                        // Only the internal handshake uses the session-level compatibility slots.
+                        this.lastSentMessage = message;
+                        responses.put(response.id(), message);
+                        this.responseReady = true;
+                    }
                 }
-                this.responseReady = true;
-                LOGGER.debug("Captured response message for session: {}", sessionId);
-            }
-            return Mono.empty();
+                return Mono.empty();
+            });
         }
 
         @Override
@@ -1158,22 +1231,12 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
         @Override
         public Mono<Void> closeGracefully() {
-            return Mono.fromRunnable(() -> {
-                if (!closed) {
-                    closed = true;
-                    removeSession(sessionId);
-                    LOGGER.debug("Session transport closed gracefully: {}", sessionId);
-                }
-            });
+            return Mono.fromRunnable(() -> removeSession(sessionId));
         }
 
         @Override
         public void close() {
-            if (!closed) {
-                closed = true;
-                removeSession(sessionId);
-                LOGGER.debug("Session transport closed immediately: {}", sessionId);
-            }
+            removeSession(sessionId);
         }
 
         /**
@@ -1181,7 +1244,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
          * business request is not confused with the internal initialize handshake that
          * is executed during short-reconnect or temporary session creation.
          */
-        public void resetCapturedMessage() {
+        public synchronized void resetCapturedMessage() {
             this.responses.clear();
             this.lastSentMessage = null;
             this.responseReady = false;
