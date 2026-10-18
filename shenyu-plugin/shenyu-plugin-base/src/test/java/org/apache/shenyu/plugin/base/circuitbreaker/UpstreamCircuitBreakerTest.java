@@ -90,6 +90,7 @@ public final class UpstreamCircuitBreakerTest {
         // within the wait window no probe is granted
         assertFalse(breaker.tryAcquireHalfOpenProbe(KEY));
         TimeUnit.MILLISECONDS.sleep(150L);
+        assertFalse(breaker.isRequestAllowed(KEY));
         // the first caller is granted the single probe
         assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
         // no second probe while the first one is in flight

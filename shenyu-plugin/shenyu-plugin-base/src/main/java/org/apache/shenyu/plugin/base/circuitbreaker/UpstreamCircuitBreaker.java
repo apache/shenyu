@@ -100,8 +100,9 @@ public final class UpstreamCircuitBreaker {
     /**
      * Whether a request to the given upstream is currently allowed.
      *
-     * <p>Requests are allowed when the breaker is closed, half-open, or open
-     * but already past its half-open wait window (i.e. eligible to be probed).
+     * <p>Requests are allowed only when the breaker is closed. An open breaker
+     * must be acquired through {@link #tryAcquireHalfOpenProbe(String)} after
+     * its wait window has elapsed.
      *
      * @param key the breaker key
      * @return true if a request may be sent to the upstream
@@ -231,10 +232,7 @@ public final class UpstreamCircuitBreaker {
         }
 
         synchronized boolean isRequestAllowed() {
-            if (this.state == State.OPEN) {
-                return System.currentTimeMillis() - this.openedAtMillis >= this.halfOpenWaitMillis;
-            }
-            return true;
+            return this.state == State.CLOSED;
         }
 
         synchronized boolean isBlocking() {
