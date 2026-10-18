@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -106,6 +107,19 @@ class NamespaceListTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"pay%nts", "pay_ents"})
+    void bothUserScopesPreserveSqlLikeWildcardMatching(final String name) {
+        // Preserve the existing SQL LIKE wildcard behavior in both user scopes.
+        assertEquals(Set.of("payments-prod", "payments-test"), namespaceIds(namespaceService.list(name)));
+        verifyNoInteractions(namespaceUserService);
+
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("user").userName("regular-user").build());
+        when(namespaceUserService.listNamespaceIdByUserId("user")).thenReturn(List.of("payments-prod", "orders-prod"));
+
+        assertEquals(Set.of("payments-prod"), namespaceIds(namespaceService.list(name)));
+    }
+
+    @ParameterizedTest
     @NullAndEmptySource
     void administratorCanListAllNamespacesWithoutAName(final String name) {
         assertEquals(Set.of("payments-prod", "payments-test", "orders-prod"), namespaceIds(namespaceService.list(name)));
@@ -141,6 +155,16 @@ class NamespaceListTest {
         when(namespaceUserService.listNamespaceIdByUserId("user")).thenReturn(List.of());
 
         assertTrue(namespaceService.list("payments").isEmpty());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = "payments")
+    void regularUserWithNullNamespaceMappingsGetsAnEmptyList(final String name) {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("user").userName("regular-user").build());
+        when(namespaceUserService.listNamespaceIdByUserId("user")).thenReturn(null);
+
+        assertTrue(namespaceService.list(name).isEmpty());
     }
 
     private Set<String> namespaceIds(final List<NamespaceVO> namespaces) {
