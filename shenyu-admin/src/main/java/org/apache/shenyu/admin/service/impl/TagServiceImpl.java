@@ -95,8 +95,24 @@ public class TagServiceImpl implements TagService {
     public int update(final TagDTO tagDTO) {
         TagDO before = tagMapper.selectByPrimaryKey(tagDTO.getId());
         Assert.notNull(before, "the updated tag is not found");
+        String parentTagId = StringUtils.isNotEmpty(tagDTO.getParentTagId()) ? tagDTO.getParentTagId() : before.getParentTagId();
+        if (StringUtils.isEmpty(parentTagId)) {
+            parentTagId = AdminConstants.TAG_ROOT_PARENT_ID;
+        }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
-        updateSubTags(tagDTO);
+        tagDO.setParentTagId(parentTagId);
+        if (AdminConstants.TAG_ROOT_PARENT_ID.equals(parentTagId)) {
+            TagDO.TagExt currentExt = StringUtils.isNotEmpty(before.getExt())
+                    ? Optional.ofNullable(GsonUtils.getInstance().fromJson(before.getExt(), TagDO.TagExt.class)).orElse(new TagDO.TagExt())
+                    : new TagDO.TagExt();
+            currentExt.setParent(null);
+            tagDO.setExt(GsonUtils.getInstance().toJson(currentExt));
+        } else {
+            TagDO parentTagDO = tagMapper.selectByPrimaryKey(parentTagId);
+            Assert.notNull(parentTagDO, "parent tag is not found");
+            tagDO.setExt(buildExtParamByParentTag(parentTagDO, before.getExt()));
+        }
+        updateSubTags(tagDO);
         return tagMapper.updateByPrimaryKeySelective(tagDO);
     }
 
@@ -167,25 +183,20 @@ public class TagServiceImpl implements TagService {
     /**
      * update sub tags.
      *
-     * @param tagDTO tagDTO
+     * @param tagDO tagDO
      */
-    private void updateSubTags(final TagDTO tagDTO) {
-        List<TagDO> allData = tagMapper.selectByQuery(new TagQuery());
+    private void updateSubTags(final TagDO tagDO) {
+        List<TagDO> allData = Optional.ofNullable(tagMapper.selectByQuery(new TagQuery())).orElseGet(Lists::newArrayList);
         Map<String, TagDO> allDataMap = allData.stream().collect(
                 Collectors.toMap(BaseDO::getId, Function.identity(), (a, b) -> b, ConcurrentHashMap::new));
-        TagDO update = TagDO.buildTagDO(tagDTO);
-        allDataMap.put(update.getId(), update);
+        allDataMap.put(tagDO.getId(), tagDO);
         Map<String, List<String>> relationMap = new ConcurrentHashMap<>();
-        allDataMap.keySet().stream().map(allDataMap::get).forEach(tagDO -> {
-            if (CollectionUtils.isEmpty(relationMap.get(tagDO.getParentTagId()))) {
-                relationMap.put(tagDO.getParentTagId(), Lists.newArrayList(tagDO.getId()));
-            } else {
-                List<String> list = relationMap.get(tagDO.getParentTagId());
-                list.add(tagDO.getId());
-                relationMap.put(tagDO.getParentTagId(), list);
+        allDataMap.values().forEach(item -> {
+            if (StringUtils.isNotEmpty(item.getParentTagId())) {
+                relationMap.computeIfAbsent(item.getParentTagId(), k -> Lists.newArrayList()).add(item.getId());
             }
         });
-        recurseUpdateTag(allDataMap, relationMap, tagDTO.getId(), new HashSet<>());
+        recurseUpdateTag(allDataMap, relationMap, tagDO.getId(), new HashSet<>());
     }
 
     /**
@@ -204,7 +215,7 @@ public class TagServiceImpl implements TagService {
         List<String> subTagIds = relationMap.get(id);
         subTagIds.forEach(tagId -> {
             TagDO tagDO = allData.get(tagId);
-            tagDO.setExt(buildExtParamByParentTag(allData.get(id)));
+            tagDO.setExt(buildExtParamByParentTag(allData.get(id), tagDO.getExt()));
             tagMapper.updateByPrimaryKey(tagDO);
             recurseUpdateTag(allData, relationMap, tagId, visited);
         });
@@ -217,10 +228,23 @@ public class TagServiceImpl implements TagService {
      * @return ext
      */
     private String buildExtParamByParentTag(final TagDO parentTagDO) {
+        return buildExtParamByParentTag(parentTagDO, null);
+    }
+
+    /**
+     * buildExtParam.
+     *
+     * @param parentTagDO parentTagDO
+     * @param currentExt  currentExt
+     * @return ext
+     */
+    private String buildExtParamByParentTag(final TagDO parentTagDO, final String currentExt) {
         String ext = "";
         if (parentTagDO.getId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
-            final TagDO.TagExt parent = new TagDO.TagExt();
-            TagDO.TagExt tagExt = new TagDO.TagExt();
+            final TagDO.TagExt parent = StringUtils.isNotEmpty(currentExt)
+                    ? Optional.ofNullable(GsonUtils.getInstance().fromJson(currentExt, TagDO.TagExt.class)).orElse(new TagDO.TagExt())
+                    : new TagDO.TagExt();
+            final TagDO.TagExt tagExt = new TagDO.TagExt();
             tagExt.setDesc(parentTagDO.getTagDesc());
             tagExt.setName(parentTagDO.getTagName());
             tagExt.setId(parentTagDO.getId());
@@ -230,7 +254,9 @@ public class TagServiceImpl implements TagService {
             ext = GsonUtils.getInstance().toJson(parent);
         } else {
             TagDO.TagExt parentTagExt = Optional.ofNullable(GsonUtils.getInstance().fromJson(parentTagDO.getExt(), TagDO.TagExt.class)).orElse(new TagDO.TagExt());
-            final TagDO.TagExt tagExt = new TagDO.TagExt();
+            final TagDO.TagExt tagExt = StringUtils.isNotEmpty(currentExt)
+                    ? Optional.ofNullable(GsonUtils.getInstance().fromJson(currentExt, TagDO.TagExt.class)).orElse(new TagDO.TagExt())
+                    : new TagDO.TagExt();
             parentTagExt.setDesc(parentTagDO.getTagDesc());
             parentTagExt.setName(parentTagDO.getTagName());
             parentTagExt.setId(parentTagDO.getId());
