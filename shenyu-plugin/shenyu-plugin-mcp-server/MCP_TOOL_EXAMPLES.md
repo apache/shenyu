@@ -23,6 +23,18 @@
 2. **工具调用超时**: 默认 60 秒，可通过 `requestTemplate.timeout` 配置
 3. **CORS 支持**: 通过 `shenyu.cross.allowedHeaders` 配置允许的请求头
 
+### 请求体编码
+
+对于 POST、PUT、PATCH 等带请求体的方法，`requestTemplate.headers` 中显式配置的 `Content-Type` 决定编码方式；未配置时默认使用 JSON，不沿用外层 MCP 请求的类型。
+
+- `application/json` 和具体的 `+json` 类型：保留 JSON 序列化行为。没有正文参数时发送空正文。
+- `application/x-www-form-urlencoded`：接受字符串、数字、布尔值和 `null`（空字段）；平面数组转换为同名重复字段。按配置的 charset 编码，未配置时使用 UTF-8。嵌套对象和嵌套数组不支持。
+- `multipart/form-data`：普通标量作为文本部件，文件使用 `{"filename":"hello.txt","content":"aGVsbG8=","contentType":"text/plain"}`。数组生成同名重复部件。`filename` 和 `content` 必须是字符串，文件名不能为空或包含换行；`content` 是标准 Base64，允许空字符串表示空文件，不接受 data URL。`contentType` 可省略，默认 `application/octet-stream`，必须是具体媒体类型。文件对象只允许这三个字段；其他嵌套对象或嵌套数组不支持。
+
+multipart 的部件名取自正文映射后的字段名（例如 `file` 或 `files`），普通字符串不会被猜测为 Base64 文件。网关生成并替换 boundary，使请求头与实际正文一致；不要手工指定 boundary。无效 Base64、无效文件对象及不支持的请求类型会导致工具调用失败。
+
+上传参数仍通过 JSON/Base64 传入并占用内存；这不是直接从客户端流式上传文件的接口。编码时每个文件解码一次，由 Spring 按部件输出，不拼接或整体缓存完整的 multipart 正文。
+
 ## 1. 简单 GET 请求示例
 
 ### 1.1 无参数 GET 请求
@@ -198,6 +210,16 @@
 }
 ```
 
+工具调用参数：
+
+```json
+{
+  "name": "Ada & Bob"
+}
+```
+
+下游收到 `name=Ada+%26+Bob`，可按普通表单解析。
+
 ## 4. PUT 请求示例
 
 ### 4.1 更新用户信息
@@ -356,13 +378,45 @@
   "parameters": [
     {
       "name": "file",
-      "type": "string",
-      "description": "文件内容（Base64编码）",
-      "required": true
+      "type": "object",
+      "description": "文件对象",
+      "required": true,
+      "parameters": [
+        {
+          "name": "filename",
+          "type": "string",
+          "description": "文件名（不能为空）",
+          "required": true
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "文件内容（标准 Base64 编码）",
+          "required": true
+        },
+        {
+          "name": "contentType",
+          "type": "string",
+          "description": "文件媒体类型，默认 application/octet-stream",
+          "required": false
+        }
+      ]
     }
   ],
   "requestConfig": "{\"requestTemplate\":{\"url\":\"/upload/webFluxSingle\",\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\",\"value\":\"multipart/form-data\"}],\"timeout\":60000,\"argsToJsonBody\":true},\"argsPosition\":{\"file\":\"body\"}}",
   "description": "单文件上传"
+}
+```
+
+工具调用参数：
+
+```json
+{
+  "file": {
+    "filename": "hello.txt",
+    "content": "aGVsbG8=",
+    "contentType": "text/plain"
+  }
 }
 ```
 
@@ -374,12 +428,56 @@
     {
       "name": "files",
       "type": "array",
-      "description": "多个文件内容（Base64编码数组）",
-      "required": true
+      "description": "文件对象数组",
+      "required": true,
+      "parameters": [
+        {
+          "name": "file",
+          "type": "object",
+          "parameters": [
+            {
+              "name": "filename",
+              "type": "string",
+              "description": "文件名（不能为空）",
+              "required": true
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "description": "文件内容（标准 Base64 编码）",
+              "required": true
+            },
+            {
+              "name": "contentType",
+              "type": "string",
+              "description": "文件媒体类型，默认 application/octet-stream",
+              "required": false
+            }
+          ]
+        }
+      ]
     }
   ],
   "requestConfig": "{\"requestTemplate\":{\"url\":\"/upload/webFluxFiles\",\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\",\"value\":\"multipart/form-data\"}],\"timeout\":60000,\"argsToJsonBody\":true},\"argsPosition\":{\"files\":\"body\"}}",
   "description": "多文件上传"
+}
+```
+
+工具调用参数：
+
+```json
+{
+  "files": [
+    {
+      "filename": "hello.txt",
+      "content": "aGVsbG8=",
+      "contentType": "text/plain"
+    },
+    {
+      "filename": "empty.bin",
+      "content": ""
+    }
+  ]
 }
 ```
 

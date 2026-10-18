@@ -23,6 +23,18 @@ This plugin is developed and tested with the following SDK versions:
 2. **Tool Call Timeout**: Default 60 seconds, configurable via `requestTemplate.timeout`
 3. **CORS Support**: Configure allowed headers via `shenyu.cross.allowedHeaders`
 
+### Request body encoding
+
+For body methods such as POST, PUT and PATCH, an explicit `Content-Type` in `requestTemplate.headers` selects the encoding. JSON is the default; the outer MCP request's content type is not inherited.
+
+- `application/json` and concrete `+json` types retain JSON serialization. With no body arguments, the body is empty.
+- `application/x-www-form-urlencoded` accepts strings, numbers, booleans and `null` (an empty field). Flat arrays become repeated fields. The configured charset is honored, defaulting to UTF-8. Nested objects and nested arrays are unsupported.
+- `multipart/form-data` uses ordinary scalars as text parts and file objects such as `{"filename":"hello.txt","content":"aGVsbG8=","contentType":"text/plain"}`. Arrays become repeated parts. `filename` and `content` must be strings; filenames must be nonblank and contain no line breaks. `content` is standard Base64, with an empty string representing an empty file; data URLs are unsupported. Optional `contentType` defaults to `application/octet-stream` and must be a concrete media type. Only these three file-object fields are accepted; other nested objects and nested arrays are unsupported.
+
+Multipart part names come from the mapped body field names, such as `file` or `files`. Ordinary strings are never guessed to be Base64 files. The gateway generates and replaces the boundary so headers match the body; do not set it manually. Invalid Base64, invalid file objects and unsupported body media types fail the tool call.
+
+Upload arguments still arrive as JSON/Base64 and occupy memory; this is not a direct streaming upload API. Each file is decoded once and Spring writes individual parts without concatenating or buffering the complete multipart body.
+
 ## 1. Simple GET Request Examples
 
 ### 1.1 GET Request with No Parameters
@@ -198,6 +210,16 @@ This plugin is developed and tested with the following SDK versions:
 }
 ```
 
+Tool call arguments:
+
+```json
+{
+  "name": "Ada & Bob"
+}
+```
+
+The downstream receives `name=Ada+%26+Bob`, which can be parsed as ordinary form data.
+
 ## 4. PUT Request Examples
 
 ### 4.1 Update User Information
@@ -356,13 +378,45 @@ This plugin is developed and tested with the following SDK versions:
   "parameters": [
     {
       "name": "file",
-      "type": "string",
-      "description": "File content (Base64 encoded)",
-      "required": true
+      "type": "object",
+      "description": "File object",
+      "required": true,
+      "parameters": [
+        {
+          "name": "filename",
+          "type": "string",
+          "description": "Nonblank file name",
+          "required": true
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "File bytes encoded as standard Base64",
+          "required": true
+        },
+        {
+          "name": "contentType",
+          "type": "string",
+          "description": "File media type; defaults to application/octet-stream",
+          "required": false
+        }
+      ]
     }
   ],
   "requestConfig": "{\"requestTemplate\":{\"url\":\"/upload/webFluxSingle\",\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\",\"value\":\"multipart/form-data\"}],\"timeout\":60000,\"argsToJsonBody\":true},\"argsPosition\":{\"file\":\"body\"}}",
   "description": "Single file upload"
+}
+```
+
+Tool call arguments:
+
+```json
+{
+  "file": {
+    "filename": "hello.txt",
+    "content": "aGVsbG8=",
+    "contentType": "text/plain"
+  }
 }
 ```
 
@@ -374,12 +428,56 @@ This plugin is developed and tested with the following SDK versions:
     {
       "name": "files",
       "type": "array",
-      "description": "Multiple file contents (Base64 encoded array)",
-      "required": true
+      "description": "Array of file objects",
+      "required": true,
+      "parameters": [
+        {
+          "name": "file",
+          "type": "object",
+          "parameters": [
+            {
+              "name": "filename",
+              "type": "string",
+              "description": "Nonblank file name",
+              "required": true
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "description": "File bytes encoded as standard Base64",
+              "required": true
+            },
+            {
+              "name": "contentType",
+              "type": "string",
+              "description": "File media type; defaults to application/octet-stream",
+              "required": false
+            }
+          ]
+        }
+      ]
     }
   ],
   "requestConfig": "{\"requestTemplate\":{\"url\":\"/upload/webFluxFiles\",\"method\":\"POST\",\"headers\":[{\"key\":\"Content-Type\",\"value\":\"multipart/form-data\"}],\"timeout\":60000,\"argsToJsonBody\":true},\"argsPosition\":{\"files\":\"body\"}}",
   "description": "Multiple files upload"
+}
+```
+
+Tool call arguments:
+
+```json
+{
+  "files": [
+    {
+      "filename": "hello.txt",
+      "content": "aGVsbG8=",
+      "contentType": "text/plain"
+    },
+    {
+      "filename": "empty.bin",
+      "content": ""
+    }
+  ]
 }
 ```
 
