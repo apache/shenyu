@@ -272,7 +272,31 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
+        if (discoveryMapper.updateSelective(discoveryDO) <= 0) {
+            return null;
+        }
+        refreshRuntimeRepository(discoveryDO);
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+    }
+
+    /**
+     * The cached runtime repository is created once per discovery id and never re-read its
+     * configuration, so a persisted server-list/props/type change must replace it; a
+     * name-only change keeps the live repository untouched.
+     */
+    private void refreshRuntimeRepository(final DiscoveryDO updated) {
+        final DiscoveryDO persisted = discoveryMapper.selectById(updated.getId());
+        if (Objects.isNull(persisted)) {
+            return;
+        }
+        final boolean configChanged = !Objects.equals(persisted.getServerList(), updated.getServerList())
+                || !Objects.equals(persisted.getProps(), updated.getProps())
+                || !Objects.equals(persisted.getDiscoveryType(), updated.getDiscoveryType());
+        if (configChanged) {
+            final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(persisted.getDiscoveryType());
+            discoveryProcessor.removeDiscovery(persisted);
+            discoveryProcessorHolder.chooseProcessor(updated.getDiscoveryType()).createDiscovery(updated);
+        }
     }
 
     public void syncData(final List<DiscoveryDO> discoveryDOS) {

@@ -329,6 +329,60 @@ public final class DiscoveryServiceImplTest {
         verify(discoveryMapper, never()).selectById("discovery-1");
     }
 
+
+    @Test
+    public void testUpdateReinitializesRuntimeRepositoryWhenConfigChanges() {
+        final DiscoveryDO persisted = new DiscoveryDO();
+        persisted.setId("discovery-1");
+        persisted.setDiscoveryType("zookeeper");
+        persisted.setServerList("old-host:2181");
+        persisted.setProps("{}");
+        persisted.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(persisted);
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenReturn(1);
+
+        final DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setName("d");
+        dto.setPluginName("divide");
+        dto.setType("zookeeper");
+        dto.setLevel("plugin");
+        dto.setServerList("new-host:2181");
+        dto.setProps("{}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        discoveryService.createOrUpdate(dto);
+
+        final org.mockito.InOrder order = org.mockito.Mockito.inOrder(discoveryProcessor);
+        order.verify(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
+        order.verify(discoveryProcessor).createDiscovery(any(DiscoveryDO.class));
+    }
+
+    @Test
+    public void testUpdateSkipsRuntimeRefreshWhenConfigUnchanged() {
+        final DiscoveryDO persisted = new DiscoveryDO();
+        persisted.setId("discovery-1");
+        persisted.setDiscoveryType("zookeeper");
+        persisted.setServerList("same-host:2181");
+        persisted.setProps("{}");
+        persisted.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(persisted);
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenReturn(1);
+
+        final DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setName("d2");
+        dto.setPluginName("divide");
+        dto.setType("zookeeper");
+        dto.setLevel("plugin");
+        dto.setServerList("same-host:2181");
+        dto.setProps("{}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        discoveryService.createOrUpdate(dto);
+
+        verify(discoveryProcessor, never()).removeDiscovery(any(DiscoveryDO.class));
+        verify(discoveryProcessor, never()).createDiscovery(any(DiscoveryDO.class));
+    }
+
     @Test
     public void testTypeCreateUpdateAndDiscoveryLookup() {
         assertEquals(org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum.types(), discoveryService.typeEnums());
