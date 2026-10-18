@@ -713,4 +713,72 @@ public final class CommonPluginDataSubscriberTest {
         verify(handler).handlerSelector(second);
         assertEquals(List.of(first, second), baseDataCache.obtainSelectorData("divide"));
     }
+
+    @Test
+    public void danglingSelectorSnapshotSweepsMatchCacheAcrossBuckets() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+
+        // a selector cached without a plugin name (dangling), plus match-cache entries under a real plugin bucket
+        final SelectorData dangling = SelectorData.builder().id("s-dangle").pluginName("").namespaceId("namespace-a").sort(1).build();
+        baseDataCache.cacheSelectData(dangling);
+        matches.cacheSelectorData("/dangle", SelectorData.builder().id("s-dangle").pluginName("divide").build(), 100, 100);
+        matches.cacheRuleData("/dangle", RuleData.builder().id("r-dangle").selectorId("s-dangle").pluginName("divide").build(), 100, 100);
+
+        // the snapshot drops the dangling selector; its blank name must still sweep every match-cache bucket by id
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of());
+
+        assertNull(matches.obtainSelectorData("divide", "/dangle"));
+        assertNull(matches.obtainRuleData("divide", "/dangle"));
+    }
+
+    @Test
+    public void danglingRuleSnapshotSweepsMatchCacheAcrossBuckets() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+
+        // a rule keyed by selectorId whose plugin name is blank, cached under a real plugin bucket
+        final RuleData dangling = RuleData.builder().id("r-dangle").selectorId("selector-a").pluginName("")
+                .namespaceId("namespace-a").sort(1).build();
+        baseDataCache.cacheRuleData(dangling);
+        matches.cacheRuleData("/dangle", RuleData.builder().id("r-dangle").selectorId("selector-a").pluginName("divide").build(), 100, 100);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of());
+
+        assertNull(matches.obtainRuleData("divide", "/dangle"));
+    }
+
+    @Test
+    public void malformedSelectorRowIsSkippedWithoutAbortingSnapshot() {
+        final SelectorData valid = SelectorData.builder().id("s-ok").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        // no plugin name: would produce a null grouping key and NPE inside the batch cache write
+        final SelectorData malformed = SelectorData.builder().id("s-bad").namespaceId("namespace-a").sort(2).build();
+
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(malformed, valid)));
+
+        assertEquals(List.of(valid), baseDataCache.obtainSelectorData("divide"));
+        verify(handler).handlerSelector(valid);
+    }
+
+    @Test
+    public void malformedRuleRowIsSkippedWithoutAbortingSnapshot() {
+        final RuleData valid = RuleData.builder().id("r-ok").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        // no selector id: would produce a null grouping key and NPE inside the batch cache write
+        final RuleData malformed = RuleData.builder().id("r-bad").pluginName("divide").namespaceId("namespace-a").sort(2).build();
+
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(malformed, valid)));
+
+        assertEquals(List.of(valid), baseDataCache.obtainRuleData("selector-a"));
+        verify(handler).handlerRule(valid);
+    }
 }
