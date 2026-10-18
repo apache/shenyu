@@ -166,6 +166,7 @@ jobs:
           pull_with_retry centos:7
           pull_with_retry eclipse-temurin:17-centos7
           pull_with_retry elasticsearch:8.2.3
+          pull_with_retry otel/opentelemetry-collector-contrib:0.111.0
       - name: Build with Maven
         shell: bash
         run: |

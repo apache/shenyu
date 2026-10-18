@@ -2070,7 +2070,10 @@ public class ShenyuConfig {
         /**
          * Gets sampler.
          *
-         * @return the sampler, one of parent_based, always_on, always_off and ratio
+         * @return the sampler, one of parent_based, always_on, always_off and ratio, where
+         *         parent_based continues the decision of the client, always_on and always_off decide
+         *         about every request, and ratio continues the decision of the client while it
+         *         samples a request which carries no parent context with the given ratio
          */
         public String getSampler() {
             return sampler;
@@ -2079,8 +2082,10 @@ public class ShenyuConfig {
         /**
          * Sets sampler, one of parent_based, always_on, always_off and ratio. The parent based
          * sampler, which is the default, continues the decision of the client and samples a request
-         * which does not carry a decision, while the ratio sampler samples the given ratio of the
-         * requests which do not carry a decision.
+         * which does not carry a decision, always_on and always_off decide about every request,
+         * including the request of a client which has decided already, and the ratio sampler
+         * continues the decision of the client as well, while it samples a request which carries no
+         * parent context with the given ratio.
          *
          * @param sampler the sampler
          */
@@ -2091,14 +2096,17 @@ public class ShenyuConfig {
         /**
          * Gets sample ratio.
          *
-         * @return the sample ratio, which is only used by the ratio sampler
+         * @return the sample ratio, which is only used by the ratio sampler, and only for the
+         *         requests which carry no parent context
          */
         public double getSampleRatio() {
             return sampleRatio;
         }
 
         /**
-         * Sets sample ratio, which is only used by the ratio sampler.
+         * Sets sample ratio, which is only used by the ratio sampler, and only for the requests
+         * which carry no parent context, because a request which carries a valid trace context
+         * keeps the sampling decision of the client.
          *
          * @param sampleRatio the sample ratio
          */
