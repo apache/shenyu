@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class Upstream {
 
+    private static final String DEFAULT_PROTOCOL = "http://";
+
     /**
      * protocol.
      */
@@ -474,13 +476,9 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain() {
-        String protocol = this.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return buildDomain(this.getProtocol());
     }
-    
+
     /**
      * Build request with protocol.
      *
@@ -488,7 +486,25 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain(final String protocol) {
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return normalizeProtocol(protocol) + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+    }
+
+    /**
+     * Normalize a protocol value to a url prefix, so a bare scheme such as {@code http}
+     * cannot be concatenated directly with the upstream address.
+     *
+     * @param protocol protocol
+     * @return the normalized protocol, always ending with {@code ://}
+     */
+    private static String normalizeProtocol(final String protocol) {
+        if (StringUtils.isBlank(protocol)) {
+            return DEFAULT_PROTOCOL;
+        }
+        String scheme = StringUtils.stripEnd(protocol.trim(), "/");
+        if (scheme.endsWith(":")) {
+            scheme = scheme.substring(0, scheme.length() - 1);
+        }
+        return scheme + "://";
     }
     
     /**
