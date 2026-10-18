@@ -379,7 +379,10 @@ public class UpstreamCheckTaskTest {
         task.schedule();
 
         final String selectorId = "metrics-stale";
-        final Upstream stale = Upstream.builder().url("127.0.0.1:65100").build();
+        // Use a blank URL so checkUrl() returns false without any network I/O. A fixed port such as
+        // 127.0.0.1:65100 would let an unrelated listener flip the probe to pass and refresh the
+        // timestamp, making the stale-age assertion flaky.
+        final Upstream stale = Upstream.builder().url("").build();
         stale.setHealthy(true);
         // Pretend the last successful probe happened 5 seconds ago.
         stale.setLastHealthTimestamp(System.currentTimeMillis() - 5_000L);
@@ -390,6 +393,34 @@ public class UpstreamCheckTaskTest {
         assertTrue(task.getLastRoundOldestHealthStateMillis() >= 4_000L,
                 "oldest health-state age must reflect the stale timestamp, got "
                         + task.getLastRoundOldestHealthStateMillis());
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * A health-check-disabled upstream that is already healthy never gets its {@code lastHealthTimestamp}
+     * written, so it stays at the primitive default {@code 0}. Without a guard the oldest-health-state
+     * metric would report {@code now - 0}, an epoch-sized (~56 years) age that hides every real
+     * observation. The metric must skip such never-measured entries and report a small age instead.
+     */
+    @Test
+    @Timeout(10000)
+    public void oldestHealthStateAgeSkipsNeverMeasuredUpstream() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(1);
+        task.schedule();
+
+        final String selectorId = "metrics-disabled";
+        final Upstream disabled = Upstream.builder().url("").healthCheckEnabled(false).build();
+        // Healthy + disabled short-circuits the probe in check() without ever writing a timestamp.
+        disabled.setHealthy(true);
+        task.triggerAddOne(selectorId, disabled);
+
+        task.run();
+
+        final long age = task.getLastRoundOldestHealthStateMillis();
+        assertTrue(age < TimeUnit.MINUTES.toMillis(1),
+                "never-measured upstream must be skipped, not reported as an epoch-sized age, got " + age);
 
         task.triggerRemoveAll(selectorId);
     }

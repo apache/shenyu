@@ -237,17 +237,27 @@ public final class UpstreamCheckTask implements Runnable {
         long oldest = 0L;
         for (List<Upstream> bucket : healthyUpstream.values()) {
             for (Upstream upstream : bucket) {
-                final long age = now - upstream.getLastHealthTimestamp();
-                if (age > oldest) {
-                    oldest = age;
+                // Skip never-measured upstreams: lastHealthTimestamp defaults to 0 for entries that
+                // were registered but not probed yet, or whose health check is disabled while already
+                // healthy. Without this guard now - 0 would report an epoch-sized (since 1970) age and
+                // permanently dominate the metric.
+                final long timestamp = upstream.getLastHealthTimestamp();
+                if (timestamp > 0) {
+                    final long age = now - timestamp;
+                    if (age > oldest) {
+                        oldest = age;
+                    }
                 }
             }
         }
         for (List<Upstream> bucket : unhealthyUpstream.values()) {
             for (Upstream upstream : bucket) {
-                final long age = now - upstream.getLastUnhealthyTimestamp();
-                if (age > oldest) {
-                    oldest = age;
+                final long timestamp = upstream.getLastUnhealthyTimestamp();
+                if (timestamp > 0) {
+                    final long age = now - timestamp;
+                    if (age > oldest) {
+                        oldest = age;
+                    }
                 }
             }
         }
@@ -472,6 +482,10 @@ public final class UpstreamCheckTask implements Runnable {
      * {@link System#nanoTime()} around the whole synchronized section (submit + wait).
      * Zero until the first round completes.
      *
+     * <p>Note: a round that could not start (because another was still in flight) is still recorded,
+     * so a {@code 0} duration together with {@code 0} from {@link #getLastRoundSubmittedChecks()}
+     * means "this round was skipped", not "the round was instant".
+     *
      * @return last round duration in millis
      */
     public long getLastRoundDurationMillis() {
@@ -480,6 +494,8 @@ public final class UpstreamCheckTask implements Runnable {
 
     /**
      * Number of endpoint probes submitted to the async executor during the most recent round.
+     * A {@code 0} value alongside a {@code 0} {@link #getLastRoundDurationMillis()} indicates the
+     * round was skipped because another round was already in flight, rather than an empty population.
      *
      * @return submitted probe count
      */
@@ -508,7 +524,9 @@ public final class UpstreamCheckTask implements Runnable {
 
     /**
      * Age of the oldest health-state timestamp across healthy and unhealthy buckets, in milliseconds.
-     * Grows when rounds fall behind the configured interval.
+     * Grows when rounds fall behind the configured interval. Upstreams that have never been measured
+     * (unset {@code 0} timestamp, e.g. newly registered or health-check-disabled while already healthy)
+     * are skipped, so an all-unmeasured population reports {@code 0} rather than an epoch-sized age.
      *
      * @return oldest health-state age in millis
      */
