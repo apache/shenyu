@@ -113,7 +113,7 @@ public class ClusterDataChangedEventController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ShenyuAdminResult.error("unknown data change event group: " + groupKey.name()));
         }
-        eventPublisher.publishEvent(new DataChangedEvent(groupKey, eventType, source));
+        eventPublisher.publishEvent(new DataChangedEvent(groupKey, eventType, source, payload.getNamespaceId()));
         return ResponseEntity.ok(ShenyuAdminResult.success());
     }
 
