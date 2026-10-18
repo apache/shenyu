@@ -28,6 +28,7 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -43,7 +44,11 @@ import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -74,8 +79,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
+        final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
-            long headerSize = exchange.getRequest().getHeaders().values()
+            long headerSize = effectiveExchange.getRequest().getHeaders().values()
                     .stream()
                     .flatMap(Collection::stream)
                     .mapToLong(header -> header.getBytes(StandardCharsets.UTF_8).length)
@@ -87,7 +93,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         if (ruleHandle.getRequestMaxSize() > 0) {
-            if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+            if (effectiveExchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
                 LOG.error("request entity is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE);
                 return WebFluxResultUtils.result(exchange, error);
@@ -105,7 +111,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
+        List<String> specifyDomains = effectiveExchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
         if (CollectionUtils.isNotEmpty(specifyDomains)) {
             String requested = specifyDomains.get(0);
@@ -119,9 +125,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
                             .warmup(u.getWarmup())
                             .status(u.isStatus())
                             .build())
-                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange));
+                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), effectiveExchange));
         } else {
-            upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+            upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), effectiveExchange);
         }
         if (Objects.isNull(upstream)) {
             LOG.error("divide has no upstream");
@@ -130,16 +136,16 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set domain
         String domain = upstream.buildDomain();
-        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
+        effectiveExchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
-        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
-        exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
+        effectiveExchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
+        effectiveExchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
-        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, StringUtils.defaultIfEmpty(ruleHandle.getRetryBackOffSpec(), HttpRetryBackoffSpecEnum.getDefault()));
-        exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
-        exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
-        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, selector.getId(), upstream);
+        effectiveExchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, StringUtils.defaultIfEmpty(ruleHandle.getRetryBackOffSpec(), HttpRetryBackoffSpecEnum.getDefault()));
+        effectiveExchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
+        effectiveExchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
+        effectiveExchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        return forwardWithCircuitBreaker(effectiveExchange, chain, ruleHandle, selector.getId(), upstream);
     }
 
     @Override
@@ -166,6 +172,37 @@ public class DividePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
+
+
+    /**
+     * A positive requestMaxSize must also cover chunked / unknown-length bodies: the
+     * Content-Length header is absent (-1) there, so the limit is enforced on the actual
+     * bytes while the request body streams through.
+     */
+    private ServerWebExchange limitChunkedRequestBody(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle) {
+        if (ruleHandle.getRequestMaxSize() <= 0 || exchange.getRequest().getHeaders().getContentLength() >= 0) {
+            return exchange;
+        }
+        final long maxSize = ruleHandle.getRequestMaxSize();
+        return exchange.mutate().request(new ServerHttpRequestDecorator(exchange.getRequest()) {
+            private long forwarded;
+
+            @Override
+            @NonNull
+            public Flux<DataBuffer> getBody() {
+                return super.getBody().doOnNext(buffer -> {
+                    forwarded += buffer.readableByteCount();
+                    if (forwarded > maxSize) {
+                        LOG.error("request entity is too large");
+                        throw new ShenyuException("request entity is too large");
+                    }
+                });
+            }
+        }).build();
+    }
+
+    /**
+     * forward with circuit b
 
     /**
      * Forward the request through the plugin chain and record its outcome into

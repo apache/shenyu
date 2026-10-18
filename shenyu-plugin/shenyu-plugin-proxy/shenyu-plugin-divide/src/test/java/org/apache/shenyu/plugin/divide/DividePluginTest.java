@@ -183,6 +183,36 @@ public final class DividePluginTest {
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 
+
+    /**
+     * requestMaxSize must also be enforced for chunked / unknown-length bodies.
+     */
+    @Test
+    public void doExecuteRejectsChunkedBodyExceedingRequestMaxSize() {
+        final DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setRequestMaxSize(1);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        postExchange.getAttributes().put(Constants.CONTEXT, exchange.getAttribute(Constants.CONTEXT));
+
+        final MockServerWebExchange chunked = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("Transfer-Encoding", "chunked")
+                .body("ab"));
+        chunked.getAttributes().put(Constants.CONTEXT, exchange.getAttribute(Constants.CONTEXT));
+        // the downstream must actually drain the request body so the streaming limit fires
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().then();
+        });
+
+        Mono<Void> result = dividePlugin.doExecute(chunked, chain, selectorData, ruleData);
+        StepVerifier.create(result)
+                .expectSubscription()
+                .verifyError();
+    }
+
     @Test
     public void testRetryBackOffSpecAttributeSet() {
         DivideRuleHandle handle = new DivideRuleHandle();
