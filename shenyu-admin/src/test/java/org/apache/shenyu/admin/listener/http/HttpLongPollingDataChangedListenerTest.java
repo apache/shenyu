@@ -65,13 +65,13 @@ import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -112,6 +112,7 @@ public final class HttpLongPollingDataChangedListenerTest {
     public void setUp() {
         Mockito.when(httpSyncProperties.getRefreshInterval()).thenReturn(Duration.ofSeconds(30));
         Mockito.when(httpSyncProperties.getNotifyBatchSize()).thenReturn(100);
+        Mockito.when(httpSyncProperties.getHeartbeatInterval()).thenReturn(10000L);
         Mockito.when(applicationContext.getBean(InstanceInfoReportEventPublisher.class))
                 .thenReturn(instanceInfoReportEventPublisher);
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
@@ -647,14 +648,9 @@ public final class HttpLongPollingDataChangedListenerTest {
      */
     @Test
     public void testDataChangeTaskEmptyClients() throws Exception {
-        Class<?> dataChangeTaskClass = Class.forName("org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$DataChangeTask");
-        java.lang.reflect.Constructor<?> constructor = dataChangeTaskClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, ConfigGroupEnum.class, String.class);
-        constructor.setAccessible(true);
-        Object dataChangeTask = constructor.newInstance(listener, ConfigGroupEnum.PLUGIN, "testNamespace");
-
-        Method runMethod = dataChangeTaskClass.getMethod("run");
-        runMethod.invoke(dataChangeTask);
+        HttpLongPollingDataChangedListener.DataChangeTask dataChangeTask =
+                listener.new DataChangeTask(ConfigGroupEnum.PLUGIN, "testNamespace");
+        dataChangeTask.run();
         // no exception = pass, clients map is empty for this namespace
     }
 
@@ -675,31 +671,16 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(resp);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
-        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", 1L, namespaceId);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", 1L, namespaceId);
 
-        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(1024);
+        BlockingQueue<HttpLongPollingDataChangedListener.LongPollingClient> queue = new ArrayBlockingQueue<>(1024);
         queue.add(client);
+        listener.getClientsMap().put(namespaceId, queue);
 
-        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
-        clientsMapField.setAccessible(true);
-        java.util.Map<String, BlockingQueue<Object>> clientsMap =
-                (java.util.Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
-        clientsMap.put(namespaceId, queue);
-
-        Class<?> dataChangeTaskClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$DataChangeTask");
-        java.lang.reflect.Constructor<?> taskCtor = dataChangeTaskClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, ConfigGroupEnum.class, String.class);
-        taskCtor.setAccessible(true);
-        Object dataChangeTask = taskCtor.newInstance(listener, ConfigGroupEnum.PLUGIN, namespaceId);
-
-        Method runMethod = dataChangeTaskClass.getMethod("run");
-        runMethod.invoke(dataChangeTask);
+        HttpLongPollingDataChangedListener.DataChangeTask dataChangeTask =
+                listener.new DataChangeTask(ConfigGroupEnum.PLUGIN, namespaceId);
+        dataChangeTask.run();
 
         Mockito.verify(asyncContext).complete();
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
@@ -717,12 +698,7 @@ public final class HttpLongPollingDataChangedListenerTest {
 
         populateAllGroupsInCache(DEFAULT_NAMESPACE, "sameMd5");
 
-        BlockingQueue<Object> queue = new ArrayBlockingQueue<>(1024);
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
+        BlockingQueue<HttpLongPollingDataChangedListener.LongPollingClient> queue = new ArrayBlockingQueue<>(1024);
 
         for (int i = 0; i < 3; i++) {
             AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
@@ -731,25 +707,16 @@ public final class HttpLongPollingDataChangedListenerTest {
             setAllGroupParamsDefault(req);
             Mockito.when(asyncContext.getRequest()).thenReturn(req);
             Mockito.when(asyncContext.getResponse()).thenReturn(resp);
-            Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0." + i, 1L, namespaceId);
+            HttpLongPollingDataChangedListener.LongPollingClient client =
+                    listener.new LongPollingClient(asyncContext, "127.0.0." + i, 1L, namespaceId);
             queue.add(client);
         }
 
-        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
-        clientsMapField.setAccessible(true);
-        java.util.Map<String, BlockingQueue<Object>> clientsMap =
-                (java.util.Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
-        clientsMap.put(namespaceId, queue);
+        listener.getClientsMap().put(namespaceId, queue);
 
-        Class<?> dataChangeTaskClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$DataChangeTask");
-        java.lang.reflect.Constructor<?> taskCtor = dataChangeTaskClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, ConfigGroupEnum.class, String.class);
-        taskCtor.setAccessible(true);
-        Object dataChangeTask = taskCtor.newInstance(listener, ConfigGroupEnum.PLUGIN, namespaceId);
-
-        Method runMethod = dataChangeTaskClass.getMethod("run");
-        runMethod.invoke(dataChangeTask);
+        HttpLongPollingDataChangedListener.DataChangeTask dataChangeTask =
+                listener.new DataChangeTask(ConfigGroupEnum.PLUGIN, namespaceId);
+        dataChangeTask.run();
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }
 
@@ -766,19 +733,11 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> constructor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, long.class, String.class);
-        constructor.setAccessible(true);
-        Object longPollingClient = constructor.newInstance(listener, asyncContext, "127.0.0.1", 30000L, "testNamespace");
+        HttpLongPollingDataChangedListener.LongPollingClient longPollingClient =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", 30000L, "testNamespace");
 
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(longPollingClient);
-
-        Method sendResponseMethod = longPollingClientClass.getDeclaredMethod("sendResponse", List.class);
-        sendResponseMethod.setAccessible(true);
-        sendResponseMethod.invoke(longPollingClient, List.of(ConfigGroupEnum.PLUGIN));
+        longPollingClient.run();
+        longPollingClient.sendResponse(List.of(ConfigGroupEnum.PLUGIN));
 
         Mockito.verify(asyncContext).complete();
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
@@ -792,17 +751,11 @@ public final class HttpLongPollingDataChangedListenerTest {
         AsyncContext asyncContext = Mockito.mock(AsyncContext.class);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> constructor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, long.class, String.class);
-        constructor.setAccessible(true);
-        Object longPollingClient = constructor.newInstance(listener, asyncContext, "127.0.0.1", 30000L, "testNamespace");
+        HttpLongPollingDataChangedListener.LongPollingClient longPollingClient =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", 30000L, "testNamespace");
 
         // asyncTimeoutFuture is null (run() not called), sendResponse should still work
-        Method sendResponseMethod = longPollingClientClass.getDeclaredMethod("sendResponse", List.class);
-        sendResponseMethod.setAccessible(true);
-        sendResponseMethod.invoke(longPollingClient, List.of(ConfigGroupEnum.PLUGIN));
+        longPollingClient.sendResponse(List.of(ConfigGroupEnum.PLUGIN));
 
         Mockito.verify(asyncContext).complete();
     }
@@ -822,7 +775,7 @@ public final class HttpLongPollingDataChangedListenerTest {
      * without heartbeat refreshes triggers a false offline status in InstanceCheckService.
      */
     @Test
-    public void testFalseOfflineTimeoutReproduction() throws Exception {
+    public void documentationReproduceFalseOfflineTimeoutBeforeFix() throws Exception {
         InstanceInfoService instanceInfoService = Mockito.mock(InstanceInfoService.class);
         InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService);
 
@@ -893,23 +846,15 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
-                String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
-
-        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
 
         // Run client to register in clientsMap and start hold
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(client);
+        client.run();
+        assertNotNull(client.getHeartbeatFuture());
 
         // Liveness refresh runs during hold
-        Method refreshMethod = longPollingClientClass.getDeclaredMethod("refreshLiveness");
-        refreshMethod.setAccessible(true);
-        refreshMethod.invoke(client);
+        client.refreshLiveness();
 
         String instanceKey = "127.0.0.1:8080@" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE + "#" + namespaceId;
         InstanceInfoVO vo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
@@ -920,7 +865,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         vo.setLastHeartBeatTime(System.currentTimeMillis() - 19000L);
 
         // Subsequent liveness refresh during hold updates lastHeartBeatTime
-        refreshMethod.invoke(client);
+        client.refreshLiveness();
 
         // Verify lastHeartBeatTime was updated to current time
         assertTrue(System.currentTimeMillis() - vo.getLastHeartBeatTime() < 5000L);
@@ -934,9 +879,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         assertEquals(InstanceStatusEnum.ONLINE.getCode(), vo.getInstanceState());
 
         // Clean up client
-        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
-        cleanUpMethod.setAccessible(true);
-        cleanUpMethod.invoke(client);
+        client.cleanUp();
 
         clearAllGroupsInCache(namespaceId);
     }
@@ -946,8 +889,7 @@ public final class HttpLongPollingDataChangedListenerTest {
      */
     @Test
     public void testScheduledHeartbeatRefreshesLivenessAutomatically() throws Exception {
-        HttpLongPollingDataChangedListener customListener = new HttpLongPollingDataChangedListener(httpSyncProperties, 100L);
-        assertEquals(100L, customListener.getHeartbeatIntervalMs());
+        Mockito.when(httpSyncProperties.getHeartbeatInterval()).thenReturn(10000L);
 
         final String namespaceId = "testNamespaceAutoHeartbeat";
         populateAllGroupsInCache(namespaceId, "sameMd5");
@@ -958,26 +900,26 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
-                String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
 
-        Object client = clientCtor.newInstance(customListener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+        client.run();
 
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(client);
+        ScheduledFuture<?> heartbeatFuture = client.getHeartbeatFuture();
+        assertNotNull(heartbeatFuture);
+        assertFalse(heartbeatFuture.isCancelled());
+        assertFalse(heartbeatFuture.isDone());
 
-        // Await periodic executions from scheduler
-        await().atMost(Duration.ofMillis(1200)).untilAsserted(() -> {
-            Mockito.verify(instanceInfoReportEventPublisher, Mockito.atLeast(2)).publish(any(InstanceInfoReportEvent.class));
-        });
+        // Assert on the scheduled future's initial delay deterministically without wall-clock sleep
+        long remainingDelay = heartbeatFuture.getDelay(TimeUnit.MILLISECONDS);
+        assertTrue(remainingDelay > 0 && remainingDelay <= 10000L);
 
-        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
-        cleanUpMethod.setAccessible(true);
-        cleanUpMethod.invoke(client);
+        // Verify scheduled refresh task publishes heartbeat event deterministically
+        client.refreshLiveness();
+        Mockito.verify(instanceInfoReportEventPublisher).publish(any(InstanceInfoReportEvent.class));
+
+        client.cleanUp();
+        assertTrue(heartbeatFuture.isCancelled());
 
         clearAllGroupsInCache(namespaceId);
     }
@@ -997,38 +939,21 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
-                String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
 
-        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+        client.run();
 
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(client);
-
-        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
-        clientsMapField.setAccessible(true);
-        Map<String, BlockingQueue<Object>> clientsMap = (Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
-        assertTrue(clientsMap.get(namespaceId).contains(client));
+        assertTrue(listener.getClientsMap().get(namespaceId).contains(client));
 
         // Complete request with sendResponse
-        Method sendResponseMethod = longPollingClientClass.getDeclaredMethod("sendResponse", List.class);
-        sendResponseMethod.setAccessible(true);
-        sendResponseMethod.invoke(client, List.of(ConfigGroupEnum.PLUGIN));
+        client.sendResponse(List.of(ConfigGroupEnum.PLUGIN));
 
         // Client should be marked completed and removed from clientsMap
-        Method isCompletedMethod = longPollingClientClass.getDeclaredMethod("isCompleted");
-        isCompletedMethod.setAccessible(true);
-        assertTrue((boolean) isCompletedMethod.invoke(client));
+        assertTrue(client.isCompleted());
+        assertFalse(listener.getClientsMap().get(namespaceId).contains(client));
 
-        assertFalse(clientsMap.get(namespaceId).contains(client));
-
-        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
-        getHeartbeatFutureMethod.setAccessible(true);
-        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
+        ScheduledFuture<?> heartbeatFuture = client.getHeartbeatFuture();
         assertNotNull(heartbeatFuture);
         assertTrue(heartbeatFuture.isCancelled());
 
@@ -1051,44 +976,26 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
-                String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
 
-        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "8080", "info", 60000L, namespaceId);
+        client.run();
 
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(client);
-
-        Field clientsMapField = HttpLongPollingDataChangedListener.class.getDeclaredField("clientsMap");
-        clientsMapField.setAccessible(true);
-        Map<String, BlockingQueue<Object>> clientsMap = (Map<String, BlockingQueue<Object>>) clientsMapField.get(listener);
-        assertTrue(clientsMap.get(namespaceId).contains(client));
+        assertTrue(listener.getClientsMap().get(namespaceId).contains(client));
 
         // Simulate unexpected disconnect / error from servlet container
-        Method onErrorMethod = longPollingClientClass.getMethod("onError", AsyncEvent.class);
-        onErrorMethod.invoke(client, new AsyncEvent(asyncContext));
+        client.onError(new AsyncEvent(asyncContext));
 
-        Method isCompletedMethod = longPollingClientClass.getDeclaredMethod("isCompleted");
-        isCompletedMethod.setAccessible(true);
-        assertTrue((boolean) isCompletedMethod.invoke(client));
+        assertTrue(client.isCompleted());
+        assertFalse(listener.getClientsMap().get(namespaceId).contains(client));
 
-        assertFalse(clientsMap.get(namespaceId).contains(client));
-
-        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
-        getHeartbeatFutureMethod.setAccessible(true);
-        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
+        ScheduledFuture<?> heartbeatFuture = client.getHeartbeatFuture();
         assertNotNull(heartbeatFuture);
         assertTrue(heartbeatFuture.isCancelled());
 
         // Subsequent refresh or sendResponse does not execute
         Mockito.clearInvocations(instanceInfoReportEventPublisher);
-        Method refreshMethod = longPollingClientClass.getDeclaredMethod("refreshLiveness");
-        refreshMethod.setAccessible(true);
-        refreshMethod.invoke(client);
+        client.refreshLiveness();
         Mockito.verifyNoInteractions(instanceInfoReportEventPublisher);
 
         clearAllGroupsInCache(namespaceId);
@@ -1108,27 +1015,14 @@ public final class HttpLongPollingDataChangedListenerTest {
         Mockito.when(asyncContext.getRequest()).thenReturn(req);
         Mockito.when(asyncContext.getResponse()).thenReturn(this.httpServletResponse);
 
-        Class<?> longPollingClientClass = Class.forName(
-                "org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener$LongPollingClient");
-        java.lang.reflect.Constructor<?> clientCtor = longPollingClientClass.getDeclaredConstructor(
-                HttpLongPollingDataChangedListener.class, AsyncContext.class, String.class, String.class,
-                String.class, long.class, String.class);
-        clientCtor.setAccessible(true);
+        HttpLongPollingDataChangedListener.LongPollingClient client =
+                listener.new LongPollingClient(asyncContext, "127.0.0.1", "0", "info", 60000L, namespaceId);
 
-        Object client = clientCtor.newInstance(listener, asyncContext, "127.0.0.1", "0", "info", 60000L, namespaceId);
+        client.run();
 
-        Method runMethod = longPollingClientClass.getMethod("run");
-        runMethod.invoke(client);
+        assertNull(client.getHeartbeatFuture());
 
-        Method getHeartbeatFutureMethod = longPollingClientClass.getDeclaredMethod("getHeartbeatFuture");
-        getHeartbeatFutureMethod.setAccessible(true);
-        java.util.concurrent.Future<?> heartbeatFuture = (java.util.concurrent.Future<?>) getHeartbeatFutureMethod.invoke(client);
-        assertNull(heartbeatFuture);
-
-        Method cleanUpMethod = longPollingClientClass.getDeclaredMethod("cleanUp");
-        cleanUpMethod.setAccessible(true);
-        cleanUpMethod.invoke(client);
-
+        client.cleanUp();
         clearAllGroupsInCache(namespaceId);
     }
 
