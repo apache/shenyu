@@ -89,6 +89,13 @@ class JwtAgentMcpSecurityResolverTest {
     }
 
     @Test
+    void acceptsSingleStringAudienceClaim() {
+        Map<String, Object> claims = claims();
+        claims.put("aud", "mcp");
+        assertEquals("tenant-a", resolve(resolver, authenticated(claims)).getTenant().orElseThrow());
+    }
+
+    @Test
     void missingGrantsNeverBecomeAllToolsOrScopes() {
         Map<String, Object> claims = claims();
         claims.remove("tool_grants");
@@ -107,7 +114,7 @@ class JwtAgentMcpSecurityResolverTest {
     private static Stream<Arguments> invalidClaims() {
         return Stream.of(
                 Arguments.of("iss", "https://other.example"), Arguments.of("iss", List.of("https://issuer.example")),
-                Arguments.of("aud", List.of("other")), Arguments.of("aud", "mcp"), Arguments.of("aud", List.of()), Arguments.of("aud", List.of("mcp", 42)),
+                Arguments.of("aud", List.of("other")), Arguments.of("aud", ""), Arguments.of("aud", List.of()), Arguments.of("aud", List.of("mcp", 42)),
                 Arguments.of("tenant_id", null), Arguments.of("tenant_id", 42), Arguments.of("tenant_id", " tenant-a"),
                 Arguments.of("tenant_id", "a\nb"), Arguments.of("tenant_id", "x".repeat(257)),
                 Arguments.of("sub", ""), Arguments.of("sub", "agent "), Arguments.of("sub", 42),
@@ -122,6 +129,8 @@ class JwtAgentMcpSecurityResolverTest {
         assertThrows(IllegalArgumentException.class, () -> new JwtAgentMcpSecurityResolver("", "mcp", null));
         assertThrows(IllegalArgumentException.class, () -> new JwtAgentMcpSecurityResolver("issuer", " ", null));
         assertThrows(IllegalArgumentException.class, () -> new JwtAgentMcpSecurityResolver("issuer", "mcp", ""));
+        assertThrows(IllegalArgumentException.class, () -> new JwtAgentMcpSecurityResolver("issuer", "mcp", null, false));
+        assertThrows(IllegalArgumentException.class, () -> new JwtAgentMcpSecurityResolver("issuer", "mcp", "tenant-a", true));
     }
 
     @Test

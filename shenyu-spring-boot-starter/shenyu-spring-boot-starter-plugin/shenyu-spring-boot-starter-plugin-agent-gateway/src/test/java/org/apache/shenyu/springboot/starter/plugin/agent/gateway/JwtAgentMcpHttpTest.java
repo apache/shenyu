@@ -103,6 +103,17 @@ class JwtAgentMcpHttpTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
+    void signedJwtAcceptsAStandardsCompliantSingleStringAudience(final String mode) {
+        try (Fixture fixture = new Fixture(mode, null)) {
+            String allowed = token(Map.of("aud", "mcp", "tenant_id", "tenant-a", "tool_grants", List.of("read")), KEY, ISSUER);
+            fixture.request(allowed, "tools/call").exchange().expectStatus().isOk().expectBody(String.class)
+                    .value(body -> assertTrue(body.contains("\"tenant\":\"tenant-a\"")));
+            assertEquals(1, fixture.calls.get());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
     void forgedExpiredWrongIssuerAndWrongAudienceNeverReachTool(final String mode) {
         try (Fixture fixture = new Fixture(mode, "explicit-default")) {
             fixture.request(token(Map.of("tool_grants", List.of("read")), "another-untrusted-test-key-at-least-32-bytes".getBytes(StandardCharsets.UTF_8), ISSUER),

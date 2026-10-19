@@ -35,6 +35,16 @@ public final class AgentMcpIdentity {
 
     private final String tenant;
 
+    /**
+     * Create a legacy unscoped identity without a tenant assignment.
+     *
+     * <p>The empty tenant is intentional for adapters that predate tenant-aware authorization;
+     * callers must treat {@link #getTenant()} being empty as unscoped rather than as an
+     * anonymous tenant.</p>
+     *
+     * @param subject verified subject
+     * @param toolGrants exact tool names granted by the authority
+     */
     public AgentMcpIdentity(final String subject, final Set<String> toolGrants) {
         this(subject, toolGrants, Set.of(), null);
     }

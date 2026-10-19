@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
@@ -55,6 +56,8 @@ import reactor.core.publisher.Mono;
 @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.enabled", havingValue = "true", matchIfMissing = false)
 public class AgentGatewayPluginConfiguration {
 
+    private static final String JWT_SECURITY_RESOLVER_BEAN_NAME = "agentGatewayJwtSecurityResolver";
+
     /**
      * Create a plugin with an optional managed remote catalog.
      * @param providers local providers
@@ -62,12 +65,13 @@ public class AgentGatewayPluginConfiguration {
      * @param catalogs optional, unambiguous managed remote catalog
      * @param tracers optional tracing bridge
      * @param environment deployment-controlled tracing opt-in
+     * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
      */
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                          final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
-                                         final Environment environment) {
+                                         final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
@@ -77,7 +81,7 @@ public class AgentGatewayPluginConfiguration {
             throw new IllegalStateException("MCP requires one authoritative identity resolver; multiple resolvers are not allowed");
         }
         if (environment.getProperty("shenyu.plugins.agent.gateway.security.jwt.enabled", Boolean.class, false)
-                && authorities.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.JwtAgentMcpSecurityResolver".equals(resolver.getClass().getName()))) {
+                && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer);
@@ -135,11 +139,12 @@ public class AgentGatewayPluginConfiguration {
          * @param environment deployment-owned identity policy
          * @return the sole identity authority
          */
-        @Bean
+        @Bean(name = JWT_SECURITY_RESOLVER_BEAN_NAME)
         AgentMcpSecurityResolver agentGatewayJwtSecurityResolver(final Environment environment) {
             String prefix = "shenyu.plugins.agent.gateway.security.jwt.";
             return new JwtAgentMcpSecurityResolver(environment.getRequiredProperty(prefix + "issuer"),
-                    environment.getRequiredProperty(prefix + "audience"), environment.getProperty(prefix + "default-tenant"));
+                    environment.getRequiredProperty(prefix + "audience"), environment.getProperty(prefix + "default-tenant"),
+                    environment.getProperty(prefix + "tenant-claim-required", Boolean.class, false));
         }
     }
 

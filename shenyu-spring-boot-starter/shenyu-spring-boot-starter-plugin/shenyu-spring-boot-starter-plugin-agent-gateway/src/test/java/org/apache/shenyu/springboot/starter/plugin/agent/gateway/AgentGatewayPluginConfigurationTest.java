@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import io.opentelemetry.api.OpenTelemetry;
 import org.springframework.boot.test.context.FilteredClassLoader;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
@@ -45,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
@@ -208,13 +210,33 @@ class AgentGatewayPluginConfigurationTest {
                 assertFalse(context.containsBean("agentGatewayJwtSecurityResolver")));
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.jwt.enabled=true")
                 .run(context -> assertNotNull(context.getStartupFailure()));
-        jwtContext().run(context -> assertTrue(context.getBean(AgentMcpSecurityResolver.class) instanceof JwtAgentMcpSecurityResolver));
+        jwtContext().run(context -> {
+            assertTrue(context.getBean(AgentMcpSecurityResolver.class) instanceof JwtAgentMcpSecurityResolver);
+            assertTrue(context.containsBean("agentGatewayJwtSecurityResolver"));
+        });
     }
 
     @Test
     void jwtBridgeCannotCompeteWithACustomPrimaryAuthority() {
         jwtContext().withBean("custom", AgentMcpSecurityResolver.class, () -> next -> Mono.empty(), definition -> definition.setPrimary(true))
                 .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void jwtBridgeRecognizesItsResolverWhenWrappedInJdkProxy() {
+        jwtContext().withBean("jwtResolverProxy", BeanPostProcessor.class, () -> new BeanPostProcessor() {
+            @Override
+            public Object postProcessAfterInitialization(final Object bean, final String beanName) {
+                if (!"agentGatewayJwtSecurityResolver".equals(beanName)) {
+                    return bean;
+                }
+                return java.lang.reflect.Proxy.newProxyInstance(bean.getClass().getClassLoader(),
+                        new Class<?>[] {AgentMcpSecurityResolver.class}, (proxy, method, arguments) -> method.invoke(bean, arguments));
+            }
+        }).run(context -> {
+            assertNull(context.getStartupFailure());
+            assertTrue(java.lang.reflect.Proxy.isProxyClass(context.getBean(AgentMcpSecurityResolver.class).getClass()));
+        });
     }
 
     @Test
@@ -232,9 +254,23 @@ class AgentGatewayPluginConfigurationTest {
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
+    @Test
+    void jwtBridgeRequiresExactlyOneExplicitTenantPolicyAtStartup() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.jwt.enabled=true",
+                        "shenyu.plugins.agent.gateway.security.jwt.issuer=https://issuer.example", "shenyu.plugins.agent.gateway.security.jwt.audience=mcp")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        jwtContext().withPropertyValues("shenyu.plugins.agent.gateway.security.jwt.default-tenant=tenant-a",
+                        "shenyu.plugins.agent.gateway.security.jwt.tenant-claim-required=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        jwtContext().withPropertyValues("shenyu.plugins.agent.gateway.security.jwt.default-tenant=tenant-a",
+                        "shenyu.plugins.agent.gateway.security.jwt.tenant-claim-required=false")
+                .run(context -> assertNull(context.getStartupFailure()));
+    }
+
     private ApplicationContextRunner jwtContext() {
         return contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.jwt.enabled=true",
-                "shenyu.plugins.agent.gateway.security.jwt.issuer=https://issuer.example", "shenyu.plugins.agent.gateway.security.jwt.audience=mcp");
+                "shenyu.plugins.agent.gateway.security.jwt.issuer=https://issuer.example", "shenyu.plugins.agent.gateway.security.jwt.audience=mcp",
+                "shenyu.plugins.agent.gateway.security.jwt.tenant-claim-required=true");
     }
 
     private MockServerWebExchange exchange() {

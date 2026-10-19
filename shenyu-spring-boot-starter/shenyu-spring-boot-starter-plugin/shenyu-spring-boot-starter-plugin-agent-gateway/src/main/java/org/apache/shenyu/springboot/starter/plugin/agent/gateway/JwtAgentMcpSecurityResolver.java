@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -31,9 +33,12 @@ import java.util.Set;
 
 /**
  * Maps only an application-authenticated JWT principal, never a raw token or header.
+ * A missing default tenant means that an authenticated token must carry {@code tenant_id}.
  * The application's Resource Server owns signature, algorithm and temporal validation.
  */
 public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolver {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JwtAgentMcpSecurityResolver.class);
 
     private final String issuer;
 
@@ -41,10 +46,27 @@ public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolv
 
     private final String defaultTenant;
 
+    private final boolean tenantClaimRequired;
+
     public JwtAgentMcpSecurityResolver(final String issuer, final String audience, final String defaultTenant) {
+        this(issuer, audience, defaultTenant, Objects.isNull(defaultTenant));
+    }
+
+    /**
+     * Create a resolver with an explicit policy for tokens that omit the tenant claim.
+     * @param issuer required JWT issuer
+     * @param audience required JWT audience
+     * @param defaultTenant explicit fallback tenant, or null when the claim is required
+     * @param tenantClaimRequired whether tokens must contain {@code tenant_id}
+     */
+    public JwtAgentMcpSecurityResolver(final String issuer, final String audience, final String defaultTenant, final boolean tenantClaimRequired) {
         this.issuer = text(issuer);
         this.audience = text(audience);
         this.defaultTenant = Objects.isNull(defaultTenant) ? null : text(defaultTenant);
+        if (Objects.isNull(this.defaultTenant) != tenantClaimRequired) {
+            throw new IllegalArgumentException("Configure exactly one of default tenant or required tenant claim");
+        }
+        this.tenantClaimRequired = tenantClaimRequired;
     }
 
     @Override
@@ -61,11 +83,21 @@ public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolv
                         if (!subject.equals(authentication.getName())) {
                             return Mono.empty();
                         }
-                        String tenant = claims.containsKey("tenant_id") ? text(claims.get("tenant_id")) : text(defaultTenant);
+                        String tenant;
+                        if (claims.containsKey("tenant_id")) {
+                            tenant = text(claims.get("tenant_id"));
+                        } else if (Objects.nonNull(defaultTenant)) {
+                            tenant = defaultTenant;
+                        } else if (tenantClaimRequired) {
+                            return Mono.empty();
+                        } else {
+                            throw new IllegalStateException("Tenant identity policy is not configured");
+                        }
                         return Mono.just(new AgentMcpIdentity(tenant, subject,
                                 names(claims.getOrDefault("tool_grants", Set.of()), true), names(claims.getOrDefault("tool_denies", Set.of()), true)));
                     } catch (IllegalArgumentException error) {
-                        // Reject malformed trusted claims without leaking the JWT or claim values.
+                        // Reject malformed claims and diagnose without logging JWT or claim values.
+                        LOG.debug("Rejected authenticated JWT with invalid Agent Gateway identity claims");
                         return Mono.empty();
                     }
                 });
@@ -80,6 +112,9 @@ public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolv
     }
 
     private static Set<String> names(final Object value, final boolean tools) {
+        if (!tools && value instanceof String string) {
+            return Set.of(text(string));
+        }
         if (!(value instanceof Collection<?> values) || values.size() > 1024 || !tools && values.isEmpty()) {
             throw new IllegalArgumentException("Invalid permission or audience claim");
         }

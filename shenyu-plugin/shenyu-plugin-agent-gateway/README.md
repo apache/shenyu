@@ -78,18 +78,20 @@ shenyu:
             enabled: true
             issuer: https://idp.example.com/issuer
             audience: shenyu-agent-mcp
-            # Optional, only for authenticated tokens without tenant_id:
+            # Choose exactly one tenant policy:
+            tenant-claim-required: true
+            # Or configure a tenant used only when tenant_id is absent:
             # default-tenant: explicitly-assigned-tenant
 ```
 
 Only an authenticated `JwtAuthenticationToken` installed on the exchange principal
 is accepted. The bridge additionally requires the exact configured `iss` and
-an `aud` collection containing the configured audience; its principal name must
+an `aud` string or collection containing the configured audience; its principal name must
 equal the nonblank `sub` claim. It reads these dedicated, verified claims:
 
 | Claim | Contract |
 | --- | --- |
-| `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. |
+| `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. Startup requires exactly one of `tenant-claim-required: true` or `default-tenant`, so missing-tenant behavior is an explicit deployment policy. |
 | `tool_grants` | Optional array of exact tool names; absence grants nothing. Generic OAuth scopes/roles are not implicitly MCP permissions. |
 | `tool_denies` | Optional array of exact tool names; deny takes precedence over grant. |
 
