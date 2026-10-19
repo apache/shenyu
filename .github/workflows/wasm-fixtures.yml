@@ -21,6 +21,7 @@ on:
       - 'shenyu-plugin/shenyu-plugin-wasm-api/**'
       - 'shenyu-plugin/shenyu-plugin-wasm-base/**'
       - '.github/scripts/verify-wasm-fixtures.py'
+      - '.github/scripts/test-wasm-fixtures.py'
       - '.github/workflows/wasm-fixtures.yml'
       - 'pom.xml'
   push:
@@ -29,6 +30,7 @@ on:
       - 'shenyu-plugin/shenyu-plugin-wasm-api/**'
       - 'shenyu-plugin/shenyu-plugin-wasm-base/**'
       - '.github/scripts/verify-wasm-fixtures.py'
+      - '.github/scripts/test-wasm-fixtures.py'
       - '.github/workflows/wasm-fixtures.yml'
       - 'pom.xml'
 
@@ -45,6 +47,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
+      - name: Test fixture verification failures and resource restoration
+        run: python3 .github/scripts/test-wasm-fixtures.py
       - uses: ./actions/setup-java-with-retry
         with:
           java-version: "17"

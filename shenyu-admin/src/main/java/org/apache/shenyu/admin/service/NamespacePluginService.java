@@ -74,9 +74,10 @@ public interface NamespacePluginService extends PageService<NamespacePluginQuery
      * Delete namespace plugin relations by ids.
      *
      * @param ids         the ids.
+     * @param namespaceId the namespace id.
      * @return the string
      */
-    String delete(List<String> ids);
+    String delete(List<String> ids, String namespaceId);
 
     /**
      * find page of plugin namespace by query.

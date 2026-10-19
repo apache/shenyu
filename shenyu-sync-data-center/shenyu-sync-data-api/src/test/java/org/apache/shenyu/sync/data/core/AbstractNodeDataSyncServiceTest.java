@@ -158,12 +158,12 @@ public class AbstractNodeDataSyncServiceTest {
 
     @Test
     public void testUnCacheProxySelectorData() {
-        nodeDataSyncService.unCacheProxySelectorData("namespace.proxy.selector.tcp.selectorName");
+        nodeDataSyncService.unCacheProxySelectorData("namespace.proxy.selector.tcp.selector-id");
 
         ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
         verify(proxySelectorDataSubscriber).unSubscribe(captor.capture());
         assertEquals("tcp", captor.getValue().getPluginName());
-        assertEquals("selectorName", captor.getValue().getName());
+        assertEquals("selector-id", captor.getValue().getId());
     }
 
     @Test

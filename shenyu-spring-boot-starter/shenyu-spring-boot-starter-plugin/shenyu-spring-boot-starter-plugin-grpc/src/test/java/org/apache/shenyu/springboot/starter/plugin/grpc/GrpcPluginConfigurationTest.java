@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.grpc;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,15 @@ public class GrpcPluginConfigurationTest {
         applicationContextRunner.run(context -> {
                 ShenyuContextDecorator decorator = context.getBean("grpcShenyuContextDecorator", ShenyuContextDecorator.class);
                 assertNotNull(decorator);
+            }
+        );
+    }
+
+    @Test
+    public void testGrpcMetaDataHandler() {
+        applicationContextRunner.run(context -> {
+                MetaDataHandler handler = context.getBean("grpcMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
             }
         );
     }

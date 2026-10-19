@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +53,8 @@ import static org.mockito.Mockito.when;
 public class ApacheDubboGrayLoadBalanceTest {
 
     private ApacheDubboGrayLoadBalance apacheDubboGrayLoadBalance;
+
+    private MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic;
 
     @Mock
     private Invocation invocation;
@@ -84,12 +87,18 @@ public class ApacheDubboGrayLoadBalanceTest {
         when(dubboRuleHandle.getLoadBalance()).thenReturn("random");
         mockInvoker = new MockInvoker<>(URL.valueOf("localhost"), Object.class);
         invokers = Collections.singletonList(mockInvoker);
-        MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
+        loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(upstream);
         when(invocation.getAttachment(Constants.DUBBO_SELECTOR_ID)).thenReturn(Constants.DUBBO_SELECTOR_ID);
         when(invocation.getAttachment(Constants.DUBBO_RULE_ID)).thenReturn(Constants.DUBBO_RULE_ID);
         when(invocation.getAttachment(Constants.DUBBO_REMOTE_ADDRESS)).thenReturn("localhost");
+    }
+
+    @AfterEach
+    public void tearDown() {
+        // Release the thread-local static mock so later tests use the real selector.
+        loadBalancerFactoryMockedStatic.close();
     }
 
     @Test

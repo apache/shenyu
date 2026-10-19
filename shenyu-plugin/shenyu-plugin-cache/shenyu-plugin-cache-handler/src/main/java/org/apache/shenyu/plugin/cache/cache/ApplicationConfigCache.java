@@ -24,9 +24,9 @@ import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.ICacheBuilder;
 import org.apache.shenyu.spi.ExtensionLoader;
 
-
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
 
@@ -35,18 +35,22 @@ import static org.apache.shenyu.plugin.api.ShenyuPlugin.LOG;
  */
 public class ApplicationConfigCache {
 
-    private static final Map<String, CacheUpstream> UPSTREAM_CACHE_MAP = Maps.newConcurrentMap();
+    private static final ConcurrentMap<String, CacheEntry> CONFIG_CACHE_MAP = Maps.newConcurrentMap();
 
-    private static final Map<String, ICache> CONFIG_CACHE_MAP = Maps.newConcurrentMap();
-
+    /**
+     * Initialize a selector backend once, publishing its configuration with it.
+     *
+     * @param selectorId the selector id
+     * @param cacheUpstream the backend configuration
+     * @return the existing or newly initialized backend
+     */
     public ICache init(final String selectorId, final CacheUpstream cacheUpstream) {
-        String config = GsonUtils.getInstance().toJson(cacheUpstream);
-        final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class)
-                .getJoin(cacheUpstream.getCacheType());
-        ICache cache = cacheBuilder.builderCache(config);
-        CONFIG_CACHE_MAP.put(selectorId, cache);
-        UPSTREAM_CACHE_MAP.put(selectorId, cacheUpstream);
-        return cache;
+        return CONFIG_CACHE_MAP.computeIfAbsent(selectorId, key -> {
+            String config = GsonUtils.getInstance().toJson(cacheUpstream);
+            final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class)
+                    .getJoin(cacheUpstream.getCacheType());
+            return new CacheEntry(Objects.requireNonNull(cacheBuilder.builderCache(config)), cacheUpstream);
+        }).cache;
     }
 
     /**
@@ -56,7 +60,8 @@ public class ApplicationConfigCache {
      * @return the ICache
      */
     public ICache get(final String path) {
-        return CONFIG_CACHE_MAP.get(path);
+        CacheEntry entry = CONFIG_CACHE_MAP.get(path);
+        return Objects.isNull(entry) ? null : entry.cache;
     }
 
     /**
@@ -66,7 +71,8 @@ public class ApplicationConfigCache {
      * @return the cacheUpstream
      */
     public CacheUpstream getUpstream(final String path) {
-        return UPSTREAM_CACHE_MAP.get(path);
+        CacheEntry entry = CONFIG_CACHE_MAP.get(path);
+        return Objects.isNull(entry) ? null : entry.upstream;
     }
 
     /**
@@ -75,11 +81,10 @@ public class ApplicationConfigCache {
      * @param path the path
      */
     public void invalidateCache(final String path) {
-        ICache cache = CONFIG_CACHE_MAP.get(path);
-        if (!Objects.isNull(cache)) {
-            cache.close();
-            CONFIG_CACHE_MAP.remove(path);
-            UPSTREAM_CACHE_MAP.remove(path);
+        // Detach before closing so a concurrent initialization cannot be removed by this invalidation.
+        CacheEntry entry = CONFIG_CACHE_MAP.remove(path);
+        if (Objects.nonNull(entry)) {
+            entry.cache.close();
         }
     }
 
@@ -87,22 +92,16 @@ public class ApplicationConfigCache {
      * Invalidate all.
      */
     public void invalidateAll() {
-        if (CONFIG_CACHE_MAP.isEmpty()) {
-            return;
-        }
-
-        CONFIG_CACHE_MAP.forEach((key, cache) -> {
-            try {
-                if (!Objects.isNull(cache)) {
-                    cache.close();
+        new HashMap<>(CONFIG_CACHE_MAP).forEach((key, entry) -> {
+            // Claim only the captured entry; a replacement belongs to a later lifecycle.
+            if (CONFIG_CACHE_MAP.remove(key, entry)) {
+                try {
+                    entry.cache.close();
+                } catch (Exception e) {
+                    LOG.error("Failed to close upstream {}", key, e);
                 }
-            } catch (Exception e) {
-                LOG.error("Failed to close upstream {}", key, e);
             }
         });
-
-        UPSTREAM_CACHE_MAP.clear();
-        CONFIG_CACHE_MAP.clear();
     }
 
     /**
@@ -112,6 +111,18 @@ public class ApplicationConfigCache {
      */
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
+    }
+
+    private static final class CacheEntry {
+
+        private final ICache cache;
+
+        private final CacheUpstream upstream;
+
+        private CacheEntry(final ICache cache, final CacheUpstream upstream) {
+            this.cache = cache;
+            this.upstream = upstream;
+        }
     }
 
     /**

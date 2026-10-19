@@ -140,7 +140,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             }
         });
         if (Objects.nonNull(loopResources)) {
-            httpClient.runOn(loopResources);
+            httpClient = httpClient.runOn(loopResources);
         }
         HttpClientProperties.Ssl ssl = properties.getSsl();
         if (StringUtils.isNotEmpty(ssl.getKeyStorePath())

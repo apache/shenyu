@@ -15,53 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.vo;
+package org.apache.shenyu.plugin.httpclient;
 
-import java.util.List;
+import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
+import org.springframework.http.HttpHeaders;
 
 /**
- * MenuProjectVO.
- *
+ * The {@link TraceContextCarrier} of the http client plugin, which writes into the headers of the
+ * outgoing request.
  */
-public class MenuProjectVO {
+final class HttpHeadersTraceContextCarrier implements TraceContextCarrier {
 
-    private String label;
-
-    private List<MenuModuleVO> children;
+    private final HttpHeaders headers;
 
     /**
-     * setLabel.
+     * Instantiates a new http headers trace context carrier.
      *
-     * @return String
+     * @param headers the headers of the outgoing request
      */
-    public String getLabel() {
-        return label;
+    HttpHeadersTraceContextCarrier(final HttpHeaders headers) {
+        this.headers = headers;
     }
 
-    /**
-     * setLabel.
-     *
-     * @param label label
-     */
-    public void setLabel(final String label) {
-        this.label = label;
+    @Override
+    public void set(final String name, final String value) {
+        headers.set(name, value);
     }
 
-    /**
-     * getChildren.
-     *
-     * @return List
-     */
-    public List<MenuModuleVO> getChildren() {
-        return children;
-    }
-
-    /**
-     * setChildren.
-     *
-     * @param children children
-     */
-    public void setChildren(final List<MenuModuleVO> children) {
-        this.children = children;
+    @Override
+    public void remove(final String name) {
+        headers.remove(name);
     }
 }
