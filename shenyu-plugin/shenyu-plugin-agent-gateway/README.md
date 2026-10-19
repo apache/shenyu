@@ -81,6 +81,7 @@ shenyu:
             # Choose exactly one tenant policy:
             tenant-claim-required: true
             # Or configure a tenant used only when tenant_id is absent:
+            # tenant-claim-required: false
             # default-tenant: explicitly-assigned-tenant
 ```
 

@@ -38,9 +38,9 @@ public final class AgentMcpIdentity {
     /**
      * Create a legacy unscoped identity without a tenant assignment.
      *
-     * <p>The empty tenant is intentional for adapters that predate tenant-aware authorization;
-     * callers must treat {@link #getTenant()} being empty as unscoped rather than as an
-     * anonymous tenant.</p>
+     * <p>The absence of a tenant assignment is intentional for adapters that predate
+     * tenant-aware authorization; callers must treat {@link #getTenant()} being empty as
+     * unscoped rather than as an anonymous tenant.</p>
      *
      * @param subject verified subject
      * @param toolGrants exact tool names granted by the authority
