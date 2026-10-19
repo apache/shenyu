@@ -142,7 +142,7 @@ public class InstanceCheckService {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
-                instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
+                instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             }
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
