@@ -92,6 +92,61 @@ public class UpstreamTest {
     }
 
     @Test
+    public void buildDomainShouldNormalizeBareProtocols() {
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("http")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https:")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https:/")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https://")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("  http  ")
+                .url(" 127.0.0.1:8080 ")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol(":")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("/")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+    }
+
+    @Test
+    public void buildDomainWithExplicitProtocolShouldNormalizeBareSchemes() {
+        Upstream upstream = Upstream.builder()
+                .url("127.0.0.1:8080")
+                .build();
+        Assertions.assertEquals("ws://127.0.0.1:8080", upstream.buildDomain("ws"));
+        Assertions.assertEquals("ws://127.0.0.1:8080", upstream.buildDomain("ws://"));
+        Assertions.assertEquals("http://127.0.0.1:8080", upstream.buildDomain(null));
+        Assertions.assertEquals("http://127.0.0.1:8080", upstream.buildDomain(":"));
+    }
+
+    @Test
     public void identityShouldRemainAnImmutableSnapshot() {
         final Upstream upstream = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
                 .group("blue").version("v1").weight(10).build();
@@ -125,6 +180,7 @@ public class UpstreamTest {
 
         final JsonObject gsonFields = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(upstream), JsonObject.class);
         Assertions.assertFalse(gsonFields.has("identity"));
+        Assertions.assertFalse(gsonFields.has("protocolPrefix"));
         Assertions.assertEquals("127.0.0.2:20880", gsonFields.get("url").getAsString());
         Assertions.assertEquals("green", gsonFields.get("group").getAsString());
         Assertions.assertEquals("v2", gsonFields.get("version").getAsString());
