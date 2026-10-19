@@ -125,6 +125,9 @@ public class InstanceCheckService {
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
+            if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
+                instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
+            }
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
             instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
@@ -134,7 +137,6 @@ public class InstanceCheckService {
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
     }
