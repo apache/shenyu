@@ -22,9 +22,18 @@ import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
 import org.apache.shenyu.admin.model.dto.ClusterMasterDTO;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +63,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -84,7 +94,8 @@ public final class ClusterDataChangedEventForwarderTest {
     @BeforeEach
     public void setUp() {
         when(clusterProperties.getEventSecret()).thenReturn("node-secret");
-        forwarder = new ClusterDataChangedEventForwarder(restTemplate, clusterProperties, clusterSelectMasterService);
+        forwarder = new ClusterDataChangedEventForwarder(restTemplate, clusterProperties,
+                clusterSelectMasterService, new com.fasterxml.jackson.databind.ObjectMapper());
         when(clusterProperties.getSchema()).thenReturn("http");
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(Constants.X_ACCESS_TOKEN, OPERATOR_TOKEN);
@@ -126,7 +137,10 @@ public final class ClusterDataChangedEventForwarderTest {
         ClusterDataChangedEventPayload payload = captor.getValue().getBody();
         assertEquals(ConfigGroupEnum.RULE.name(), payload.getGroupKey());
         assertEquals(DataEventTypeEnum.REFRESH.name(), payload.getEventType());
-        assertEquals("[]", payload.getSource());
+        assertNull(payload.getSource());
+        assertEquals(2, payload.getPayloadVersion());
+        assertTrue(payload.getStructuredSource().isArray());
+        assertEquals(0, payload.getStructuredSource().size());
         assertEquals("namespace-a", payload.getNamespaceId());
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         MockHttpOutputMessage output = new MockHttpOutputMessage();
@@ -211,7 +225,7 @@ public final class ClusterDataChangedEventForwarderTest {
     }
 
     /**
-     * The source list is serialized into the payload body as JSON.
+     * The source list is sent as a structured array, without a serialized string envelope.
      */
     @Test
     public void forwardSerializesSourceAsJsonTest() {
@@ -230,6 +244,252 @@ public final class ClusterDataChangedEventForwarderTest {
         ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> captor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate).postForEntity(any(String.class), captor.capture(), eq(String.class));
         assertTrue(Objects.nonNull(captor.getValue().getBody()));
-        assertTrue(captor.getValue().getBody().getSource().contains("mockPlugin"));
+        ClusterDataChangedEventPayload payload = captor.getValue().getBody();
+        assertEquals(2, payload.getPayloadVersion());
+        assertNull(payload.getSource());
+        assertTrue(payload.getStructuredSource().isArray());
+        assertEquals("mockPlugin", payload.getStructuredSource().get(0).get("name").asText());
+    }
+
+    /**
+     * A structured event carries the same record content as the legacy string form.
+     */
+    @Test
+    public void structuredAndLegacyEnvelopesCarryTheSameRecordsTest() throws Exception {
+        ClusterMasterDTO master = new ClusterMasterDTO();
+        master.setMasterHost("10.0.0.2");
+        master.setMasterPort("9095");
+        when(clusterSelectMasterService.getMaster()).thenReturn(master);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
+                .thenReturn(ResponseEntity.ok("ok"));
+
+        RuleData ruleData = new RuleData();
+        ruleData.setName("structured-rule");
+        ruleData.setHandle("{\"loadBalance\":\"roundRobin\"}");
+        forwarder.forward(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(ruleData)));
+        ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> first = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).postForEntity(any(String.class), first.capture(), eq(String.class));
+
+        ClusterDataChangedEventPayload structuredPayload = first.getValue().getBody();
+        List<?> structured = new com.fasterxml.jackson.databind.ObjectMapper().convertValue(
+                structuredPayload.getStructuredSource(),
+                new com.fasterxml.jackson.databind.ObjectMapper().getTypeFactory()
+                        .constructCollectionType(List.class, RuleData.class));
+        List<?> legacy = GsonUtils.getInstance().fromList(
+                GsonUtils.getInstance().toJson(Collections.singletonList(ruleData)), RuleData.class);
+        assertEquals(legacy.get(0).getClass(), structured.get(0).getClass());
+        assertEquals(((RuleData) legacy.get(0)).getName(), ((RuleData) structured.get(0)).getName());
+        assertEquals(((RuleData) legacy.get(0)).getHandle(), ((RuleData) structured.get(0)).getHandle());
+    }
+
+    /**
+     * A master that predates the structured envelope rejects it with 400; the event is
+     * retried once with the legacy string envelope and the decision is remembered.
+     */
+    @Test
+    public void forwardRetriesWithLegacyEnvelopeWhenStructuredIsRejectedTest() {
+        ClusterMasterDTO master = new ClusterMasterDTO();
+        master.setMasterHost("10.0.0.2");
+        master.setMasterPort("9095");
+        when(clusterSelectMasterService.getMaster()).thenReturn(master);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
+                .thenThrow(org.springframework.web.client.HttpClientErrorException.create(
+                        HttpStatus.BAD_REQUEST, "unsupported", org.springframework.http.HttpHeaders.EMPTY,
+                        new byte[0], null))
+                .thenReturn(ResponseEntity.ok("ok"));
+
+        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(new PluginData()));
+        assertTrue(forwarder.forward(event));
+
+        ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate, org.mockito.Mockito.times(2))
+                .postForEntity(any(String.class), captor.capture(), eq(String.class));
+        List<HttpEntity<ClusterDataChangedEventPayload>> attempts = captor.getAllValues();
+        assertEquals(2, attempts.get(0).getBody().getPayloadVersion());
+        assertEquals(1, attempts.get(1).getBody().getPayloadVersion());
+        assertTrue(Objects.nonNull(attempts.get(1).getBody().getSource()));
+
+        forwarder.forward(event);
+        ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> legacyAttempt =
+                ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate, org.mockito.Mockito.times(3))
+                .postForEntity(any(String.class), legacyAttempt.capture(), eq(String.class));
+        assertEquals(1, legacyAttempt.getAllValues().get(2).getBody().getPayloadVersion());
+        assertTrue(Objects.nonNull(legacyAttempt.getAllValues().get(2).getBody().getSource()));
+    }
+
+    /**
+     * A transport failure is not a format rejection and is not retried.
+     */
+    @Test
+    public void forwardDoesNotRetryAfterTransportFailureTest() {
+        ClusterMasterDTO master = new ClusterMasterDTO();
+        master.setMasterHost("10.0.0.2");
+        master.setMasterPort("9095");
+        when(clusterSelectMasterService.getMaster()).thenReturn(master);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
+                .thenThrow(new RestClientException("connection refused"));
+
+        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(new PluginData()));
+        assertFalse(forwarder.forward(event));
+        verify(restTemplate, org.mockito.Mockito.times(1))
+                .postForEntity(any(String.class), any(Object.class), eq(String.class));
+    }
+
+    /**
+     * The structured source describes exactly the same records as the legacy Gson
+     * string for every config group, so switching envelopes does not change content.
+     */
+    @Test
+    public void structuredSourceMatchesLegacyContentForEveryGroupTest() throws Exception {
+        ClusterMasterDTO master = new ClusterMasterDTO();
+        master.setMasterHost("10.0.0.2");
+        master.setMasterPort("9095");
+        when(clusterSelectMasterService.getMaster()).thenReturn(master);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
+                .thenReturn(ResponseEntity.ok("ok"));
+
+        List<ConfigGroupEnum> groups = new java.util.ArrayList<>();
+        List<List<?>> samples = new java.util.ArrayList<>();
+        groups.add(ConfigGroupEnum.PLUGIN);
+        samples.add(Collections.singletonList(samplePlugin()));
+        groups.add(ConfigGroupEnum.RULE);
+        samples.add(Collections.singletonList(sampleRule()));
+        groups.add(ConfigGroupEnum.SELECTOR);
+        samples.add(Collections.singletonList(sampleSelector()));
+        groups.add(ConfigGroupEnum.APP_AUTH);
+        samples.add(Collections.singletonList(sampleAppAuth()));
+        groups.add(ConfigGroupEnum.META_DATA);
+        samples.add(Collections.singletonList(sampleMetaData()));
+        groups.add(ConfigGroupEnum.PROXY_SELECTOR);
+        samples.add(Collections.singletonList(sampleProxySelector()));
+        groups.add(ConfigGroupEnum.AI_PROXY_API_KEY);
+        samples.add(Collections.singletonList(sampleProxyApiKey()));
+        groups.add(ConfigGroupEnum.DISCOVER_UPSTREAM);
+        samples.add(Collections.singletonList(sampleDiscoverySyncData()));
+
+        for (int i = 0; i < groups.size(); i++) {
+            forwarder.forward(new DataChangedEvent(groups.get(i), DataEventTypeEnum.UPDATE, samples.get(i)));
+        }
+
+        ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate, org.mockito.Mockito.times(groups.size()))
+                .postForEntity(any(String.class), captor.capture(), eq(String.class));
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        for (int i = 0; i < groups.size(); i++) {
+            com.fasterxml.jackson.databind.JsonNode legacy = mapper.readTree(
+                    GsonUtils.getInstance().toJson(samples.get(i)));
+            assertEquals(legacy, captor.getAllValues().get(i).getBody().getStructuredSource(), groups.get(i).name());
+        }
+    }
+
+    private PluginData samplePlugin() {
+        PluginData pluginData = new PluginData();
+        pluginData.setId("plugin-id");
+        pluginData.setName("divide");
+        pluginData.setConfig("{\"model\":\"black\"}");
+        pluginData.setRole("admin");
+        pluginData.setEnabled(true);
+        pluginData.setSort(1);
+        pluginData.setPluginJar("divide.jar");
+        pluginData.setNamespaceId("namespace-a");
+        return pluginData;
+    }
+
+    private RuleData sampleRule() {
+        ConditionData condition = new ConditionData();
+        condition.setParamType("uri");
+        condition.setOperator("=");
+        condition.setParamName("/http/**");
+        condition.setParamValue("/http/**");
+        return RuleData.builder()
+                .id("rule-id")
+                .name("rule")
+                .pluginName("divide")
+                .selectorId("selector-id")
+                .matchMode(0)
+                .sort(1)
+                .enabled(true)
+                .loged(false)
+                .handle("{\"loadBalance\":\"roundRobin\"}")
+                .conditionDataList(Collections.singletonList(condition))
+                .matchRestful(false)
+                .namespaceId("namespace-a")
+                .build();
+    }
+
+    private SelectorData sampleSelector() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector-id");
+        selectorData.setName("selector");
+        selectorData.setPluginId("plugin-id");
+        selectorData.setPluginName("divide");
+        selectorData.setMatchMode(0);
+        selectorData.setType(1);
+        selectorData.setSort(1);
+        selectorData.setEnabled(true);
+        selectorData.setLogged(true);
+        selectorData.setContinued(true);
+        selectorData.setHandle("[]");
+        selectorData.setNamespaceId("namespace-a");
+        return selectorData;
+    }
+
+    private AppAuthData sampleAppAuth() {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey("app-key");
+        appAuthData.setAppSecret("app-secret");
+        appAuthData.setEnabled(true);
+        appAuthData.setNamespaceId("namespace-a");
+        return appAuthData;
+    }
+
+    private MetaData sampleMetaData() {
+        MetaData metaData = new MetaData();
+        metaData.setId("meta-id");
+        metaData.setAppName("app");
+        metaData.setContextPath("/app");
+        metaData.setPath("/app/execute");
+        metaData.setRpcType("http");
+        metaData.setServiceName("execute");
+        metaData.setMethodName("execute");
+        metaData.setParameterTypes("int");
+        metaData.setRpcExt("{}");
+        metaData.setEnabled(true);
+        metaData.setNamespaceId("namespace-a");
+        return metaData;
+    }
+
+    private ProxySelectorData sampleProxySelector() {
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setId("proxy-id");
+        proxySelectorData.setName("proxy");
+        proxySelectorData.setPluginName("tcp");
+        proxySelectorData.setType("tcp");
+        proxySelectorData.setForwardPort(8080);
+        proxySelectorData.setNamespaceId("namespace-a");
+        return proxySelectorData;
+    }
+
+    private ProxyApiKeyData sampleProxyApiKey() {
+        return ProxyApiKeyData.builder()
+                .proxyApiKey("proxy-key")
+                .realApiKey("real-key")
+                .enabled(true)
+                .namespaceId("namespace-a")
+                .build();
+    }
+
+    private DiscoverySyncData sampleDiscoverySyncData() {
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId("selector-id");
+        discoverySyncData.setPluginName("divide");
+        discoverySyncData.setSelectorName("selector");
+        discoverySyncData.setNamespaceId("namespace-a");
+        discoverySyncData.setDiscoveryHandlerId("handler-id");
+        return discoverySyncData;
     }
 }
