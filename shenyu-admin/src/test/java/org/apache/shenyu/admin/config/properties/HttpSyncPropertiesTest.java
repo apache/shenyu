@@ -46,6 +46,7 @@ public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {
         assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(5)));
         Assertions.assertEquals(Duration.ZERO, httpSyncProperties.getCacheRebuildWindow());
         Assertions.assertEquals(1024, httpSyncProperties.getCacheRebuildMaxPendingKeys());
+        Assertions.assertEquals(1, httpSyncProperties.getCacheRebuildThreads());
     }
 
     @Test
@@ -58,10 +59,14 @@ public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {
 
     @Test
     void testCoalescingConfiguration() {
-        load(HttpSyncPropertiesConfiguration.class, "shenyu.sync.http.cache-rebuild-window=10ms", "shenyu.sync.http.cache-rebuild-max-pending-keys=32");
+        load(HttpSyncPropertiesConfiguration.class, "shenyu.sync.http.cache-rebuild-window=10ms", "shenyu.sync.http.cache-rebuild-max-pending-keys=32",
+                "shenyu.sync.http.cache-rebuild-threads=4");
         HttpSyncProperties properties = getContext().getBean(HttpSyncProperties.class);
         Assertions.assertEquals(Duration.ofMillis(10), properties.getCacheRebuildWindow());
         Assertions.assertEquals(32, properties.getCacheRebuildMaxPendingKeys());
+        Assertions.assertEquals(4, properties.getCacheRebuildThreads());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> properties.setCacheRebuildThreads(0));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> properties.setCacheRebuildThreads(65));
         Assertions.assertThrows(IllegalArgumentException.class, () -> properties.setCacheRebuildWindow(Duration.ofMillis(-1)));
         Assertions.assertThrows(IllegalArgumentException.class, () -> properties.setCacheRebuildWindow(Duration.ofSeconds(2)));
         Assertions.assertThrows(IllegalArgumentException.class, () -> properties.setCacheRebuildWindow(Duration.ofNanos(1)));

@@ -54,6 +54,12 @@ public class HttpSyncProperties {
     private int cacheRebuildMaxPendingKeys = 1024;
 
     /**
+     * Worker threads rebuilding coalesced keys. Distinct namespace/group keys rebuild in parallel;
+     * one key never rebuilds concurrently.
+     */
+    private int cacheRebuildThreads = 1;
+
+    /**
      * Get the fixed coalescing window.
      *
      * @return cache rebuild window
@@ -95,6 +101,27 @@ public class HttpSyncProperties {
             throw new IllegalArgumentException("cacheRebuildMaxPendingKeys must be positive");
         }
         this.cacheRebuildMaxPendingKeys = cacheRebuildMaxPendingKeys;
+    }
+
+    /**
+     * Get the number of cache rebuild worker threads.
+     *
+     * @return cache rebuild worker threads
+     */
+    public int getCacheRebuildThreads() {
+        return cacheRebuildThreads;
+    }
+
+    /**
+     * Set the number of cache rebuild worker threads.
+     *
+     * @param cacheRebuildThreads worker threads from 1 to 64
+     */
+    public void setCacheRebuildThreads(final int cacheRebuildThreads) {
+        if (cacheRebuildThreads <= 0 || cacheRebuildThreads > 64) {
+            throw new IllegalArgumentException("cacheRebuildThreads must be between 1 and 64");
+        }
+        this.cacheRebuildThreads = cacheRebuildThreads;
     }
 
     /**

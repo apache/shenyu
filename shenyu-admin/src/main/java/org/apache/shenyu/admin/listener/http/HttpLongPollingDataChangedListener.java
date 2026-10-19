@@ -63,6 +63,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +118,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
         this.cacheRebuildCoordinator = Objects.nonNull(httpSyncProperties.getCacheRebuildWindow()) && !httpSyncProperties.getCacheRebuildWindow().isZero()
-                ? new HttpCacheRebuildCoordinator(new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("http-cache-rebuild", true)),
+                ? new HttpCacheRebuildCoordinator(new ScheduledThreadPoolExecutor(httpSyncProperties.getCacheRebuildThreads(),
+                        ShenyuThreadFactory.create("http-cache-rebuild", true)),
                         httpSyncProperties.getCacheRebuildWindow().toMillis(), httpSyncProperties.getCacheRebuildMaxPendingKeys()) : null;
     }
 
@@ -131,7 +133,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
                 rebuild.run();
             }
-            scheduler.execute(new DataChangeTask(group, namespaceId));
+            // The coalescing path owns its notification: wake long-poll clients only after publication.
+            try {
+                scheduler.execute(new DataChangeTask(group, namespaceId));
+            } catch (RejectedExecutionException ex) {
+                if (!scheduler.isShutdown()) {
+                    throw ex;
+                }
+                LOG.debug("skip long-polling notification for {} {}: listener is shutting down", namespaceId, group, ex);
+            }
         };
         if (!cacheRebuildCoordinator.request(buildCacheKey(namespaceId, group.name()), work)) {
             // Bounded memory under overload: new keys apply backpressure to their committing caller.
@@ -147,6 +157,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private void notifyChanged(final ConfigGroupEnum group, final String namespaceId) {
+        // Intentionally a no-op when coalescing is enabled: the coalesced rebuild in refreshCache issues
+        // the DataChangeTask after it publishes the new snapshot, so notifying here would wake clients
+        // before the cache they compare against has changed.
         if (Objects.isNull(cacheRebuildCoordinator)) {
             scheduler.execute(new DataChangeTask(group, namespaceId));
         }

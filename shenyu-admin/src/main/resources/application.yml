@@ -98,6 +98,7 @@ shenyu:
 #      enabled: true
 #      cache-rebuild-window: 0ms # opt in with e.g. 10ms after measuring convergence
 #      cache-rebuild-max-pending-keys: 1024
+#      cache-rebuild-threads: 1 # raise when many namespaces/groups change concurrently
 #    nacos:
 #      url: localhost:8848
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c

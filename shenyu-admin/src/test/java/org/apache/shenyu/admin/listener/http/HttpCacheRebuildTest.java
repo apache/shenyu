@@ -232,6 +232,30 @@ class HttpCacheRebuildTest {
     }
 
     @Test
+    void commitRacingShutdownRebuildsSynchronouslyWithoutFailingTheCommit() {
+        listener.destroy();
+        commit("1", "a", "after-shutdown");
+        assertTrue(tasks.isEmpty());
+        assertEquals(1, queries.get());
+        assertEquals("after-shutdown", ((RuleData) listener.fetchConfig(ConfigGroupEnum.RULE, "a").getData().get(0)).getName());
+        assertEquals(List.of(DataEventTypeEnum.UPDATE), listener.callbacks);
+    }
+
+    @Test
+    void configuredWorkerThreadsSizeTheRebuildExecutor() {
+        HttpSyncProperties properties = new HttpSyncProperties();
+        properties.setCacheRebuildWindow(Duration.ofMillis(10));
+        properties.setCacheRebuildThreads(3);
+        TestListener sized = new TestListener(properties);
+        try {
+            HttpCacheRebuildCoordinator coordinator = (HttpCacheRebuildCoordinator) ReflectionTestUtils.getField(sized, "cacheRebuildCoordinator");
+            assertEquals(3, ((java.util.concurrent.ScheduledThreadPoolExecutor) ReflectionTestUtils.getField(coordinator, "executor")).getCorePoolSize());
+        } finally {
+            sized.destroy();
+        }
+    }
+
+    @Test
     void longPollIsWokenOnlyAfterPublicationAndOnlyForItsNamespace() throws Exception {
         AsyncContext client = client("a");
         final AsyncContext other = client("b");

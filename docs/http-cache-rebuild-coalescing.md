@@ -13,11 +13,13 @@ shenyu:
       enabled: true
       cache-rebuild-window: 10ms
       cache-rebuild-max-pending-keys: 1024
+      cache-rebuild-threads: 1
 ```
 
 The default window is **0ms**, preserving synchronous event processing. Enable a positive
 window only when repeated updates to the same namespace/group justify the latency cost.
-Accepted windows are zero or 1ms–1s; the pending-key capacity must be positive.
+Accepted windows are zero or 1ms–1s; the pending-key capacity must be positive; the
+worker thread count must be between 1 and 64 (default 1).
 Configuration takes effect when the listener is constructed; restart after changing it.
 Return the window to zero and restart to restore the original event path.
 
@@ -45,13 +47,31 @@ including the existing AI proxy API key cache path, retain their existing scope.
 - Namespace locks serialize snapshot loads/publications with periodic and client-triggered
   repair, preventing an older concurrent read from overwriting a newer publication.
   No event triggers a global refresh.
-- One separate worker performs rebuilds; the existing notification/timer scheduler keeps
-  its existing thread count. At capacity, a new key rebuilds synchronously on its committing
+- A separate pool of `cache-rebuild-threads` workers performs rebuilds; the existing
+  notification/timer scheduler keeps its existing thread count. Each key has at most one
+  scheduled or running drain, so several workers rebuild distinct keys in parallel but never
+  the same key concurrently. At capacity, a new key rebuilds synchronously on its committing
   caller. Existing pending keys continue to coalesce. No unbounded per-event task list is created.
-- A failed rebuild retains its dirty generation and retries after at least one second,
-  yielding to other keys without a tight database-failure loop. The last successfully
-  published cache remains readable. Shutdown cancels
-  queued work and interrupts the worker.
+- A failed rebuild retains its dirty generation and retries with exponential backoff: 1s, 2s,
+  4s, … capped at 30s, never shorter than the window. The count resets after a successful
+  rebuild. Retries never give up, because dropping the key would leave long-poll readers on
+  a stale snapshot; backoff keeps a permanently failing key to at most one error log every 30s.
+  The key yields to other keys between attempts, and the last successfully published cache
+  remains readable.
+- Shutdown cancels queued work and interrupts the workers. A commit that races shutdown is
+  rebuilt synchronously on its caller instead of failing its after-commit hook; the
+  long-poll notification is skipped once the notification scheduler has stopped.
+
+### Worker threads trade-off
+
+With the default single worker, coalescing trades burst redundancy for serialization:
+without coalescing, distinct namespaces rebuild in parallel on their committing threads,
+while with one worker every key queues behind the same thread. Because a rebuild also holds
+its namespace lock, one slow namespace delays unrelated groups queued behind it. The recorded
+benchmark used one worker and at most four active keys. Deployments where many namespaces or
+groups change concurrently should raise `cache-rebuild-threads` (for example to the number of
+actively edited namespaces, bounded by database connection capacity). Rebuilds of different
+groups in the same namespace still serialize on that namespace's lock, as they do today.
 
 For a healthy idle key, the **intentional added delay is at most the configured window W**.
 Publication also needs queue wait Q and rebuild time R, followed by notification scheduling.
@@ -78,11 +98,15 @@ Tests cover concurrent independent H2 commits, rollback, event/callback preserva
 DELETE followed by UPDATE, authoritative empty groups, namespace/group separation,
 capacity fallback, unchanged MD5/version, disabled mode, notification ordering and the
 registration race. Deterministic coordinator tests cover in-flight writes, retry without
-another event, fixed deadlines, key reuse, rejected scheduling and shutdown.
+another event, capped exponential backoff and its reset, fixed deadlines, key reuse, rejected
+scheduling and shutdown (including a commit racing shutdown). Multi-worker tests show that
+distinct keys rebuild in parallel while one key never rebuilds concurrently.
 The existing selector import tests run unchanged.
 
-PR verification on master `de93952d9` plus this change: **99 tests passed**, with no failures or errors; reactor Checkstyle
+PR verification on master `eb0c32ff7` plus this change: **105 tests passed**, with no failures or errors; reactor Checkstyle
 passed. The admin RAT check approved all 1037 scanned resources, including the new Java files.
+The benchmark below was recorded before worker threads and failure backoff became configurable; it ran with
+the default single worker and no failures, so those changes do not alter the recorded paths.
 
 ## Reproduce the producer benchmark
 

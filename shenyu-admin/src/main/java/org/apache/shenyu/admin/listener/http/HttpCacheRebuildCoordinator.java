@@ -30,12 +30,21 @@ import java.util.concurrent.TimeUnit;
 /**
  * Bounded snapshot work, with one scheduled or running rebuild per namespace/group.
  * The first event sets the deadline; later events never postpone it.
+ *
+ * <p>Each key has at most one scheduled or running drain, so the executor may use several
+ * threads: distinct keys rebuild in parallel while a single key is never rebuilt concurrently.
+ * A failing rebuild keeps its key and retries with exponential backoff, starting at
+ * {@value #FAILURE_RETRY_MILLIS}ms and capped at {@value #MAX_FAILURE_RETRY_MILLIS}ms, until a
+ * successful rebuild covers every arrival; it never gives up, because giving up would leave
+ * long-poll readers on a stale snapshot.</p>
  */
 final class HttpCacheRebuildCoordinator implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpCacheRebuildCoordinator.class);
+    static final long FAILURE_RETRY_MILLIS = 1000;
 
-    private static final long FAILURE_RETRY_MILLIS = 1000;
+    static final long MAX_FAILURE_RETRY_MILLIS = 30_000;
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpCacheRebuildCoordinator.class);
 
     private final Map<String, PendingRebuild> pending = new HashMap<>();
 
@@ -58,12 +67,14 @@ final class HttpCacheRebuildCoordinator implements AutoCloseable {
      *
      * @param key namespace/group key
      * @param rebuild reload, publish and notify action
-     * @return false when the caller must rebuild synchronously (capacity or executor rejection)
+     * @return false when the caller must rebuild synchronously (capacity, executor rejection or
+     *         a coordinator that is already closed during shutdown)
      */
     boolean request(final String key, final Runnable rebuild) {
         synchronized (pending) {
             if (closed) {
-                throw new IllegalStateException("HTTP cache rebuild coordinator is closed");
+                // A commit racing shutdown must not fail its after-commit hook.
+                return false;
             }
             PendingRebuild existing = pending.get(key);
             if (Objects.nonNull(existing)) {
@@ -103,20 +114,39 @@ final class HttpCacheRebuildCoordinator implements AutoCloseable {
             state.rebuild.run();
             successful = true;
         } catch (Exception ex) {
-            LOG.error("HTTP cache rebuild failed for {}, will retry", key, ex);
+            synchronized (pending) {
+                state.failures++;
+            }
+            LOG.error("HTTP cache rebuild failed for {} (attempt {}), will retry in {}ms",
+                    key, state.failures, retryDelayMillis(state.failures), ex);
         } finally {
             synchronized (pending) {
                 if (!closed) {
+                    if (successful) {
+                        state.failures = 0;
+                    }
                     if (successful && generation == state.generation) {
                         pending.remove(key, state);
                     } else {
                         // Keep ownership until a successful rebuild covers all arrivals. Yield between
-                        // generations so a hot or failing key cannot monopolize the worker.
-                        schedule(key, state, successful ? windowMillis : Math.max(windowMillis, FAILURE_RETRY_MILLIS));
+                        // generations so a hot or failing key cannot monopolize a worker.
+                        schedule(key, state, successful ? windowMillis : retryDelayMillis(state.failures));
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Exponential backoff for consecutive failures of one key, never shorter than the window.
+     *
+     * @param failures consecutive failures, at least one
+     * @return the retry delay in milliseconds
+     */
+    long retryDelayMillis(final int failures) {
+        int doublings = Math.min(Math.max(failures, 1) - 1, 30);
+        long backoff = Math.min(MAX_FAILURE_RETRY_MILLIS, FAILURE_RETRY_MILLIS << doublings);
+        return Math.max(windowMillis, backoff);
     }
 
     @Override
@@ -133,6 +163,8 @@ final class HttpCacheRebuildCoordinator implements AutoCloseable {
         private final Runnable rebuild;
 
         private long generation;
+
+        private int failures;
 
         private PendingRebuild(final Runnable rebuild) {
             this.rebuild = rebuild;
