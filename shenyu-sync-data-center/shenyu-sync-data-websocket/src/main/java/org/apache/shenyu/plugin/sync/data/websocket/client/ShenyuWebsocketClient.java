@@ -31,6 +31,7 @@ import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -49,6 +50,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -103,9 +105,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private TimerTask timerTask;
 
-    private String runningMode;
+    private volatile String runningMode;
 
-    private String masterUrl;
+    private volatile String masterUrl;
 
     private volatile boolean isConnectedToMaster;
 
@@ -263,6 +265,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
+        runningMode = null;
+        masterUrl = null;
+        isConnectedToMaster = false;
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
@@ -292,11 +297,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
             } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                String mode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), mode)) {
                     this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                     this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
                 }
+                this.runningMode = mode;
             } else if (Objects.nonNull(initialSyncState)) {
                 initialSyncState.applyIncremental(() -> handleResult(result));
             } else {
@@ -436,7 +442,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param result result
      */
     private void handleResult(final String result) {
-        LOG.info("server [{}] handleResult({})", this.getURI().toString(), result);
+        LogUtils.debug(LOG, "server [{}] handleResult({})", this.getURI().toString(), result);
         WebsocketData<?> websocketData;
         try {
             websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
@@ -447,6 +453,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
             return;
         }
+        LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
+                this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
+                websocketData.getNamespaceId(), result.getBytes(StandardCharsets.UTF_8).length);
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;

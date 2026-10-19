@@ -34,11 +34,14 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
+import java.net.http.HttpTimeoutException;
+import java.net.http.HttpConnectTimeoutException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +56,23 @@ class AgentMcpAggregationTest {
     private final AtomicInteger calls = new AtomicInteger();
 
     private final AtomicInteger localCalls = new AtomicInteger();
+
+    private Throwable remoteFailure;
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2})
+    void remoteTimeoutIsNotAnInternalErrorAndReleasesItsLease(final int type) {
+        remoteFailure = switch (type) {
+            case 0 -> new TimeoutException("private-reactor-timeout");
+            case 1 -> new HttpTimeoutException("private-upstream-timeout");
+            default -> new HttpConnectTimeoutException("private-connect-timeout");
+        };
+        StepVerifier.create(dispatcher("local").dispatch(request("tools/call", "orders.lookup"), () -> context("A", Set.of("orders.lookup"))))
+                .expectErrorMatches(error -> error instanceof TimeoutException).verify();
+        assertEquals(1, calls.get());
+        assertEquals(0, active.get());
+        assertEquals(0, localCalls.get());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"server/discover", "tools/list", "tools/call"})
@@ -207,6 +227,9 @@ class AgentMcpAggregationTest {
             @Override
             public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
                 calls.incrementAndGet();
+                if (Objects.nonNull(remoteFailure)) {
+                    return Mono.error(remoteFailure);
+                }
                 ObjectNode result = mapper.createObjectNode().put("isError", true).put("extension", true);
                 result.putObject("structuredContent").put("subject", context.getSubject());
                 result.putArray("content").addObject().put("type", "text").put("text", "Business failure");

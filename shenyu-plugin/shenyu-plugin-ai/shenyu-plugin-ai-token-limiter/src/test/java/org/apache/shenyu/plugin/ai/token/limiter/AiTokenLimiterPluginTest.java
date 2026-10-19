@@ -23,11 +23,23 @@ import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,8 +47,12 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,6 +62,53 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for {@link AiTokenLimiterPlugin}.
  */
 class AiTokenLimiterPluginTest {
+
+    private static final String USAGE_EVENT = "data: {\"usage\":{\"completion_tokens\":12}}\n\n";
+
+    @ParameterizedTest
+    @CsvSource({"false, field", "true, field", "true, number"})
+    void testResponseUsageAcrossBuffers(final boolean flush, final String boundary) {
+        byte[] content = USAGE_EVENT.getBytes(StandardCharsets.UTF_8);
+        int split = USAGE_EVENT.indexOf("field".equals(boundary) ? "tokens" : "2");
+        byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
+        assertResponseUsage(content, chunks, flush, false);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testResponseUsageAcrossGzipBuffers(final boolean flush) throws IOException {
+        byte[] compressed = compressGzip(USAGE_EVENT);
+        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), flush, true);
+    }
+
+    @Test
+    void testFlushUsageIsFinalizedAfterOuterPublisherCompletes() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        ByteArrayOutputStream forwarded = new ByteArrayOutputStream();
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(buffer -> {
+            byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            forwarded.writeBytes(bytes);
+            DataBufferUtils.release(buffer);
+        }).then());
+        List<Long> recorded = new ArrayList<>();
+        List<Throwable> errors = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Sinks.Many<Publisher<? extends DataBuffer>> body = Sinks.many().unicast().onBackpressureBuffer();
+        response.writeAndFlushWith(body.asFlux()).subscribe(unused -> { }, errors::add);
+        int split = USAGE_EVENT.indexOf("tokens");
+        body.tryEmitNext(Mono.just(exchange.getResponse().bufferFactory().wrap(USAGE_EVENT.substring(0, split).getBytes(StandardCharsets.UTF_8)))).orThrow();
+        assertEquals(USAGE_EVENT.substring(0, split), forwarded.toString(StandardCharsets.UTF_8));
+        assertTrue(recorded.isEmpty());
+        body.tryEmitNext(Mono.just(exchange.getResponse().bufferFactory().wrap(USAGE_EVENT.substring(split).getBytes(StandardCharsets.UTF_8)))).orThrow();
+        assertEquals(USAGE_EVENT, forwarded.toString(StandardCharsets.UTF_8));
+        assertTrue(recorded.isEmpty());
+
+        body.tryEmitComplete().orThrow();
+        assertTrue(errors.isEmpty());
+        assertEquals(List.of(12L), recorded);
+    }
 
     @Test
     void testBodyWriterRetainsOnlyTailBytes() {
@@ -240,6 +303,29 @@ class AiTokenLimiterPluginTest {
                 ShenyuRedisSerializationContext.stringSerializationContext().getValueSerializationPair();
 
         assertEquals("0", valuePair.read(valuePair.write("0")));
+    }
+
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+        if (gzip) {
+            exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        }
+        List<Long> recorded = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Flux<DataBuffer> body = Flux.fromArray(chunks).map(exchange.getResponse().bufferFactory()::wrap);
+        Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
+        completion.block();
+
+        assertEquals(List.of(12L), recorded);
+        byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
+            byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            DataBufferUtils.release(buffer);
+            return bytes;
+        }).block();
+        assertArrayEquals(expected, forwarded);
     }
 
     @SuppressWarnings("unchecked")

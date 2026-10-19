@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.impl.InstanceInfoServiceImpl;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,6 +111,24 @@ public final class InstanceInfoServiceTest {
         assertEquals(instanceInfoDO.getInstancePort(), instanceInfoVO.getInstancePort());
         assertEquals(instanceInfoDO.getInstanceType(), instanceInfoVO.getInstanceType());
         assertEquals(instanceInfoDO.getNamespaceId(), instanceInfoVO.getNamespaceId());
+    }
+
+    @Test
+    void testLegacyInstanceInformationIsNormalizedOnRead() {
+        String information = "{\"cpu\":4,\"os\":\"Windows\"}";
+        InstanceInfoDO stored = buildDO();
+        stored.setInstanceInfo(GsonUtils.getInstance().toJson(information));
+        when(instanceInfoMapper.selectById("id-1")).thenReturn(stored);
+        when(instanceInfoMapper.selectAll()).thenReturn(List.of(stored));
+        when(instanceInfoMapper.selectByQuery(any())).thenReturn(List.of(stored));
+        InstanceQuery query = new InstanceQuery();
+        query.setPageParameter(new PageParameter(1, 10));
+
+        assertEquals(information, instanceInfoService.findById("id-1").getInstanceInfo());
+        assertEquals(information, instanceInfoService.list().get(0).getInstanceInfo());
+        assertEquals(information, instanceInfoService.listByPage(query).getDataList().get(0).getInstanceInfo());
+        assertEquals(GsonUtils.getInstance().toJson(information), stored.getInstanceInfo());
+        verify(instanceInfoMapper, never()).updateById(any());
     }
 
     @Test

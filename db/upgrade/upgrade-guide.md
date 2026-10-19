@@ -14,6 +14,9 @@ contract. Upgrade all bootstrap instances before, or together with, Admin:
 an Admin emitting `logged` is not understood by older bootstraps. Stop Admin
 instances before running the script, then restart them after it completes.
 Fresh installations create the renamed columns directly.
+The MySQL script uses `ALTER TABLE ... RENAME COLUMN`, which requires
+MySQL 8.0 or later; on MySQL 5.7 apply the same rename with the equivalent
+`ALTER TABLE ... CHANGE COLUMN loged logged ...` syntax instead.
 
 - 2.7.2-upgrade-2.7.3-mysql.sql
 
