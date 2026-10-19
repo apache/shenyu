@@ -63,6 +63,8 @@ jobs:
           submodules: true
       - name: Test conditional disk cleanup
         run: bash .github/scripts/free-disk-space-test.sh
+      - name: Test local HTTP upstream fixture and Compose wiring
+        run: python3 -B shenyu-e2e/shenyu-e2e-case/compose/fixtures/test_httpbin.py
       - uses: ./actions/paths-filter
         id: filter
         with:

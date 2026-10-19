@@ -17,6 +17,10 @@
 version: '3.9'
 
 services:
+  httpbin:
+    extends:
+      file: ../fixtures/httpbin.yml
+      service: httpbin
   shenyu-zookeeper-cluster:
     image: zookeeper:3.9
     container_name: shenyu-zookeeper-cluster
@@ -158,6 +162,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
+      httpbin:
+        condition: service_healthy
       shenyu-admin-1:
         condition: service_healthy
       shenyu-admin-2:
