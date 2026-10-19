@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.net.http.HttpTimeoutException;
+import java.util.concurrent.TimeoutException;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -87,6 +89,14 @@ public final class AgentMcpDispatcher {
             }
             return route(request, context).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
         }).onErrorMap(error -> {
+            if (error instanceof TimeoutException) {
+                return error;
+            }
+            if (error instanceof HttpTimeoutException) {
+                TimeoutException timeout = new TimeoutException("Upstream request timed out");
+                timeout.initCause(error);
+                return timeout;
+            }
             if (error instanceof AgentMcpProtocolException) {
                 return error;
             }

@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.utils.InstanceInfoUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,10 +108,12 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
 
     private InstanceInfoVO buildInstanceInfoVO(final InstanceInfoDO instanceInfoDO) {
         InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
+        instanceInfoVO.setId(instanceInfoDO.getId());
         instanceInfoVO.setInstanceIp(instanceInfoDO.getInstanceIp());
         instanceInfoVO.setInstancePort(instanceInfoDO.getInstancePort());
         instanceInfoVO.setInstanceType(instanceInfoDO.getInstanceType());
-        instanceInfoVO.setInstanceInfo(instanceInfoDO.getInstanceInfo());
+        // Normalize legacy rows for display without rewriting the stored value.
+        instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceInfoDO.getInstanceInfo()));
         instanceInfoVO.setInstanceState(instanceInfoDO.getInstanceState());
         instanceInfoVO.setNamespaceId(instanceInfoDO.getNamespaceId());
         instanceInfoVO.setDateCreated(instanceInfoDO.getDateCreated());

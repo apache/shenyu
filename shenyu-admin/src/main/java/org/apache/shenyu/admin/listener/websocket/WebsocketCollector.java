@@ -19,6 +19,9 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
@@ -194,21 +197,7 @@ public class WebsocketCollector {
             return;
         }
         if (message.contains(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("bootstrap report instance info: {}", message);
-            }
-            String namespaceId = getNamespaceId(session);
-            Map<String, Object> infoMap = GsonUtils.getInstance().convertToMap(message);
-            Object o = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
-            InstanceInfoReportEvent instanceInfoRegisterDTO = InstanceInfoReportEvent.builder()
-                    .instanceIp(getClientIp(session))
-                    .instancePort(getClientPort(session))
-                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
-                    .instanceInfo(GsonUtils.getInstance().toJson(o))
-                    .instanceState(1)
-                    .namespaceId(namespaceId)
-                    .build();
-            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
+            reportInstanceInfo(message, session);
             return;
         }
         
@@ -359,6 +348,36 @@ public class WebsocketCollector {
         
     }
     
+    private void reportInstanceInfo(final String message, final Session session) {
+        JsonObject infoMap;
+        try {
+            infoMap = GsonUtils.getInstance().fromJson(message, JsonObject.class);
+        } catch (JsonParseException ex) {
+            LOG.warn("Ignoring malformed bootstrap instance information frame");
+            return;
+        }
+        if (Objects.isNull(infoMap)) {
+            return;
+        }
+        LOG.debug("Received bootstrap instance information report");
+        JsonElement information = infoMap.get(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
+        String instanceInfo = null;
+        if (Objects.nonNull(information) && !information.isJsonNull()) {
+            // Read only the outer frame; JSON-looking strings inside the object must stay strings.
+            instanceInfo = information.isJsonPrimitive() && information.getAsJsonPrimitive().isString()
+                    ? information.getAsString() : information.toString();
+        }
+        InstanceInfoReportEvent instanceInfoRegisterDTO = InstanceInfoReportEvent.builder()
+                .instanceIp(getClientIp(session))
+                .instancePort(getClientPort(session))
+                .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
+                .instanceInfo(instanceInfo)
+                .instanceState(1)
+                .namespaceId(getNamespaceId(session))
+                .build();
+        SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
+    }
+
     private void initialSync(final String requestId, final Session session) {
         try {
             UUID.fromString(requestId);

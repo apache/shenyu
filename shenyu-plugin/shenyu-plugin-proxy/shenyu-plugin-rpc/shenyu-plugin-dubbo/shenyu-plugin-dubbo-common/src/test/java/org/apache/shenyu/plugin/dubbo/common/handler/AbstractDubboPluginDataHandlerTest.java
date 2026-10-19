@@ -22,12 +22,16 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -93,6 +97,50 @@ public class AbstractDubboPluginDataHandlerTest {
 
         handler.removeSelector(selectorData);
         assertNull(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle("1"));
+    }
+
+    @Test
+    public void emptyHandleClearsGrayRoutingCaches() {
+        final String selectorId = "gray-empty-selector";
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(selectorId);
+        selectorData.setContinued(true);
+        selectorData.setHandle("[{\"protocol\":\"dubbo://\",\"upstreamUrl\":\"127.0.0.1:20880\",\"gray\":true,"
+                + "\"weight\":1,\"status\":true,\"healthCheckEnabled\":false}]");
+        handler.handlerSelector(selectorData);
+        assertEquals(1, AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(selectorId).size());
+        assertEquals(1, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId).size());
+
+        // a full update to an empty handle is a valid replacement and must clear gray routing
+        selectorData.setHandle("[]");
+        handler.handlerSelector(selectorData);
+        assertNull(AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(selectorId));
+        assertNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId));
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
+    }
+
+    @Test
+    public void replacingGrayTargetRemovesOmittedUpstream() {
+        final String selectorId = "gray-replace-selector";
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(selectorId);
+        selectorData.setContinued(true);
+        selectorData.setHandle("[{\"protocol\":\"dubbo://\",\"upstreamUrl\":\"127.0.0.1:20880\",\"gray\":true,"
+                + "\"weight\":1,\"status\":true,\"healthCheckEnabled\":false}]");
+        handler.handlerSelector(selectorData);
+        assertEquals(1, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId).size());
+
+        // replace gray target A (20880) with B (20881): A must no longer remain a routing candidate
+        selectorData.setHandle("[{\"protocol\":\"dubbo://\",\"upstreamUrl\":\"127.0.0.1:20881\",\"gray\":true,"
+                + "\"weight\":1,\"status\":true,\"healthCheckEnabled\":false}]");
+        handler.handlerSelector(selectorData);
+        List<Upstream> candidates = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        assertEquals(1, candidates.size());
+        assertEquals("127.0.0.1:20881", candidates.get(0).getUrl());
+        assertEquals(1, AbstractDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().obtainHandle(selectorId).size());
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
     }
 
     @Test
