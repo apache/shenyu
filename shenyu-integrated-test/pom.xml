@@ -37,6 +37,7 @@
         <module>shenyu-integrated-test-grpc</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-rewrite</module>
+        <module>shenyu-integrated-test-tracing</module>
         <module>shenyu-integrated-test-combination</module>
         <module>shenyu-integrated-test-sdk-apache-dubbo</module>
         <module>shenyu-integrated-test-sdk-http</module>

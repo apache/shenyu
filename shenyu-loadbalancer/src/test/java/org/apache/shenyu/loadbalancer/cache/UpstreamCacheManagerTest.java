@@ -25,6 +25,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -377,6 +379,84 @@ public class UpstreamCacheManagerTest {
         Assertions.assertFalse(finalResult.isEmpty());
 
         upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"green, v1", "blue, v2"})
+    @Order(12)
+    public void testSubmitPreservesLogicalUpstreamIdentity(final String secondGroup, final String secondVersion) {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "LOGICAL_IDENTITY_" + secondGroup + secondVersion;
+        final Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").weight(10).healthCheckEnabled(false).build();
+        final Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group(secondGroup).version(secondVersion).weight(20).healthCheckEnabled(false).build();
+        try {
+            manager.submit(selectorId, List.of(first, second));
+            List<Upstream> initial = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(initial);
+            Assertions.assertEquals(2, initial.size());
+            Assertions.assertSame(first, initial.get(0));
+            Assertions.assertSame(second, initial.get(1));
+
+            final Upstream updatedFirst = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group("blue").version("v1").weight(30).healthCheckEnabled(false).build();
+            final Upstream updatedSecond = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group(secondGroup).version(secondVersion).weight(40).healthCheckEnabled(false).build();
+            manager.submit(selectorId, List.of(updatedFirst, updatedSecond));
+            List<Upstream> updated = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(updated);
+            Assertions.assertEquals(2, updated.size());
+            Assertions.assertSame(first, updated.get(0));
+            Assertions.assertSame(second, updated.get(1));
+            Assertions.assertEquals(30, first.getWeight());
+            Assertions.assertEquals(40, second.getWeight());
+
+            final Upstream offlineFirst = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group("blue").version("v1").status(false).healthCheckEnabled(true).build();
+            manager.submit(selectorId, List.of(offlineFirst, updatedSecond));
+            List<Upstream> remaining = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(remaining);
+            Assertions.assertEquals(1, remaining.size());
+            Assertions.assertSame(second, remaining.get(0));
+            Assertions.assertEquals(40, second.getWeight());
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    @Order(13)
+    public void testSubmitKeepsUnhealthyLogicalUpstreamsSeparate() throws ReflectiveOperationException {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        final String selectorId = "LOGICAL_UNHEALTHY_IDENTITY";
+        final Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").status(false).healthCheckEnabled(true).build();
+        final Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("green").version("v2").status(false).healthCheckEnabled(true).build();
+        final Upstream healthy = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("yellow").version("v3").healthCheckEnabled(false).build();
+        final java.lang.reflect.Field lockField = UpstreamCheckTask.class.getDeclaredField("lock");
+        lockField.setAccessible(true);
+        synchronized (lockField.get(task)) {
+            try {
+                manager.submit(selectorId, List.of(first, second, healthy));
+                List<Upstream> healthyUpstreams = manager.findUpstreamListBySelectorId(selectorId);
+                Assertions.assertNotNull(healthyUpstreams);
+                Assertions.assertEquals(1, healthyUpstreams.size());
+                Assertions.assertSame(healthy, healthyUpstreams.get(0));
+                List<Upstream> unhealthyUpstreams = task.getUnhealthyUpstream().get(selectorId);
+                Assertions.assertNotNull(unhealthyUpstreams);
+                Assertions.assertEquals(2, unhealthyUpstreams.size());
+                Assertions.assertSame(first, unhealthyUpstreams.get(0));
+                Assertions.assertSame(second, unhealthyUpstreams.get(1));
+                Assertions.assertFalse(unhealthyUpstreams.contains(healthy));
+            } finally {
+                manager.removeByKey(selectorId);
+            }
+        }
     }
 
     /**

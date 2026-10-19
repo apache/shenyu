@@ -77,9 +77,12 @@ public final class InstanceControllerTest {
 
     @Test
     public void testQueryPlugins() throws Exception {
-        PageParameter pageParameter = new PageParameter(1, 10);
+        final PageParameter pageParameter = new PageParameter(1, 10);
         List<InstanceInfoVO> vos = new ArrayList<>();
         vos.add(vo);
+        InstanceInfoVO second = buildVO();
+        second.setId("instance-2");
+        vos.add(second);
         CommonPager<InstanceInfoVO> pager = new CommonPager<>();
         pager.setPage(pageParameter);
         pager.setDataList(vos);
@@ -100,7 +103,9 @@ public final class InstanceControllerTest {
                         .param("pageSize", String.valueOf(pageParameter.getPageSize())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())));
+                .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())))
+                .andExpect(jsonPath("$.data.dataList[0].id", is("instance-1")))
+                .andExpect(jsonPath("$.data.dataList[1].id", is("instance-2")));
     }
 
     @Test
@@ -109,7 +114,8 @@ public final class InstanceControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())));
+                .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())))
+                .andExpect(jsonPath("$.data.id", is("instance-1")));
     }
 
     @Test
@@ -131,6 +137,7 @@ public final class InstanceControllerTest {
 
     private InstanceInfoVO buildVO() {
         InstanceInfoVO v = new InstanceInfoVO();
+        v.setId("instance-1");
         v.setInstanceIp("127.0.0.1");
         v.setInstancePort("8080");
         v.setInstanceType("grpc");

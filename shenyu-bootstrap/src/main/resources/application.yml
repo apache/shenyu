@@ -306,6 +306,21 @@ shenyu:
   tracing:
     enabled: false
     serviceName: shenyu-gateway
+    createSpan: true
+    # parent_based continues the decision of the client and samples a request which has none,
+    # always_on and always_off decide about every request, even about the request of a client which
+    # has decided already, and ratio continues the decision of the client as well while it samples a
+    # request which carries no parent context with the given ratio
+    sampler: parent_based
+    # only used by the ratio sampler, and only for the requests which carry no parent context
+    # sampleRatio: 0.1
+#    resourceAttributes:
+#      deployment.environment: prod
+#    otlp:
+#      endpoint: http://127.0.0.1:4318/v1/traces
+#      timeout: 10s
+#      headers:
+#        authorization: Bearer example
 #  plugins:
 #    ai:
 #      proxy:

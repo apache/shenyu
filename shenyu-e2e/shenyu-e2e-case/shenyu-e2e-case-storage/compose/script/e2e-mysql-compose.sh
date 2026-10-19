@@ -47,7 +47,7 @@ fi
 bash "$HEALTHCHECK_SCRIPT" mysql http://localhost:31095/actuator/health http://localhost:31195/actuator/health
 ## run e2e-test
 
-if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
+if ! bash .github/scripts/maven-with-retry.sh ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
   dump_logs
   exit 1
 fi

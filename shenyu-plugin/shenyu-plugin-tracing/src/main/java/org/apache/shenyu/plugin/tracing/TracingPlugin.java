@@ -47,6 +47,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>The span is created for every subscription, so the span of an attempt is never ended twice.
  * The gateway chain itself is subscribed once per request, the guarantee matters for callers which
  * subscribe the returned {@code Mono} more than once.</p>
+ *
+ * <p>A deployment which already instruments the gateway, for example with a java agent, can disable
+ * the span creation: the plugin then only propagates the incoming context, so that the request is not
+ * traced twice.</p>
  */
 public class TracingPlugin implements ShenyuPlugin {
 
@@ -54,13 +58,15 @@ public class TracingPlugin implements ShenyuPlugin {
 
     private final TraceContextExtractor extractor;
 
+    private final boolean createSpan;
+
     /**
      * Instantiates a new tracing plugin.
      *
      * @param tracer the tracer which creates the gateway spans
      */
     public TracingPlugin(final Tracer tracer) {
-        this(tracer, new TraceContextExtractor());
+        this(tracer, new TraceContextExtractor(), true);
     }
 
     /**
@@ -70,8 +76,22 @@ public class TracingPlugin implements ShenyuPlugin {
      * @param extractor the extractor of the inbound trace context
      */
     public TracingPlugin(final Tracer tracer, final TraceContextExtractor extractor) {
+        this(tracer, extractor, true);
+    }
+
+    /**
+     * Instantiates a new tracing plugin.
+     *
+     * @param tracer the tracer which creates the gateway spans
+     * @param extractor the extractor of the inbound trace context
+     * @param createSpan whether the plugin creates a span of its own, false for a deployment which
+     *                   instruments the gateway already, for example with a java agent, where the
+     *                   request is only propagated
+     */
+    public TracingPlugin(final Tracer tracer, final TraceContextExtractor extractor, final boolean createSpan) {
         this.tracer = tracer;
         this.extractor = extractor;
+        this.createSpan = createSpan;
     }
 
     @Override
@@ -102,7 +122,16 @@ public class TracingPlugin implements ShenyuPlugin {
      * @return the chain wrapped by the span lifecycle
      */
     private Mono<Void> withSpan(final ServerWebExchange exchange, final Mono<Void> chainResult) {
-        final Context parent = extractor.extract(exchange);
+        final Context parent = parentContext(exchange);
+        if (!createSpan) {
+            // the deployment instruments the gateway already, so the request is propagated without
+            // creating a second span for it: the active context of the instrumentation is the
+            // current context, which the access log and the outgoing call see as well.
+            ReactorTracingContext.store(exchange, parent);
+            exposeTraceId(exchange, Span.fromContext(parent));
+            return chainResult
+                    .contextWrite(context -> context.put(TracingConstants.REACTOR_CONTEXT_KEY, parent));
+        }
         final Span span = tracer.spanBuilder(SpanAttributesBuilder.spanName(exchange))
                 .setSpanKind(SpanKind.SERVER)
                 .setParent(parent)
@@ -126,6 +155,22 @@ public class TracingPlugin implements ShenyuPlugin {
                         span.end();
                     }
                 });
+    }
+
+    /**
+     * Acquires the context which the request continues.
+     *
+     * <p>A deployment which instruments the gateway itself, for example with a java agent, has an
+     * active context of its own for the request: continuing it keeps the gateway span of the agent in
+     * the trace instead of skipping it. The context of the headers of the client is used while no
+     * instrumentation is active, which is the normal case of the gateway.</p>
+     *
+     * @param exchange the current exchange
+     * @return the context of the request
+     */
+    private Context parentContext(final ServerWebExchange exchange) {
+        final Context active = Context.current();
+        return Span.fromContext(active).getSpanContext().isValid() ? active : extractor.extract(exchange);
     }
 
     /**

@@ -22,27 +22,38 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpHeaders;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.springframework.http.HttpStatus;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -70,20 +81,42 @@ public class RetryStrategyTest {
         ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(httpClientPlugin);
 
         // Create a simulated ServerWebExchange
-        ServerWebExchange exchange = mock(ServerWebExchange.class);
-        Duration duration = Duration.ofSeconds(5);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+        Duration duration = Duration.ofSeconds(30);
         int retryTimes = 3;
 
-        // Create a mock response Mono that throws an exception
-        Mono<String> response = Mono.error(new RuntimeException("Test error"));
+        // Create a mock response Mono that throws a network exception
+        AtomicInteger attempts = new AtomicInteger();
+        ConnectTimeoutException failure = new ConnectTimeoutException("connection timed out");
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(failure);
+        });
 
         // Execute retry policy
-        Mono<String> result = strategy.execute(response, exchange, duration, retryTimes);
-
-        // Use StepVerifier to verify results
-        StepVerifier.create(result)
-                .expectError(RuntimeException.class)
+        StepVerifier.withVirtualTime(() -> strategy.execute(response, exchange, duration, retryTimes))
+                .thenAwait(Duration.ofSeconds(30))
+                .expectErrorMatches(error -> error == failure)
                 .verify();
+        assertEquals(retryTimes + 1, attempts.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST", "PUT"})
+    void testExponentialStrategyDoesNotRetryUnsafeRequestsOrPermanentFailures(final String method) {
+        ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(mock(AbstractHttpClientPlugin.class));
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.valueOf(method), "/").build());
+        Throwable failure = "GET".equals(method)
+                ? WebClientResponseException.create(400, "Bad Request", HttpHeaders.EMPTY, new byte[0], null)
+                : new TimeoutException("request timed out");
+        AtomicInteger attempts = new AtomicInteger();
+        Mono<String> response = Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(failure);
+        });
+        StepVerifier.create(strategy.execute(response, exchange, Duration.ofSeconds(5), 3))
+                .expectErrorMatches(error -> error == failure).verify();
+        assertEquals(1, attempts.get());
     }
 
     @Test
@@ -315,6 +348,104 @@ public class RetryStrategyTest {
                 .verify();
 
         assertEquals(1, attempts.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testFixedFailoverWaitsBeforeSendingToStandby(final boolean serverError) {
+        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.GET, 1);
+        URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
+        URI standbyUri = URI.create("http://localhost:8081/test?mode=retry");
+        Throwable failure = serverError ? new ShenyuUpstreamStatusException(503) : new ConnectException("connection refused");
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts,
+                uri -> primaryUri.equals(uri) ? Mono.error(failure) : Mono.just("success"));
+        Upstream standby = Upstream.builder().url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("fixed-failover")).thenReturn(Collections.singletonList(standby));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                    .thenAwait(Duration.ofMillis(1999))
+                    .then(() -> {
+                        assertEquals(Collections.singletonList(primaryUri), attempts);
+                        verifyNoInteractions(cacheManager);
+                    })
+                    .thenAwait(Duration.ofMillis(1))
+                    .verifyComplete();
+        }
+        assertEquals(Arrays.asList(primaryUri, standbyUri), attempts);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"POST", "GET"})
+    void testFixedFailoverPreservesRetryEligibility(final String method) {
+        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.valueOf(method), 1);
+        Throwable failure = "POST".equals(method) ? new ConnectException("connection refused") : new IllegalArgumentException("permanent failure");
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> Mono.error(failure));
+
+        StepVerifier.create(plugin.execute(exchange, ignored -> Mono.empty()))
+                .expectErrorMatches(error -> error == failure)
+                .verify();
+        assertEquals(Collections.singletonList(exchange.getAttribute(Constants.HTTP_URI)), attempts);
+    }
+
+    @Test
+    void testFixedFailoverRetriesAcrossDistinctUpstreams() {
+        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.GET, 2);
+        URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
+        URI standbyUri = URI.create("http://localhost:8081/test?mode=retry");
+        URI healthyUri = URI.create("http://localhost:8082/test?mode=retry");
+        ShenyuUpstreamStatusException failure = new ShenyuUpstreamStatusException(503);
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts,
+                uri -> healthyUri.equals(uri) ? Mono.just("success") : Mono.error(failure));
+        Upstream primary = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().url("localhost:8081").build();
+        Upstream healthy = Upstream.builder().url("localhost:8082").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("fixed-failover"))
+                .thenReturn(Arrays.asList(primary, standby), Arrays.asList(primary, standby, healthy));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                    .thenAwait(Duration.ofSeconds(4))
+                    .verifyComplete();
+        } finally {
+            UpstreamCircuitBreaker.getInstance().reset(UpstreamCircuitBreaker.buildKey("fixed-failover", standby));
+        }
+        assertEquals(Arrays.asList(primaryUri, standbyUri, healthyUri), attempts);
+    }
+
+    private ServerWebExchange createFixedFailoverExchange(final HttpMethod method, final int retryTimes) {
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry")
+                .mutate().request(request -> request.method(method)).build();
+        exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, "fixed");
+        exchange.getAttributes().put(Constants.HTTP_RETRY, retryTimes);
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 10000L);
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "fixed-failover");
+        return exchange;
+    }
+
+    private AbstractHttpClientPlugin<String> recordingPlugin(final List<URI> attempts, final Function<URI, Mono<String>> response) {
+        return new AbstractHttpClientPlugin<String>(1024) {
+            @Override
+            protected Mono<String> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri, final Flux<DataBuffer> body) {
+                return Mono.defer(() -> {
+                    attempts.add(uri);
+                    return response.apply(uri);
+                });
+            }
+
+            @Override
+            public int getOrder() {
+                return 0;
+            }
+        };
     }
 
     private ServerWebExchange createFailoverExchange(final String currentUri) {

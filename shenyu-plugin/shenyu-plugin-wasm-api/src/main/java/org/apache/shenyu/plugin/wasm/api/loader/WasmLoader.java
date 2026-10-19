@@ -375,6 +375,13 @@ public class WasmLoader implements AutoCloseable {
         return findWasmExtern(funcName);
     }
 
+    /**
+     * Check export names before resolving a function so absent hooks remain optional
+     * while a matching export of the wrong kind still fails validation.
+     *
+     * @param funcName the exported function name
+     * @return the exported function, or empty only when the name is absent
+     */
     private Optional<ExportFunction> findWasmExtern(final String funcName) {
         if (findExport(primary, funcName).isPresent()) {
             return Optional.of(args -> executeOnPool(funcName, args));

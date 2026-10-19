@@ -26,11 +26,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +45,7 @@ import static org.mockito.Mockito.when;
  * Test case for {@link ApplicationStartListener}.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ApplicationStartListenerTest {
 
     @InjectMocks
@@ -66,6 +74,21 @@ public final class ApplicationStartListenerTest {
             applicationStartListener.onApplicationEvent(event);
             verify(shenyuRunningModeService).start("192.168.1.1", 9095, "/shenyu");
         }
+    }
+
+
+    @Test
+    void testIgnoresManagementServerEvent() {
+        final org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent servletEvent =
+                mock(org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent.class);
+        final org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext managementContext =
+                mock(org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.class);
+        lenient().when(servletEvent.getWebServer()).thenReturn(webServer);
+        when(servletEvent.getApplicationContext()).thenReturn(managementContext);
+        when(managementContext.getServerNamespace()).thenReturn("management");
+
+        applicationStartListener.onApplicationEvent(servletEvent);
+        verify(shenyuRunningModeService, never()).start(anyString(), anyInt(), anyString());
     }
 
     @Test

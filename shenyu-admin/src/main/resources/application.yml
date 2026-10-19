@@ -134,6 +134,7 @@ shenyu:
     forward-list:
       - /shenyu-client/**
       - /configs/**
+      - /instance/beat
       - /selector/batchEnabled
       - /selector/batch
       - /selector

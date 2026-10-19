@@ -40,24 +40,22 @@ def run(command, **kwargs):
 
 
 def verify_wat():
+    for source_root, required in ((BASE, "wasm-gateway"), (API, "wasm-concurrent")):
+        if not (source_root / required).is_dir():
+            raise RuntimeError("Required WAT fixture family missing: " + required)
     version = subprocess.check_output(["wat2wasm", "--version"], text=True).strip()
     if version != "1.0.42":
         raise RuntimeError("WAT verification requires WABT 1.0.42, found " + version)
-    families = [
-        (BASE, ["wasm-bridge", "wasm-gateway"]),
-        (API, ["wasm-concurrent"]),
-    ]
     count = 0
-    for source_root, names in families:
-        for family in names:
-            directory = source_root / family
-            if not directory.exists():
-                continue
+    for source_root in (BASE, API):
+        for directory in sorted(source_root.glob("wasm-*")):
+            if not directory.is_dir():
+                raise RuntimeError("WAT fixture family is not a directory: " + directory.name)
             with tempfile.TemporaryDirectory(prefix="shenyu-wat-") as temporary:
                 run(["make", "-C", str(directory), "build", "RESOURCES=" + temporary])
                 binaries = list(Path(temporary).glob("*.wasm"))
                 if not binaries:
-                    raise RuntimeError("No fixtures generated for " + family)
+                    raise RuntimeError("No fixtures generated for " + directory.name)
                 for rebuilt in binaries:
                     committed = source_root / "resources" / rebuilt.name
                     if rebuilt.read_bytes() != committed.read_bytes():
@@ -79,7 +77,7 @@ def verify_rust():
                 shutil.copyfile(source / "Cargo.toml", copied / "Cargo.toml")
                 shutil.copytree(source / "src", copied / "src")
                 run(["cargo", "+" + RUST_TOOLCHAIN, "build", "--manifest-path", str(copied / "Cargo.toml"),
-                     "--target", "wasm32-wasip1", "--release", "--offline"])
+                     "--target", "wasm32-wasip1", "--release"])
                 binary = copied / "target/wasm32-wasip1/release" / (crate.replace("-", "_") + ".wasm")
                 resource = source_root / "resources" / resource_name
                 originals[resource] = resource.read_bytes()
