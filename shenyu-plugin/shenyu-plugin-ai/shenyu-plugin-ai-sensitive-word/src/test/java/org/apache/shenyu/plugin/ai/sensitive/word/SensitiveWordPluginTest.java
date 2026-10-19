@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.sensitive.word;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.SensitiveWordHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.ai.sensitive.word.ac.AhoCorasick;
 import org.apache.shenyu.plugin.ai.sensitive.word.handler.SensitiveWordPluginDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
@@ -29,6 +30,8 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -40,12 +43,20 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
@@ -275,6 +286,48 @@ public final class SensitiveWordPluginTest {
                 .body(Flux.just(new DefaultDataBufferFactory().wrap("this request is not scanned".getBytes(StandardCharsets.UTF_8)))));
         StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
         verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testTheDictionaryIsBuiltOffTheRedisIoThreads() {
+        final Scheduler redisIo = Schedulers.newParallel("simulated-redis-io");
+        try {
+            ReactiveRedisTemplate<String, String> redisTemplate = mock(ReactiveRedisTemplate.class);
+            ReactiveSetOperations<String, String> setOperations = mock(ReactiveSetOperations.class);
+            when(redisTemplate.opsForSet()).thenReturn(setOperations);
+            when(setOperations.members(REDIS_KEY)).thenReturn(Flux.just("forbidden", "banned").subscribeOn(redisIo));
+            cacheRedisTemplate(redisTemplate);
+
+            final AtomicReference<String> buildThread = new AtomicReference<>();
+            StepVerifier.create(plugin.redisAutomaton(redisTemplate, REDIS_KEY, Collections.emptyList())
+                            .doOnNext(automaton -> buildThread.set(Thread.currentThread().getName())))
+                    .expectNextCount(1)
+                    .verifyComplete();
+
+            assertNotNull(buildThread.get(), "the automaton must still be built");
+            assertFalse(buildThread.get().startsWith("simulated-redis-io"),
+                    "the automaton must not be built on the redis io threads");
+        } finally {
+            redisIo.dispose();
+        }
+    }
+
+    @Test
+    public void testTheRuleWordsAutomatonBuildIsDeferred() {
+        final AtomicReference<String> buildThread = new AtomicReference<>();
+        try (MockedStatic<AhoCorasick> automaton = Mockito.mockStatic(AhoCorasick.class)) {
+            final AhoCorasick realEmpty = AhoCorasick.empty();
+            automaton.when(AhoCorasick::empty).thenReturn(realEmpty);
+            automaton.when(() -> AhoCorasick.of(any())).thenAnswer(invocation -> {
+                buildThread.set(Thread.currentThread().getName());
+                return realEmpty;
+            });
+            // assembly only: the cpu bound build must not run on the calling thread
+            plugin.ruleWordsAutomaton(Arrays.asList("forbidden", "banned"));
+            assertNull(buildThread.get(), "the fallback build must be deferred off the assembly thread");
+            // and the deferred build still works on subscription
+            StepVerifier.create(plugin.ruleWordsAutomaton(Collections.singletonList("forbidden"))).expectNextCount(1).verifyComplete();
+        }
     }
 
     @SuppressWarnings("unchecked")
