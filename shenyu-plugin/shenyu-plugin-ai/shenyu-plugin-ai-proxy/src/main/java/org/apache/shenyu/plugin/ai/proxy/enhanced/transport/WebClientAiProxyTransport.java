@@ -102,11 +102,11 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                 .retrieve()
                 .onRawStatus(status -> status >= 400, response -> Mono.empty())
                 .toEntityFlux(DataBuffer.class)
-                .timeout(responseHeaderTimeout)
-                .onErrorMap(TimeoutException.class, error -> new AiTransportException(
-                        AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
-                        "AI upstream response header timed out",
-                        error))
+                .timeout(
+                        responseHeaderTimeout,
+                        timeoutFailure(
+                                AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                                "AI upstream response header timed out"))
                 .map(entity -> {
                     final Flux<DataBuffer> rawBody = Objects.requireNonNull(entity.getBody());
                     if (exceedsMaxResponseBytes(entity.getHeaders())) {
@@ -117,11 +117,11 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                     }
 
                     final Flux<DataBuffer> dataBuffers = enforceTotalStreamDuration(
-                            rawBody.timeout(streamingIdleTimeout)
-                                    .onErrorMap(TimeoutException.class, error -> new AiTransportException(
+                            rawBody.timeout(
+                                    streamingIdleTimeout,
+                                    timeoutFailure(
                                             AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
-                                            "AI upstream response body became idle",
-                                            error)));
+                                            "AI upstream response body became idle")));
                     final Flux<byte[]> bytes = dataBuffers
                             .map(buffer -> {
                                 try {
@@ -142,6 +142,13 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                 })
                 .onErrorMap(error -> !(error instanceof AiTransportException),
                         error -> toTransportException("AI upstream exchange failed", error));
+    }
+
+    private <T> Mono<T> timeoutFailure(final AiTransportException.Kind kind, final String message) {
+        return Mono.defer(() -> Mono.error(new AiTransportException(
+                kind,
+                message,
+                new TimeoutException(message))));
     }
 
     private Flux<DataBuffer> enforceTotalStreamDuration(final Flux<DataBuffer> body) {

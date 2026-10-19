@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -225,6 +226,19 @@ class WebClientAiProxyTransportTest {
         StepVerifier.withVirtualTime(() -> transport.execute(createRequest()))
                 .thenAwait(Duration.ofSeconds(5))
                 .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+    }
+
+    @Test
+    void testUpstreamTimeoutIsNotReclassifiedAsResponseHeaderTimeout() {
+        final WebClient webClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.error(new TimeoutException("connection pool acquire timed out")))
+                .build();
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient);
+
+        StepVerifier.create(transport.execute(createRequest()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.UNKNOWN,
                         assertInstanceOf(AiTransportException.class, error).getKind()))
                 .verify();
     }

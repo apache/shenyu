@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
-import io.netty.channel.ChannelOption;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
@@ -48,7 +47,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
 
 import java.util.List;
 
@@ -214,20 +212,37 @@ public class AiProxyPluginConfiguration {
     }
 
     /**
-     * Ai proxy transport.
+     * Shared Reactor Netty resources for the default AI proxy transport.
      *
      * @param properties AI proxy transport properties
-     * @return the AI proxy transport
+     * @return shared AI proxy HTTP client resources
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean(AiProxyTransport.class)
+    public AiProxyHttpClientResources aiProxyHttpClientResources(
+            final AiProxyTransportProperties properties) {
+        return new AiProxyHttpClientResources(properties);
+    }
+
+    /**
+     * Default AI proxy transport.
+     *
+     * @param resources shared AI proxy HTTP client resources
+     * @param properties AI proxy transport properties
+     * @return AI proxy transport
      */
     @Bean
     @ConditionalOnMissingBean(AiProxyTransport.class)
-    public AiProxyTransport aiProxyTransport(final AiProxyTransportProperties properties) {
-        final WebClient webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient(properties)))
+    public AiProxyTransport aiProxyTransport(
+            final AiProxyHttpClientResources resources,
+            final AiProxyTransportProperties properties) {
+        WebClient webClient = WebClient.builder()
+                .clientConnector(
+                        new ReactorClientHttpConnector(resources.getHttpClient()))
                 .build();
+
         return new WebClientAiProxyTransport(webClient, properties);
     }
-
 
     /**
      * Create the generic OpenAI-compatible provider profile.
@@ -289,7 +304,6 @@ public class AiProxyPluginConfiguration {
     public AiProxyTransportProperties aiProxyTransportProperties() {
         return new AiProxyTransportProperties();
     }
-
     /**
      * AI proxy retry properties.
      *
@@ -299,17 +313,5 @@ public class AiProxyPluginConfiguration {
     @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.retry")
     public AiProxyRetryProperties aiProxyRetryProperties() {
         return new AiProxyRetryProperties();
-    }
-
-    HttpClient createHttpClient(final AiProxyTransportProperties properties) {
-        return HttpClient.create()
-                .option(
-                        ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                        connectTimeoutMillis(properties)
-                );
-    }
-
-    int connectTimeoutMillis(final AiProxyTransportProperties properties) {
-        return Math.toIntExact(properties.getConnectTimeout().toMillis());
     }
 }
