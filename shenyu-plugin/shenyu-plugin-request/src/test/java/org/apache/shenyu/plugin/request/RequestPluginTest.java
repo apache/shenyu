@@ -36,6 +36,9 @@ import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -134,6 +137,24 @@ public class RequestPluginTest {
         Mockito.verify(chain).execute(captor.capture());
         assertEquals("value", captor.getValue().getRequest().getQueryParams().getFirst("partial"));
         assertEquals("oldValue", captor.getValue().getRequest().getHeaders().getFirst("addKey"));
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testClearedRuleStopsRequestTransformations(final String handle) {
+        ruleData.setHandle(handle);
+        new RequestPluginHandler().handlerRule(ruleData);
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest request = captor.getValue().getRequest();
+        assertEquals(exchange.getRequest().getHeaders(), request.getHeaders());
+        assertEquals(exchange.getRequest().getQueryParams(), request.getQueryParams());
+        assertEquals(exchange.getRequest().getCookies(), request.getCookies());
     }
 
     @Test
