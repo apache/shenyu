@@ -438,6 +438,27 @@ public final class HttpLongPollingDataChangedListenerTest {
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }
 
+    @Test
+    public void testDoLongPollingIgnoresPlaceholderClientPort() throws Exception {
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "serverMd5");
+        try {
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            this.httpServletRequest.addHeader("X-Real-PORT", "0");
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+            Mockito.verify(instanceInfoReportEventPublisher, Mockito.never()).publish(Mockito.any());
+
+            this.httpServletRequest = new MockHttpServletRequest();
+            this.httpServletResponse = new MockHttpServletResponse();
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+            Mockito.verify(instanceInfoReportEventPublisher, Mockito.never()).publish(Mockito.any());
+        } finally {
+            clearAllGroupsInCache(DEFAULT_NAMESPACE);
+        }
+    }
+
     /**
      * test doLongPolling without optional instance information.
      */
