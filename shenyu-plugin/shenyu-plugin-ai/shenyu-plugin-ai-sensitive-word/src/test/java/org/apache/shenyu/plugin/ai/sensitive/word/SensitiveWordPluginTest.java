@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -328,6 +329,34 @@ public final class SensitiveWordPluginTest {
             // and the deferred build still works on subscription
             StepVerifier.create(plugin.ruleWordsAutomaton(Collections.singletonList("forbidden"))).expectNextCount(1).verifyComplete();
         }
+    }
+
+    @Test
+    public void testCacheHitDoesNotParseTheRuleWords() {
+        mockRedisDictionary("forbidden");
+        cacheHandle(handle(customized -> customized.setWords("rule-only")));
+        // warm the cache with one miss
+        StepVerifier.create(plugin.doExecute(exchange("a clean request"), chain, null, ruleData)).verifyComplete();
+
+        final SensitiveWordPlugin spyPlugin = Mockito.spy(plugin);
+        StepVerifier.create(spyPlugin.doExecute(exchange("a clean request"), chain, null, ruleData)).verifyComplete();
+        verify(spyPlugin, never()).parseWords(anyString());
+    }
+
+    @Test
+    public void testCacheMissStillParsesTheRuleWords() {
+        final SensitiveWordPlugin spyPlugin = Mockito.spy(plugin);
+        cacheHandle(handle(customized -> customized.setWords("banned")));
+        ReactiveRedisTemplate<String, String> redisTemplate = mock(ReactiveRedisTemplate.class);
+        ReactiveSetOperations<String, String> setOperations = mock(ReactiveSetOperations.class);
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(setOperations.members(REDIS_KEY)).thenReturn(Flux.empty());
+        cacheRedisTemplate(redisTemplate);
+
+        // the miss path must still parse and enforce the rule words
+        StepVerifier.create(spyPlugin.doExecute(exchange("this request is banned"), chain, null, ruleData)).verifyComplete();
+        verify(spyPlugin).parseWords("banned");
+        verify(chain, never()).execute(any(ServerWebExchange.class));
     }
 
     @SuppressWarnings("unchecked")

@@ -195,12 +195,14 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
         String redisKey = Objects.isNull(handle.getRedisKey())
                 ? SensitiveWordHandle.DEFAULT_REDIS_KEY : handle.getRedisKey();
         String dictionaryKey = handle.dictionaryKey();
-        List<String> words = parseWords(handle.getWords());
         CachedDictionary cached = SensitiveWordPluginDataHandler.DICTIONARIES.get().obtainHandle(dictionaryKey);
         Mono<AhoCorasick> automaton;
         if (Objects.nonNull(cached) && !cached.isExpired(handle.getRefreshIntervalSeconds())) {
             automaton = Mono.just(cached.getAutomaton());
         } else {
+            // the rule words are only needed on a cache miss: parsing them on every
+            // cache hit would repeat an O(n^2) parse for nothing (#7829)
+            List<String> words = parseWords(handle.getWords());
             automaton = redisAutomaton(redisTemplate, redisKey, words)
                     .doOnNext(loaded -> SensitiveWordPluginDataHandler.DICTIONARIES.get()
                             .cachedHandle(dictionaryKey, new CachedDictionary(loaded)))
@@ -268,7 +270,7 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
      * @param words the words configured on the rule
      * @return the distinct words, in the order they were configured
      */
-    private List<String> parseWords(final String words) {
+    List<String> parseWords(final String words) {
         if (Objects.isNull(words) || words.trim().isEmpty()) {
             return Collections.emptyList();
         }
