@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.config.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.Objects;
 
 /**
  * the http sync strategy properties.
@@ -41,6 +42,60 @@ public class HttpSyncProperties {
      * Notify client batch size.
      */
     private int notifyBatchSize = 100;
+
+    /**
+     * Fixed cache rebuild coalescing window. Zero preserves synchronous event processing.
+     */
+    private Duration cacheRebuildWindow = Duration.ZERO;
+
+    /**
+     * Maximum pending namespace/group keys. New keys rebuild on the caller when full.
+     */
+    private int cacheRebuildMaxPendingKeys = 1024;
+
+    /**
+     * Get the fixed coalescing window.
+     *
+     * @return cache rebuild window
+     */
+    public Duration getCacheRebuildWindow() {
+        return cacheRebuildWindow;
+    }
+
+    /**
+     * Set the fixed coalescing window.
+     *
+     * @param cacheRebuildWindow zero to disable, or a window from 1 to 1000 milliseconds
+     */
+    public void setCacheRebuildWindow(final Duration cacheRebuildWindow) {
+        if (Objects.isNull(cacheRebuildWindow) || cacheRebuildWindow.isNegative()
+                || cacheRebuildWindow.compareTo(Duration.ofSeconds(1)) > 0
+                || (!cacheRebuildWindow.isZero() && cacheRebuildWindow.toMillis() == 0)) {
+            throw new IllegalArgumentException("cacheRebuildWindow must be zero or between 1ms and 1s");
+        }
+        this.cacheRebuildWindow = cacheRebuildWindow;
+    }
+
+    /**
+     * Get the pending key capacity.
+     *
+     * @return maximum pending keys
+     */
+    public int getCacheRebuildMaxPendingKeys() {
+        return cacheRebuildMaxPendingKeys;
+    }
+
+    /**
+     * Set the pending key capacity.
+     *
+     * @param cacheRebuildMaxPendingKeys positive maximum pending keys
+     */
+    public void setCacheRebuildMaxPendingKeys(final int cacheRebuildMaxPendingKeys) {
+        if (cacheRebuildMaxPendingKeys <= 0) {
+            throw new IllegalArgumentException("cacheRebuildMaxPendingKeys must be positive");
+        }
+        this.cacheRebuildMaxPendingKeys = cacheRebuildMaxPendingKeys;
+    }
 
     /**
      * Gets the value of enabled.

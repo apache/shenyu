@@ -45,6 +45,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.MediaType;
 
 import jakarta.servlet.AsyncContext;
@@ -77,7 +78,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
  * @since 2.0.0
  */
 @SuppressWarnings("all")
-public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
+public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener implements DisposableBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
@@ -102,6 +103,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private final HttpSyncProperties httpSyncProperties;
 
+    private final HttpCacheRebuildCoordinator cacheRebuildCoordinator;
+
     /**
      * Instantiates a new Http long polling data changed listener.
      *
@@ -113,6 +116,48 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         this.scheduler = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
+        this.cacheRebuildCoordinator = Objects.nonNull(httpSyncProperties.getCacheRebuildWindow()) && !httpSyncProperties.getCacheRebuildWindow().isZero()
+                ? new HttpCacheRebuildCoordinator(new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("http-cache-rebuild", true)),
+                        httpSyncProperties.getCacheRebuildWindow().toMillis(), httpSyncProperties.getCacheRebuildMaxPendingKeys()) : null;
+    }
+
+    @Override
+    protected void refreshCache(final ConfigGroupEnum group, final String namespaceId, final Runnable rebuild) {
+        if (Objects.isNull(cacheRebuildCoordinator)) {
+            super.refreshCache(group, namespaceId, rebuild);
+            return;
+        }
+        Runnable work = () -> {
+            synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
+                rebuild.run();
+            }
+            scheduler.execute(new DataChangeTask(group, namespaceId));
+        };
+        if (!cacheRebuildCoordinator.request(buildCacheKey(namespaceId, group.name()), work)) {
+            // Bounded memory under overload: new keys apply backpressure to their committing caller.
+            work.run();
+        }
+    }
+
+    @Override
+    protected void refreshLocalCache(final String namespaceId) {
+        synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
+            super.refreshLocalCache(namespaceId);
+        }
+    }
+
+    private void notifyChanged(final ConfigGroupEnum group, final String namespaceId) {
+        if (Objects.isNull(cacheRebuildCoordinator)) {
+            scheduler.execute(new DataChangeTask(group, namespaceId));
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (Objects.nonNull(cacheRebuildCoordinator)) {
+            cacheRebuildCoordinator.close();
+        }
+        scheduler.shutdownNow();
     }
 
     @Override
@@ -174,37 +219,37 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     @Override
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH, namespaceId));
+        notifyChanged(ConfigGroupEnum.APP_AUTH, namespaceId);
     }
 
     @Override
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA, namespaceId));
+        notifyChanged(ConfigGroupEnum.META_DATA, namespaceId);
     }
 
     @Override
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN, namespaceId));
+        notifyChanged(ConfigGroupEnum.PLUGIN, namespaceId);
     }
 
     @Override
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE, namespaceId));
+        notifyChanged(ConfigGroupEnum.RULE, namespaceId);
     }
 
     @Override
     protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR, namespaceId));
+        notifyChanged(ConfigGroupEnum.SELECTOR, namespaceId);
     }
 
     @Override
     protected void afterProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.PROXY_SELECTOR, namespaceId));
+        notifyChanged(ConfigGroupEnum.PROXY_SELECTOR, namespaceId);
     }
 
     @Override
     protected void afterDiscoveryUpstreamDataChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        scheduler.execute(new DataChangeTask(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId));
+        notifyChanged(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId);
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
@@ -428,6 +473,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         @Override
         public void run() {
             try {
+                if (Objects.nonNull(cacheRebuildCoordinator)) {
+                    // Publication may race the request thread's first comparison. Registration and
+                    // notification share this scheduler, so recheck before entering the wait queue.
+                    List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
+                    if (CollectionUtils.isNotEmpty(changedGroups)) {
+                        sendResponse(changedGroups);
+                        return;
+                    }
+                }
                 BlockingQueue<LongPollingClient> namespaceClients = clientsMap.getOrDefault(namespaceId, new ArrayBlockingQueue<>(1024));
                 this.asyncTimeoutFuture = scheduler.schedule(() -> {
                     namespaceClients.remove(LongPollingClient.this);
