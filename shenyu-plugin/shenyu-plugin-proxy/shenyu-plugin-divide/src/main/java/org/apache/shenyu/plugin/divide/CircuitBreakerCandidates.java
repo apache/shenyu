@@ -146,8 +146,8 @@ final class CircuitBreakerCandidates {
     /**
      * Get the selected upstream's previously computed key.
      *
-     * <p>Upstream equality uses protocol and URL, including the copy made for
-     * explicit target selection. Equal targets within a selector share a key.
+     * <p>Protocol and URL identify the breaker, including the copy made for
+     * explicit target selection. Group and version do not affect this key.
      * A custom load balancer may return a target outside this list; only that
      * target needs a new key.
      *
@@ -162,7 +162,12 @@ final class CircuitBreakerCandidates {
                 return keys[index];
             }
         }
-        int index = upstreams.indexOf(upstream);
-        return index < 0 ? UpstreamCircuitBreaker.buildKey(selectorId, upstream) : keys[index];
+        for (int index = 0; index < upstreams.size(); index++) {
+            Upstream candidate = upstreams.get(index);
+            if (Objects.equals(candidate.getProtocol(), upstream.getProtocol()) && Objects.equals(candidate.getUrl(), upstream.getUrl())) {
+                return keys[index];
+            }
+        }
+        return UpstreamCircuitBreaker.buildKey(selectorId, upstream);
     }
 }

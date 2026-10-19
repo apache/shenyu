@@ -99,7 +99,7 @@ public final class UpstreamCircuitBreaker {
      * @return the breaker key
      */
     public static String buildKey(final String selectorId, final Upstream upstream) {
-        return selectorId + ":" + upstream.buildDomain();
+        return upstream.buildSelectorKey(selectorId);
     }
 
     /**

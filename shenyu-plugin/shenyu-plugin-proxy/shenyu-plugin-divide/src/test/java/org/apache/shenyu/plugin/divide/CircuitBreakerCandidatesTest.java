@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -85,9 +86,12 @@ class CircuitBreakerCandidatesTest {
     void reusesKeysForExplicitTargetCopiesAndAllBlockedFallback() {
         Upstream first = upstream("first", 1);
         Upstream second = upstream("second", 7);
+        second.setGroup("blue");
+        Upstream copy = upstream("second", 7);
         try (MockedStatic<UpstreamCircuitBreaker> breaker = mockStatic(UpstreamCircuitBreaker.class, CALLS_REAL_METHODS)) {
             CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(first, second)));
-            assertEquals(SELECTOR + ":http://second", candidates.getBreakerKey(upstream("second", 7)));
+            assertEquals(SELECTOR + ":http://second", candidates.getBreakerKey(copy));
+            breaker.verify(() -> UpstreamCircuitBreaker.buildKey(SELECTOR, copy), times(0));
             breaker.verify(() -> UpstreamCircuitBreaker.buildKey(SELECTOR, first), times(1));
             breaker.verify(() -> UpstreamCircuitBreaker.buildKey(SELECTOR, second), times(1));
             breaker.clearInvocations();
@@ -189,6 +193,23 @@ class CircuitBreakerCandidatesTest {
             assertFalse(breaker.tryAcquireHalfOpenProbe(key));
         } finally {
             executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void explicitProbePreferenceDoesNotReserveAnotherCandidate() {
+        Upstream first = upstream("first", 1);
+        Upstream requested = upstream("requested", 7);
+        UpstreamCircuitBreaker breaker = strictBreaker();
+        String firstKey = key(SELECTOR, first);
+        breaker.recordFailure(firstKey);
+        breaker.recordFailure(key(SELECTOR, requested));
+        try (MockedStatic<UpstreamCircuitBreaker> mocked = mockStatic(UpstreamCircuitBreaker.class, CALLS_REAL_METHODS)) {
+            mocked.when(UpstreamCircuitBreaker::getInstance).thenReturn(breaker);
+            CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(first, requested)), requested.getUrl());
+            assertEquals(List.of(requested), candidates.getUpstreams());
+            assertTrue(candidates.isProbe());
+            assertNotNull(breaker.acquireHalfOpenProbe(firstKey));
         }
     }
 

@@ -67,7 +67,7 @@ public final class DivideCircuitBreakerBenchmark {
         threads.setThreadCpuTimeEnabled(true);
         List<String> rows = new ArrayList<>();
         rows.add("variant,targets,state,sample,requests,successes,requests_per_second,successes_per_second,"
-                + "allocated_bytes_per_request,cpu_ns_per_request,p99_ns,gc_count,gc_ms,key_builds_per_request,key_only_cpu_ns_per_request");
+                + "allocated_bytes_per_request,cpu_ns_per_request,p99_ns,gc_count,gc_ms,key_operations_per_request,key_only_cpu_ns_per_request");
         for (int size : List.of(1, 10, 128)) {
             List<Upstream> targets = new ArrayList<>();
             for (int index = 0; index < size; index++) {
@@ -132,7 +132,7 @@ public final class DivideCircuitBreakerBenchmark {
         assertEquals("blocked".equals(state) ? 0 : iterations, successes);
         Arrays.sort(latencies);
         int keyBuilds = optimized ? targets.size() : "blocked".equals(state) ? targets.size() * 2 : targets.size() + 1;
-        double keyCpu = measureKeyConstruction(targets, keyBuilds);
+        double keyCpu = measureKeyConstruction(targets, keyBuilds, optimized);
         return String.format(Locale.ROOT, "%s,%d,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%d,%d,%d,%d,%.1f",
                 optimized ? "optimized" : "baseline", targets.size(), state, sample, iterations, successes,
                 iterations * 1000000000.0 / elapsed, successes * 1000000000.0 / elapsed,
@@ -157,7 +157,7 @@ public final class DivideCircuitBreakerBenchmark {
         }
         // Cycle through every position to include lookup cost, without network / LB noise.
         Upstream selected = allowed.get(sequence % allowed.size());
-        String key = optimized ? candidates.getBreakerKey(selected) : UpstreamCircuitBreaker.buildKey(SELECTOR, selected);
+        String key = optimized ? candidates.getBreakerKey(selected) : baselineKey(selected);
         UpstreamCircuitBreaker.recordOutcome(Mono.empty(), key).block();
         consumed = key;
         return true;
@@ -167,7 +167,7 @@ public final class DivideCircuitBreakerBenchmark {
         // Original DividePlugin.filterByCircuitBreaker at 297ac6f84.
         List<Upstream> allowed = new ArrayList<>(upstreams.size());
         for (Upstream upstream : upstreams) {
-            if (UpstreamCircuitBreaker.getInstance().isRequestAllowed(UpstreamCircuitBreaker.buildKey(SELECTOR, upstream))) {
+            if (UpstreamCircuitBreaker.getInstance().isRequestAllowed(baselineKey(upstream))) {
                 allowed.add(upstream);
             }
         }
@@ -175,23 +175,28 @@ public final class DivideCircuitBreakerBenchmark {
             return allowed;
         }
         for (Upstream upstream : upstreams) {
-            if (UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(UpstreamCircuitBreaker.buildKey(SELECTOR, upstream))) {
+            if (UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(baselineKey(upstream))) {
                 return Collections.singletonList(upstream);
             }
         }
         return Collections.emptyList();
     }
 
-    private double measureKeyConstruction(final List<Upstream> targets, final int count) {
-        // Separate key-only workload, not attribution of CPU in the full request.
+    private double measureKeyConstruction(final List<Upstream> targets, final int count, final boolean optimized) {
+        // Separate cached/uncached key workload, not CPU attribution in the full request.
         int repetitions = Math.max(20000, 2000000 / count);
         long cpu = threads.getCurrentThreadCpuTime();
         for (int index = 0; index < repetitions; index++) {
             for (int key = 0; key < count; key++) {
-                consumed = UpstreamCircuitBreaker.buildKey(SELECTOR, targets.get(key % targets.size()));
+                Upstream target = targets.get(key % targets.size());
+                consumed = optimized ? UpstreamCircuitBreaker.buildKey(SELECTOR, target) : baselineKey(target);
             }
         }
         return (threads.getCurrentThreadCpuTime() - cpu) / (double) repetitions;
+    }
+
+    private String baselineKey(final Upstream upstream) {
+        return SELECTOR + ":" + upstream.buildDomain();
     }
 
     private void prepare(final List<Upstream> targets, final String state) {

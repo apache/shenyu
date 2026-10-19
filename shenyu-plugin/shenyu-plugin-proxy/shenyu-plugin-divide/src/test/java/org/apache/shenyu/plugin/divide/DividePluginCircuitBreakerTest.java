@@ -305,6 +305,20 @@ public final class DividePluginCircuitBreakerTest {
     }
 
     @Test
+    public void testProbeCancellationBalancesP2cInflightAccounting() throws Exception {
+        openBreaker();
+        expireBreaker();
+        DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).setLoadBalance("p2c");
+        long initial = upstream.getInflight().get();
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+        Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        assertEquals(initial + 1, upstream.getInflight().get());
+        subscription.dispose();
+        assertEquals(initial, upstream.getInflight().get());
+        assertTrue(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+    }
+
+    @Test
     public void testSynchronousForwardingErrorReleasesProbe() throws Exception {
         openBreaker();
         expireBreaker();
