@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,13 +44,16 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -101,7 +105,7 @@ public final class DividePluginCircuitBreakerTest {
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(upstream));
+        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenAnswer(invocation -> new ArrayList<>(Collections.singletonList(upstream)));
         this.cacheMock = mockStatic(UpstreamCacheManager.class);
         cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
     }
@@ -163,7 +167,7 @@ public final class DividePluginCircuitBreakerTest {
         openBreaker();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
         List<Upstream> upstreams = List.of(upstream, healthy);
-        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(upstreams);
+        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenAnswer(invocation -> new ArrayList<>(upstreams));
         cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
         // the blocked upstream is filtered out, the request still goes through the healthy one
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -177,5 +181,68 @@ public final class DividePluginCircuitBreakerTest {
         for (int i = 0; i < 3; i++) {
             UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
         }
+    }
+
+    @Test
+    public void testForwardingReusesFilteredKeyForExplicitTarget() {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test")
+                .header(Constants.SPECIFY_DOMAIN, UPSTREAM_URL).build());
+        exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        when(chain.execute(exchange)).thenReturn(Mono.error(new IllegalStateException("upstream down")));
+        try (MockedStatic<UpstreamCircuitBreaker> breaker = mockStatic(UpstreamCircuitBreaker.class, CALLS_REAL_METHODS)) {
+            for (int index = 0; index < 3; index++) {
+                StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                        .expectError(IllegalStateException.class).verify();
+            }
+            assertEquals(upstream.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+            assertTrue(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+            breaker.verify(() -> UpstreamCircuitBreaker.buildKey(SELECTOR_ID, upstream), times(3));
+        }
+    }
+
+    @Test
+    public void testBlockedExplicitTargetFallsBackToHealthyTarget() {
+        Upstream healthy = Upstream.builder().protocol("http://").url("127.0.0.1:9092").weight(9).build();
+        String healthyKey = UpstreamCircuitBreaker.buildKey(SELECTOR_ID, healthy);
+        try {
+            openBreaker();
+            exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test")
+                    .header(Constants.SPECIFY_DOMAIN, UPSTREAM_URL).build());
+            exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+            when(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(SELECTOR_ID))
+                    .thenAnswer(invocation -> new ArrayList<>(List.of(upstream, healthy)));
+            when(chain.execute(exchange)).thenReturn(Mono.empty());
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(healthy.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+            assertTrue(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+            assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(healthyKey));
+        } finally {
+            UpstreamCircuitBreaker.getInstance().reset(healthyKey);
+        }
+    }
+
+    @Test
+    public void testCancellationAndSuccessKeepExistingAccountingAndRetryAttributes() {
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        DivideRuleHandle handle = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        handle.setRetry(2);
+        handle.setRetryStrategy("failover");
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).thenCancel().verify();
+        assertEquals(2, (Integer) exchange.getAttribute(Constants.HTTP_RETRY));
+        assertEquals("failover", exchange.getAttribute(Constants.RETRY_STRATEGY));
+        assertEquals(SELECTOR_ID, exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID));
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        assertTrue(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+        UpstreamCircuitBreaker.getInstance().reset(breakerKey);
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
+        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
     }
 }
