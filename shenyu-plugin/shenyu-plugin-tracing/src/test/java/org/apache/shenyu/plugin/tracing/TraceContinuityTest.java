@@ -47,9 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * The Test Case For the continuity of a trace across the gateway.
@@ -67,6 +70,8 @@ public class TraceContinuityTest {
     private static final String CLIENT_SPAN_ID = "00f067aa0ba902b7";
 
     private static final String BAGGAGE = "baggage";
+
+    private static final long TEST_HTTP_TIMEOUT = 30_000L;
 
     private final TraceContextExtractor extractor = new TraceContextExtractor();
 
@@ -181,6 +186,7 @@ public class TraceContinuityTest {
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, TEST_HTTP_TIMEOUT);
         exchange.getAttributes().put(Constants.HTTP_URI,
                 URI.create("http://127.0.0.1:" + upstream.getAddress().getPort() + PATH));
         return exchange;
@@ -199,8 +205,7 @@ public class TraceContinuityTest {
     }
 
     private SpanData onlyFinishedSpan() {
-        List<SpanData> spans = spanExporter.getFinishedSpanItems();
-        Assertions.assertEquals(1, spans.size());
-        return spans.get(0);
+        await().atMost(Duration.ofSeconds(5)).until(() -> spanExporter.getFinishedSpanItems().size() == 1);
+        return spanExporter.getFinishedSpanItems().get(0);
     }
 }

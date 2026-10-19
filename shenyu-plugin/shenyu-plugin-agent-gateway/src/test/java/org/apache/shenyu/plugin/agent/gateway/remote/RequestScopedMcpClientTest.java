@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
@@ -57,6 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -74,6 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,6 +84,123 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RequestScopedMcpClientTest {
 
     private static final Duration WAIT = Duration.ofSeconds(5);
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void traceHeadersBelongOnlyToCallsNeverSharedHandshakeOrDiscovery(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                Map<String, String> first = traceHeaders(1);
+                reactor.util.context.Context firstContext = tracedContext(first);
+                client.initialize().contextWrite(firstContext).block(WAIT);
+                client.initialize().contextWrite(tracedContext(traceHeaders(2))).block(WAIT);
+                client.listTools(null).contextWrite(firstContext).block(WAIT);
+                client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "first"))).contextWrite(firstContext).block(WAIT);
+                client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "second")))
+                        .contextWrite(tracedContext(traceHeaders(2))).block(WAIT);
+                client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "untraced")))
+                        .contextWrite(context -> context.put(AgentTraceContext.HEADERS_KEY, first)).block(WAIT);
+                assertEquals(1, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+                assertEquals(1, fixture.requests.stream().filter(request -> "notifications/initialized".equals(request.get("method"))).count());
+                for (Map<String, String> request : fixture.requests) {
+                    String token = request.get("token");
+                    boolean traced = "first".equals(token) || "second".equals(token);
+                    assertEquals(traced ? "1" : "0", request.get("traceCount"));
+                    assertEquals(traced ? "vendor=opaque" : "", request.get("tracestate"));
+                    assertEquals("first".equals(token) ? first.get("traceparent")
+                            : "second".equals(token) ? traceHeaders(2).get("traceparent") : "", request.get("traceparent"));
+                    assertEquals("", request.get("baggage"));
+                    assertEquals("", request.get("subjectHeader"));
+                    assertEquals("", request.get("cookie"));
+                    assertEquals("Bearer fixed-test-token", request.get("authorization"));
+                }
+            } finally {
+                client.closeGracefully().contextWrite(tracedContext(traceHeaders(1))).block(WAIT);
+            }
+            assertFalse(fixture.cleanupHadTrace);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void cancellationDoesNotLeakTraceIntoConcurrentOrLaterPeer(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            RequestScopedMcpClient client = fixture.client();
+            Disposable cancelled = null;
+            try {
+                client.initialize().block(WAIT);
+                cancelled = client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "cancel-traced", "delay", 600)))
+                        .contextWrite(tracedContext(traceHeaders(1))).subscribe();
+                assertTrue(fixture.delayed.await(2, TimeUnit.SECONDS));
+                Flux.range(2, 16).flatMap(index -> client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "trace-" + index)))
+                        .contextWrite(tracedContext(traceHeaders(index))), 16).then().block(Duration.ofSeconds(10));
+                cancelled.dispose();
+                awaitIdle(client);
+                client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "later-untraced"))).block(WAIT);
+                List<Map<String, String>> calls = fixture.requests.stream().filter(request -> "tools/call".equals(request.get("method"))).toList();
+                assertEquals(18, calls.size());
+                for (Map<String, String> call : calls) {
+                    String token = call.get("token");
+                    String expected = token.startsWith("trace-") ? traceHeaders(Integer.parseInt(token.substring(6))).get("traceparent")
+                            : "cancel-traced".equals(token) ? traceHeaders(1).get("traceparent") : "";
+                    assertEquals(expected, call.get("traceparent"));
+                }
+                assertEquals(0, fixture.deletes);
+            } finally {
+                if (Objects.nonNull(cancelled)) {
+                    cancelled.dispose();
+                }
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
+    @Test
+    void traceCarrierSnapshotsRejectInvalidDataAndDropUnrelatedKeys() {
+        Map<String, String> mutable = new HashMap<>(traceHeaders(1));
+        Map<String, String> snapshot = AgentTraceContext.headers(mutable);
+        mutable.put("traceparent", traceHeaders(2).get("traceparent"));
+        assertEquals(traceHeaders(1).get("traceparent"), snapshot.get("traceparent"));
+        assertEquals(Set.of("traceparent", "tracestate"), snapshot.keySet());
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.put("baggage", "secret"));
+        assertEquals(Map.of(), AgentTraceContext.headers(null));
+        assertEquals(Map.of(), AgentTraceContext.headers("not-a-map"));
+        assertEquals(Map.of(), AgentTraceContext.headers(Map.of("traceparent", 42)));
+        for (String invalid : List.of("not-w3c", "00-00000000000000000000000000000000-1111111111111111-01",
+                "00-11111111111111111111111111111111-0000000000000000-01", traceHeaders(1).get("traceparent") + "\r\nX-Private: secret")) {
+            assertEquals(Map.of(), AgentTraceContext.headers(Map.of("traceparent", invalid, "tracestate", "vendor=opaque")));
+        }
+        for (String invalid : List.of("vendor=opaque\r\nX-Private: secret", "vendor=one,vendor=two", "UPPER=bad", "vendor=", "vendor=a=b", "a".repeat(513))) {
+            assertEquals(Map.of("traceparent", traceHeaders(1).get("traceparent")),
+                    AgentTraceContext.headers(Map.of("traceparent", traceHeaders(1).get("traceparent"), "tracestate", invalid)));
+        }
+    }
+
+    @Test
+    void malformedTraceHeadersCannotFailAnOtherwiseValidRemoteCall() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                client.initialize().block(WAIT);
+                client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "valid")))
+                        .contextWrite(tracedContext(Map.of("traceparent", "invalid\r\nHeader: secret"))).block(WAIT);
+                assertTrue(fixture.requests.stream().allMatch(request -> request.get("traceparent").isEmpty()));
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
+    private static Map<String, String> traceHeaders(final int index) {
+        return Map.of("traceparent", String.format("00-%032x-%016x-01", index, index), "tracestate", "vendor=opaque",
+                "baggage", "subject=private", "X-Spike-Subject", "private", "Authorization", "Bearer agent-secret", "Cookie", "private");
+    }
+
+    private static reactor.util.context.Context tracedContext(final Map<String, String> headers) {
+        return reactor.util.context.Context.of(AgentTraceContext.HEADERS_KEY, headers, McpTransportContext.KEY,
+                McpTransportContext.create(Map.of(AgentTraceContext.HEADERS_KEY, headers, "subject", "private", "deadline", Instant.now().plusSeconds(30))));
+    }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
@@ -383,6 +503,8 @@ class RequestScopedMcpClientTest {
 
         private volatile int deletes;
 
+        private volatile boolean cleanupHadTrace;
+
         private Fixture(final boolean sse) throws Exception {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
             server.setExecutor(executor);
@@ -394,6 +516,7 @@ class RequestScopedMcpClientTest {
             server.createContext("/mcp", exchange -> {
                 try {
                     if ("DELETE".equals(exchange.getRequestMethod())) {
+                        cleanupHadTrace = exchange.getRequestHeaders().containsKey("traceparent") || exchange.getRequestHeaders().containsKey("tracestate");
                         deletes++;
                         exchange.sendResponseHeaders(deleteStatus, -1);
                         return;
@@ -402,7 +525,12 @@ class RequestScopedMcpClientTest {
                     String method = request.path("method").textValue();
                     requests.add(Map.of("method", method, "authorization", exchange.getRequestHeaders().getFirst("Authorization"),
                             "subjectHeader", Objects.toString(exchange.getRequestHeaders().getFirst("X-Spike-Subject"), ""),
-                            "cookie", Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), "")));
+                            "cookie", Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), ""),
+                            "traceparent", Objects.toString(exchange.getRequestHeaders().getFirst("traceparent"), ""),
+                            "traceCount", Integer.toString(exchange.getRequestHeaders().getOrDefault("traceparent", List.of()).size()),
+                            "tracestate", Objects.toString(exchange.getRequestHeaders().getFirst("tracestate"), ""),
+                            "baggage", Objects.toString(exchange.getRequestHeaders().getFirst("baggage"), ""),
+                            "token", request.path("params").path("arguments").path("token").asText()));
                     if ("notifications/initialized".equals(method)) {
                         responseBytes.put(request.path("id").asText(), 0);
                         exchange.sendResponseHeaders(202, -1);

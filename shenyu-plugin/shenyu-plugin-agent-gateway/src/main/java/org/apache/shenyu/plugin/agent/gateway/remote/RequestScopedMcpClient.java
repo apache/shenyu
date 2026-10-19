@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
@@ -130,7 +131,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             .flatMap(result -> request("notifications/initialized", Map.of(), true).thenReturn(result))
             .doOnSuccess(ignored -> initialized = true)
             // Session handshake uses fixed service configuration, never the first Agent's context.
-            .contextWrite(context -> context.delete(McpTransportContext.KEY))
+            .contextWrite(context -> context.delete(McpTransportContext.KEY).delete(AgentTraceContext.HEADERS_KEY))
             .cache();
     }
 
@@ -208,6 +209,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
             if (Objects.nonNull(session) && !"initialize".equals(method)) {
                 builder.header("MCP-Session-Id", session);
+            }
+            // A shared handshake, directory refresh or session cleanup never belongs to an Agent call.
+            if ("tools/call".equals(method)) {
+                AgentTraceContext.headers(transportContext.get(AgentTraceContext.HEADERS_KEY)).forEach(builder::setHeader);
             }
             HttpRequest outbound = builder.build();
             if (active.incrementAndGet() > MAX_IN_FLIGHT) {

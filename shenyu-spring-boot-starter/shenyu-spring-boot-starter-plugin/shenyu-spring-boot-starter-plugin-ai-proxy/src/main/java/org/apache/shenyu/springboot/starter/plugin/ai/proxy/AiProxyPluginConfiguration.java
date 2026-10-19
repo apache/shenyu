@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import io.netty.channel.ChannelOption;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
@@ -36,6 +37,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProp
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -45,6 +47,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -63,17 +66,18 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyConfigService the aiProxyConfigService
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
+     * @param observers optional application terminal sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler);
+                aiProxyPluginHandler, observer(observers));
     }
 
     /**
@@ -107,12 +111,21 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyProtocolFactory protocol factory
      * @param aiProxyProviderFactory provider factory
      * @param aiProxyTransport       transport
+     * @param observers optional application terminal sink
      * @return the AI proxy engine
      */
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
-                                       final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport) {
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport);
+                                       final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport, final ObjectProvider<AiCallObserver> observers) {
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport, Duration.ofSeconds(1), observer(observers));
+    }
+
+    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
+        List<AiCallObserver> candidates = provider.stream().toList();
+        if (candidates.size() > 1) {
+            throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
+        }
+        return candidates.isEmpty() ? null : candidates.get(0);
     }
 
     /**

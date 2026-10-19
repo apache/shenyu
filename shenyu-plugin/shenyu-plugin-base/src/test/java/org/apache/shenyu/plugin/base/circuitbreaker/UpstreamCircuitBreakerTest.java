@@ -117,7 +117,7 @@ public final class UpstreamCircuitBreakerTest {
     @Test
     public void testConcurrentFailuresOpenBreaker() throws InterruptedException {
         final int threads = 32;
-        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.create(3, 100L);
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.create(3, 100_000L);
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(threads);
