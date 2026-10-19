@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.mcp.server.request;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
@@ -53,7 +54,7 @@ import java.util.Set;
  * Body Writer Exchange for MCP tool requests.
  * 
  * <p>Decorates ServerWebExchange to properly handle request body writing for different content types.
- * Supports JSON, form-urlencoded and multipart bodies.</p>
+ * Encodes form-urlencoded and multipart bodies and preserves other body types.</p>
  *
  * @since 2.7.0.2
  */
@@ -91,17 +92,29 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
             cachedBodyOutputMessage.getHeaders().setContentType(writer.contentType);
             this.bodyInsertion = writer.write(Mono.just(parts), ResolvableType.forClass(MultiValueMap.class),
                     writer.contentType, cachedBodyOutputMessage, Collections.emptyMap());
-        } else if (Objects.isNull(contentType) || MediaType.APPLICATION_JSON.isCompatibleWith(contentType) || contentType.getSubtype().endsWith("+json")) {
-            final String json = Objects.nonNull(bodyJson) ? (bodyJson.isEmpty() ? "" : bodyJson.toString()) : body;
-            final BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(json);
-            this.bodyInsertion = bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext());
         } else {
-            throw new IllegalArgumentException("Unsupported MCP request body Content-Type");
+            final String rawBody = Objects.nonNull(bodyJson) ? bodyJson.toString() : body;
+            final BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(rawBody);
+            this.bodyInsertion = bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext());
         }
     }
 
     private JsonObject resolveBody(final String body, final JsonObject bodyJson) {
-        return Objects.nonNull(bodyJson) ? bodyJson : JsonParser.parseString(body).getAsJsonObject();
+        if (Objects.nonNull(bodyJson)) {
+            return bodyJson;
+        }
+        if (Objects.isNull(body)) {
+            throw new IllegalArgumentException("MCP form or multipart body must be a JSON object");
+        }
+        try {
+            final JsonElement parsed = JsonParser.parseString(body);
+            if (!parsed.isJsonObject()) {
+                throw new IllegalArgumentException("MCP form or multipart body must be a JSON object");
+            }
+            return parsed.getAsJsonObject();
+        } catch (JsonParseException exception) {
+            throw new IllegalArgumentException("MCP form or multipart body must be valid JSON", exception);
+        }
     }
 
     private MultiValueMap<String, String> buildFormData(final JsonObject fields) {
@@ -172,8 +185,9 @@ public class BodyWriterExchange extends ServerWebExchangeDecorator {
     }
 
     private void validatePartName(final String name) {
-        if (name.isBlank() || name.contains("\r") || name.contains("\n")) {
-            throw new IllegalArgumentException("Multipart part names and filenames must be nonblank and contain no line breaks");
+        if (name.isBlank() || name.contains("\r") || name.contains("\n") || name.indexOf('"') >= 0 || name.indexOf('\\') >= 0) {
+            throw new IllegalArgumentException("Multipart part names and filenames must be nonblank "
+                    + "and contain no line breaks, double quotes or backslashes");
         }
     }
 

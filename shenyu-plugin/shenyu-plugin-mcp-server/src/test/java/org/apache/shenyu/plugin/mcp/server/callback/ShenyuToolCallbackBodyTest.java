@@ -106,19 +106,21 @@ class ShenyuToolCallbackBodyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"application/json", "application/x-www-form-urlencoded"})
+    @ValueSource(strings = {"application/json", "application/vnd.example+json", "application/x-www-form-urlencoded"})
     void testEmptyToolBodyDoesNotForwardMcpEnvelope(final String contentType) {
         final MockServerWebExchange origin = MockServerWebExchange.from(MockServerHttpRequest.post("http://gateway.example/mcp")
                 .contentType(MediaType.APPLICATION_JSON).body("{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\"}"));
         final ShenyuPluginChain chain = exchange -> DataBufferUtils.join(exchange.getRequest().getBody())
                 .map(buffer -> {
                     try {
-                        return buffer.readableByteCount();
+                        final byte[] bytes = new byte[buffer.readableByteCount()];
+                        buffer.read(bytes);
+                        return new String(bytes, StandardCharsets.UTF_8);
                     } finally {
                         DataBufferUtils.release(buffer);
                     }
-                }).defaultIfEmpty(0).flatMap(length -> {
-                    assertEquals(0, length);
+                }).defaultIfEmpty("").flatMap(body -> {
+                    assertEquals("application/x-www-form-urlencoded".equals(contentType) ? "" : "{}", body);
                     return exchange.getResponse().setComplete();
                 });
         final String config = "{\"requestTemplate\":{\"url\":\"/empty\",\"method\":\"POST\","
@@ -126,6 +128,34 @@ class ShenyuToolCallbackBodyTest {
         final ShenyuToolCallback callback = new ShenyuToolCallback(mock(ShenyuToolDefinition.class));
 
         assertEquals("", callback.executeToolCall(origin, chain, "body-test", config, "{}", 5));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"text/plain", "application/xml", "application/graphql", "application/vnd.example.custom"})
+    void testOtherConcreteMediaTypesRemainReachableFromToolTemplates(final String contentType) {
+        final MockServerWebExchange origin = MockServerWebExchange.from(MockServerHttpRequest.post("http://gateway.example/mcp")
+                .contentType(MediaType.APPLICATION_JSON).body("{\"jsonrpc\":\"2.0\"}"));
+        final JsonObject input = new JsonObject();
+        input.addProperty("name", "Ada & 中文");
+        final ShenyuPluginChain chain = exchange -> {
+            assertEquals(MediaType.parseMediaType(contentType), exchange.getRequest().getHeaders().getContentType());
+            return DataBufferUtils.join(exchange.getRequest().getBody()).flatMap(buffer -> {
+                try {
+                    final byte[] bytes = new byte[buffer.readableByteCount()];
+                    buffer.read(bytes);
+                    assertEquals(input.toString(), new String(bytes, StandardCharsets.UTF_8));
+                    return exchange.getResponse().setComplete();
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            });
+        };
+        final String config = "{\"requestTemplate\":{\"url\":\"/raw\",\"method\":\"POST\","
+                + "\"headers\":[{\"key\":\"Content-Type\",\"value\":\"" + contentType + "\"}],\"argsToJsonBody\":true},"
+                + "\"argsPosition\":{\"name\":\"body\"}}";
+        final ShenyuToolCallback callback = new ShenyuToolCallback(mock(ShenyuToolDefinition.class));
+
+        assertEquals("", callback.executeToolCall(origin, chain, "raw-body-test", config, input.toString(), 5));
     }
 
     private String execute(final ToolExample example) {

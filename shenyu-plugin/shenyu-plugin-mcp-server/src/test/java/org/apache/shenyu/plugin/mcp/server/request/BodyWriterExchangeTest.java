@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.mcp.server.request;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -38,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -188,12 +192,107 @@ class BodyWriterExchangeTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"text/plain", "application/octet-stream", "application/*", "multipart/*"})
-    void testUnsupportedContentTypeIsRejected(final String contentType) {
+    @ValueSource(strings = {"text/plain", "application/xml", "application/graphql", "application/octet-stream",
+        "application/vnd.example.custom", "text/plain;charset=ISO-8859-1"})
+    void testOtherConcreteContentTypesPreserveRawBody(final String contentType) {
+        final MediaType mediaType = MediaType.parseMediaType(contentType);
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/submit")
+                .contentType(mediaType).build());
+        final String body = "André & <value>=\"unchanged\"\r\n";
+        final ServerHttpRequest request = new BodyWriterExchange(exchange, body).getRequest();
+
+        assertEquals(mediaType, request.getHeaders().getContentType());
+        assertArrayEquals(body.getBytes(Objects.isNull(mediaType.getCharset()) ? StandardCharsets.UTF_8 : mediaType.getCharset()), readBodyBytes(request));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"application/json", "application/vnd.example+json"})
+    void testEmptyJsonObjectRemainsAnObject(final String contentType) {
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/submit")
+                .header(HttpHeaders.CONTENT_TYPE, contentType).build());
+        final ServerHttpRequest request = new BodyWriterExchange(exchange, new JsonObject()).getRequest();
+
+        assertArrayEquals("{}".getBytes(StandardCharsets.UTF_8), readBodyBytes(request));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"application/*", "multipart/*", "*/*"})
+    void testWildcardContentTypeIsRejected(final String contentType) {
         final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/submit")
                 .header(HttpHeaders.CONTENT_TYPE, contentType).build());
 
         assertThrows(IllegalArgumentException.class, () -> new BodyWriterExchange(exchange, "{\"name\":\"Ada\"}"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "a\rb", "a\nb", "a\"; filename=payload.sh", "a\\b"})
+    void testMultipartRejectsUnsafeFieldNamesAndFilenames(final String name) {
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/upload")
+                .contentType(MediaType.MULTIPART_FORM_DATA).build());
+        final JsonObject fields = new JsonObject();
+        fields.addProperty(name, "text");
+        assertThrows(IllegalArgumentException.class, () -> new BodyWriterExchange(exchange, fields));
+
+        final JsonObject file = new JsonObject();
+        file.addProperty("filename", name);
+        file.addProperty("content", "");
+        final JsonObject files = new JsonObject();
+        files.add("file", file);
+        assertThrows(IllegalArgumentException.class, () -> new BodyWriterExchange(exchange, files));
+    }
+
+    @Test
+    void testMultipartPreservesUnicodeAndSpacesInNames() {
+        final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/upload")
+                .contentType(MediaType.MULTIPART_FORM_DATA).build());
+        final ServerHttpRequest request = new BodyWriterExchange(exchange,
+                "{\"文件 列表\":{\"filename\":\"报告 2026.txt\",\"content\":\"aGVsbG8=\"}}").getRequest();
+        final List<Part> parts = readParts(request);
+        try {
+            assertEquals(1, parts.size());
+            final FilePart file = assertInstanceOf(FilePart.class, parts.get(0));
+            assertEquals("文件 列表", file.name());
+            assertEquals("报告 2026.txt", file.filename());
+            assertArrayEquals("hello".getBytes(StandardCharsets.UTF_8), readPartBytes(file));
+        } finally {
+            parts.forEach(part -> part.delete().block());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{", "{\"field\":"})
+    void testMalformedFormAndMultipartJsonHasDescriptiveError(final String body) {
+        for (MediaType contentType : List.of(MediaType.APPLICATION_FORM_URLENCODED, MediaType.MULTIPART_FORM_DATA)) {
+            final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/submit")
+                    .contentType(contentType).build());
+            final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new BodyWriterExchange(exchange, body));
+            assertEquals("MCP form or multipart body must be valid JSON", exception.getMessage());
+            assertInstanceOf(JsonParseException.class, exception.getCause());
+        }
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"[]", "null", "true", "42", "\"text\""})
+    void testFormAndMultipartRequireJsonObjects(final String body) {
+        for (MediaType contentType : List.of(MediaType.APPLICATION_FORM_URLENCODED, MediaType.MULTIPART_FORM_DATA)) {
+            final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/submit")
+                    .contentType(contentType).build());
+            final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new BodyWriterExchange(exchange, body));
+            assertEquals("MCP form or multipart body must be a JSON object", exception.getMessage());
+        }
+    }
+
+    private byte[] readBodyBytes(final ServerHttpRequest request) {
+        return DataBufferUtils.join(request.getBody()).map(buffer -> {
+            try {
+                final byte[] bytes = new byte[buffer.readableByteCount()];
+                buffer.read(bytes);
+                return bytes;
+            } finally {
+                DataBufferUtils.release(buffer);
+            }
+        }).defaultIfEmpty(new byte[0]).block();
     }
 
     private List<Part> readParts(final ServerHttpRequest request) {

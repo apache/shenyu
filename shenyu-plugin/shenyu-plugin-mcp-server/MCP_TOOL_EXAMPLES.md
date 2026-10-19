@@ -27,11 +27,13 @@
 
 对于 POST、PUT、PATCH 等带请求体的方法，`requestTemplate.headers` 中显式配置的 `Content-Type` 决定编码方式；未配置时默认使用 JSON，不沿用外层 MCP 请求的类型。
 
-- `application/json` 和具体的 `+json` 类型：保留 JSON 序列化行为。没有正文参数时发送空正文。
+- `application/json` 和具体的 `+json` 类型：保留 JSON 序列化行为。没有正文参数时发送 `{}`。
 - `application/x-www-form-urlencoded`：接受字符串、数字、布尔值和 `null`（空字段）；平面数组转换为同名重复字段。按配置的 charset 编码，未配置时使用 UTF-8。嵌套对象和嵌套数组不支持。
-- `multipart/form-data`：普通标量作为文本部件，文件使用 `{"filename":"hello.txt","content":"aGVsbG8=","contentType":"text/plain"}`。数组生成同名重复部件。`filename` 和 `content` 必须是字符串，文件名不能为空或包含换行；`content` 是标准 Base64，允许空字符串表示空文件，不接受 data URL。`contentType` 可省略，默认 `application/octet-stream`，必须是具体媒体类型。文件对象只允许这三个字段；其他嵌套对象或嵌套数组不支持。
+- `multipart/form-data`：普通标量作为文本部件，文件使用 `{"filename":"hello.txt","content":"aGVsbG8=","contentType":"text/plain"}`。数组生成同名重复部件。`filename` 和 `content` 必须是字符串，部件名和文件名不能为空，也不能包含换行、双引号或反斜杠；允许中文和普通空格；`content` 是标准 Base64，允许空字符串表示空文件，不接受 data URL。`contentType` 可省略，默认 `application/octet-stream`，必须是具体媒体类型。文件对象只允许这三个字段；其他嵌套对象或嵌套数组不支持。
 
-multipart 的部件名取自正文映射后的字段名（例如 `file` 或 `files`），普通字符串不会被猜测为 Base64 文件。网关生成并替换 boundary，使请求头与实际正文一致；不要手工指定 boundary。无效 Base64、无效文件对象及不支持的请求类型会导致工具调用失败。
+- 其他具体媒体类型（如 `text/plain`、`application/xml`、`application/graphql` 和自定义类型）：保留原有透传行为，不增加表单或 multipart 编码。映射后的 JSON 对象仍序列化为 JSON 文本，不会自动转换为 XML 或 GraphQL；底层字符串请求体按原文写入。
+
+multipart 的部件名取自正文映射后的字段名（例如 `file` 或 `files`），普通字符串不会被猜测为 Base64 文件。网关生成并替换 boundary，使请求头与实际正文一致；不要手工指定 boundary。无效 Base64、无效文件对象、非法名称及通配媒体类型会导致工具调用失败。form/multipart 正文必须是 JSON 对象，解析失败时抛出带说明的 `IllegalArgumentException`。
 
 上传参数仍通过 JSON/Base64 传入并占用内存；这不是直接从客户端流式上传文件的接口。编码时每个文件解码一次，由 Spring 按部件输出，不拼接或整体缓存完整的 multipart 正文。
 
