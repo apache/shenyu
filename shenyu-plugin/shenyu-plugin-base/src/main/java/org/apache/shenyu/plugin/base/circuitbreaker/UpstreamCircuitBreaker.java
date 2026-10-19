@@ -154,6 +154,18 @@ public final class UpstreamCircuitBreaker {
     }
 
     /**
+     * Re-open a breaker when its acquired half-open probe is cancelled.
+     *
+     * @param key the breaker key
+     */
+    public void recordProbeCancellation(final String key) {
+        CircuitBreakerState state = this.breakers.get(key);
+        if (Objects.nonNull(state)) {
+            state.recordProbeCancellation();
+        }
+    }
+
+    /**
      * Whether the breaker currently blocks requests for the given key.
      *
      * @param key the breaker key
@@ -186,11 +198,27 @@ public final class UpstreamCircuitBreaker {
      * @return the wrapped mono with outcome recording attached
      */
     public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key) {
+        return recordOutcome(source, key, false);
+    }
+
+    /**
+     * Wrap a forwarded {@link Mono} and record its outcome, including cancellation
+     * of a request that was granted the half-open probe.
+     *
+     * @param <T> the element type of the source mono
+     * @param source the mono executing the upstream call
+     * @param key the breaker key
+     * @param probeGranted whether this request acquired the half-open probe
+     * @return the wrapped mono with outcome recording attached
+     */
+    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key, final boolean probeGranted) {
         return source.doFinally(signal -> {
             if (signal == SignalType.ON_COMPLETE) {
                 INSTANCE.recordSuccess(key);
             } else if (signal == SignalType.ON_ERROR) {
                 INSTANCE.recordFailure(key);
+            } else if (signal == SignalType.CANCEL && probeGranted) {
+                INSTANCE.recordProbeCancellation(key);
             }
         });
     }
@@ -260,6 +288,12 @@ public final class UpstreamCircuitBreaker {
             }
             this.consecutiveFailures++;
             if (this.consecutiveFailures >= this.failureThreshold) {
+                open();
+            }
+        }
+
+        synchronized void recordProbeCancellation() {
+            if (this.state == State.HALF_OPEN) {
                 open();
             }
         }
