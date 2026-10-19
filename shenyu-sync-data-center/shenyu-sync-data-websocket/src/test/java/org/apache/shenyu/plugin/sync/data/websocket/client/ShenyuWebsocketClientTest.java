@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -44,12 +46,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -204,6 +209,72 @@ public class ShenyuWebsocketClientTest {
         doNothing().when(shenyuWebsocketClient).close();
         shenyuWebsocketClient.onClose(1, "shenyu-plugin-grpc", true);
         verify(shenyuWebsocketClient).close();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testOnCloseWithMasterLostNotification() {
+        ShenyuWebsocketClient client = createMockClient();
+        Consumer<ShenyuWebsocketClient> callback = mock(Consumer.class);
+        setField(client, "onMasterLostCallback", callback);
+        setField(client, "isConnectedToMaster", true);
+        doNothing().when(client).close();
+
+        client.onClose(1, "disconnected", true);
+
+        verify(callback).accept(client);
+        assertFalse(client.isConnectedToMaster());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testOnCloseWhenManuallyClosedDoesNotNotifyMasterLost() {
+        ShenyuWebsocketClient client = createMockClient();
+        Consumer<ShenyuWebsocketClient> callback = mock(Consumer.class);
+        setField(client, "onMasterLostCallback", callback);
+        setField(client, "isConnectedToMaster", true);
+        setField(client, "manuallyClosed", new AtomicBoolean(true));
+        doNothing().when(client).close();
+
+        client.onClose(1, "normal closure", true);
+
+        verify(callback, never()).accept(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testOnMessageRunningModeDemotionNotifiesMasterLost() {
+        ShenyuWebsocketClient client = createMockClient();
+        Consumer<ShenyuWebsocketClient> callback = mock(Consumer.class);
+        setField(client, "onMasterLostCallback", callback);
+        setField(client, "isConnectedToMaster", true);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put(RunningModeConstants.EVENT_TYPE, DataEventTypeEnum.RUNNING_MODE.name());
+        map.put(RunningModeConstants.RUNNING_MODE, RunningModeEnum.CLUSTER.name());
+        map.put(RunningModeConstants.MASTER_URL, "ws://localhost:9096");
+        map.put(RunningModeConstants.IS_MASTER, false);
+        String json = GsonUtils.getInstance().toJson(map);
+
+        client.onMessage(json);
+
+        verify(callback).accept(client);
+        assertFalse(client.isConnectedToMaster());
+    }
+
+    @Test
+    public void testHealthCheckSendsRunningModeWhenClusterAndOpen() throws Exception {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        doReturn(true).when(client).isOpen();
+        doNothing().when(client).sendPing();
+        doNothing().when(client).send(anyString());
+        setField(client, "runningMode", RunningModeEnum.CLUSTER.name());
+
+        Method healthCheck = ShenyuWebsocketClient.class.getDeclaredMethod("healthCheck");
+        healthCheck.setAccessible(true);
+        healthCheck.invoke(client);
+
+        verify(client).send(DataEventTypeEnum.RUNNING_MODE.name());
     }
 
     @Test

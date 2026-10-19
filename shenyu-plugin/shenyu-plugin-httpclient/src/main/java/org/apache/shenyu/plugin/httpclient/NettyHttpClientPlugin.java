@@ -29,8 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,7 +39,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
-import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -121,14 +119,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
-                    HttpStatus status = HttpStatus.resolve(res.status().code());
-                    if (Objects.nonNull(status)) {
-                        response.setStatusCode(status);
-                    } else if (response instanceof AbstractServerHttpResponse) {
-                        response.setRawStatusCode(res.status().code());
-                    } else {
-                        throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
-                    }
+                    response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
                     try {
                         response.getHeaders().putAll(headers);
                     } catch (UnsupportedOperationException ex) {
