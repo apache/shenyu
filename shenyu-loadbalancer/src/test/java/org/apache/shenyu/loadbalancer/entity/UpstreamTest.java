@@ -32,6 +32,23 @@ import java.util.Map;
 public class UpstreamTest {
 
     @Test
+    public void testLabelsAreImmutableSnapshotsIndependentOfIdentityAndMetadata() {
+        Upstream upstream = Upstream.builder().url("backend:8080").build();
+        final UpstreamIdentity identity = upstream.identity();
+        Map<String, String> labels = new HashMap<>();
+        labels.put("release", "stable");
+        upstream.setLabels(labels);
+        upstream.setMetadata(Map.of("release", "metadata-value"));
+        labels.put("release", "next");
+        Assertions.assertEquals(Map.of("release", "stable"), upstream.getLabels());
+        Assertions.assertEquals("metadata-value", upstream.getMetadata().get("release"));
+        Assertions.assertSame(identity, upstream.identity());
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> upstream.getLabels().put("release", "next"));
+        upstream.setLabels(Map.of());
+        Assertions.assertTrue(upstream.getLabels().isEmpty());
+    }
+
+    @Test
     public void upstreamTest() {
         Upstream upstream = Upstream.builder()
                 .group("group")
