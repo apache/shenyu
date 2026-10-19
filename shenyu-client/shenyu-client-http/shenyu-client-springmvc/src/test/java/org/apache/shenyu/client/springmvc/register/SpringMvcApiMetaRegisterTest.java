@@ -139,6 +139,61 @@ public class SpringMvcApiMetaRegisterTest {
         return beansExtractor.extract(null, objectHashMap).get(0);
     }
 
+    @Test
+    void testNativeMultiPathRegistersAllCombinations() throws Exception {
+
+        ApiBean apiBean = createSimpleApiBean(TestApiBeanNativeMultiPath.class);
+
+        springMvcApiMetaRegister.register(apiBean);
+
+        assertThat(collectSortedPaths(), equalTo(List.of(
+                "/testContext/legacy/bar",
+                "/testContext/legacy/foo",
+                "/testContext/v1/bar",
+                "/testContext/v1/foo")));
+    }
+
+    @Test
+    void testShenyuMultiPathRegistersAllCombinations() throws Exception {
+
+        ApiBean apiBean = createSimpleApiBean(TestApiBeanShenyuMultiPath.class);
+
+        springMvcApiMetaRegister.register(apiBean);
+
+        assertThat(collectSortedPaths(), equalTo(List.of(
+                "/testContext/legacy/bar",
+                "/testContext/legacy/foo",
+                "/testContext/v1/bar",
+                "/testContext/v1/foo")));
+    }
+
+    @Test
+    void testDuplicateAliasesAreDeduplicated() throws Exception {
+
+        ApiBean apiBean = createSimpleApiBean(TestApiBeanDuplicateAlias.class);
+
+        springMvcApiMetaRegister.register(apiBean);
+
+        assertThat(collectSortedPaths(), equalTo(List.of("/testContext/v1/foo")));
+    }
+
+    @Test
+    void testWildcardMultiPathRegistersEveryAlias() throws Exception {
+
+        ApiBean apiBean = createSimpleApiBean(TestApiBeanWildcardMultiPath.class);
+
+        springMvcApiMetaRegister.register(apiBean);
+
+        assertThat(collectSortedPaths(), equalTo(List.of("/testContext/a/**", "/testContext/b/**")));
+    }
+
+    private List<String> collectSortedPaths() {
+        return testShenyuClientRegisterEventPublisher.events.stream()
+                .map(MetaDataRegisterDTO::getPath)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"first;second", "", " "})
@@ -226,6 +281,52 @@ public class SpringMvcApiMetaRegisterTest {
         
         @RequestMapping("/testMethod")
         @ShenyuSpringMvcClient("/testMethodPath")
+        public String testMethod() {
+            return "";
+        }
+    }
+    
+    @RestController
+    @ShenyuSpringMvcClient
+    @RequestMapping({"/v1", "/legacy"})
+    static class TestApiBeanNativeMultiPath {
+        
+        @RequestMapping({"/foo", "/bar"})
+        public String testMethod() {
+            return "";
+        }
+    }
+    
+    @RestController
+    @ShenyuSpringMvcClient({"/v1", "/legacy"})
+    @RequestMapping("/nativeClass")
+    static class TestApiBeanShenyuMultiPath {
+        
+        @RequestMapping("/nativeMethod")
+        @ShenyuSpringMvcClient({"/foo", "/bar"})
+        public String testMethod() {
+            return "";
+        }
+    }
+    
+    @RestController
+    @ShenyuSpringMvcClient({"/v1", "/v1"})
+    @RequestMapping("/nativeClass")
+    static class TestApiBeanDuplicateAlias {
+        
+        @RequestMapping("/nativeMethod")
+        @ShenyuSpringMvcClient("/foo")
+        public String testMethod() {
+            return "";
+        }
+    }
+    
+    @RestController
+    @ShenyuSpringMvcClient({"/a/**", "/b/**"})
+    @RequestMapping("/nativeClass")
+    static class TestApiBeanWildcardMultiPath {
+        
+        @RequestMapping("/testMethod")
         public String testMethod() {
             return "";
         }

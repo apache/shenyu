@@ -36,9 +36,12 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
@@ -131,6 +134,88 @@ public final class WebsocketSyncDataServiceTest {
             assertThrows(IllegalStateException.class, websocketSyncDataService::close);
 
             verify(privateTimer).shutdown();
+        }
+    }
+
+    @Test
+    public void testConfigurableMasterCheckInterval() throws Exception {
+        WebsocketConfig config = new WebsocketConfig();
+        config.setUrls(Collections.emptyList());
+        config.setMasterCheckInterval(15);
+        WebsocketSyncDataService service = new WebsocketSyncDataService(
+                config,
+                new ShenyuConfig(),
+                mock(PluginDataSubscriber.class),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                mock(ServerProperties.class));
+        try {
+            Field timerTaskField = WebsocketSyncDataService.class.getDeclaredField("timerTask");
+            timerTaskField.setAccessible(true);
+            TimerTask timerTask = (TimerTask) timerTaskField.get(service);
+            Method getDelayMs = TimerTask.class.getDeclaredMethod("getDelayMs");
+            getDelayMs.setAccessible(true);
+            long delayMs = (long) getDelayMs.invoke(timerTask);
+            assertEquals(15000L, delayMs);
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMasterCheckReseedsClientsWhenAllRemoved() throws Exception {
+        WebsocketConfig config = new WebsocketConfig();
+        config.setUrls(Collections.singletonList("ws://127.0.0.1:9095/websocket"));
+        WebsocketSyncDataService service = new WebsocketSyncDataService(
+                config,
+                new ShenyuConfig(),
+                mock(PluginDataSubscriber.class),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                mock(ServerProperties.class));
+        Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
+        clientsField.setAccessible(true);
+        List<ShenyuWebsocketClient> clients = (List<ShenyuWebsocketClient>) clientsField.get(service);
+        clients.clear();
+        ShenyuWebsocketClient closedClient = mock(ShenyuWebsocketClient.class);
+        when(closedClient.isOpen()).thenReturn(false);
+        clients.add(closedClient);
+
+        try {
+            Method masterCheck = WebsocketSyncDataService.class.getDeclaredMethod("masterCheck");
+            masterCheck.setAccessible(true);
+            masterCheck.invoke(service);
+            verify(closedClient).nowClose();
+            assertEquals(1, clients.size());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    public void testOnMasterLostTriggersRediscovery() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        ShenyuWebsocketClient client = mock(ShenyuWebsocketClient.class);
+        when(client.getURI()).thenReturn(URI.create("ws://localhost:9095"));
+
+        try {
+            Method onMasterLost = WebsocketSyncDataService.class.getDeclaredMethod("onMasterLost", ShenyuWebsocketClient.class);
+            onMasterLost.setAccessible(true);
+            onMasterLost.invoke(service, client);
+
+            Field rediscoveryScheduledField = WebsocketSyncDataService.class.getDeclaredField("rediscoveryScheduled");
+            rediscoveryScheduledField.setAccessible(true);
+            AtomicBoolean rediscoveryScheduled = (AtomicBoolean) rediscoveryScheduledField.get(service);
+            assertTrue(rediscoveryScheduled.get());
+        } finally {
+            service.close();
         }
     }
 

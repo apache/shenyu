@@ -298,8 +298,48 @@ class RemoteCatalogLifecycleTest {
         assertEquals(1, client.closes.get());
     }
 
+    @Test
+    void refreshConcurrencyOutsideBudgetIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new RemoteCatalogLifecycle(3, 0));
+        assertThrows(IllegalArgumentException.class, () -> new RemoteCatalogLifecycle(3, 9));
+    }
+
+    @Test
+    void boundedParallelRefreshPublishesEveryTargetDeterministically() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, 4);
+        Fake alpha = new Fake("alpha");
+        Fake beta = new Fake("beta");
+        manager.refresh(List.of(config("alpha", alpha), config("beta", beta))).block(WAIT);
+        Set<String> exposed = Set.of("alpha.lookup", "alpha.lookup.detail", "beta.lookup", "beta.lookup.detail");
+        assertEquals(exposed, manager.visible(exposed, exposed));
+        assertEquals(2, manager.diagnosticsState().clients());
+        manager.closeGracefully().block(WAIT);
+        assertEquals(1, alpha.closes.get());
+        assertEquals(1, beta.closes.get());
+    }
+
+    @Test
+    void parallelRefreshClosesEveryAllocatedClientWhenOneTargetFails() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, 4);
+        Fake good = new Fake("good");
+        good.handshake = Sinks.one();
+        Fake bad = new Fake("bad");
+        bad.failHandshake = true;
+        assertThrows(RuntimeException.class, () -> manager.refresh(List.of(config("good", good), config("bad", bad))).block(WAIT));
+        assertEquals(0, good.handshake.currentSubscriberCount());
+        // Nothing is published and no allocated client leaks even though both handshakes started concurrently.
+        assertEquals(0L, manager.diagnosticsState().currentVersion());
+        assertEquals(1, good.closes.get());
+        assertEquals(1, bad.closes.get());
+        manager.closeGracefully().block(WAIT);
+    }
+
     private static RemoteCatalogLifecycle.Config config(final Fake client) {
         return new RemoteCatalogLifecycle.Config("orders", client.version, () -> client);
+    }
+
+    private static RemoteCatalogLifecycle.Config config(final String name, final Fake client) {
+        return new RemoteCatalogLifecycle.Config(name, client.version, () -> client);
     }
 
     private static final class Fake implements RemoteMcpEndpoint {
@@ -316,6 +356,8 @@ class RemoteCatalogLifecycleTest {
 
         private boolean failClose;
 
+        private boolean failHandshake;
+
         private boolean repeatCursor;
 
         private Fake(final String version) {
@@ -329,6 +371,9 @@ class RemoteCatalogLifecycleTest {
 
         @Override
         public Mono<McpSchema.InitializeResult> initialize() {
+            if (failHandshake) {
+                return Mono.error(new IllegalStateException("injected handshake failure"));
+            }
             return Objects.isNull(handshake) ? Mono.just(info()) : handshake.asMono();
         }
 

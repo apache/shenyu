@@ -22,10 +22,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -41,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -65,7 +68,6 @@ import java.util.concurrent.ConcurrentMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * The TestCase for {@link HttpLongPollingDataChangedListener}.
@@ -423,13 +425,43 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletRequest.setParameter(group, "clientMd5,500");
         this.httpServletRequest.addHeader("X-Real-PORT", "8080");
         this.httpServletRequest.addHeader(X_REAL_IP, "10.0.0.1");
+        String information = "{\"cpu\":4,\"os\":\"Windows\"}";
+        this.httpServletRequest.addHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information);
 
         listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
 
-        Mockito.verify(instanceInfoReportEventPublisher).publish(any());
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        Mockito.verify(instanceInfoReportEventPublisher).publish(event.capture());
+        assertEquals(information, event.getValue().getInstanceInfo());
         assertEquals(200, this.httpServletResponse.getStatus());
 
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
+    }
+
+    /**
+     * test doLongPolling without optional instance information.
+     */
+    @Test
+    public void testDoLongPollingWithoutInstanceInformation() throws Exception {
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "serverMd5");
+        try {
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            this.httpServletRequest.addHeader("X-Real-PORT", "8080");
+            this.httpServletRequest.addHeader(X_REAL_IP, "10.0.0.1");
+
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+
+            ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+            Mockito.verify(instanceInfoReportEventPublisher).publish(event.capture());
+            assertEquals("", event.getValue().getInstanceInfo());
+            assertEquals("10.0.0.1", event.getValue().getInstanceIp());
+            assertEquals("8080", event.getValue().getInstancePort());
+            assertEquals(1, event.getValue().getInstanceState());
+            assertEquals(200, this.httpServletResponse.getStatus());
+        } finally {
+            clearAllGroupsInCache(DEFAULT_NAMESPACE);
+        }
     }
 
     /**
