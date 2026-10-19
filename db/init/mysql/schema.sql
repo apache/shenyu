@@ -1189,6 +1189,12 @@ INSERT INTO `plugin_handle` VALUES ('1899702411294539776', '51', 'timeWindowSeco
 INSERT INTO `plugin_handle` VALUES ('1899702472330051584', '51', 'keyName', 'keyName', 2, 2, 2, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');
 INSERT INTO `plugin_handle` VALUES ('1899702529972371456', '51', 'tokenLimit', 'tokenLimit', 1, 2, 3, '{\"required\":\"0\",\"rule\":\"\"}', '2025-03-12 06:02:32.450', '2025-03-12 06:02:32.450');
 
+-- Explicit, opt-in AI token reservations; existing rules remain disabled.
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1960000000000007700', '51', 'reservationEnabled', 'reservationEnabled', 3, 2, 4, '{"required":"0","defaultValue":"false","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1960000000000007701', '51', 'reservationTokens', 'reservationTokens', 1, 2, 5, '{"required":"0","placeholder":"Required when reservation is enabled; estimated completion tokens per request","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007702', 'reservationEnabled', 'RESERVATION_ENABLED', 'disabled', 'false', 'Enable estimated completion token reservations', 0, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007703', 'reservationEnabled', 'RESERVATION_ENABLED', 'enabled', 'true', 'Enable estimated completion token reservations', 1, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+
 INSERT INTO `plugin_handle` VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"required":"0","rule":""}', '2025-03-12 06:01:49.725', '2025-03-12 06:07:49.856');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507241', '53', 'baseUrl', 'baseUrl', 2, 3, 1, '{"required":"0","rule":""}', '2025-03-12 06:02:04.155', '2025-03-12 06:02:04.155');
 INSERT INTO `plugin_handle` VALUES ('1722804548510507242', '53', 'apiKey', 'apiKey', 2, 3, 2, '{"required":"0","rule":""}', '2025-03-12 06:02:18.707', '2025-03-12 06:02:18.707');

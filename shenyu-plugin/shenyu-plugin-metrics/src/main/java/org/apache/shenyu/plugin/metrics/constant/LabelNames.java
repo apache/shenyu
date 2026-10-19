@@ -22,6 +22,15 @@ package org.apache.shenyu.plugin.metrics.constant;
  */
 public final class LabelNames {
 
+    /** Reservation lifecycle events, labelled only by a bounded event name. */
+    public static final String AI_TOKEN_BUDGET_EVENTS_TOTAL = "shenyu_ai_token_budget_events_total";
+
+    /** Estimated completion tokens in newly acknowledged reservations; not a live gauge. */
+    public static final String AI_TOKEN_RESERVED_TOKENS_TOTAL = "shenyu_ai_token_reserved_tokens_total";
+
+    /** Reliable reported completion tokens, including usage whose original window expired. */
+    public static final String AI_TOKEN_ACTUAL_TOKENS_TOTAL = "shenyu_ai_token_actual_tokens_total";
+
     /** Completed authenticated, parsed MCP logical calls, labelled only by outcome. */
     public static final String AGENT_MCP_CALLS_TOTAL = "shenyu_agent_mcp_calls_total";
 

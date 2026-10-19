@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.metrics;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.common.metrics.AiTokenBudgetObserver;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -58,6 +59,14 @@ public class MetricsPlugin implements ShenyuPlugin {
     }
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
+        exchange.getAttributes().put(Constants.METRICS_AI_TOKEN_BUDGET, (AiTokenBudgetObserver) (event, tokens) -> {
+            MetricsReporter.counterIncrement(LabelNames.AI_TOKEN_BUDGET_EVENTS_TOTAL, new String[]{event.name().toLowerCase(Locale.ROOT)});
+            if (event == AiTokenBudgetObserver.Event.ADMITTED) {
+                MetricsReporter.counterIncrement(LabelNames.AI_TOKEN_RESERVED_TOKENS_TOTAL, null, tokens);
+            } else if (event == AiTokenBudgetObserver.Event.USAGE_REPORTED) {
+                MetricsReporter.counterIncrement(LabelNames.AI_TOKEN_ACTUAL_TOKENS_TOTAL, null, tokens);
+            }
+        });
         // Metrics must run before Agent Gateway so its per-subscription observation can capture this callback.
         exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, (AgentMcpCallObserver) (outcome, millis) -> {
             String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};

@@ -26,6 +26,9 @@ import java.util.Objects;
  * AiTokenLimiterHandle.
  */
 public class AiTokenLimiterHandle {
+
+    private static final long MAX_EXACT_INTEGER = 9_007_199_254_740_991L;
+
     /**
      * key resolver enum.
      */
@@ -45,6 +48,16 @@ public class AiTokenLimiterHandle {
      * token limit.
      */
     private Long tokenLimit;
+
+    /**
+     * Explicitly enable reservation admission; absent configuration retains legacy behavior.
+     */
+    private boolean reservationEnabled;
+
+    /**
+     * Estimated completion tokens to reserve for each request when reservation mode is enabled.
+     */
+    private Long reservationTokens;
     
     /**
      * apiTokenLimitKey.
@@ -117,6 +130,61 @@ public class AiTokenLimiterHandle {
     public void setTokenLimit(final Long tokenLimit) {
         this.tokenLimit = tokenLimit;
     }
+
+    /**
+     * Whether reservation admission is explicitly enabled.
+     *
+     * @return reservation admission enabled
+     */
+    public boolean isReservationEnabled() {
+        return reservationEnabled;
+    }
+
+    /**
+     * Set whether reservation admission is enabled.
+     *
+     * @param reservationEnabled reservation admission enabled
+     */
+    public void setReservationEnabled(final boolean reservationEnabled) {
+        this.reservationEnabled = reservationEnabled;
+    }
+
+    /**
+     * Get the per-request completion token estimate.
+     *
+     * @return per-request reservation, or null when not configured
+     */
+    public Long getReservationTokens() {
+        return reservationTokens;
+    }
+
+    /**
+     * Set the per-request completion token estimate.
+     *
+     * @param reservationTokens per-request reservation
+     */
+    public void setReservationTokens(final Long reservationTokens) {
+        this.reservationTokens = reservationTokens;
+    }
+
+    /**
+     * Validate opt-in reservation settings using defaults for omitted legacy fields.
+     * Disabled rules retain their previous validation semantics.
+     *
+     * @throws IllegalArgumentException if enabled reservation settings cannot be applied
+     */
+    public void validateReservationSettings() {
+        if (!reservationEnabled) {
+            return;
+        }
+        final AiTokenLimiterHandle defaults = newDefaultInstance();
+        final long limit = Objects.isNull(tokenLimit) ? defaults.getTokenLimit() : tokenLimit;
+        final long seconds = Objects.isNull(timeWindowSeconds) ? defaults.getTimeWindowSeconds() : timeWindowSeconds;
+        if (limit <= 0L || limit > MAX_EXACT_INTEGER || Objects.isNull(reservationTokens) || reservationTokens <= 0L || reservationTokens > limit
+                || seconds <= 0L || seconds > MAX_EXACT_INTEGER / 1000L) {
+            throw new IllegalArgumentException("Reservation mode requires a positive exact token budget, reservation within budget and valid window seconds");
+        }
+    }
     
     /**
      * new default instance.
@@ -139,6 +207,8 @@ public class AiTokenLimiterHandle {
                 + ", timeWindowSeconds=" + timeWindowSeconds
                 + ", keyName='" + keyName + '\''
                 + ", tokenLimit=" + tokenLimit
+                + ", reservationEnabled=" + reservationEnabled
+                + ", reservationTokens=" + reservationTokens
                 + '}';
     }
     
@@ -153,12 +223,14 @@ public class AiTokenLimiterHandle {
         return aiTokenLimitType.equals(that.aiTokenLimitType)
                 && timeWindowSeconds.equals(that.timeWindowSeconds)
                 && keyName.equals(that.keyName)
-                && tokenLimit.equals(that.tokenLimit);
+                && tokenLimit.equals(that.tokenLimit)
+                && reservationEnabled == that.reservationEnabled
+                && Objects.equals(reservationTokens, that.reservationTokens);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(aiTokenLimitType, timeWindowSeconds, keyName, tokenLimit);
+        return Objects.hash(aiTokenLimitType, timeWindowSeconds, keyName, tokenLimit, reservationEnabled, reservationTokens);
     }
     
 }

@@ -99,3 +99,9 @@ JOIN data_permission retained_permission
  AND duplicate_permission.data_id = retained_permission.data_id
  AND duplicate_permission.id > retained_permission.id;
 CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- Explicit, opt-in AI token reservations; existing rules remain disabled.
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1960000000000007700', '51', 'reservationEnabled', 'reservationEnabled', 3, 2, 4, '{"required":"0","defaultValue":"false","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1960000000000007701', '51', 'reservationTokens', 'reservationTokens', 1, 2, 5, '{"required":"0","placeholder":"Required when reservation is enabled; estimated completion tokens per request","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007702', 'reservationEnabled', 'RESERVATION_ENABLED', 'disabled', 'false', 'Enable estimated completion token reservations', 0, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007703', 'reservationEnabled', 'RESERVATION_ENABLED', 'enabled', 'true', 'Enable estimated completion token reservations', 1, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
