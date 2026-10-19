@@ -60,6 +60,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * The type shenyu websocket client.
@@ -105,9 +106,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private TimerTask timerTask;
 
-    private String runningMode;
+    private volatile String runningMode;
 
-    private String masterUrl;
+    private volatile String masterUrl;
 
     private volatile boolean isConnectedToMaster;
 
@@ -124,6 +125,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private final AtomicInteger reconnectBackoff = new AtomicInteger(0);
 
     private volatile Thread reconnectThread;
+
+    private final Consumer<ShenyuWebsocketClient> onMasterLostCallback;
 
     /**
      * Instantiates a new shenyu websocket client.
@@ -146,6 +149,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final Integer port
     ) {
         super(serverUri);
+        this.onMasterLostCallback = null;
         this.namespaceId = namespaceId;
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
@@ -212,11 +216,44 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final String namespaceId,
                                  final Integer port,
                                  final AtomicBoolean initialSyncReady) {
+        this(serverUri, headers, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers,
+                namespaceId, port, initialSyncReady, null);
+    }
+
+    /**
+     * Create a client with an optional startup readiness latch and master lost callback.
+     * @param serverUri server URI
+     * @param headers headers
+     * @param pluginDataSubscriber plugin subscriber
+     * @param metaDataSubscribers metadata subscribers
+     * @param authDataSubscribers authorization subscribers
+     * @param proxySelectorDataSubscribers proxy selector subscribers
+     * @param discoveryUpstreamDataSubscribers discovery subscribers
+     * @param aiProxyApiKeyDataSubscribers API key subscribers
+     * @param namespaceId namespace
+     * @param port gateway port
+     * @param initialSyncReady startup latch, null for the legacy protocol
+     * @param onMasterLostCallback callback invoked when connection to master is lost
+     */
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final Map<String, String> headers,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
+                                 final Integer port,
+                                 final AtomicBoolean initialSyncReady,
+                                 final Consumer<ShenyuWebsocketClient> onMasterLostCallback) {
         super(serverUri, headers);
         if (Objects.nonNull(initialSyncReady)) {
             this.initialSyncState = new InitialSyncState(initialSyncReady, this::resetSyncFailures);
         }
         this.namespaceId = namespaceId;
+        this.onMasterLostCallback = onMasterLostCallback;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
@@ -265,6 +302,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
+        runningMode = null;
+        masterUrl = null;
+        isConnectedToMaster = false;
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
@@ -294,11 +334,16 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
             } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
-                this.runningMode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
-                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                boolean wasMaster = this.isConnectedToMaster;
+                String mode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), mode)) {
                     this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                     this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+                    if (wasMaster && !this.isConnectedToMaster && !this.manuallyClosed.get() && Objects.nonNull(onMasterLostCallback)) {
+                        onMasterLostCallback.accept(this);
+                    }
                 }
+                this.runningMode = mode;
             } else if (Objects.nonNull(initialSyncState)) {
                 initialSyncState.applyIncremental(() -> handleResult(result));
             } else {
@@ -314,7 +359,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     @Override
     public void onClose(final int i, final String s, final boolean b) {
+        boolean wasMaster = this.isConnectedToMaster;
+        this.isConnectedToMaster = false;
         this.close();
+        if (wasMaster && !this.manuallyClosed.get() && Objects.nonNull(onMasterLostCallback)) {
+            onMasterLostCallback.accept(this);
+        }
     }
     
     @Override
@@ -374,6 +424,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBackoff.set(0);
                 this.sendPing();
                 send(getInstanceInfo());
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    send(DataEventTypeEnum.RUNNING_MODE.name());
+                }
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {

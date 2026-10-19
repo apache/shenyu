@@ -105,7 +105,7 @@ public class HeartbeatListener {
             instanceBeatInfoDTO.setInstanceIp(IpUtils.getHost());
             instanceBeatInfoDTO.setNamespaceId(shenyuConfig.getNamespace());
             instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
-            instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
+            instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE);
             sendHeartbeat(instanceBeatInfoDTO);
             }, INITIAL_DELAY, CHECK_PERIOD, TimeUnit.SECONDS
         );

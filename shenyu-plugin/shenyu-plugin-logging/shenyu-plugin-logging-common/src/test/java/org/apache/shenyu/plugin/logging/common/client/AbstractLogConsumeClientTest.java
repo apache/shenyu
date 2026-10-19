@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -54,6 +55,36 @@ public final class AbstractLogConsumeClientTest {
         } finally {
             client.close();
         }
+        assertEquals(1, client.getCloseCount());
+    }
+
+    @Test
+    public void testClose0StillRunsWhenHookRemovalFails() {
+        ThrowingHookLogConsumeClient client = new ThrowingHookLogConsumeClient();
+
+        try {
+            client.initClient(new GenericGlobalConfig());
+            client.close();
+        } finally {
+            Runtime.getRuntime().removeShutdownHook(client.getRegisteredHook());
+        }
+
+        assertEquals(1, client.getCloseCount());
+    }
+
+    @Test
+    public void testCloseIsIdempotent() {
+        TestLogConsumeClient client = new TestLogConsumeClient(true);
+
+        try {
+            client.initClient(new GenericGlobalConfig());
+            client.close();
+            client.close();
+        } finally {
+            // hook already removed by the first close(); removal is a no-op now
+            client.close();
+        }
+
         assertEquals(1, client.getCloseCount());
     }
 
@@ -103,6 +134,46 @@ public final class AbstractLogConsumeClientTest {
 
         private int getConsumeCount() {
             return consumeCount;
+        }
+
+        private int getCloseCount() {
+            return closeCount;
+        }
+    }
+
+    /**
+     * Simulates the JVM-shutdown scenario where {@code removeShutdownHook} throws
+     * {@link IllegalStateException}: cleanup must still reach {@code close0()}.
+     */
+    private static final class ThrowingHookLogConsumeClient extends AbstractLogConsumeClient<GenericGlobalConfig, ShenyuRequestLog> {
+
+        private final AtomicReference<Thread> registeredHook = new AtomicReference<>();
+
+        private int closeCount;
+
+        @Override
+        public boolean initClient0(final GenericGlobalConfig config) {
+            registeredHook.set(new Thread(this::close));
+            return true;
+        }
+
+        @Override
+        public void consume0(final List<ShenyuRequestLog> logs) {
+            // not used in this test
+        }
+
+        @Override
+        public void close0() {
+            closeCount++;
+        }
+
+        @Override
+        protected void removeHook(final Thread hook) {
+            throw new IllegalStateException("Shutdown in progress");
+        }
+
+        private Thread getRegisteredHook() {
+            return registeredHook.get();
         }
 
         private int getCloseCount() {

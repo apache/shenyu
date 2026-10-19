@@ -35,9 +35,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 import reactor.netty.DisposableServer;
@@ -107,6 +110,41 @@ public final class NettyHttpClientPluginTest {
             StepVerifier.create(nettyHttpClientPlugin.doRequest(exchange, "GET", uri, Flux.empty()))
                     .expectError(ShenyuUpstreamStatusException.class)
                     .verify();
+        } finally {
+            server.disposeNow();
+        }
+    }
+
+    /**
+     * A non-standard upstream status code must be preserved even when the response is decorated.
+     *
+     * <p>Regression test for #7801. A {@link ServerHttpResponseDecorator} only implements the
+     * {@link ServerHttpResponse} interface and does not extend Spring's
+     * {@code AbstractServerHttpResponse}, so the raw-status fallback in the Netty client must not
+     * depend on that concrete type.</p>
+     */
+    @Test
+    public void testNonStandardStatusWithDecoratedResponse() {
+        final DisposableServer server = HttpServer.create()
+                .port(0)
+                .handle((request, response) -> response.status(529).sendString(Mono.just("payload")))
+                .bindNow();
+        try {
+            final ServerWebExchange baseExchange = generateServerWebExchange();
+            final ServerHttpResponse decoratedResponse = new ServerHttpResponseDecorator(baseExchange.getResponse());
+            final ServerWebExchange decoratedExchange = new ServerWebExchangeDecorator(baseExchange) {
+                @Override
+                public ServerHttpResponse getResponse() {
+                    return decoratedResponse;
+                }
+            };
+            final URI uri = URI.create("http://127.0.0.1:" + server.port() + "/test");
+
+            StepVerifier.create(nettyHttpClientPlugin.doRequest(decoratedExchange, "GET", uri, Flux.empty()))
+                    .expectNextCount(1)
+                    .verifyComplete();
+
+            assertEquals(529, baseExchange.getResponse().getStatusCode().value());
         } finally {
             server.disposeNow();
         }

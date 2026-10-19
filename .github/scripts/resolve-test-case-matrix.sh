@@ -73,6 +73,7 @@ add_integration_all() {
   add_unique integration_cases "shenyu-integrated-test-spring-cloud"
   add_unique integration_cases "shenyu-integrated-test-websocket"
   add_unique integration_cases "shenyu-integrated-test-rewrite"
+  add_unique integration_cases "shenyu-integrated-test-tracing"
   add_unique integration_cases "shenyu-integrated-test-combination"
   add_unique integration_cases "shenyu-integrated-test-sdk-apache-dubbo"
   add_unique integration_cases "shenyu-integrated-test-sdk-http"
@@ -297,6 +298,9 @@ map_direct_case_path() {
       shenyu-integrated-test/shenyu-integrated-test-rewrite/*)
         add_unique integration_cases "shenyu-integrated-test-rewrite"
         ;;
+      shenyu-integrated-test/shenyu-integrated-test-tracing/*)
+        add_unique integration_cases "shenyu-integrated-test-tracing"
+        ;;
       shenyu-integrated-test/shenyu-integrated-test-combination/*)
         add_unique integration_cases "shenyu-integrated-test-combination"
         ;;
@@ -375,6 +379,13 @@ map_domain_path() {
         add_unique e2e_cases "e2e-http-sync-compose"
       else
         add_unique integration_cases "shenyu-integrated-test-rewrite"
+      fi
+      ;;
+    *tracing*)
+      if [[ "${mode}" == "e2e" ]]; then
+        add_unique e2e_cases "e2e-http-sync-compose"
+      else
+        add_unique integration_cases "shenyu-integrated-test-tracing"
       fi
       ;;
     *https*)
