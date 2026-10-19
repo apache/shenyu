@@ -28,6 +28,7 @@
         <result column="instance_info" jdbcType="VARCHAR" property="instanceInfo"/>
         <result column="instance_state" jdbcType="INTEGER" property="instanceState"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
+        <result column="last_heart_beat_time" jdbcType="BIGINT" property="lastHeartBeatTime"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -40,6 +41,7 @@
         instance_info,
         instance_state,
         namespace_id,
+        last_heart_beat_time,
         date_created,
         date_updated
     </sql>
@@ -53,7 +55,8 @@
           instance_port = #{instancePort, jdbcType=VARCHAR},
           instance_type = #{instanceType, jdbcType=VARCHAR},
           instance_info = #{instanceInfo, jdbcType=VARCHAR},
-          instance_state = #{instanceState, jdbcType=TINYINT}
+          instance_state = #{instanceState, jdbcType=TINYINT},
+          last_heart_beat_time = #{lastHeartBeatTime, jdbcType=BIGINT}
         WHERE
           id = #{id, jdbcType=VARCHAR}
     </update>
@@ -164,7 +167,8 @@
         instance_type,
         instance_info,
         instance_state,
-        namespace_id)
+        namespace_id,
+        last_heart_beat_time)
         VALUES
         (#{id,jdbcType=VARCHAR},
         #{dateCreated,jdbcType=TIMESTAMP},
@@ -174,7 +178,8 @@
         #{instanceType,jdbcType=VARCHAR},
         #{instanceInfo,jdbcType=VARCHAR},
         #{instanceState,jdbcType=TINYINT},
-        #{namespaceId,jdbcType=VARCHAR})
+        #{namespaceId,jdbcType=VARCHAR},
+        #{lastHeartBeatTime,jdbcType=BIGINT})
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">

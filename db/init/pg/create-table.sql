@@ -2692,6 +2692,7 @@ CREATE TABLE "public"."instance_info" (
     "instance_state" int2          NOT NULL,
     "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "last_heart_beat_time" int8          NOT NULL DEFAULT 0,
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
@@ -2703,6 +2704,7 @@ COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
 COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
+COMMENT ON COLUMN "public"."instance_info"."last_heart_beat_time" IS 'last heart beat time';
 
 INSERT INTO "public"."permission" VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569642742', '1346358560427216896', '1844026099075554851', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
