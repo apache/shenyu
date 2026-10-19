@@ -281,27 +281,40 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            return super.writeWith(appendResponse(body));
+            return Mono.defer(() -> {
+                final BodyWriter writer = new BodyWriter();
+                final GzipStreamDecoder decoder = createDecoder();
+                return super.writeWith(appendResponse(body, writer, decoder))
+                        .doOnSuccess(unused -> recordResponseUsage(writer))
+                        .doFinally(signal -> finishResponse(writer, decoder));
+            });
         }
 
         @Override
         @NonNull
         public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
-            Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
-                    .map(this::appendResponse);
-            return super.writeAndFlushWith(intercepted);
+            return Mono.defer(() -> {
+                final BodyWriter writer = new BodyWriter();
+                final GzipStreamDecoder decoder = createDecoder();
+                Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
+                        .map(inner -> appendResponse(inner, writer, decoder));
+                return super.writeAndFlushWith(intercepted)
+                        .doOnSuccess(unused -> recordResponseUsage(writer))
+                        .doFinally(signal -> finishResponse(writer, decoder));
+            });
         }
 
-        @NonNull
-        private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
-            BodyWriter writer = new BodyWriter();
+        private GzipStreamDecoder createDecoder() {
             HttpHeaders headers = serverHttpResponse.getHeaders();
             boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
                     && headers.getFirst(Constants.CONTENT_ENCODING)
                     .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+            return isGzip ? new GzipStreamDecoder() : null;
+        }
 
-            final GzipStreamDecoder decoder = isGzip ? new GzipStreamDecoder() : null;
-
+        @NonNull
+        private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body,
+                                                        final BodyWriter writer, final GzipStreamDecoder decoder) {
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
                         try (DataBuffer.ByteBufferIterator it = buffer.readableByteBuffers()) {
@@ -310,7 +323,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes = isGzip ? decoder.decode(inBytes) : inBytes;
+                                byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
                                 if (processedBytes.length > 0) {
                                     processChunk(processedBytes, writer);
                                 }
@@ -318,22 +331,31 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         } catch (Exception e) {
                             LOG.error("read dataBuffer error", e);
                         }
-                    })
-                    .doOnComplete(() -> {
-                        if (reservationMode && !streamingUsageRecorded.get()) {
-                            recordKnownUsage(writer.output());
-                        }
-                    })
-                    .doFinally(signal -> {
-                        if (Objects.nonNull(decoder)) {
-                            decoder.close();
-                        }
-                        if (!reservationMode && !streamingUsageRecorded.get()) {
-                            String sse = writer.output();
-                            long usageTokens = extractUsageTokensFromSse(sse);
-                            tokensRecorder.accept(usageTokens);
-                        }
                     });
+        }
+
+        private void recordResponseUsage(final BodyWriter writer) {
+            if (reservationMode) {
+                // Capture reliable usage before usingWhen starts reservation settlement.
+                String body = writer.output();
+                recordKnownUsage(body);
+                for (String line : SSE_LINE_PATTERN.split(body)) {
+                    if (line.startsWith("data:")) {
+                        recordKnownUsage(line.substring("data:".length()).trim());
+                    }
+                }
+            }
+        }
+
+        private void finishResponse(final BodyWriter writer, final GzipStreamDecoder decoder) {
+            if (Objects.nonNull(decoder)) {
+                decoder.close();
+            }
+            if (!reservationMode && !streamingUsageRecorded.get()) {
+                String sse = writer.output();
+                long usageTokens = extractUsageTokensFromSse(sse);
+                tokensRecorder.accept(usageTokens);
+            }
         }
 
         private void processChunk(final byte[] processedBytes, final BodyWriter writer) {

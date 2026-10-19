@@ -169,10 +169,13 @@ Reservation response observation uses the existing bounded 64 KiB decoded tail
 and gzip decoder. It distinguishes reliable integer usage from absent, invalid
 or unsupported usage. Complete JSON responses within that buffer are inspected
 before completion propagates, and parsed streaming usage is retained until the
-request terminates rather than incremented for every usage frame. Parser limits,
-including usage fragmented across independent flush publishers or a JSON body
-larger than the retained tail, conservatively result in held capacity when no
-reliable usage was captured. This change does not replace the streaming parser.
+request terminates rather than incremented for every usage frame. The writer and
+gzip decoder are shared across flush publishers for one response subscription.
+At successful completion, complete JSON bodies and individual SSE data lines in
+the retained tail are checked before reservation settlement starts. Parser limits,
+including multiline SSE data or a JSON body larger than the retained tail,
+conservatively result in held capacity when no reliable usage was captured.
+This change does not replace the streaming parser.
 The legacy response accounting path remains the default.
 
 ## Metrics

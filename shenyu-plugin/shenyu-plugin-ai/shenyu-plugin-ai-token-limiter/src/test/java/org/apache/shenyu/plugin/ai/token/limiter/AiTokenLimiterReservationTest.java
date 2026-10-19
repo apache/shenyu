@@ -32,8 +32,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
@@ -45,15 +47,20 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.TimeoutException;
+import java.util.zip.GZIPOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -400,6 +407,43 @@ class AiTokenLimiterReservationTest {
                 .expectComplete().verify(TIMEOUT);
 
         assertEquals(List.of(List.of("6", requestId())), settlements);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false, false, 0", "false, false, 6", "false, true, 0", "false, true, 6",
+        "true, false, 0", "true, false, 6", "true, true, 0", "true, true, 6"})
+    void testUsageAcrossFlushPublishersSettlesBeforeCleanup(final boolean streaming, final boolean gzip, final long tokens) throws IOException {
+        final String json = "{\"usage\":{\"completion_tokens\":" + tokens + "}}";
+        final String body = streaming ? "data: " + json + "\n\n" : json;
+        final ByteArrayOutputStream compressed = new ByteArrayOutputStream();
+        try (GZIPOutputStream output = new GZIPOutputStream(compressed)) {
+            output.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+        final byte[] bytes = gzip ? compressed.toByteArray() : body.getBytes(StandardCharsets.UTF_8);
+        final int split = gzip ? 5 : body.indexOf("tokens");
+        final byte[][] chunks = {Arrays.copyOfRange(bytes, 0, split), Arrays.copyOfRange(bytes, split, bytes.length)};
+        final MockServerWebExchange exchange = exchange();
+
+        StepVerifier.create(execute(exchange, forwarded -> {
+            forwarded.getResponse().getHeaders().setContentType(streaming ? MediaType.TEXT_EVENT_STREAM : MediaType.APPLICATION_JSON);
+            if (gzip) {
+                forwarded.getResponse().getHeaders().set("Content-Encoding", "gzip");
+            }
+            return forwarded.getResponse().writeAndFlushWith(Flux.fromArray(chunks)
+                    .map(chunk -> Mono.just(forwarded.getResponse().bufferFactory().wrap(chunk))));
+        })).expectComplete().verify(TIMEOUT);
+
+        assertEquals(List.of(List.of(Long.toString(tokens), requestId())), settlements);
+        assertTrue(completions.isEmpty());
+        assertEquals(List.of("ADMITTED:10", "USAGE_REPORTED:" + tokens, "SETTLED:0"), observations);
+        final ByteArrayOutputStream forwardedBytes = new ByteArrayOutputStream();
+        exchange.getResponse().getBody().doOnNext(buffer -> {
+            final byte[] chunk = new byte[buffer.readableByteCount()];
+            buffer.read(chunk);
+            forwardedBytes.writeBytes(chunk);
+            DataBufferUtils.release(buffer);
+        }).then().block(TIMEOUT);
+        assertArrayEquals(bytes, forwardedBytes.toByteArray());
     }
 
     @Test

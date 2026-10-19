@@ -72,6 +72,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test Maven transfer retries
+        run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
       - uses: ./actions/paths-filter
@@ -269,10 +271,10 @@ jobs:
 
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
+            exec bash .github/scripts/maven-with-retry.sh mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           else
             echo "Falling back to maven wrapper"
-            ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           fi
 
   build_local_repo:
