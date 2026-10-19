@@ -23,9 +23,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * {@link java.lang.Runtime#freeMemory()} technology is used to calculate the
- * memory limit by using the percentage of the current maximum available memory,
- * which can be used with {@link org.apache.shenyu.common.concurrent.MemoryLimiter}.
+ * The memory limit is calculated from the amount of memory the JVM can still commit
+ * up to {@link java.lang.Runtime#maxMemory()} (the {@code -Xmx} headroom), not just
+ * from the free part of the current committed heap, and it can be used with
+ * {@link org.apache.shenyu.common.concurrent.MemoryLimiter}.
  *
  * @see org.apache.shenyu.common.concurrent.MemoryLimiter
  */
@@ -54,7 +55,13 @@ public class MemoryLimitCalculator {
     }
     
     private static void refresh() {
-        maxAvailable = Runtime.getRuntime().freeMemory();
+        final Runtime runtime = Runtime.getRuntime();
+        final long used = runtime.totalMemory() - runtime.freeMemory();
+        // The JVM can grow the committed heap up to maxMemory(), so the memory that is
+        // genuinely still available is the headroom to -Xmx, not only the free part of
+        // the currently committed heap. When the committed heap already equals the
+        // maximum (-Xms == -Xmx), this is identical to freeMemory().
+        maxAvailable = runtime.maxMemory() - used;
     }
 
     /**

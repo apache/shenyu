@@ -165,7 +165,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
 
             if (!needsToUpdateConnections(grpcUpstreamList)) {
                 LOG.info("Nothing has changed... skipping update for {}", name);
-                return Collections.emptyList();
+                return this.savedInstanceList;
             }
 
             LOG.info("Ready to update server list for {}", name);
