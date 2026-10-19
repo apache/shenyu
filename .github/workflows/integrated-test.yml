@@ -172,26 +172,26 @@ jobs:
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           else
             echo "Falling back to maven wrapper"
-            ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           fi
       - name: Build examples
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build examples"
-            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper for examples"
-            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
       - name: Build integrated tests
         shell: bash
         # mvnd can report success while skipping this entire subreactor.
         run: |
-          ./mvnw -B -ntp -T 1C clean install -Pit -Dmaven.test.skip=true \
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C clean install -Pit -Dmaven.test.skip=true \
             -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
       - name: Verify integrated test image
         run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
@@ -206,7 +206,7 @@ jobs:
         id: test
         shell: bash
         run: |
-          ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
             -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
