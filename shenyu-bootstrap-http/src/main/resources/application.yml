@@ -22,8 +22,6 @@ server:
   address: 0.0.0.0
 
 spring:
-  main:
-    allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap-http
   codec:
@@ -42,22 +40,33 @@ management:
           - 'info'
 
 shenyu:
-  # must match the namespace used by shenyu-admin (default seeded namespace)
-  namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
+  # namespace intentionally unset: the code default (Constants.SYS_DEFAULT_NAMESPACE_ID)
+  # already matches the default seeded namespace of shenyu-admin.
+  # Set shenyu.namespace only when the admin uses a non-default namespace.
   switchConfig:
     local: true
     collapseSlashes: false
   file:
     enabled: true
     maxSize: 10
+  # CORS is disabled by default: a gateway must not ship with cross-origin
+  # access open to every website (PR #7709 review).
+  # To enable CORS deliberately, set enabled: true and configure an explicit
+  # origin allow-list, e.g.:
+  #   cross:
+  #     enabled: true
+  #     allowedOrigin:
+  #       origins:
+  #         - https://example.com
+  #     allowedMethods: "*"
+  #     allowedHeaders:
+  #     maxAge: "18000"
+  #     allowCredentials: true
+  # WARNING: never combine allowedAnyOrigin: true with allowCredentials: true,
+  # otherwise any website could issue credentialed cross-origin requests through
+  # this gateway. This high-risk combination must never be a default.
   cross:
-    enabled: true
-    allowedHeaders:
-    allowedMethods: "*"
-    allowedAnyOrigin: true
-    allowedExpose: ""
-    maxAge: "18000"
-    allowCredentials: true
+    enabled: false
   # the single data-sync channel: websocket (matches shenyu-admin default)
   sync:
     websocket:
