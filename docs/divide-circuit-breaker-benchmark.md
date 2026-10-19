@@ -17,6 +17,11 @@ limitations under the License.
 
 # Divide circuit-breaker key reuse (#7826)
 
+The final branch also fixes #7760 and includes a real HTTP gateway benchmark.
+See [the gateway measurements and recovery checks](benchmarks/divide-gateway/README.md).
+The microbenchmark numbers below preserve the initial optimization checkpoint
+(826149218), before the independent half-open fix.
+
 ## Change and ownership
 
 The original Divide path constructs a key for every candidate, constructs it
@@ -31,17 +36,23 @@ with value equality for the explicit-target copy. A custom load balancer
 returning a target outside the candidate list still gets its own key.
 Candidate order, objects, weights and load-balancing statistics are preserved.
 
-Storage is O(candidates in this request), with no global memoization and no
+The final implementation additionally reuses the key across requests through
+`Upstream.buildSelectorKey`. Each upstream owns one transient, volatile cache
+entry containing the selector id, URL and resulting key. URL changes invalidate
+it; reads also compare the captured URL. Different selectors replace the single
+entry instead of growing a map. Group/version/weight changes preserve the
+existing domain-based breaker identity. Serialization omits this runtime cache.
+
+Request-local storage is O(candidates in this request), with no global memoization and no
 configuration-removal invalidation machinery. No shared cache list is mutated.
-The candidate holder is not captured by the forwarded Mono; only the chosen
-key survives until outcome recording. New requests recompute keys after
+Candidate storage remains bounded by the request snapshot; outcome callbacks use the selected key and probe token. New requests recompute keys after
 selector, protocol or URL changes.
 
-The second breaker-state scan is intentional: a wait window or an in-flight
-outcome can change between passes. Moving probe acquisition into the first
-pass could reserve a probe that normal candidate selection never uses.
-Selected-key lookup adds a bounded linear scan; this tradeoff is included in
-the benchmark, including selection of every candidate position.
+The final filter uses one pass for ordinary routing and returns an acquired
+probe as an exclusive candidate. Only an unavailable explicit target with no
+ordinary alternatives needs a fallback probe pass. This ensures that healthy
+siblings cannot prevent recovery and that an unselected target never keeps a
+probe. Selected-key lookup adds a bounded identity scan.
 
 ## Measurement boundary
 
@@ -157,7 +168,7 @@ unprofiled comparison:
 
 ## Correctness and the half-open prerequisite
 
-Validation completed on JDK 17: 67 regression tests passed (35 Divide tests,
+Initial-checkpoint validation on JDK 17: 67 regression tests passed (35 Divide tests,
 12 base-breaker tests, 16 retry tests and 4 shared-model tests). Reactor
 Checkstyle reported zero violations. The Divide RAT check approved all 14
 included resources; `git diff --check` also passed.
@@ -171,20 +182,18 @@ Tests exercise candidate compaction/order/identity, explicit target selection
 and blocked-target fallback, selector/protocol/URL isolation, configuration
 removal while a snapshot is in flight, error/success/cancellation accounting,
 retry attributes, and the existing P2C cancellation test. Existing retry tests
-also exercise failover; this change does not alter retry admission.
+also exercise failover; ordinary requests retain their configured retry behavior.
 
-The checkout still contains [#7760](https://github.com/apache/shenyu/issues/7760):
-expired OPEN and HALF_OPEN states admit ordinary requests without a permit.
-This optimization does not fix it. The concurrent compatibility test compares
-both filters using the real state machine. A separate fallback concurrency
-test supplies closed-only eligibility while retaining the real atomic probe
-transition; that test proves only the fallback's single-probe behavior.
-Neither test is evidence that the current gateway enforces single-probe
-admission or releases canceled half-open probes correctly.
+The half-open issue is now fixed. Ordinary eligibility is CLOSED-only, and each
+probe owns a particular state object and generation. Error or cancellation
+reopens that probe; completion closes it. Removed/replaced state and old
+ordinary/probe outcomes cannot resolve a newer probe. Admission and forwarding
+are deferred until subscription, including synchronous-error accounting.
 
-Before closing the complete upstream acceptance criteria, integrate the
-independent admission/lifecycle fix and rerun end-to-end concurrent recovery,
-cancellation and configuration-removal tests. Full HTTP p99 and throughput
-claims also require a gateway/load-generator run with identical upstream
-latency, error distribution, retries, connection pools and concurrency.
-The measurements here establish allocation changes within the isolated path.
+Probes make one HTTP attempt, regardless of configured retries, so a failed
+recovering target cannot be declared healthy because a failover target succeeded.
+Ordinary requests retain configured retries. The final targeted suite passed
+100 targeted tests plus all 62 load-balancer tests (156 distinct tests), and the
+real HTTP verification passed all 11 checks, including actual
+10-second wait windows, 65 overlapping requests, cancellation, removal and
+retry=2. The gateway benchmark README records the final measurement boundary.
