@@ -195,18 +195,15 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
         String redisKey = Objects.isNull(handle.getRedisKey())
                 ? SensitiveWordHandle.DEFAULT_REDIS_KEY : handle.getRedisKey();
         String dictionaryKey = handle.dictionaryKey();
-        List<String> words = parseWords(handle.getWords());
         CachedDictionary cached = SensitiveWordPluginDataHandler.DICTIONARIES.get().obtainHandle(dictionaryKey);
         Mono<AhoCorasick> automaton;
         if (Objects.nonNull(cached) && !cached.isExpired(handle.getRefreshIntervalSeconds())) {
             automaton = Mono.just(cached.getAutomaton());
         } else {
-            automaton = redisTemplate.opsForSet()
-                    .members(redisKey)
-                    .collectList()
-                    // building the automaton is cpu bound, keep it away from the event loop
-                    .map(loaded -> AhoCorasick.of(merge(loaded, words)))
-                    .subscribeOn(Schedulers.boundedElastic())
+            // the rule words are only needed on a cache miss: parsing them on every
+            // cache hit would repeat an O(n^2) parse for nothing (#7829)
+            List<String> words = parseWords(handle.getWords());
+            automaton = redisAutomaton(redisTemplate, redisKey, words)
                     .doOnNext(loaded -> SensitiveWordPluginDataHandler.DICTIONARIES.get()
                             .cachedHandle(dictionaryKey, new CachedDictionary(loaded)))
                     .onErrorResume(error -> {
@@ -216,7 +213,7 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                         }
                         if (!words.isEmpty()) {
                             // the words of the rule do not depend on redis, they are still enforced
-                            return Mono.just(AhoCorasick.of(words));
+                            return ruleWordsAutomaton(words);
                         }
                         if (handle.isFailClosed()) {
                             LOG.warn("sensitive word plugin: no dictionary is available and failClosed is set,"
@@ -234,12 +231,46 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
     }
 
     /**
+     * The dictionary built from the redis set: the redis driver emits on its own io threads and
+     * building the automaton is cpu bound, so the construction hops to a bounded elastic worker.
+     *
+     * @param redisTemplate the redis template
+     * @param redisKey the redis key holding the dictionary words
+     * @param ruleWords the words of the rule
+     * @return the automaton mono
+     */
+    Mono<AhoCorasick> redisAutomaton(final ReactiveRedisTemplate<String, String> redisTemplate,
+                                     final String redisKey,
+                                     final List<String> ruleWords) {
+        return redisTemplate.opsForSet()
+                .members(redisKey)
+                .collectList()
+                // the redis driver emits on its own io threads; building the automaton is cpu
+                // bound, so hop to a bounded elastic worker before constructing it
+                .publishOn(Schedulers.boundedElastic())
+                .map(loaded -> AhoCorasick.of(merge(loaded, ruleWords)))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * The automaton built from the rule words alone, deferred off the assembly thread so that
+     * the cpu bound construction never runs on the caller (the netty event loop).
+     *
+     * @param ruleWords the words of the rule
+     * @return the automaton mono
+     */
+    Mono<AhoCorasick> ruleWordsAutomaton(final List<String> ruleWords) {
+        return Mono.fromCallable(() -> AhoCorasick.of(ruleWords))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
      * The words of the rule, separated by commas or by newlines, so that a word may contain spaces.
      *
      * @param words the words configured on the rule
      * @return the distinct words, in the order they were configured
      */
-    private List<String> parseWords(final String words) {
+    List<String> parseWords(final String words) {
         if (Objects.isNull(words) || words.trim().isEmpty()) {
             return Collections.emptyList();
         }

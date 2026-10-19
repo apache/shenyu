@@ -52,6 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Timestamp;
@@ -64,6 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -145,6 +147,41 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+    }
+
+
+    @Test
+    public void testDeleteNotifiesAffectedHandlersWithRemainingUpstreams() {
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
+        when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
+        // fetchAll dependencies for handler-1
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.emptyList());
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectById("handler-1")).thenReturn(handler);
+        when(proxySelectorMapper.selectByHandlerId("handler-1")).thenReturn(null);
+        final SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        selector.setPluginId("plugin-1");
+        when(selectorMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(selector);
+        final PluginDO plugin = new PluginDO();
+        plugin.setName("divide");
+        when(pluginMapper.selectById("plugin-1")).thenReturn(plugin);
+        handler.setDiscoveryId("discovery-1");
+        final DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setId("discovery-1");
+        discovery.setDiscoveryType("local");
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(discovery);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+
+        String delete = discoveryUpstreamService.delete(Collections.singletonList("upstream-1"));
+
+        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+        // the empty remaining snapshot must be published for the affected handler
+        verify(discoveryProcessor, Mockito.timeout(1000).times(1)).changeUpstream(any(), eq(Collections.emptyList()));
     }
 
     @ParameterizedTest
