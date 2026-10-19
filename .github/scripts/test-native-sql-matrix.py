@@ -223,6 +223,40 @@ class NativeSqlMatrixTest(unittest.TestCase):
             with patch.object(engine, "sql", side_effect=RuntimeError("connection refused")), self.assertRaisesRegex(RuntimeError, "connection"):
                 engine.check_discovery_upstream_uniqueness()
 
+    def test_data_permission_uniqueness_requires_the_intended_constraint(self):
+        indexes = {("data_permission", "idx_data_permission_user_type"): ["user_id", "data_type", "data_id"]}
+        for dialect in matrix.DIALECTS:
+            for conflict, error in ((RuntimeError("duplicate key: IDX_DATA_PERMISSION_USER_TYPE"), None),
+                                    (RuntimeError("different constraint"), RuntimeError), (None, AssertionError)):
+                def sql(query):
+                    if query.startswith("INSERT"):
+                        if conflict:
+                            raise conflict
+                        return ""
+                    if query.startswith("SELECT id"):
+                        return "\n".join(f"sql-matrix-grant-{number}" for number in (1, 4, 5, 6))
+                    return "3" if "information_schema.statistics" in query else "1"
+
+                with self.subTest(dialect=dialect, conflict=conflict), tempfile.TemporaryDirectory() as directory:
+                    engine = matrix.Engine(dialect, "upgrade", Path(directory))
+                    with patch.object(engine, "sql", side_effect=sql):
+                        if error:
+                            with self.assertRaises(error):
+                                engine.check_data_permission_uniqueness(indexes)
+                        else:
+                            engine.check_data_permission_uniqueness(indexes)
+
+    def test_data_permission_check_rejects_nonunique_index_and_incorrect_cleanup(self):
+        indexes = {("data_permission", "idx_data_permission_user_type"): ["user_id", "data_type", "data_id"]}
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("mysql", "upgrade", Path(directory))
+            with patch.object(engine, "sql", return_value="0"), self.assertRaisesRegex(AssertionError, "not unique"):
+                engine.check_data_permission_uniqueness(indexes)
+            for numbers in ((1, 2, 4, 5, 6), (1, 5, 6)):
+                with patch.object(engine, "sql", side_effect=["3", "\n".join(f"sql-matrix-grant-{number}" for number in numbers)]), \
+                        self.assertRaisesRegex(AssertionError, "lost distinct grants or retained duplicate"):
+                    engine.check_data_permission_uniqueness(indexes)
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)

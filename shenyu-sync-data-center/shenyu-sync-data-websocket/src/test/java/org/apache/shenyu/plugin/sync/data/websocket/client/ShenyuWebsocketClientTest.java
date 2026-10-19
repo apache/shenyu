@@ -119,6 +119,20 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
+    void testOnOpenClearsPreviousRunningMode() {
+        ShenyuWebsocketClient client = spy(shenyuWebsocketClient);
+        doNothing().when(client).send(anyString());
+        client.onMessage("{\"eventType\":\"RUNNING_MODE\",\"runningMode\":\"CLUSTER\",\"isMaster\":true,\"masterUrl\":\"ws://old-master/websocket\"}");
+        assertTrue(client.isConnectedToMaster());
+
+        client.onOpen(mock(ServerHandshake.class));
+
+        Assertions.assertNull(client.getRunningMode());
+        Assertions.assertNull(client.getMasterUrl());
+        assertFalse(client.isConnectedToMaster());
+    }
+
+    @Test
     public void testOnMessage() {
         doNothing().when(pluginDataSubscriber).onPluginRefresh(any());
         String json = GsonUtils.getInstance().toJson(websocketData);

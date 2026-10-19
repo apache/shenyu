@@ -2047,6 +2047,7 @@ ALTER TABLE "public"."dashboard_user" ADD CONSTRAINT "dashboard_user_pkey" PRIMA
 -- Primary Key structure for table data_permission
 -- ----------------------------
 ALTER TABLE "public"."data_permission" ADD CONSTRAINT "data_permission_pkey" PRIMARY KEY ("id");
+CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");
 
 -- ----------------------------
 -- Primary Key structure for table meta_data
@@ -2062,6 +2063,8 @@ CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree 
 -- Primary Key structure for table operation_record_log
 -- ----------------------------
 ALTER TABLE "public"."operation_record_log" ADD CONSTRAINT "operation_record_log_pkey" PRIMARY KEY ("id");
+CREATE INDEX "idx_operation_log_time" ON "public"."operation_record_log" USING btree ("operation_time");
+CREATE INDEX "idx_operation_log_operator_time" ON "public"."operation_record_log" USING btree ("operator","operation_time");
 
 -- ----------------------------
 -- Primary Key structure for table permission

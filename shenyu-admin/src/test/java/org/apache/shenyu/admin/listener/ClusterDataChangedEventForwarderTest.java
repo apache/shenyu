@@ -36,13 +36,18 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -93,10 +98,12 @@ public final class ClusterDataChangedEventForwarderTest {
 
     /**
      * Forward posts the serialized event, authenticated with the dedicated node credential,
-     * to the master url built from the master dto.
+     * to the master url built from the master dto, preserving an empty refresh's namespace.
+     *
+     * @throws IOException if the payload cannot be serialized or deserialized
      */
     @Test
-    public void forwardPostsPayloadToMasterUrlTest() {
+    public void forwardPostsPayloadToMasterUrlTest() throws IOException {
         ClusterMasterDTO master = new ClusterMasterDTO();
         master.setMasterHost("10.0.0.2");
         master.setMasterPort("9095");
@@ -105,8 +112,8 @@ public final class ClusterDataChangedEventForwarderTest {
         when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class)))
                 .thenReturn(ResponseEntity.ok("ok"));
 
-        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(new PluginData()));
+        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH,
+                Collections.emptyList(), "namespace-a");
         boolean forwarded = forwarder.forward(event);
 
         assertTrue(forwarded);
@@ -116,9 +123,17 @@ public final class ClusterDataChangedEventForwarderTest {
         assertEquals("node-secret", captor.getValue().getHeaders().getFirst(
                 org.apache.shenyu.admin.shiro.bean.ClusterEventAuthFilter.HEADER));
         org.junit.jupiter.api.Assertions.assertNull(captor.getValue().getHeaders().getFirst(Constants.X_ACCESS_TOKEN));
-        assertEquals(ConfigGroupEnum.PLUGIN.name(), captor.getValue().getBody().getGroupKey());
-        assertEquals(DataEventTypeEnum.UPDATE.name(), captor.getValue().getBody().getEventType());
-        assertTrue(captor.getValue().getBody().getSource().startsWith("["));
+        ClusterDataChangedEventPayload payload = captor.getValue().getBody();
+        assertEquals(ConfigGroupEnum.RULE.name(), payload.getGroupKey());
+        assertEquals(DataEventTypeEnum.REFRESH.name(), payload.getEventType());
+        assertEquals("[]", payload.getSource());
+        assertEquals("namespace-a", payload.getNamespaceId());
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        MockHttpOutputMessage output = new MockHttpOutputMessage();
+        converter.write(payload, MediaType.APPLICATION_JSON, output);
+        ClusterDataChangedEventPayload deserialized = (ClusterDataChangedEventPayload) converter.read(
+                ClusterDataChangedEventPayload.class, new MockHttpInputMessage(output.getBodyAsBytes()));
+        assertEquals("namespace-a", deserialized.getNamespaceId());
     }
 
     /**

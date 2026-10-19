@@ -40,7 +40,7 @@ runtime classpath, using the same ShenYu version as the application:
 | `zookeeper` | `shenyu-registry-zookeeper` |
 | `etcd` | `shenyu-registry-etcd` |
 | `nacos` | `shenyu-registry-nacos` |
-| `apollo` | `shenyu-registry-apollo` |
+| `apollo` | `shenyu-registry-apollo`; in-tree deprecation and planned external ownership: [migration guide](../docs/plugin-store-apollo.md) |
 | `eureka` | `shenyu-registry-eureka` |
 | `kubernetes` | `shenyu-registry-kubernetes` |
 

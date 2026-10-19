@@ -71,7 +71,7 @@ public class KubernetesScaler {
     public void scaleByNum(final int replicaCount) {
         try {
             V1Scale scale = new V1Scale();
-            Objects.requireNonNull(scale.getSpec()).setReplicas(replicaCount);
+            scale.setSpec(new V1ScaleSpec().replicas(replicaCount));
 
             appsV1Api.replaceNamespacedDeploymentScale(
                     deploymentProperties.getName(),

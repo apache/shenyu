@@ -397,6 +397,54 @@ class Engine:
         else:
             raise AssertionError("Duplicate discovery upstream was accepted")
 
+    def insert_data_permissions(self, duplicates=False):
+        grants = [("1", "sql-matrix-user", "sql-matrix-data", 0),
+                  ("4", "sql-matrix-user-other", "sql-matrix-data", 0),
+                  ("5", "sql-matrix-user", "sql-matrix-data-other", 0),
+                  ("6", "sql-matrix-user", "sql-matrix-data", 1)]
+        if duplicates:
+            grants += [("2", "sql-matrix-user", "sql-matrix-data", 0),
+                       ("3", "sql-matrix-user", "sql-matrix-data", 0)]
+        self.sql("\n".join("INSERT INTO data_permission (id,user_id,data_id,data_type,date_created,date_updated) "
+                           f"VALUES ('sql-matrix-grant-{identifier}','{user}','{data}',{kind},"
+                           "TIMESTAMP '2026-01-01 00:00:00',TIMESTAMP '2026-01-02 00:00:00');"
+                           for identifier, user, data, kind in grants))
+
+    def check_data_permission_uniqueness(self, indexes):
+        index = "idx_data_permission_user_type"
+        if indexes.get(("data_permission", index)) != ["user_id", "data_type", "data_id"]:
+            raise AssertionError("Wrong data permission unique index columns")
+        if self.dialect in ("mysql", "ob"):
+            query = ("SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='shenyu' "
+                     f"AND table_name='data_permission' AND index_name='{index}' AND non_unique=0;")
+            expected = "3"
+        elif self.dialect in ("pg", "og"):
+            query = ("SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public' AND tablename='data_permission' "
+                     f"AND indexname='{index}' AND indexdef LIKE 'CREATE UNIQUE INDEX%';")
+            expected = "1"
+        else:
+            query = ("SELECT COUNT(*) FROM user_indexes WHERE table_name='DATA_PERMISSION' "
+                     f"AND index_name='{index.upper()}' AND uniqueness='UNIQUE';")
+            expected = "1"
+        if scalar(self.sql(query)) != expected:
+            raise AssertionError("Data permission index is not unique")
+        identifiers = set(self.sql("SELECT id FROM data_permission "
+                                   "WHERE user_id IN ('sql-matrix-user','sql-matrix-user-other');").split())
+        if identifiers != {f"sql-matrix-grant-{number}" for number in (1, 4, 5, 6)}:
+            raise AssertionError("Data permission migration lost distinct grants or retained duplicate rows")
+        if scalar(self.sql("SELECT COUNT(*) FROM data_permission WHERE id='sql-matrix-grant-1' "
+                           "AND date_created=TIMESTAMP '2026-01-01 00:00:00' "
+                           "AND date_updated=TIMESTAMP '2026-01-02 00:00:00';")) != "1":
+            raise AssertionError("Retained data permission timestamps changed")
+        try:
+            self.sql("INSERT INTO data_permission (id,user_id,data_id,data_type) "
+                     "VALUES ('sql-matrix-grant-conflict','sql-matrix-user','sql-matrix-data',0);")
+        except RuntimeError as error:
+            if index not in str(error).lower():
+                raise
+        else:
+            raise AssertionError("Duplicate data permission was accepted")
+
 
 def execute_matrix(dialect, root, output):
     output.mkdir(parents=True, exist_ok=True)
@@ -417,8 +465,11 @@ def execute_matrix(dialect, root, output):
             original_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             before = {table: set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split()) for table in TABLES}
             if flow == "upgrade":
+                engine.insert_data_permissions(duplicates=True)
                 migration = root / f"db/upgrade/2.7.1-upgrade-2.7.2-{dialect}.sql"
                 engine.sql(migration.read_text(encoding="utf-8"))
+            else:
+                engine.insert_data_permissions()
             engine.check_data(listing, detail)
             current_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             if current_listing != original_listing:
@@ -428,6 +479,7 @@ def execute_matrix(dialect, root, output):
                 if not identifiers.issubset(after):
                     raise AssertionError(f"Migration removed rows from {table}: {sorted(identifiers - after)}")
             indexes = engine.indexes()
+            engine.check_data_permission_uniqueness(indexes)
             if flow == "fresh" and dialect in ("mysql", "ob"):
                 engine.check_fresh_mysql_schema(schema, indexes)
             if flow == "fresh" and dialect in ("pg", "og"):

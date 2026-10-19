@@ -60,6 +60,22 @@ public class LeastActiveLoadBalanceTest {
     }
 
     @Test
+    public void testSameAddressVariantsKeepIndependentCounts() throws Exception {
+        Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("blue").version("v1").build();
+        Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("green").version("v2").build();
+        List<Upstream> upstreamList = List.of(first, second);
+        LeastActiveLoadBalance loadBalance = new LeastActiveLoadBalance();
+
+        Upstream firstSelection = loadBalance.doSelect(upstreamList, new LoadBalanceData());
+        Upstream secondSelection = loadBalance.doSelect(upstreamList, new LoadBalanceData());
+
+        Assertions.assertNotNull(firstSelection);
+        Assertions.assertNotNull(secondSelection);
+        Assertions.assertNotSame(firstSelection, secondSelection);
+        Assertions.assertEquals(2, getCountMap(loadBalance).size());
+    }
+
+    @Test
     public void testRemoveStaleCountMapEntries() throws Exception {
         buildUpstreamList();
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();

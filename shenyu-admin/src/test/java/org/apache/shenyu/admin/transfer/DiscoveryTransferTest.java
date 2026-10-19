@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.transfer;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import java.sql.Timestamp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -99,5 +101,26 @@ public final class DiscoveryTransferTest {
         data.setDateCreated(new Timestamp(0));
         data.setProps(props);
         return data;
+    }
+
+    @Test
+    public void testMapToVoKeepsDiscoveryNameAndTypeSeparate() {
+        DiscoveryDO discoveryDO = DiscoveryDO.builder()
+                .id("id1")
+                .discoveryName("prod-registry")
+                .discoveryType("zookeeper")
+                .discoveryLevel("0")
+                .serverList("127.0.0.1:2181")
+                .pluginName("divide")
+                .props("{}")
+                .namespaceId("6495bdf1d3c84a1c9c65ee88e927c19c")
+                .build();
+        DiscoveryVO discoveryVO = DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+        assertNotNull(discoveryVO);
+        assertEquals("prod-registry", discoveryVO.getDiscoveryName());
+        assertEquals("zookeeper", discoveryVO.getDiscoveryType());
+        assertEquals("id1", discoveryVO.getId());
+        assertEquals("127.0.0.1:2181", discoveryVO.getServerList());
+        assertEquals("divide", discoveryVO.getPluginName());
     }
 }

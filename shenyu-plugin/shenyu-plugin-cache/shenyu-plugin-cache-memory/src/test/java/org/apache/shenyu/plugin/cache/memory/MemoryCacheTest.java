@@ -17,29 +17,71 @@
 
 package org.apache.shenyu.plugin.cache.memory;
 
-import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import com.github.benmanes.caffeine.cache.Cache;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.awaitility.Awaitility.await;
 
 /**
  * MemoryCacheTest.
  */
-@ExtendWith(MockitoExtension.class)
 public class MemoryCacheTest {
+
+    private final MemoryCache memoryCache = new MemoryCache();
+
+    @AfterEach
+    public void tearDown() {
+        memoryCache.close();
+    }
 
     @Test
     public void testMemoryCache() {
-        final MemoryCache memoryCache = new MemoryCache();
         final String key = "data";
-        memoryCache.isExist(key).subscribe(v -> assertEquals(Boolean.FALSE, v));
-        memoryCache.cacheData(key, "data".getBytes(StandardCharsets.UTF_8), 10)
-                .subscribe(v -> assertEquals(Boolean.TRUE, v));
-        memoryCache.isExist(key).subscribe(v -> assertEquals(Boolean.TRUE, v));
-        memoryCache.getData(key).subscribe(v -> assertEquals("data", new String(v, StandardCharsets.UTF_8)));
+        final byte[] bytes = "data".getBytes(StandardCharsets.UTF_8);
+        assertEquals(Boolean.FALSE, memoryCache.isExist(key).block());
+        assertEquals(Boolean.TRUE, memoryCache.cacheData(key, bytes, 10).block());
+        assertEquals(Boolean.TRUE, memoryCache.isExist(key).block());
+        assertArrayEquals(bytes, memoryCache.getData(key).block());
+        memoryCache.close();
+        assertEquals(Boolean.FALSE, memoryCache.isExist(key).block());
+        assertNull(memoryCache.getData(key).block());
+    }
+
+    @Test
+    public void testExpiredEntriesAreRemovedWithoutReads() {
+        for (int i = 0; i < 100; i++) {
+            memoryCache.cacheData("key-" + i, new byte[]{1}, 1).block();
+        }
+        Cache<?, ?> cache = (Cache<?, ?>) ReflectionTestUtils.getField(memoryCache, "mainCache");
+        // estimatedSize observes retained entries without triggering reads or maintenance.
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(0L, cache.estimatedSize()));
+    }
+
+    @Test
+    public void testPerEntryExpirationAndReplacement() {
+        final byte[] bytes = "data".getBytes(StandardCharsets.UTF_8);
+        memoryCache.cacheData("short", bytes, 1).block();
+        memoryCache.cacheData("long", bytes, 60).block();
+        memoryCache.cacheData("extended", bytes, 1).block();
+        memoryCache.cacheData("extended", bytes, 60).block();
+        memoryCache.cacheData("shortened", bytes, 60).block();
+        memoryCache.cacheData("shortened", bytes, 1).block();
+
+        // Polling the short entry must not extend its write TTL.
+        await().pollInterval(50, TimeUnit.MILLISECONDS).atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertNull(memoryCache.getData("short").block());
+            assertNull(memoryCache.getData("shortened").block());
+        });
+        assertArrayEquals(bytes, memoryCache.getData("long").block());
+        assertArrayEquals(bytes, memoryCache.getData("extended").block());
     }
 
 }

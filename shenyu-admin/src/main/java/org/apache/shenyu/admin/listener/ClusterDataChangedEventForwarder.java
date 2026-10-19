@@ -98,6 +98,7 @@ public class ClusterDataChangedEventForwarder {
         final ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload(
                 event.getGroupKey().name(), event.getEventType().name(),
                 GsonUtils.getInstance().toJson(event.getSource()));
+        payload.setNamespaceId(event.getNamespaceId());
         final HttpHeaders headers = new HttpHeaders();
         headers.set(ClusterEventAuthFilter.HEADER, accessToken);
         try {

@@ -4,6 +4,16 @@
 
 ## To Shenyu Users
 
+### Data permission uniqueness in 2.7.2
+
+Stop Admin instances before running the `2.7.1-upgrade-2.7.2-<dialect>.sql`
+script, then restart them after it completes. Run the version upgrade script
+once. It removes duplicate `data_permission` rows with the same
+`(user_id, data_type, data_id)`, retaining the complete row with the smallest
+existing `id`, and creates the unique `idx_data_permission_user_type` index.
+Each distinct grant is preserved. Fresh installations create the same unique
+index directly.
+
 - 2.7.1-upgrade-2.7.2-mysql.sql
 
 - 2.7.1-upgrade-2.7.2-ob.sql

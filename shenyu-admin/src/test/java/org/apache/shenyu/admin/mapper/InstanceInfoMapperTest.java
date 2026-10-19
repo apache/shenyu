@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.InstanceInfoDO;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
+import org.apache.shenyu.admin.service.impl.InstanceInfoServiceImpl;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,6 +125,18 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
         assertNotNull(found);
         int deleted = instanceInfoMapper.delete(data.getId());
         assertEquals(1, deleted);
+    }
+
+    @Test
+    void testLegacyInformationIsReadableWithoutRewritingTheStoredRow() {
+        String information = "{\"cpu\":4}";
+        String stored = GsonUtils.getInstance().toJson(information);
+        instance.setInstanceInfo(stored);
+        instanceInfoMapper.updateById(instance);
+        InstanceInfoServiceImpl service = new InstanceInfoServiceImpl(instanceInfoMapper);
+
+        assertEquals(information, service.findById(instance.getId()).getInstanceInfo());
+        assertEquals(stored, instanceInfoMapper.selectById(instance.getId()).getInstanceInfo());
     }
 
     @Test

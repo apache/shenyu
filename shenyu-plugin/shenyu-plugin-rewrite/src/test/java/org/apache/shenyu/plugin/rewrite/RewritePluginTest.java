@@ -19,12 +19,14 @@ package org.apache.shenyu.plugin.rewrite;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.junit.jupiter.api.Test;
@@ -86,6 +88,28 @@ public final class RewritePluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
         assertEquals("/shenyu/rewrite", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void shouldLookUpMetaDataWithoutContextPath() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"/shenyu/{id}\",\"replace\":\"/target/{id}\",\"rewriteMetaData\":true}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+
+        // no context-path plugin in play: neither rewrite nor global context path attribute is set
+        final ServerWebExchange rewriteExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/shenyu/123").build());
+        rewriteExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        final MetaData metaData = MetaData.builder().id("meta-1").path("/target/123").rpcType("dubbo").enabled(true).build();
+        MetaDataCache.getInstance().initCache("/target/123", metaData, "/target/123");
+
+        when(chain.execute(rewriteExchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(rewriteExchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+
+        final ShenyuContext context = (ShenyuContext) rewriteExchange.getAttributes().get(Constants.CONTEXT);
+        assertEquals("dubbo", context.getRpcType(), "metadata lookup must use the bare rewritten path when no context path exists");
+        MetaDataCache.getInstance().clean();
     }
 
     @Test

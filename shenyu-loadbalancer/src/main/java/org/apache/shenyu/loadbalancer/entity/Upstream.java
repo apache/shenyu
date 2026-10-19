@@ -86,6 +86,8 @@ public final class Upstream {
      */
     private String version;
 
+    private transient UpstreamIdentity identity;
+
     /**
      * ewma value.
      */
@@ -217,6 +219,7 @@ public final class Upstream {
      */
     public void setUrl(final String url) {
         this.url = url;
+        this.identity = null;
     }
     
     /**
@@ -325,6 +328,7 @@ public final class Upstream {
      */
     public void setGroup(final String group) {
         this.group = group;
+        this.identity = null;
     }
     
     /**
@@ -343,6 +347,7 @@ public final class Upstream {
      */
     public void setVersion(final String version) {
         this.version = version;
+        this.identity = null;
     }
     
     /**
@@ -516,6 +521,18 @@ public final class Upstream {
         return new Builder();
     }
 
+    /**
+     * Get the current immutable logical target identity.
+     *
+     * @return the logical target identity
+     */
+    public UpstreamIdentity identity() {
+        if (Objects.isNull(identity)) {
+            identity = new UpstreamIdentity(protocol, url, group, version, buildDomain());
+        }
+        return identity;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -525,12 +542,12 @@ public final class Upstream {
             return false;
         }
         Upstream that = (Upstream) o;
-        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol);
+        return identity().equals(that.identity());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(protocol, url);
+        return identity().hashCode();
     }
 
     @Override

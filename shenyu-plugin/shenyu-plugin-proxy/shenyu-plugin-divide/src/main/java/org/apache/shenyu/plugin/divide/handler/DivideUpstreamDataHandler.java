@@ -27,8 +27,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
+import org.apache.shenyu.plugin.base.handler.AbstractDiscoveryUpstreamDataHandler;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * upstreamList data change.
  */
-public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
+public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHandler<Upstream> {
 
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
@@ -53,18 +52,8 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         List<DiscoveryUpstreamData> upstreamList = discoverySyncData.getUpstreamDataList();
         final List<Upstream> upstreams = convertUpstreamList(upstreamList);
         // A selector may serve both Canary and legacy rules; keep all nodes for per-request routing.
-        UpstreamCacheManager.getInstance().submit(discoverySyncData.getSelectorId(), upstreams);
-        // the update is also need to clean, but there is no way to
-        // distinguish between crate and update, so it is always clean
-        MetaDataCache.getInstance().clean();
-    }
-
-    @Override
-    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
-        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
-            return;
-        }
-        UpstreamCacheManager.getInstance().removeByKey(key.selectorId());
+        submitUpstreamData(discoverySyncData.getSelectorId(), upstreams);
+        afterSubmitUpstreamData(discoverySyncData.getSelectorId());
     }
 
     @Override
@@ -72,7 +61,8 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         return PluginEnum.DIVIDE.getName();
     }
 
-    private List<Upstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
+    @Override
+    protected List<Upstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
         if (ObjectUtils.isEmpty(upstreamList)) {
             return Collections.emptyList();
         }
@@ -137,4 +127,25 @@ public class DivideUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
         return Collections.unmodifiableMap(result);
     }
 
+    @Override
+    protected boolean isGray(final Upstream upstream) {
+        return upstream.isGray();
+    }
+
+    @Override
+    protected void submitUpstreamData(final String selectorId, final List<Upstream> upstreamList) {
+        UpstreamCacheManager.getInstance().submit(selectorId, upstreamList);
+    }
+
+    @Override
+    protected void afterSubmitUpstreamData(final String selectorId) {
+        // the update is also need to clean, but there is no way to
+        // distinguish between crate and update, so it is always clean
+        MetaDataCache.getInstance().clean();
+    }
+
+    @Override
+    protected void removeUpstreamData(final String selectorId) {
+        UpstreamCacheManager.getInstance().removeByKey(selectorId);
+    }
 }

@@ -22,7 +22,10 @@ import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -32,6 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.time.Duration;
@@ -57,6 +61,36 @@ import static org.mockito.Mockito.when;
  * Failover stays in the saved actual partition and uses current healthy nodes.
  */
 class DefaultRetryStrategyCanaryTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testFixedFailoverWaitsAndStaysInCanaryUntilExhausted(final boolean serverError) {
+        ServerWebExchange exchange = exchange("canary", "fixed-c1:8080");
+        Throwable failure = serverError ? new ShenyuUpstreamStatusException(503) : new ConnectException("connection refused");
+        AbstractHttpClientPlugin<String> client = mock(AbstractHttpClientPlugin.class);
+        when(client.doRequest(eq(exchange), anyString(), eq(URI.create("http://fixed-c2:8080/test")), any()))
+                .thenReturn(Mono.error(failure));
+        UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
+        when(manager.findUpstreamListBySelectorId("selector")).thenReturn(List.of(
+                upstream("fixed-c1:8080", "canary"), upstream("fixed-c2:8080", "canary"), upstream("fixed-s1:8080", "stable")));
+        try (MockedStatic<UpstreamCacheManager> cache = cache(manager)) {
+            StepVerifier.withVirtualTime(() -> new FixedRetryStrategy<>(client).execute(Mono.error(failure), exchange, Duration.ofSeconds(1), 4))
+                    .thenAwait(Duration.ofMillis(1999))
+                    .then(() -> verifyNoInteractions(client, manager))
+                    .thenAwait(Duration.ofMillis(1))
+                    .then(() -> verify(client).doRequest(eq(exchange), anyString(), eq(URI.create("http://fixed-c2:8080/test")), any()))
+                    .thenAwait(Duration.ofSeconds(2))
+                    .expectErrorMatches(error -> error instanceof ResponseStatusException
+                            && ((ResponseStatusException) error).getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE)
+                    .verify();
+        } finally {
+            UpstreamCircuitBreaker.getInstance().reset(UpstreamCircuitBreaker.buildKey("selector", upstream("fixed-c2:8080", "canary")));
+        }
+        verify(manager, times(2)).findUpstreamListBySelectorId("selector");
+        verify(client, times(1)).doRequest(eq(exchange), anyString(), any(), any());
+        verify(client, never()).doRequest(eq(exchange), anyString(), eq(URI.create("http://fixed-s1:8080/test")), any());
+        assertEquals("canary", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+    }
 
     @Test
     void testCanaryFailureRetriesOnlyCanaryAndStopsWhenExhausted() {
