@@ -69,11 +69,11 @@ class CryptorStrategyFactorySpiTest {
     }
 
     @Test
-    void rsaPkcs1StrategyShouldBeLoadableViaSpi() {
-        // The rsa-pkcs1 (PKCS#1 v1.5) variant must be registered in the SPI file;
+    void rsaOaepStrategyShouldBeLoadableViaSpi() {
+        // The rsa-oaep (RSAES-OAEP) variant must be registered in the SPI file;
         // if the entry or @Join is dropped this fails.
-        CryptorStrategy strategy = CryptorStrategyFactory.newInstance("rsa-pkcs1");
-        assertThat("SPI must resolve 'rsa-pkcs1' to a non-null strategy", strategy, notNullValue());
+        CryptorStrategy strategy = CryptorStrategyFactory.newInstance("rsa-oaep");
+        assertThat("SPI must resolve 'rsa-oaep' to a non-null strategy", strategy, notNullValue());
     }
 
     // --- Negative tests: invalid key content (not just format) ---

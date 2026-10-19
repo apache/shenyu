@@ -33,8 +33,9 @@ import java.util.Objects;
  * Common base for RSA strategies. The {@code key} is a single base64-encoded
  * PKCS#8 private key (decrypt) or X.509 public key (encrypt). Subclasses only
  * declare the cipher transformation and, optionally, algorithm parameters —
- * this lets the {@code rsa} (OAEP, default) and {@code rsa-pkcs1} (PKCS#1 v1.5,
- * legacy compatibility) SPI entries share all the key/provider/base64 wiring.
+ * this lets the {@code rsa} (PKCS#1 v1.5, default, wire-compatible with previous
+ * releases) and {@code rsa-oaep} (OAEP, SHA-256/MGF1) SPI entries share all the
+ * key/base64 wiring.
  */
 abstract class AbstractRsaStrategy implements CryptorStrategy {
 
