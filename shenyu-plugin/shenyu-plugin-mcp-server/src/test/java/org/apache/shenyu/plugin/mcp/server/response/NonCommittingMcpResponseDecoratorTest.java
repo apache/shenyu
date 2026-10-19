@@ -173,6 +173,44 @@ public final class NonCommittingMcpResponseDecoratorTest {
         assertEquals(0, buffer.getNativeBuffer().refCnt());
     }
 
+    // ---------------------------------------------------------------
+    // Bounded capture: UTF-8 boundaries and over-limit behaviour
+    // ---------------------------------------------------------------
+
+    @Test
+    void testWriteWithPreservesUtf8AcrossChunkBoundaries() throws Exception {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        // "a€b" => 0x61 0xE2 0x82 0xAC 0x62; split inside the 3-byte euro sign.
+        final byte[] full = "a€b".getBytes(StandardCharsets.UTF_8);
+        final DataBuffer first = bufferFactory.wrap(new byte[]{full[0], full[1]});
+        final DataBuffer second = bufferFactory.wrap(new byte[]{full[2], full[3], full[4]});
+
+        decorator.writeWith(Flux.just(first, second)).block();
+
+        assertEquals("a€b", future.get(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testWriteWithExceedingCaptureLimitFailsDeterministically() {
+        final int overLimitBytes = 1024 * 1024 + 1;
+        final NettyDataBufferFactory factory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        final NettyDataBuffer buffer = factory.allocateBuffer(overLimitBytes);
+        buffer.write(new byte[overLimitBytes]);
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator = new NonCommittingMcpResponseDecorator(
+                new MockServerHttpResponse(), "session", future, null);
+
+        decorator.writeWith(Mono.just(buffer)).block();
+
+        assertTrue(future.isCompletedExceptionally());
+        // The over-limit buffer must still be released.
+        assertEquals(0, buffer.getNativeBuffer().refCnt());
+    }
+
     private DataBuffer buffer(final String content) {
         return bufferFactory.wrap(content.getBytes(StandardCharsets.UTF_8));
     }

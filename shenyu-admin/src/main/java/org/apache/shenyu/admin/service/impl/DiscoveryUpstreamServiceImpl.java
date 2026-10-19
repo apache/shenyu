@@ -326,6 +326,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
+            if (!StringUtils.hasText(discoveryHandlerId)) {
+                errorMsgBuilder
+                        .append(url)
+                        .append(',');
+                continue;
+            }
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
@@ -367,17 +373,17 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
-            String newDiscoveryHandlerId = discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId);
-            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap.computeIfAbsent(newDiscoveryHandlerId, key -> new HashSet<>());
-            if (existsUpstreamUrlSet.contains(url)) {
+            String targetHandlerId = discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId);
+            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap.computeIfAbsent(targetHandlerId, key -> new HashSet<>());
+            if (existsUpstreamUrlSet.contains(url) || !StringUtils.hasText(targetHandlerId)) {
                 errorMsgBuilder
                         .append(url)
-                        .append(",");
+                        .append(',');
                 continue;
             }
             discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
-            discoveryUpstreamDTO.setDiscoveryHandlerId(newDiscoveryHandlerId);
+            discoveryUpstreamDTO.setDiscoveryHandlerId(targetHandlerId);
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             if (discoveryUpstreamMapper.insert(discoveryUpstreamDO) > 0) {
                 existsUpstreamUrlSet.add(url);

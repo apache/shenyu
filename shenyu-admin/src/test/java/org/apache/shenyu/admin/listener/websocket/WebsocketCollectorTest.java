@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import com.google.gson.JsonObject;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -39,6 +41,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -342,8 +347,68 @@ public final class WebsocketCollectorTest {
         String bootstrapMsg = "{\"" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO + "\":{\"key\":\"val\"}}";
         websocketCollector.onMessage(bootstrapMsg, session);
 
-        verify(publisher, times(1)).publish(isA(org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent.class));
+        verify(publisher, times(1)).publish(isA(InstanceInfoReportEvent.class));
         websocketCollector.onClose(session);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"cpu\":4,\"os\":\"Windows\"}", "{\"note\":\"{\\\"nested\\\":true}\"}"})
+    void testBootstrapInstanceInfoPreservesJsonString(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = GsonUtils.getInstance().toJson(Map.of(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information));
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals(information, event.getValue().getInstanceInfo());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testBootstrapObjectInformationIsPreserved() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = "{\"bootstrapInstanceInfo\":{\"note\":\"{\\\"nested\\\":true}\"}}";
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        Map<String, Object> information = GsonUtils.getInstance().fromJson(event.getValue().getInstanceInfo(), Map.class);
+        assertEquals("{\"nested\":true}", information.get("note"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"{broken}", "not-json", "[]"})
+    void testMalformedOptionalInformationStillPublishesHeartbeat(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        JsonObject message = new JsonObject();
+        message.addProperty(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information);
+
+        assertDoesNotThrow(() -> websocketCollector.onMessage(message.toString(), session));
+
+        verify(publisher).publish(isA(InstanceInfoReportEvent.class));
+    }
+
+    @Test
+    void testMalformedBootstrapFrameDoesNotPreventNextHeartbeat() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String[] messages = {"{\"bootstrapInstanceInfo\":", "[\"bootstrapInstanceInfo\"]", "\"bootstrapInstanceInfo\"", "null /* bootstrapInstanceInfo */"};
+        for (String message : messages) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(message, session));
+        }
+        verify(publisher, never()).publish(any(InstanceInfoReportEvent.class));
+
+        websocketCollector.onMessage("{\"bootstrapInstanceInfo\":\"{\\\"cpu\\\":4}\"}", session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals("{\"cpu\":4}", event.getValue().getInstanceInfo());
     }
 
     @Test

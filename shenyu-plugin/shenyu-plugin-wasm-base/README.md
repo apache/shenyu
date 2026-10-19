@@ -130,13 +130,22 @@ compatibility with existing guests.
 
 The `wasm-fixtures` workflow pins WABT 1.0.42 and Rust 1.90.0. It runs
 `python3 .github/scripts/verify-wasm-fixtures.py` when either WASM module changes.
-The script checks the gateway WAT binaries byte-for-byte without modifying the
-committed files, then compiles the five Rust guests for `wasm32-wasip1` and runs
-the WASM Java suites against them. Original resource bytes are restored even if
-a build or test fails. Legacy Rust compiler versions were not recorded, so
+The script requires the base module's `wasm-gateway` WAT family and the API
+module's `wasm-concurrent` family. It checks every `wasm-*` fixture directory in
+both modules byte-for-byte, including `wasm-bridge` when present, without
+modifying the committed files. It then compiles the five Rust guests for
+`wasm32-wasip1` and runs the WASM Java suites against them. Original resource
+bytes are restored even if a build or test fails. Legacy Rust compiler versions were not recorded, so
 Rust reproduction is checked by behavior rather than exact binary identity.
 The existing TinyGo guests run in the same suites. Use `--wat-only` or
 `--rust-only` for a scoped local run. Maven-only builds still use committed guests.
+
+Run Rust verification from a clean checkout. It temporarily replaces tracked
+`.wasm` resources while Maven tests execute, then restores them on success,
+ordinary failure or a Python `KeyboardInterrupt` (Ctrl+C). Forced termination
+such as `SIGKILL` bypasses that cleanup; inspect `git diff` and restore only the
+affected generated fixtures before committing. Cargo may fetch dependencies;
+the verifier does not require a pre-populated offline dependency cache.
 
 The optional `removeDiscoveryUpstreamData` callback documented below is now on
 the merged base through #7568. The binary request profile in these gateway tests

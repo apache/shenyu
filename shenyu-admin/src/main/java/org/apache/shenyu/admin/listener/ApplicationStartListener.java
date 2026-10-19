@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,13 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
+        if (event instanceof ServletWebServerInitializedEvent servletEvent
+                && "management".equals(servletEvent.getApplicationContext().getServerNamespace())) {
+            // the management server is a side-channel, not another Admin instance:
+            // starting the running mode again would re-run checker setup and schedule
+            // an extra election task with the management port
+            return;
+        }
         int port = event.getWebServer().getPort();
         final String host = IpUtils.getHost();
         

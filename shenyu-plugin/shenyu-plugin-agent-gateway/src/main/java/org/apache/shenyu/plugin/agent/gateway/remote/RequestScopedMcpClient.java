@@ -46,6 +46,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -192,7 +193,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             Instant deadline = transportContext.get("deadline") instanceof Instant value ? value : Instant.now().plusSeconds(4);
             Duration budget = Duration.between(Instant.now(), deadline);
             if (budget.isNegative() || budget.isZero()) {
-                return Mono.error(new IllegalStateException("Deadline expired before upstream side effect"));
+                return Mono.error(new TimeoutException("Deadline expired before upstream side effect"));
             }
             byte[] requestBytes = message.toString().getBytes(StandardCharsets.UTF_8);
             if (requestBytes.length > MAX_REQUEST_BYTES) {

@@ -38,6 +38,31 @@ public final class TracingConstants {
     public static final String TRACEPARENT = "traceparent";
 
     /**
+     * The W3C trace state header.
+     */
+    public static final String TRACESTATE = "tracestate";
+
+    /**
+     * The sampler which continues the decision of the parent and samples the request otherwise.
+     */
+    public static final String SAMPLER_PARENT_BASED = "parent_based";
+
+    /**
+     * The sampler which samples every request.
+     */
+    public static final String SAMPLER_ALWAYS_ON = "always_on";
+
+    /**
+     * The sampler which samples no request.
+     */
+    public static final String SAMPLER_ALWAYS_OFF = "always_off";
+
+    /**
+     * The sampler which samples the given ratio of the requests.
+     */
+    public static final String SAMPLER_RATIO = "ratio";
+
+    /**
      * The exchange attribute that carries the active tracing context of the current request.
      */
     public static final String TRACING_CONTEXT = "shenyuTracingContext";

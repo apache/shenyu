@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
@@ -36,11 +35,4 @@ public interface DocManager {
      * @param callback callback
      */
     void addDocInfo(UpstreamInstance instance, String docJson, String oldMd5, Consumer<DocInfo> callback);
-
-    /**
-     * listAll.
-     *
-     * @return Collection
-     */
-    Collection<DocInfo> listAll();
 }

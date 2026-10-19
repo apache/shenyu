@@ -42,6 +42,11 @@
   `loged` key via a Gson alternate. REST API clients that read `loged` from
   responses must switch to `logged`. (#7589)
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
+  
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish

@@ -43,9 +43,11 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -150,6 +152,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                 clients.add(createClient(url));
             }
         }
+        Set<URI> masterUrls = new LinkedHashSet<>();
         Iterator<ShenyuWebsocketClient> iterator = clients.iterator();
         while (iterator.hasNext()) {
             ShenyuWebsocketClient websocketClient = iterator.next();
@@ -166,11 +169,42 @@ public class WebsocketSyncDataService implements SyncDataService {
                 return;
             }
             
-            if (!websocketClient.isConnectedToMaster()) {
+            // An open socket may still be waiting for its running-mode reply.
+            if (Objects.equals(runningMode, RunningModeEnum.CLUSTER.name()) && !websocketClient.isConnectedToMaster()) {
+                URI masterUri = parseMasterUri(websocketClient.getMasterUrl());
+                if (Objects.nonNull(masterUri) && !masterUri.equals(websocketClient.getURI())) {
+                    masterUrls.add(masterUri);
+                }
                 websocketClient.nowClose();
                 iterator.remove();
             }
         }
+        for (URI masterUri : masterUrls) {
+            if (clients.stream().noneMatch(client -> masterUri.equals(client.getURI()))) {
+                try {
+                    clients.add(createClient(masterUri.toString()));
+                } catch (RuntimeException ex) {
+                    LOG.warn("websocket connection to advertised master [{}] failed", masterUri, ex);
+                }
+            }
+        }
+    }
+
+    private URI parseMasterUri(final String masterUrl) {
+        if (StringUtils.isBlank(masterUrl)) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(masterUrl);
+            if (("ws".equalsIgnoreCase(uri.getScheme()) || "wss".equalsIgnoreCase(uri.getScheme())) && StringUtils.isNotBlank(uri.getHost())) {
+                return uri;
+            }
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("Ignore invalid websocket master address [{}]", masterUrl, ex);
+            return null;
+        }
+        LOG.warn("Ignore invalid websocket master address [{}]", masterUrl);
+        return null;
     }
     
     @Override

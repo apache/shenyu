@@ -17,6 +17,10 @@
 version: '3.9'
 
 services:
+  httpbin:
+    extends:
+      file: ../fixtures/httpbin.yml
+      service: httpbin
   shenyu-opengauss:
     image: enmotech/opengauss-lite:5.0.1
     container_name: shenyu-opengauss
@@ -97,6 +101,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
+      httpbin:
+        condition: service_healthy
       shenyu-admin:
         condition: service_healthy
     networks:
