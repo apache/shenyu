@@ -44,3 +44,9 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers, including long Authorization values.
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
+
+-- Explicit, opt-in AI token reservations; existing rules remain disabled.
+INSERT INTO "public"."plugin_handle" ("id", "plugin_id", "field", "label", "data_type", "type", "sort", "ext_obj", "date_created", "date_updated") VALUES ('1960000000000007700', '51', 'reservationEnabled', 'reservationEnabled', 3, 2, 4, '{"required":"0","defaultValue":"false","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO "public"."plugin_handle" ("id", "plugin_id", "field", "label", "data_type", "type", "sort", "ext_obj", "date_created", "date_updated") VALUES ('1960000000000007701', '51', 'reservationTokens', 'reservationTokens', 1, 2, 5, '{"required":"0","placeholder":"Required when reservation is enabled; estimated completion tokens per request","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO "public"."shenyu_dict" ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled", "date_created", "date_updated") VALUES ('1960000000000007702', 'reservationEnabled', 'RESERVATION_ENABLED', 'disabled', 'false', 'Enable estimated completion token reservations', 0, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+INSERT INTO "public"."shenyu_dict" ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled", "date_created", "date_updated") VALUES ('1960000000000007703', 'reservationEnabled', 'RESERVATION_ENABLED', 'enabled', 'true', 'Enable estimated completion token reservations', 1, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');

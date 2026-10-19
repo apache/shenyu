@@ -28,6 +28,16 @@ native 65,535-byte limit. Oracle reads/writes use complete CLOB values and equal
 filters compare the whole value, including content beyond the first 4,000 characters.
 
 
+### Optional AI token reservations in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts add the `reservationEnabled`
+and `reservationTokens` rule form fields for `aiTokenLimiter`, plus the boolean
+dictionary choices, including persistent H2 upgrades. Fresh installations include the same metadata. Existing
+rules keep their JSON handles and remain in the default completed-usage mode.
+To opt in, explicitly enable reservations and choose a positive estimated
+completion-token amount per request, no greater than the rule's token budget.
+See the AI token limiter module README for the unknown-usage and window policies.
+
 ### `loged` column renamed to `logged` in 2.7.3
 
 Running the `2.7.2-upgrade-2.7.3-<dialect>.sql` script is mandatory for every

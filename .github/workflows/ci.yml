@@ -67,6 +67,7 @@ jobs:
       rat_required: ${{ steps.filter.outputs.code }}
       modules: ${{ steps.modules.outputs.modules }}
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
+      ai_token_budget: ${{ steps.filter.outputs.ai_token_budget }}
     steps:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
@@ -82,6 +83,26 @@ jobs:
         with:
           list-files: "json"
           filters: |
+            ai_token_budget:
+              - 'shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-token-limiter/**'
+              - 'shenyu-plugin/shenyu-plugin-metrics/**'
+              - 'shenyu-plugin/shenyu-plugin-api/**'
+              - 'shenyu-plugin/shenyu-plugin-base/**'
+              - 'shenyu-infra/shenyu-infra-redis/**'
+              - 'shenyu-common/**'
+              - 'shenyu-admin/src/main/resources/sql-script/h2/schema.sql'
+              - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/mapper/AiTokenReservationConfigurationTest.java'
+              - 'shenyu-admin/src/main/java/org/apache/shenyu/admin/validation/validator/AiTokenLimiterRuleHandleValidator.java'
+              - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/validation/validator/AiTokenLimiterRuleHandleValidatorTest.java'
+              - 'shenyu-admin/src/main/java/org/apache/shenyu/admin/service/impl/RuleServiceImpl.java'
+              - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/service/RuleServiceTest.java'
+              - 'db/init/**'
+              - 'db/upgrade/**'
+              - '**/pom.xml'
+              - 'pom.xml'
+              - 'mvnw'
+              - '.mvn/**'
+              - '.github/workflows/ci.yml'
             code:
               - '!**/*.md'
               - '!**/*.txt'
@@ -115,6 +136,48 @@ jobs:
         run: bash .github/scripts/resolve-ci-modules.sh
       - name: Test GHCR publish routing
         run: bash .github/scripts/resolve-ghcr-publish-test.sh
+
+  ai_token_budget:
+    needs: changes
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.ai_token_budget == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      redis:
+        image: redis:7.2-alpine
+        ports:
+          - 16379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache/restore@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Verify AI token budgets with real Redis, metrics and admin configuration
+        run: >-
+          ./mvnw -B -ntp
+          -pl shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-token-limiter,shenyu-plugin/shenyu-plugin-metrics,shenyu-admin -am test
+          '-Dtest=AiTokenLimiterHandleTest,TokenBudget*Test,RedisTokenBudgetStore*Test,AiTokenLimiterPlugin*Test,AiTokenLimiterRuleHandlerTest,AiTokenLimiterReservation*Test,AiTokenBudgetMetricsTest,AiTokenReservationConfigurationTest,AiTokenLimiterRuleHandleValidatorTest,RuleServiceTest,MetricsPluginTest,MetricsReporterTest,PrometheusMetricsRegisterTest,PrometheusMetricsServiceTest,MetricTest'
+          -Dsurefire.failIfNoSpecifiedTests=false -DskipTests=false -Dshenyu.test.redis.port=16379
+          -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ai-token-budget-test-reports
+          path: |
+            shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-token-limiter/target/surefire-reports/
+            shenyu-plugin/shenyu-plugin-metrics/target/surefire-reports/
+            shenyu-admin/target/surefire-reports/
 
   registry_dependencies:
     needs: changes
@@ -361,11 +424,15 @@ jobs:
       - build_local_repo
       - test_group
       - compat_java21
+      - ai_token_budget
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit -1
+          if [[ "${{ needs.changes.outputs.ai_token_budget }}" == "true" ]]; then
+            [[ "${{ needs.ai_token_budget.result }}" == "success" ]] || exit -1
+          fi
           if [[ "${{ needs.changes.outputs.rat_required }}" == "true" ]]; then
             [[ "${{ needs.rat_check.result }}" == "success" ]] || exit -1
           fi
