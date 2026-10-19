@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
@@ -28,7 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
@@ -44,6 +48,11 @@ import java.util.Objects;
  * <p>The forward authenticates with a dedicated node credential, independent of request
  * context. Configure HTTPS to protect the credential in transit.
  *
+ * <p>The source list is sent as a structured JSON array. A master that predates the
+ * structured envelope rejects the request with 400 or 415; the sender then retries with
+ * the legacy string-encoded source and remembers the decision for that master address
+ * until this node restarts.
+ *
  * <p>Forwarding runs synchronously on the publishing thread, so an unreachable master adds up
  * to the configured connect/read timeout to the calling write API; delivery is best-effort
  * and failures are logged with the master identity and outcome.
@@ -54,11 +63,27 @@ public class ClusterDataChangedEventForwarder {
 
     private static final String FORWARD_PATH = "/cluster/data-change-event";
 
+    private static final int LEGACY_PAYLOAD_VERSION = 1;
+
+    private static final int STRUCTURED_PAYLOAD_VERSION = 2;
+
     private final RestTemplate restTemplate;
 
     private final ClusterProperties clusterProperties;
 
     private final ClusterSelectMasterService clusterSelectMasterService;
+
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Master address the envelope decision below was made for.
+     */
+    private volatile String negotiatedMasterKey;
+
+    /**
+     * Whether the master at {@link #negotiatedMasterKey} accepts the structured envelope.
+     */
+    private volatile Boolean structuredEnvelope;
 
     /**
      * Instantiates a new cluster data changed event forwarder.
@@ -66,13 +91,18 @@ public class ClusterDataChangedEventForwarder {
      * @param restTemplate               the rest template used to reach the master node
      * @param clusterProperties          the cluster properties
      * @param clusterSelectMasterService the cluster select master service
+     * @param objectMapper               the mapper used to serialize the structured source
      */
     public ClusterDataChangedEventForwarder(final RestTemplate restTemplate,
                                             final ClusterProperties clusterProperties,
-                                            final ClusterSelectMasterService clusterSelectMasterService) {
+                                            final ClusterSelectMasterService clusterSelectMasterService,
+                                            final ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.clusterProperties = clusterProperties;
         this.clusterSelectMasterService = clusterSelectMasterService;
+        // The legacy envelope is rendered by Gson, which omits nulls. Keep the structured
+        // envelope's content identical so both representations describe the same records.
+        this.objectMapper = objectMapper.copy().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     /**
@@ -95,27 +125,86 @@ public class ClusterDataChangedEventForwarder {
             return false;
         }
         final String url = buildMasterUrl(master);
-        final ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload(
-                event.getGroupKey().name(), event.getEventType().name(),
-                GsonUtils.getInstance().toJson(event.getSource()));
-        payload.setNamespaceId(event.getNamespaceId());
+        final boolean structured = useStructuredEnvelope(url);
+        final ForwardResult result = post(url, accessToken, master, event, structured);
+        if (ForwardResult.STRUCTURED_REJECTED == result) {
+            LOG.warn("master {}:{} rejected the structured event envelope, retrying with the legacy envelope",
+                    master.getMasterHost(), master.getMasterPort());
+            rememberEnvelope(url, false);
+            return ForwardResult.DELIVERED == post(url, accessToken, master, event, false);
+        }
+        if (ForwardResult.DELIVERED == result) {
+            rememberEnvelope(url, structured);
+            return true;
+        }
+        return false;
+    }
+
+    private ForwardResult post(final String url, final String accessToken, final ClusterMasterDTO master,
+                               final DataChangedEvent event, final boolean structured) {
+        final ClusterDataChangedEventPayload payload = buildPayload(event, structured);
         final HttpHeaders headers = new HttpHeaders();
         headers.set(ClusterEventAuthFilter.HEADER, accessToken);
         try {
             final ResponseEntity<String> response =
                     restTemplate.postForEntity(url, new HttpEntity<>(payload, headers), String.class);
-            final boolean accepted = response.getStatusCode().is2xxSuccessful();
-            LOG.info("forwarded DataChangedEvent to master {}:{}, group={}, type={}, size={}, outcome={}",
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.info("forwarded DataChangedEvent to master {}:{}, group={}, type={}, size={}, envelope={}, outcome=delivered",
+                        master.getMasterHost(), master.getMasterPort(),
+                        event.getGroupKey(), event.getEventType(), sourceSize(event), envelopeName(structured));
+                return ForwardResult.DELIVERED;
+            }
+            LOG.info("forwarded DataChangedEvent to master {}:{}, group={}, type={}, size={}, envelope={}, outcome=rejected",
                     master.getMasterHost(), master.getMasterPort(),
-                    event.getGroupKey(), event.getEventType(), sourceSize(event),
-                    accepted ? "delivered" : "rejected");
-            return accepted;
+                    event.getGroupKey(), event.getEventType(), sourceSize(event), envelopeName(structured));
+            return structured && isFormatRejection(response.getStatusCode().value())
+                    ? ForwardResult.STRUCTURED_REJECTED : ForwardResult.FAILED;
+        } catch (final HttpClientErrorException ex) {
+            LOG.warn("failed to forward DataChangedEvent to master {}:{}, group={}, type={}, size={}, envelope={}, status={}, outcome=failed",
+                    master.getMasterHost(), master.getMasterPort(),
+                    event.getGroupKey(), event.getEventType(), sourceSize(event), envelopeName(structured),
+                    ex.getStatusCode().value(), ex);
+            return structured && isFormatRejection(ex.getStatusCode().value())
+                    ? ForwardResult.STRUCTURED_REJECTED : ForwardResult.FAILED;
         } catch (final RuntimeException ex) {
-            LOG.warn("failed to forward DataChangedEvent to master {}:{}, group={}, type={}, size={}, outcome=failed",
+            LOG.warn("failed to forward DataChangedEvent to master {}:{}, group={}, type={}, size={}, envelope={}, outcome=failed",
                     master.getMasterHost(), master.getMasterPort(),
-                    event.getGroupKey(), event.getEventType(), sourceSize(event), ex);
-            return false;
+                    event.getGroupKey(), event.getEventType(), sourceSize(event), envelopeName(structured), ex);
+            return ForwardResult.FAILED;
         }
+    }
+
+    private ClusterDataChangedEventPayload buildPayload(final DataChangedEvent event, final boolean structured) {
+        final ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload();
+        payload.setGroupKey(event.getGroupKey().name());
+        payload.setEventType(event.getEventType().name());
+        payload.setNamespaceId(event.getNamespaceId());
+        if (structured) {
+            payload.setStructuredSource(objectMapper.valueToTree(event.getSource()));
+            payload.setPayloadVersion(STRUCTURED_PAYLOAD_VERSION);
+        } else {
+            payload.setSource(GsonUtils.getInstance().toJson(event.getSource()));
+            payload.setPayloadVersion(LEGACY_PAYLOAD_VERSION);
+        }
+        return payload;
+    }
+
+    private boolean useStructuredEnvelope(final String masterKey) {
+        final Boolean negotiated = structuredEnvelope;
+        return Objects.isNull(negotiated) || !masterKey.equals(negotiatedMasterKey) || negotiated;
+    }
+
+    private void rememberEnvelope(final String masterKey, final boolean structured) {
+        this.negotiatedMasterKey = masterKey;
+        this.structuredEnvelope = structured;
+    }
+
+    private static boolean isFormatRejection(final int status) {
+        return HttpStatus.BAD_REQUEST.value() == status || HttpStatus.UNSUPPORTED_MEDIA_TYPE.value() == status;
+    }
+
+    private static String envelopeName(final boolean structured) {
+        return structured ? "structured" : "legacy";
     }
 
     private int sourceSize(final DataChangedEvent event) {
@@ -129,5 +218,11 @@ public class ClusterDataChangedEventForwarder {
         }
         return clusterProperties.getSchema() + "://" + master.getMasterHost() + ":" + master.getMasterPort()
                 + contextPath + FORWARD_PATH;
+    }
+
+    private enum ForwardResult {
+        DELIVERED,
+        STRUCTURED_REJECTED,
+        FAILED
     }
 }

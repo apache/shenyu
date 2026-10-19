@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
@@ -51,27 +54,41 @@ import java.util.Objects;
  * re-publishes them locally, so configuration committed on any node reaches
  * the listeners (websocket push, long polling cache, registry writers) that
  * run on the current master.
+ *
+ * <p>Both envelope versions are accepted: version 1 carries a serialized JSON
+ * string in {@code source}, version 2 carries a structured array in
+ * {@code structuredSource}. Senders only use version 2 after the master accepted
+ * it, so a mixed-version cluster keeps working.
  */
 @RestController
 @RequestMapping("/cluster")
 @ConditionalOnProperty(value = "shenyu.cluster.enabled", havingValue = "true")
 public class ClusterDataChangedEventController {
 
+    private static final int LEGACY_PAYLOAD_VERSION = 1;
+
+    private static final int STRUCTURED_PAYLOAD_VERSION = 2;
+
     private final ApplicationEventPublisher eventPublisher;
 
     private final ClusterSelectMasterService clusterSelectMasterService;
+
+    private final ObjectMapper objectMapper;
 
     /**
      * Instantiates a new cluster data changed event controller.
      *
      * @param eventPublisher             the application event publisher
      * @param clusterSelectMasterService the cluster select master service
+     * @param objectMapper               the mapper used to read the structured source
      */
     @Autowired
     public ClusterDataChangedEventController(final ApplicationEventPublisher eventPublisher,
-                                             @Nullable final ClusterSelectMasterService clusterSelectMasterService) {
+                                             @Nullable final ClusterSelectMasterService clusterSelectMasterService,
+                                             final ObjectMapper objectMapper) {
         this.eventPublisher = eventPublisher;
         this.clusterSelectMasterService = clusterSelectMasterService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -90,8 +107,13 @@ public class ClusterDataChangedEventController {
                     .body(ShenyuAdminResult.error("this node is not the cluster master, data change event not accepted"));
         }
         if (Objects.isNull(payload) || Objects.isNull(payload.getGroupKey())
-                || Objects.isNull(payload.getEventType()) || Objects.isNull(payload.getSource())) {
+                || Objects.isNull(payload.getEventType())
+                || (Objects.isNull(payload.getSource()) && Objects.isNull(payload.getStructuredSource()))) {
             return ResponseEntity.badRequest().body(ShenyuAdminResult.error("event fields must not be null"));
+        }
+        if (Objects.nonNull(payload.getSource()) && Objects.nonNull(payload.getStructuredSource())) {
+            return ResponseEntity.badRequest()
+                    .body(ShenyuAdminResult.error("event source must use exactly one representation"));
         }
         final ConfigGroupEnum groupKey;
         final DataEventTypeEnum eventType;
@@ -105,19 +127,46 @@ public class ClusterDataChangedEventController {
         }
         final List<?> source;
         try {
-            source = deserializeSource(groupKey, payload.getSource());
+            source = resolveSource(payload, groupKey);
             if (Objects.isNull(source) || source.stream().anyMatch(Objects::isNull)) {
                 return ResponseEntity.badRequest().body(ShenyuAdminResult.error("source must be an array of non-null records"));
             }
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ShenyuAdminResult.error("unknown data change event group: " + groupKey.name()));
+                    .body(ShenyuAdminResult.error("invalid source for data change event group: " + groupKey.name()));
         }
         eventPublisher.publishEvent(new DataChangedEvent(groupKey, eventType, source, payload.getNamespaceId()));
         return ResponseEntity.ok(ShenyuAdminResult.success());
     }
 
+    private List<?> resolveSource(final ClusterDataChangedEventPayload payload, final ConfigGroupEnum groupKey) {
+        final Integer version = payload.getPayloadVersion();
+        if (Objects.nonNull(payload.getStructuredSource())) {
+            if (Objects.nonNull(version) && STRUCTURED_PAYLOAD_VERSION != version) {
+                throw new IllegalArgumentException("unsupported structured payload version: " + version);
+            }
+            return deserializeStructuredSource(groupKey, payload.getStructuredSource());
+        }
+        if (Objects.nonNull(version) && LEGACY_PAYLOAD_VERSION != version) {
+            throw new IllegalArgumentException("unsupported payload version: " + version);
+        }
+        return deserializeSource(groupKey, payload.getSource());
+    }
+
+    private List<?> deserializeStructuredSource(final ConfigGroupEnum groupKey, final JsonNode sourceJson) {
+        if (!sourceJson.isArray()) {
+            throw new IllegalArgumentException("structured source must be an array");
+        }
+        final JavaType listType = objectMapper.getTypeFactory()
+                .constructCollectionType(List.class, resolveSourceClass(groupKey));
+        return objectMapper.convertValue(sourceJson, listType);
+    }
+
     private List<?> deserializeSource(final ConfigGroupEnum groupKey, final String sourceJson) {
+        return GsonUtils.getInstance().fromList(sourceJson, resolveSourceClass(groupKey));
+    }
+
+    private Class<?> resolveSourceClass(final ConfigGroupEnum groupKey) {
         final Class<?> targetClass;
         switch (groupKey) {
             case APP_AUTH:
@@ -147,6 +196,6 @@ public class ClusterDataChangedEventController {
             default:
                 throw new IllegalArgumentException("Unexpected value: " + groupKey);
         }
-        return GsonUtils.getInstance().fromList(sourceJson, targetClass);
+        return targetClass;
     }
 }

@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import com.google.gson.JsonElement;
+import com.google.gson.stream.JsonReader;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
@@ -49,6 +52,8 @@ import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -309,6 +314,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {
             if (Objects.nonNull(initialSyncState)) {
+                send(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY);
                 send(WebsocketSyncFrame.REQUEST_PREFIX + initialSyncState.begin());
             } else {
                 send(DataEventTypeEnum.MYSELF.name());
@@ -319,21 +325,21 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onMessage(final String result) {
-        final Map<String, Object> jsonToMap;
+        final String eventType;
         try {
-            jsonToMap = JsonUtils.jsonToMap(result);
-            if (Objects.isNull(jsonToMap)) {
-                return;
-            }
+            eventType = readEventType(result);
         } catch (RuntimeException ex) {
             LOG.warn("Ignoring unparseable websocket frame from server[{}]", this.getURI());
             return;
         }
         try {
-            Object eventType = jsonToMap.get(RunningModeConstants.EVENT_TYPE);
-            if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
+            if (Objects.equals(WebsocketSyncFrameV2.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
+                initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrameV2.class),
+                        payload -> handleResult(result, payload));
+            } else if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
             } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+                final Map<String, Object> jsonToMap = JsonUtils.jsonToMap(result);
                 boolean wasMaster = this.isConnectedToMaster;
                 String mode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
                 if (!Objects.equals(RunningModeEnum.STANDALONE.name(), mode)) {
@@ -354,6 +360,28 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 initialSyncState.invalidate();
             }
             LOG.warn("Failed to handle websocket frame from server[{}]", this.getURI(), ex);
+        }
+    }
+
+    /**
+     * Read the envelope event type without materializing the payload as a tree.
+     *
+     * @param result the complete frame
+     * @return the event type, or null when the frame does not carry one
+     */
+    private static String readEventType(final String result) {
+        try (JsonReader reader = new JsonReader(new StringReader(result))) {
+            reader.beginObject();
+            while (reader.hasNext()) {
+                String name = reader.nextName();
+                if (RunningModeConstants.EVENT_TYPE.equals(name)) {
+                    return reader.nextString();
+                }
+                reader.skipValue();
+            }
+            return null;
+        } catch (IOException ex) {
+            throw new IllegalStateException("unparseable websocket frame", ex);
         }
     }
 
@@ -491,10 +519,20 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param result result
      */
     private void handleResult(final String result) {
-        LogUtils.debug(LOG, "server [{}] handleResult({})", this.getURI().toString(), result);
+        handleResult(result, result);
+    }
+
+    /**
+     * handle an admin message whose payload is already available as text.
+     *
+     * @param wire the complete frame, used for logging
+     * @param payload the configuration message
+     */
+    private void handleResult(final String wire, final String payload) {
+        LogUtils.debug(LOG, "server [{}] handleResult({})", this.getURI().toString(), payload);
         WebsocketData<?> websocketData;
         try {
-            websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
+            websocketData = GsonUtils.getInstance().fromJson(payload, WebsocketData.class);
         } catch (RuntimeException ex) {
             // a frame that cannot be interpreted as a config message is a protocol-shape
             // mismatch, not a recoverable config change: ignore it like the previous
@@ -502,9 +540,31 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
             return;
         }
+        applyConfig(wire, websocketData);
+    }
+
+    /**
+     * handle an admin message whose payload is already parsed, avoiding a re-encode.
+     *
+     * @param wire the complete frame, used for logging
+     * @param payload the structured configuration message
+     */
+    private void handleResult(final String wire, final JsonElement payload) {
+        LogUtils.debug(LOG, "server [{}] handleResult(structured payload)", this.getURI().toString());
+        WebsocketData<?> websocketData;
+        try {
+            websocketData = GsonUtils.getGson().fromJson(payload, WebsocketData.class);
+        } catch (RuntimeException ex) {
+            LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
+            return;
+        }
+        applyConfig(wire, websocketData);
+    }
+
+    private void applyConfig(final String wire, final WebsocketData<?> websocketData) {
         LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
                 this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
-                websocketData.getNamespaceId(), result.getBytes(StandardCharsets.UTF_8).length);
+                websocketData.getNamespaceId(), wire.getBytes(StandardCharsets.UTF_8).length);
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
