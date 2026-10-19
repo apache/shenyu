@@ -69,6 +69,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        return Mono.defer(() -> executeRequest(exchange, chain, selector, rule));
+    }
+
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
@@ -97,16 +101,30 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList);
+        String requested = exchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
+        final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
             LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(exchange, chain, selector, ruleHandle, candidates)));
+    }
+
+    private Mono<Void> forwardSelected(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                                        final DivideRuleHandle ruleHandle, final CircuitBreakerCandidates candidates) {
+        List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
+        exchange.getAttributes().put(UpstreamCircuitBreaker.HALF_OPEN_PROBE, candidates.isProbe());
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
-        if (CollectionUtils.isNotEmpty(specifyDomains)) {
+        if (candidates.isProbe()) {
+            upstream = breakeredUpstreamList.get(0);
+            if (P2C.equals(ruleHandle.getLoadBalance())) {
+                upstream.getInflight().incrementAndGet();
+                upstream.setLastPicked(System.currentTimeMillis());
+            }
+        } else if (CollectionUtils.isNotEmpty(specifyDomains)) {
             String requested = specifyDomains.get(0);
             upstream = breakeredUpstreamList.stream()
                     .filter(u -> u.getUrl().equals(requested))
@@ -138,7 +156,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream);
+        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream, candidates.isProbe());
     }
 
     @Override
@@ -175,19 +193,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
      * @param ruleHandle the divide rule handle
      * @param breakerKey the key already computed when filtering candidates
      * @param upstream the chosen upstream
+     * @param probe whether the caller already attached exclusive probe accounting
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream) {
+                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream, final boolean probe) {
+        Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
         if (ruleHandle.getLoadBalance().equals(P2C)) {
-            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
-                    .doFinally(signalType -> responseTrigger(upstream)), breakerKey);
+            response = response.doFinally(signalType -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
-            return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange)
-                    .doOnSuccess(e -> successResponseTrigger(upstream, beginTime)), breakerKey);
+            response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
         }
-        return UpstreamCircuitBreaker.recordOutcome(chain.execute(exchange), breakerKey);
+        return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
     }
 
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {

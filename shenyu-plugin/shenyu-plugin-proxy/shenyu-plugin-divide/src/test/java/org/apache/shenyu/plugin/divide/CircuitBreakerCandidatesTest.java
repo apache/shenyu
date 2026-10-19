@@ -42,11 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
 /**
@@ -160,7 +157,7 @@ class CircuitBreakerCandidatesTest {
             CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(first, second)));
             assertEquals(List.of(second), candidates.getUpstreams());
             assertEquals(SELECTOR + ":http://second", candidates.getBreakerKey(second));
-            assertTrue(CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(first, second))).getUpstreams().isEmpty());
+            assertEquals(List.of(first), CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(first, second))).getUpstreams());
         }
     }
 
@@ -210,9 +207,8 @@ class CircuitBreakerCandidatesTest {
                 assertTrue(UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(key));
             }
             int after = concurrentAdmissions(() -> CircuitBreakerCandidates.filter(SELECTOR, new ArrayList<>(List.of(target))).getUpstreams());
-            // This is a compatibility check, not proof of single-probe admission:
-            // the real breaker still has #7760 (both versions admit all callers).
             assertEquals(before, after);
+            assertEquals(halfOpen ? 0 : 1, after);
         }
     }
 
@@ -260,12 +256,7 @@ class CircuitBreakerCandidatesTest {
     }
 
     private UpstreamCircuitBreaker strictBreaker() {
-        // #7760 owns ordinary eligibility for expired OPEN / HALF_OPEN states.
-        // Exercise the fallback against the intended eligibility contract while
-        // retaining the real atomic state transition, rather than masking that bug.
-        UpstreamCircuitBreaker breaker = spy(UpstreamCircuitBreaker.create(1, 0));
-        doReturn(false).when(breaker).isRequestAllowed(anyString());
-        return breaker;
+        return UpstreamCircuitBreaker.create(1, 0);
     }
 
     private Upstream upstream(final String url, final int weight) {

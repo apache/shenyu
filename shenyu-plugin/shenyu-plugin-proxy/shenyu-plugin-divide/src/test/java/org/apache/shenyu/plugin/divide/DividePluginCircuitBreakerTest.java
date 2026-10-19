@@ -41,6 +41,8 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.core.Disposable;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
@@ -51,6 +53,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -144,6 +148,16 @@ public final class DividePluginCircuitBreakerTest {
     @Test
     public void testHalfOpenProbeRecoversBreaker() throws Exception {
         openBreaker();
+        expireBreaker();
+        // the probe request is forwarded and its success closes the breaker
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyComplete();
+        verify(chain, times(1)).execute(any());
+        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+    }
+
+    private void expireBreaker() throws Exception {
         // rewind the open timestamp so the half-open wait window has elapsed
         Field breakersField = UpstreamCircuitBreaker.class.getDeclaredField("breakers");
         breakersField.setAccessible(true);
@@ -152,12 +166,6 @@ public final class DividePluginCircuitBreakerTest {
         Field openedAtField = state.getClass().getDeclaredField("openedAtMillis");
         openedAtField.setAccessible(true);
         openedAtField.setLong(state, System.currentTimeMillis() - 60000L);
-        // the probe request is forwarded and its success closes the breaker
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
-        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
-                .verifyComplete();
-        verify(chain, times(1)).execute(any());
-        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
     }
 
     @Test
@@ -244,5 +252,87 @@ public final class DividePluginCircuitBreakerTest {
         UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
         UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
         assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+    }
+
+    @Test
+    public void testOneProbeWhileHealthySiblingContinuesServing() throws Exception {
+        openBreaker();
+        expireBreaker();
+        Upstream healthy = Upstream.builder().protocol("http://").url("127.0.0.1:9093").build();
+        when(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(SELECTOR_ID))
+                .thenAnswer(invocation -> new ArrayList<>(List.of(healthy, upstream)));
+        Sinks.Empty<Void> probe = Sinks.empty();
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            ServerWebExchange request = invocation.getArgument(0);
+            return upstream.buildDomain().equals(request.getAttribute(Constants.HTTP_DOMAIN)) ? probe.asMono() : Mono.empty();
+        });
+        Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        try {
+            assertEquals(upstream.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+            for (int index = 0; index < 32; index++) {
+                ServerWebExchange other = newExchange();
+                StepVerifier.create(dividePlugin.doExecute(other, chain, selectorData, ruleData)).verifyComplete();
+                assertEquals(healthy.buildDomain(), other.getAttribute(Constants.HTTP_DOMAIN));
+            }
+            assertNull(UpstreamCircuitBreaker.getInstance().acquireHalfOpenProbe(breakerKey));
+            probe.tryEmitEmpty();
+            assertTrue(UpstreamCircuitBreaker.getInstance().isRequestAllowed(breakerKey));
+        } finally {
+            subscription.dispose();
+        }
+    }
+
+    @Test
+    public void testUnsubscribedRequestDoesNotReserveAProbe() throws Exception {
+        openBreaker();
+        expireBreaker();
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        assertNotNull(UpstreamCircuitBreaker.getInstance().acquireHalfOpenProbe(breakerKey));
+        verify(chain, times(0)).execute(any());
+    }
+
+    @Test
+    public void testProbeCancellationReleasesItsPermission() throws Exception {
+        openBreaker();
+        expireBreaker();
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).thenCancel().verify();
+        assertNull(UpstreamCircuitBreaker.getInstance().acquireHalfOpenProbe(breakerKey));
+        expireBreaker();
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertTrue(UpstreamCircuitBreaker.getInstance().isRequestAllowed(breakerKey));
+    }
+
+    @Test
+    public void testSynchronousForwardingErrorReleasesProbe() throws Exception {
+        openBreaker();
+        expireBreaker();
+        when(chain.execute(exchange)).thenThrow(new IllegalStateException("before publisher"));
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).expectError(IllegalStateException.class).verify();
+        expireBreaker();
+        assertNotNull(UpstreamCircuitBreaker.getInstance().acquireHalfOpenProbe(breakerKey));
+    }
+
+    @Test
+    public void testSpecifiedHealthyTargetDoesNotReserveSiblingProbe() throws Exception {
+        openBreaker();
+        expireBreaker();
+        Upstream healthy = Upstream.builder().protocol("http://").url("127.0.0.1:9094").build();
+        when(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(SELECTOR_ID))
+                .thenAnswer(invocation -> new ArrayList<>(List.of(upstream, healthy)));
+        ServerWebExchange specified = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test")
+                .header(Constants.SPECIFY_DOMAIN, healthy.getUrl()).build());
+        specified.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        when(chain.execute(specified)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(specified, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(healthy.buildDomain(), specified.getAttribute(Constants.HTTP_DOMAIN));
+        assertNotNull(UpstreamCircuitBreaker.getInstance().acquireHalfOpenProbe(breakerKey));
+    }
+
+    private ServerWebExchange newExchange() {
+        ServerWebExchange request = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test").build());
+        request.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        return request;
     }
 }

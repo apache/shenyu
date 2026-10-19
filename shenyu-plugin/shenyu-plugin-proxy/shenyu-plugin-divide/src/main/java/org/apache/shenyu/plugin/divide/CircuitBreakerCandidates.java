@@ -19,8 +19,11 @@ package org.apache.shenyu.plugin.divide;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker.HalfOpenProbe;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Request-local candidates and their circuit-breaker keys.
@@ -38,10 +41,13 @@ final class CircuitBreakerCandidates {
 
     private final String[] keys;
 
-    private CircuitBreakerCandidates(final String selectorId, final List<Upstream> upstreams, final String[] keys) {
+    private final HalfOpenProbe probe;
+
+    private CircuitBreakerCandidates(final String selectorId, final List<Upstream> upstreams, final String[] keys, final HalfOpenProbe probe) {
         this.selectorId = selectorId;
         this.upstreams = upstreams;
         this.keys = keys;
+        this.probe = probe;
     }
 
     /**
@@ -52,6 +58,18 @@ final class CircuitBreakerCandidates {
      * @return candidates with the keys used to check their breaker state
      */
     static CircuitBreakerCandidates filter(final String selectorId, final List<Upstream> upstreams) {
+        return filter(selectorId, upstreams, null);
+    }
+
+    /**
+     * Filter candidates while preferring an explicitly requested probe target.
+     *
+     * @param selectorId the selector id
+     * @param upstreams a mutable request-owned snapshot
+     * @param requested the explicit target, or null
+     * @return ordinary candidates or exactly one acquired recovery probe
+     */
+    static CircuitBreakerCandidates filter(final String selectorId, final List<Upstream> upstreams, final String requested) {
         UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
         int size = upstreams.size();
         String[] keys = new String[size];
@@ -66,25 +84,54 @@ final class CircuitBreakerCandidates {
                     keys[allowed] = key;
                 }
                 allowed++;
+            } else if (Objects.isNull(requested) || requested.equals(upstream.getUrl())) {
+                HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(key);
+                if (Objects.nonNull(acquired)) {
+                    return probeCandidates(selectorId, upstreams, keys, upstream, key, acquired);
+                }
             }
         }
-        if (allowed == 0) {
-            // Keep the second state check: a wait window or an in-flight outcome
-            // may change while the first pass is running. Do not acquire permits
-            // for blocked candidates when ordinary candidates are available.
+        if (allowed == 0 && Objects.nonNull(requested)) {
+            // An unavailable explicit target may fall back to another probe only
+            // when no ordinary target is available. Reuse the first pass's keys.
             for (int index = 0; index < size; index++) {
-                if (breaker.tryAcquireHalfOpenProbe(keys[index])) {
-                    upstreams.set(0, upstreams.get(index));
-                    keys[0] = keys[index];
-                    allowed = 1;
-                    break;
+                HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(keys[index]);
+                if (Objects.nonNull(acquired)) {
+                    return probeCandidates(selectorId, upstreams, keys, upstreams.get(index), keys[index], acquired);
                 }
             }
         }
         if (allowed < size) {
             upstreams.subList(allowed, size).clear();
         }
-        return new CircuitBreakerCandidates(selectorId, upstreams, keys);
+        return new CircuitBreakerCandidates(selectorId, upstreams, keys, null);
+    }
+
+    private static CircuitBreakerCandidates probeCandidates(final String selectorId, final List<Upstream> upstreams, final String[] keys,
+                                                             final Upstream upstream, final String key, final HalfOpenProbe probe) {
+        upstreams.set(0, upstream);
+        keys[0] = key;
+        upstreams.subList(1, upstreams.size()).clear();
+        return new CircuitBreakerCandidates(selectorId, upstreams, keys, probe);
+    }
+
+    /**
+     * Whether this request owns an exclusive recovery probe.
+     *
+     * @return true if a probe was acquired
+     */
+    boolean isProbe() {
+        return Objects.nonNull(probe);
+    }
+
+    /**
+     * Attach probe accounting, including cancellation and synchronous failures.
+     *
+     * @param source the deferred forwarding operation
+     * @return the source with probe accounting if required
+     */
+    Mono<Void> recordProbeOutcome(final Mono<Void> source) {
+        return isProbe() ? probe.recordOutcome(source) : source;
     }
 
     /**
