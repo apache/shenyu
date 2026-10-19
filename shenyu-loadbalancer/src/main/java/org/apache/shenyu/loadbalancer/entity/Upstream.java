@@ -38,6 +38,11 @@ public final class Upstream {
     private final String protocol;
 
     /**
+     * Normalized protocol prefix, computed once because the protocol is immutable.
+     */
+    private final transient String protocolPrefix;
+
+    /**
      * url.
      */
     private String url;
@@ -128,6 +133,7 @@ public final class Upstream {
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
+        this.protocolPrefix = normalizeProtocol(builder.protocol);
         this.url = builder.url;
         this.weight = builder.weight;
         this.status = builder.status;
@@ -476,7 +482,7 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain() {
-        return buildDomain(this.getProtocol());
+        return protocolPrefix + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
 
     /**
@@ -500,9 +506,9 @@ public final class Upstream {
         if (StringUtils.isBlank(protocol)) {
             return DEFAULT_PROTOCOL;
         }
-        String scheme = StringUtils.stripEnd(protocol.trim(), "/");
-        if (scheme.endsWith(":")) {
-            scheme = scheme.substring(0, scheme.length() - 1);
+        String scheme = StringUtils.stripEnd(StringUtils.stripEnd(protocol.trim(), "/"), ":");
+        if (scheme.isEmpty()) {
+            return DEFAULT_PROTOCOL;
         }
         return scheme + "://";
     }
