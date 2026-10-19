@@ -47,9 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * The Test Case For the continuity of a trace across the gateway.
@@ -199,6 +202,9 @@ public class TraceContinuityTest {
     }
 
     private SpanData onlyFinishedSpan() {
+        // doFinally ends the span after the downstream completion signal; verifyComplete can return first.
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(
+                () -> Assertions.assertEquals(1, spanExporter.getFinishedSpanItems().size()));
         List<SpanData> spans = spanExporter.getFinishedSpanItems();
         Assertions.assertEquals(1, spans.size());
         return spans.get(0);
