@@ -137,7 +137,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             }
             handlerIds.add(upstream.getDiscoveryHandlerId());
         }
-        handlerIds.forEach(this::fetchAfterCommit);
+        handlerIds.forEach(this::fetchAll);
     }
 
     @Override
