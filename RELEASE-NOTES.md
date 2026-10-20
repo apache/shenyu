@@ -36,6 +36,10 @@
   resource reads reuse the owned cancellation/deadline and directory-generation
   lifecycle. No generic file/URL fetching, prompts or subscriptions are added.
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish

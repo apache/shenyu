@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.agent.gateway.security;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * Verified identity and tool grants from a server-side security adapter, never from wire metadata.
@@ -31,17 +33,47 @@ public final class AgentMcpIdentity {
 
     private final Set<String> resourceGrants;
 
+    private final Set<String> toolDenials;
+
+    private final String tenant;
+
     public AgentMcpIdentity(final String subject, final Set<String> toolGrants) {
-        this(subject, toolGrants, Set.of());
+        this(subject, toolGrants, Set.of(), Set.of(), null);
     }
 
     public AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> resourceGrants) {
+        this(subject, toolGrants, Set.of(), resourceGrants, null);
+    }
+
+    /**
+     * Snapshot a tenant-bound identity supplied by a verified server adapter.
+     * @param tenant explicitly resolved tenant, never an anonymous default
+     * @param subject verified subject within that tenant
+     * @param toolGrants exact tool names granted by the authority
+     * @param toolDenials exact names denied, taking precedence over grants
+     */
+    public AgentMcpIdentity(final String tenant, final String subject, final Set<String> toolGrants, final Set<String> toolDenials) {
+        this(subject, toolGrants, toolDenials, Set.of(), Objects.requireNonNull(tenant, "tenant"));
+    }
+
+    public AgentMcpIdentity(final String tenant, final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants) {
+        this(subject, toolGrants, toolDenials, resourceGrants, Objects.requireNonNull(tenant, "tenant"));
+    }
+
+    private AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants, final String tenant) {
         if (Objects.requireNonNull(subject, "subject").isBlank()) {
             throw new IllegalArgumentException("subject must not be blank");
         }
         this.subject = subject;
-        this.toolGrants = Set.copyOf(toolGrants);
         this.resourceGrants = Set.copyOf(resourceGrants);
+        if (Objects.nonNull(tenant) && tenant.isBlank()) {
+            throw new IllegalArgumentException("tenant must not be blank");
+        }
+        this.tenant = tenant;
+        this.toolDenials = Set.copyOf(toolDenials);
+        Set<String> effective = new HashSet<>(Set.copyOf(toolGrants));
+        effective.removeAll(this.toolDenials);
+        this.toolGrants = Set.copyOf(effective);
     }
 
     public String getSubject() {
@@ -54,5 +86,17 @@ public final class AgentMcpIdentity {
 
     public Set<String> getResourceGrants() {
         return resourceGrants;
+    }
+
+    public Set<String> getToolDenials() {
+        return toolDenials;
+    }
+
+    /**
+     * Return an explicitly assigned tenant; legacy adapters remain unassigned.
+     * @return tenant, never a fabricated default
+     */
+    public Optional<String> getTenant() {
+        return Optional.ofNullable(tenant);
     }
 }

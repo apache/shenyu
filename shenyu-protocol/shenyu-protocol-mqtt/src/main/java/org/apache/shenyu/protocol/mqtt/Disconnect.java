@@ -24,6 +24,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 import java.util.Objects;
@@ -42,7 +43,8 @@ public class Disconnect extends MessageType {
 
     @Override
     public void disconnect(final ChannelHandlerContext ctx) {
-        //// todo Last words
+        // MQTT-3.1.2-8: a graceful DISCONNECT discards the stored will.
+        Singleton.INST.get(WillRepository.class).remove(ctx.channel());
         cleanChannel(ctx.channel());
         ctx.close();
     }

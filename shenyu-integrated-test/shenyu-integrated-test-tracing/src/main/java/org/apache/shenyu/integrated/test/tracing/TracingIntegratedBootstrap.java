@@ -15,53 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.vo;
+package org.apache.shenyu.integrated.test.tracing;
 
-import java.util.List;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * MenuProjectVO.
- *
+ * The tracing integrated bootstrap, the gateway of the tracing integrated test.
  */
-public class MenuProjectVO {
-
-    private String label;
-
-    private List<MenuModuleVO> children;
+@SpringBootApplication
+public class TracingIntegratedBootstrap {
 
     /**
-     * setLabel.
+     * main method of App.
      *
-     * @return String
+     * @param args args
      */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * setLabel.
-     *
-     * @param label label
-     */
-    public void setLabel(final String label) {
-        this.label = label;
-    }
-
-    /**
-     * getChildren.
-     *
-     * @return List
-     */
-    public List<MenuModuleVO> getChildren() {
-        return children;
-    }
-
-    /**
-     * setChildren.
-     *
-     * @param children children
-     */
-    public void setChildren(final List<MenuModuleVO> children) {
-        this.children = children;
+    public static void main(final String[] args) {
+        SpringApplication.run(TracingIntegratedBootstrap.class);
     }
 }

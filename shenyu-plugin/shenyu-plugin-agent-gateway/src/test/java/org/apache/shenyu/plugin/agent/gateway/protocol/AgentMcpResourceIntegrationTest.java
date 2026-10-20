@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent;
@@ -29,6 +30,7 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceProvider;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -52,10 +54,42 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class AgentMcpResourceIntegrationTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void tenantAndToolDenialsSurviveResourceAuthorization(final String mode) {
+        AgentMcpIdentity identity = new AgentMcpIdentity("tenant-a", "trusted-owner", Set.of("status"), Set.of("status"), Set.of("status"));
+        AgentToolProvider tool = mock(AgentToolProvider.class);
+        when(tool.getName()).thenReturn("status");
+        when(tool.getDescription()).thenReturn("Same-name tool, denied independently of the resource");
+        when(tool.getInputSchema()).thenReturn(JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject());
+        when(tool.getRequiredClientCapabilities()).thenReturn(new JsonObject());
+        AgentMcpHttpHandler handler = handler(input -> Mono.deferContextual(context -> {
+            AgentMcpExecutionContext trusted = context.get(AgentMcpExecutionContext.class);
+            assertEquals("tenant-a", trusted.getTenant().orElseThrow());
+            assertEquals("trusted-owner", input.getContext().getSubject());
+            assertEquals("trusted-owner", trusted.getSubject());
+            assertTrue(trusted.getAllowedTools().isEmpty());
+            assertEquals(Set.of("status"), trusted.getAllowedResources());
+            return Mono.just(List.of(AgentResourceContent.text(input.getUri(), null, "tenant-resource")));
+        }), identity, tool);
+        MockServerWebExchange exchange = exchange("resources/read", "test://status");
+        AgentGatewayMcpConfig settings = AgentGatewayMcpConfig.parse(JsonParser.parseString(
+                "{\"allowedTools\":[\"status\"],\"allowedResources\":[\"status\"],\"responseMode\":\"" + mode + "\"}"), true);
+        handler.handle(exchange, settings, traffic("tenant-request"), 1).block(Duration.ofSeconds(3));
+        assertEquals(200, exchange.getResponse().getStatusCode().value());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("tenant-resource"));
+        verify(tool, never()).invoke(any());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
@@ -138,6 +172,11 @@ class AgentMcpResourceIntegrationTest {
     }
 
     private AgentMcpHttpHandler handler(final Function<AgentResourceInvocation, Mono<List<AgentResourceContent>>> reads, final Set<String> grants) {
+        return handler(reads, new AgentMcpIdentity("trusted-owner", Set.of("status"), grants));
+    }
+
+    private AgentMcpHttpHandler handler(final Function<AgentResourceInvocation, Mono<List<AgentResourceContent>>> reads,
+                                       final AgentMcpIdentity identity, final AgentToolProvider... tools) {
         AgentResourceProvider provider = new AgentResourceProvider() {
             @Override
             public AgentResourceDefinition getDefinition() {
@@ -149,8 +188,8 @@ class AgentMcpResourceIntegrationTest {
                 return reads.apply(invocation);
             }
         };
-        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1", null, new AgentResourceRegistry(List.of(provider)));
-        return new AgentMcpHttpHandler(dispatcher, exchange -> Mono.just(new AgentMcpIdentity("trusted-owner", Set.of("status"), grants)));
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of(tools)), "server", "1", null, new AgentResourceRegistry(List.of(provider)));
+        return new AgentMcpHttpHandler(dispatcher, exchange -> Mono.just(identity));
     }
 
     private AgentGatewayMcpConfig config(final String mode) {

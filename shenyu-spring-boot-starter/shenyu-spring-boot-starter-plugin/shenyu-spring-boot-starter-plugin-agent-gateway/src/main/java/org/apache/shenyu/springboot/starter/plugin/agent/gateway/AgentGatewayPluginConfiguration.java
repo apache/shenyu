@@ -39,12 +39,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver;
 import org.apache.shenyu.plugin.agent.gateway.remote.FileRemoteServiceCredentialResolver;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
@@ -75,13 +77,25 @@ public class AgentGatewayPluginConfiguration {
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
         }
+        if (environment.getProperty("shenyu.plugins.agent.gateway.security.key-auth.enabled", Boolean.class, false)
+                && resolvers.stream().noneMatch(resolver -> resolver instanceof KeyAuthMcpSecurityResolver)) {
+            throw new IllegalStateException("Enabled key-auth MCP authorization requires the key-auth plugin dependency");
+        }
+        if (environment.getProperty("shenyu.plugins.agent.gateway.security.principal.enabled", Boolean.class, false)
+                && resolvers.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.PrincipalMcpSecurityResolver".equals(resolver.getClass().getName()))) {
+            throw new IllegalStateException("Enabled MCP principal authorization requires an explicit source and its optional dependencies");
+        }
         return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer, resources);
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                      final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer, final ObjectProvider<AgentResourceProvider> resources) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.getIfAvailable(() -> exchange -> Mono.empty());
+        List<AgentMcpSecurityResolver> candidates = resolvers.stream().toList();
+        if (candidates.size() > 1) {
+            throw new IllegalStateException("MCP requires exactly one authoritative security resolver");
+        }
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
         AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
                 AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer));
@@ -117,6 +131,103 @@ public class AgentGatewayPluginConfiguration {
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
         return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver,
                 environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false));
+    }
+
+    private static Mono<Boolean> keyAuthenticationPresent(final org.springframework.web.server.ServerWebExchange exchange) {
+        if (org.springframework.util.ClassUtils.isPresent("org.apache.shenyu.plugin.key.auth.KeyAuthAuthentication", AgentGatewayPluginConfiguration.class.getClassLoader())) {
+            return org.apache.shenyu.plugin.key.auth.KeyAuthAuthentication.from(exchange).hasElement();
+        }
+        return Mono.just(false);
+    }
+
+    private static java.util.function.Predicate<java.util.Map<String, Object>> tokenAuthority(final PrincipalMcpSecurityProperties properties) {
+        String issuer = PrincipalMcpSecurityResolver.text(properties.getIssuer());
+        String audience = PrincipalMcpSecurityResolver.text(properties.getAudience());
+        if (java.util.Objects.nonNull(properties.getRegistrationId())) {
+            throw new IllegalArgumentException("Token source does not accept a login registration");
+        }
+        return attributes -> issuer.equals(attributes.get("iss"))
+                && PrincipalMcpSecurityResolver.names(attributes.get("aud"), false).contains(audience);
+    }
+
+    /**
+     * Explicit opt-in; authentication remains owned by the earlier key-auth plugin.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.apache.shenyu.plugin.key.auth.KeyAuthAuthentication")
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.security.key-auth.enabled", havingValue = "true")
+    @EnableConfigurationProperties(KeyAuthMcpSecurityProperties.class)
+    static class KeyAuthConfiguration {
+
+        /**
+         * Snapshot deployment-owned bindings, rejecting duplicate or incomplete identities.
+         * @param properties explicit authorization bindings
+         * @return the sole key-auth identity adapter
+         */
+        @Bean
+        KeyAuthMcpSecurityResolver agentGatewayKeyAuthSecurityResolver(final KeyAuthMcpSecurityProperties properties) {
+            return new KeyAuthMcpSecurityResolver(properties);
+        }
+    }
+
+    /**
+     * Reuse an application-owned JWT Resource Server without building another authenticator.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = {"org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken", "org.springframework.security.oauth2.jwt.Jwt"})
+    @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "enabled", havingValue = "true")
+    @EnableConfigurationProperties(PrincipalMcpSecurityProperties.class)
+    static class JwtPrincipalConfiguration {
+
+        @Bean
+        @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "source", havingValue = "jwt")
+        AgentMcpSecurityResolver agentGatewayPrincipalJwtResolver(final PrincipalMcpSecurityProperties properties) {
+            var authority = tokenAuthority(properties);
+            return new PrincipalMcpSecurityResolver<>(properties, org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken.class,
+                    org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken::getTokenAttributes,
+                    authentication -> authority.test(authentication.getTokenAttributes()), AgentGatewayPluginConfiguration::keyAuthenticationPresent);
+        }
+    }
+
+    /**
+     * Reuse the application's opaque-token introspection result, not the bearer credential.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication")
+    @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "enabled", havingValue = "true")
+    @EnableConfigurationProperties(PrincipalMcpSecurityProperties.class)
+    static class OpaquePrincipalConfiguration {
+
+        @Bean
+        @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "source", havingValue = "opaque-token")
+        AgentMcpSecurityResolver agentGatewayPrincipalOpaqueResolver(final PrincipalMcpSecurityProperties properties) {
+            var authority = tokenAuthority(properties);
+            return new PrincipalMcpSecurityResolver<>(properties, org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication.class,
+                    org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication::getTokenAttributes,
+                    authentication -> authority.test(authentication.getTokenAttributes()), AgentGatewayPluginConfiguration::keyAuthenticationPresent);
+        }
+    }
+
+    /**
+     * Reuse the authenticated login principal for one explicitly trusted client registration.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken")
+    @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "enabled", havingValue = "true")
+    @EnableConfigurationProperties(PrincipalMcpSecurityProperties.class)
+    static class LoginPrincipalConfiguration {
+
+        @Bean
+        @ConditionalOnProperty(prefix = "shenyu.plugins.agent.gateway.security.principal", name = "source", havingValue = "oauth2-login")
+        AgentMcpSecurityResolver agentGatewayPrincipalLoginResolver(final PrincipalMcpSecurityProperties properties) {
+            String registration = PrincipalMcpSecurityResolver.text(properties.getRegistrationId());
+            if (java.util.Objects.nonNull(properties.getIssuer()) || java.util.Objects.nonNull(properties.getAudience())) {
+                throw new IllegalArgumentException("Login source is bound by client registration, not token issuer/audience settings");
+            }
+            return new PrincipalMcpSecurityResolver<>(properties, org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken.class,
+                    authentication -> authentication.getPrincipal().getAttributes(),
+                    authentication -> registration.equals(authentication.getAuthorizedClientRegistrationId()), AgentGatewayPluginConfiguration::keyAuthenticationPresent);
+        }
     }
 
     /**

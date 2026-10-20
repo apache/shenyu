@@ -46,6 +46,8 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
+import java.net.http.HttpTimeoutException;
+import java.net.http.HttpConnectTimeoutException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -68,6 +70,34 @@ import static org.mockito.Mockito.when;
 class AgentMcpCallObservationTest {
 
     private final AgentTrafficContext traffic = new AgentTrafficContext("private-id", "mcp", "selector", "rule");
+
+    @ParameterizedTest
+    @CsvSource({"json,0", "sse,0", "json,1", "sse,1", "json,2", "sse,2"})
+    void innerTimeoutIsAlways504AndRecordedOnce(final String mode, final int type) {
+        Throwable failure = switch (type) {
+            case 0 -> new TimeoutException("private-timeout");
+            case 1 -> new HttpTimeoutException("private-upstream-timeout");
+            default -> new HttpConnectTimeoutException("private-connect-timeout");
+        };
+        Recording observer = new Recording();
+        MockServerWebExchange exchange = exchange("tools/call", observer);
+        StepVerifier.create(handler(tool(Mono.error(failure)), Set.of("read")).handle(exchange, config(mode, 30000), traffic, 1)).verifyComplete();
+        assertEquals(504, exchange.getResponse().getStatusCode().value());
+        assertEquals(MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
+        assertEquals("{\"error\":\"Request deadline exceeded\"}", exchange.getResponse().getBodyAsString().block());
+        observer.assertOnly(Outcome.TIMEOUT);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void explicitGatewayTimeoutIsNotRecordedAsServerError(final String mode) {
+        Recording observer = new Recording();
+        MockServerWebExchange exchange = exchange("tools/call", observer);
+        AgentMcpProtocolException failure = new AgentMcpProtocolException(504, -32001, "Remote deadline exceeded", null, null);
+        StepVerifier.create(handler(tool(Mono.error(failure)), Set.of("read")).handle(exchange, config(mode, 30000), traffic, 1)).verifyComplete();
+        assertEquals(504, exchange.getResponse().getStatusCode().value());
+        observer.assertOnly(Outcome.TIMEOUT);
+    }
 
     @ParameterizedTest
     @CsvSource({"json,SUCCESS", "sse,SUCCESS", "json,TOOL_ERROR", "sse,TOOL_ERROR"})

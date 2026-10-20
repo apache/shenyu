@@ -15,52 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.vo;
+package org.apache.shenyu.common.utils;
 
-import java.util.List;
+import org.junit.jupiter.api.Test;
+
+import java.util.OptionalInt;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * MenuModuleVO.
+ * Test for {@link BoundServerPort}.
  */
-public class MenuModuleVO {
+class BoundServerPortTest {
 
-    private String label;
-
-    private List<MenuDocItemVO> children;
-
-    /**
-     * getLabel.
-     *
-     * @return String
-     */
-    public String getLabel() {
-        return label;
+    @Test
+    void acceptsThePrimaryServerOnceItHasBound() {
+        assertEquals(OptionalInt.of(9195), BoundServerPort.resolve(null, 9195));
+        assertEquals(OptionalInt.of(18080), BoundServerPort.resolve("server", 18080));
     }
 
-    /**
-     * setLabel.
-     *
-     * @param label label
-     */
-    public void setLabel(final String label) {
-        this.label = label;
-    }
-
-    /**
-     * getChildren.
-     *
-     * @return List
-     */
-    public List<MenuDocItemVO> getChildren() {
-        return children;
-    }
-
-    /**
-     * setChildren.
-     *
-     * @param children children
-     */
-    public void setChildren(final List<MenuDocItemVO> children) {
-        this.children = children;
+    @Test
+    void rejectsTheManagementServerAndUnboundPorts() {
+        assertTrue(BoundServerPort.resolve(BoundServerPort.MANAGEMENT_NAMESPACE, 19090).isEmpty());
+        assertTrue(BoundServerPort.resolve(null, 0).isEmpty());
+        assertTrue(BoundServerPort.resolve(null, -1).isEmpty());
     }
 }

@@ -101,7 +101,7 @@ public final class AgentMcpHttpHandler {
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
                                         traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters(),
-                                        config.getAllowedResources(), identity.getResourceGrants()))
+                                        config.getAllowedResources(), identity.getResourceGrants(), identity.getTenant().orElse(null)))
                                         .contextWrite(observation::traceContext);
                             }))
                     .flatMap(response -> {
