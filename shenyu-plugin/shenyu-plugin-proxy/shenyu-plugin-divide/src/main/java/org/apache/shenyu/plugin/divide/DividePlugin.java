@@ -28,7 +28,6 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -46,7 +45,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -190,19 +191,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
             @Override
             @NonNull
             public Flux<DataBuffer> getBody() {
-                return super.getBody().doOnNext(buffer -> {
-                    forwarded += buffer.readableByteCount();
-                    if (forwarded > maxSize) {
-                        LOG.error("request entity is too large");
-                        throw new ShenyuException("request entity is too large");
-                    }
+                return Flux.defer(() -> {
+                    forwarded = 0;
+                    return super.getBody().doOnNext(buffer -> {
+                        forwarded += buffer.readableByteCount();
+                        if (forwarded > maxSize) {
+                            LOG.error("request entity is too large");
+                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                        }
+                    });
                 });
             }
         }).build();
     }
-
-    /**
-     * forward with circuit b
 
     /**
      * Forward the request through the plugin chain and record its outcome into
