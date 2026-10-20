@@ -60,8 +60,20 @@ public final class RemoteToolDirectory {
      * @return operation result
      */
     public static Mono<RemoteToolDirectory> discover(final List<Target> source, final int maxPages, final int maxTools) {
+        return discover(source, maxPages, maxTools, 1);
+    }
+
+    /**
+     * discover.
+     * @param source trusted source value
+     * @param maxPages trusted maxPages value
+     * @param maxTools trusted maxTools value
+     * @param concurrency bounded target-discovery parallelism; 1 retains the historical serialized behaviour
+     * @return operation result
+     */
+    public static Mono<RemoteToolDirectory> discover(final List<Target> source, final int maxPages, final int maxTools, final int concurrency) {
         List<Target> targets = List.copyOf(source);
-        if (targets.isEmpty() || targets.size() > 8 || maxPages < 1 || maxTools < 1) {
+        if (targets.isEmpty() || targets.size() > 8 || maxPages < 1 || maxTools < 1 || concurrency < 1 || concurrency > 8) {
             return Mono.error(new IllegalArgumentException("Invalid directory limits"));
         }
         if (targets.stream().map(Target::name).distinct().count() != targets.size()) {
@@ -69,7 +81,10 @@ public final class RemoteToolDirectory {
         }
         return Mono.defer(() ->
             reactor.core.publisher.Flux.fromIterable(targets)
-                .concatMap(target -> pages(target, null, 0, maxPages, maxTools, new HashSet<>(), new ArrayList<>()))
+                // flatMapSequential preserves the deterministic target order of concatMap while allowing bounded overlap;
+                // concurrency 1 subscribes one target at a time and is exactly the historical serialized discovery.
+                // Cursor pagination inside each target stays sequential because pages() recurses through a single flatMap chain.
+                .flatMapSequential(target -> pages(target, null, 0, maxPages, maxTools, new HashSet<>(), new ArrayList<>()), concurrency)
                 .collectList()
                 .map(pages -> build(pages, maxTools))
                 .timeout(Duration.ofSeconds(5))

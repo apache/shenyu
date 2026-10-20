@@ -22,7 +22,9 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -90,6 +92,7 @@ public final class UpstreamCircuitBreakerTest {
         // within the wait window no probe is granted
         assertFalse(breaker.tryAcquireHalfOpenProbe(KEY));
         TimeUnit.MILLISECONDS.sleep(150L);
+        assertFalse(breaker.isRequestAllowed(KEY));
         // the first caller is granted the single probe
         assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
         // no second probe while the first one is in flight
@@ -112,6 +115,56 @@ public final class UpstreamCircuitBreakerTest {
         // breaker fully recovered, a single new failure stays below the threshold
         breaker.recordFailure(KEY);
         assertFalse(breaker.isBlocking(KEY));
+    }
+
+    @Test
+    public void testCancelledHalfOpenProbeReopensBreaker() throws Exception {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        breaker.recordFailure(KEY);
+        breaker.recordFailure(KEY);
+        breaker.recordFailure(KEY);
+        elapseWaitWindow(breaker);
+        assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
+
+        StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.never(), KEY))
+                .thenCancel()
+                .verify();
+        assertFalse(breaker.tryAcquireHalfOpenProbe(KEY));
+
+        StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.never(), KEY, true))
+                .thenCancel()
+                .verify();
+
+        assertFalse(breaker.tryAcquireHalfOpenProbe(KEY));
+        elapseWaitWindow(breaker);
+        assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
+        breaker.reset(KEY);
+    }
+
+    @Test
+    public void testDefaultOutcomeRecordingIgnoresCancellation() {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        breaker.recordFailure(KEY);
+
+        StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.never(), KEY))
+                .thenCancel()
+                .verify();
+        breaker.recordFailure(KEY);
+
+        assertTrue(breaker.isRequestAllowed(KEY));
+        breaker.reset(KEY);
+    }
+
+    private void elapseWaitWindow(final UpstreamCircuitBreaker breaker) throws Exception {
+        Field breakersField = UpstreamCircuitBreaker.class.getDeclaredField("breakers");
+        breakersField.setAccessible(true);
+        ConcurrentMap<String, ?> breakers = (ConcurrentMap<String, ?>) breakersField.get(breaker);
+        Object state = breakers.get(KEY);
+        Field openedAtField = state.getClass().getDeclaredField("openedAtMillis");
+        openedAtField.setAccessible(true);
+        openedAtField.setLong(state, System.currentTimeMillis() - 60000L);
     }
 
     @Test

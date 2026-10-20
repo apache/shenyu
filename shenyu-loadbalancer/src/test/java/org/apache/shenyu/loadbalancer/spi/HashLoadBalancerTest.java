@@ -23,8 +23,11 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -62,6 +65,31 @@ class HashLoadBalancerTest {
         Field ringCacheField = HashLoadBalancer.class.getDeclaredField("ringCache");
         ringCacheField.setAccessible(true);
         assertEquals(1, ((Map<?, ?>) ringCacheField.get(hashLoadBalancer)).size());
+    }
+
+    @Test
+    void shouldKeepSameAddressVariantsOnSeparateRingNodes() throws Exception {
+        final HashLoadBalancer hashLoadBalancer = new HashLoadBalancer();
+        final Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("blue").version("v1").build();
+        final Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("blue").version("v2").build();
+        final Upstream third = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("green").version("v2").build();
+        final List<Upstream> upstreamList = List.of(first, second, third);
+        final LoadBalanceData data = new LoadBalanceData();
+        final Set<Upstream> selected = new HashSet<>();
+        for (int i = 0; i < 256 && selected.size() < upstreamList.size(); i++) {
+            data.setIp("192.0.2." + i);
+            selected.add(hashLoadBalancer.select(upstreamList, data));
+        }
+        assertEquals(Set.copyOf(upstreamList), selected);
+
+        final Field ringCacheField = HashLoadBalancer.class.getDeclaredField("ringCache");
+        ringCacheField.setAccessible(true);
+        final Map<?, ?> ringCache = (Map<?, ?>) ringCacheField.get(hashLoadBalancer);
+        assertEquals(Set.of(0, 1, 2), Set.copyOf(((SortedMap<?, ?>) ringCache.values().iterator().next()).values()));
+
+        final Upstream changed = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("blue").version("v3").build();
+        hashLoadBalancer.select(List.of(changed, second, third), data);
+        assertEquals(2, ringCache.size());
     }
 
     private List<Upstream> upstreams() {

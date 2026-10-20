@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -140,20 +141,95 @@ public final class DividePluginCircuitBreakerTest {
     @Test
     public void testHalfOpenProbeRecoversBreaker() throws Exception {
         openBreaker();
-        // rewind the open timestamp so the half-open wait window has elapsed
-        Field breakersField = UpstreamCircuitBreaker.class.getDeclaredField("breakers");
-        breakersField.setAccessible(true);
-        ConcurrentMap<String, ?> breakers = (ConcurrentMap<String, ?>) breakersField.get(UpstreamCircuitBreaker.getInstance());
-        Object state = breakers.get(breakerKey);
-        Field openedAtField = state.getClass().getDeclaredField("openedAtMillis");
-        openedAtField.setAccessible(true);
-        openedAtField.setLong(state, System.currentTimeMillis() - 60000L);
+        elapseWaitWindow(breakerKey);
         // the probe request is forwarded and its success closes the breaker
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
                 .verifyComplete();
         verify(chain, times(1)).execute(any());
         assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+    }
+
+    @Test
+    public void testHalfOpenProbeIsSelectedWhileAnotherUpstreamIsHealthy() throws Exception {
+        openBreaker();
+        elapseWaitWindow(breakerKey);
+        Upstream healthy = Upstream.builder().protocol("http://").url("127.0.0.1:9091").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(List.of(upstream, healthy));
+        cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyComplete();
+
+        assertEquals(upstream.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+        verify(chain, times(1)).execute(any());
+    }
+
+    @Test
+    public void testSpecifiedHealthyUpstreamIsNotOverriddenByAnotherProbe() throws Exception {
+        openBreaker();
+        elapseWaitWindow(breakerKey);
+        Upstream healthy = Upstream.builder().protocol("http://").url("127.0.0.1:9091").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId(SELECTOR_ID)).thenReturn(List.of(upstream, healthy));
+        cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test")
+                .header(Constants.SPECIFY_DOMAIN, healthy.getUrl()).build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyComplete();
+
+        assertEquals(healthy.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+        assertTrue(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+        verify(chain, times(1)).execute(any());
+    }
+
+    @Test
+    public void testUnavailableSpecifiedUpstreamFallsBackToAvailableProbe() throws Exception {
+        openBreaker();
+        elapseWaitWindow(breakerKey);
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/test")
+                .header(Constants.SPECIFY_DOMAIN, "127.0.0.1:9091").build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyComplete();
+
+        assertEquals(upstream.buildDomain(), exchange.getAttribute(Constants.HTTP_DOMAIN));
+        assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
+        verify(chain, times(1)).execute(any());
+    }
+
+    @Test
+    public void testCancelledHalfOpenProbeReopensBreaker() throws Exception {
+        openBreaker();
+        elapseWaitWindow(breakerKey);
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .thenCancel()
+                .verify();
+
+        assertFalse(UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(breakerKey));
+        elapseWaitWindow(breakerKey);
+        assertTrue(UpstreamCircuitBreaker.getInstance().tryAcquireHalfOpenProbe(breakerKey));
+    }
+
+    @Test
+    public void testCancelledClosedRequestLeavesBreakerClosed() {
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .thenCancel()
+                .verify();
+
+        assertTrue(UpstreamCircuitBreaker.getInstance().isRequestAllowed(breakerKey));
     }
 
     @Test
@@ -177,5 +253,15 @@ public final class DividePluginCircuitBreakerTest {
         for (int i = 0; i < 3; i++) {
             UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
         }
+    }
+
+    private void elapseWaitWindow(final String key) throws Exception {
+        Field breakersField = UpstreamCircuitBreaker.class.getDeclaredField("breakers");
+        breakersField.setAccessible(true);
+        ConcurrentMap<String, ?> breakers = (ConcurrentMap<String, ?>) breakersField.get(UpstreamCircuitBreaker.getInstance());
+        Object state = breakers.get(key);
+        Field openedAtField = state.getClass().getDeclaredField("openedAtMillis");
+        openedAtField.setAccessible(true);
+        openedAtField.setLong(state, System.currentTimeMillis() - 60000L);
     }
 }

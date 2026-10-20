@@ -36,6 +36,13 @@
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
         </dependency>
+        <!-- the spans are exported over OTLP over http, the grpc transport is deliberately not
+             bundled because grpc netty is already on the classpath of the gateway. The sender of the
+             exporter is the one managed together with the OpenTelemetry version of the framework. -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

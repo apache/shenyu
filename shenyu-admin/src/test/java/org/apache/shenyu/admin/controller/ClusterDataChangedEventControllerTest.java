@@ -78,6 +78,7 @@ public final class ClusterDataChangedEventControllerTest {
         String sourceJson = GsonUtils.getInstance().toJson(Collections.singletonList(pluginData));
         ClusterDataChangedEventPayload payload =
                 new ClusterDataChangedEventPayload(ConfigGroupEnum.PLUGIN.name(), DataEventTypeEnum.UPDATE.name(), sourceJson);
+        payload.setNamespaceId("namespace-a");
 
         ResponseEntity<?> response = controller.receive(payload);
 
@@ -85,6 +86,7 @@ public final class ClusterDataChangedEventControllerTest {
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher, times(1)).publishEvent(captor.capture());
         assertEquals(ConfigGroupEnum.PLUGIN, captor.getValue().getGroupKey());
+        assertEquals("namespace-a", captor.getValue().getNamespaceId());
         assertEquals(1, captor.getValue().getSource().size());
         assertInstanceOf(PluginData.class, captor.getValue().getSource().get(0));
     }

@@ -36,6 +36,10 @@
   authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
   restart is required for rule updates; absent plans preserve previous behavior.
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
@@ -93,6 +97,31 @@
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
 - Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
+- `shenyu-registry-core` no longer transitively provides registry implementations;
+  it depends only on `shenyu-registry-api` and `shenyu-spi`. Applications that
+  depend on `shenyu-registry-core`, or on `shenyu-sdk-core` / `shenyu-sdk-feign`
+  which now sit on `shenyu-registry-api`, must declare the provider matching their
+  configured `registerType` explicitly, for example:
+
+  ```xml
+  <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-registry-zookeeper</artifactId>
+      <version>${shenyu.version}</version>
+      <scope>runtime</scope>
+  </dependency>
+  ```
+
+  Without the provider on the classpath, `ShenyuInstanceRegisterRepositoryFactory`
+  fails with an `IllegalArgumentException` naming the missing `shenyu-registry-<type>`
+  artifact and listing the available SPI types, replacing the previous
+  `ExtensionLoader.getJoin` failure that did not identify the missing artifact.
+  `loadRepository(String)` is public API, and `AbstractDiscoveryProcessor#createDiscovery`
+  resolves its repository through it. `shenyu-admin` and
+  `shenyu-spring-boot-starter-registry` re-declare all five providers, so existing
+  users of the compatibility starter are unaffected; Apollo was never part of that
+  aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
+  provider table and migration steps. (#7578)
 
 ## [v2.7.0]- 2024-12-23
 

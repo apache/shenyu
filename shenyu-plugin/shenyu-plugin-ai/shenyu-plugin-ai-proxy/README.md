@@ -56,6 +56,38 @@ a library codec alone does not define its endpoint or authentication contract.
    Stream state is allocated per subscription, including retries. Finalization
    runs only on normal completion, never cancellation or transport failure.
 
+## Plugin defaults and selector overrides
+
+AI Proxy accepts defaults in the plugin's existing `config` JSON, synchronized
+from Admin. For example:
+
+```json
+{
+  "provider": "OpenAI",
+  "baseUrl": "https://api.openai.com",
+  "apiKey": "<upstream-api-key>",
+  "model": "gpt-4o-mini",
+  "maxTokens": 1024
+}
+```
+
+A selector can then use `{}` to inherit these connection/model settings, or
+supply a partial handle such as `{"model":"another-model"}`. Non-null selector
+values take precedence. Existing selector defaults for temperature (`0.8`),
+stream (`false`) and protocol (`openai-chat`) retain their current precedence;
+set those selector fields explicitly when a route needs different behavior.
+
+Plugin updates replace the defaults rather than retaining omitted fields.
+Blank, `null` or `{}` configuration clears the previous connection/model values;
+disabling or deleting the plugin also clears its defaults. Each request receives
+a copy, so request-specific proxy credentials do not alter later requests.
+Malformed plugin configuration clears the defaults and logs a warning without
+interrupting configuration synchronization. A later valid update restores them.
+Defaults belong to the handler/resolver instance wired by the starter; separate
+application contexts do not share plugin configuration through a process-wide
+`Singleton`. Programmatic construction must pass the same `AiProxyPluginHandler`
+to `new AiProxyConfigService(handler)` and the plugin.
+
 ## Configuration and use
 
 Add the existing AI Proxy starter to the gateway. Its configuration registers
@@ -97,6 +129,85 @@ generic; neither URLs nor model names are used to guess a dialect. DeepSeek's
 profile maps token-limit and reasoning/thinking fields and rejects incompatible
 thinking/tool configurations rather than silently changing their meaning.
 
+## Provider profiles and capabilities
+
+The explicit Provider registry remains the extension point. Built-in identifiers are
+`OpenAI`, `OpenAICompatible`, `DeepSeek`, `ALiYun`, `OpenAPI`, and `Moonshot`; separators
+and case are normalized by the registry. Both existing client protocols are supported.
+The protocol decoder also declares the request operation (`CHAT_COMPLETION` or
+`RESPONSE`), so a profile can restrict operations separately from protocol support.
+Responses clients continue to use conversion to a Chat upstream; these declarations
+do not enable native Responses endpoints or other HTTP operations.
+
+`AiProviderCapabilities` declares streaming, function/custom tools, JSON mode, JSON
+schema output, stream usage and audio output. The default `supports()` follows the
+declared protocols. The engine validates decoded protocol, operation and effective
+stream settings before invoking any provider, including custom implementations.
+Providers also validate the final converted payload, including provider defaults. Unsupported
+features or operations fail as request errors before HTTP execution. Generic capabilities
+describe the service, not a guarantee for every model it hosts; configure a narrower
+profile for a model or deployment with additional restrictions. Unknown fields that
+need no transformation remain in the payload.
+
+Built-in profiles enumerate their supported operations and features explicitly. Adding
+an enum value does not enable it for existing profiles; review and opt in each profile.
+
+OpenAI now emits one Chat token-limit field, `max_completion_tokens`. When both token
+fields are supplied, the modern field takes precedence; gateway `maxTokens` overrides
+it. This follows the [OpenAI Chat API](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+Generic compatible profiles preserve the client's field choice unless configured
+otherwise. `withMaxTokensField("max_tokens")` selects a legacy upstream dialect through
+Connect's provider adaptation phase, after Responses-to-Chat conversion. DeepSeek uses
+its existing Connect profile, including token and thinking mappings. Its Chat capability
+profile accepts function tools and JSON mode and rejects JSON-schema output, custom
+tools and audio output, following the [DeepSeek Chat API](https://api-docs.deepseek.com/api/create-chat-completion/).
+
+Provider paths may be relative to a base URL, or the base URL may already include the
+complete configured operation path. `/v1` is not appended twice. DeepSeek uses
+`/chat/completions`, including when the configured base URL ends in `/v1` or `/beta`.
+Base URLs retain the existing HTTP(S), no-userinfo/query/fragment restriction; profile
+query parameters are encoded separately. Header credentials support arbitrary header
+names and prefixes (including Bearer); query credentials and unauthenticated local
+services are also available. Generated content-type, accept and credential headers
+replace conflicting profile headers case-insensitively.
+
+Register another Chat-compatible service as a Spring bean without changing Engine,
+Protocol or Transport. For example:
+
+```java
+@Bean
+public AiProxyProvider tenantProvider() {
+    ObjectNode defaults = JsonNodeFactory.instance.objectNode();
+    defaults.put("temperature", 0.7);
+    OpenAiProviderOptions options = new OpenAiProviderOptions(
+            "/generate", OpenAiProviderOptions.Authentication.HEADER, "api-key", "",
+            Map.of("X-Tenant", "tenant-a"), Map.of("api-version", "2026-01"),
+            Map.of("client-alias", "upstream-model"), defaults,
+            AiProviderCapabilities.chat(), null, "max_tokens");
+    return new OpenAiCompatible("tenant-provider", options);
+}
+```
+
+Set the selector's `provider` to `tenant-provider`, its `baseUrl` to the service base
+URL and its `apiKey` to the credential. The profile also works with a collection-based
+`AiProxyProviderFactory` without Spring. Existing custom implementations keep their
+interface contract and the `OpenAi(ProviderProfile)` constructor remains available.
+
+Model precedence is configured routed model, then client model, then profile default.
+Alias mapping applies to the selected model. Defaults fill only absent fields; explicit
+client values survive unless a gateway override is configured. Defaults cannot replace
+`messages`, `input`, `stream` or internal fallback configuration. Streaming selection
+therefore remains consistent with Engine retry/response policy. A Connect dialect
+that changes the selected streaming mode is rejected before HTTP execution. Profile maps and defaults
+are copied and per-request changes do not mutate the registered profile. Profile string
+representations omit headers, query values and body defaults.
+
+Provider response differences remain in the request-bound Connect response adapter or
+the existing `AiProxyProvider.adaptResponse` hook. DeepSeek Chat response fields, including
+`reasoning_content` and vendor usage fields, remain passthrough for Chat clients; Connect
+converts reasoning and usage for Responses clients. Providers do not open connections,
+configure pools/timeouts, write client responses, or implement retry/fallback policy.
+
 ## Compatibility and limits
 
 - Existing Chat routes retain their protocol identifier, upstream endpoint,
@@ -119,6 +230,7 @@ thinking/tool configurations rather than silently changing their meaning.
   be inferred from synthetic or missing usage values.
 
 No database/configuration migration is required. Existing Chat routes need no
-change. Responses routes opt in through the selector handle; DeepSeek routes
-should review the stricter dialect validation. Roll back by reverting the
+change except for OpenAI token-field normalization described above. Responses routes
+opt in through the selector handle; DeepSeek routes should review the capability and
+dialect validation. Roll back by reverting the
 integration commit and restoring any opt-in selectors to `openai-chat`.

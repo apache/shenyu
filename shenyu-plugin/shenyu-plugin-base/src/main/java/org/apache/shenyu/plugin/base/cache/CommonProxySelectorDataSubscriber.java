@@ -23,7 +23,9 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +35,9 @@ public class CommonProxySelectorDataSubscriber implements ProxySelectorDataSubsc
 
     private final Map<String, ProxySelectorDataHandler> handlerMap;
 
+    // Node and path deletion events identify selectors by id; handlers remove resources by name.
+    private final Map<String, Map<String, String>> selectorNames = new ConcurrentHashMap<>();
+
     public CommonProxySelectorDataSubscriber(final List<ProxySelectorDataHandler> proxySelectorDataHandlerList) {
         this.handlerMap = proxySelectorDataHandlerList.stream().collect(Collectors.toConcurrentMap(ProxySelectorDataHandler::pluginName, e -> e));
     }
@@ -40,17 +45,40 @@ public class CommonProxySelectorDataSubscriber implements ProxySelectorDataSubsc
     @Override
     public void onSubscribe(final ProxySelectorData proxySelectorData) {
         Optional.ofNullable(handlerMap.get(proxySelectorData.getPluginName()))
-                .ifPresent(handler -> handler.handlerProxySelector(proxySelectorData));
+                .ifPresent(handler -> {
+                    handler.handlerProxySelector(proxySelectorData);
+                    if (Objects.nonNull(proxySelectorData.getId()) && Objects.nonNull(proxySelectorData.getName())) {
+                        selectorNames.computeIfAbsent(proxySelectorData.getPluginName(), key -> new ConcurrentHashMap<>())
+                                .put(proxySelectorData.getId(), proxySelectorData.getName());
+                    }
+                });
     }
 
     @Override
     public void unSubscribe(final ProxySelectorData proxySelectorData) {
         Optional.ofNullable(handlerMap.get(proxySelectorData.getPluginName()))
-                .ifPresent(handler -> handler.removeProxySelector(proxySelectorData.getName()));
+                .ifPresent(handler -> {
+                    Map<String, String> names = selectorNames.get(proxySelectorData.getPluginName());
+                    String id = proxySelectorData.getId();
+                    String cachedName = Objects.nonNull(names) && Objects.nonNull(id) ? names.get(id) : null;
+                    String name = Objects.nonNull(cachedName) ? cachedName : proxySelectorData.getName();
+                    if (Objects.isNull(name)) {
+                        return;
+                    }
+                    handler.removeProxySelector(name);
+                    if (Objects.nonNull(names)) {
+                        if (Objects.nonNull(id)) {
+                            names.remove(id);
+                        } else {
+                            names.values().removeIf(name::equals);
+                        }
+                    }
+                });
     }
 
     @Override
     public void refresh() {
         handlerMap.values().forEach(ProxySelectorDataHandler::refresh);
+        selectorNames.clear();
     }
 }

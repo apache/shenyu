@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.time.Instant;
 
@@ -35,6 +36,8 @@ public final class AgentMcpExecutionContext {
     private final String requestId;
 
     private final String subject;
+
+    private final String tenant;
 
     private final String ruleId;
 
@@ -65,13 +68,29 @@ public final class AgentMcpExecutionContext {
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters) {
-        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, AgentGatewayHttpToolConfig.empty(), null);
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                AgentGatewayHttpToolConfig.empty(), null, null);
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final String tenant) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                AgentGatewayHttpToolConfig.empty(), null, tenant);
     }
 
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters, final AgentGatewayHttpToolConfig httpTools,
                                     final AgentHttpToolInvoker httpInvoker) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, httpTools, httpInvoker, null);
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final AgentGatewayHttpToolConfig httpTools,
+                                    final AgentHttpToolInvoker httpInvoker, final String tenant) {
+        this.tenant = Objects.isNull(tenant) ? null : requireText(tenant, "tenant");
         this.deadline = Objects.requireNonNull(deadline, "deadline");
         this.httpTools = Objects.requireNonNull(httpTools, "httpTools");
         this.httpInvoker = httpInvoker;
@@ -99,6 +118,10 @@ public final class AgentMcpExecutionContext {
 
     public String getSubject() {
         return subject;
+    }
+
+    public Optional<String> getTenant() {
+        return Optional.ofNullable(tenant);
     }
 
     public String getRuleId() {

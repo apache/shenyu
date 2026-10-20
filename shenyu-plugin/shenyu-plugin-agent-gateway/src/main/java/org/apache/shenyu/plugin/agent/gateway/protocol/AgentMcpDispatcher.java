@@ -35,6 +35,8 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.net.http.HttpTimeoutException;
+import java.util.concurrent.TimeoutException;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -84,7 +86,8 @@ public final class AgentMcpDispatcher {
                 AgentToolRegistry captured = registry.withProviders(context.getHttpTools().getTools().values().stream()
                         .map(tool -> (AgentToolProvider) new AgentHttpToolProvider(tool, context.getHttpInvoker())).toList());
                 AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
-                        context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters());
+                        context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters(),
+                        context.getTenant().orElse(null));
                 return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog).dispatch(request, () -> bound);
             }
             if (Objects.nonNull(remoteCatalog)) {
@@ -98,6 +101,14 @@ public final class AgentMcpDispatcher {
         }).onErrorMap(error -> {
             if (error instanceof AgentHttpToolProvider.DeadlineExceededException) {
                 return failure(request, 504, -32025, "HTTP tool deadline exceeded");
+            }
+            if (error instanceof TimeoutException) {
+                return error;
+            }
+            if (error instanceof HttpTimeoutException) {
+                TimeoutException timeout = new TimeoutException("Upstream request timed out");
+                timeout.initCause(error);
+                return timeout;
             }
             if (error instanceof AgentMcpProtocolException) {
                 return error;

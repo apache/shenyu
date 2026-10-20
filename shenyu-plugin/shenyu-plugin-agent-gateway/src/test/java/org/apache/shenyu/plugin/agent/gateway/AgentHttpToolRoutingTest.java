@@ -26,6 +26,7 @@ import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRequestParser;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
@@ -48,6 +49,7 @@ import reactor.util.context.Context;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,6 +66,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The fixture selects the rule directly; it does not claim an Admin/WebSocket network test.
  */
 class AgentHttpToolRoutingTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void preservesTrustedTenantThroughConfiguredHttpDispatch(final String mode) {
+        AtomicInteger calls = new AtomicInteger();
+        Fixture fixture = new Fixture(mode, child -> Mono.deferContextual(context -> {
+            AgentMcpExecutionContext trusted = context.get(AgentMcpExecutionContext.class);
+            assertEquals("tenant-a", trusted.getTenant().orElseThrow());
+            assertEquals("trusted", trusted.getSubject());
+            assertEquals(Set.of("lookup"), trusted.getAllowedTools());
+            calls.incrementAndGet();
+            return write(child, "{\"orderId\":\"A\"}");
+        }), null, "tenant-a");
+        MockServerWebExchange call = request("tools/call", "A", false);
+        StepVerifier.create(fixture.handler.handle(call)).verifyComplete();
+        assertEquals(200, call.getResponse().getStatusCode().value());
+        assertEquals(1, calls.get());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
@@ -245,9 +265,15 @@ class AgentHttpToolRoutingTest {
         }
 
         Fixture(final String mode, final Function<ServerWebExchange, Mono<Void>> action, final AgentMcpCallTracer tracer) {
+            this(mode, action, tracer, null);
+        }
+
+        Fixture(final String mode, final Function<ServerWebExchange, Mono<Void>> action, final AgentMcpCallTracer tracer, final String tenant) {
             AgentMcpHttpHandler mcp = new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"),
-                    exchange -> Mono.just(new AgentMcpIdentity("trusted", "true".equals(exchange.getRequest().getHeaders().getFirst("Test-Denied"))
-                            ? Set.of() : Set.of("lookup"))), tracer);
+                    exchange -> {
+                        Set<String> grants = "true".equals(exchange.getRequest().getHeaders().getFirst("Test-Denied")) ? Set.of() : Set.of("lookup");
+                        return Mono.just(Objects.isNull(tenant) ? new AgentMcpIdentity("trusted", grants) : new AgentMcpIdentity(tenant, "trusted", grants, Set.of()));
+                    }, tracer);
             gateway = new SelectedGateway(mcp);
             update(config(mode, "/orders/status"));
             handler = new ShenyuWebHandler(List.of(gateway, new Route(action)), null, new ShenyuConfig());

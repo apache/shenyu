@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.TraceIdUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
@@ -102,16 +103,24 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     }
 
     /**
-     * Plugin after operation.
+     * Chain after operation.
+     *
+     * <p>It runs with the terminal signal of the request, not while the chain is assembled, so the
+     * reported cost is the duration of the request and the trace id of the gateway span is already
+     * populated. A long lived response, for example a streamed one, reports its timing once the
+     * stream has ended. The operation is idempotent: a request which is subscribed again does not
+     * report a second time.</p>
      *
      * @param exchange context
      */
     public void after(final ServerWebExchange exchange) {
         Map<String, Object> attributes = exchange.getAttributes();
-        long currentTimeMillis = System.currentTimeMillis();
-        long startTime = (long) attributes.get(Constants.CHAIN_START_TIME);
-        LOG.debug("shenyu chain handle uri:{}, traceId:{}, cost:{}", exchange.getRequest().getPath(), exchange.getLogPrefix(), currentTimeMillis - startTime);
-        attributes.remove(Constants.CHAIN_START_TIME);
+        Object startTime = attributes.remove(Constants.CHAIN_START_TIME);
+        if (Objects.isNull(startTime)) {
+            return;
+        }
+        long cost = System.currentTimeMillis() - (long) startTime;
+        LOG.debug("shenyu chain handle uri:{}, traceId:{}, cost:{}", exchange.getRequest().getPath(), TraceIdUtils.traceId(exchange), cost);
     }
 
     /**
@@ -122,16 +131,15 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        try {
-            before(exchange);
-            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
-            if (scheduled) {
-                return execute.subscribeOn(scheduler);
-            }
-            return execute;
-        } finally {
-            after(exchange);
+        before(exchange);
+        Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+        if (scheduled) {
+            execute = execute.subscribeOn(scheduler);
         }
+        // the chain is assembled here but only runs once it is subscribed, and the tracing span is
+        // created at that point as well, so the timing and the trace id are read with the terminal
+        // signal of the request instead of while the chain is assembled.
+        return execute.doFinally(signalType -> after(exchange));
     }
     
     /**

@@ -1,0 +1,124 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Retest
+
+# Once this workflow reaches the default branch, anyone can request a retest
+# by posting /retest as the entire comment in an open PR's conversation.
+# A rocket reaction acknowledges the request, including when no runs failed.
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  retest:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/retest')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      pull-requests: write
+    concurrency:
+      group: retest-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      # issue_comment loads this script from the default branch; no checkout,
+      # dependency installation, or execution of PR code is needed.
+      - name: Rerun failed pull request checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {issue, comment, action} = context.payload;
+            if (action !== 'created' || !issue?.pull_request || comment?.body?.trim() !== '/retest') {
+                return;
+            }
+
+            const repo = context.repo;
+            const pullRequest = {...repo, pull_number: issue.number};
+            const {data: pr} = await github.rest.pulls.get(pullRequest);
+            if (pr.state !== 'open' || !pr.head.repo) {
+                core.info('Skipping a closed pull request or deleted source repository.');
+                return;
+            }
+
+            // Acknowledge the command and discover runs with concurrent API requests.
+            const [, runs] = await Promise.all([
+                github.rest.reactions.createForIssueComment({
+                    ...repo,
+                    comment_id: comment.id,
+                    content: 'rocket',
+                }),
+                github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                    ...repo,
+                    event: 'pull_request',
+                    head_sha: pr.head.sha,
+                    per_page: 100,
+                }),
+            ]);
+
+            const latest = new Map();
+            for (const run of runs) {
+                // Fork runs can have an empty pull_requests array. Match the source as
+                // well as the SHA, and verify the PR number whenever GitHub supplies it.
+                if (run.event !== 'pull_request' || run.head_sha !== pr.head.sha
+                    || run.head_repository?.id !== pr.head.repo.id || run.head_branch !== pr.head.ref
+                    || (run.pull_requests?.length && !run.pull_requests.some(pull => pull.number === pr.number))) {
+                    continue;
+                }
+                const previous = latest.get(run.workflow_id);
+                // Include successful and active runs so an older failure is not retried.
+                if (!previous || run.run_number > previous.run_number) {
+                    latest.set(run.workflow_id, run);
+                }
+            }
+
+            let requested = 0;
+            const errors = [];
+            // Retry failed jobs and their dependents, preserving successful jobs.
+            // Cancelled runs and workflows awaiting approval are left alone.
+            const isFailed = run => run.status === 'completed' && ['failure', 'timed_out'].includes(run.conclusion);
+            for (const run of latest.values()) {
+                if (!isFailed(run)) {
+                    continue;
+                }
+                try {
+                    // Recheck after discovery: another command may have already retried
+                    // this run, or the contributor may have pushed a new commit.
+                    const {data: currentPr} = await github.rest.pulls.get(pullRequest);
+                    if (currentPr.state !== 'open' || currentPr.head.sha !== pr.head.sha) {
+                        core.info('The pull request changed; stopping this retest request.');
+                        break;
+                    }
+                    const {data: currentRun} = await github.rest.actions.getWorkflowRun({...repo, run_id: run.id});
+                    if (!isFailed(currentRun) || currentRun.run_attempt !== run.run_attempt) {
+                        core.info(`Run ${run.id} has already changed; skipping it.`);
+                        continue;
+                    }
+                    await github.rest.actions.reRunWorkflowFailedJobs({...repo, run_id: run.id});
+                    requested++;
+                    core.info(`Requested failed-job rerun: ${run.html_url}`);
+                } catch (error) {
+                    // A rejected/expired run must not prevent retrying other workflows.
+                    errors.push(run.id);
+                    core.warning(`Could not rerun ${run.html_url}: ${error.message}`);
+                }
+            }
+
+            core.info(`Requested reruns for ${requested} workflow(s) at ${pr.head.sha}.`);
+            if (errors.length) {
+                core.setFailed(`Failed to request reruns for workflow run(s): ${errors.join(', ')}.`);
+            }
