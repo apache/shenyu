@@ -110,7 +110,7 @@ public final class ModifyResponsePluginTest {
                 .selectorId("1")
                 .matchMode(1)
                 .sort(1)
-                .loged(true)
+                .logged(true)
                 .selectorId("test")
                 .build();
         final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
