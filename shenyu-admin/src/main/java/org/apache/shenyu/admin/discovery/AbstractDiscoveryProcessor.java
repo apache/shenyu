@@ -37,7 +37,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -97,7 +97,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoveryConfig.setRegisterType(type);
         discoveryConfig.setProps(properties);
         discoveryConfig.setServerLists(discoveryDO.getServerList());
-        ShenyuInstanceRegisterRepository discoveryService = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(type);
+        ShenyuInstanceRegisterRepository discoveryService = ShenyuInstanceRegisterRepositoryFactory.loadRepository(type);
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
         dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());

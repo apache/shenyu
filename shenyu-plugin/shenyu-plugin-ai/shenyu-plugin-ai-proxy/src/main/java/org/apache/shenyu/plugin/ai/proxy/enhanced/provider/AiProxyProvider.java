@@ -22,6 +22,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
+import java.util.Objects;
+
 /**
  * Contract for adapting a ShenYu AI request to a provider request.
  */
@@ -44,13 +46,23 @@ public interface AiProxyProvider {
     AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
 
     /**
+     * Get provider feature and operation declarations.
+     * Existing custom providers retain the general Chat capability default.
+     *
+     * @return provider capabilities
+     */
+    default AiProviderCapabilities capabilities() {
+        return AiProviderCapabilities.chat();
+    }
+
+    /**
      * Check whether the provider supports a client protocol.
      *
      * @param protocol client protocol identifier
      * @return whether supported
      */
     default boolean supports(final String protocol) {
-        return true;
+        return Objects.nonNull(protocol) && capabilities().protocols().contains(protocol);
     }
 
     /**

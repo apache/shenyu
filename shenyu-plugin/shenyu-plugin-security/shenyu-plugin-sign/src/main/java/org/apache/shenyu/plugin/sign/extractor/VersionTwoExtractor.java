@@ -24,8 +24,10 @@ import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
@@ -42,22 +44,30 @@ public class VersionTwoExtractor implements SignParameterExtractor {
         if (StringUtils.isEmpty(token) || !token.contains(".")) {
             return new SignParameters();
         }
-        String[] tokenArray = StringUtils.split(token, '.');
+        String[] tokenArray = token.split("\\.", -1);
+        if (tokenArray.length != 2 || StringUtils.isAnyBlank(tokenArray)) {
+            return new SignParameters();
+        }
         String parameters = tokenArray[0];
         String signature = tokenArray[1];
 
-        Map<String, Object> headerMap = JsonUtils.jsonToMap(new String(Base64.getDecoder().decode(parameters)));
-
-        SignParameters signParameters = new SignParameters(
-                VERSION_2,
-                (String) headerMap.get(Constants.APP_KEY),
-                (String) headerMap.get(Constants.TIMESTAMP),
-                signature,
-                httpRequest.getURI(),
-                (String) headerMap.get("alg"));
-        signParameters.setParameters(parameters);
-
-        return signParameters;
+        try {
+            Map<String, Object> headerMap = JsonUtils.jsonToMap(new String(Base64.getDecoder().decode(parameters), StandardCharsets.UTF_8));
+            if (Objects.isNull(headerMap) || headerMap.isEmpty()) {
+                return new SignParameters();
+            }
+            SignParameters signParameters = new SignParameters(
+                    VERSION_2,
+                    (String) headerMap.get(Constants.APP_KEY),
+                    (String) headerMap.get(Constants.TIMESTAMP),
+                    signature,
+                    httpRequest.getURI(),
+                    (String) headerMap.get("alg"));
+            signParameters.setParameters(parameters);
+            return signParameters;
+        } catch (IllegalArgumentException | ClassCastException e) {
+            return new SignParameters();
+        }
     }
     
     private String getDefaultToken(final HttpRequest httpRequest) {

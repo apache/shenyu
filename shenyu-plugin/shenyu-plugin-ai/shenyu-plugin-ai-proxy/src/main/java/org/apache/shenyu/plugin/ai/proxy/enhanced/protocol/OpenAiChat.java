@@ -73,6 +73,7 @@ public final class OpenAiChat implements AiProxyProtocol {
                 new ShenyuAiRequest();
 
         request.setProtocol(NAME);
+        request.setOperation(ShenyuAiRequest.Operation.CHAT_COMPLETION);
         request.setRawBody(rawBody);
         request.setRawPayload(payload.deepCopy());
         request.setModel(readOptionalText(

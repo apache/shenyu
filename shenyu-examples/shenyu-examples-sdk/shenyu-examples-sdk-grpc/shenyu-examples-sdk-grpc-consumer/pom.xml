@@ -68,17 +68,6 @@
             <artifactId>shenyu-sdk-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-eureka</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>

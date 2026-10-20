@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -26,6 +28,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
+
+    @Override
+    public void addInterceptors(final InterceptorRegistry registry) {
+        registry.addInterceptor(new RegistrationProtocolInterceptor()).addPathPatterns(
+                RegistrationProtocol.META_PATH, RegistrationProtocol.URI_PATH, RegistrationProtocol.API_DOC_PATH,
+                RegistrationProtocol.DISCOVERY_CONFIG_PATH, RegistrationProtocol.MCP_TOOLS_PATH,
+                RegistrationProtocol.OFFLINE_PATH, RegistrationProtocol.BEAT_URI_PATH);
+    }
 
     @Override
     public void addCorsMappings(final CorsRegistry registry) {

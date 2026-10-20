@@ -24,6 +24,9 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
+import reactor.netty.resources.LoopResources;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -115,6 +118,21 @@ public class ShenyuNettyWebServerConfigurationTest {
                 assertThat(properties.getHttpDecoder().getMaxHeaderSize(), is(16384));
                 assertThat(properties.getHttpDecoder().getMaxChunkSize(), is(16384));
             });
+    }
+
+    @Test
+    public void testEventLoopResourcesDisposedWithContext() {
+        final AtomicReference<LoopResources> loopResourcesRef = new AtomicReference<>();
+        applicationContextRunner
+            .withPropertyValues(
+                "shenyu.netty.http.web-server-factory-enabled=true"
+            )
+            .run(context -> {
+                LoopResources loopResources = context.getBean("shenyuServerLoopResources", LoopResources.class);
+                assertThat(loopResources.isDisposed(), is(false));
+                loopResourcesRef.set(loopResources);
+            });
+        assertThat(loopResourcesRef.get().isDisposed(), is(true));
     }
 
     @Test

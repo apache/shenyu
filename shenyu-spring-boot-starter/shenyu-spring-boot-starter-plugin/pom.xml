@@ -53,6 +53,7 @@
         <module>shenyu-spring-boot-starter-plugin-general-context</module>
         <module>shenyu-spring-boot-starter-plugin-mqtt</module>
         <module>shenyu-spring-boot-starter-plugin-metrics</module>
+        <module>shenyu-spring-boot-starter-plugin-tracing</module>
         <module>shenyu-spring-boot-starter-plugin-logging-rocketmq</module>
         <module>shenyu-spring-boot-starter-plugin-logging-kafka</module>
         <module>shenyu-spring-boot-starter-plugin-logging-elasticsearch</module>

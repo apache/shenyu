@@ -508,3 +508,49 @@ It is not arbitrary free-text redaction or prompt-injection prevention. Operator
 must enumerate the fields to remove and use compatible tools; unsupported results
 fail closed rather than being described as safely redacted. The original schema
 is never rewritten or weakened to make a deletion pass.
+
+## Optional OpenTelemetry call spans
+
+The Agent Gateway starter can trace logical MCP tool calls when
+`shenyu.plugins.agent.gateway.tracing.enabled=true`. Tracing is disabled by
+default. Add the OpenTelemetry API/SDK to the gateway application and supply an
+unambiguous `OpenTelemetry` Spring bean. The starter uses only the API; it does
+not create, register globally, configure or close an SDK/exporter. Explicitly
+enabling tracing without a usable bridge fails startup. A custom
+`AgentMcpCallTracer` bean is an explicit alternative instrumentation opt-in.
+
+Each authenticated, parsed `tools/call` creates one INTERNAL span named
+`shenyu.agent_gateway.tools.call`. It ends once after response writing completes,
+fails or is cancelled, not when the provider merely computes a result. Discovery,
+listing, invalid requests and rejection before parsing do not create logical
+call spans. Existing Metrics observations remain independent.
+
+The only span attribute added by this bridge is `shenyu.mcp.outcome`, with the
+existing bounded values `success`, `tool_error`, `rejected`, `server_error`,
+`timeout` and `cancelled`. Business/server errors and timeouts set ERROR status;
+other outcomes retain UNSET. No exception event, message or stack trace is
+recorded. It does not collect tool names, RPC/request ids, identities, parameters,
+results, credential headers or endpoint URLs. Application SDK resource attributes,
+processors, sampling and other instrumentations remain the operator's responsibility.
+
+To link a call to a trusted application tracing parent, explicitly provide an
+`io.opentelemetry.context.Context` in Reactor Context keyed by that class:
+
+```java
+return chain.filter(exchange).contextWrite(context ->
+        context.put(io.opentelemetry.context.Context.class, trustedParent));
+```
+
+The bridge copies only the parent span identity, not baggage or arbitrary context
+data. It puts the child span context under the same key for tool execution, so
+`Mono.deferContextual` can access it across scheduler changes. It never reads a
+thread-local/global parent, installs a long-lived Scope, extracts caller tracing
+headers or injects outbound HTTP headers. Without an explicit Reactor parent,
+the call gets a root span; automatic Java-agent/Micrometer parent integration is
+not implied. No SDK-wide Reactor hooks are installed.
+
+For OTLP export, configure the application-owned SDK's exporter/processor, trusted
+collector endpoint, TLS, credentials and shutdown/flush policy in the application.
+Merely setting the gateway tracing flag or supplying a no-op API does not export
+telemetry. There is no separate gateway retry, Token accounting or new metrics
+exporter in this feature. Errors in the observation bridge do not fail tool calls.

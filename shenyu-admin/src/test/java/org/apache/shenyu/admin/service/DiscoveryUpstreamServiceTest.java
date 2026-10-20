@@ -52,6 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Timestamp;
@@ -67,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -149,6 +151,41 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+    }
+
+
+    @Test
+    public void testDeleteNotifiesAffectedHandlersWithRemainingUpstreams() {
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
+        when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
+        // fetchAll dependencies for handler-1
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.emptyList());
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectById("handler-1")).thenReturn(handler);
+        when(proxySelectorMapper.selectByHandlerId("handler-1")).thenReturn(null);
+        final SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        selector.setPluginId("plugin-1");
+        when(selectorMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(selector);
+        final PluginDO plugin = new PluginDO();
+        plugin.setName("divide");
+        when(pluginMapper.selectById("plugin-1")).thenReturn(plugin);
+        handler.setDiscoveryId("discovery-1");
+        final DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setId("discovery-1");
+        discovery.setDiscoveryType("local");
+        when(discoveryMapper.selectById("discovery-1")).thenReturn(discovery);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+
+        String delete = discoveryUpstreamService.delete(Collections.singletonList("upstream-1"));
+
+        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+        // the empty remaining snapshot must be published for the affected handler
+        verify(discoveryProcessor, Mockito.timeout(1000).times(1)).changeUpstream(any(), eq(Collections.emptyList()));
     }
 
     @ParameterizedTest
@@ -415,6 +452,30 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testImportDataSkipsNullDiscoveryHandlerId() {
+        when(discoveryUpstreamMapper.selectAll()).thenReturn(Collections.emptyList());
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", null, "url-null"));
+        ConfigImportResult result = this.discoveryUpstreamService.importData(upstreamDTOList);
+        assertNotNull(result);
+        Assertions.assertEquals(0, result.getSuccessCount());
+        verify(discoveryUpstreamMapper, never()).insert(any());
+    }
+
+    @Test
+    public void testImportDataWithNamespaceSkipsNullDiscoveryHandlerId() {
+        String namespace = "ns1";
+        ConfigsImportContext context = new ConfigsImportContext();
+        when(discoveryUpstreamMapper.selectByNamespaceId(namespace)).thenReturn(Collections.emptyList());
+
+        final List<DiscoveryUpstreamDTO> upstreamDTOList = Collections.singletonList(buildDiscoveryUpstreamDTO("", null, "url-null"));
+        ConfigImportResult result = this.discoveryUpstreamService.importData(namespace, upstreamDTOList, context);
+        assertNotNull(result);
+        Assertions.assertEquals(0, result.getSuccessCount());
+        verify(discoveryUpstreamMapper, never()).insert(any());
+    }
+
+    @Test
     public void testUpdateBatch() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
@@ -427,9 +488,8 @@ public final class DiscoveryUpstreamServiceTest {
         verify(discoveryProcessor).changeUpstream(any(), any());
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    public void testBatchPublishesOnlyAfterCommit(final boolean createOrUpdate) {
+    @Test
+    public void testUpdateBatchPublishesOnlyAfterCommit() {
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
         when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
@@ -437,11 +497,7 @@ public final class DiscoveryUpstreamServiceTest {
         when(discoveryMapper.selectById(any())).thenReturn(buildDiscoveryDO());
         TransactionSynchronizationManager.initSynchronization();
         try {
-            if (createOrUpdate) {
-                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
-            } else {
-                discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
-            }
+            discoveryUpstreamService.updateBatch("123", Collections.singletonList(buildDiscoveryUpstreamDTO("")));
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());
             TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
@@ -451,16 +507,11 @@ public final class DiscoveryUpstreamServiceTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    public void testRolledBackBatchDoesNotPublish(final boolean createOrUpdate) {
+    @Test
+    public void testRolledBackUpdateBatchDoesNotPublish() {
         TransactionSynchronizationManager.initSynchronization();
         try {
-            if (createOrUpdate) {
-                discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(buildDiscoveryUpstreamDTO("", "123", "url")));
-            } else {
-                discoveryUpstreamService.updateBatch("123", Collections.emptyList());
-            }
+            discoveryUpstreamService.updateBatch("123", Collections.emptyList());
             TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
             verifyNoInteractions(discoveryProcessor);
             verify(discoveryUpstreamMapper, never()).selectByDiscoveryHandlerId(any());

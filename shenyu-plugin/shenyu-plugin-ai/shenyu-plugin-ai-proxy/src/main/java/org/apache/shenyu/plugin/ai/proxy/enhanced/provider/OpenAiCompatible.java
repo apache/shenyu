@@ -21,6 +21,8 @@ import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
+import java.util.Objects;
+
 /**
  * Named OpenAI-compatible profile sharing endpoint and request adaptation.
  */
@@ -28,10 +30,29 @@ public final class OpenAiCompatible implements AiProxyProvider {
 
     private final String name;
 
-    private final OpenAi delegate = new OpenAi();
+    private final OpenAi delegate;
 
     public OpenAiCompatible(final String name) {
+        this(name, Objects.nonNull(name) && "DeepSeek".equalsIgnoreCase(name.trim().replace("-", "").replace("_", "")) ? OpenAiProviderOptions.deepSeek() : OpenAiProviderOptions.generic(null));
+    }
+
+    /**
+     * Register another compatible service without changing Engine, Protocol or Transport.
+     *
+     * @param name provider identifier
+     * @param options explicitly selected provider options
+     */
+    public OpenAiCompatible(final String name, final OpenAiProviderOptions options) {
+        if (Objects.isNull(name) || name.isBlank()) {
+            throw new IllegalArgumentException("AI provider name must not be blank");
+        }
         this.name = name;
+        this.delegate = OpenAi.withOptions(options);
+    }
+
+    @Override
+    public AiProviderCapabilities capabilities() {
+        return delegate.capabilities();
     }
 
     @Override

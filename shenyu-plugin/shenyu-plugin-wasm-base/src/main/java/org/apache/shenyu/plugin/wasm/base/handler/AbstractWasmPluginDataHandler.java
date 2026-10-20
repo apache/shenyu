@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -45,10 +46,18 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
     protected static final String REMOVE_SELECTOR_METHOD_NAME = "removeSelector";
     
     protected static final Map<Long, RuleData> RULE_ARGUMENTS = new ConcurrentHashMap<>();
+
     
     protected static final String HANDLER_RULE_METHOD_NAME = "handlerRule";
     
     protected static final String REMOVE_RULE_METHOD_NAME = "removeRule";
+    
+    /**
+     * Argument ids key the shared static argument maps, and every call removes its entry in a
+     * finally block, so ids must be globally unique: overlapping calls with equal ids would
+     * overwrite each other's argument and the first cleanup would drop the other call's entry.
+     */
+    private static final AtomicLong NEXT_ARGUMENT_ID = new AtomicLong();
     
     @Override
     public void handlerPlugin(final PluginData pluginData) {
@@ -129,14 +138,14 @@ public abstract class AbstractWasmPluginDataHandler extends WasmLoader implement
     }
     
     protected Long getPluginArgumentId(final PluginData pluginData) {
-        return 0L;
+        return NEXT_ARGUMENT_ID.incrementAndGet();
     }
     
     protected Long getSelectorArgumentId(final SelectorData selectorData) {
-        return 0L;
+        return NEXT_ARGUMENT_ID.incrementAndGet();
     }
     
     protected Long getRuleArgumentId(final RuleData ruleData) {
-        return 0L;
+        return NEXT_ARGUMENT_ID.incrementAndGet();
     }
 }

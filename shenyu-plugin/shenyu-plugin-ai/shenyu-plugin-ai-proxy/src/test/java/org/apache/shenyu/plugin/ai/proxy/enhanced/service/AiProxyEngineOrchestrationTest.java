@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -45,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -56,6 +59,50 @@ import static org.mockito.Mockito.when;
 class AiProxyEngineOrchestrationTest {
 
     private static final String BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"unknown\":42}";
+
+    @Test
+    void convertsResponsesAfterRetryAndFallbackWithoutSharingStreamState() {
+        List<AiUpstreamRequest> requests = new ArrayList<>();
+        AiCommonConfig fallback = config(false, "fallback");
+        fallback.setProvider("DeepSeek");
+        fallback.setMaxTokens(23);
+        AiProxyEngine engine = engine(request -> {
+            requests.add(request);
+            return Mono.just(requests.size() <= 2 ? response(503, Flux.just(bytes("busy"))) : response(200,
+                    Flux.just(bytes("data: {\"model\":\"fallback\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ok\"},\"finish_reason\":\"stop\"}]}\n\n"))));
+        });
+        AiCommonConfig primary = config(false, "main");
+        primary.setProtocol(OpenAiResponses.NAME);
+        List<String> received = new ArrayList<>();
+        StepVerifier.create(engine.execute("{\"input\":\"hi\",\"stream\":true}", primary, Optional.of(fallback),
+                response -> consume(response, received))).verifyComplete();
+        assertEquals(3, requests.size());
+        assertArrayEquals(requests.get(0).getBody(), requests.get(1).getBody());
+        String body = new String(requests.get(2).getBody(), StandardCharsets.UTF_8);
+        assertTrue(body.contains("\"model\":\"fallback\""));
+        assertTrue(body.contains("\"max_tokens\":23"));
+        assertFalse(body.contains("max_completion_tokens"));
+        assertEquals(1, received.stream().filter(event -> event.startsWith("event: response.created\n")).count());
+        assertEquals(1, received.stream().filter(event -> event.startsWith("event: response.completed\n")).count());
+    }
+
+    @Test
+    void doesNotRetryResponsesAfterAConvertedEvent() {
+        AtomicInteger calls = new AtomicInteger();
+        List<String> received = new ArrayList<>();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(200, Flux.just(bytes("data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\"first\"}}]}\n\n"))
+                    .concatWith(Flux.error(networkFailure()))));
+        });
+        AiCommonConfig primary = config(true, "main");
+        primary.setProtocol(OpenAiResponses.NAME);
+        StepVerifier.create(engine.execute("{\"input\":\"hi\",\"stream\":true}", primary, Optional.of(config(true, "fallback")),
+                response -> consume(response, received))).expectError(AiProxyException.class).verify();
+        assertEquals(1, calls.get());
+        assertTrue(received.stream().anyMatch(event -> event.startsWith("event: response.created\n")));
+        assertTrue(received.stream().noneMatch(event -> event.startsWith("event: response.completed\n")));
+    }
 
     @Test
     void normalRequestsRetryThreeTimesAndPreserveTheFinalErrorBody() {
@@ -186,6 +233,7 @@ class AiProxyEngineOrchestrationTest {
         AiProxyProvider provider = mock(AiProxyProvider.class);
         when(provider.name()).thenReturn("custom");
         when(provider.supports("openai-chat")).thenReturn(true);
+        when(provider.capabilities()).thenReturn(AiProviderCapabilities.chat());
         when(provider.buildRequest(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(new AiUpstreamRequest());
         when(provider.adaptResponse(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
             providerAdapted.set(true);
@@ -231,7 +279,7 @@ class AiProxyEngineOrchestrationTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), transport, Duration.ZERO);
     }
 

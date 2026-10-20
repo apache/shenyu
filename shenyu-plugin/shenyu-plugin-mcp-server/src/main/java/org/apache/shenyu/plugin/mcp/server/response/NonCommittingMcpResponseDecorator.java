@@ -29,6 +29,8 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.Objects;
@@ -53,11 +55,32 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
 
     private static final String PLACEHOLDER_SUFFIX = "}";
 
+    /**
+     * Upper bound, in bytes, of the captured backend response for a single MCP tool result.
+     * The captured result must be retained in full because the response future and the
+     * template contract both require a complete result, so the budget keeps memory bounded
+     * instead of growing with the upstream body. Mirrors the SSE variant
+     * {@link ShenyuMcpResponseDecorator} so both protocols share the same protection.
+     */
+    private static final int MAX_CAPTURE_BYTES = 1024 * 1024;
+
     private final String sessionId;
 
     private final CompletableFuture<String> responseFuture;
 
     private final JsonObject responseTemplate;
+
+    /**
+     * Accumulates the raw response bytes instead of per-chunk strings, so multi-byte UTF-8
+     * sequences that span chunk boundaries are decoded correctly exactly once at completion.
+     */
+    private final ByteArrayOutputStream body = new ByteArrayOutputStream();
+
+    /**
+     * Set when the accumulated response exceeds {@link #MAX_CAPTURE_BYTES}; further chunks are
+     * dropped and the response future is completed exceptionally with a deterministic error.
+     */
+    private volatile boolean captureLimitExceeded;
 
     /**
      * Constructs a new non-committing MCP response decorator.
@@ -83,9 +106,9 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         LOG.debug("Processing writeWith for session: {}", sessionId);
 
         return Flux.from(body)
-                .collectList()
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
-                .doOnNext(this::processResponseData)
+                .doOnNext(this::appendBuffer)
+                .doOnComplete(this::finishResponse)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeWith for session: {}", sessionId))
                 .doOnError(error -> handleProcessingError("writeWith", error));
@@ -96,10 +119,10 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
         LOG.debug("Processing writeAndFlushWith for session: {}", sessionId);
 
         return Flux.from(body)
-                .flatMap(Flux::from)
-                .collectList()
+                .concatMap(Flux::from)
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
-                .doOnNext(this::processResponseData)
+                .doOnNext(this::appendBuffer)
+                .doOnComplete(this::finishResponse)
                 .then()
                 .doOnSuccess(aVoid -> LOG.debug("Successfully completed writeAndFlushWith for session: {}", sessionId))
                 .doOnError(error -> handleProcessingError("writeAndFlushWith", error));
@@ -108,26 +131,74 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
     @Override
     public Mono<Void> setComplete() {
         LOG.debug("Completing response for session: {}", sessionId);
-        if (!responseFuture.isDone()) {
-            responseFuture.complete(processResponse(""));
-        }
+        finishResponse();
         // Non-committing: do not write to the underlying response.
         return Mono.empty();
     }
 
     /**
-     * Processes the collected response data buffers and completes the response future.
+     * Appends a data buffer chunk to the accumulated response bytes as it is emitted,
+     * so that chunks are processed incrementally instead of being buffered as a list first.
      *
-     * <p>Aggregates all data buffers into a single response string, applies response template
-     * transformations if configured, and completes the response future with the processed result.
+     * <p>The raw bytes are retained (never decoded per chunk) so that multi-byte UTF-8
+     * sequences spanning chunk boundaries stay intact until the single decode at completion.
+     * Once {@link #MAX_CAPTURE_BYTES} would be exceeded, remaining chunks are dropped and the
+     * over-limit state is recorded for deterministic failure. The buffer is always released.
      *
-     * @param dataBuffers the collected response data buffers
+     * @param buffer the emitted data buffer chunk
      */
-    private void processResponseData(final java.util.List<? extends DataBuffer> dataBuffers) {
+    private void appendBuffer(final DataBuffer buffer) {
         try {
-            final String responseBody = aggregateDataBuffers(dataBuffers);
-            LOG.debug("Captured response data for session {}, length: {} chars", sessionId, responseBody.length());
+            synchronized (body) {
+                if (captureLimitExceeded) {
+                    return;
+                }
+                try (DataBuffer.ByteBufferIterator iterator = buffer.readableByteBuffers()) {
+                    while (iterator.hasNext()) {
+                        final ByteBuffer byteBuffer = iterator.next().asReadOnlyBuffer();
+                        final int remainingCapacity = MAX_CAPTURE_BYTES - body.size();
+                        if (byteBuffer.remaining() > remainingCapacity) {
+                            captureLimitExceeded = true;
+                            LOG.warn("Response body for session {} exceeds the {} byte capture limit",
+                                    sessionId, MAX_CAPTURE_BYTES);
+                            return;
+                        }
+                        final byte[] bytes = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(bytes);
+                        body.write(bytes, 0, bytes.length);
+                    }
+                }
+            }
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
+    }
 
+    /**
+     * Completes the response future with the accumulated response data after all chunks have
+     * been received. Decodes the accumulated bytes exactly once, applies the response template
+     * and completes the response future. Completing is idempotent: if the future is already
+     * done, this is a no-op. When the capture limit was exceeded the future is completed
+     * exceptionally with a deterministic error instead of returning a truncated result.
+     */
+    private void finishResponse() {
+        if (responseFuture.isDone()) {
+            return;
+        }
+        if (captureLimitExceeded) {
+            responseFuture.completeExceptionally(
+                    new IllegalStateException("MCP response exceeds the 1 MiB capture limit"));
+            return;
+        }
+        final byte[] responseBytes;
+        synchronized (body) {
+            responseBytes = body.toByteArray();
+        }
+        // Single decode across the whole payload preserves UTF-8 sequences split across chunks.
+        final String responseBody = new String(responseBytes, StandardCharsets.UTF_8);
+        LOG.debug("Captured response data for session {}, length: {} chars", sessionId, responseBody.length());
+
+        try {
             final String processedResponse = processResponse(responseBody);
             LOG.debug("Processed response for session {}, final length: {} chars", sessionId, processedResponse.length());
 
@@ -138,28 +209,6 @@ public class NonCommittingMcpResponseDecorator extends ServerHttpResponseDecorat
             LOG.error("Error processing response data for session {}: {}", sessionId, e.getMessage(), e);
             responseFuture.completeExceptionally(e);
         }
-    }
-
-    /**
-     * Aggregates multiple data buffers into a single response string.
-     *
-     * @param dataBuffers the list of data buffers to aggregate
-     * @return the aggregated response string
-     */
-    private String aggregateDataBuffers(final java.util.List<? extends DataBuffer> dataBuffers) {
-        final StringBuilder responseBuilder = new StringBuilder();
-
-        try {
-            for (DataBuffer buffer : dataBuffers) {
-                final byte[] bytes = new byte[buffer.readableByteCount()];
-                buffer.read(bytes);
-                responseBuilder.append(new String(bytes, StandardCharsets.UTF_8));
-            }
-        } finally {
-            dataBuffers.forEach(DataBufferUtils::release);
-        }
-
-        return responseBuilder.toString();
     }
 
     /**

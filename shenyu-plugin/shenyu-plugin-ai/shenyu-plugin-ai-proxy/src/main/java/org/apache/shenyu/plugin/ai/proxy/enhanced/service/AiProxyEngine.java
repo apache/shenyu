@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -87,6 +88,8 @@ public final class AiProxyEngine {
             Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                 AiCommonConfig copy = new AiCommonConfig(config);
                 copy.setStream(primary.stream());
+                // Fallback changes the upstream, never the already selected client protocol.
+                copy.setProtocol(primary.protocol().name());
                 return copy;
             });
             return attempt(requestBody, primary, fallback, primary.stream() ? 1 : 3, responseConsumer, new AtomicBoolean());
@@ -114,7 +117,7 @@ public final class AiProxyEngine {
                         // Release this response without accumulating the error body before another attempt.
                         return response.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
                     }
-                    AiUpstreamResponse adapted = prepared.provider().adaptResponse(response);
+                    AiUpstreamResponse adapted = prepared.request().adaptResponse(prepared.provider().adaptResponse(response));
                     AiUpstreamResponse encoded = prepared.protocol().encodeResponse(adapted, prepared.stream());
                     return encoded.getBody().switchOnFirst((signal, body) -> {
                         if (signal.isOnError()) {
@@ -126,7 +129,8 @@ public final class AiProxyEngine {
                     }).then();
                 })
                 .onErrorResume(error -> {
-                    boolean transportFailure = error instanceof AiProxyException
+                    boolean transportFailure = error instanceof AiTransportException
+                            || error instanceof AiProxyException
                             && ((AiProxyException) error).getKind() == AiProxyException.Kind.TRANSPORT;
                     boolean statusFailure = error instanceof UpstreamStatusFailure;
                     if (emitted.get() || !(transportFailure || statusFailure)) {
@@ -178,9 +182,10 @@ public final class AiProxyEngine {
         if (!provider.supports(protocol.name())) {
             throw new ShenyuException("Unsupported AI protocol/provider combination");
         }
+        boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
+        provider.capabilities().validate(decoded, stream);
         try {
             AiUpstreamRequest request = provider.buildRequest(decoded, config);
-            boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
             return new PreparedExchange(protocol, provider, request, stream);
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
