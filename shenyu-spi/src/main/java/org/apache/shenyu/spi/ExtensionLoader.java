@@ -187,7 +187,8 @@ public final class ExtensionLoader<T> {
         if (extensionClassesEntity.isEmpty()) {
             return Collections.emptyList();
         }
-        if (Objects.equals(extensionClassesEntity.size(), cachedInstances.size())) {
+        if (Objects.equals(extensionClassesEntity.size(), cachedInstances.size())
+                && cachedInstances.values().stream().allMatch(Holder::isInitialized)) {
             return (List<T>) this.cachedInstances.values().stream()
                     .sorted(HOLDER_COMPARATOR)
                     .map(e -> {
@@ -233,6 +234,7 @@ public final class ExtensionLoader<T> {
         }
         holder.setOrder(classEntity.getOrder());
         holder.setValue(o);
+        holder.setInitialized(true);
     }
     
     /**
@@ -340,6 +342,8 @@ public final class ExtensionLoader<T> {
     private static final class Holder<T> {
         
         private volatile T value;
+
+        private volatile boolean initialized;
         
         private Integer order;
 
@@ -359,6 +363,24 @@ public final class ExtensionLoader<T> {
          */
         public void setValue(final T value) {
             this.value = value;
+        }
+
+        /**
+         * Checks whether the holder is initialized.
+         *
+         * @return true if initialized
+         */
+        public boolean isInitialized() {
+            return initialized;
+        }
+
+        /**
+         * Sets initialized.
+         *
+         * @param initialized initialized
+         */
+        public void setInitialized(final boolean initialized) {
+            this.initialized = initialized;
         }
         
         /**

@@ -126,4 +126,14 @@ public final class MqttContextTest {
         assertTrue(MqttContext.isValid(updatedUserName, updatedPassword.getBytes(StandardCharsets.UTF_8)));
         assertFalse(MqttContext.isValid(USER_NAME, PASSWORD_IN_BYTES));
     }
+
+    @Test
+    public void isValidShouldRejectRatherThanThrowWhenServerCredentialsAreUnset() {
+        // shenyu.mqtt.userName: with an empty YAML value binds null into the statics
+        mqttContext.setUserName(null);
+        mqttContext.setPassword(null);
+
+        assertFalse(MqttContext.isValid(USER_NAME, PASSWORD_IN_BYTES));
+        assertFalse(MqttContext.isValid("some-client", "some-secret".getBytes(StandardCharsets.UTF_8)));
+    }
 }

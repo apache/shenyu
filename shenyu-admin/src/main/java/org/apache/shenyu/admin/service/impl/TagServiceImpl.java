@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.TagMapper;
+import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -31,9 +32,12 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,8 +53,11 @@ public class TagServiceImpl implements TagService {
 
     private final TagMapper tagMapper;
 
-    public TagServiceImpl(final TagMapper tagMapper) {
+    private final TagRelationMapper tagRelationMapper;
+
+    public TagServiceImpl(final TagMapper tagMapper, final TagRelationMapper tagRelationMapper) {
         this.tagMapper = tagMapper;
+        this.tagRelationMapper = tagRelationMapper;
     }
 
     @Override
@@ -84,6 +91,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final TagDTO tagDTO) {
         TagDO before = tagMapper.selectByPrimaryKey(tagDTO.getId());
         Assert.notNull(before, "the updated tag is not found");
@@ -104,7 +112,14 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
+        Assert.isTrue(tagMapper.selectByParentTagIds(ids).stream().allMatch(tag -> ids.contains(tag.getId())),
+                "cannot delete tags with remaining children");
+        tagRelationMapper.deleteByTagIds(ids);
         return tagMapper.deleteByIds(ids);
     }
 
@@ -170,7 +185,7 @@ public class TagServiceImpl implements TagService {
                 relationMap.put(tagDO.getParentTagId(), list);
             }
         });
-        recurseUpdateTag(allDataMap, relationMap, tagDTO.getId());
+        recurseUpdateTag(allDataMap, relationMap, tagDTO.getId(), new HashSet<>());
     }
 
     /**
@@ -179,8 +194,10 @@ public class TagServiceImpl implements TagService {
      * @param allData     allData
      * @param relationMap relationMap
      * @param id          id
+     * @param visited     tags already visited during this update
      */
-    private void recurseUpdateTag(final Map<String, TagDO> allData, final Map<String, List<String>> relationMap, final String id) {
+    private void recurseUpdateTag(final Map<String, TagDO> allData, final Map<String, List<String>> relationMap, final String id, final Set<String> visited) {
+        Assert.isTrue(visited.add(id), "Cyclic tag hierarchy detected at tag: " + id);
         if (CollectionUtils.isEmpty(relationMap.get(id))) {
             return;
         }
@@ -189,7 +206,7 @@ public class TagServiceImpl implements TagService {
             TagDO tagDO = allData.get(tagId);
             tagDO.setExt(buildExtParamByParentTag(allData.get(id)));
             tagMapper.updateByPrimaryKey(tagDO);
-            recurseUpdateTag(allData, relationMap, tagId);
+            recurseUpdateTag(allData, relationMap, tagId, visited);
         });
     }
 

@@ -28,21 +28,24 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.utils.AesUtils;
+import org.apache.shenyu.common.utils.BoundServerPort;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -71,10 +74,16 @@ public class HeartbeatListener {
 
     private ShenyuBootstrapHeartBeatConfig config;
 
-    public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig, final ServerProperties serverProperties) {
+    /**
+     * Port of the application listener. Zero until {@link WebServerInitializedEvent}.
+     */
+    private volatile int boundPort;
+
+    private volatile boolean closed;
+
+    public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig) {
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-task", false));
         this.shenyuConfig = shenyuConfig;
-        LOG.info("Web server initialized on port {}, starting heartbeat reporter", serverProperties.getPort());
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.config = config;
@@ -99,22 +108,52 @@ public class HeartbeatListener {
                         }
                     }
                 });
-        executor.scheduleAtFixedRate(() -> {
-            InstanceBeatInfoDTO instanceBeatInfoDTO = new InstanceBeatInfoDTO();
-            instanceBeatInfoDTO.setInstancePort(String.valueOf(serverProperties.getPort()));
-            instanceBeatInfoDTO.setInstanceIp(IpUtils.getHost());
-            instanceBeatInfoDTO.setNamespaceId(shenyuConfig.getNamespace());
-            instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
-            instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO);
-            sendHeartbeat(instanceBeatInfoDTO);
-            }, INITIAL_DELAY, CHECK_PERIOD, TimeUnit.SECONDS
-        );
+        executor.scheduleAtFixedRate(this::reportHeartbeat, INITIAL_DELAY, CHECK_PERIOD, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Record the application listener port. The management server is ignored, and nothing is reported
+     * until a positive bound port is observed. Shutdown wins over a late initialization event.
+     *
+     * @param event web server initialization event
+     */
+    @EventListener
+    public void onWebServerInitialized(final WebServerInitializedEvent event) {
+        if (closed || Objects.isNull(event.getWebServer()) || Objects.isNull(event.getApplicationContext())) {
+            return;
+        }
+        OptionalInt resolved = BoundServerPort.resolve(event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+        if (resolved.isEmpty()) {
+            LOG.debug("Ignore heartbeat port from namespace {} port {}", event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+            return;
+        }
+        int observed = resolved.getAsInt();
+        if (boundPort == observed) {
+            return;
+        }
+        boundPort = observed;
+        LOG.info("Application server bound on port {}, heartbeat reporter will use it", observed);
+    }
+
+    private void reportHeartbeat() {
+        if (closed) {
+            return;
+        }
+        int port = boundPort;
+        if (port <= 0) {
+            return;
+        }
+        InstanceBeatInfoDTO instanceBeatInfoDTO = new InstanceBeatInfoDTO();
+        instanceBeatInfoDTO.setInstancePort(String.valueOf(port));
+        instanceBeatInfoDTO.setInstanceIp(IpUtils.getHost());
+        instanceBeatInfoDTO.setNamespaceId(shenyuConfig.getNamespace());
+        instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
+        instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE);
+        sendHeartbeat(instanceBeatInfoDTO);
     }
 
     private void sendHeartbeat(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
-        int i = 0;
         for (String server : serverList) {
-            i++;
             String concat = server.concat(Constants.BEAT_URI_PATH);
             try {
                 String accessToken = this.accessToken.get(server);
@@ -124,15 +163,14 @@ public class HeartbeatListener {
                 RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), concat, Constants.HEARTBEAT, accessToken);
             } catch (Exception e) {
                 LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
-                if (i == serverList.size()) {
-                    throw new RuntimeException(e);
-                }
+                // This is a periodic reporter, not a failback registration: retry on the next tick.
             }
         }
     }
 
     @EventListener(ContextClosedEvent.class)
     public void onShutdown() {
+        closed = true;
         executor.shutdown();
         try {
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {

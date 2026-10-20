@@ -33,7 +33,7 @@ public class MemoryLimiter {
 
     private final Instrumentation inst;
 
-    private long memoryLimit;
+    private volatile long memoryLimit;
 
     private final LongAdder memory = new LongAdder();
 
@@ -66,7 +66,13 @@ public class MemoryLimiter {
         if (memoryLimit <= 0) {
             throw new IllegalArgumentException();
         }
-        this.memoryLimit = memoryLimit;
+        acquireLock.lock();
+        try {
+            this.memoryLimit = memoryLimit;
+            notLimited.signalAll();
+        } finally {
+            acquireLock.unlock();
+        }
     }
 
     /**
@@ -332,9 +338,8 @@ public class MemoryLimiter {
     public void reset() {
         fullyLock();
         try {
-            if (memory.sumThenReset() < memoryLimit) {
-                notLimited.signal();
-            }
+            memory.reset();
+            notLimited.signalAll();
         } finally {
             fullyUnlock();
         }

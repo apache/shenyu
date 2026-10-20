@@ -165,36 +165,36 @@ jobs:
           pull_with_retry amazoncorretto:17.0.11-alpine3.19
           pull_with_retry centos:7
           pull_with_retry eclipse-temurin:17-centos7
+          pull_with_retry elasticsearch:8.2.3
+          pull_with_retry otel/opentelemetry-collector-contrib:0.111.0
       - name: Build with Maven
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           else
             echo "Falling back to maven wrapper"
-            ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
           fi
       - name: Build examples
         shell: bash
         run: |
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build examples"
-            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            exec bash .github/scripts/maven-with-retry.sh mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           else
             echo "Falling back to maven wrapper for examples"
-            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
           fi
       - name: Build integrated tests
         shell: bash
+        # mvnd can report success while skipping this entire subreactor.
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build integrated tests"
-            mvnd -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-          else
-            echo "Falling back to maven wrapper for integrated tests"
-            ./mvnw -B -T 1C clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
-          fi
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C clean install -Pit -Dmaven.test.skip=true \
+            -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
+      - name: Verify integrated test image
+        run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
       - name: Start docker compose
         run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
       - name: Wait for docker compose start up completely
@@ -206,13 +206,8 @@ jobs:
         id: test
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for running tests"
-            mvnd -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          else
-            echo "Falling back to maven wrapper for tests"
-            ./mvnw -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          fi
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
+            -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       - name: Check test result
         run: |

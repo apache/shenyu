@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class LogCollectUtils {
 
     private static final Set<String> BINARY_TYPE_LIST = Sets.newHashSet("image", "multipart", "cbor",
-            "octet-stream", "pdf", "javascript", "css", "html");
+            "octet-stream", "pdf", "javascript", "css", "html", "x-protobuf");
 
     /**
      * judge whether is binary type.

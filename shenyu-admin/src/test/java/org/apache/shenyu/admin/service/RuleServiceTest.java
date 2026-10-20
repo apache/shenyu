@@ -22,6 +22,7 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -44,10 +45,12 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +78,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -205,13 +209,124 @@ public final class RuleServiceTest {
         final List<RuleDTO> ruleDTOS = Collections.singletonList(buildRuleDTO("123"));
         given(this.ruleMapper.insertSelective(any())).willReturn(1);
 
-        given(this.pluginMapper.selectById(any())).willReturn(buildPluginDO());
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
 
         ConfigImportResult configImportResult = this.ruleService.importData(ruleDTOS);
 
         assertNotNull(configImportResult);
         assertEquals(configImportResult.getSuccessCount(), ruleDTOS.size());
 
+    }
+
+    @Test
+    public void testAgentGatewayCreateRejectsUnknownHandleFieldBeforeWrite() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"LLM\",\"unexpected\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayUpdateRejectsUnknownHandleFieldBeforeWrite() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("123");
+        ruleDTO.setHandle("{\"trafficType\":\"LLM\",\"unexpected\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayMcpRejectsNestedUnknownFieldBeforeWrite() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{\"future\":true}}");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayMcpAcceptsExplicitConfiguration() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"]}}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayCreateAcceptsValidHandle() {
+        mockAgentGatewayPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"LLM\",\"responseRequestId\":true}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAgentGatewayImportRejectsUnknownHandleFieldBeforeWrite() {
+        mockAgentGatewayPlugin();
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"trafficType\":\"LLM\",\"unexpected\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(ruleDTO)));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testAgentGatewayNamespaceImportValidatesMappedSelectorBeforeWrite() {
+        mockAgentGatewayPlugin();
+        given(ruleMapper.selectAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.emptyList());
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("source-selector", "456");
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setSelectorId("source-selector");
+        ruleDTO.setHandle("{\"trafficType\":\"LLM\",\"unexpected\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
+                SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(ruleDTO), context));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testImportRejectsRuleWhenSelectorIsMissing() {
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
+                Collections.singletonList(buildRuleDTO(""))));
+
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testImportRejectsRuleWhenPluginIsMissing() {
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(
+                Collections.singletonList(buildRuleDTO(""))));
+
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    private void mockAgentGatewayPlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
+                .id("789")
+                .name(PluginEnum.AGENT_GATEWAY.getName())
+                .build());
     }
 
     @Test
@@ -519,5 +634,24 @@ public final class RuleServiceTest {
         RuleConditionQuery ruleConditionQuery = new RuleConditionQuery();
         ruleConditionQuery.setRuleId("123");
         return ruleConditionQuery;
+    }
+
+    @Test
+    public void enabledByIdsAndNamespaceIdSkipsForeignRules() {
+        RuleDO own = new RuleDO();
+        own.setId("rule-own");
+        own.setNamespaceId("ns-a");
+        RuleDO foreign = new RuleDO();
+        foreign.setId("rule-foreign");
+        foreign.setNamespaceId("ns-b");
+        when(ruleMapper.selectById("rule-own")).thenReturn(own);
+        when(ruleMapper.selectById("rule-foreign")).thenReturn(foreign);
+        when(ruleMapper.updateEnable(anyString(), any())).thenReturn(1);
+        when(ruleConditionMapper.selectByQuery(any())).thenReturn(Collections.emptyList());
+
+        ruleService.enabledByIdsAndNamespaceId(Arrays.asList("rule-own", "rule-foreign"), false, "ns-a");
+
+        verify(ruleMapper).updateEnable("rule-own", false);
+        verify(ruleMapper, never()).updateEnable("rule-foreign", false);
     }
 }

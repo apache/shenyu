@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.constant;
 
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+
 /**
  * Constants.
  */
@@ -632,7 +634,7 @@ public interface Constants {
     /**
      * When register by http, the meta register path.
      */
-    String META_PATH = "/shenyu-client/register-metadata";
+    String META_PATH = RegistrationProtocol.META_PATH;
 
     /**
      * When register by http, the meta type.
@@ -642,12 +644,12 @@ public interface Constants {
     /**
      * When register by http, the uri path.
      */
-    String URI_PATH = "/shenyu-client/register-uri";
+    String URI_PATH = RegistrationProtocol.URI_PATH;
 
     /**
      * When register by http, the mcpTools path.
      */
-    String MCP_TOOLS_PATH = "/shenyu-client/register-mcp";
+    String MCP_TOOLS_PATH = RegistrationProtocol.MCP_TOOLS_PATH;
 
     /**
      * the constant MCP_TOOLS_TYPE.
@@ -657,12 +659,12 @@ public interface Constants {
     /**
      * When register by http, the uri path.
      */
-    String BEAT_URI_PATH = "/instance/beat";
+    String BEAT_URI_PATH = RegistrationProtocol.BEAT_URI_PATH;
 
     /**
      * When register by http, the offline path.
      */
-    String OFFLINE_PATH = "/shenyu-client/offline";
+    String OFFLINE_PATH = RegistrationProtocol.OFFLINE_PATH;
 
     /**
      * The constant API_DOC_TYPE.
@@ -672,7 +674,7 @@ public interface Constants {
     /**
      * The constant API_DOC_PATH.
      */
-    String API_DOC_PATH = "/shenyu-client/register-apiDoc";
+    String API_DOC_PATH = RegistrationProtocol.API_DOC_PATH;
 
     /**
      * The constant DISCOVERY_CONFIG_TYPE.
@@ -682,12 +684,12 @@ public interface Constants {
     /**
      * The constant DISCOVERY_CONFIG_PATH.
      */
-    String DISCOVERY_CONFIG_PATH = "/shenyu-client/register-discoveryConfig";
+    String DISCOVERY_CONFIG_PATH = RegistrationProtocol.DISCOVERY_CONFIG_PATH;
 
     /**
      * When register by http, the login path.
      */
-    String LOGIN_PATH = "/platform/login";
+    String LOGIN_PATH = RegistrationProtocol.LOGIN_PATH;
 
     /**
      * When register by http, admin username.
@@ -822,11 +824,6 @@ public interface Constants {
     String DEFAULT_CLUSTER = "failover";
 
     /**
-     * cache data max size, means map size.
-     */
-    Long LRU_MAP_MAXSIZE = 65536L;
-
-    /**
      * namespace,sush as nacos .
      */
     String NAMESPACE = "namespace";
@@ -882,6 +879,11 @@ public interface Constants {
     String CHAIN_END_TIME = "chainEndTime:";
 
     /**
+     * the trace id of the current request, it is filled by the tracing plugin and read by the logging plugins.
+     */
+    String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
+
+    /**
      * ratelimiter plugin metrics.
      */
     String METRICS_RATE_LIMITER = "metricsRateLimiter";
@@ -900,6 +902,11 @@ public interface Constants {
      * Hystrix plugin metrics.
      */
     String METRICS_HYSTRIX = "metricsHystrix";
+
+    /**
+     * Optional server-installed MCP terminal observation callback.
+     */
+    String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
 
     /**
      * The constant shenyu namespace id.

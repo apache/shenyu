@@ -31,6 +31,13 @@
             <artifactId>shenyu-sync-data-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- the plugin contract exposes the extension point which a protocol plugin and its
+             propagator use to pass the trace context to each other -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>

@@ -34,7 +34,6 @@ import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -44,9 +43,12 @@ import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -80,6 +82,22 @@ public class ApacheDubboProxyService {
      * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) throws ShenyuException {
+        Map<String, Object> attachments = new HashMap<>(RpcContext.getClientAttachment().getObjectAttachments());
+        return Mono.defer(() -> {
+            Map<String, Object> previous = new HashMap<>(RpcContext.getClientAttachment().getObjectAttachments());
+            try {
+                RpcContext.getClientAttachment().setObjectAttachments(new HashMap<>(attachments));
+                return invokeOnWorker(body, metaData, selectorData, ruleData, exchange);
+            } finally {
+                // Invocation and future lookup are synchronous; do not retain request data on a pooled worker.
+                RpcContext.getClientAttachment().clearAttachments();
+                RpcContext.getClientAttachment().setObjectAttachments(previous);
+            }
+        })
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private Mono<Object> invokeOnWorker(final String body, final MetaData metaData, final SelectorData selectorData, final RuleData ruleData, final ServerWebExchange exchange) {
         ReferenceConfig<GenericService> reference = this.getReferenceConfig(selectorData, ruleData, metaData, exchange);
         GenericService genericService = reference.get();
 
@@ -126,9 +144,7 @@ public class ApacheDubboProxyService {
             namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
         }
 
-        List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
-        dubboUpstreams = CollectionUtils.isEmpty(dubboUpstreams) ? null
-                : dubboUpstreams.stream().filter(u -> u.isStatus() && StringUtils.isNotBlank(u.getRegistry())).collect(Collectors.toList());
+        List<DubboUpstream> dubboUpstreams = ApacheDubboConfigCache.getInstance().getOrParseUpstreams(selectorData);
         // if dubboUpstreams is empty, use default plugin config
         if (CollectionUtils.isEmpty(dubboUpstreams)) {
             referenceKey = StringUtils.isNotBlank(namespace) ? namespace + Constants.COLONS + referenceKey : referenceKey;

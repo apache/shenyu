@@ -24,6 +24,7 @@ import org.apache.shenyu.spi.Join;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -42,7 +43,8 @@ public class KubernetesInstanceRegisterRepository implements ShenyuInstanceRegis
         KubernetesConfig kubernetesConfig = new KubernetesConfig();
         kubernetesConfig.setDiscoveryServerUrl(config.getServerLists());
         kubernetesConfig.setEnabled(config.getEnabled());
-        kubernetesConfig.setNamespaces(Arrays.asList(properties.getProperty("namespaces").split(",")));
+        String namespaces = properties.getProperty("namespaces", "");
+        kubernetesConfig.setNamespaces(namespaces.isEmpty() ? Collections.emptyList() : Arrays.asList(namespaces.split(",")));
         this.kubernetesClient = new KubernetesClient(kubernetesConfig);
     }
 

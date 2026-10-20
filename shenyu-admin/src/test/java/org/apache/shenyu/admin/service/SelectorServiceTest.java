@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -50,11 +52,13 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -70,6 +74,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,6 +84,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -86,6 +94,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -200,6 +212,73 @@ public final class SelectorServiceTest {
     }
 
     @Test
+    public void testDeleteResolvesDiscoveryPluginNameWhenBatchLookupMisses() {
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+        given(pluginMapper.selectById(selector.getPluginId())).willReturn(buildPluginDO());
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+
+        selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID);
+
+        verify(discoveryProcessor).removeProxySelector(any(), argThat(data -> "test".equals(data.getPluginName())));
+        verify(selectorEventPublisher).onDeleted(any(), argThat(plugins -> "test".equals(plugins.get(0).getName())));
+    }
+
+    @Test
+    public void testDeleteUsesDiscoveryPluginNameWhenPluginRowIsMissing() {
+        DiscoveryDO discovery = new DiscoveryDO();
+        discovery.setId("1");
+        discovery.setDiscoveryType("local");
+        discovery.setPluginName("test");
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+        given(discoveryMapper.selectById("1")).willReturn(discovery);
+        given(selectorMapper.deleteByIds(Collections.singletonList(selector.getId()))).willReturn(1);
+
+        assertEquals(1, selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(discoveryProcessor).removeProxySelector(any(), argThat(data -> "test".equals(data.getPluginName())));
+        verify(selectorEventPublisher).onDeleted(any(), argThat(plugins -> "test".equals(plugins.get(0).getName())));
+    }
+
+    @Test
+    public void testDeleteRejectsDiscoveryWithoutPluginName() {
+        SelectorDO selector = buildSelectorDO();
+        given(selectorMapper.selectByIdSet(Collections.singleton(selector.getId()))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.emptyList());
+
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class,
+                () -> selectorService.deleteByNamespaceId(Collections.singletonList(selector.getId()), SYS_DEFAULT_NAMESPACE_ID));
+        assertTrue(exception.getMessage().contains("Cannot delete selector batch"));
+        assertTrue(exception.getMessage().contains(selector.getId()));
+        assertTrue(exception.getMessage().contains("No selectors in this batch were deleted"));
+        verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
+        verify(discoveryHandlerMapper, never()).delete(any());
+        verify(selectorMapper, never()).deleteByIds(any());
+    }
+
+    @Test
+    public void testDeleteValidatesWholeBatchBeforeUnbindingDiscovery() {
+        SelectorDO first = buildSelectorDO();
+        SelectorDO second = buildSelectorDO();
+        second.setId("other-selector");
+        second.setPluginId("missing-plugin");
+        List<String> ids = Arrays.asList(first.getId(), second.getId());
+        given(selectorMapper.selectByIdSet(new TreeSet<>(ids))).willReturn(Arrays.asList(first, second));
+        given(pluginMapper.selectByIds(Arrays.asList(first.getPluginId(), second.getPluginId()))).willReturn(Collections.singletonList(buildPluginDO()));
+
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
+        assertTrue(exception.getMessage().contains(second.getId()));
+        assertTrue(exception.getMessage().contains("No selectors in this batch were deleted"));
+
+        verifyNoInteractions(discoveryProcessor, selectorEventPublisher);
+        verify(discoveryHandlerMapper, never()).delete(any());
+        verify(selectorMapper, never()).deleteByIds(any());
+    }
+
+    @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
         given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
@@ -272,7 +351,7 @@ public final class SelectorServiceTest {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
         given(this.selectorMapper.selectAll()).willReturn(selectorDOs);
 
-        final List<SelectorDTO> selectorDTOs = buildSelectorDTOList();
+        final List<SelectorDTO> selectorDTOs = Arrays.asList(buildSelectorDTO("456"), buildSelectorDTO("457"));
         given(this.selectorMapper.insertSelective(any())).willReturn(1);
 
         given(this.pluginMapper.selectById(any())).willReturn(buildPluginDO());
@@ -281,10 +360,42 @@ public final class SelectorServiceTest {
 
         assertNotNull(configImportResult);
         assertEquals(configImportResult.getSuccessCount(), selectorDTOs.size());
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        assertEquals(selectorDTOs.size(), eventCaptor.getValue().getSource().size());
     }
 
-    private List<SelectorDTO> buildSelectorDTOList() {
-        return Collections.singletonList(buildSelectorDTO("456"));
+    @Test
+    public void testGlobalImportPublishesOneEventPerNamespace() {
+        SelectorDTO first = buildSelectorDTO("first");
+        first.setNamespaceId("namespace-a");
+        SelectorDTO second = buildSelectorDTO("second");
+        second.setNamespaceId("namespace-b");
+        SelectorDTO third = buildSelectorDTO("third");
+        third.setNamespaceId("namespace-a");
+        SelectorDTO defaultSelector = buildSelectorDTO("default");
+        defaultSelector.setNamespaceId(null);
+        SelectorDTO emptyNamespace = buildSelectorDTO("empty");
+        emptyNamespace.setNamespaceId("");
+        given(selectorMapper.selectAll()).willReturn(Collections.emptyList());
+        given(selectorMapper.insertSelective(any())).willReturn(1);
+        given(pluginMapper.selectById(any())).willReturn(buildPluginDO());
+
+        ConfigImportResult result = selectorService.importData(Arrays.asList(first, second, third, defaultSelector, emptyNamespace));
+
+        assertEquals(5, result.getSuccessCount());
+        verify(selectorEventPublisher, times(5)).onCreated(any(SelectorDO.class));
+        ArgumentCaptor<DataChangedEvent> events = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(3)).publishEvent(events.capture());
+        List<DataChangedEvent> published = events.getAllValues();
+        assertEquals(Arrays.asList(2, 1, 2), published.stream().map(event -> event.getSource().size()).toList());
+        List<String> namespaces = Arrays.asList("namespace-a", "namespace-b", SYS_DEFAULT_NAMESPACE_ID);
+        for (int index = 0; index < published.size(); index++) {
+            assertEquals(ConfigGroupEnum.SELECTOR, published.get(index).getGroupKey());
+            for (Object data : published.get(index).getSource()) {
+                assertEquals(namespaces.get(index), ((SelectorData) data).getNamespaceId());
+            }
+        }
     }
 
     private void testUpdate() {
@@ -397,5 +508,30 @@ public final class SelectorServiceTest {
         metaDataRegisterDTO.setPort(13307);
         metaDataRegisterDTO.setRpcType("test");
         return metaDataRegisterDTO;
+    }
+
+    @Test
+    public void enabledByIdsAndNamespaceIdSkipsForeignSelectors() {
+        SelectorDO own = new SelectorDO();
+        own.setId("sel-own");
+        own.setNamespaceId("ns-a");
+        own.setPluginId("plugin-1");
+        SelectorDO foreign = new SelectorDO();
+        foreign.setId("sel-foreign");
+        foreign.setNamespaceId("ns-b");
+        foreign.setPluginId("plugin-1");
+        when(selectorMapper.selectById("sel-own")).thenReturn(own);
+        when(selectorMapper.selectById("sel-foreign")).thenReturn(foreign);
+        when(selectorMapper.updateEnable(anyString(), any())).thenReturn(1);
+        when(selectorConditionMapper.selectByQuery(any())).thenReturn(Collections.emptyList());
+        PluginDO pluginDO = new PluginDO();
+        pluginDO.setId("plugin-1");
+        pluginDO.setName("tcp");
+        when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
+
+        selectorService.enabledByIdsAndNamespaceId(Arrays.asList("sel-own", "sel-foreign"), false, "ns-a");
+
+        verify(selectorMapper).updateEnable("sel-own", false);
+        verify(selectorMapper, never()).updateEnable("sel-foreign", false);
     }
 }

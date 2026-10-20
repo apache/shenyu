@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.scale.scaler.dynamic;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.shenyu.admin.scale.config.ScaleProperties;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -75,8 +76,9 @@ public class TaskSchedulerManager {
 
 
     /**
-     * shutdown.
+     * Release monitor tasks and the scheduler when the application context closes.
      */
+    @PreDestroy
     public void shutdown() {
         taskMap.values().forEach(future -> future.cancel(true));
         scheduler.shutdown();
