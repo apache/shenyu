@@ -28,6 +28,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-cache-spi</artifactId>
             <version>${project.version}</version>

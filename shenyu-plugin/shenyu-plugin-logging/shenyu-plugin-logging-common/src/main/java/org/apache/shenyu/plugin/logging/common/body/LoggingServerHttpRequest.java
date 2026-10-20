@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.common.body;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -33,9 +33,23 @@ public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends Server
 
     private final L logInfo;
 
+    private final int maxRequestBody;
+
     public LoggingServerHttpRequest(final ServerHttpRequest delegate, final L logInfo) {
+        this(delegate, logInfo, GenericGlobalConfig.DEFAULT_MAX_REQUEST_BODY);
+    }
+
+    /**
+     * Create a request decorator using the body limit captured for this request.
+     *
+     * @param delegate delegate request
+     * @param logInfo access log
+     * @param maxRequestBody maximum logged request body size in bytes
+     */
+    public LoggingServerHttpRequest(final ServerHttpRequest delegate, final L logInfo, final int maxRequestBody) {
         super(delegate);
         this.logInfo = logInfo;
+        this.maxRequestBody = maxRequestBody;
     }
 
     /**
@@ -46,7 +60,7 @@ public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends Server
     @Override
     @NonNull
     public Flux<DataBuffer> getBody() {
-        BodyWriter writer = new BodyWriter();
+        BodyWriter writer = new BodyWriter(maxRequestBody);
         return super.getBody().doOnNext(dataBuffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 try (DataBuffer.ByteBufferIterator bufferIterator = dataBuffer.readableByteBuffers()) {
@@ -55,9 +69,8 @@ public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends Server
 
             }
         }).doFinally(signal -> {
-            int size = writer.size();
-            boolean requestBodyTooLarge = LogCollectConfigUtils.isRequestBodyTooLarge(size);
-            if (size == 0 || requestBodyTooLarge) {
+            // use the writer's overflow state: size() saturates at Integer.MAX_VALUE
+            if (writer.isEmpty() || writer.isLimitExceeded()) {
                 return;
             }
             String body = writer.output();

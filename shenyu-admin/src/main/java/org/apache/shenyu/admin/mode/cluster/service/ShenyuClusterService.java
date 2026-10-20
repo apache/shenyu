@@ -31,9 +31,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ShenyuClusterService implements ShenyuRunningModeService {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterService.class);
-    
+
+    private static final long SHUTDOWN_WAIT_SECONDS = 5L;
+
     private final ClusterSelectMasterService shenyuClusterSelectMasterService;
     
     private final UpstreamCheckService upstreamCheckService;
@@ -125,6 +127,14 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     @Override
     public void shutdown() {
-    
+        executorService.shutdownNow();
+        try {
+            if (!executorService.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                LOG.warn("master selector scheduler did not terminate within {}s", SHUTDOWN_WAIT_SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("interrupted while waiting for the master selector scheduler to terminate");
+        }
     }
 }

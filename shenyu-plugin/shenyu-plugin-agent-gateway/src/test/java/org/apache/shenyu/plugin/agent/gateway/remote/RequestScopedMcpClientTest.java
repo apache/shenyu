@@ -83,6 +83,59 @@ class RequestScopedMcpClientTest {
     private static final Duration WAIT = Duration.ofSeconds(5);
 
     @ParameterizedTest
+    @ValueSource(ints = {200, 201, 204, 206})
+    void rejectsInvalidInitializedStatus(final int status) throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.initializedStatus = status;
+            assertRejectedAcknowledgement(fixture);
+        }
+    }
+
+    @Test
+    void rejectsNonEmptyInitializedAcknowledgement() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.initializedBody = "{}".getBytes(StandardCharsets.UTF_8);
+            assertRejectedAcknowledgement(fixture);
+        }
+    }
+
+    @Test
+    void acceptsEmptyInitializedAcknowledgement() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                assertEquals("2025-06-18", client.initialize().block(WAIT).protocolVersion());
+                assertEquals(1, client.listTools(null).block(WAIT).tools().size());
+                awaitIdle(client);
+                assertEquals(1, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+            assertEquals(1, fixture.deletes);
+        }
+    }
+
+    private void assertRejectedAcknowledgement(final Fixture fixture) throws InterruptedException {
+        RequestScopedMcpClient client = fixture.client();
+        try {
+            for (int attempt = 0; attempt < 2; attempt++) {
+                StepVerifier.create(client.initialize()).expectErrorMatches(error -> error instanceof IllegalArgumentException
+                        && "Invalid notification acknowledgement".equals(error.getMessage())).verify(WAIT);
+            }
+            StepVerifier.create(client.listTools(null)).expectError(IllegalStateException.class).verify(WAIT);
+            StepVerifier.create(client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of())))
+                    .expectError(IllegalStateException.class).verify(WAIT);
+            awaitIdle(client);
+            assertEquals(2, fixture.requests.size());
+            assertEquals(1, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            assertEquals(1, fixture.requests.stream().filter(request -> "notifications/initialized".equals(request.get("method"))).count());
+        } finally {
+            client.closeGracefully().block(WAIT);
+        }
+        assertEquals(1, fixture.deletes);
+    }
+
+    @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void expiredDeadlineIsATimeoutWithoutAnUpstreamRequest(final boolean sse) throws Exception {
         List<Map<String, Object>> events = new CopyOnWriteArrayList<>();
@@ -381,6 +434,10 @@ class RequestScopedMcpClientTest {
 
         private volatile int deleteStatus = 204;
 
+        private volatile int initializedStatus = 202;
+
+        private volatile byte[] initializedBody = new byte[0];
+
         private volatile int deletes;
 
         private Fixture(final boolean sse) throws Exception {
@@ -405,7 +462,10 @@ class RequestScopedMcpClientTest {
                             "cookie", Objects.toString(exchange.getRequestHeaders().getFirst("Cookie"), "")));
                     if ("notifications/initialized".equals(method)) {
                         responseBytes.put(request.path("id").asText(), 0);
-                        exchange.sendResponseHeaders(202, -1);
+                        exchange.sendResponseHeaders(initializedStatus, initializedBody.length == 0 ? -1 : initializedBody.length);
+                        if (initializedBody.length > 0) {
+                            exchange.getResponseBody().write(initializedBody);
+                        }
                         return;
                     }
                     ObjectNode result = json.createObjectNode();

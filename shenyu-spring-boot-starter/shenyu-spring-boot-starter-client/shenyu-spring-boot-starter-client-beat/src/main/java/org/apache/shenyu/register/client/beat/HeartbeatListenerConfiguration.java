@@ -19,7 +19,6 @@ package org.apache.shenyu.register.client.beat;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,14 +36,12 @@ public class HeartbeatListenerConfiguration {
      *
      * @param shenyuBootstrapHeartBeatConfig the shenyuBootstrapHeartBeatConfig
      * @param shenyuConfig                   the shenyu config
-     * @param serverProperties               the server properties
      * @return the heartbeat bean listener.
      */
     @Bean
     public HeartbeatListener heartbeatListener(final ShenyuBootstrapHeartBeatConfig shenyuBootstrapHeartBeatConfig,
-                                               final ShenyuConfig shenyuConfig,
-                                               final ServerProperties serverProperties) {
-        return new HeartbeatListener(shenyuBootstrapHeartBeatConfig, shenyuConfig, serverProperties);
+                                               final ShenyuConfig shenyuConfig) {
+        return new HeartbeatListener(shenyuBootstrapHeartBeatConfig, shenyuConfig);
     }
 
     /**

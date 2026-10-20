@@ -26,15 +26,12 @@ import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
  * log collect config Utils.
  */
 public final class LogCollectConfigUtils {
-
-    private static GenericGlobalConfig genericGlobalConfig = new GenericGlobalConfig();
 
     private static Sampler globalSampler = Sampler.ALWAYS_SAMPLE;
 
@@ -71,29 +68,41 @@ public final class LogCollectConfigUtils {
     }
 
     /**
-     * judge whether request body too large.
+     * Get the current plugin configuration, falling back to the default limits when absent.
      *
-     * @param bodySize body size
-     * @return whether request body too large
+     * @param pluginId plugin id
+     * @return plugin configuration or a new default configuration
      */
-    public static boolean isRequestBodyTooLarge(final int bodySize) {
-        if (Objects.isNull(genericGlobalConfig)) {
-            return false;
-        }
-        return bodySize > genericGlobalConfig.getMaxRequestBody();
+    public static GenericGlobalConfig getGlobalConfig(final String pluginId) {
+        return Optional.ofNullable(pluginId)
+                .map(AbstractLogPluginDataHandler.getPluginGlobalConfigMap()::get)
+                .orElseGet(GenericGlobalConfig::new);
     }
 
     /**
-     * judge whether response body too large.
+     * Judge whether the request body exceeds the default limit.
+     *
+     * @param bodySize body size
+     * @return whether request body too large
+     * @deprecated This method only checks the default limit. Use {@link #getGlobalConfig(String)}
+     *             and the plugin's configured request body limit instead.
+     */
+    @Deprecated
+    public static boolean isRequestBodyTooLarge(final int bodySize) {
+        return bodySize > GenericGlobalConfig.DEFAULT_MAX_REQUEST_BODY;
+    }
+
+    /**
+     * Judge whether the response body exceeds the default limit.
      *
      * @param bodySize body size.
      * @return whether response body too large
+     * @deprecated This method only checks the default limit. Use {@link #getGlobalConfig(String)}
+     *             and the plugin's configured response body limit instead.
      */
+    @Deprecated
     public static boolean isResponseBodyTooLarge(final int bodySize) {
-        if (Objects.isNull(genericGlobalConfig)) {
-            return false;
-        }
-        return bodySize > genericGlobalConfig.getMaxResponseBody();
+        return bodySize > GenericGlobalConfig.DEFAULT_MAX_RESPONSE_BODY;
     }
 
     /**
