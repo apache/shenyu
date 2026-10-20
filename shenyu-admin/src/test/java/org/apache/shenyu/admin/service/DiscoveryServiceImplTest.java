@@ -55,6 +55,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -332,14 +333,29 @@ public final class DiscoveryServiceImplTest {
 
     @Test
     public void testUpdateReinitializesRuntimeRepositoryWhenConfigChanges() {
-        final DiscoveryDO persisted = new DiscoveryDO();
-        persisted.setId("discovery-1");
-        persisted.setDiscoveryType("zookeeper");
-        persisted.setServerList("old-host:2181");
-        persisted.setProps("{}");
-        persisted.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        when(discoveryMapper.selectById("discovery-1")).thenReturn(persisted);
-        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenReturn(1);
+        final DiscoveryDO stored = new DiscoveryDO();
+        stored.setId("discovery-1");
+        stored.setDiscoveryType("zookeeper");
+        stored.setServerList("old-host:2181");
+        stored.setProps("{}");
+        stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        // each select returns an independent snapshot, like a real database read
+        when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
+        // a real updateSelective writes the argument into the stored row
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenAnswer(invocation -> {
+            final DiscoveryDO arg = invocation.getArgument(0);
+            if (Objects.nonNull(arg.getServerList())) {
+                stored.setServerList(arg.getServerList());
+            }
+            if (Objects.nonNull(arg.getProps())) {
+                stored.setProps(arg.getProps());
+            }
+            if (Objects.nonNull(arg.getDiscoveryType())) {
+                stored.setDiscoveryType(arg.getDiscoveryType());
+            }
+            return 1;
+        });
 
         final DiscoveryDTO dto = new DiscoveryDTO();
         dto.setId("discovery-1");
@@ -359,14 +375,27 @@ public final class DiscoveryServiceImplTest {
 
     @Test
     public void testUpdateSkipsRuntimeRefreshWhenConfigUnchanged() {
-        final DiscoveryDO persisted = new DiscoveryDO();
-        persisted.setId("discovery-1");
-        persisted.setDiscoveryType("zookeeper");
-        persisted.setServerList("same-host:2181");
-        persisted.setProps("{}");
-        persisted.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        when(discoveryMapper.selectById("discovery-1")).thenReturn(persisted);
-        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenReturn(1);
+        final DiscoveryDO stored = new DiscoveryDO();
+        stored.setId("discovery-1");
+        stored.setDiscoveryType("zookeeper");
+        stored.setServerList("same-host:2181");
+        stored.setProps("{}");
+        stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenAnswer(invocation -> {
+            final DiscoveryDO arg = invocation.getArgument(0);
+            if (Objects.nonNull(arg.getServerList())) {
+                stored.setServerList(arg.getServerList());
+            }
+            if (Objects.nonNull(arg.getProps())) {
+                stored.setProps(arg.getProps());
+            }
+            if (Objects.nonNull(arg.getDiscoveryType())) {
+                stored.setDiscoveryType(arg.getDiscoveryType());
+            }
+            return 1;
+        });
 
         final DiscoveryDTO dto = new DiscoveryDTO();
         dto.setId("discovery-1");
@@ -607,5 +636,16 @@ public final class DiscoveryServiceImplTest {
         assertEquals("import fail discovery: duplicate", result.getFailMessage());
         verify(discoveryMapper, never()).insert(any());
         verifyNoInteractions(discoveryHandlerMapper, discoveryRelMapper, discoveryProcessor);
+    }
+
+    private static DiscoveryDO copy(final DiscoveryDO source) {
+        final DiscoveryDO snapshot = new DiscoveryDO();
+        snapshot.setId(source.getId());
+        snapshot.setDiscoveryName(source.getDiscoveryName());
+        snapshot.setDiscoveryType(source.getDiscoveryType());
+        snapshot.setServerList(source.getServerList());
+        snapshot.setProps(source.getProps());
+        snapshot.setNamespaceId(source.getNamespaceId());
+        return snapshot;
     }
 }

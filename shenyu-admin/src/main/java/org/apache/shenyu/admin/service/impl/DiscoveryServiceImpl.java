@@ -272,10 +272,13 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
+        // snapshot the pre-update row so the runtime refresh can compare before against
+        // after; updateSelective skips null DTO fields, so null means "leave unchanged"
+        final DiscoveryDO existing = discoveryMapper.selectById(discoveryDTO.getId());
         if (discoveryMapper.updateSelective(discoveryDO) <= 0) {
             return null;
         }
-        refreshRuntimeRepository(discoveryDO);
+        refreshRuntimeRepository(existing, discoveryDO);
         return DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
     }
 
@@ -284,19 +287,31 @@ public class DiscoveryServiceImpl implements DiscoveryService {
      * configuration, so a persisted server-list/props/type change must replace it; a
      * name-only change keeps the live repository untouched.
      */
-    private void refreshRuntimeRepository(final DiscoveryDO updated) {
-        final DiscoveryDO persisted = discoveryMapper.selectById(updated.getId());
-        if (Objects.isNull(persisted)) {
+    private void refreshRuntimeRepository(final DiscoveryDO before, final DiscoveryDO after) {
+        if (Objects.isNull(before)) {
             return;
         }
-        final boolean configChanged = !Objects.equals(persisted.getServerList(), updated.getServerList())
-                || !Objects.equals(persisted.getProps(), updated.getProps())
-                || !Objects.equals(persisted.getDiscoveryType(), updated.getDiscoveryType());
+        final boolean configChanged = !Objects.equals(before.getServerList(), effective(after.getServerList(), before.getServerList()))
+                || !Objects.equals(before.getProps(), effective(after.getProps(), before.getProps()))
+                || !Objects.equals(before.getDiscoveryType(), effective(after.getDiscoveryType(), before.getDiscoveryType()));
         if (configChanged) {
-            final DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(persisted.getDiscoveryType());
-            discoveryProcessor.removeDiscovery(persisted);
-            discoveryProcessorHolder.chooseProcessor(updated.getDiscoveryType()).createDiscovery(updated);
+            discoveryProcessorHolder.chooseProcessor(before.getDiscoveryType()).removeDiscovery(before);
+            final DiscoveryDO effectiveAfter = DiscoveryDO.builder()
+                    .id(after.getId())
+                    .discoveryName(effective(after.getDiscoveryName(), before.getDiscoveryName()))
+                    .discoveryType(effective(after.getDiscoveryType(), before.getDiscoveryType()))
+                    .serverList(effective(after.getServerList(), before.getServerList()))
+                    .props(effective(after.getProps(), before.getProps()))
+                    .namespaceId(effective(after.getNamespaceId(), before.getNamespaceId()))
+                    .dateCreated(before.getDateCreated())
+                    .dateUpdated(after.getDateUpdated())
+                    .build();
+            discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType()).createDiscovery(effectiveAfter);
         }
+    }
+
+    private static String effective(final String value, final String fallback) {
+        return Objects.isNull(value) ? fallback : value;
     }
 
     public void syncData(final List<DiscoveryDO> discoveryDOS) {
