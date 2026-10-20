@@ -55,7 +55,6 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -562,9 +561,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     }
 
     private void applyConfig(final String wire, final WebsocketData<?> websocketData) {
-        LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
-                this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
-                websocketData.getNamespaceId(), wire.getBytes(StandardCharsets.UTF_8).length);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
+                    this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
+                    websocketData.getNamespaceId(), utf8ByteLength(wire));
+        }
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
@@ -600,6 +601,46 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void resetSyncFailures() {
         consecutiveSyncFailures.set(0);
         nextSyncRetryAt = 0;
+    }
+
+    /**
+     * Compute the UTF-8 encoded byte length of a string without allocating a message-sized byte array.
+     * Mirrors {@code value.getBytes(StandardCharsets.UTF_8).length}, including the single-byte {@code '?'}
+     * replacement of unpaired surrogates, so the logged size stays an honest UTF-8 byte count while avoiding
+     * a full-payload allocation on every received frame. {@code String.length()} is not used because it counts
+     * UTF-16 code units, not UTF-8 bytes.
+     *
+     * @param value the string to measure
+     * @return the number of bytes the value occupies when encoded as UTF-8
+     */
+    static int utf8ByteLength(final String value) {
+        if (Objects.isNull(value)) {
+            return 0;
+        }
+        int bytes = 0;
+        int i = 0;
+        final int length = value.length();
+        while (i < length) {
+            final char c = value.charAt(i);
+            if (c <= 0x7F) {
+                bytes++;
+                i++;
+            } else if (c <= 0x7FF) {
+                bytes += 2;
+                i++;
+            } else if (Character.isHighSurrogate(c) && i + 1 < length && Character.isLowSurrogate(value.charAt(i + 1))) {
+                bytes += 4;
+                i += 2;
+            } else if (Character.isSurrogate(c)) {
+                // an unpaired surrogate is encoded as a single replacement byte, matching getBytes(UTF_8)
+                bytes++;
+                i++;
+            } else {
+                bytes += 3;
+                i++;
+            }
+        }
+        return bytes;
     }
 
     /**
