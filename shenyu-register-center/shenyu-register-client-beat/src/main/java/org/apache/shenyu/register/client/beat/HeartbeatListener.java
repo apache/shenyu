@@ -34,6 +34,7 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.register.common.exception.HttpResponseException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -42,12 +43,16 @@ import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 
+import java.net.HttpURLConnection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
 public class HeartbeatListener {
 
@@ -57,9 +62,16 @@ public class HeartbeatListener {
 
     private static final int CHECK_PERIOD = 5;
 
+    private static final long MAX_LOGIN_RETRY_DELAY_SECONDS = 60L;
+
     private ScheduledThreadPoolExecutor executor;
 
     private final ShenyuConfig shenyuConfig;
+
+    private final LongSupplier nanoTime;
+
+    // Accessed only by the single heartbeat reporter; retry state is independent for each Admin.
+    private final Map<String, LoginRetry> loginRetries = new HashMap<>();
 
     private String username;
 
@@ -82,8 +94,13 @@ public class HeartbeatListener {
     private volatile boolean closed;
 
     public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig) {
+        this(config, shenyuConfig, System::nanoTime);
+    }
+
+    HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig, final LongSupplier nanoTime) {
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-task", false));
         this.shenyuConfig = shenyuConfig;
+        this.nanoTime = nanoTime;
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.config = config;
@@ -101,8 +118,15 @@ public class HeartbeatListener {
                     public @Nullable String load(@NonNull final String server) {
                         try {
                             Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
-                            return login.map(String::valueOf).orElse(null);
+                            String token = login.map(String::valueOf).orElse(null);
+                            if (StringUtils.isBlank(token)) {
+                                deferLogin(server);
+                                LOG.warn("Login admin url :{} returned no access token, will retry with backoff.", server);
+                                return null;
+                            }
+                            return token;
                         } catch (Exception e) {
+                            deferLogin(server);
                             LOG.error("Login admin url :{} is fail, will retry. cause: {} ", server, e.getMessage());
                             return null;
                         }
@@ -156,16 +180,41 @@ public class HeartbeatListener {
         for (String server : serverList) {
             String concat = server.concat(Constants.BEAT_URI_PATH);
             try {
-                String accessToken = this.accessToken.get(server);
+                String accessToken = getAccessToken(server);
                 if (StringUtils.isBlank(accessToken)) {
-                    throw new NullPointerException("accessToken is null");
+                    continue;
                 }
                 RegisterUtils.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), concat, Constants.HEARTBEAT, accessToken);
+                loginRetries.remove(server);
+            } catch (HttpResponseException e) {
+                if (e.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    this.accessToken.invalidate(server);
+                    deferLogin(server);
+                }
+                LOG.error("HeartBeat admin url :{} returned HTTP {}, will retry.", server, e.getStatusCode());
             } catch (Exception e) {
                 LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
                 // This is a periodic reporter, not a failback registration: retry on the next tick.
             }
         }
+    }
+
+    private String getAccessToken(final String server) {
+        String cached = accessToken.getIfPresent(server);
+        if (StringUtils.isNotBlank(cached)) {
+            return cached;
+        }
+        LoginRetry retry = loginRetries.get(server);
+        if (Objects.nonNull(retry) && nanoTime.getAsLong() - retry.retryAtNanos < 0) {
+            return null;
+        }
+        return accessToken.get(server);
+    }
+
+    private void deferLogin(final String server) {
+        LoginRetry previous = loginRetries.get(server);
+        long delaySeconds = Objects.isNull(previous) ? CHECK_PERIOD : Math.min(previous.delaySeconds * 2, MAX_LOGIN_RETRY_DELAY_SECONDS);
+        loginRetries.put(server, new LoginRetry(delaySeconds, nanoTime.getAsLong() + TimeUnit.SECONDS.toNanos(delaySeconds)));
     }
 
     @EventListener(ContextClosedEvent.class)
@@ -178,6 +227,18 @@ public class HeartbeatListener {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private static final class LoginRetry {
+
+        private final long delaySeconds;
+
+        private final long retryAtNanos;
+
+        private LoginRetry(final long delaySeconds, final long retryAtNanos) {
+            this.delaySeconds = delaySeconds;
+            this.retryAtNanos = retryAtNanos;
         }
     }
 }
