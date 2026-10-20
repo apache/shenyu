@@ -24,6 +24,16 @@ import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
  */
 public class GenericGlobalConfig {
 
+    /**
+     * Default response body limit in bytes (512 KiB).
+     */
+    public static final int DEFAULT_MAX_RESPONSE_BODY = 524288;
+
+    /**
+     * Default request body limit in bytes (512 KiB).
+     */
+    public static final int DEFAULT_MAX_REQUEST_BODY = 524288;
+
     private String sampleRate = "1";
 
     private Sampler sampler;
@@ -31,12 +41,12 @@ public class GenericGlobalConfig {
     /**
      * default 512KB.
      */
-    private int maxResponseBody = 524288;
+    private int maxResponseBody = DEFAULT_MAX_RESPONSE_BODY;
 
     /**
      * default 512kb.
      */
-    private int maxRequestBody = 524288;
+    private int maxRequestBody = DEFAULT_MAX_REQUEST_BODY;
 
     /**
      * default 50000.
