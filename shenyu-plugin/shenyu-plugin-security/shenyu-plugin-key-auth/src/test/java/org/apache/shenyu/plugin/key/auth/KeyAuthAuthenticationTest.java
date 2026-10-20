@@ -308,7 +308,7 @@ class KeyAuthAuthenticationTest {
         selector.setLogged(false);
         selector.setSort(0);
         rule.setEnabled(true);
-        rule.setLoged(false);
+        rule.setLogged(false);
         rule.setSort(0);
         BaseDataCache.getInstance().cacheSelectData(selector);
         BaseDataCache.getInstance().cacheRuleData(rule);
