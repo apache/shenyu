@@ -37,14 +37,14 @@ public class RateLimiterHandleTest {
         handle.setReplenishRate(500);
         handle.setBurstCapacity(1000);
         handle.setRequestCount(2.0);
-        handle.setLoged(true);
+        handle.setLogged(true);
         handle.setKeyResolverName("resolverName");
         
         assertThat(handle.getAlgorithmName(), is("algorithmName"));
         assertThat(handle.getReplenishRate(), closeTo(500, 0.1));
         assertThat(handle.getBurstCapacity(), closeTo(1000, 0.1));
         assertThat(handle.getRequestCount(), closeTo(2.0, 0.1));
-        assertThat(handle.isLoged(), is(true));
+        assertThat(handle.isLogged(), is(true));
         assertThat(handle.getKeyResolverName(), is("resolverName"));
     }
     

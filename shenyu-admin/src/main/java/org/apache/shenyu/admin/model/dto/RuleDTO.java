@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -69,10 +70,11 @@ public final class RuleDTO implements Serializable {
     private Boolean enabled;
     
     /**
-     * whether loged.
+     * whether logged.
      */
     @NotNull
-    private Boolean loged;
+    @JsonAlias("loged")
+    private Boolean logged;
     
     /**
      * sort type.
@@ -110,7 +112,7 @@ public final class RuleDTO implements Serializable {
                    @NotNull final Integer matchMode,
                    @NotBlank final String name,
                    @NotNull final Boolean enabled,
-                   final Boolean loged,
+                   final Boolean logged,
                    @NotNull final Integer sort,
                    final String handle,
                    @Valid final List<RuleConditionDTO> ruleConditions,
@@ -121,7 +123,7 @@ public final class RuleDTO implements Serializable {
         this.matchMode = matchMode;
         this.name = name;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.sort = sort;
         this.handle = handle;
         this.ruleConditions = ruleConditions;
@@ -220,21 +222,21 @@ public final class RuleDTO implements Serializable {
     }
     
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
     
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
     
     /**
@@ -350,7 +352,7 @@ public final class RuleDTO implements Serializable {
                 && Objects.equals(matchMode, ruleDTO.matchMode)
                 && Objects.equals(name, ruleDTO.name)
                 && Objects.equals(enabled, ruleDTO.enabled)
-                && Objects.equals(loged, ruleDTO.loged)
+                && Objects.equals(logged, ruleDTO.logged)
                 && Objects.equals(sort, ruleDTO.sort)
                 && Objects.equals(handle, ruleDTO.handle)
                 && Objects.equals(ruleConditions, ruleDTO.ruleConditions)
@@ -360,7 +362,7 @@ public final class RuleDTO implements Serializable {
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful,
+        return Objects.hash(id, selectorId, matchMode, name, enabled, logged, sort, handle, ruleConditions, matchRestful,
                 namespaceId);
     }
     
@@ -376,7 +378,7 @@ public final class RuleDTO implements Serializable {
         
         private Boolean enabled;
         
-        private Boolean loged;
+        private Boolean logged;
         
         private Integer sort;
         
@@ -447,13 +449,13 @@ public final class RuleDTO implements Serializable {
         }
         
         /**
-         * loged.
+         * logged.
          *
-         * @param loged the loged.
+         * @param logged the logged.
          * @return RuleDTOBuilder.
          */
-        public RuleDTOBuilder loged(final Boolean loged) {
-            this.loged = loged;
+        public RuleDTOBuilder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
         
@@ -518,7 +520,7 @@ public final class RuleDTO implements Serializable {
          * @return build object.
          */
         public RuleDTO build() {
-            return new RuleDTO(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions, matchRestful,
+            return new RuleDTO(id, selectorId, matchMode, name, enabled, logged, sort, handle, ruleConditions, matchRestful,
                     namespaceId);
         }
     }

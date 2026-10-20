@@ -474,11 +474,11 @@ public final class SelectorServiceTest {
         selectorDTO.setHandle("[{\"upstreamHost\": \"127.0.0.1\", \"protocol\": \"http://\", \"upstreamUrl\": \"anotherUrl\"}]");
         selectorDTO.setPluginId("789");
         selectorDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
-        selectorDTO.setLoged(true);
+        selectorDTO.setLogged(true);
         selectorDTO.setMatchMode(1);
         selectorDTO.setContinued(true);
         selectorDTO.setSort(1);
-        selectorDTO.setLoged(true);
+        selectorDTO.setLogged(true);
         SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
         selectorConditionDTO1.setId("111");
         SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();

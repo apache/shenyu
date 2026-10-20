@@ -404,7 +404,7 @@ class RuleEventPublisherTest {
                 .ruleName(ruleName)
                 .matchMode(0)
                 .enabled(true)
-                .loged(false)
+                .logged(false)
                 .sortCode(1)
                 .handle("{}")
                 .matchRestful(false)
