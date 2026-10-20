@@ -262,7 +262,7 @@ class AgentGovernanceHttpTest {
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(limiter.named(), redis);
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
-            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(), engine, proxyHandler);
+            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();
             handle.setProvider("OpenAI");

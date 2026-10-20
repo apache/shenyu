@@ -23,7 +23,6 @@ import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Scheduler;
 import org.apache.shenyu.plugin.cache.ICache;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +70,7 @@ public final class MemoryCache implements ICache {
         this.mainCache.policy().expireVariably()
                 .orElseThrow(() -> new IllegalStateException("Variable expiration is not configured for the memory cache"))
                 .put(key, bytes, timeoutSeconds, TimeUnit.SECONDS);
-        return Mono.fromCallable(() -> Boolean.TRUE).subscribeOn(Schedulers.boundedElastic());
+        return Mono.just(Boolean.TRUE);
     }
 
     /**
@@ -82,7 +81,9 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<Boolean> isExist(final String key) {
-        return Mono.fromCallable(() -> Objects.nonNull(this.mainCache.getIfPresent(key))).subscribeOn(Schedulers.boundedElastic());
+        // Deferred until subscription, but evaluated on the subscribing thread: a local map read
+        // does not warrant a hand-off to another scheduler.
+        return Mono.fromCallable(() -> Objects.nonNull(this.mainCache.getIfPresent(key)));
     }
 
     /**
@@ -93,7 +94,7 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<byte[]> getData(final String key) {
-        return Mono.fromCallable(() -> this.mainCache.getIfPresent(key)).subscribeOn(Schedulers.boundedElastic());
+        return Mono.fromCallable(() -> this.mainCache.getIfPresent(key));
     }
 
     /**

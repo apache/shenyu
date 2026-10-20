@@ -112,4 +112,51 @@ public final class RewritePluginDataHandlerTest {
         Assertions.assertNull(cached.getRegex());
         Assertions.assertNull(cached.getReplace());
     }
+
+    @Test
+    public void testInvalidRegexIsNotCached() {
+        ruleData.setSelectorId("invalid-regex-selector");
+        ruleData.setId("invalid-regex-rule");
+        ruleData.setHandle("{\"regex\":\"[a\",\"replace\":\"/new\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("invalid-regex-selector_invalid-regex-rule"));
+    }
+
+    @Test
+    public void testInvalidReplacementIsNotCached() {
+        ruleData.setSelectorId("invalid-replace-selector");
+        ruleData.setId("invalid-replace-rule");
+        ruleData.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("invalid-replace-selector_invalid-replace-rule"));
+    }
+
+    @Test
+    public void testInvalidHandleEvictsPreviouslyCachedRule() {
+        ruleData.setSelectorId("stale-selector");
+        ruleData.setId("stale-rule");
+        ruleData.setHandle("{\"regex\":\"(test)\",\"replace\":\"/new/$1\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("stale-selector_stale-rule"));
+
+        ruleData.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("stale-selector_stale-rule"));
+    }
+
+    @Test
+    public void testPlaceholderHandleIsCached() {
+        ruleData.setSelectorId("placeholder-selector");
+        ruleData.setId("placeholder-rule");
+        ruleData.setHandle("{\"regex\":\"/shenyu/{id}\",\"replace\":\"/target/{id}\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("placeholder-selector_placeholder-rule"));
+    }
 }

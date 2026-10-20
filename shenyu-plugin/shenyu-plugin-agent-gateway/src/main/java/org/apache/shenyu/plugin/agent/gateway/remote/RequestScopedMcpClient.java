@@ -252,6 +252,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             session = RemoteTransportPolicy.session(response.headers().allValues("MCP-Session-Id"));
         }
         if (notification) {
+            if (response.statusCode() != 202 || response.body().length != 0) {
+                throw new IllegalArgumentException("Invalid notification acknowledgement");
+            }
             return JSON.createObjectNode();
         }
         String contentType = response.headers().firstValue("Content-Type").orElse("").split(";")[0].trim();

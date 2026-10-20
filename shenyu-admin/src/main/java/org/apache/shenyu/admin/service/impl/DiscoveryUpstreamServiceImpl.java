@@ -179,8 +179,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      */
     @Override
     public String delete(final List<String> ids) {
-
+        // resolve the owning handlers before the rows disappear, so the gateways can be
+        // notified with the remaining upstream snapshot (including an empty one)
+        final List<DiscoveryUpstreamDO> deleted = discoveryUpstreamMapper.selectByIds(ids);
         discoveryUpstreamMapper.deleteByIds(ids);
+        deleted.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).distinct().forEach(this::fetchAll);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 
