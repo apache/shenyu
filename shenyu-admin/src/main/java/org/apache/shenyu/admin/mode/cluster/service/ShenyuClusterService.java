@@ -106,11 +106,19 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
         } catch (Exception e) {
             LOG.error("select master error", e);
             // close the upstream check service
-            upstreamCheckService.close();
-            instanceCheckService.close();
+            try {
+                upstreamCheckService.close();
+            } catch (Exception cleanupException) {
+                LOG.warn("Failed to close upstream checker after master selection error", cleanupException);
+            }
+            try {
+                instanceCheckService.close();
+            } catch (Exception cleanupException) {
+                LOG.warn("Failed to close instance checker after master selection error", cleanupException);
+            }
             
             String message = String.format("renew master fail, %s", e.getMessage());
-            throw new ShenyuException(message);
+            throw new ShenyuException(message, e);
         } finally {
             try {
                 shenyuClusterSelectMasterService.releaseMaster();

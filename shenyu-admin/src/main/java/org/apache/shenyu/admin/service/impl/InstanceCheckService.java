@@ -55,9 +55,13 @@ public class InstanceCheckService {
 
     private static final int MAX_HISTORY_SIZE = 20;
 
+    private static final long SHUTDOWN_WAIT_SECONDS = 5L;
+
     private static final Logger LOG = LoggerFactory.getLogger(InstanceCheckService.class);
 
     private ScheduledThreadPoolExecutor executor;
+
+    private volatile boolean closed;
 
     private final int scheduledTime;
 
@@ -83,9 +87,17 @@ public class InstanceCheckService {
     /**
      * Set up.
      */
-    public void setup() {
+    public synchronized void setup() {
+        if (Objects.nonNull(executor) && !executor.isTerminated()) {
+            if (closed) {
+                throw new IllegalStateException("Previous instance checker executor has not terminated");
+            }
+            return;
+        }
+        closed = false;
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
+        executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
         executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
     }
@@ -93,7 +105,10 @@ public class InstanceCheckService {
     /**
      * fetch instance status data from db.
      */
-    public void fetchInstanceData() {
+    public synchronized void fetchInstanceData() {
+        if (closed) {
+            return;
+        }
         List<InstanceInfoVO> list = instanceInfoService.list();
         list.forEach(instanceInfoVO -> {
             if (Objects.isNull(instanceInfoVO.getInstanceState())) {
@@ -120,7 +135,10 @@ public class InstanceCheckService {
         return instanceHealthBeatInfo.get(instanceKey);
     }
 
-    public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public synchronized void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        if (closed) {
+            return;
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
@@ -142,6 +160,9 @@ public class InstanceCheckService {
     }
 
     private void scheduled() {
+        if (closed) {
+            return;
+        }
         try {
             doCheck();
         } catch (Exception e) {
@@ -175,6 +196,13 @@ public class InstanceCheckService {
     }
 
     public void syncDB() {
+        if (closed) {
+            return;
+        }
+        persistInstanceData();
+    }
+
+    private void persistInstanceData() {
         instanceHealthBeatInfo.values().forEach(vo -> {
             instanceInfoService.createOrUpdate(vo);
         });
@@ -182,13 +210,48 @@ public class InstanceCheckService {
 
     /**
      * Close relative resource on container destroy.
+     * Stop accepting heartbeats and drain scheduled work before the best-effort final flush.
+     * Wait at most five seconds before interrupting tasks, then wait another five seconds.
+     * If scheduled work does not terminate, retain its state and skip the final flush
+     * rather than clearing or persisting concurrently with that work.
+     * The final database call remains subject to the persistence layer's timeouts.
      */
     @PreDestroy
-    public void close() {
-        syncDB();
-        instanceHealthBeatInfo.clear();
-        if (Objects.nonNull(executor)) {
-            executor.shutdown();
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        if (Objects.nonNull(executor) && !shutdownExecutor()) {
+            LOG.warn("Retaining instance checker state and skipping final sync because scheduled work has not terminated");
+            return;
+        }
+        try {
+            persistInstanceData();
+        } catch (Exception e) {
+            LOG.warn("Failed to synchronize instance information during shutdown", e);
+        } finally {
+            instanceHealthBeatInfo.clear();
+        }
+    }
+
+    private boolean shutdownExecutor() {
+        executor.shutdown();
+        try {
+            if (executor.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                return true;
+            }
+            executor.shutdownNow();
+            if (executor.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                return true;
+            }
+            LOG.warn("Instance checker executor did not terminate after shutdown and interruption");
+            return false;
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted while waiting for the instance checker executor to terminate");
+            return executor.isTerminated();
         }
     }
 
