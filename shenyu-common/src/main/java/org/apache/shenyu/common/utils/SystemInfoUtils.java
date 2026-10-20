@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.apache.shenyu.common.constant.Constants.ARCH;
 import static org.apache.shenyu.common.constant.Constants.AVAILABLE_PROCESSORS;
+import static org.apache.shenyu.common.constant.Constants.BOOT_TIME;
 import static org.apache.shenyu.common.constant.Constants.GB;
 import static org.apache.shenyu.common.constant.Constants.OPERATING_SYSTEM;
 import static org.apache.shenyu.common.constant.Constants.TOTAL_MEMORY_SIZE_GB;
@@ -64,7 +65,8 @@ public final class SystemInfoUtils {
                     ARCH, osBean.getArch(),
                     OPERATING_SYSTEM, systemInfo.getOperatingSystem().toString(),
                     AVAILABLE_PROCESSORS, osBean.getAvailableProcessors(),
-                    TOTAL_MEMORY_SIZE_GB, bytesToGB(osBean.getTotalMemorySize()) + GB
+                    TOTAL_MEMORY_SIZE_GB, bytesToGB(osBean.getTotalMemorySize()) + GB,
+                    BOOT_TIME, ManagementFactory.getRuntimeMXBean().getStartTime()
             );
             return GsonUtils.getInstance().toJson(hostInfo);
         } catch (Exception e) {
