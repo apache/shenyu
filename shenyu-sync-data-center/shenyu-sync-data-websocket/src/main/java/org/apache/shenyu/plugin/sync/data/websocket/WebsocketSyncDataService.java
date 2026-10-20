@@ -23,8 +23,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.BoundServerPort;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
+import org.apache.shenyu.common.timer.TaskEntity;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -38,9 +40,11 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.context.event.EventListener;
 
 import java.net.URI;
+import java.util.OptionalInt;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -67,6 +71,8 @@ public class WebsocketSyncDataService implements SyncDataService {
 
     private final AtomicBoolean initialSyncReady = new AtomicBoolean();
 
+    private final AtomicBoolean rediscoveryScheduled = new AtomicBoolean(false);
+
     
     private final PluginDataSubscriber pluginDataSubscriber;
     
@@ -90,7 +96,10 @@ public class WebsocketSyncDataService implements SyncDataService {
 
     private boolean closed;
 
-    private final ServerProperties serverProperties;
+    /**
+     * Port of the application listener. Zero until the server initialization event.
+     */
+    private volatile int boundPort;
 
     /**
      * Instantiates a new Websocket sync cache.
@@ -102,7 +111,7 @@ public class WebsocketSyncDataService implements SyncDataService {
      * @param authDataSubscribers the auth data subscribers
      * @param proxySelectorDataSubscribers the proxy selector data subscribers
      * @param discoveryUpstreamDataSubscribers the discovery upstream data subscribers
-     * @param serverProperties serverProperties
+     * @param aiProxyApiKeyDataSubscribers the ai proxy api key subscribers
      */
     public WebsocketSyncDataService(
             final WebsocketConfig websocketConfig,
@@ -113,8 +122,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                                     final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
             final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
             final List<org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber>
-                    aiProxyApiKeyDataSubscribers,
-            final ServerProperties serverProperties) {
+                    aiProxyApiKeyDataSubscribers) {
         this.timer = WheelTimerFactory.newWheelTimer();
         this.websocketConfig = websocketConfig;
         this.pluginDataSubscriber = pluginDataSubscriber;
@@ -124,14 +132,9 @@ public class WebsocketSyncDataService implements SyncDataService {
         this.discoveryUpstreamDataSubscribers = discoveryUpstreamDataSubscribers;
         this.aiProxyApiKeyDataSubscribers = aiProxyApiKeyDataSubscribers;
         this.namespaceId = shenyuConfig.getNamespace();
-        this.serverProperties = serverProperties;
-        LOG.info("start init connecting...");
-        List<String> urls = websocketConfig.getUrls();
-        for (String url : urls) {
-            clients.add(createClient(url));
-        }
         LOG.info("start check task...");
-        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
+        long intervalSeconds = websocketConfig.getMasterCheckInterval() <= 0 ? 60 : websocketConfig.getMasterCheckInterval();
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(intervalSeconds)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
                 masterCheck();
@@ -147,10 +150,7 @@ public class WebsocketSyncDataService implements SyncDataService {
             LOG.debug("master checking task start...");
         }
         if (CollectionUtils.isEmpty(clients)) {
-            List<String> urls = websocketConfig.getUrls();
-            for (String url : urls) {
-                clients.add(createClient(url));
-            }
+            addSeedClients();
         }
         Set<URI> masterUrls = new LinkedHashSet<>();
         Iterator<ShenyuWebsocketClient> iterator = clients.iterator();
@@ -165,7 +165,9 @@ public class WebsocketSyncDataService implements SyncDataService {
             // check running mode
             if (Objects.equals(runningMode, RunningModeEnum.STANDALONE.name())) {
                 LOG.info("admin running in standalone mode...");
-                timerTask.cancel();
+                if (Objects.nonNull(timerTask)) {
+                    timerTask.cancel();
+                }
                 return;
             }
             
@@ -180,13 +182,58 @@ public class WebsocketSyncDataService implements SyncDataService {
             }
         }
         for (URI masterUri : masterUrls) {
-            if (clients.stream().noneMatch(client -> masterUri.equals(client.getURI()))) {
+            if (boundPort > 0 && clients.stream().noneMatch(client -> masterUri.equals(client.getURI()))) {
                 try {
                     clients.add(createClient(masterUri.toString()));
                 } catch (RuntimeException ex) {
                     LOG.warn("websocket connection to advertised master [{}] failed", masterUri, ex);
                 }
             }
+        }
+        if (CollectionUtils.isEmpty(clients)) {
+            addSeedClients();
+        }
+    }
+
+    /**
+     * Connect using the application listener port. A management server is not the gateway listener,
+     * and clients stay disconnected until a positive bound port is known. Closing the service first
+     * discards a later initialization event.
+     *
+     * @param event web server initialization event
+     */
+    @EventListener
+    public synchronized void onWebServerInitialized(final WebServerInitializedEvent event) {
+        if (closed || Objects.isNull(event.getWebServer()) || Objects.isNull(event.getApplicationContext())) {
+            return;
+        }
+        OptionalInt resolved = BoundServerPort.resolve(event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+        if (resolved.isEmpty()) {
+            LOG.debug("Ignore websocket client port from namespace {} port {}", event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+            return;
+        }
+        int observed = resolved.getAsInt();
+        if (boundPort == observed) {
+            return;
+        }
+        boundPort = observed;
+        LOG.info("Application server bound on port {}, websocket sync will report it", observed);
+        if (CollectionUtils.isEmpty(clients)) {
+            addSeedClients();
+        }
+    }
+
+    private void addSeedClients() {
+        if (boundPort <= 0) {
+            return;
+        }
+        List<String> urls = websocketConfig.getUrls();
+        if (CollectionUtils.isEmpty(urls)) {
+            return;
+        }
+        LOG.info("start init connecting on port {}...", boundPort);
+        for (String url : urls) {
+            clients.add(createClient(url));
         }
     }
 
@@ -205,6 +252,34 @@ public class WebsocketSyncDataService implements SyncDataService {
         }
         LOG.warn("Ignore invalid websocket master address [{}]", masterUrl);
         return null;
+    }
+
+    private void onMasterLost(final ShenyuWebsocketClient client) {
+        if (closed) {
+            return;
+        }
+        LOG.info("master lost detected from websocket server[{}], scheduling rediscovery", client.getURI());
+        triggerMasterRediscovery();
+    }
+
+    private void triggerMasterRediscovery() {
+        if (closed) {
+            return;
+        }
+        if (rediscoveryScheduled.compareAndSet(false, true)) {
+            try {
+                this.timer.add(new TimerTask(200, TimeUnit.MILLISECONDS) {
+                    @Override
+                    public void run(final TaskEntity taskEntity) {
+                        rediscoveryScheduled.set(false);
+                        masterCheck();
+                    }
+                });
+            } catch (Exception ex) {
+                rediscoveryScheduled.set(false);
+                LOG.warn("Failed to schedule master rediscovery task", ex);
+            }
+        }
     }
     
     @Override
@@ -247,8 +322,9 @@ public class WebsocketSyncDataService implements SyncDataService {
                 discoveryUpstreamDataSubscribers,
                 this.aiProxyApiKeyDataSubscribers,
                 namespaceId,
-                serverProperties.getPort(),
-                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null);
+                boundPort,
+                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null,
+                this::onMasterLost);
     }
     
     /**

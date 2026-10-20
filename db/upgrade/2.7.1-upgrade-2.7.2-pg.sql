@@ -99,3 +99,7 @@ WHERE duplicate_permission.user_id = retained_permission.user_id
   AND duplicate_permission.data_id = retained_permission.data_id
   AND duplicate_permission.id > retained_permission.id;
 CREATE UNIQUE INDEX "idx_data_permission_user_type" ON "public"."data_permission" USING btree ("user_id", "data_type", "data_id");
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE "public"."instance_info" ADD COLUMN "last_heart_beat_time" int8 NOT NULL DEFAULT 0;
+COMMENT ON COLUMN "public"."instance_info"."last_heart_beat_time" IS 'last heart beat time';

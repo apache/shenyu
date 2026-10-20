@@ -373,6 +373,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Opt-in standalone file configuration. -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-file</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--shenyu data sync start use websocket-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

@@ -247,7 +247,7 @@ public class ContextPathParser implements K8sResourceParser<V1Ingress> {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(ruleConditionList)
                 .handle(GsonUtils.getInstance().toJson(ruleHandle))
-                .loged(true)
+                .logged(true)
                 .enabled(true)
                 .build();
     }

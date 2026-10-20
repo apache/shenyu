@@ -45,6 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest {
 
+    private static final long FIXED_HEART_BEAT_TIME = 1700000000000L;
+
     @Resource
     private InstanceInfoMapper instanceInfoMapper;
 
@@ -125,6 +127,45 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
         assertNotNull(found);
         int deleted = instanceInfoMapper.delete(data.getId());
         assertEquals(1, deleted);
+    }
+
+    @Test
+    void insertRoundTripsLastHeartBeatTime() {
+        InstanceInfoDO data = buildInstance();
+        data.setLastHeartBeatTime(FIXED_HEART_BEAT_TIME);
+        assertEquals(1, instanceInfoMapper.insert(data));
+        try {
+            InstanceInfoDO found = instanceInfoMapper.selectById(data.getId());
+            assertNotNull(found);
+            assertEquals(FIXED_HEART_BEAT_TIME, found.getLastHeartBeatTime());
+
+            InstanceQuery query = new InstanceQuery();
+            query.setInstanceId(data.getId());
+            query.setNamespaceId(data.getNamespaceId());
+            query.setInstanceType(data.getInstanceType());
+            query.setInstanceIp(data.getInstanceIp());
+            query.setInstancePort(data.getInstancePort());
+            InstanceInfoDO one = instanceInfoMapper.selectOneByQuery(query);
+            assertNotNull(one);
+            assertEquals(FIXED_HEART_BEAT_TIME, one.getLastHeartBeatTime());
+
+            InstanceInfoDO viaResultMap = instanceInfoMapper.findAllByNamespaceId(data.getNamespaceId())
+                    .stream().filter(item -> data.getId().equals(item.getId())).findFirst().orElse(null);
+            assertNotNull(viaResultMap);
+            assertEquals(FIXED_HEART_BEAT_TIME, viaResultMap.getLastHeartBeatTime());
+        } finally {
+            instanceInfoMapper.delete(data.getId());
+        }
+    }
+
+    @Test
+    void updateRoundTripsLastHeartBeatTime() {
+        instance.setLastHeartBeatTime(FIXED_HEART_BEAT_TIME);
+        int updated = instanceInfoMapper.updateById(instance);
+        assertEquals(1, updated);
+        InstanceInfoDO found = instanceInfoMapper.selectById(instance.getId());
+        assertNotNull(found);
+        assertEquals(FIXED_HEART_BEAT_TIME, found.getLastHeartBeatTime());
     }
 
     @Test

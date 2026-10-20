@@ -65,7 +65,7 @@ public class RuleCacheData {
     /**
      * logged.
      */
-    private Boolean loged;
+    private Boolean logged;
 
     /**
      * handle message（different plugin have different handle to mark ,json style）.
@@ -111,7 +111,7 @@ public class RuleCacheData {
         this.matchMode = builder.matchMode;
         this.sort = builder.sort;
         this.enabled = builder.enabled;
-        this.loged = builder.loged;
+        this.logged = builder.logged;
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
@@ -269,22 +269,22 @@ public class RuleCacheData {
     }
 
     /**
-     * get loged.
+     * get logged.
      *
-     * @return loged
+     * @return logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * set loged.
+     * set logged.
      *
-     * @param loged loged
+     * @param logged logged
      * @return this
      */
-    public RuleCacheData setLogged(final Boolean loged) {
-        this.loged = loged;
+    public RuleCacheData setLogged(final Boolean logged) {
+        this.logged = logged;
         return this;
     }
 
@@ -398,7 +398,7 @@ public class RuleCacheData {
                 && Objects.equals(matchMode, ruleCacheData.matchMode)
                 && Objects.equals(sort, ruleCacheData.sort)
                 && Objects.equals(enabled, ruleCacheData.enabled)
-                && Objects.equals(loged, ruleCacheData.loged)
+                && Objects.equals(logged, ruleCacheData.logged)
                 && Objects.equals(handle, ruleCacheData.handle)
                 && Objects.equals(conditionDataList, ruleCacheData.conditionDataList)
                 && Objects.equals(beforeConditionDataList, ruleCacheData.beforeConditionDataList)
@@ -408,7 +408,7 @@ public class RuleCacheData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
+        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, logged, handle, conditionDataList,
                 beforeConditionDataList, matchRestful, namespaceId);
     }
 
@@ -433,8 +433,8 @@ public class RuleCacheData {
                 + sort
                 + ", enabled="
                 + enabled
-                + ", loged="
-                + loged
+                + ", logged="
+                + logged
                 + ", handle='"
                 + handle
                 + '\''
@@ -466,7 +466,7 @@ public class RuleCacheData {
 
         private Boolean enabled;
 
-        private Boolean loged;
+        private Boolean logged;
 
         private String handle;
 
@@ -571,13 +571,13 @@ public class RuleCacheData {
         }
 
         /**
-         * build loged.
+         * build logged.
          *
-         * @param loged loged
+         * @param logged logged
          * @return this
          */
-        public Builder loged(final Boolean loged) {
-            this.loged = loged;
+        public Builder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
 

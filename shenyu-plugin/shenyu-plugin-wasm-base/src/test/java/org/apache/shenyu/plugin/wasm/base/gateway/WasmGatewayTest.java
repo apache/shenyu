@@ -111,7 +111,7 @@ public final class WasmGatewayTest {
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).continued(true).matchMode(0).matchRestful(false).logged(false)
                 .handle("/wasm/").conditionList(List.of(uriCondition())).build();
         rule = RuleData.builder().id("wasm-rule").selectorId(selector.getId()).pluginName(ReferenceWasmPlugin.NAME)
-                .enabled(true).sort(0).matchMode(0).matchRestful(false).loged(false).handle("secret")
+                .enabled(true).sort(0).matchMode(0).matchRestful(false).logged(false).handle("secret")
                 .conditionDataList(List.of(uriCondition())).build();
         subscriber.onSubscribe(pluginData);
         subscriber.onSelectorSubscribe(selector);
