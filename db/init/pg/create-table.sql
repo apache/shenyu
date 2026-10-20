@@ -2748,7 +2748,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737581', 'preRole', 'RO
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737582', 'postRole', 'ROLE_TYPE_SYSTEM', 'SYSTEM', 'system', 'system', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
-INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 170, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 
 INSERT INTO "public"."resource" VALUES ('1844026099075534859', '1346775491550474240', 'aiTokenLimiter', 'aiTokenLimiter', '/plug/aiTokenLimiter', 'aiTokenLimiter', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -2818,8 +2818,8 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742759', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
 INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
-INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 169, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 169, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
 INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
