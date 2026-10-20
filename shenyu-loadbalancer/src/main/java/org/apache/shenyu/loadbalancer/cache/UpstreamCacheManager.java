@@ -25,9 +25,9 @@ import org.apache.shenyu.common.config.ShenyuConfig.UpstreamCheck;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -181,13 +181,12 @@ public final class UpstreamCacheManager {
 
     private void processOfflineUpstreams(final String selectorId, final List<Upstream> offlineUpstreamList,
                                          final List<Upstream> existUpstreamList) {
-        Map<String, Upstream> currentUnhealthyMap = getCurrentUnhealthyMap(selectorId);
-        Set<Upstream> existUpstreamSet = new HashSet<>(existUpstreamList);
+        Map<UpstreamIdentity, Upstream> currentUnhealthyMap = getCurrentUnhealthyMap(selectorId);
+        Set<UpstreamIdentity> existUpstreamSet = existUpstreamList.stream().map(Upstream::identity).collect(Collectors.toSet());
 
         offlineUpstreamList.forEach(offlineUp -> {
-            String key = upstreamMapKey(offlineUp);
-            if (existUpstreamSet.contains(offlineUp)) {
-                if (currentUnhealthyMap.containsKey(key) && offlineUp.isHealthCheckEnabled()) {
+            if (existUpstreamSet.contains(offlineUp.identity())) {
+                if (currentUnhealthyMap.containsKey(offlineUp.identity()) && offlineUp.isHealthCheckEnabled()) {
                     task.putToMap(task.getUnhealthyUpstream(), selectorId, offlineUp);
                     task.removeFromMap(task.getHealthyUpstream(), selectorId, offlineUp);
                 } else {
@@ -210,11 +209,11 @@ public final class UpstreamCacheManager {
     }
 
     private void updateExistingUpstreams(final List<Upstream> validUpstreamList, final List<Upstream> existUpstreamList) {
-        Map<String, Upstream> existUpstreamMap = existUpstreamList.stream()
-            .collect(Collectors.toMap(this::upstreamMapKey, existUp -> existUp, (existing, replacement) -> existing));
+        Map<UpstreamIdentity, Upstream> existUpstreamMap = existUpstreamList.stream()
+            .collect(Collectors.toMap(Upstream::identity, existUp -> existUp, (existing, replacement) -> existing));
 
         validUpstreamList.forEach(validUp -> {
-            Upstream matchedExistUp = existUpstreamMap.get(upstreamMapKey(validUp));
+            Upstream matchedExistUp = existUpstreamMap.get(validUp.identity());
             if (Objects.nonNull(matchedExistUp)) {
                 matchedExistUp.setWeight(validUp.getWeight());
                 matchedExistUp.setHealthCheckEnabled(validUp.isHealthCheckEnabled());
@@ -227,12 +226,12 @@ public final class UpstreamCacheManager {
 
     private void addNewUpstreams(final String selectorId, final List<Upstream> validUpstreamList,
                                  final List<Upstream> existUpstreamList) {
-        Map<String, Upstream> currentUnhealthyMap = getCurrentUnhealthyMap(selectorId);
+        Map<UpstreamIdentity, Upstream> currentUnhealthyMap = getCurrentUnhealthyMap(selectorId);
 
         validUpstreamList.stream()
             .filter(validUp -> !existUpstreamList.contains(validUp))
             .forEach(up -> {
-                Upstream prevUnhealthy = currentUnhealthyMap.get(upstreamMapKey(up));
+                Upstream prevUnhealthy = currentUnhealthyMap.get(up.identity());
                 if (Objects.nonNull(prevUnhealthy)) {
                     task.putToMap(task.getUnhealthyUpstream(), selectorId, up);
                 } else {
@@ -241,14 +240,10 @@ public final class UpstreamCacheManager {
             });
     }
 
-    private Map<String, Upstream> getCurrentUnhealthyMap(final String selectorId) {
+    private Map<UpstreamIdentity, Upstream> getCurrentUnhealthyMap(final String selectorId) {
         List<Upstream> currentUnhealthy = task.getUnhealthyUpstream().get(selectorId);
         return Objects.isNull(currentUnhealthy)
             ? Maps.newConcurrentMap()
-            : currentUnhealthy.stream().collect(Collectors.toMap(this::upstreamMapKey, u -> u, (a, b) -> a));
-    }
-
-    private String upstreamMapKey(final Upstream upstream) {
-        return String.join("_", upstream.getProtocol(), upstream.getUrl());
+            : currentUnhealthy.stream().collect(Collectors.toMap(Upstream::identity, u -> u, (a, b) -> a));
     }
 }

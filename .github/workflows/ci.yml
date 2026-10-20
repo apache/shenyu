@@ -71,6 +71,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test Maven transfer retries
+        run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
       - uses: ./actions/paths-filter
@@ -111,6 +113,34 @@ jobs:
         run: bash .github/scripts/resolve-ci-modules.sh
       - name: Test GHCR publish routing
         run: bash .github/scripts/resolve-ghcr-publish-test.sh
+
+  registry_dependencies:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.code == 'true'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Replay registration contract and check resolved client boundaries
+        run: |
+          python3 .github/scripts/test-client-boundary.py
+          python3 .github/scripts/check-client-boundary.py
+          ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
+            -Dtest=RegistrationProtocolCompatibilityTest,ZookeeperClientDiscoveryIntegrationTest,HeartbeatListenerConfigurationTest \
+            -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
+            -Dscope=test -DoutputType=tgf -DoutputFile=target/client-boundary.tgf
+          python3 .github/scripts/check-client-boundary.py --trees
+      - name: Check resolved registry dependency boundaries
+        run: |
+          python3 .github/scripts/test-registry-dependencies.py
+          REGISTRY_MODULES="$(python3 .github/scripts/check-registry-dependencies.py --modules)"
+          ./mvnw -B -ntp -pl "$REGISTRY_MODULES" -am package dependency:tree \
+            -DskipTests -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
+            -Dscope=runtime -DoutputType=tgf -DoutputFile=target/registry-dependencies.tgf
+          python3 .github/scripts/check-registry-dependencies.py
 
   rat_check:
     needs: changes
@@ -178,10 +208,10 @@ jobs:
 
           if mvnd --version > /dev/null 2>&1; then
             echo "Using mvnd for build"
-            mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
+            exec bash .github/scripts/maven-with-retry.sh mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           else
             echo "Falling back to maven wrapper"
-            ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
+            exec bash .github/scripts/maven-with-retry.sh ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
           fi
 
   build_local_repo:

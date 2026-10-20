@@ -22,24 +22,36 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -70,21 +82,81 @@ public class FormDataOperatorTest {
         replace.setPath("$");
         replace.setKey("name");
         replace.setValue("realName");
-        MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
-        param.set("name", "shenyu");
-        param.set("age", "18");
         this.paramMappingRuleHandle = new ParamMappingRuleHandle();
         this.paramMappingRuleHandle.setRemoveParameterKeys(remove);
         this.paramMappingRuleHandle.setAddParameterKeys(Collections.singletonList(add));
         this.paramMappingRuleHandle.setReplaceParameterKeys(Collections.singletonList(replace));
         this.formDataOperator = new FormDataOperator();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.POST, "localhost")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE).queryParams(param));
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE).body("name=shenyu&age=18"));
     }
 
     @Test
     public void testApply() {
+        String body = applyAndReadBody(this.exchange, paramMappingRuleHandle);
+        assertTrue(body.contains("webName=SHENYU"));
+        assertTrue(body.contains("realName=shenyu"));
+        assertFalse(body.contains("age="));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"yes", "中文 &+"})
+    public void testAddParameterToEmptyForm(final String value) {
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body(""));
+
+        String body = applyAndReadBody(formExchange, additionRule(value));
+        assertEquals("injected=" + URLEncoder.encode(value, StandardCharsets.UTF_8), body);
+        ArgumentCaptor<ServerWebExchange> downstream = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(this.chain).execute(downstream.capture());
+        assertEquals(body.getBytes(StandardCharsets.UTF_8).length, downstream.getValue().getRequest().getHeaders().getContentLength());
+    }
+
+    @Test
+    public void testAddParameterToNonEmptyForm() {
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("a=1"));
+
+        assertEquals("a=1&injected=yes", applyAndReadBody(formExchange, additionRule("yes")));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    public void testEmptyFormWithoutAdditionsPassesThrough(final List<ParamMappingRuleHandle.ParamMapInfo> additions) {
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body(""));
+        paramMappingRuleHandle.setAddParameterKeys(additions);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
-        StepVerifier.create(formDataOperator.apply(this.exchange, this.chain, paramMappingRuleHandle)).expectSubscription().verifyComplete();
+
+        StepVerifier.create(formDataOperator.apply(formExchange, this.chain, paramMappingRuleHandle)).verifyComplete();
+
+        verify(this.chain).execute(formExchange);
+    }
+
+    private ParamMappingRuleHandle additionRule(final String value) {
+        ParamMappingRuleHandle.ParamMapInfo add = new ParamMappingRuleHandle.ParamMapInfo();
+        add.setPath("$");
+        add.setKey("injected");
+        add.setValue(value);
+        ParamMappingRuleHandle rule = new ParamMappingRuleHandle();
+        rule.setAddParameterKeys(Collections.singletonList(add));
+        return rule;
+    }
+
+    private String applyAndReadBody(final ServerWebExchange formExchange, final ParamMappingRuleHandle rule) {
+        AtomicReference<String> body = new AtomicReference<>("");
+        when(this.chain.execute(any())).thenAnswer(invocation -> {
+            ServerWebExchange downstream = invocation.getArgument(0);
+            return DataBufferUtils.join(downstream.getRequest().getBody()).doOnNext(buffer -> {
+                try {
+                    body.set(buffer.toString(StandardCharsets.UTF_8));
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }).then();
+        });
+        StepVerifier.create(formDataOperator.apply(formExchange, this.chain, rule)).verifyComplete();
+        return body.get();
     }
 }

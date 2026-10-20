@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -24,6 +25,10 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+
+import java.util.Objects;
 
 /**
  * mqtt transport handler.
@@ -46,6 +51,17 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+        final Channel channel = ctx.channel();
+
+        final WillRepository willRepository = Singleton.INST.get(WillRepository.class);
+        final WillRepository.WillEntry will = willRepository.get(channel);
+        if (Objects.nonNull(will)) {
+            // a will is published at most once; remove it before publishing so a repeated
+            // channelInactive cannot deliver it twice.
+            willRepository.remove(channel);
+            Publish.publishWill(will);
+        }
+        // release channel state before notifying the rest of the pipeline exactly once.
         Disconnect.cleanChannel(ctx.channel());
         ctx.fireChannelInactive();
     }

@@ -34,6 +34,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
             <version>${spring-cloud.version}</version>

@@ -1,4 +1,10 @@
-# How to build the wasm file
+# WASM API fixtures
+
+See the versioned [host ABI v1](../../ABI-v1.md) and the
+[real gateway reference test](../../../shenyu-plugin-wasm-base/README.md).
+These are fixture builds, not a statement of support for arbitrary Go runtimes.
+
+## Build the Rust fixture
 
 1. install rustup
 
@@ -17,3 +23,25 @@ in `{shenyu}/shenyu-plugin/shenyu-plugin-wasm-api/src/test/rust-wasm-plugin/targ
 4. rename the wasm file
 
 rename the file to `org.apache.shenyu.plugin.wasm.api.AbstractWasmPluginTest$RustWasmPlugin.wasm`
+
+
+From the repository root, the complete Rust build and copy command is:
+
+```sh
+rustup target add wasm32-wasip1
+api=shenyu-plugin/shenyu-plugin-wasm-api/src/test
+cargo build --manifest-path "$api/rust-wasm-plugin/Cargo.toml" --target wasm32-wasip1 --release
+cp "$api/rust-wasm-plugin/target/wasm32-wasip1/release/rust_wasm_plugin.wasm" \
+  "$api/resources/org.apache.shenyu.plugin.wasm.api.AbstractWasmPluginTest\$RustWasmPlugin.wasm"
+```
+
+## Build the TinyGo fixture
+
+```sh
+make -C shenyu-plugin/shenyu-plugin-wasm-api/src/test/go-wasm-plugin build
+```
+
+This uses TinyGo `-target wasm-unknown -opt=2 -no-debug -panic=trap`. The exact
+Rust/TinyGo compiler versions used for the older checked-in binaries were not
+recorded. Run both module suites using the command in the WASM base README after
+rebuilding.

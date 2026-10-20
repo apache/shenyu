@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.apache.dubbo.cache;
 
 import com.google.common.cache.LoadingCache;
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -41,11 +43,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -106,6 +110,137 @@ public final class ApacheDubboConfigCacheTest {
             fail();
         }
         assertNotSame(registryConfig, registryConfig1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "test-namespace"})
+    public void testInitAppliesGroupOnlyChanges(final String namespace) {
+        ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+        DubboRegisterConfig config = createRegisterConfig("fixed", 4, 32, 64);
+        config.setGroup("first-group");
+        configCache.init(config);
+        ReferenceConfig<GenericService> first = createReference(configCache, namespace);
+
+        config.setGroup("second-group");
+        configCache.init(config);
+        ReferenceConfig<GenericService> second = createReference(configCache, namespace);
+
+        assertEquals("first-group", first.getRegistry().getGroup());
+        assertEquals("second-group", second.getRegistry().getGroup());
+        assertEquals(config.getRegister(), ((RegistryConfig) ReflectionTestUtils.getField(configCache, "registryConfig")).getAddress());
+        assertSame(first.getConsumer(), second.getConsumer());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "test-namespace"})
+    public void testInitClearsRegistryGroup(final String namespace) {
+        ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+        DubboRegisterConfig config = createRegisterConfig("fixed", 4, 32, 64);
+        config.setGroup("first-group");
+        configCache.init(config);
+        RegistryConfig first = (RegistryConfig) ReflectionTestUtils.getField(configCache, "registryConfig");
+
+        config.setGroup(null);
+        configCache.init(config);
+
+        assertEquals("first-group", first.getGroup());
+        assertNull(((RegistryConfig) ReflectionTestUtils.getField(configCache, "registryConfig")).getGroup());
+        assertNull(createReference(configCache, namespace).getRegistry().getGroup());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"cached, 4, 32, 64", "fixed, 8, 32, 64", "fixed, 4, 64, 64", "fixed, 4, 32, 128"})
+    public void testInitUpdatesEachConsumerPoolField(final String threadpool, final Integer corethreads, final Integer threads, final Integer queues) {
+        ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+        configCache.init(createRegisterConfig("fixed", 4, 32, 64));
+        final ReferenceConfig<GenericService> first = createReference(configCache, "");
+
+        configCache.init(createRegisterConfig(threadpool, corethreads, threads, queues));
+        ReferenceConfig<GenericService> second = createReference(configCache, "");
+
+        assertEquals(threadpool, second.getConsumer().getThreadpool());
+        assertEquals(corethreads, second.getConsumer().getCorethreads());
+        assertEquals(threads, second.getConsumer().getThreads());
+        assertEquals(queues, second.getConsumer().getQueues());
+        assertEquals("fixed", first.getConsumer().getThreadpool());
+        assertEquals(4, first.getConsumer().getCorethreads());
+        assertEquals(32, first.getConsumer().getThreads());
+        assertEquals(64, first.getConsumer().getQueues());
+        assertSame(first.getRegistry(), second.getRegistry());
+    }
+
+    @ParameterizedTest
+    @CsvSource({", 4, 32, 64", "fixed, , 32, 64", "fixed, 4, , 64", "fixed, 4, 32, ", ", , , "})
+    public void testInitRestoresDefaultsForClearedConsumerFields(final String threadpool, final Integer corethreads, final Integer threads, final Integer queues) {
+        ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+        configCache.init(createRegisterConfig("fixed", 4, 32, 64));
+        ConsumerConfig defaults = new ConsumerConfig();
+        defaults.refresh();
+
+        configCache.init(createRegisterConfig(threadpool, corethreads, threads, queues));
+        ConsumerConfig actual = createReference(configCache, "").getConsumer();
+
+        assertEquals(Objects.isNull(threadpool) ? defaults.getThreadpool() : threadpool, actual.getThreadpool());
+        assertEquals(Objects.isNull(corethreads) ? defaults.getCorethreads() : corethreads, actual.getCorethreads());
+        assertEquals(Objects.isNull(threads) ? defaults.getThreads() : threads, actual.getThreads());
+        assertEquals(Objects.isNull(queues) ? defaults.getQueues() : queues, actual.getQueues());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testInitReusesUnchangedConfiguration(final boolean explicitPoolConfig) {
+        ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+        DubboRegisterConfig config = explicitPoolConfig ? createRegisterConfig("fixed", 4, 32, 64) : createRegisterConfig(null, null, null, null);
+        config.setGroup("same-group");
+        configCache.init(config);
+        ReferenceConfig<GenericService> first = createReference(configCache, "");
+
+        configCache.init(GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(config), DubboRegisterConfig.class));
+        ReferenceConfig<GenericService> second = createReference(configCache, "");
+
+        assertSame(first.getRegistry(), second.getRegistry());
+        assertSame(first.getConsumer(), second.getConsumer());
+    }
+
+    @Test
+    public void testInitRestoresConfiguredDubboDefault() {
+        final String property = "dubbo.consumer.threads";
+        final String previous = System.getProperty(property);
+        try {
+            System.setProperty(property, "19");
+            ConsumerConfig defaults = new ConsumerConfig();
+            defaults.refresh();
+            assertEquals(19, defaults.getThreads());
+            ApacheDubboConfigCache configCache = new ApacheDubboConfigCache();
+            configCache.init(createRegisterConfig("fixed", 4, 32, 64));
+
+            configCache.init(createRegisterConfig("fixed", 4, null, 64));
+
+            assertEquals(19, createReference(configCache, "").getConsumer().getThreads());
+        } finally {
+            if (Objects.isNull(previous)) {
+                System.clearProperty(property);
+            } else {
+                System.setProperty(property, previous);
+            }
+        }
+    }
+
+    private DubboRegisterConfig createRegisterConfig(final String threadpool, final Integer corethreads, final Integer threads, final Integer queues) {
+        DubboRegisterConfig config = new DubboRegisterConfig();
+        config.setProtocol("zookeeper");
+        config.setRegister("zookeeper://127.0.0.1:2181");
+        config.setThreadpool(threadpool);
+        config.setCorethreads(corethreads);
+        config.setThreads(threads);
+        config.setQueues(queues);
+        return config;
+    }
+
+    private ReferenceConfig<GenericService> createReference(final ApacheDubboConfigCache configCache, final String namespace) {
+        MetaData metaData = new MetaData();
+        metaData.setServiceName("org.apache.shenyu.test.DemoService");
+        return ReflectionTestUtils.invokeMethod(configCache, "buildReference", metaData, namespace);
     }
 
     @Test

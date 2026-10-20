@@ -429,7 +429,18 @@ The text of each license is the standard Apache 2.0 license.
     opentracing-noop 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentracing-util 0.22.0: https://github.com/opentracing/opentracing-java, Apache 2.0
     opentelemetry-api 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api, Apache 2.0
+    opentelemetry-api-incubator 1.37.0-alpha: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api-incubator, Apache 2.0
+    opentelemetry-exporter-common 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-exporter-common, Apache 2.0
+    opentelemetry-exporter-otlp 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-exporter-otlp, Apache 2.0
+    opentelemetry-exporter-otlp-common 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-exporter-otlp-common, Apache 2.0
+    opentelemetry-exporter-sender-okhttp 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-exporter-sender-okhttp, Apache 2.0
     opentelemetry-context 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-context, Apache 2.0
+    opentelemetry-sdk 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk, Apache 2.0
+    opentelemetry-sdk-common 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-common, Apache 2.0
+    opentelemetry-sdk-extension-autoconfigure-spi 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi, Apache 2.0
+    opentelemetry-sdk-logs 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-logs, Apache 2.0
+    opentelemetry-sdk-metrics 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-metrics, Apache 2.0
+    opentelemetry-sdk-trace 1.37.0: https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-sdk-trace, Apache 2.0
     perfmark-api 0.25.0: https://github.com/perfmark/perfmark, Apache 2.0
     proto-google-common-protos 2.29.0: https://github.com/googleapis/common-protos-java, Apache 2.0
     reactor-core 3.6.7: https://github.com/reactor/reactor-core, Apache 2.0
@@ -726,6 +737,7 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    connect 0.1.0: https://github.com/agentic-ai-java/connect, MIT (see licenses/LICENSE-connect.txt)
     jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     bcpkix-jdk15on 1.68: http://www.bouncycastle.org/licence.html , MIT

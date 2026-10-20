@@ -309,7 +309,7 @@ public abstract class AbstractNodeDataSyncService {
         }
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setPluginName(proxySelectorKeys[3]);
-        proxySelectorData.setName(proxySelectorKeys[4]);
+        proxySelectorData.setId(proxySelectorKeys[4]);
         proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
         removeListener(removeKey);
     }

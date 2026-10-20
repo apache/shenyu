@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.model.dto.AlertReportRequest;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -40,11 +41,20 @@ public class AlertReportController {
     /**
      * report new alert content.
      *
-     * @param alarmContent AlertContentDTO
+     * @param request alert report request
      * @return row int
      */
     @PostMapping
-    public ShenyuAdminResult reportAlert(@Valid @RequestBody final AlarmContent alarmContent) {
+    public ShenyuAdminResult reportAlert(@Valid @RequestBody final AlertReportRequest request) {
+        AlarmContent alarmContent = new AlarmContent.Builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .level(request.getLevel())
+                .labels(request.getLabels())
+                .namespaceId(request.getNamespaceId())
+                .dateCreated(request.getDateCreated())
+                .dateUpdated(request.getDateUpdated())
+                .build();
         alertDispatchService.dispatchAlert(alarmContent);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
