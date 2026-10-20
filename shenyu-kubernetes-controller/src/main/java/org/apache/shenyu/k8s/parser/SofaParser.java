@@ -265,7 +265,7 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(ruleConditionList)
                 .handle(GsonUtils.getInstance().toJson(ruleHandle))
-                .loged(true)
+                .logged(true)
                 .enabled(true)
                 .build();
     }
@@ -309,7 +309,7 @@ public class SofaParser implements K8sResourceParser<V1Ingress> {
                 .name("sofa-rule")
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(Collections.singletonList(conditionData))
-                .loged(false)
+                .logged(false)
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 

@@ -273,7 +273,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                             .matchMode(MatchModeEnum.AND.getCode())
                             .conditionDataList(conditionList)
                             .handle(GsonUtils.getInstance().toJson(webSocketRuleHandle))
-                            .loged(false)
+                            .logged(false)
                             .enabled(true).build();
 
                     res.add(new IngressConfiguration(selectorData, Arrays.asList(ruleData), null));
@@ -375,7 +375,7 @@ public class WebSocketParser implements K8sResourceParser<V1Ingress> {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(Collections.singletonList(conditionData))
                 .handle(GsonUtils.getInstance().toJson(webSocketRuleHandle))
-                .loged(false)
+                .logged(false)
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 

@@ -21,19 +21,26 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.awaitility.Awaitility.await;
 
 /**
  * MemoryCacheTest.
  */
 public class MemoryCacheTest {
+
+    private static final String CALLER_THREAD_NAME = "caller-thread";
 
     private final MemoryCache memoryCache = new MemoryCache();
 
@@ -66,6 +73,30 @@ public class MemoryCacheTest {
     }
 
     @Test
+    public void testReadsRunOnTheSubscribingThread() {
+        final String key = "data";
+        final byte[] bytes = "data".getBytes(StandardCharsets.UTF_8);
+        final Scheduler caller = Schedulers.newSingle(CALLER_THREAD_NAME);
+        try {
+            memoryCache.cacheData(key, bytes, 10).block();
+            assertSubscribesOnCallerThread(caller, memoryCache.isExist(key), Boolean.TRUE);
+            assertSubscribesOnCallerThread(caller, memoryCache.getData(key), bytes);
+        } finally {
+            caller.dispose();
+        }
+    }
+
+    @Test
+    public void testReadsAreDeferredUntilSubscription() {
+        final String key = "data";
+        final byte[] bytes = "data".getBytes(StandardCharsets.UTF_8);
+        final Mono<byte[]> deferred = memoryCache.getData(key);
+        // Assembling the publisher must not observe the cache; only subscribing may.
+        memoryCache.cacheData(key, bytes, 10).block();
+        assertArrayEquals(bytes, deferred.block());
+    }
+
+    @Test
     public void testPerEntryExpirationAndReplacement() {
         final byte[] bytes = "data".getBytes(StandardCharsets.UTF_8);
         memoryCache.cacheData("short", bytes, 1).block();
@@ -82,6 +113,18 @@ public class MemoryCacheTest {
         });
         assertArrayEquals(bytes, memoryCache.getData("long").block());
         assertArrayEquals(bytes, memoryCache.getData("extended").block());
+    }
+
+    private <T> void assertSubscribesOnCallerThread(final Scheduler caller, final Mono<T> publisher, final T expected) {
+        final AtomicReference<Thread> lookupThread = new AtomicReference<>();
+        final T actual = publisher
+                // Captures the thread that evaluates the deferred lookup, which is the subscribing thread.
+                .doOnNext(ignored -> lookupThread.set(Thread.currentThread()))
+                .subscribeOn(caller)
+                .block();
+        assertEquals(expected, actual);
+        // The lookup must stay on the caller-supplied scheduler instead of hopping to bounded-elastic.
+        assertTrue(lookupThread.get().getName().startsWith(CALLER_THREAD_NAME), lookupThread.get().getName());
     }
 
 }

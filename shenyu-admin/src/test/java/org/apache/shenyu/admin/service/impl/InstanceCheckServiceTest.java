@@ -171,23 +171,23 @@ public final class InstanceCheckServiceTest {
     @Test
     void testHandleBeatInfoRefreshesInstanceInfoOnExistingIdentity() {
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        first.setInstanceInfo("version=1.0");
+        first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
         InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
         assertNotNull(cached);
-        assertEquals("version=1.0", cached.getInstanceInfo());
+        assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
 
         // same identity reports again with changed metadata
         InstanceBeatInfoDTO second = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        second.setInstanceInfo("version=2.0");
+        second.setInstanceInfo("{\"version\":\"2.0\"}");
         instanceCheckService.handleBeatInfo(second);
-        assertEquals("version=2.0", cached.getInstanceInfo());
+        assertEquals("{\"version\":\"2.0\"}", cached.getInstanceInfo());
     }
 
     @Test
     void testHandleBeatInfoKeepsInstanceInfoWhenBeatCarriesBlank() {
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        first.setInstanceInfo("version=1.0");
+        first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
         InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
         assertNotNull(cached);
@@ -195,7 +195,7 @@ public final class InstanceCheckServiceTest {
         InstanceBeatInfoDTO blank = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         blank.setInstanceInfo("");
         instanceCheckService.handleBeatInfo(blank);
-        assertEquals("version=1.0", cached.getInstanceInfo());
+        assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
     }
 
     @Test

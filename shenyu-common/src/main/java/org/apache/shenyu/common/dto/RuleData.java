@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +38,8 @@ public class RuleData extends BaseData {
      */
     private Integer matchMode;
 
-    private Boolean loged;
+    @SerializedName(value = "logged", alternate = "loged")
+    private Boolean logged;
 
     /**
      * handle message（different plugin have different handle to mark ,json style）.
@@ -71,7 +74,7 @@ public class RuleData extends BaseData {
         this.matchMode = builder.matchMode;
         this.setSort(builder.sort);
         this.setEnabled(builder.enabled);
-        this.loged = builder.loged;
+        this.logged = builder.logged;
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
@@ -204,22 +207,22 @@ public class RuleData extends BaseData {
     }
 
     /**
-     * get loged.
+     * get logged.
      *
-     * @return loged
+     * @return logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * set loged.
+     * set logged.
      *
-     * @param loged loged
+     * @param logged logged
      * @return this
      */
-    public RuleData setLoged(final Boolean loged) {
-        this.loged = loged;
+    public RuleData setLogged(final Boolean logged) {
+        this.logged = logged;
         return this;
     }
 
@@ -315,7 +318,7 @@ public class RuleData extends BaseData {
                 && Objects.equals(matchMode, ruleData.matchMode)
                 && Objects.equals(getSort(), ruleData.getSort())
                 && Objects.equals(getEnabled(), ruleData.getEnabled())
-                && Objects.equals(loged, ruleData.loged)
+                && Objects.equals(logged, ruleData.logged)
                 && Objects.equals(handle, ruleData.handle)
                 && Objects.equals(conditionDataList, ruleData.conditionDataList)
                 && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
@@ -325,7 +328,7 @@ public class RuleData extends BaseData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), pluginName, selectorId, matchMode, getSort(), getEnabled(), loged, handle, conditionDataList,
+        return Objects.hash(getId(), getName(), pluginName, selectorId, matchMode, getSort(), getEnabled(), logged, handle, conditionDataList,
                 beforeConditionDataList, matchRestful, getNamespaceId());
     }
 
@@ -350,8 +353,8 @@ public class RuleData extends BaseData {
                 + getSort()
                 + ", enabled="
                 + getEnabled()
-                + ", loged="
-                + loged
+                + ", logged="
+                + logged
                 + ", handle='"
                 + handle
                 + '\''
@@ -381,7 +384,7 @@ public class RuleData extends BaseData {
 
         private Boolean enabled;
 
-        private Boolean loged;
+        private Boolean logged;
 
         private String handle;
 
@@ -486,13 +489,13 @@ public class RuleData extends BaseData {
         }
 
         /**
-         * build loged.
+         * build logged.
          *
-         * @param loged loged
+         * @param logged logged
          * @return this
          */
-        public Builder loged(final Boolean loged) {
-            this.loged = loged;
+        public Builder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
 

@@ -27,7 +27,7 @@
         <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
         <result column="sort_code" jdbcType="INTEGER" property="sortCode"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
-        <result column="loged" jdbcType="TINYINT" property="loged"/>
+        <result column="logged" jdbcType="TINYINT" property="logged"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
@@ -42,7 +42,7 @@
         match_mode,
         sort_code,
         enabled,
-        loged,
+        logged,
         match_restful,
         handle,
         namespace_id
@@ -236,7 +236,7 @@
                          match_mode,
                          sort_code,
                          enabled,
-                         loged,
+                         logged,
                          match_restful,
                          handle,
                          namespace_id)
@@ -248,7 +248,7 @@
                           #{matchMode, jdbcType=INTEGER},
                           #{sortCode, jdbcType=INTEGER},
                           #{enabled, jdbcType=TINYINT},
-                          #{loged, jdbcType=TINYINT},
+                          #{logged, jdbcType=TINYINT},
                           #{matchRestful, jdbcType=TINYINT},
                           #{handle, jdbcType=VARCHAR},
                           #{namespaceId, jdbcType=VARCHAR})
@@ -279,8 +279,8 @@
             <if test="enabled != null">
                 enabled,
             </if>
-            <if test="loged != null">
-                loged,
+            <if test="logged != null">
+                logged,
             </if>
             <if test="matchRestful != null">
                 match_restful,
@@ -315,8 +315,8 @@
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
             </if>
-            <if test="loged != null">
-                #{loged, jdbcType=TINYINT},
+            <if test="logged != null">
+                #{logged, jdbcType=TINYINT},
             </if>
             <if test="matchRestful != null">
                 #{matchRestful, jdbcType=TINYINT},
@@ -339,7 +339,7 @@
                match_mode    = #{matchMode, jdbcType=INTEGER},
                sort_code     = #{sortCode, jdbcType=INTEGER},
                enabled       = #{enabled, jdbcType=TINYINT},
-               loged         = #{loged, jdbcType=TINYINT},
+               logged         = #{logged, jdbcType=TINYINT},
                match_restful = #{matchRestful, jdbcType=TINYINT},
                handle        = #{handle, jdbcType=VARCHAR}
          WHERE id = #{id, jdbcType=VARCHAR}
@@ -369,8 +369,8 @@
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
             </if>
-            <if test="loged != null">
-                loged = #{loged, jdbcType=TINYINT},
+            <if test="logged != null">
+                logged = #{logged, jdbcType=TINYINT},
             </if>
             <if test="matchRestful != null">
                 match_restful = #{matchRestful, jdbcType=TINYINT},

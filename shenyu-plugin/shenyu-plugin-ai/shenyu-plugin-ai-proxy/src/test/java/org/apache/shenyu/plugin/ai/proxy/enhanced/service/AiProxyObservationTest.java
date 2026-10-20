@@ -61,6 +61,58 @@ class AiProxyObservationTest {
     private static final String BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}";
 
     @Test
+    void configuredRetryLimitRetainsAttemptAndTerminalObservation() throws InterruptedException {
+        final Sink sink = new Sink();
+        final AtomicInteger calls = new AtomicInteger();
+        final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi())),
+                request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))),
+                new AiProxyRetryProperties(1, 0, Duration.ZERO), sink);
+        engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")), result -> result.getBody().then()).block();
+        assertTrue(sink.finished.await(5, TimeUnit.SECONDS));
+        assertEquals(3, calls.get());
+        assertEquals(List.of(AiAttemptEvent.Kind.PRIMARY, AiAttemptEvent.Kind.RETRY, AiAttemptEvent.Kind.FALLBACK),
+                sink.attempts.stream().map(AiAttemptEvent::kind).toList());
+        assertEquals(1, sink.events.size());
+        assertEquals(3, sink.events.get(0).attemptCount());
+        assertEquals(AiCallOutcome.SUCCESS, sink.events.get(0).outcome());
+    }
+
+    @Test
+    void observedTlsFailureDoesNotRetryOrFallback() throws InterruptedException {
+        final Sink sink = new Sink();
+        final AtomicInteger calls = new AtomicInteger();
+        final AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(new AiTransportException(AiTransportException.Kind.TLS_FAILURE, "fixture", null));
+        }, sink);
+        StepVerifier.create(engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")),
+                result -> result.getBody().then())).expectError(AiTransportException.class).verify();
+        assertTrue(sink.finished.await(5, TimeUnit.SECONDS));
+        assertEquals(1, calls.get());
+        assertEquals(1, sink.attempts.size());
+        assertEquals(AiAttemptEvent.Kind.PRIMARY, sink.attempts.get(0).kind());
+        assertEquals(1, sink.events.size());
+    }
+
+    @Test
+    void observedNonRetryableStatusForwardsOriginalBodyWithoutFallback() {
+        final Sink sink = new Sink();
+        final AtomicInteger calls = new AtomicInteger();
+        final AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(401, Flux.just(bytes("unauthorized"))));
+        }, sink);
+        engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")), result -> {
+            assertEquals(401, result.getStatusCode());
+            return result.getBody().doOnNext(body -> assertEquals("unauthorized", new String(body, StandardCharsets.UTF_8))).then();
+        }).block();
+        assertEquals(1, calls.get());
+        assertEquals(1, sink.attempts.size());
+        assertEquals(1, sink.events.size());
+    }
+
+    @Test
     void recordsFourPrimaryAttemptsThenFallbackAndOnlyItsUsageAtLogicalEnd() throws InterruptedException {
         final Sink sink = new Sink();
         final AtomicInteger calls = new AtomicInteger();

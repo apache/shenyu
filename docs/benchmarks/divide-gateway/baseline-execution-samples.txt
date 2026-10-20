@@ -1,0 +1,2192 @@
+jdk.ExecutionSample {
+  startTime = 16:23:08.267
+  sampledThread = "main" (javaThreadId = 1)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.lang.invoke.DirectMethodHandle.shouldBeInitialized(MemberName) line: 355
+    java.lang.invoke.DirectMethodHandle.preparedLambdaForm(MemberName, boolean) line: 210
+    java.lang.invoke.DirectMethodHandle.preparedLambdaForm(MemberName) line: 227
+    java.lang.invoke.DirectMethodHandle.make(byte, Class, MemberName, Class) line: 108
+    java.lang.invoke.MethodHandles$Lookup.getDirectMethodCommon(byte, Class, MemberName, boolean, boolean, MethodHandles$Lookup) line: 4004
+    java.lang.invoke.MethodHandles$Lookup.getDirectMethodNoSecurityManager(byte, Class, MemberName, MethodHandles$Lookup) line: 3960
+    java.lang.invoke.MethodHandles$Lookup.getDirectMethodForConstant(byte, Class, MemberName) line: 4204
+    java.lang.invoke.MethodHandles$Lookup.linkMethodHandleConstant(byte, Class, String, Object) line: 4152
+    java.lang.invoke.MethodHandleNatives.linkMethodHandleConstant(Class, int, Class, String, Object) line: 615
+    jdk.internal.net.http.common.Utils.<clinit>() line: 167
+    jdk.internal.net.http.HttpClientImpl.<clinit>() line: 109
+    jdk.internal.net.http.HttpClientBuilderImpl.build() line: 135
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.<clinit>() line: 86
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:08.351
+  sampledThread = "main" (javaThreadId = 1)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    jdk.internal.reflect.ByteVectorImpl.add(byte) line: 62
+    jdk.internal.reflect.ClassFileAssembler.emitByte(byte) line: 74
+    jdk.internal.reflect.ClassFileAssembler.emitConstantPoolUTF8(String) line: 107
+    jdk.internal.reflect.AccessorGenerator.emitCommonConstantPoolEntries() line: 142
+    jdk.internal.reflect.MethodAccessorGenerator.generate(Class, String, Class[], Class, Class[], int, boolean, boolean, Class) line: 350
+    jdk.internal.reflect.MethodAccessorGenerator.generateConstructor(Class, Class[], Class[], int) line: 92
+    jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(Object[]) line: 65
+    jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(Object[]) line: 45
+    java.lang.reflect.Constructor.newInstanceWithCaller(Object[], boolean, Class) line: 500
+    java.lang.reflect.Constructor.newInstance(Object[]) line: 481
+    sun.security.x509.CertificateExtensions.parseExtension(Extension) line: 112
+    sun.security.x509.CertificateExtensions.init(DerInputStream) line: 87
+    sun.security.x509.CertificateExtensions.<init>(DerInputStream) line: 77
+    sun.security.x509.X509CertInfo.parse(DerValue) line: 709
+    sun.security.x509.X509CertInfo.<init>(DerValue) line: 168
+    sun.security.x509.X509CertImpl.parse(DerValue) line: 1787
+    sun.security.x509.X509CertImpl.<init>(byte[]) line: 178
+    sun.security.provider.X509Factory.engineGenerateCertificate(InputStream) line: 102
+    java.security.cert.CertificateFactory.generateCertificate(InputStream) line: 355
+    sun.security.provider.JavaKeyStore.engineLoad(InputStream, char[]) line: 785
+    sun.security.util.KeyStoreDelegator.engineLoad(InputStream, char[]) line: 242
+    java.security.KeyStore.load(InputStream, char[]) line: 1473
+    sun.security.ssl.TrustStoreManager$TrustAnchorManager.loadKeyStore(TrustStoreManager$TrustStoreDescriptor) line: 390
+    sun.security.ssl.TrustStoreManager$TrustAnchorManager.getTrustedCerts(TrustStoreManager$TrustStoreDescriptor) line: 336
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:08.701
+  sampledThread = "main" (javaThreadId = 1)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.springframework.core.env.PropertySource.<init>(String, Object) line: 64
+    org.springframework.core.env.EnumerablePropertySource.<init>(String, Object) line: 53
+    org.springframework.core.env.MapPropertySource.<init>(String, Map) line: 43
+    org.springframework.core.env.PropertiesPropertySource.<init>(String, Map) line: 44
+    org.springframework.core.env.StandardEnvironment.customizePropertySources(MutablePropertySources) line: 98
+    org.springframework.core.env.AbstractEnvironment.<init>(MutablePropertySources) line: 138
+    org.springframework.core.env.AbstractEnvironment.<init>() line: 122
+    org.springframework.core.env.StandardEnvironment.<init>() line: 68
+    org.springframework.context.support.AbstractApplicationContext.createEnvironment() line: 353
+    org.springframework.context.support.AbstractApplicationContext.getEnvironment() line: 342
+    org.springframework.context.support.AbstractApplicationContext.prepareRefresh() line: 680
+    org.springframework.context.support.AbstractApplicationContext.refresh() line: 592
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.gateway(Path, Path) line: 159
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.main(String[]) line: 95
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:08.766
+  sampledThread = "main" (javaThreadId = 1)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.zip.ZipFile$Source.getEntryPos(String, boolean) line: 1816
+    java.util.zip.ZipFile.getEntry(String) line: 339
+    java.util.jar.JarFile.getEntry(String) line: 518
+    java.util.jar.JarFile.getJarEntry(String) line: 473
+    jdk.internal.loader.URLClassPath$JarLoader.getResource(String, boolean) line: 956
+    jdk.internal.loader.URLClassPath.getResource(String, boolean) line: 321
+    jdk.internal.loader.BuiltinClassLoader.findClassOnClassPathOrNull(String) line: 757
+    jdk.internal.loader.BuiltinClassLoader.loadClassOrNull(String, boolean) line: 681
+    jdk.internal.loader.BuiltinClassLoader.loadClass(String, boolean) line: 639
+    jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(String, boolean) line: 188
+    java.lang.ClassLoader.loadClass(String) line: 525
+    org.apache.shenyu.plugin.base.cache.BaseDataCache.<clinit>() line: 47
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.gateway(Path, Path) line: 164
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.main(String[]) line: 95
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:08.943
+  sampledThread = "main" (javaThreadId = 1)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    sun.net.www.protocol.jar.Handler.parseContextSpec(URL, String) line: 210
+    sun.net.www.protocol.jar.Handler.parseURL(URL, String, int, int) line: 164
+    java.net.URL.<init>(URL, String, URLStreamHandler) line: 703
+    java.net.URL.<init>(URL, String) line: 569
+    jdk.internal.loader.URLClassPath$JarLoader.checkResource(String, boolean, JarEntry) line: 862
+    jdk.internal.loader.URLClassPath$JarLoader.getResource(String, boolean) line: 958
+    jdk.internal.loader.URLClassPath.getResource(String, boolean) line: 321
+    jdk.internal.loader.BuiltinClassLoader.findClassOnClassPathOrNull(String) line: 757
+    jdk.internal.loader.BuiltinClassLoader.loadClassOrNull(String, boolean) line: 681
+    jdk.internal.loader.BuiltinClassLoader.loadClass(String, boolean) line: 639
+    jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(String, boolean) line: 188
+    java.lang.ClassLoader.loadClass(String) line: 525
+    io.netty.util.concurrent.MultithreadEventExecutorGroup.<init>(int, Executor, EventExecutorChooserFactory, Object[]) line: 38
+    io.netty.util.concurrent.MultithreadEventExecutorGroup.<init>(int, Executor, Object[]) line: 60
+    io.netty.util.concurrent.MultithreadEventExecutorGroup.<init>(int, ThreadFactory, Object[]) line: 49
+    io.netty.channel.MultithreadEventLoopGroup.<init>(int, ThreadFactory, Object[]) line: 59
+    io.netty.channel.nio.NioEventLoopGroup.<init>(int, ThreadFactory, SelectorProvider, SelectStrategyFactory) line: 87
+    io.netty.channel.nio.NioEventLoopGroup.<init>(int, ThreadFactory, SelectorProvider) line: 82
+    io.netty.channel.nio.NioEventLoopGroup.<init>(int, ThreadFactory) line: 69
+    reactor.netty.resources.DefaultLoopResources.cacheNioServerLoops() line: 213
+    reactor.netty.resources.DefaultLoopResources.cacheNioClientLoops() line: 179
+    reactor.netty.resources.DefaultLoopResources.onClient(boolean) line: 147
+    reactor.netty.transport.NameResolverProvider.newNameResolverGroup(LoopResources, boolean) line: 559
+    reactor.netty.transport.ClientTransportConfig.lambda$getOrCreateResolver$0(NameResolverProvider, LoopResources, boolean, Integer) line: 249
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:11.740
+  sampledThread = "gateway-server-nio-2" (javaThreadId = 28)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf$Function.isInitialized() line: 16184
+    kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf$Class.isInitialized() line: 9821
+    kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf$PackageFragment.isInitialized() line: 24730
+    kotlin.reflect.jvm.internal.impl.protobuf.AbstractParser.checkMessageInitialized(MessageLite) line: 70
+    kotlin.reflect.jvm.internal.impl.protobuf.AbstractParser.parseFrom(InputStream, ExtensionRegistryLite) line: 209
+    kotlin.reflect.jvm.internal.impl.protobuf.AbstractParser.parseFrom(InputStream, ExtensionRegistryLite) line: 49
+    kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf$PackageFragment.parseFrom(InputStream, ExtensionRegistryLite) line: 24829
+    kotlin.reflect.jvm.internal.impl.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment(InputStream) line: 16
+    kotlin.reflect.jvm.internal.impl.serialization.deserialization.builtins.BuiltInsPackageFragmentImpl$Companion.create(FqName, StorageManager, ModuleDescriptor, InputStream, boolean) line: 37
+    kotlin.reflect.jvm.internal.impl.builtins.jvm.JvmBuiltInsPackageFragmentProvider.findPackage(FqName) line: 62
+    kotlin.reflect.jvm.internal.impl.serialization.deserialization.AbstractDeserializedPackageFragmentProvider$fragments$1.invoke(FqName) line: 35
+    kotlin.reflect.jvm.internal.impl.serialization.deserialization.AbstractDeserializedPackageFragmentProvider$fragments$1.invoke(Object) line: 34
+    kotlin.reflect.jvm.internal.impl.storage.LockBasedStorageManager$MapBasedMemoizedFunction.invoke(Object) line: 578
+    kotlin.reflect.jvm.internal.impl.serialization.deserialization.AbstractDeserializedPackageFragmentProvider.collectPackageFragments(FqName, Collection) line: 43
+    kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt.collectPackageFragmentsOptimizedIfPossible(PackageFragmentProvider, FqName, Collection) line: 59
+    kotlin.reflect.jvm.internal.impl.descriptors.impl.CompositePackageFragmentProvider.collectPackageFragments(FqName, Collection) line: 46
+    kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt.collectPackageFragmentsOptimizedIfPossible(PackageFragmentProvider, FqName, Collection) line: 59
+    kotlin.reflect.jvm.internal.impl.descriptors.impl.CompositePackageFragmentProvider.collectPackageFragments(FqName, Collection) line: 46
+    kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt.collectPackageFragmentsOptimizedIfPossible(PackageFragmentProvider, FqName, Collection) line: 59
+    kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt.packageFragments(PackageFragmentProvider, FqName) line: 43
+    kotlin.reflect.jvm.internal.impl.descriptors.impl.LazyPackageViewDescriptorImpl$fragments$2.invoke() line: 35
+    kotlin.reflect.jvm.internal.impl.descriptors.impl.LazyPackageViewDescriptorImpl$fragments$2.invoke() line: 34
+    kotlin.reflect.jvm.internal.impl.storage.LockBasedStorageManager$LockBasedLazyValue.invoke() line: 408
+    kotlin.reflect.jvm.internal.impl.storage.LockBasedStorageManager$LockBasedNotNullLazyValue.invoke() line: 527
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:15.084
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.TimeUnit.convert(long, TimeUnit) line: 191
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.getDelay(TimeUnit) line: 245
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1172
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:16.266
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1141
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:16.515
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:16.764
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:16.887
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.134
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1141
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.260
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.322
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.release(int) line: 1007
+    java.util.concurrent.locks.ReentrantLock.unlock() line: 494
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1193
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.384
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1172
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.447
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1146
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.478
+  sampledThread = "HttpClient-1-SelectorManager" (javaThreadId = 18)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    sun.nio.ch.Util$2.clear() line: 356
+    jdk.internal.net.http.HttpClientImpl$SelectorManager.run() line: 1244
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.509
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.570
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.633
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.release(int) line: 1007
+    java.util.concurrent.locks.ReentrantLock.unlock() line: 494
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1193
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:17.697
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.ReentrantLock$Sync.lockInterruptibly() line: 160
+    java.util.concurrent.locks.ReentrantLock.lockInterruptibly() line: 372
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1165
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:18.502
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 649
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:18.628
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 649
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:18.689
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1165
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:18.751
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1172
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:19.501
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.TimeUnit.toNanos(long) line: 253
+    java.util.concurrent.TimeUnit.convert(long, TimeUnit) line: 187
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.getDelay(TimeUnit) line: 245
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1172
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:19.627
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.unlinkCancelledWaiters(AbstractQueuedSynchronizer$ConditionNode) line: 1542
+    java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(long) line: 1684
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:20.436
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1141
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:20.687
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 648
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:20.935
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:21.433
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:21.808
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 649
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:22.056
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1146
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:22.553
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 649
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:22.677
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1182
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:23.235
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1146
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:23.298
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1172
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:24.101
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.finishPoll(RunnableScheduledFuture) line: 1146
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1174
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:26.888
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:27.013
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:28.126
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:29.183
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 648
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:30.303
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:31.111
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:31.390
+  sampledThread = "gateway-server-nio-2" (javaThreadId = 28)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.stream.Collectors$Partition$1.iterator() line: 2017
+    java.util.AbstractMap.get(Object) line: 176
+    org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager.submit(String, List) line: 162
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.configure(int[], int, String) line: 246
+    org.apache.shenyu.benchmark.DivideGatewayBenchmark.lambda$gateway$7(int[], SelectorData, ShenyuWebHandler, ServerWebExchange) line: 199
+    org.springframework.web.server.handler.DefaultWebFilterChain.lambda$filter$0(ServerWebExchange) line: 109
+    reactor.core.publisher.MonoDefer.subscribe(CoreSubscriber) line: 45
+    reactor.core.publisher.Mono.subscribe(Subscriber) line: 4568
+    reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext() line: 265
+    reactor.core.publisher.MonoIgnoreThen.subscribe(CoreSubscriber) line: 51
+    reactor.core.publisher.InternalMonoOperator.subscribe(CoreSubscriber) line: 76
+    reactor.core.publisher.MonoDeferContextual.subscribe(CoreSubscriber) line: 55
+    reactor.netty.http.server.HttpServer$HttpServerHandle.onStateChange(Connection, ConnectionObserver$State) line: 1176
+    reactor.netty.transport.ServerTransport$ChildObserver.onStateChange(Connection, ConnectionObserver$State) line: 481
+    reactor.netty.http.server.HttpServerOperations.onInboundNext(ChannelHandlerContext, Object) line: 781
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    reactor.netty.http.server.HttpTrafficHandler.channelRead(ChannelHandlerContext, Object) line: 259
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:33.165
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:33.351
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 648
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:33.538
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 648
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:33.786
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:34.098
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:34.722
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:35.656
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.common.concurrent.MemoryLimitCalculator.refresh() line: 59
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:36.154
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor$Worker.tryAcquire(int) line: 648
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:36.464
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.common.concurrent.MemoryLimitCalculator.refresh() line: 59
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:36.962
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.release(int) line: 1008
+    java.util.concurrent.locks.ReentrantLock.unlock() line: 494
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 1193
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take() line: 899
+    java.util.concurrent.ThreadPoolExecutor.getTask() line: 1062
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:37.898
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:38.022
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:38.225
+  sampledThread = "JFR Periodic Tasks" (javaThreadId = 15)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    jdk.jfr.internal.RequestEngine.run_requests(Collection) line: 227
+    jdk.jfr.internal.RequestEngine.doPeriodic() line: 192
+    jdk.jfr.internal.PlatformRecorder.periodicTask() line: 518
+    jdk.jfr.internal.PlatformRecorder.lambda$startDiskMonitor$1() line: 449
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:38.396
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:39.519
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:39.643
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:39.986
+  sampledThread = "gateway-client-nio-2" (javaThreadId = 22)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    ch.qos.logback.classic.Logger.isDebugEnabled() line: 470
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 106
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:40.511
+  sampledThread = "gateway-client-nio-2" (javaThreadId = 22)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ConcurrentHashMap.get(Object) line: 946
+    org.springframework.web.server.ServerWebExchange.getAttribute(String) line: 80
+    org.apache.shenyu.plugin.httpclient.AbstractHttpClientPlugin.shouldFailover(ServerWebExchange, int) line: 241
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 109
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:41.251
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:41.563
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:41.812
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:42.121
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:42.619
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:42.993
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:43.680
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:44.609
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.107
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.common.concurrent.MemoryLimitCalculator.refresh() line: 59
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.231
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.543
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.791
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.852
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:45.976
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(int) line: 937
+    java.util.concurrent.ThreadPoolExecutor$Worker.lock() line: 661
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:47.037
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1123
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:48.719
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.321
+  sampledThread = "gateway-client-nio-4" (javaThreadId = 24)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.springframework.http.HttpHeaders.<init>() line: 433
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 115
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.462
+  sampledThread = "gateway-server-nio-4" (javaThreadId = 38)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.lang.invoke.DirectMethodHandle.allocateInstance(Object) line: 520
+    reactor.util.concurrent.Queues.get(int) line: 134
+    reactor.netty.channel.MonoSendMany$SendManyInner.onSubscribe(Subscription) line: 252
+    reactor.core.publisher.FluxMap$MapSubscriber.onSubscribe(Subscription) line: 92
+    org.springframework.http.server.reactive.ChannelSendOperator$WriteBarrier.subscribe(Subscriber) line: 359
+    reactor.core.publisher.FluxSource.subscribe(CoreSubscriber) line: 71
+    reactor.core.publisher.Flux.subscribe(Subscriber) line: 8840
+    reactor.netty.channel.MonoSendMany.subscribe(CoreSubscriber) line: 102
+    reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext() line: 241
+    reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.onComplete() line: 204
+    reactor.netty.FutureMono$FutureSubscription.operationComplete(Future) line: 196
+    io.netty.util.concurrent.DefaultPromise.notifyListener0(Future, GenericFutureListener) line: 604
+    io.netty.util.concurrent.DefaultPromise.notifyListenersNow() line: 571
+    io.netty.util.concurrent.DefaultPromise.notifyListeners() line: 506
+    io.netty.util.concurrent.DefaultPromise.setValue0(Object) line: 650
+    io.netty.util.concurrent.DefaultPromise.setSuccess0(Object) line: 639
+    io.netty.util.concurrent.DefaultPromise.trySuccess(Object) line: 119
+    io.netty.util.internal.PromiseNotificationUtil.trySuccess(Promise, Object, InternalLogger) line: 48
+    io.netty.channel.ChannelOutboundBuffer.safeSuccess(ChannelPromise) line: 766
+    io.netty.channel.ChannelOutboundBuffer.remove() line: 321
+    io.netty.channel.ChannelOutboundBuffer.removeBytes(long) line: 401
+    io.netty.channel.socket.nio.NioSocketChannel.doWrite(ChannelOutboundBuffer) line: 420
+    io.netty.channel.AbstractChannel$AbstractUnsafe.flush0() line: 929
+    io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.flush0() line: 359
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.523
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.646
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.971
+  sampledThread = "gateway-client-nio-3" (javaThreadId = 23)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    reactor.core.publisher.SerializedSubscriber.discardMultiple(SerializedSubscriber$LinkedArrayNode) line: 272
+    reactor.core.publisher.SerializedSubscriber.serDrainLoop(CoreSubscriber) line: 198
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 101
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(ChannelHandlerContext, Object) line: 1399
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.971
+  sampledThread = "gateway-client-nio-4" (javaThreadId = 24)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    io.netty.util.AsciiString$1.hashCode(Object) line: 1355
+    io.netty.handler.codec.DefaultHeaders$ValueIterator.<init>(DefaultHeaders, Object) line: 1312
+    io.netty.handler.codec.DefaultHeaders.valueIterator(Object) line: 217
+    io.netty.handler.codec.http.DefaultHttpHeaders.valueCharSequenceIterator(CharSequence) line: 366
+    io.netty.handler.codec.http.HttpHeaders.containsValue(CharSequence, CharSequence, boolean) line: 1601
+    io.netty.handler.codec.http.HttpUtil.isTransferEncodingChunked(HttpMessage) line: 363
+    io.netty.handler.codec.http.HttpObjectDecoder.readHeaders(ByteBuf) line: 850
+    io.netty.handler.codec.http.HttpObjectDecoder.decode(ChannelHandlerContext, ByteBuf, List) line: 395
+    io.netty.handler.codec.http.HttpClientCodec$Decoder.decode(ChannelHandlerContext, ByteBuf, List) line: 320
+    io.netty.handler.codec.ByteToMessageDecoder.decodeRemovalReentryProtection(ChannelHandlerContext, ByteBuf, List) line: 545
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 484
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(ChannelHandlerContext, Object) line: 1399
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 440
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.DefaultChannelPipeline.fireChannelRead(Object) line: 910
+    io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read() line: 171
+    io.netty.channel.nio.NioEventLoop.processSelectedKey(SelectionKey, AbstractNioChannel) line: 796
+    io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized() line: 732
+    io.netty.channel.nio.NioEventLoop.processSelectedKeys() line: 658
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:49.972
+  sampledThread = "gateway-server-nio-3" (javaThreadId = 29)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ConcurrentHashMap.putVal(Object, Object, boolean) line: 1035
+    java.util.concurrent.ConcurrentHashMap.put(Object, Object) line: 1006
+    org.springframework.web.server.adapter.DefaultServerWebExchange.<init>(ServerHttpRequest, ServerHttpResponse, WebSessionManager, ServerCodecConfigurer, LocaleContextResolver, ApplicationContext) line: 131
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter.createExchange(ServerHttpRequest, ServerHttpResponse) line: 307
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter.handle(ServerHttpRequest, ServerHttpResponse) line: 286
+    org.springframework.http.server.reactive.ReactorHttpHandlerAdapter.apply(HttpServerRequest, HttpServerResponse) line: 65
+    org.springframework.http.server.reactive.ReactorHttpHandlerAdapter.apply(Object, Object) line: 40
+    reactor.netty.http.server.HttpServer$HttpServerHandle.onStateChange(Connection, ConnectionObserver$State) line: 1168
+    reactor.netty.transport.ServerTransport$ChildObserver.onStateChange(Connection, ConnectionObserver$State) line: 481
+    reactor.netty.http.server.HttpServerOperations.onInboundNext(ChannelHandlerContext, Object) line: 781
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    reactor.netty.http.server.HttpTrafficHandler.channelRead(ChannelHandlerContext, Object) line: 259
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 325
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:50.003
+  sampledThread = "gateway-server-nio-2" (javaThreadId = 28)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    sun.nio.ch.SocketDispatcher.write(FileDescriptor, long, int) line: 54
+    sun.nio.ch.IOUtil.writeFromNativeBuffer(FileDescriptor, ByteBuffer, long, boolean, boolean, int, NativeDispatcher) line: 132
+    sun.nio.ch.IOUtil.write(FileDescriptor, ByteBuffer, long, boolean, boolean, int, NativeDispatcher) line: 76
+    sun.nio.ch.IOUtil.write(FileDescriptor, ByteBuffer, long, NativeDispatcher) line: 53
+    sun.nio.ch.SocketChannelImpl.write(ByteBuffer) line: 532
+    io.netty.channel.socket.nio.NioSocketChannel.doWrite(ChannelOutboundBuffer) line: 414
+    io.netty.channel.AbstractChannel$AbstractUnsafe.flush0() line: 929
+    io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.flush0() line: 359
+    io.netty.channel.AbstractChannel$AbstractUnsafe.flush() line: 893
+    io.netty.channel.DefaultChannelPipeline$HeadContext.flush(ChannelHandlerContext) line: 1361
+    io.netty.channel.AbstractChannelHandlerContext.invokeFlush0() line: 935
+    io.netty.channel.AbstractChannelHandlerContext.invokeFlush() line: 921
+    io.netty.channel.AbstractChannelHandlerContext.flush() line: 907
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.flush() line: 531
+    io.netty.channel.ChannelOutboundHandlerAdapter.flush(ChannelHandlerContext) line: 125
+    io.netty.channel.CombinedChannelDuplexHandler.flush(ChannelHandlerContext) line: 356
+    io.netty.channel.AbstractChannelHandlerContext.invokeFlush0() line: 937
+    io.netty.channel.AbstractChannelHandlerContext.invokeFlush() line: 921
+    io.netty.channel.AbstractChannelHandlerContext.flush() line: 907
+    reactor.netty.http.server.HttpTrafficHandler.flush(ChannelHandlerContext) line: 336
+    io.netty.channel.AbstractChannelHandlerContext.invokeFlush0() line: 937
+    io.netty.channel.AbstractChannelHandlerContext.invokeWriteAndFlush(Object, ChannelPromise) line: 957
+    io.netty.channel.AbstractChannelHandlerContext$WriteTask.run() line: 1263
+    io.netty.util.concurrent.AbstractEventExecutor.runTask(Runnable) line: 173
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:51.331
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:53.014
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:53.634
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:55.132
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runStateAtLeast(int, int) line: 411
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:55.565
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:55.689
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:56.250
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:57.308
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:58.491
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.common.concurrent.MemoryLimitCalculator.refresh() line: 59
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:58.987
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:23:59.920
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:00.356
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:00.794
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 301
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:02.721
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:04.877
+  sampledThread = "gateway-client-nio-1" (javaThreadId = 21)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    ch.qos.logback.classic.Logger.isDebugEnabled() line: 470
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 106
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:04.877
+  sampledThread = "gateway-client-nio-3" (javaThreadId = 23)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    reactor.netty.internal.shaded.reactor.pool.SimpleDequePool.maybeRecycleAndDrain(SimpleDequePool$QueuePooledRef, CoreSubscriber) line: 536
+    reactor.netty.internal.shaded.reactor.pool.SimpleDequePool$QueuePoolRecyclerInner.onComplete() line: 770
+    reactor.core.publisher.Operators.complete(Subscriber) line: 137
+    reactor.core.publisher.MonoEmpty.subscribe(CoreSubscriber) line: 46
+    reactor.core.publisher.Mono.subscribe(Subscriber) line: 4568
+    reactor.netty.internal.shaded.reactor.pool.SimpleDequePool$QueuePoolRecyclerMono.subscribe(CoreSubscriber) line: 882
+    reactor.core.publisher.MonoDefer.subscribe(CoreSubscriber) line: 53
+    reactor.core.publisher.Mono.subscribe(Subscriber) line: 4568
+    reactor.core.publisher.Mono.subscribeWith(Subscriber) line: 4634
+    reactor.core.publisher.Mono.subscribe(Consumer, Consumer, Runnable, Context) line: 4534
+    reactor.core.publisher.Mono.subscribe(Consumer, Consumer, Runnable) line: 4470
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 442
+    reactor.netty.channel.ChannelOperations.terminate() line: 505
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 793
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 325
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:05.216
+  sampledThread = "gateway-client-nio-4" (javaThreadId = 24)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 113
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:05.572
+  sampledThread = "gateway-server-nio-1" (javaThreadId = 27)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    io.netty.buffer.ByteBufUtil.utf8MaxBytes(CharSequence) line: 1160
+    io.netty.buffer.AbstractByteBuf.setCharSequence0(int, CharSequence, Charset, boolean) line: 700
+    io.netty.buffer.AbstractByteBuf.setCharSequence(int, CharSequence, Charset) line: 695
+    io.netty.handler.codec.http.HttpHeadersEncoder.writeAscii(ByteBuf, int, CharSequence) line: 54
+    io.netty.handler.codec.http.HttpHeadersEncoder.encoderHeader(CharSequence, CharSequence, ByteBuf) line: 39
+    io.netty.handler.codec.http.HttpObjectEncoder.encodeHeaders(HttpHeaders, ByteBuf) line: 557
+    io.netty.handler.codec.http.HttpObjectEncoder.encodeInitHttpMessage(ChannelHandlerContext, HttpMessage) line: 535
+    io.netty.handler.codec.http.HttpObjectEncoder.encodeJustHttpMessage(ChannelHandlerContext, HttpMessage, List) line: 194
+    io.netty.handler.codec.http.HttpObjectEncoder.encode(ChannelHandlerContext, Object, List) line: 181
+    io.netty.handler.codec.http.HttpObjectEncoder.write(ChannelHandlerContext, Object, ChannelPromise) line: 100
+    io.netty.handler.codec.http.HttpServerCodec$HttpServerResponseEncoder.write(ChannelHandlerContext, Object, ChannelPromise) line: 250
+    io.netty.channel.CombinedChannelDuplexHandler.write(ChannelHandlerContext, Object, ChannelPromise) line: 346
+    io.netty.channel.AbstractChannelHandlerContext.invokeWrite0(Object, ChannelPromise) line: 891
+    io.netty.channel.AbstractChannelHandlerContext.invokeWrite(Object, ChannelPromise) line: 875
+    io.netty.channel.AbstractChannelHandlerContext.write(Object, boolean, ChannelPromise) line: 984
+    io.netty.channel.AbstractChannelHandlerContext.write(Object, ChannelPromise) line: 868
+    reactor.netty.http.server.HttpTrafficHandler.write(ChannelHandlerContext, Object, ChannelPromise) line: 446
+    io.netty.channel.AbstractChannelHandlerContext.invokeWrite0(Object, ChannelPromise) line: 891
+    io.netty.channel.AbstractChannelHandlerContext.invokeWriteAndFlush(Object, ChannelPromise) line: 956
+    io.netty.channel.AbstractChannelHandlerContext$WriteTask.run() line: 1263
+    io.netty.util.concurrent.AbstractEventExecutor.runTask(Runnable) line: 173
+    io.netty.util.concurrent.AbstractEventExecutor.safeExecute(Runnable) line: 166
+    io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(long) line: 472
+    io.netty.channel.nio.NioEventLoop.run() line: 569
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:05.758
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:05.866
+  sampledThread = "gateway-client-nio-2" (javaThreadId = 22)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.springframework.util.LinkedCaseInsensitiveMap.<init>(int, Locale) line: 113
+    org.springframework.http.HttpHeaders.<init>() line: 433
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 115
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, List, int) line: 348
+    io.netty.handler.codec.ByteToMessageDecoder.callDecode(ChannelHandlerContext, ByteBuf, List) line: 470
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 296
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:05.866
+  sampledThread = "gateway-client-nio-3" (javaThreadId = 23)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.compareTo(Object) line: 185
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.siftUp(int, RunnableScheduledFuture) line: 971
+    java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.remove(Object) line: 1059
+    java.util.concurrent.ThreadPoolExecutor.remove(Runnable) line: 1761
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.cancel(boolean) line: 293
+    reactor.core.scheduler.SchedulerTask.dispose() line: 126
+    reactor.core.publisher.MonoDelay$MonoDelayRunnable.cancel() line: 300
+    reactor.core.publisher.FluxOnErrorReturn$ReturnSubscriber.cancel() line: 121
+    reactor.core.publisher.FluxTimeout$TimeoutTimeoutSubscriber.cancel() line: 439
+    reactor.core.publisher.FluxTimeout$TimeoutMainSubscriber.onNext(Object) line: 167
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(Object) line: 180
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxTimeout$TimeoutMainSubscriber.onNext(Object) line: 181
+    reactor.core.publisher.MonoNext$NextSubscriber.onNext(Object) line: 82
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyInner.onNext(Object) line: 251
+    reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onNext(Object) line: 107
+    reactor.core.publisher.Operators$ScalarSubscription.request(long) line: 2571
+    reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.request(long) line: 136
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onSubscribeInner(Subscription) line: 150
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyInner.onSubscribe(Subscription) line: 246
+    reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onSubscribe(Subscription) line: 101
+    reactor.core.publisher.FluxJust.subscribe(CoreSubscriber) line: 68
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:06.815
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1122
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:07.811
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:08.244
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:08.742
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:08.805
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:10.610
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:11.911
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:13.711
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:14.391
+  sampledThread = "gateway-client-nio-3" (javaThreadId = 23)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    io.netty.handler.codec.DefaultHeaders.remove0(int, int, Object) line: 1074
+    io.netty.handler.codec.DefaultHeaders.setObject(Object, Iterable) line: 530
+    io.netty.handler.codec.http.DefaultHttpHeaders.set(String, Iterable) line: 241
+    java.util.LinkedHashMap.forEach(BiConsumer) line: 721
+    org.springframework.util.LinkedCaseInsensitiveMap.forEach(BiConsumer) line: 292
+    org.springframework.util.MultiValueMapAdapter.forEach(BiConsumer) line: 179
+    org.springframework.http.HttpHeaders.forEach(BiConsumer) line: 1831
+    org.springframework.http.support.Netty4HeadersAdapter.putAll(Map) line: 154
+    org.springframework.http.HttpHeaders.putAll(Map) line: 1806
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 124
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:14.391
+  sampledThread = "gateway-server-nio-3" (javaThreadId = 29)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    io.netty.channel.AbstractChannelHandlerContext.invokeWriteAndFlush(Object, ChannelPromise) line: 956
+    io.netty.channel.AbstractChannelHandlerContext$WriteTask.run() line: 1263
+    io.netty.util.concurrent.AbstractEventExecutor.runTask(Runnable) line: 173
+    io.netty.util.concurrent.AbstractEventExecutor.safeExecute(Runnable) line: 166
+    io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(long) line: 472
+    io.netty.channel.nio.NioEventLoop.run() line: 569
+    io.netty.util.concurrent.SingleThreadEventExecutor$4.run() line: 1007
+    io.netty.util.internal.ThreadExecutorMap$2.run() line: 74
+    io.netty.util.concurrent.FastThreadLocalRunnable.run() line: 30
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:14.701
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:14.997
+  sampledThread = "gateway-client-nio-2" (javaThreadId = 22)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.lang.StringLatin1.hashCode(byte[]) line: 196
+    java.lang.String.hashCode() line: 2344
+    java.util.HashMap.hash(Object) line: 338
+    java.util.HashMap.getNode(Object) line: 568
+    java.util.HashMap.get(Object) line: 556
+    org.springframework.util.LinkedCaseInsensitiveMap.get(Object) line: 170
+    org.springframework.util.MultiValueMapAdapter.getFirst(Object) line: 61
+    org.springframework.http.HttpHeaders.getFirst(String) line: 1716
+    org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin.lambda$doRequest$4(ServerWebExchange, HttpClientResponse, Connection) line: 118
+    reactor.netty.http.client.HttpClientFinalizer.lambda$responseConnection$4(BiFunction, HttpClientOperations) line: 102
+    reactor.core.publisher.MonoFlatMapMany$FlatMapManyMain.onNext(Object) line: 163
+    reactor.core.publisher.SerializedSubscriber.onNext(Object) line: 99
+    reactor.core.publisher.FluxRetryWhen$RetryWhenMainSubscriber.onNext(Object) line: 178
+    reactor.core.publisher.MonoCreate$DefaultMonoSink.success(Object) line: 176
+    reactor.netty.http.client.HttpClientConnect$HttpIOHandlerObserver.onStateChange(Connection, ConnectionObserver$State) line: 435
+    reactor.netty.ReactorNetty$CompositeConnectionObserver.onStateChange(Connection, ConnectionObserver$State) line: 715
+    reactor.netty.resources.DefaultPooledConnectionProvider$DisposableAcquire.onStateChange(Connection, ConnectionObserver$State) line: 205
+    reactor.netty.resources.DefaultPooledConnectionProvider$PooledConnection.onStateChange(Connection, ConnectionObserver$State) line: 466
+    reactor.netty.http.client.HttpClientOperations.onInboundNext(ChannelHandlerContext, Object) line: 726
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:15.820
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:16.255
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:16.933
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:19.234
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:19.418
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:20.472
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1129
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:20.781
+  sampledThread = "gateway-server-nio-2" (javaThreadId = 28)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ConcurrentHashMap.putVal(Object, Object, boolean) line: 1016
+    java.util.concurrent.ConcurrentHashMap.put(Object, Object) line: 1006
+    org.springframework.web.server.adapter.DefaultServerWebExchange.<init>(ServerHttpRequest, ServerHttpResponse, WebSessionManager, ServerCodecConfigurer, LocaleContextResolver, ApplicationContext) line: 131
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter.createExchange(ServerHttpRequest, ServerHttpResponse) line: 307
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter.handle(ServerHttpRequest, ServerHttpResponse) line: 286
+    org.springframework.http.server.reactive.ReactorHttpHandlerAdapter.apply(HttpServerRequest, HttpServerResponse) line: 65
+    org.springframework.http.server.reactive.ReactorHttpHandlerAdapter.apply(Object, Object) line: 40
+    reactor.netty.http.server.HttpServer$HttpServerHandle.onStateChange(Connection, ConnectionObserver$State) line: 1168
+    reactor.netty.transport.ServerTransport$ChildObserver.onStateChange(Connection, ConnectionObserver$State) line: 481
+    reactor.netty.http.server.HttpServerOperations.onInboundNext(ChannelHandlerContext, Object) line: 781
+    reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelHandlerContext, Object) line: 114
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 444
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    reactor.netty.http.server.HttpTrafficHandler.channelRead(ChannelHandlerContext, Object) line: 259
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(Object) line: 412
+    io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(Object) line: 436
+    io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ChannelHandlerContext, CodecOutputList, int) line: 361
+    io.netty.handler.codec.ByteToMessageDecoder.channelRead(ChannelHandlerContext, Object) line: 325
+    io.netty.channel.CombinedChannelDuplexHandler.channelRead(ChannelHandlerContext, Object) line: 251
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(Object) line: 442
+    io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext, Object) line: 420
+    ...
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:22.211
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:22.460
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:24.196
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:24.507
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runStateAtLeast(int, int) line: 411
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:24.756
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    org.apache.shenyu.common.concurrent.MemoryLimitCalculator.refresh() line: 59
+    java.util.concurrent.Executors$RunnableAdapter.call() line: 539
+    java.util.concurrent.FutureTask.runAndReset() line: 305
+    java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run() line: 305
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1136
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:24.881
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1134
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:25.934
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}
+
+jdk.ExecutionSample {
+  startTime = 16:24:26.122
+  sampledThread = "shenyu-Shenyu-Memory-Calculator--1" (javaThreadId = 19)
+  state = "STATE_RUNNABLE"
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor$Worker) line: 1128
+    java.util.concurrent.ThreadPoolExecutor$Worker.run() line: 635
+    java.lang.Thread.run() line: 840
+  ]
+}

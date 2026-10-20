@@ -155,11 +155,11 @@ class AiProxyPluginTest {
     @Test
     void testExecuteWithAdminFallback() {
         handle.setFallbackConfig(fallback("admin"));
-        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(400, "bad") : response(202, "admin")));
+        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(500, "bad") : response(202, "admin")));
         StepVerifier.create(execute(plugin)).verifyComplete();
-        assertEquals(2, requests.size());
-        assertEquals("admin.example", requests.get(1).getUri().getHost());
-        assertEquals(List.of("Bearer admin-key"), requests.get(1).getHeaders().get("Authorization"));
+        assertEquals(5, requests.size());
+        assertEquals("admin.example", requests.get(4).getUri().getHost());
+        assertEquals(List.of("Bearer admin-key"), requests.get(4).getHeaders().get("Authorization"));
         assertEquals(HttpStatus.ACCEPTED, exchange.getResponse().getStatusCode());
     }
 
@@ -382,7 +382,7 @@ class AiProxyPluginTest {
                     requests.add(request);
                     return transport.execute(request);
                 }, Duration.ZERO, observer);
-        return new AiProxyPlugin(new AiProxyConfigService(), engine, handler, observer);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, observer);
     }
 
     private Mono<Void> execute(final AiProxyPlugin plugin) {
@@ -407,6 +407,6 @@ class AiProxyPluginTest {
     }
 
     private AiTransportException failure() {
-        return new AiTransportException(AiTransportException.Kind.UNKNOWN, "fixture failure", null);
+        return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "fixture failure", null);
     }
 }

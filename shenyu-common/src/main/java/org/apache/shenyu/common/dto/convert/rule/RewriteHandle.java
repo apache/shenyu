@@ -126,12 +126,13 @@ public class RewriteHandle {
         }
         RewriteHandle that = (RewriteHandle) o;
         return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace)
+                && Objects.equals(percentage, that.percentage)
                 && Objects.equals(rewriteMetaData, that.rewriteMetaData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(regex, replace, rewriteMetaData);
+        return Objects.hash(regex, replace, percentage, rewriteMetaData);
     }
 
     @Override

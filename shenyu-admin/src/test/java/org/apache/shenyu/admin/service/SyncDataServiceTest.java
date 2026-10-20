@@ -210,7 +210,7 @@ public final class SyncDataServiceTest {
         ruleData.setId(ID);
         ruleData.setEnabled(true);
         ruleData.setHandle("divide");
-        ruleData.setLoged(true);
+        ruleData.setLogged(true);
         ruleData.setMatchMode(1);
         ruleData.setName("divide");
         ruleData.setPluginName("divide");
