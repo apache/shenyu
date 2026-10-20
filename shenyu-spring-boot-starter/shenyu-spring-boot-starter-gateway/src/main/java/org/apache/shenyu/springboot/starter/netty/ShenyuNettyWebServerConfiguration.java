@@ -76,21 +76,36 @@ public class ShenyuNettyWebServerConfiguration {
     }
     
     /**
+     * Event loop resources owned by the application context, released when it closes.
+     *
+     * @param properties the properties
+     * @return the loop resources
+     */
+    @Bean(destroyMethod = "dispose")
+    @ConditionalOnProperty(value = "shenyu.netty.http.web-server-factory-enabled", havingValue = "true", matchIfMissing = true)
+    public LoopResources shenyuServerLoopResources(final ObjectProvider<NettyHttpProperties> properties) {
+        NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
+        return LoopResources.create("shenyu-netty", nettyHttpProperties.getSelectCount(), nettyHttpProperties.getWorkerCount(), true);
+    }
+
+    /**
      * Netty reactive web server factory.
      *
      * @param properties the properties
      * @param shenyuSniAsyncMappingProvider shenyuSniAsyncMapping
      * @param tcpSslContextSpecs default tcpSslContextSpecs
+     * @param loopResources the event loop resources
      * @return the netty reactive web server factory
      */
     @Bean
     @ConditionalOnProperty(value = "shenyu.netty.http.web-server-factory-enabled", havingValue = "true", matchIfMissing = true)
     public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyHttpProperties> properties,
                                                                        final ObjectProvider<ShenyuSniAsyncMapping> shenyuSniAsyncMappingProvider,
-                                                                       final ObjectProvider<TcpSslContextSpec> tcpSslContextSpecs) {
+                                                                       final ObjectProvider<TcpSslContextSpec> tcpSslContextSpecs,
+                                                                       final LoopResources loopResources) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, httpServer -> {
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, loopResources, httpServer -> {
             HttpServer server = httpServer;
             // Configure sni certificates
             NettyHttpProperties.SniProperties sniProperties = nettyHttpProperties.getSni();
@@ -139,22 +154,29 @@ public class ShenyuNettyWebServerConfiguration {
 
         private final NettyHttpProperties nettyHttpProperties;
 
+        private final LoopResources loopResources;
+
         private final Function<HttpServer, HttpServer> sniProcessor;
     
         /**
          * Instantiates a new Event loop netty customizer.
          *
          * @param nettyHttpProperties the netty tcp config
+         * @param loopResources the event loop resources
+         * @param sniProcessor the sni processor
          */
-        EventLoopNettyCustomizer(final NettyHttpProperties nettyHttpProperties, final Function<HttpServer, HttpServer> sniProcessor) {
+        EventLoopNettyCustomizer(final NettyHttpProperties nettyHttpProperties,
+                                 final LoopResources loopResources,
+                                 final Function<HttpServer, HttpServer> sniProcessor) {
             this.nettyHttpProperties = nettyHttpProperties;
+            this.loopResources = loopResources;
             this.sniProcessor = sniProcessor;
         }
 
         @Override
         public HttpServer apply(final HttpServer httpServer) {
             return sniProcessor.apply(httpServer)
-                    .runOn(LoopResources.create("shenyu-netty", nettyHttpProperties.getSelectCount(), nettyHttpProperties.getWorkerCount(), true))
+                    .runOn(loopResources)
                     .accessLog(nettyHttpProperties.getAccessLog())
                     // configure http request decoder
                     .httpRequestDecoder(spec -> {

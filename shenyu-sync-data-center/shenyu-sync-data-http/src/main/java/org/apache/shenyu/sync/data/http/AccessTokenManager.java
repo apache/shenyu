@@ -159,7 +159,7 @@ public class AccessTokenManager {
             this.tokenExpiredTime = ((Number) expiredTime).longValue();
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             LOG.error("get token from server : [{}] error", server, e);
             return false;
         }

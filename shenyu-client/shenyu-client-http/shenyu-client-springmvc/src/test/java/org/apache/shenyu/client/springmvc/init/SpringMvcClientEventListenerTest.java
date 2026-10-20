@@ -33,7 +33,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.javatuples.Sextet;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -383,6 +383,50 @@ public class SpringMvcClientEventListenerTest {
     }
 
     @Test
+    public void testMultiMethodPathPublishesAllAliases() {
+        try {
+            SpringMvcMultiMethodPathTestBean multiMethodBean = new SpringMvcMultiMethodPathTestBean();
+
+            Map<String, Object> controllerBeans = new LinkedHashMap<>();
+            controllerBeans.put("multiMethodPathBean", multiMethodBean);
+            when(applicationContext.getBeansWithAnnotation(eq(Controller.class))).thenReturn(controllerBeans);
+            when(applicationContext.getBeansWithAnnotation(eq(ApiModule.class))).thenReturn(new LinkedHashMap<>());
+
+            when(applicationContext.getEnvironment()).thenReturn(env);
+            when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
+            when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
+
+            try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMock = mockStatic(ShenyuClientRegisterEventPublisher.class);
+                 MockedStatic<PortUtils> portUtilsMock = mockStatic(PortUtils.class)) {
+
+                ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
+                publisherMock.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+                portUtilsMock.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+
+                SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
+                listener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
+
+                ArgumentCaptor<DataTypeParent> captor = ArgumentCaptor.forClass(DataTypeParent.class);
+                verify(publisher, atLeastOnce()).publishEvent(captor.capture());
+
+                List<String> metaPaths = captor.getAllValues().stream()
+                        .filter(e -> e instanceof MetaDataRegisterDTO)
+                        .map(e -> ((MetaDataRegisterDTO) e).getPath())
+                        .sorted()
+                        .collect(Collectors.toList());
+                Assertions.assertEquals(2, metaPaths.size(),
+                        "Expected 2 metadata entries for 2 method-level aliases");
+                Assertions.assertTrue(metaPaths.get(0).endsWith("/multi-method/m-a"),
+                        "Expected path ending with /multi-method/m-a but got: " + metaPaths.get(0));
+                Assertions.assertTrue(metaPaths.get(1).endsWith("/multi-method/m-b"),
+                        "Expected path ending with /multi-method/m-b but got: " + metaPaths.get(1));
+            }
+        } finally {
+            registerUtilsMockedStatic.close();
+        }
+    }
+
+    @Test
     public void testBuildApiDocSextetDefaultProducesConsumes() throws NoSuchMethodException {
         try {
             SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
@@ -516,6 +560,16 @@ public class SpringMvcClientEventListenerTest {
 
         @GetMapping("/test")
         @ShenyuSpringMvcClient(path = "/order")
+        public String greet() {
+            return "ok";
+        }
+    }
+
+    @RestController
+    @ShenyuSpringMvcClient(path = "/multi-method")
+    static class SpringMvcMultiMethodPathTestBean {
+
+        @GetMapping({"/m-a", "/m-b"})
         public String greet() {
             return "ok";
         }

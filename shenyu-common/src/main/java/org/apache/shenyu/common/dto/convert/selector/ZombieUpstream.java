@@ -118,7 +118,7 @@ public class ZombieUpstream {
      *
      * @param selectorId selectorId
      */
-    public void setSelectorName(final String selectorId) {
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 

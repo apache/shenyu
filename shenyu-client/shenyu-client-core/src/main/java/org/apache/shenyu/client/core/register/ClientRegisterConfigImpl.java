@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.client.core.register;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -27,12 +29,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.util.Objects;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
 public class ClientRegisterConfigImpl implements ClientRegisterConfig {
 
     private final Properties props;
+
+    private final List<String> namespace;
 
     private Integer port;
 
@@ -53,12 +60,20 @@ public class ClientRegisterConfigImpl implements ClientRegisterConfig {
 
         this.props = shenyuClientConfig.getClient().get(rpcTypeEnum.getName()).getProps();
 
+        this.namespace = Collections.unmodifiableList(Arrays.asList(StringUtils.split(
+                StringUtils.defaultIfBlank(shenyuClientConfig.getNamespace(), Constants.SYS_DEFAULT_NAMESPACE_ID), Constants.SEPARATOR_CHARS)));
+
         this.applicationContext = applicationContext;
 
         this.rpcTypeEnum = rpcTypeEnum;
 
         this.env = env;
 
+    }
+
+    @Override
+    public List<String> getNamespace() {
+        return namespace;
     }
 
     @Override

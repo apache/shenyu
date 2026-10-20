@@ -50,6 +50,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
 import org.apache.shenyu.k8s.common.IngressConstants;
+import org.apache.shenyu.k8s.common.IngressUtils;
 import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,7 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
             List<V1IngressTLS> tlsList = ingress.getSpec().getTls();
 
             String namespace = Objects.requireNonNull(ingress.getMetadata()).getNamespace();
-            List<DivideUpstream> defaultUpstreamList = parseDefaultService(defaultBackend, namespace);
+            List<DivideUpstream> defaultUpstreamList = parseDefaultService(defaultBackend, namespace, ingress.getMetadata().getAnnotations());
 
             if (Objects.isNull(rules) || CollectionUtils.isEmpty(rules)) {
                 // if rules is null, defaultBackend become global default
@@ -148,7 +149,8 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
         return res;
     }
 
-    private List<DivideUpstream> parseDefaultService(final V1IngressBackend defaultBackend, final String namespace) {
+    private List<DivideUpstream> parseDefaultService(final V1IngressBackend defaultBackend, final String namespace,
+                                                     final Map<String, String> annotations) {
         List<DivideUpstream> defaultUpstreamList = new ArrayList<>();
         if (Objects.nonNull(defaultBackend) && Objects.nonNull(defaultBackend.getService())) {
             String serviceName = defaultBackend.getService().getName();
@@ -167,15 +169,15 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                     if (Objects.isNull(addresses) || CollectionUtils.isEmpty(addresses)) {
                         continue;
                     }
-                    for (V1EndpointAddress address : addresses) {
+                    for (int i = 0; i < addresses.size(); i++) {
+                        V1EndpointAddress address = addresses.get(i);
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(defaultBackend.getService());
                         if (Objects.nonNull(defaultPort)) {
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            // TODO support config protocol in annotation
-                            upstream.setProtocol("http://");
+                            upstream.setProtocol(IngressUtils.getUpstreamProtocol(annotations, i, "http://"));
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");
@@ -302,10 +304,6 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                 return upstreamList;
             }
             List<V1EndpointSubset> subsets = v1Endpoints.getSubsets();
-            String[] protocol = null;
-            if (Objects.nonNull(annotations) && annotations.containsKey(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY)) {
-                protocol = annotations.get(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY).split(",");
-            }
             if (Objects.isNull(subsets) || CollectionUtils.isEmpty(subsets)) {
                 LOG.info("Endpoints {} do not have subsets", serviceName);
             } else {
@@ -319,11 +317,10 @@ public class DivideIngressParser implements K8sResourceParser<V1Ingress> {
                         String upstreamIp = address.getIp();
                         String defaultPort = parsePort(backend.getService());
                         if (Objects.nonNull(defaultPort)) {
-                            String upstreamProtocol = Objects.isNull(protocol) || i >= protocol.length ? "http://" : protocol[i];
                             DivideUpstream upstream = new DivideUpstream();
                             upstream.setUpstreamUrl(upstreamIp + ":" + defaultPort);
                             upstream.setWeight(100);
-                            upstream.setProtocol(upstreamProtocol);
+                            upstream.setProtocol(IngressUtils.getUpstreamProtocol(annotations, i, "http://"));
                             upstream.setWarmup(0);
                             upstream.setStatus(true);
                             upstream.setUpstreamHost("");

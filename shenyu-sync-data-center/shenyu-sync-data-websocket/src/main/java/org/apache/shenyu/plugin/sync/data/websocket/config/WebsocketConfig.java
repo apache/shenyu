@@ -38,6 +38,29 @@ public class WebsocketConfig {
      */
     private String token;
 
+    private boolean initialSyncReadiness;
+
+    /**
+     * Master check interval in seconds.
+     */
+    private int masterCheckInterval = 60;
+
+    /**
+     * Whether the opt-in initial synchronization protocol is required.
+     * @return enabled
+     */
+    public boolean isInitialSyncReadiness() {
+        return initialSyncReadiness;
+    }
+
+    /**
+     * Enable initial synchronization readiness.
+     * @param initialSyncReadiness enabled
+     */
+    public void setInitialSyncReadiness(final boolean initialSyncReadiness) {
+        this.initialSyncReadiness = initialSyncReadiness;
+    }
+
     /**
      * get urls.
      *
@@ -87,6 +110,24 @@ public class WebsocketConfig {
     public void setToken(final String token) {
         this.token = token;
     }
+
+    /**
+     * get master check interval in seconds.
+     *
+     * @return master check interval
+     */
+    public int getMasterCheckInterval() {
+        return masterCheckInterval;
+    }
+
+    /**
+     * set master check interval in seconds.
+     *
+     * @param masterCheckInterval master check interval
+     */
+    public void setMasterCheckInterval(final int masterCheckInterval) {
+        this.masterCheckInterval = masterCheckInterval;
+    }
     
     @Override
     public boolean equals(final Object o) {
@@ -99,12 +140,14 @@ public class WebsocketConfig {
         WebsocketConfig that = (WebsocketConfig) o;
         return Objects.equals(urls, that.urls)
                 && Objects.equals(allowOrigin, that.allowOrigin)
-                && Objects.equals(token, that.token);
+                && Objects.equals(token, that.token)
+                && initialSyncReadiness == that.initialSyncReadiness
+                && masterCheckInterval == that.masterCheckInterval;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, token);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, masterCheckInterval);
     }
 
     @Override
@@ -117,6 +160,8 @@ public class WebsocketConfig {
                 + allowOrigin
                 + '\''
                 + ", token='******'"
+                + ", masterCheckInterval="
+                + masterCheckInterval
                 + '}';
     }
 }

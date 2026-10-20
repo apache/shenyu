@@ -21,7 +21,11 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -37,6 +41,7 @@ import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.hamcrest.Matchers;
 
 import java.util.Collections;
 import java.util.List;
@@ -191,7 +196,10 @@ public class ResourceControllerTest {
         final ResourceDTO resourceDTO = new ResourceDTO();
         resourceDTO.setId(mockId);
         fill(resourceDTO);
-        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+        final ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
+        given(applicationContext.getBean(ResourceMapper.class)).willReturn(resourceMapper);
+        given(resourceMapper.existed(mockId)).willReturn(true);
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         given(resourceService.update(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)
@@ -199,6 +207,20 @@ public class ResourceControllerTest {
                 .content(GsonUtils.getInstance().toJson(resourceDTO)))
                 .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, 1))))
                 .andReturn();
+    }
+
+    @Test
+    public void testUpdateResourceRejectsInvalidBody() throws Exception {
+        final String mockId = "mock-id";
+
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(new ResourceDTO())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", Matchers.containsString("Request error! invalid argument")))
+                .andReturn();
+
+        verify(resourceService, never()).update(any());
     }
     
     @Test

@@ -28,7 +28,13 @@ import java.util.Map;
  * is that it handles memory issues via {@link org.apache.shenyu.common.concurrent.MemoryLimitCalculator}.
  *
  * <p>Note: this class is not thread safe! see https://github.com/apache/shenyu/issues/3929
+ *
+ * @deprecated since 2.7.2, retained for downstream compatibility. For bounded caches accessed through
+ *             the {@link Map} API, consider {@link WindowTinyLFUMap} with an explicit maximum entry count.
+ *             Review its different eviction policy and lack of this class's free-memory threshold
+ *             and {@link LRUMap}-specific operations before migrating.
  */
+@Deprecated(since = "2.7.2")
 @NotThreadSafe
 public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
 

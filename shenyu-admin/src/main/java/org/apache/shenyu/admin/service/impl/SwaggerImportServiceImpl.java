@@ -35,9 +35,9 @@ import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterMcpServiceImpl;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.UrlSecurityUtils;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
-import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpRequestConfig;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.mcp.generator.McpToolsRegisterDTOGenerator;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -184,7 +184,6 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                     .orElse("default");
 
             List<Map<String, ShenyuMcpTool>> maps = result.computeIfAbsent(mainPath, k -> new ArrayList<>());
-            Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
 
             Map<PathItem.HttpMethod, Operation> operationsMap = pathItem.readOperationsMap();
             for (Map.Entry<PathItem.HttpMethod, Operation> opEntry : operationsMap.entrySet()) {
@@ -201,9 +200,11 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
                 PathItem.HttpMethod httpMethod = opEntry.getKey();
                 tool.setMethod(httpMethod.name().toLowerCase());
 
+                // one entry per operation: a shared path-keyed map would keep only the last HTTP method
+                Map<String, ShenyuMcpTool> toolMap = new HashMap<>();
                 toolMap.put(fullPath, tool);
+                maps.add(toolMap);
             }
-            maps.add(toolMap);
         }
         return result;
     }

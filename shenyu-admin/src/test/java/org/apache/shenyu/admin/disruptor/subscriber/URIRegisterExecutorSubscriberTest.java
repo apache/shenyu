@@ -22,6 +22,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,6 +77,31 @@ public class URIRegisterExecutorSubscriberTest {
         uriRegisterExecutorSubscriber.executor(list);
         verify(service).registerURI(any(), any(), any());
     }
+
+    @Test
+    public void testExecutorGroupsUrisByNamespace() {
+        final String selectorName = "/test";
+        final String firstNamespace = "namespace-a";
+        final String secondNamespace = "namespace-b";
+        List<URIRegisterDTO> list = new ArrayList<>();
+        for (EventType eventType : EventType.values()) {
+            list.add(URIRegisterDTO.builder().rpcType(RpcTypeEnum.HTTP.getName())
+                    .contextPath(selectorName).namespaceId(firstNamespace).eventType(eventType).build());
+            list.add(URIRegisterDTO.builder().rpcType(RpcTypeEnum.HTTP.getName())
+                    .contextPath(selectorName).namespaceId(secondNamespace).eventType(eventType).build());
+        }
+        ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
+        when(shenyuClientRegisterService.get(RpcTypeEnum.HTTP.getName())).thenReturn(service);
+
+        uriRegisterExecutorSubscriber.executor(list);
+
+        verify(service).registerURI(eq(selectorName), argThat(uris -> belongsToNamespace(uris, firstNamespace)), eq(firstNamespace));
+        verify(service).registerURI(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
+        verify(service).heartbeat(eq(selectorName), argThat(uris -> belongsToNamespace(uris, firstNamespace)), eq(firstNamespace));
+        verify(service).heartbeat(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
+        verify(service).offline(eq(selectorName), argThat(uris -> belongsToNamespace(uris, firstNamespace)), eq(firstNamespace));
+        verify(service).offline(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
+    }
     
     @Test
     public void testBuildData() {
@@ -92,5 +120,9 @@ public class URIRegisterExecutorSubscriberTest {
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }
+    }
+
+    private boolean belongsToNamespace(final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return uriList.size() == 1 && namespaceId.equals(uriList.get(0).getNamespaceId());
     }
 }

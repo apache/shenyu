@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -40,6 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -91,6 +94,16 @@ public class DivideUpstreamDataHandlerTest {
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setSelectorId(null);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+    }
+
+    @Test
+    public void removeDiscoveryUpstreamDataTest() {
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        assertNotNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler"));
+
+        divideUpstreamDataHandler.removeDiscoveryUpstreamData(DiscoveryUpstreamKey.from(discoverySyncData));
+
+        assertNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler"));
     }
 
     /**

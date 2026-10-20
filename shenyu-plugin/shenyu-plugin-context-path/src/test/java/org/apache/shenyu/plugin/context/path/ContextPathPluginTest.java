@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -43,6 +45,7 @@ import static org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDat
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -100,6 +103,27 @@ public final class ContextPathPluginTest {
         shenyuContext.setPath(null);
         contextMappingRuleHandle.setContextPath(null);
         Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/foo", "/api/order/longer"})
+    public void testNonMatchingContextPathPreservesExchange(final String configuredPath) {
+        shenyuContext.setPath("/api/order");
+        shenyuContext.setRealUrl("/previous/order");
+        exchange.getAttributes().put(Constants.CONTEXT_PATH, "/previous");
+        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+        handle.setContextPath(configuredPath);
+        handle.setRewriteContextPath("/rewritten");
+        handle.setAddPrefix("/prefix");
+        when(ruleData.getId()).thenReturn("nonMatching");
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData).block();
+
+        assertEquals("/previous/order", shenyuContext.getRealUrl());
+        assertEquals("/previous", exchange.getAttribute(Constants.CONTEXT_PATH));
+        assertFalse(exchange.getAttributes().containsKey(Constants.REWRITE_CONTEXT_PATH));
+        verify(chain).execute(exchange);
     }
 
     /**

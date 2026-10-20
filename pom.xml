@@ -48,7 +48,6 @@
         <module>shenyu-registry</module>
         <module>shenyu-kubernetes-controller</module>
         <module>shenyu-infra</module>
-        <module>shenyu-infra/shenyu-infra-common</module>
     </modules>
 
     <licenses>
@@ -94,6 +93,7 @@
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
@@ -116,14 +116,12 @@
         <guava.version>32.0.0-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
-        <consul.api.version>1.4.5</consul.api.version>
-        <consul.version>2.2.6.RELEASE</consul.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.3</pagehelper.version>
         <apache.dubbo.version>3.2.14</apache.dubbo.version>
-        <gson.version>2.9.0</gson.version>
+        <gson.version>2.13.2</gson.version>
         <okhttp.version>4.9.3</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
@@ -138,6 +136,7 @@
         <shiro.version>1.13.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <spring-boot.version>3.3.1</spring-boot.version>
+        <netty.version>4.1.139.Final</netty.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
@@ -149,19 +148,15 @@
         <spring-security.version>6.3.0</spring-security.version>
         <grpc.version>1.65.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
-        <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
         <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
         <jackson-databind.version>2.15.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.9.2</kafka-clients.version>
-        <amqp-client.version>5.16.0</amqp-client.version>
-        <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>2.0.2</eureka.version>
         <javatuples.version>1.2</javatuples.version>
         <k8s-client.version>17.0.2</k8s-client.version>
-        <polaris.version>1.13.0</polaris.version>
         <bytebuddy.version>1.14.11</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
@@ -170,7 +165,6 @@
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
         <spring-cloud.version>4.1.2</spring-cloud.version>
-        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
@@ -179,17 +173,14 @@
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
-        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
-        <tencent-log-sdk.version>1.0.14</tencent-log-sdk.version>
         <jsonpath.version>2.4.0</jsonpath.version>
-        <casdoor-java-sdk.version>1.9.0</casdoor-java-sdk.version>
-        <huawei-log-sdk.version>1.0.1</huawei-log-sdk.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
         <chicory.version>1.7.3</chicory.version>
         <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
-        <spring-ai.version>1.1.2</spring-ai.version>
+        <spring-ai.version>1.1.8</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
+        <swagger-models.version>2.2.34</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
         <!-- dependency version end -->
@@ -197,6 +188,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Keep all Netty modules on the patched 4.1 line; this BOM must precede Spring Boot's BOM. -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
@@ -364,12 +364,6 @@
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>log4j</artifactId>
-                        <groupId>log4j</groupId>
-                    </exclusion>
-                </exclusions>
                 <version>${zookeeper.version}</version>
             </dependency>
 
@@ -383,12 +377,6 @@
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-openapi</artifactId>
                 <version>${apollo.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.tencent.polaris</groupId>
-                <artifactId>polaris-all</artifactId>
-                <version>${polaris.version}</version>
             </dependency>
 
             <dependency>
@@ -673,6 +661,30 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-build-requirements</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3.6.3,)</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[${java.version},)</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-remote-resources-plugin</artifactId>
                 <configuration>
                     <skip>${skipRemoteResources}</skip>
@@ -798,8 +810,10 @@
                         <exclude>**/logs/**</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.tar.gz</exclude>
-                        <exclude>**/spring.factories</exclude>
-                        <exclude>**/spring.provides</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.factories</exclude>
+                        <exclude>shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/**/spring.provides</exclude>
+                        <exclude>shenyu-examples/**/spring.factories</exclude>
+                        <exclude>shenyu-examples/**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
                         <exclude>**/*.json</exclude>
                         <!-- IDE files -->

@@ -21,6 +21,24 @@ package org.apache.shenyu.plugin.metrics.constant;
  * The Label names.
  */
 public final class LabelNames {
+
+    /** Records accepted at the logging queue admission boundary, not backend deliveries. */
+    public static final String LOGGING_QUEUE_ACCEPTED_TOTAL = "shenyu_logging_queue_accepted_total";
+
+    /** Records rejected at the logging queue admission boundary, not backend failures. */
+    public static final String LOGGING_QUEUE_DROPPED_TOTAL = "shenyu_logging_queue_dropped_total";
+
+    /** Queued records, aggregated by collector implementation and queue mode. */
+    public static final String LOGGING_QUEUE_SIZE = "shenyu_logging_queue_size";
+
+    /** Effective admission capacity, aggregated by collector implementation and queue mode. */
+    public static final String LOGGING_QUEUE_CAPACITY = "shenyu_logging_queue_capacity";
+
+    /** Completed authenticated, parsed MCP logical calls, labelled only by outcome. */
+    public static final String AGENT_MCP_CALLS_TOTAL = "shenyu_agent_mcp_calls_total";
+
+    /** Time from validated MCP call parsing through terminal response writing. */
+    public static final String AGENT_MCP_CALL_LATENCY = "shenyu_agent_mcp_call_latency_millis";
     
     /**
      * The constant REQUEST_TOTAL.

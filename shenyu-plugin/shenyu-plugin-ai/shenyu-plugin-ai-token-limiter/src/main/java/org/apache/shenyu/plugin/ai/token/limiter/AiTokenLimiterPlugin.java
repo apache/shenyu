@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -72,6 +73,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
     private static final Pattern COMPLETION_TOKENS_PATTERN = Pattern.compile("\"completion_tokens\"\\s*:\\s*(\\d+)");
 
+    private static final Pattern SSE_LINE_PATTERN = Pattern.compile("\\r?\\n");
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -82,7 +85,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        ReactiveRedisTemplate reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        ReactiveRedisTemplate<String, String> reactiveRedisTemplate = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
         Assert.notNull(reactiveRedisTemplate, "reactiveRedisTemplate is null");
 
         // generate redis key - include rule id to scope counters per rule
@@ -127,12 +130,12 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      * @param tokenLimit the token limit for the request
      * @return whether the request is allowed
      */
-    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
+    private Mono<Boolean> isAllowed(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokenLimit) {
 
         return reactiveRedisTemplate.opsForValue().get(cacheKey)
-                .defaultIfEmpty(0L)
+                .defaultIfEmpty("0")
                 .flatMap(currentTokens -> {
-                    if (Long.parseLong(currentTokens.toString()) >= tokenLimit) {
+                    if (Long.parseLong(currentTokens) >= tokenLimit) {
                         return Mono.just(false);
                     }
                     return Mono.just(true);
@@ -168,11 +171,18 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return StringUtils.isBlank(key) ? "" : key;
     }
 
-    private void recordTokensUsage(final ReactiveRedisTemplate reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        // Record token usage with expiration
-        reactiveRedisTemplate.opsForValue()
-                .increment(cacheKey, tokens)
-                .flatMap(currentValue -> reactiveRedisTemplate.expire(cacheKey, Duration.ofSeconds(windowSeconds)))
+    private void recordTokensUsage(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
+        // The counter is given its window when it is created: re-issuing the expiration after every increment would
+        // push the window forward, so a sustained traffic would never reset the token budget. An existing counter
+        // keeps the window it was created with; only one without any expiration (written by an earlier version or
+        // by another path) is given one, and just once.
+        final Duration window = Duration.ofSeconds(windowSeconds);
+        final ReactiveValueOperations<String, String> valueOperations = reactiveRedisTemplate.opsForValue();
+        valueOperations.setIfAbsent(cacheKey, "0", window)
+                .flatMap(created -> created ? Mono.just(Boolean.TRUE) : reactiveRedisTemplate.getExpire(cacheKey)
+                        .filter(timeToLive -> timeToLive.isNegative() || timeToLive.isZero())
+                        .flatMap(timeToLive -> reactiveRedisTemplate.expire(cacheKey, window)))
+                .then(valueOperations.increment(cacheKey, tokens))
                 .subscribe();
     }
 
@@ -207,27 +217,38 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            return super.writeWith(appendResponse(body));
+            return Mono.defer(() -> {
+                final BodyWriter writer = new BodyWriter();
+                final GzipStreamDecoder decoder = createDecoder();
+                return super.writeWith(appendResponse(body, writer, decoder))
+                        .doFinally(signal -> finishResponse(writer, decoder));
+            });
         }
 
         @Override
         @NonNull
         public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
-            Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
-                    .map(this::appendResponse);
-            return super.writeAndFlushWith(intercepted);
+            return Mono.defer(() -> {
+                final BodyWriter writer = new BodyWriter();
+                final GzipStreamDecoder decoder = createDecoder();
+                Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
+                        .map(inner -> appendResponse(inner, writer, decoder));
+                return super.writeAndFlushWith(intercepted)
+                        .doFinally(signal -> finishResponse(writer, decoder));
+            });
         }
 
-        @NonNull
-        private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
-            BodyWriter writer = new BodyWriter();
+        private GzipStreamDecoder createDecoder() {
             HttpHeaders headers = serverHttpResponse.getHeaders();
             boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
                     && headers.getFirst(Constants.CONTENT_ENCODING)
                     .contains(Constants.HTTP_ACCEPT_ENCODING_GZIP);
+            return isGzip ? new GzipStreamDecoder() : null;
+        }
 
-            final GzipStreamDecoder decoder = isGzip ? new GzipStreamDecoder() : null;
-
+        @NonNull
+        private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body,
+                                                        final BodyWriter writer, final GzipStreamDecoder decoder) {
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
                         try (DataBuffer.ByteBufferIterator it = buffer.readableByteBuffers()) {
@@ -236,7 +257,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes = isGzip ? decoder.decode(inBytes) : inBytes;
+                                byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
                                 if (processedBytes.length > 0) {
                                     processChunk(processedBytes, writer);
                                 }
@@ -244,22 +265,23 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         } catch (Exception e) {
                             LOG.error("read dataBuffer error", e);
                         }
-                    })
-                    .doFinally(signal -> {
-                        if (Objects.nonNull(decoder)) {
-                            decoder.close();
-                        }
-                        if (!streamingUsageRecorded.get()) {
-                            String sse = writer.output();
-                            long usageTokens = extractUsageTokensFromSse(sse);
-                            tokensRecorder.accept(usageTokens);
-                        }
                     });
+        }
+
+        private void finishResponse(final BodyWriter writer, final GzipStreamDecoder decoder) {
+            if (Objects.nonNull(decoder)) {
+                decoder.close();
+            }
+            if (!streamingUsageRecorded.get()) {
+                String sse = writer.output();
+                long usageTokens = extractUsageTokensFromSse(sse);
+                tokensRecorder.accept(usageTokens);
+            }
         }
 
         private void processChunk(final byte[] processedBytes, final BodyWriter writer) {
             String chunk = new String(processedBytes, StandardCharsets.UTF_8);
-            for (String line : chunk.split("\\r?\\n")) {
+            for (String line : SSE_LINE_PATTERN.split(chunk)) {
                 if (!line.startsWith("data:")) {
                     continue;
                 }

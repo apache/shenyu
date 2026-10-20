@@ -265,6 +265,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @param event event
      */
     @EventListener(SelectorCreatedEvent.class)
+    @Transactional(rollbackFor = Exception.class)
     public void onSelectorCreated(final SelectorCreatedEvent event) {
         // check selector add
         Boolean existed;
@@ -278,20 +279,15 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getSelector().getId());
             dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
-            dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+            grantMissingPermissions(Collections.singletonList(dataPermissionDTO.getUserId()), dataPermissionDTO.getDataId(), dataPermissionDTO.getDataType());
         } else {
             String namespaceId = event.getSelector().getNamespaceId();
             if (StringUtils.isNoneBlank(namespaceId)) {
                 // support namespace
                 List<NamespaceUserRelDO> namespaceUserRelDOList = namespaceUserRelMapper.selectListByNamespaceId(namespaceId);
                 if (CollectionUtils.isNotEmpty(namespaceUserRelDOList)) {
-                    namespaceUserRelDOList.forEach(namespaceUserRelDO -> {
-                        DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                        dataPermissionDTO.setUserId(namespaceUserRelDO.getUserId());
-                        dataPermissionDTO.setDataId(event.getSelector().getId());
-                        dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
-                        dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
-                    });
+                    grantMissingPermissions(namespaceUserRelDOList.stream().map(NamespaceUserRelDO::getUserId).collect(Collectors.toList()),
+                            event.getSelector().getId(), AdminConstants.SELECTOR_DATA_TYPE);
                 }
             }
         }
@@ -303,6 +299,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @param event event
      */
     @EventListener(RuleCreatedEvent.class)
+    @Transactional(rollbackFor = Exception.class)
     public void onRuleCreated(final RuleCreatedEvent event) {
         // check rule add
         Boolean existed;
@@ -316,26 +313,32 @@ public class DataPermissionServiceImpl implements DataPermissionService {
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
             dataPermissionDTO.setDataId(event.getRule().getId());
             dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
-            dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+            grantMissingPermissions(Collections.singletonList(dataPermissionDTO.getUserId()), dataPermissionDTO.getDataId(), dataPermissionDTO.getDataType());
         } else {
             String namespaceId = event.getRule().getNamespaceId();
             if (StringUtils.isNoneBlank(namespaceId)) {
                 // support namespace
                 List<NamespaceUserRelDO> namespaceUserRelDOList = namespaceUserRelMapper.selectListByNamespaceId(namespaceId);
                 if (CollectionUtils.isNotEmpty(namespaceUserRelDOList)) {
-                    namespaceUserRelDOList.forEach(namespaceUserRelDO -> {
-                        DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                        dataPermissionDTO.setUserId(namespaceUserRelDO.getUserId());
-                        dataPermissionDTO.setDataId(event.getRule().getId());
-                        dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
-                        dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
-                    });
+                    grantMissingPermissions(namespaceUserRelDOList.stream().map(NamespaceUserRelDO::getUserId).collect(Collectors.toList()),
+                            event.getRule().getId(), AdminConstants.RULE_DATA_TYPE);
                 }
             }
         }
     }
     
     
+    private void grantMissingPermissions(final List<String> userIds, final String dataId, final Integer dataType) {
+        Set<String> existingUsers = new HashSet<>(dataPermissionMapper.selectUserIds(dataId, dataType));
+        List<DataPermissionDO> permissions = userIds.stream().distinct()
+                .filter(userId -> !existingUsers.contains(userId))
+                .map(userId -> DataPermissionDO.buildCreatePermissionDO(dataId, userId, dataType))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(permissions)) {
+            dataPermissionMapper.insertBatch(permissions);
+        }
+    }
+
     /**
      * listen {@link BatchSelectorDeletedEvent} delete data permission.
      *
