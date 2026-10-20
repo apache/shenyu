@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.google.gson.JsonObject;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.SendHandler;
@@ -633,6 +636,48 @@ public final class WebsocketCollectorTest {
         verify(async, times(1)).sendText(eq("broadcast-msg"), any(SendHandler.class));
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testSendWithNamespaceIdLogsBoundedMetadataNotThePayload() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        // a realistic envelope carrying a secret; the collector must log bounded metadata, never the payload
+        final String message = "{\"groupType\":\"AI_PROXY_API_KEY\",\"eventType\":\"UPDATE\",\"data\":[{\"apiKey\":\"api-secret\"}]}";
+        // Attach to the root logger: the collector's events reach it through additivity whether the collector's
+        // static LOG is the real logger or the @BeforeAll spy, whose copied parent chain still points at the root.
+        final ch.qos.logback.classic.Logger root =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        final Level original = root.getLevel();
+        root.setLevel(Level.INFO);
+        root.addAppender(appender);
+        try {
+            WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(original);
+        }
+        // delivery is preserved even though the diagnostic no longer serializes the payload
+        verify(async, times(1)).sendText(eq(message), any(SendHandler.class));
+        // exactly one bounded INFO diagnostic is emitted, and no DEBUG redaction/serialization runs at INFO
+        final String collectorName = WebsocketCollector.class.getName();
+        assertEquals(1L, appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .count(), "expected exactly one bounded collector diagnostic");
+        final String logged = appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .findFirst()
+                .orElse("");
+        assertTrue(logged.contains(Constants.SYS_DEFAULT_NAMESPACE_ID), logged);
+        assertTrue(logged.contains(DataEventTypeEnum.CREATE.name()), logged);
+        assertTrue(logged.contains(String.valueOf(message.length())), logged);
+        // neither the payload shape, nor the secret, nor the redaction marker may be serialized into the log
+        assertFalse(logged.contains("groupType"), logged);
+        assertFalse(logged.contains("api-secret"), logged);
+        assertFalse(logged.contains("******"), logged);
     }
 
     @Test

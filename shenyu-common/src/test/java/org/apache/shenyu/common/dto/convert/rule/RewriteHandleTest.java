@@ -46,5 +46,19 @@ public class RewriteHandleTest {
         
         assertThat(ImmutableSet.of(handle1, handle2), hasSize(1));
     }
+
+    @Test
+    public void testEqualsIncludesPercentage() {
+        RewriteHandle handle1 = new RewriteHandle();
+        handle1.setRegex("regex");
+        handle1.setReplace("replace");
+        handle1.setPercentage(10);
+        RewriteHandle handle2 = new RewriteHandle();
+        handle2.setRegex("regex");
+        handle2.setReplace("replace");
+        handle2.setPercentage(20);
+
+        assertThat(ImmutableSet.of(handle1, handle2), hasSize(2));
+    }
     
 }

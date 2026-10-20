@@ -458,6 +458,8 @@ public class UpstreamCheckService {
         discoveryUpstreamDataList.forEach(upstream -> {
             LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
+            // The snapshot was read before the database update; publish the same healthy status.
+            upstream.setStatus(NumberUtils.INTEGER_ZERO);
         });
         
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();

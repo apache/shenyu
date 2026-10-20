@@ -256,7 +256,7 @@
                 <bind name="excluded" value="('%' + condition.excluded + '%')"/>
                 AND (
                     name NOT LIKE #{excluded, jdbcType=VARCHAR}
-                    OR role NOT LIKE #{excluded, jdbcType=VARCHAR}
+                    AND role NOT LIKE #{excluded, jdbcType=VARCHAR}
                 )
             </if>
             <if test="condition.switchStatus != null">

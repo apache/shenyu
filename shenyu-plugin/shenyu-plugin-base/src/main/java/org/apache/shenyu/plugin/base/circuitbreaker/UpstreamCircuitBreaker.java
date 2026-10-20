@@ -174,6 +174,18 @@ public final class UpstreamCircuitBreaker {
     }
 
     /**
+     * Re-open a breaker when its acquired half-open probe is cancelled.
+     *
+     * @param key the breaker key
+     */
+    public void recordProbeCancellation(final String key) {
+        CircuitBreakerState state = this.breakers.get(key);
+        if (Objects.nonNull(state)) {
+            state.recordProbeCancellation();
+        }
+    }
+
+    /**
      * Whether the breaker currently blocks requests for the given key.
      *
      * @param key the breaker key
@@ -227,6 +239,28 @@ public final class UpstreamCircuitBreaker {
                 }
             });
         });
+    }
+
+    /**
+     * Record a request's outcome, including cancellation of an already granted probe.
+     * The granted probe is bound to its current state and generation before execution.
+     * @param <T> the element type of the source mono
+     * @param source the mono executing the upstream call
+     * @param key the breaker key
+     * @param probeGranted whether this request acquired the half-open probe
+     * @return the wrapped mono with outcome recording attached
+     */
+    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key, final boolean probeGranted) {
+        if (!probeGranted) {
+            return recordOutcome(source, key);
+        }
+        CircuitBreakerState state = INSTANCE.breakers.get(key);
+        if (Objects.isNull(state)) {
+            return source;
+        }
+        synchronized (state) {
+            return INSTANCE.new HalfOpenProbe(key, state, state.generation).recordOutcome(source);
+        }
     }
 
     /**
@@ -332,6 +366,12 @@ public final class UpstreamCircuitBreaker {
             }
             this.consecutiveFailures++;
             if (this.consecutiveFailures >= this.failureThreshold) {
+                open();
+            }
+        }
+
+        synchronized void recordProbeCancellation() {
+            if (this.state == State.HALF_OPEN) {
                 open();
             }
         }
