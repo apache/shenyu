@@ -55,6 +55,14 @@ public final class UpstreamCheckTask implements Runnable {
 
     private final Map<String, List<Upstream>> unhealthyUpstream = Maps.newConcurrentMap();
 
+    /**
+     * Read-only snapshots of {@link #healthyUpstream}, re-published inside {@link #lock}
+     * on every structural or health-state change. Request-path readers take the snapshot
+     * reference directly, so routing lookups no longer copy the whole healthy list per
+     * request while writers own the (bounded, low-frequency) copy cost.
+     */
+    private final Map<String, List<Upstream>> healthySnapshot = Maps.newConcurrentMap();
+
     private final Object lock = new Object();
 
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
@@ -290,6 +298,9 @@ public final class UpstreamCheckTask implements Runnable {
             List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> new CopyOnWriteArrayList<>());
             if (!list.contains(upstream)) {
                 list.add(upstream);
+                if (healthyUpstream == map) {
+                    publishHealthySnapshot(selectorId);
+                }
             }
         }
     }
@@ -304,8 +315,8 @@ public final class UpstreamCheckTask implements Runnable {
     public void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
             List<Upstream> list = map.get(selectorId);
-            if (CollectionUtils.isNotEmpty(list)) {
-                list.remove(upstream);
+            if (CollectionUtils.isNotEmpty(list) && list.remove(upstream) && healthyUpstream == map) {
+                publishHealthySnapshot(selectorId);
             }
         }
     }
@@ -319,7 +330,20 @@ public final class UpstreamCheckTask implements Runnable {
         synchronized (lock) {
             healthyUpstream.remove(selectorId);
             unhealthyUpstream.remove(selectorId);
+            healthySnapshot.remove(selectorId);
         }
+    }
+
+    /**
+     * Re-publish an immutable snapshot of the healthy list for the selector.
+     * Must be called while holding {@link #lock} so readers never observe a
+     * snapshot torn across concurrent structural changes.
+     *
+     * @param selectorId selectorId
+     */
+    private void publishHealthySnapshot(final String selectorId) {
+        List<Upstream> live = healthyUpstream.get(selectorId);
+        healthySnapshot.put(selectorId, Objects.isNull(live) ? List.of() : List.copyOf(live));
     }
     
     /**
@@ -364,6 +388,19 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public List<Upstream> getHealthyUpstreamListBySelectorId(final String selectorId) {
         return getHealthyUpstream().get(selectorId);
+    }
+
+    /**
+     * Get the published read-only healthy upstream snapshot of the selector.
+     * The snapshot is re-published on configuration and health-state updates and
+     * must not be mutated by callers; it may be empty but never contains a
+     * removed target after the removal has been published.
+     *
+     * @param selectorId selectorId
+     * @return immutable snapshot list, or null when the selector has no entry
+     */
+    public List<Upstream> getHealthySnapshot(final String selectorId) {
+        return healthySnapshot.get(selectorId);
     }
     
     /**

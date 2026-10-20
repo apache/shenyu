@@ -26,7 +26,6 @@ import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -122,12 +121,16 @@ public final class UpstreamCacheManager {
     /**
      * Find upstream list by selector id list.
      *
+     * <p>Returns the read-only snapshot published by the health-check task on
+     * configuration and health-state updates, so the request path does not copy
+     * the healthy list per lookup. Callers must not mutate the returned list;
+     * elements keep the same shared-instance semantics as before.</p>
+     *
      * @param selectorId the selector id
-     * @return the list
+     * @return the immutable snapshot list, or null when the selector has no entry
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
-        List<Upstream> upstreamList = task.getHealthyUpstream().get(selectorId);
-        return Objects.isNull(upstreamList) ? null : new ArrayList<>(upstreamList);
+        return task.getHealthySnapshot(selectorId);
     }
 
     /**
