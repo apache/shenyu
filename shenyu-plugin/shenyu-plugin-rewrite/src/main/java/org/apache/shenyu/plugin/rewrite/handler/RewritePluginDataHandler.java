@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.RewriteHandleUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 /**
  * The type redirect plugin data subscriber.
@@ -78,23 +78,12 @@ public class RewritePluginDataHandler implements PluginDataHandler {
      * @return true when the plugin can apply the handle
      */
     private static boolean canRewrite(final RewriteHandle rewriteHandle, final RuleData ruleData) {
-        final String regex = rewriteHandle.getRegex();
-        final String replace = rewriteHandle.getReplace();
-        if (StringUtils.isAnyBlank(regex, replace)) {
-            // an incomplete expression means the plugin does not rewrite, which is always safe.
+        final String reason = RewriteHandleUtils.unapplicableReason(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        if (Objects.isNull(reason)) {
             return true;
         }
-        if (replace.contains("{") && regex.contains("{")) {
-            // in placeholder mode both values are substituted literally, the regex is never compiled.
-            return true;
-        }
-        try {
-            // the empty alternative makes the empty input match, which also validates the replacement.
-            Pattern.compile(regex + "|").matcher("").replaceAll(replace);
-            return true;
-        } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
-            LOG.error("invalid rewrite rule [{}] is ignored, regex: {}, replace: {}", ruleData.getId(), regex, replace, ex);
-            return false;
-        }
+        LOG.error("invalid rewrite rule [{}] is ignored, regex: {}, replace: {}, reason: {}",
+                ruleData.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), reason);
+        return false;
     }
 }

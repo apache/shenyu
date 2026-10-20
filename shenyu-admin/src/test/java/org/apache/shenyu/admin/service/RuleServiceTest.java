@@ -321,6 +321,60 @@ public final class RuleServiceTest {
         verify(ruleMapper, never()).insertSelective(any());
     }
 
+    @Test
+    public void testRewriteCreateRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testRewriteUpdateRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("123");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/v1/$$\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testRewriteCreateAcceptsApplicableHandle() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"(test)\",\"replace\":\"/new/$1\"}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testRewriteImportRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(ruleDTO)));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    private void mockRewritePlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
+                .id("789")
+                .name(PluginEnum.REWRITE.getName())
+                .build());
+    }
+
     private void mockAgentGatewayPlugin() {
         given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
         given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
