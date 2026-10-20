@@ -35,7 +35,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class AppAuthMySqlFixture {
 
     /** Isolated-database naming convention: the catalog must match this prefix to avoid touching other databases. */
-    public static final String TEST_DB_NAME_PATTERN = "flm_auth_test.*";
+    public static final String TEST_DB_NAME_PATTERN = "shenyu_auth_test.*";
 
     private static final String PROP_JDBC_URL = "shenyu.auth.test.jdbcUrl";
 
@@ -44,7 +44,7 @@ public final class AppAuthMySqlFixture {
     private static final String PROP_PASSWORD = "shenyu.auth.test.password";
 
     /** Probe table: verifies transaction visibility and runId isolation; created and cleaned by the fixture. */
-    private static final String PROBE_TABLE = "flm_auth_env_probe";
+    private static final String PROBE_TABLE = "shenyu_auth_env_probe";
 
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 

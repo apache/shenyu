@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * X1 apply request.
+ * Apply request for the app auth lifecycle API.
  * Neither caller/appKey/appSecret are accepted (identity derives from the authenticated session and credentials
  * are server generated); open/enabled are server-fixed (open=true, enabled=false) and rejected if present.
  */

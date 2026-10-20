@@ -24,7 +24,7 @@ import org.apache.shenyu.admin.model.dto.AppAuthRevokeRequestDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 
 /**
- * X1 app auth extension facade.
+ * App auth lifecycle facade.
  * After authentication and authorization the facade delegates each transaction to a dedicated transaction bean
  */
 public interface AppAuthLifecycleService {

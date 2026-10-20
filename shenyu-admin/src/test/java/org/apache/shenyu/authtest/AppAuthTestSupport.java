@@ -182,7 +182,7 @@ public final class AppAuthTestSupport {
             factoryBean.setDataSource(dataSource);
             factoryBean.setTypeAliasesPackage("org.apache.shenyu.admin.model.entity");
             factoryBean.setMapperLocations(
-                    new ClassPathResource("mappers/flm-app-auth-request-sqlmap.xml"),
+                    new ClassPathResource("mappers/app-auth-request-sqlmap.xml"),
                     new ClassPathResource("mappers/app-auth-sqlmap.xml"),
                     new ClassPathResource("mappers/auth-param-sqlmap.xml"),
                     new ClassPathResource("mappers/auth-path-sqlmap.xml"));
@@ -190,7 +190,7 @@ public final class AppAuthTestSupport {
         }
 
         @Bean
-        public MapperFactoryBean<AppAuthRequestMapper> flmAppAuthRequestMapper(final SqlSessionFactory factory) {
+        public MapperFactoryBean<AppAuthRequestMapper> appAuthRequestMapper(final SqlSessionFactory factory) {
             final MapperFactoryBean<AppAuthRequestMapper> bean =
                     new MapperFactoryBean<>(AppAuthRequestMapper.class);
             bean.setSqlSessionFactory(factory);
@@ -232,7 +232,7 @@ public final class AppAuthTestSupport {
         }
 
         @Bean
-        public AppAuthTransactionService flmAppAuthTransactionService(
+        public AppAuthTransactionService appAuthTransactionService(
                 final AppAuthRequestMapper requestMapper, final AppAuthMapper appAuthMapper,
                 final AuthParamMapper authParamMapper, final AuthPathMapper authPathMapper) {
             // explicit inline event recorder: injecting an ApplicationEventPublisher by type would be hijacked by the container itself

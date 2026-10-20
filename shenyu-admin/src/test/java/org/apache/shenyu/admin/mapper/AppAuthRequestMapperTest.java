@@ -67,11 +67,11 @@ class AppAuthRequestMapperTest {
                 System.getProperty("shenyu.auth.test.jdbcUrl"),
                 System.getProperty("shenyu.auth.test.username"),
                 System.getProperty("shenyu.auth.test.password"));
-        final Environment environment = new Environment("flm-auth-test", new JdbcTransactionFactory(), dataSource);
+        final Environment environment = new Environment("app-auth-test", new JdbcTransactionFactory(), dataSource);
         final Configuration configuration = new Configuration(environment);
         configuration.setMapUnderscoreToCamelCase(true);
-        new XMLMapperBuilder(Resources.getResourceAsStream("mappers/flm-app-auth-request-sqlmap.xml"),
-                configuration, "mappers/flm-app-auth-request-sqlmap.xml", configuration.getSqlFragments()).parse();
+        new XMLMapperBuilder(Resources.getResourceAsStream("mappers/app-auth-request-sqlmap.xml"),
+                configuration, "mappers/app-auth-request-sqlmap.xml", configuration.getSqlFragments()).parse();
         sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 
         try (Connection connection = AppAuthMySqlFixture.openConnection();
@@ -79,7 +79,6 @@ class AppAuthRequestMapperTest {
             AppAuthMySqlFixture.verifyTestDatabaseIdentity(connection);
             AppAuthMySqlFixture.initProbeTable(connection);
             statement.execute("DROP TABLE IF EXISTS app_auth_request");
-            statement.execute("DROP TABLE IF EXISTS flm_schema_migration");
             // the migration script owns only app_auth_request; this test creates the minimal table directly
             statement.execute("CREATE TABLE app_auth_request ("
                     + "id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,"

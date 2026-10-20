@@ -89,44 +89,44 @@ class AppAuthAccessPolicyImplTest {
     @Test
     void defaultVisitorIsRejected() {
         SessionUtil.setLocalVisitor(null);
-        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("flm:appAuth:apply"));
+        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
     }
 
     @Test
     void nonWhitelistedUserIsRejectedEvenWithPermission() {
         loginAs("20002");
-        permit("flm:appAuth:apply", true);
-        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("flm:appAuth:apply"));
+        permit("system:authen:lifecycleApply", true);
+        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
     }
 
     @Test
     void missingActionPermissionIsRejected() {
         loginAs(SVC_USER);
         // plain permissions like system:authen:list must not pass the lifecycle action check
-        permit("flm:appAuth:result", false);
-        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("flm:appAuth:result"));
+        permit("system:authen:lifecycleResult", false);
+        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleResult"));
     }
 
     @Test
     void missingShiroContextIsRejected() {
         loginAs(SVC_USER);
         ThreadContext.unbindSubject();
-        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("flm:appAuth:apply"));
+        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
     }
 
     @Test
     void whitelistedPermittedCallerPasses() {
         loginAs(SVC_USER);
-        permit("flm:appAuth:apply", true);
-        assertEquals(SVC_USER, policy.requireServiceCaller("flm:appAuth:apply"));
+        permit("system:authen:lifecycleApply", true);
+        assertEquals(SVC_USER, policy.requireServiceCaller("system:authen:lifecycleApply"));
     }
 
     @Test
     void emptyWhitelistRejectsEveryone() {
         properties.setServiceUserIds(Collections.emptyList());
         loginAs(SVC_USER);
-        permit("flm:appAuth:apply", true);
-        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("flm:appAuth:apply"));
+        permit("system:authen:lifecycleApply", true);
+        assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
     }
 
     @Test

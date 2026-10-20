@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * X1 auth request idempotency record.
+ * App auth request idempotency record.
  * Unique key callerKey+namespaceId+requestId; state is CREATED/REVOKED; no credential copies are stored.
  */
 public final class AppAuthRequestDO extends BaseDO implements Serializable {

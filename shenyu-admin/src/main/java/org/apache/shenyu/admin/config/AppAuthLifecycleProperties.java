@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * X1 app auth properties.
+ * App auth lifecycle properties.
  * service-users is the deployment-configured whitelist of immutable service-account userIds:
  * empty by default meaning deny all; renaming a user never changes the callerKey and the shared admin is never whitelisted implicitly.
  */

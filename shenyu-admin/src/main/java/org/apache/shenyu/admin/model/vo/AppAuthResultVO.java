@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * X1 result view object.
+ * Result view object for the app auth lifecycle API.
  * State: NOT_FOUND / CREATED / REVOKED; only CREATED carries id/appKey/appSecret/enabled/open/pathList,
  * other states never carry credential fields.
  */
