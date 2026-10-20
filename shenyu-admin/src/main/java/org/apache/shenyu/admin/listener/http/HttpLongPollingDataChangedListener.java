@@ -89,8 +89,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private static final String X_REAL_PORT = "X-Real-PORT";
 
-    private static final String CLIENT_PORT_ZERO = "0";
-
     /**
      * Blocked client.
      */
@@ -146,7 +144,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // The header already contains JSON text; encoding it again adds a string wrapper.
         final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
         final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
-        if (!CLIENT_PORT_ZERO.equals(clientPort)) {
+        if (NumberUtils.toInt(clientPort, -1) > 0) {
             InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
                     .instanceIp(clientIp)
                     .instancePort(clientPort)

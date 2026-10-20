@@ -32,7 +32,9 @@ import org.mockito.MockedConstruction;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.context.WebServerApplicationContext;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.boot.web.server.WebServer;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -43,9 +45,11 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class HeartbeatListenerTest {
@@ -56,13 +60,10 @@ class HeartbeatListenerTest {
 
     private ShenyuConfig shenyuConfig;
 
-    private ServerProperties serverProperties;
-
     @BeforeEach
     void setUp() {
         config = createMockConfig();
         shenyuConfig = createMockShenyuConfig();
-        serverProperties = createMockServerProperties();
     }
 
     private ShenyuBootstrapHeartBeatConfig createMockConfig() {
@@ -86,14 +87,6 @@ class HeartbeatListenerTest {
         return config;
     }
 
-    private ServerProperties createMockServerProperties() {
-
-        ServerProperties properties = new ServerProperties();
-        properties.setPort(8080);
-
-        return properties;
-    }
-
     @Test
     void testPeriodicHeartbeatSurvivesFailuresOnEveryServer() throws IOException {
         try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
@@ -102,7 +95,8 @@ class HeartbeatListenerTest {
             register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
             register.when(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()))
                     .thenThrow(new IOException("admin unavailable"));
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+            bind(heartbeatListener, null, 8080);
             ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
             Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
             assertDoesNotThrow(periodic.getValue()::run);
@@ -120,7 +114,8 @@ class HeartbeatListenerTest {
                 MockedStatic<SystemInfoUtils> ignored = Mockito.mockStatic(SystemInfoUtils.class);
                 MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
             register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+            bind(heartbeatListener, null, 8080);
             ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
             Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
             periodic.getValue().run();
@@ -128,7 +123,92 @@ class HeartbeatListenerTest {
             register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), anyString(), anyString(), anyString()), Mockito.atLeastOnce());
             InstanceBeatInfoDTO reported = GsonUtils.getInstance().fromJson(payload.getAllValues().get(0), InstanceBeatInfoDTO.class);
             assertEquals(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE, reported.getInstanceType());
+            assertEquals("8080", reported.getInstancePort());
         }
+    }
+
+    @Test
+    void testDoesNotReportBeforeTheServerBinds() {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> ignored = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            periodic.getValue().run();
+            register.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()), never());
+            assertEquals(1, executors.constructed().size());
+        }
+    }
+
+    @Test
+    void testReportsBoundPortInsteadOfConfiguredZeroAndIgnoresManagement() {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> ignored = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            final HeartbeatListener first = new HeartbeatListener(config, shenyuConfig);
+            final HeartbeatListener second = new HeartbeatListener(config, shenyuConfig);
+            bind(first, "management", 19090);
+            bind(first, null, 0);
+            bind(first, null, 41234);
+            bind(second, null, 41235);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            Mockito.verify(executors.constructed().get(1)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            periodic.getAllValues().get(0).run();
+            periodic.getAllValues().get(1).run();
+            ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+            register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), anyString(), anyString(), anyString()), Mockito.atLeast(2));
+            InstanceBeatInfoDTO reportedFirst = GsonUtils.getInstance().fromJson(payload.getAllValues().get(0), InstanceBeatInfoDTO.class);
+            InstanceBeatInfoDTO reportedSecond = GsonUtils.getInstance().fromJson(payload.getAllValues().get(2), InstanceBeatInfoDTO.class);
+            assertEquals("41234", reportedFirst.getInstancePort());
+            assertEquals("41235", reportedSecond.getInstancePort());
+            assertNotEquals(reportedFirst.getInstanceIp() + ":" + reportedFirst.getInstancePort(),
+                    reportedSecond.getInstanceIp() + ":" + reportedSecond.getInstancePort());
+            assertEquals(2, executors.constructed().size());
+        }
+    }
+
+    @Test
+    void testShutdownBeforeInitializationDoesNotReport() {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            heartbeatListener.onShutdown();
+            bind(heartbeatListener, null, 9195, true);
+            periodic.getValue().run();
+            register.verify(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()), never());
+            Mockito.verify(executors.constructed().get(0), Mockito.times(1))
+                    .scheduleAtFixedRate(Mockito.any(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            assertEquals(1, executors.constructed().size());
+        }
+    }
+
+    private void bind(final HeartbeatListener listener, final String namespace, final int port) {
+        bind(listener, namespace, port, false);
+    }
+
+    private void bind(final HeartbeatListener listener, final String namespace, final int port, final boolean lenient) {
+        WebServer webServer = Mockito.mock(WebServer.class);
+        WebServerApplicationContext applicationContext = Mockito.mock(WebServerApplicationContext.class);
+        WebServerInitializedEvent event = Mockito.mock(WebServerInitializedEvent.class);
+        if (lenient) {
+            Mockito.lenient().when(webServer.getPort()).thenReturn(port);
+            Mockito.lenient().when(applicationContext.getServerNamespace()).thenReturn(namespace);
+            Mockito.lenient().when(event.getWebServer()).thenReturn(webServer);
+            Mockito.lenient().when(event.getApplicationContext()).thenReturn(applicationContext);
+        } else {
+            Mockito.when(webServer.getPort()).thenReturn(port);
+            Mockito.when(applicationContext.getServerNamespace()).thenReturn(namespace);
+            Mockito.when(event.getWebServer()).thenReturn(webServer);
+            Mockito.when(event.getApplicationContext()).thenReturn(applicationContext);
+        }
+        listener.onWebServerInitialized(event);
     }
 
     @Test
@@ -139,7 +219,7 @@ class HeartbeatListenerTest {
                     .thenReturn(Optional.of("mock-token"));
 
             assertDoesNotThrow(() -> {
-                heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+                heartbeatListener = new HeartbeatListener(config, shenyuConfig);
             });
 
             assertNotNull(heartbeatListener);
@@ -164,7 +244,7 @@ class HeartbeatListenerTest {
                     .thenReturn(Optional.of("mock-token"));
 
             assertDoesNotThrow(() -> {
-                heartbeatListener = new HeartbeatListener(configWithEncryption, shenyuConfig, serverProperties);
+                heartbeatListener = new HeartbeatListener(configWithEncryption, shenyuConfig);
             });
 
             assertNotNull(heartbeatListener);
@@ -181,7 +261,7 @@ class HeartbeatListenerTest {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()))
                     .then(invocation -> null);
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to access private method sendHeartbeat
             java.lang.reflect.Method sendHeartbeatMethod = HeartbeatListener.class.getDeclaredMethod("sendHeartbeat", 
@@ -215,7 +295,7 @@ class HeartbeatListenerTest {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
                     .thenReturn(Optional.empty());
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to access private method sendHeartbeat
             java.lang.reflect.Method sendHeartbeatMethod = HeartbeatListener.class.getDeclaredMethod("sendHeartbeat", 
@@ -239,7 +319,7 @@ class HeartbeatListenerTest {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
                     .thenReturn(Optional.of("mock-token"));
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to access the executor
             Field executorField = HeartbeatListener.class.getDeclaredField("executor");
@@ -262,7 +342,7 @@ class HeartbeatListenerTest {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
                     .thenReturn(Optional.of("mock-token"));
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to check private fields
             Field usernameField = HeartbeatListener.class.getDeclaredField("username");
@@ -301,7 +381,7 @@ class HeartbeatListenerTest {
                     Mockito.contains("localhost:9096"), anyString(), anyString()))
                     .then(invocation -> null);
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to access private method sendHeartbeat
             java.lang.reflect.Method sendHeartbeatMethod = HeartbeatListener.class.getDeclaredMethod("sendHeartbeat", 
@@ -332,7 +412,7 @@ class HeartbeatListenerTest {
             registerUtilsMockedStatic.when(() -> RegisterUtils.doHeartBeat(anyString(), anyString(), anyString(), anyString()))
                     .thenThrow(new RuntimeException("Connection failed"));
 
-            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
 
             // Use reflection to access private method sendHeartbeat
             java.lang.reflect.Method sendHeartbeatMethod = HeartbeatListener.class.getDeclaredMethod("sendHeartbeat", 
