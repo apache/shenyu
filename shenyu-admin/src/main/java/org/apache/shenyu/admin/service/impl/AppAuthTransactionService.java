@@ -44,8 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -310,33 +308,24 @@ public class AppAuthTransactionService {
     }
 
     private void registerAfterCommitUpdateEvent(final AppAuthDO auth, final String appName, final List<AuthPathDO> paths) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            LOG.warn("APP_AUTH_SYNC: no transaction context, skip registering the update event authId={}", auth.getId());
-            return;
+        try {
+            final AppAuthData data = AppAuthData.builder()
+                    .appKey(auth.getAppKey())
+                    .appSecret(auth.getAppSecret())
+                    .open(auth.getOpen())
+                    .enabled(auth.getEnabled())
+                    .namespaceId(auth.getNamespaceId())
+                    .pathDataList(paths.stream()
+                            .map(path -> AuthPathData.builder()
+                                    .appName(appName).path(path.getPath()).enabled(path.getEnabled()).build())
+                            .collect(Collectors.toList()))
+                    .build();
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.UPDATE, List.of(data)));
+        } catch (Exception e) {
+            LOG.error("APP_AUTH_SYNC_FAILED: update event authId={}, errorType={}",
+                    auth.getId(), e.getClass().getName());
         }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    final AppAuthData data = AppAuthData.builder()
-                            .appKey(auth.getAppKey())
-                            .appSecret(auth.getAppSecret())
-                            .open(auth.getOpen())
-                            .enabled(auth.getEnabled())
-                            .namespaceId(auth.getNamespaceId())
-                            .pathDataList(paths.stream()
-                                    .map(path -> AuthPathData.builder()
-                                            .appName(appName).path(path.getPath()).enabled(path.getEnabled()).build())
-                                    .collect(Collectors.toList()))
-                            .build();
-                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                            DataEventTypeEnum.UPDATE, List.of(data)));
-                } catch (Exception e) {
-                    LOG.error("APP_AUTH_SYNC_FAILED: update event authId={}, errorType={}",
-                            auth.getId(), e.getClass().getName());
-                }
-            }
-        });
     }
 
     private AppAuthResultVO revokedResult(final AppAuthRevokeRequestDTO request) {
@@ -374,63 +363,44 @@ public class AppAuthTransactionService {
     }
 
     private void registerAfterCommitDeleteEvent(final List<AppAuthDO> deletedAuths) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            LOG.warn("APP_AUTH_SYNC: no transaction context, skip registering the delete event");
-            return;
-        }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    final List<AppAuthData> dataList = deletedAuths.stream()
-                            .map(auth -> AppAuthData.builder()
-                                    .appKey(auth.getAppKey())
-                                    .appSecret(auth.getAppSecret())
-                                    .open(auth.getOpen())
-                                    .enabled(auth.getEnabled())
-                                    .namespaceId(auth.getNamespaceId())
-                                    .build())
-                            .collect(Collectors.toList());
-                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                            DataEventTypeEnum.DELETE, dataList));
-                } catch (Exception e) {
-                    LOG.error("APP_AUTH_SYNC_FAILED: delete event authCount={}, errorType={}",
-                            deletedAuths.size(), e.getClass().getName());
-                }
-            }
-        });
-    }
-
-    private void registerAfterCommitCreateEvent(final AppAuthDO auth, final AuthParamDO authParamDO, final List<AuthPathDO> paths) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            // no transaction context (e.g. direct test invocation): warn instead of silently dropping the sync
-            LOG.warn("APP_AUTH_SYNC: no transaction context, skip registering the data-changed event authId={}", auth.getId());
-            return;
-        }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    final AppAuthData data = AppAuthData.builder()
+        try {
+            final List<AppAuthData> dataList = deletedAuths.stream()
+                    .map(auth -> AppAuthData.builder()
                             .appKey(auth.getAppKey())
                             .appSecret(auth.getAppSecret())
                             .open(auth.getOpen())
                             .enabled(auth.getEnabled())
                             .namespaceId(auth.getNamespaceId())
-                            .paramDataList(List.of(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())))
-                            .pathDataList(paths.stream()
-                                    .map(path -> AuthPathData.builder()
-                                            .appName(path.getAppName()).path(path.getPath()).enabled(path.getEnabled()).build())
-                                    .collect(Collectors.toList()))
-                            .build();
-                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                            DataEventTypeEnum.CREATE, List.of(data)));
-                } catch (Exception e) {
-                    // event-sending failures never masquerade as a database rollback: log a sanitized warning; recovery goes through the full-sync entry
-                    LOG.error("APP_AUTH_SYNC_FAILED: authId={}, namespaceId={}, errorType={}",
-                            auth.getId(), auth.getNamespaceId(), e.getClass().getName());
-                }
-            }
-        });
+                            .build())
+                    .collect(Collectors.toList());
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.DELETE, dataList));
+        } catch (Exception e) {
+            LOG.error("APP_AUTH_SYNC_FAILED: delete event authCount={}, errorType={}",
+                    deletedAuths.size(), e.getClass().getName());
+        }
+    }
+
+    private void registerAfterCommitCreateEvent(final AppAuthDO auth, final AuthParamDO authParamDO, final List<AuthPathDO> paths) {
+        try {
+            final AppAuthData data = AppAuthData.builder()
+                    .appKey(auth.getAppKey())
+                    .appSecret(auth.getAppSecret())
+                    .open(auth.getOpen())
+                    .enabled(auth.getEnabled())
+                    .namespaceId(auth.getNamespaceId())
+                    .paramDataList(List.of(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())))
+                    .pathDataList(paths.stream()
+                            .map(path -> AuthPathData.builder()
+                                    .appName(path.getAppName()).path(path.getPath()).enabled(path.getEnabled()).build())
+                            .collect(Collectors.toList()))
+                    .build();
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.CREATE, List.of(data)));
+        } catch (Exception e) {
+            // event-sending failures never masquerade as a database rollback: log a sanitized warning; recovery goes through the full-sync entry
+            LOG.error("APP_AUTH_SYNC_FAILED: authId={}, namespaceId={}, errorType={}",
+                    auth.getId(), auth.getNamespaceId(), e.getClass().getName());
+        }
     }
 }
