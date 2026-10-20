@@ -27,6 +27,37 @@ Fresh installations create the renamed columns directly.
 
   > this file is the Shenyu upgrade sql from v2.7.2 to v2.7.3
 
+### Instance identity uniqueness in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts also enforce one
+`instance_info` row per `(namespace_id, instance_ip, instance_port, instance_type)`.
+Stop **all** Admin writers and back up `instance_info` before running the
+one-time migration. Existing duplicate rows are deleted, retaining the complete
+row with the greatest heartbeat timestamp, then greatest `date_updated`,
+`date_created`, and finally `id`. Distinct identities and namespaces are preserved;
+there are no references from gateway configuration to these diagnostic row IDs.
+Rows upgraded from 2.7.1 initially have heartbeat `0`, so timestamps and ID decide
+the winner until a heartbeat has been persisted.
+
+Apply the schema migration before starting the updated Admin. Fresh installations
+create `uk_instance_info_identity` directly. An existing persistent H2 database
+requires `2.7.2-upgrade-2.7.3-h2.sql`; rerunning `CREATE TABLE IF NOT EXISTS` does
+not upgrade an existing table. H2 databases predating 2.7.2 must first have the
+`last_heart_beat_time BIGINT DEFAULT 0 NOT NULL` column added.
+
+The unique key uses all four columns without prefix truncation (434 characters,
+at most 1,736 bytes with MySQL utf8mb4). MySQL installations using a legacy
+767-byte InnoDB index limit must enable the modern large-prefix/DYNAMIC format
+or upgrade before applying it. Prefix indexes would conflate distinct identities.
+
+Concurrent insert conflicts reload and update the canonical row. Updates accept
+only an equal or newer heartbeat; equal timestamps still allow liveness state
+changes without a fresh heartbeat. Zero or older heartbeats cannot overwrite a
+positive newer observation. This orders observations by their reported timestamps;
+it does not establish a global clock or break ties between simultaneous states.
+Instance diagnostic writes run independently of caller transactions so a duplicate
+insert does not leave PostgreSQL conflict recovery in an aborted transaction.
+
 ### Data permission uniqueness in 2.7.2
 
 Stop Admin instances before running the `2.7.1-upgrade-2.7.2-<dialect>.sql`
