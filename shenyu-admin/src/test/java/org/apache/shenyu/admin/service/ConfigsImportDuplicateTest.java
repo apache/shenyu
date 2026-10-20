@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -203,7 +204,8 @@ public final class ConfigsImportDuplicateTest {
     @ValueSource(booleans = {false, true})
     public void testAuthDeduplicatesAppKeysAndChildRows(final boolean existing) {
         final AuthPathMapper pathMapper = mock(AuthPathMapper.class);
-        final AppAuthServiceImpl service = new AppAuthServiceImpl(appAuthMapper, mock(ApplicationEventPublisher.class), mock(AuthParamMapper.class), pathMapper);
+        final AppAuthServiceImpl service = new AppAuthServiceImpl(appAuthMapper,
+                mock(ApplicationEventPublisher.class), mock(AuthParamMapper.class), pathMapper, mock(AppAuthRequestMapper.class));
         when(appAuthMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(existing
                 ? Collections.singletonList(AppAuthDO.builder().appKey("same").build()) : Collections.emptyList());
         when(appAuthMapper.insertSelective(any())).thenReturn(1);

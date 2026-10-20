@@ -2946,3 +2946,26 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303972', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE "public"."app_auth_request" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "caller_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "request_id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "request_hash" varchar(64) COLLATE "pg_catalog"."default",
+  "auth_id" varchar(255) COLLATE "pg_catalog"."default",
+  "state" varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
+  "revoked_reason" varchar(500) COLLATE "pg_catalog"."default",
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+CREATE UNIQUE INDEX "uk_app_auth_request" ON "public"."app_auth_request" USING btree ("caller_key", "namespace_id", "request_id");
+CREATE INDEX "idx_app_auth_request_auth" ON "public"."app_auth_request" USING btree ("auth_id");
+
+-- app auth lifecycle button resources
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
