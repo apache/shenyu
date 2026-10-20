@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
@@ -95,7 +96,7 @@ public final class ClusterDataChangedEventForwarderTest {
     public void setUp() {
         when(clusterProperties.getEventSecret()).thenReturn("node-secret");
         forwarder = new ClusterDataChangedEventForwarder(restTemplate, clusterProperties,
-                clusterSelectMasterService, new com.fasterxml.jackson.databind.ObjectMapper());
+                clusterSelectMasterService, new ObjectMapper());
         when(clusterProperties.getSchema()).thenReturn("http");
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(Constants.X_ACCESS_TOKEN, OPERATOR_TOKEN);
@@ -272,9 +273,9 @@ public final class ClusterDataChangedEventForwarderTest {
         verify(restTemplate).postForEntity(any(String.class), first.capture(), eq(String.class));
 
         ClusterDataChangedEventPayload structuredPayload = first.getValue().getBody();
-        List<?> structured = new com.fasterxml.jackson.databind.ObjectMapper().convertValue(
+        List<?> structured = new ObjectMapper().convertValue(
                 structuredPayload.getStructuredSource(),
-                new com.fasterxml.jackson.databind.ObjectMapper().getTypeFactory()
+                new ObjectMapper().getTypeFactory()
                         .constructCollectionType(List.class, RuleData.class));
         List<?> legacy = GsonUtils.getInstance().fromList(
                 GsonUtils.getInstance().toJson(Collections.singletonList(ruleData)), RuleData.class);
@@ -378,7 +379,7 @@ public final class ClusterDataChangedEventForwarderTest {
         ArgumentCaptor<HttpEntity<ClusterDataChangedEventPayload>> captor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate, org.mockito.Mockito.times(groups.size()))
                 .postForEntity(any(String.class), captor.capture(), eq(String.class));
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         for (int i = 0; i < groups.size(); i++) {
             com.fasterxml.jackson.databind.JsonNode legacy = mapper.readTree(
                     GsonUtils.getInstance().toJson(samples.get(i)));

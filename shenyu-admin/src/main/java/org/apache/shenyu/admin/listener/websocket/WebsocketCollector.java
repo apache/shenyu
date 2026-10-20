@@ -451,10 +451,8 @@ public class WebsocketCollector {
         if (Objects.isNull(data)) {
             return;
         }
-        InitialSync sync = INITIAL_SYNC.get();
         Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
-        if (DataEventTypeEnum.MYSELF == type && Objects.nonNull(sync) && sync.structured
-                && Objects.equals(sync.session, session)) {
+        if (isInitialSyncSnapshot(session)) {
             if (StringUtils.isBlank(namespaceId)) {
                 throw new ShenyuException("namespaceId can not be null");
             }
@@ -468,6 +466,19 @@ public class WebsocketCollector {
             return;
         }
         send(namespaceId, GsonUtils.getInstance().toJson(data), type);
+    }
+
+    /**
+     * Whether a message belongs to the initial snapshot of the session that requested it.
+     * Only an active attempt on the same session qualifies: a concurrent refresh on behalf
+     * of another connection keeps the legacy envelope and is not sequenced into this one.
+     *
+     * @param session the session the message would be sent to
+     * @return true when the message is part of the requesting session's initial snapshot
+     */
+    private static boolean isInitialSyncSnapshot(final Session session) {
+        InitialSync sync = INITIAL_SYNC.get();
+        return Objects.nonNull(sync) && sync.structured && Objects.equals(sync.session, session);
     }
 
     private void initialSync(final String requestId, final Session session, final boolean structured) {
@@ -517,8 +528,8 @@ public class WebsocketCollector {
     }
 
     private static void sendMessageBySession(final Session session, final WebsocketData<?> data) {
-        InitialSync sync = INITIAL_SYNC.get();
-        if (Objects.nonNull(sync) && sync.session == session && sync.structured) {
+        if (isInitialSyncSnapshot(session)) {
+            InitialSync sync = INITIAL_SYNC.get();
             SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
                     .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2(
                             sync.requestId, sync.sequence++, GsonUtils.getGson().toJsonTree(data))));

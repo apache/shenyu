@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
@@ -282,6 +283,69 @@ public final class WebsocketCollectorTest {
         assertEquals(1, end.getSequence());
         assertNull(end.getPayload());
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testStructuredInitialSyncAlsoCoversRefreshSnapshots() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketData<MetaData> metaData = new WebsocketData<>("META_DATA", "REFRESH",
+                            Collections.singletonList(new MetaData()));
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID, metaData,
+                            DataEventTypeEnum.REFRESH);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrameV2 data = GsonUtils.getInstance().fromJson(messages.getAllValues().get(0), WebsocketSyncFrameV2.class);
+        assertEquals("META_DATA", data.getPayload().getAsJsonObject().get("groupType").getAsString());
+        WebsocketSyncFrameV2 end = GsonUtils.getInstance().fromJson(messages.getAllValues().get(1), WebsocketSyncFrameV2.class);
+        assertNull(end.getPayload());
+        websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testRefreshOnAnotherSessionKeepsLegacyEnvelope() {
+        Session other = mock(Session.class);
+        when(other.isOpen()).thenReturn(true);
+        Map<String, Object> otherProperties = new HashMap<>();
+        otherProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        when(other.getUserProperties()).thenReturn(otherProperties);
+        final RemoteEndpoint.Async otherAsync = mockSuccessfulAsyncRemote(other);
+        websocketCollector.onOpen(other);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, other);
+
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    // published by another connection's refresh while this session syncs
+                    ThreadLocalUtils.put("sessionKey", other);
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID,
+                            new WebsocketData<>("PLUGIN", "REFRESH", Collections.emptyList()), DataEventTypeEnum.REFRESH);
+                    ThreadLocalUtils.put("sessionKey", session);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+
+        ArgumentCaptor<String> otherMessages = ArgumentCaptor.forClass(String.class);
+        verify(otherAsync).sendText(otherMessages.capture(), any(SendHandler.class));
+        assertTrue(otherMessages.getValue().contains("\"eventType\":\"REFRESH\""));
+        assertFalse(otherMessages.getValue().contains("INITIAL_SYNC_V2"));
+        websocketCollector.onClose(session);
+        websocketCollector.onClose(other);
+        ThreadLocalUtils.remove("sessionKey");
     }
 
     @Test

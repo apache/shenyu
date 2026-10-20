@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
@@ -72,7 +73,7 @@ public final class ClusterDataChangedEventControllerTest {
     @BeforeEach
     public void setUp() {
         controller = new ClusterDataChangedEventController(eventPublisher, clusterSelectMasterService,
-                new com.fasterxml.jackson.databind.ObjectMapper());
+                new ObjectMapper());
     }
 
     /**
@@ -151,7 +152,7 @@ public final class ClusterDataChangedEventControllerTest {
     @Test
     public void receiveStructuredSourceMapsEveryConfigGroupTest() {
         when(clusterSelectMasterService.isMaster()).thenReturn(true);
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         java.util.Map<ConfigGroupEnum, Object> samples = new java.util.LinkedHashMap<>();
         PluginData pluginData = new PluginData();
         pluginData.setName("plugin");
@@ -219,7 +220,7 @@ public final class ClusterDataChangedEventControllerTest {
         payload.setGroupKey(ConfigGroupEnum.PLUGIN.name());
         payload.setEventType(DataEventTypeEnum.UPDATE.name());
         payload.setPayloadVersion(2);
-        payload.setStructuredSource(new com.fasterxml.jackson.databind.ObjectMapper()
+        payload.setStructuredSource(new ObjectMapper()
                 .valueToTree(Collections.singletonList(pluginData)));
 
         ResponseEntity<?> response = controller.receive(payload);
@@ -259,7 +260,7 @@ public final class ClusterDataChangedEventControllerTest {
         when(clusterSelectMasterService.isMaster()).thenReturn(true);
         ClusterDataChangedEventPayload payload =
                 new ClusterDataChangedEventPayload(ConfigGroupEnum.PLUGIN.name(), DataEventTypeEnum.UPDATE.name(), "[]");
-        payload.setStructuredSource(new com.fasterxml.jackson.databind.ObjectMapper().createArrayNode());
+        payload.setStructuredSource(new ObjectMapper().createArrayNode());
 
         assertEquals(HttpStatus.BAD_REQUEST, controller.receive(payload).getStatusCode());
         verify(eventPublisher, never()).publishEvent(any(DataChangedEvent.class));
@@ -271,7 +272,7 @@ public final class ClusterDataChangedEventControllerTest {
     @Test
     public void receiveUnknownVersionOrShapeReturnsBadRequestTest() {
         when(clusterSelectMasterService.isMaster()).thenReturn(true);
-        com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         ClusterDataChangedEventPayload unknownVersion = new ClusterDataChangedEventPayload();
         unknownVersion.setGroupKey(ConfigGroupEnum.PLUGIN.name());
         unknownVersion.setEventType(DataEventTypeEnum.UPDATE.name());
