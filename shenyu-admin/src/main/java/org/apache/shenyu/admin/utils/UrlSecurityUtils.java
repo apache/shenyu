@@ -106,10 +106,32 @@ public final class UrlSecurityUtils {
         byte[] bytes = address.getAddress();
         int first = bytes[0] & 0xff;
         if (bytes.length == 4) {
-            int second = bytes[1] & 0xff;
-            return first == 0 || first >= 240 || first == 100 && second >= 64 && second <= 127;
+            return isInternalIpv4Address(bytes, 0);
+        }
+        if (isIpv4MappedAddress(bytes)) {
+            return isInternalIpv4Address(bytes, 12);
         }
         // Java does not classify IPv6 unique-local addresses as site-local.
         return (first & 0xfe) == 0xfc;
+    }
+
+    private static boolean isIpv4MappedAddress(final byte[] bytes) {
+        if (bytes.length != 16 || bytes[10] != (byte) 0xff || bytes[11] != (byte) 0xff) {
+            return false;
+        }
+        for (int index = 0; index < 10; index++) {
+            if (bytes[index] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isInternalIpv4Address(final byte[] bytes, final int offset) {
+        int first = bytes[offset] & 0xff;
+        int second = bytes[offset + 1] & 0xff;
+        return first == 0 || first == 10 || first == 127 || first >= 224
+                || first == 169 && second == 254 || first == 172 && second >= 16 && second <= 31
+                || first == 192 && second == 168 || first == 100 && second >= 64 && second <= 127;
     }
 }

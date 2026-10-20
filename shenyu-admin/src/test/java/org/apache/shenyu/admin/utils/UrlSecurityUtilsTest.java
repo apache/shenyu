@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -69,6 +70,33 @@ public class UrlSecurityUtilsTest {
         List<InetAddress> answers = Arrays.asList(InetAddress.getByName("8.8.8.8"), InetAddress.getByName(address));
         assertThrows(IllegalArgumentException.class, () -> UrlSecurityUtils.validatedDns("http://example.test:8080/docs",
                 new SwaggerImportProperties(), hostname -> answers));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0.0.0.0", "10.0.0.1", "127.0.0.1", "169.254.169.254", "172.16.0.1", "172.31.255.255",
+            "192.168.0.1", "100.64.0.1", "100.127.255.255", "224.0.0.1", "239.1.2.3", "240.0.0.1", "255.255.255.255"})
+    public void shouldRejectInternalIpv4MappedIpv6DnsAnswers(final String address) throws UnknownHostException {
+        InetAddress mapped = mappedAddress(address);
+        assertThrows(IllegalArgumentException.class, () -> UrlSecurityUtils.validatedDns("http://example.test:8080/docs",
+                new SwaggerImportProperties(), hostname -> Arrays.asList(InetAddress.getByName("8.8.8.8"), mapped)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"8.8.8.8", "100.63.255.255", "100.128.0.1", "172.15.255.255", "172.32.0.1", "192.169.0.1"})
+    public void shouldAllowPublicIpv4MappedIpv6DnsAnswers(final String address) throws UnknownHostException {
+        InetAddress mapped = mappedAddress(address);
+        Dns pinned = UrlSecurityUtils.validatedDns("http://example.test:8080/docs",
+                new SwaggerImportProperties(), hostname -> Collections.singletonList(mapped));
+        assertEquals(Collections.singletonList(mapped), pinned.lookup("example.test"));
+    }
+
+    private static InetAddress mappedAddress(final String address) throws UnknownHostException {
+        byte[] bytes = new byte[16];
+        bytes[10] = (byte) 0xff;
+        bytes[11] = (byte) 0xff;
+        System.arraycopy(InetAddress.getByName(address).getAddress(), 0, bytes, 12, 4);
+        // Keep the 16-byte form: InetAddress.getByName normally collapses mapped literals to IPv4.
+        return Inet6Address.getByAddress(null, bytes, -1);
     }
 
     @Test
