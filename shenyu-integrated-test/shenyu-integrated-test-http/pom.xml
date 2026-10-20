@@ -30,6 +30,12 @@
     <url>https://shenyu.apache.org</url>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!--if you use http proxy start this-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
