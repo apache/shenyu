@@ -153,7 +153,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, AppAuthData::getNamespaceId, ConfigGroupEnum.APP_AUTH).forEach((namespaceId, namespaceChanged) -> {
-            this.updateAppAuthCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.APP_AUTH, namespaceId, () -> this.updateAppAuthCache(namespaceId));
             this.afterAppAuthChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -173,7 +173,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, MetaData::getNamespaceId, ConfigGroupEnum.META_DATA).forEach((namespaceId, namespaceChanged) -> {
-            this.updateMetaDataCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.META_DATA, namespaceId, () -> this.updateMetaDataCache(namespaceId));
             this.afterMetaDataChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -193,7 +193,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, PluginData::getNamespaceId, ConfigGroupEnum.PLUGIN).forEach((namespaceId, namespaceChanged) -> {
-            this.updatePluginCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.PLUGIN, namespaceId, () -> this.updatePluginCache(namespaceId));
             this.afterPluginChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -223,7 +223,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, RuleData::getNamespaceId, ConfigGroupEnum.RULE).forEach((namespaceId, namespaceChanged) -> {
-            this.updateRuleCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.RULE, namespaceId, () -> this.updateRuleCache(namespaceId));
             this.afterRuleChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -243,7 +243,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, SelectorData::getNamespaceId, ConfigGroupEnum.SELECTOR).forEach((namespaceId, namespaceChanged) -> {
-            this.updateSelectorCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.SELECTOR, namespaceId, () -> this.updateSelectorCache(namespaceId));
             this.afterSelectorChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -260,7 +260,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, ProxySelectorData::getNamespaceId, ConfigGroupEnum.PROXY_SELECTOR).forEach((namespaceId, namespaceChanged) -> {
-            this.updateProxySelectorDataCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.PROXY_SELECTOR, namespaceId, () -> this.updateProxySelectorDataCache(namespaceId));
             this.afterProxySelectorChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -286,7 +286,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
             return;
         }
         groupByNamespace(changed, DiscoverySyncData::getNamespaceId, ConfigGroupEnum.DISCOVER_UPSTREAM).forEach((namespaceId, namespaceChanged) -> {
-            this.updateDiscoveryUpstreamDataCache(namespaceId);
+            this.refreshCache(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId, () -> this.updateDiscoveryUpstreamDataCache(namespaceId));
             this.afterDiscoveryUpstreamDataChanged(namespaceChanged, eventType, namespaceId);
         });
     }
@@ -329,6 +329,18 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     protected abstract void afterInitialize();
+
+    /**
+     * Refresh a group for a committed change. Transport implementations may coalesce snapshot work;
+     * event callbacks are still invoked once for every event and namespace.
+     *
+     * @param group configuration group
+     * @param namespaceId namespace id
+     * @param rebuild authoritative cache rebuild, without event payloads
+     */
+    protected void refreshCache(final ConfigGroupEnum group, final String namespaceId, final Runnable rebuild) {
+        rebuild.run();
+    }
 
     /**
      * if md5 is not the same as the original, then update local cache.
