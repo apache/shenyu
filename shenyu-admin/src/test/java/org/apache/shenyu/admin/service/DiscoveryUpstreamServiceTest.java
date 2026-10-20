@@ -128,6 +128,14 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    void testHasDiscoveryHandlerDistinguishesEmptyDiscoveryFromLegacyRegistration() {
+        when(discoveryHandlerMapper.selectBySelectorId("managed")).thenReturn(new DiscoveryHandlerDO());
+
+        org.junit.jupiter.api.Assertions.assertTrue(discoveryUpstreamService.hasDiscoveryHandler("managed"));
+        org.junit.jupiter.api.Assertions.assertFalse(discoveryUpstreamService.hasDiscoveryHandler("legacy"));
+    }
+
+    @Test
     public void testCreateOrUpdate() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
         when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());

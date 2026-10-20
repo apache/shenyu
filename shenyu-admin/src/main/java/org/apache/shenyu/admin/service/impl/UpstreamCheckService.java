@@ -349,8 +349,9 @@ public class UpstreamCheckService {
     }
 
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
-        final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
-        for (CommonUpstream commonUpstream : upstreamList) {
+        final List<CommonUpstream> checkedUpstreams = new ArrayList<>(upstreamList);
+        final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(checkedUpstreams.size());
+        for (CommonUpstream commonUpstream : checkedUpstreams) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
                 if (!commonUpstream.isHealthCheckEnabled()) {
                     if (!commonUpstream.isStatus()) {
@@ -388,23 +389,37 @@ public class UpstreamCheckService {
                     .map(CompletableFuture::join)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-            updateHandler(selectorId, upstreamList, successList);
+            updateHandler(selectorId, checkedUpstreams, successList, upstreamList);
         }));
     }
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
+        updateHandler(selectorId, upstreamList, successList, null);
+    }
+
+    private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList,
+                               final List<CommonUpstream> successList, final List<CommonUpstream> expectedUpstreams) {
         //No node changes, including zombie node resurrection and live node death
         if (successList.size() == upstreamList.size() && PENDING_SYNC.isEmpty()) {
             return;
         }
-        removePendingSync(successList);
-        if (!successList.isEmpty()) {
-            UPSTREAM_MAP.put(selectorId, toThreadSafeList(successList));
-            updateSelectorHandler(selectorId, successList);
-        } else {
-            UPSTREAM_MAP.remove(selectorId);
-            updateSelectorHandler(selectorId, new ArrayList<>());
-        }
+        UPSTREAM_MAP.compute(selectorId, (key, current) -> {
+            // A registry replacement or removal supersedes an in-flight health check.
+            if (Objects.nonNull(expectedUpstreams) && current != expectedUpstreams) {
+                return current;
+            }
+            removePendingSync(successList);
+            List<CommonUpstream> alive = new ArrayList<>(successList);
+            if (Objects.nonNull(expectedUpstreams)) {
+                current.stream().filter(upstream -> upstreamList.stream().noneMatch(checkedUpstream ->
+                        checkedUpstream.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                        .filter(CommonUpstream::isStatus).forEach(alive::add);
+            }
+            Set<String> failedUrls = upstreamList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
+            successList.forEach(upstream -> failedUrls.remove(upstream.getUpstreamUrl()));
+            List<CommonUpstream> reconciled = updateSelectorHandler(selectorId, alive, failedUrls);
+            return reconciled.isEmpty() ? null : toThreadSafeList(reconciled);
+        });
     }
 
     private void removePendingSync(final List<CommonUpstream> successList) {
@@ -416,18 +431,38 @@ public class UpstreamCheckService {
         return upstreams instanceof CopyOnWriteArrayList ? upstreams : new CopyOnWriteArrayList<>(upstreams);
     }
 
-    private void updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList) {
+    private List<CommonUpstream> updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList, final Set<String> failedUrls) {
         SelectorDO selectorDO = selectorMapper.selectById(selectorId);
         if (Objects.isNull(selectorDO)) {
-            return;
+            return aliveList;
         }
 
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         if (Objects.isNull(pluginDO)) {
-            return;
+            return aliveList;
         }
+
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
+        if (CollectionUtils.isEmpty(discoveryUpstreamDataList) && !discoveryUpstreamService.hasDiscoveryHandler(selectorId)) {
+            // Legacy registrations without discovery records still use their checked upstreams.
+            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+        }
+        Set<String> aliveUrls = aliveList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
+        discoveryUpstreamDataList.stream().filter(upstream -> aliveUrls.contains(upstream.getUrl())).forEach(upstream -> {
+            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
+            upstream.setStatus(NumberUtils.INTEGER_ZERO);
+        });
+        // Unchecked instances retain their persisted status; a stale check is not a full discovery snapshot.
+        discoveryUpstreamDataList = discoveryUpstreamDataList.stream()
+                .filter(upstream -> upstream.getStatus() == 0 && !failedUrls.contains(upstream.getUrl())).collect(Collectors.toList());
+        List<CommonUpstream> currentAlive = discoveryUpstreamDataList.stream().map(upstream -> {
+            CommonUpstream common = aliveList.stream().filter(alive -> alive.getUpstreamUrl().equals(upstream.getUrl())).findFirst()
+                    .orElseGet(() -> DiscoveryTransfer.INSTANCE.mapToCommonUpstream(upstream));
+            common.setStatus(true);
+            return common;
+        }).collect(Collectors.toList());
         String pluginName = pluginDO.getName();
-        String handler = converterFactor.newInstance(pluginName).handler(selectorDO.getHandle(), aliveList);
+        String handler = converterFactor.newInstance(pluginName).handler(selectorDO.getHandle(), currentAlive);
         selectorDO.setHandle(handler);
         selectorMapper.updateSelective(selectorDO);
 
@@ -440,28 +475,6 @@ public class UpstreamCheckService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
 
         // publish discovery change event.
-        List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
-        
-        if (CollectionUtils.isEmpty(discoveryUpstreamDataList)) {
-            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
-        }
-        
-        discoveryUpstreamDataList.removeIf(u -> {
-            for (CommonUpstream alive : aliveList) {
-                if (alive.getUpstreamUrl().equals(u.getUrl())) {
-                    return false;
-                }
-            }
-            return true;
-        });
-        // change live node status to TRUE
-        discoveryUpstreamDataList.forEach(upstream -> {
-            LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
-            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
-            // The snapshot was read before the database update; publish the same healthy status.
-            upstream.setStatus(NumberUtils.INTEGER_ZERO);
-        });
-        
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
         discoverySyncData.setPluginName(pluginName);
@@ -470,6 +483,7 @@ public class UpstreamCheckService {
         discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
         LOG.debug("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        return currentAlive;
     }
 
     /**

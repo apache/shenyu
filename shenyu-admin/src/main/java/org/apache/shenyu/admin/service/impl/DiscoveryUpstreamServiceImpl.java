@@ -324,6 +324,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
 
     @Override
+    public boolean hasDiscoveryHandler(final String selectorId) {
+        return Objects.nonNull(discoveryHandlerMapper.selectBySelectorId(selectorId));
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBySelectorIdAndUrl(final String selectorId, final String url) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);

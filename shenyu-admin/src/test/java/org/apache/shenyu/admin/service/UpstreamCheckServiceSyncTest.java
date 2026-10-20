@@ -28,28 +28,45 @@ import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -81,12 +98,125 @@ class UpstreamCheckServiceSyncTest {
     void setUp() {
         SelectorHandleConverterFactor converters = new SelectorHandleConverterFactor(
                 Collections.singletonMap(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter()));
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setRegisterType("http");
+        config.getProps().setProperty("checked", "true");
         service = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
-                new ShenyuRegisterCenterConfig(), converters, discoveryUpstreamService);
-        when(selectorMapper.selectById(SELECTOR_ID)).thenReturn(SelectorDO.builder().id(SELECTOR_ID)
+                config, converters, discoveryUpstreamService);
+        lenient().when(selectorMapper.selectById(SELECTOR_ID)).thenReturn(SelectorDO.builder().id(SELECTOR_ID)
                 .selectorName("/divide").namespaceId("namespace").pluginId("divide-id").handle("[]").build());
-        when(pluginMapper.selectById("divide-id"))
+        lenient().when(pluginMapper.selectById("divide-id"))
                 .thenReturn(PluginDO.builder().id("divide-id").name(PluginEnum.DIVIDE.getName()).build());
+    }
+
+    @AfterEach
+    void tearDown() {
+        service.close();
+        UpstreamCheckService.removeByKey(SELECTOR_ID);
+        ((Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "PENDING_SYNC")).clear();
+        ((Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET")).clear();
+    }
+
+    @Test
+    void testUncheckedHealthyDiscoveryUpstreamIsPreserved() {
+        DiscoveryUpstreamData offline = DiscoveryUpstreamData.builder().url("127.0.0.1:8080").status(1).build();
+        DiscoveryUpstreamData replacement = DiscoveryUpstreamData.builder().id("replacement")
+                .url("127.0.0.1:8081").protocol("http://").dateCreated(new Timestamp(1)).status(0).weight(80).props("{}").build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(offline, replacement)));
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.emptyList(), Collections.emptySet());
+
+        DiscoverySyncData snapshot = publishedSnapshot();
+        assertEquals(1, snapshot.getUpstreamDataList().size());
+        assertEquals("replacement", snapshot.getUpstreamDataList().get(0).getId());
+        assertEquals(80, snapshot.getUpstreamDataList().get(0).getWeight());
+        verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(SELECTOR_ID, replacement.getUrl(), Boolean.TRUE);
+        ArgumentCaptor<SelectorDO> selectorCaptor = ArgumentCaptor.forClass(SelectorDO.class);
+        verify(selectorMapper).updateSelective(selectorCaptor.capture());
+        assertTrue(selectorCaptor.getValue().getHandle().contains(replacement.getUrl()));
+    }
+
+    @Test
+    void testPartiallyStaleResultPreservesUncheckedUpstream() {
+        DiscoveryUpstreamData checked = DiscoveryUpstreamData.builder().url("127.0.0.1:8080").protocol("http://").status(0).build();
+        DiscoveryUpstreamData replacement = DiscoveryUpstreamData.builder().url("127.0.0.1:8081").protocol("http://").dateCreated(new Timestamp(1)).status(0).build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(checked, replacement)));
+        DivideUpstream alive = DivideUpstream.builder().upstreamUrl(checked.getUrl()).protocol("http://").status(true).build();
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
+
+        assertEquals(2, publishedSnapshot().getUpstreamDataList().size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testLateHealthCheckCannotOverwriteDiscoveryRefresh(final boolean deleted) {
+        ScheduledThreadPoolExecutor executor = mock(ScheduledThreadPoolExecutor.class);
+        List<Runnable> requests = new ArrayList<>();
+        doAnswer(invocation -> requests.add(invocation.getArgument(0))).when(executor).execute(any(Runnable.class));
+        ReflectionTestUtils.setField(service, "invokeExecutor", executor);
+        CommonUpstream old = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080")
+                .protocol("http://").status(true).healthCheckEnabled(true).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(old));
+        Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+        CommonUpstream replacement = DivideUpstream.builder().upstreamUrl("127.0.0.1:8081")
+                .protocol("http://").status(true).build();
+        List<CommonUpstream> latest = deleted ? Collections.emptyList() : Collections.singletonList(replacement);
+        service.replace(SELECTOR_ID, latest);
+
+        try (MockedStatic<UpstreamCheckUtils> checks = mockStatic(UpstreamCheckUtils.class)) {
+            checks.when(() -> UpstreamCheckUtils.checkUrl(old.getUpstreamUrl())).thenReturn(false);
+            requests.forEach(Runnable::run);
+        }
+        ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+        assertEquals(latest, upstreams.get(SELECTOR_ID));
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    void testAuthoritativeEmptySnapshotDoesNotResurrectCheckedUpstream() {
+        when(discoveryUpstreamService.hasDiscoveryHandler(SELECTOR_ID)).thenReturn(true);
+        DivideUpstream alive = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
+
+        assertTrue(publishedSnapshot().getUpstreamDataList().isEmpty());
+        verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(SELECTOR_ID, alive.getUpstreamUrl(), Boolean.TRUE);
+    }
+
+    @Test
+    void testReplacementDiscoveredByAnotherAdminRemainsInHealthCache() {
+        DiscoveryUpstreamData replacement = DiscoveryUpstreamData.builder().url("127.0.0.1:8081").protocol("http://")
+                .dateCreated(new Timestamp(1)).status(0).build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(replacement));
+        CommonUpstream old = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(false).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(old));
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID, Collections.singletonList(old), Collections.emptyList());
+
+        assertEquals(replacement.getUrl(), publishedSnapshot().getUpstreamDataList().get(0).getUrl());
+        @SuppressWarnings("unchecked")
+        Map<String, List<CommonUpstream>> upstreams = (Map<String, List<CommonUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        assertEquals(1, upstreams.get(SELECTOR_ID).size());
+        assertEquals(replacement.getUrl(), upstreams.get(SELECTOR_ID).get(0).getUpstreamUrl());
+    }
+
+    @Test
+    void testFailedCheckOverridesPersistedHealthyStatus() {
+        DiscoveryUpstreamData failed = DiscoveryUpstreamData.builder().url("127.0.0.1:8080").protocol("http://").status(0).build();
+        DiscoveryUpstreamData replacement = DiscoveryUpstreamData.builder().url("127.0.0.1:8081").protocol("http://")
+                .dateCreated(new Timestamp(1)).status(0).build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(List.of(failed, replacement));
+        CommonUpstream old = DivideUpstream.builder().upstreamUrl(failed.getUrl()).protocol("http://").status(false).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(old));
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID, Collections.singletonList(old), Collections.emptyList());
+
+        List<DiscoveryUpstreamData> outgoing = publishedSnapshot().getUpstreamDataList();
+        assertEquals(1, outgoing.size());
+        assertEquals(replacement.getUrl(), outgoing.get(0).getUrl());
     }
 
     @Test
@@ -97,7 +227,7 @@ class UpstreamCheckServiceSyncTest {
         when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(recovered, offline)));
         DivideUpstream alive = DivideUpstream.builder().upstreamUrl(recovered.getUrl()).protocol("http://").status(true).build();
 
-        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive));
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
 
         verify(discoveryUpstreamService).changeStatusBySelectorIdAndUrl(SELECTOR_ID, recovered.getUrl(), Boolean.TRUE);
         DiscoverySyncData snapshot = publishedSnapshot();
@@ -114,7 +244,7 @@ class UpstreamCheckServiceSyncTest {
         DiscoveryUpstreamData offline = DiscoveryUpstreamData.builder().url("127.0.0.1:8080").status(1).build();
         when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(Collections.singletonList(offline)));
 
-        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.emptyList());
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.emptyList(), Collections.emptySet());
 
         assertTrue(publishedSnapshot().getUpstreamDataList().isEmpty());
     }
@@ -123,7 +253,7 @@ class UpstreamCheckServiceSyncTest {
     void testUpstreamWithoutDiscoveryRecordPublishesHealthyStatus() {
         DivideUpstream alive = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
 
-        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive));
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
 
         DiscoverySyncData snapshot = publishedSnapshot();
         assertEquals(1, snapshot.getUpstreamDataList().size());

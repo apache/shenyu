@@ -22,8 +22,10 @@ import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +36,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +52,10 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -74,6 +82,110 @@ public class DiscoveryDataChangedEventSyncListenerTest {
     public void setUp() {
         String discoveryHandlerId = "discoveryHandlerId";
         discoveryDataChangedEventSyncListener = new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper, keyValueParser, contextInfo, discoveryHandlerId);
+    }
+
+    @AfterEach
+    void clearTransaction() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+        TransactionSynchronizationManager.setActualTransactionActive(false);
+    }
+
+    @Test
+    void testCommittedRegistryChangeRefreshesCompleteHealthSnapshot() {
+        prepareRegistryChange();
+        DiscoveryUpstreamDO old = new DiscoveryUpstreamDO();
+        old.setUpstreamUrl("127.0.0.1:8080");
+        DiscoveryUpstreamDO replacement = new DiscoveryUpstreamDO();
+        replacement.setUpstreamUrl("127.0.0.1:8081");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("discoveryHandlerId")).thenReturn(List.of(old, replacement));
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.initSynchronization();
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED));
+
+        verify(eventPublisher, never()).publishEvent(any(DiscoveryStreamUpdatedEvent.class));
+        TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        ArgumentCaptor<DiscoveryStreamUpdatedEvent> captor = ArgumentCaptor.forClass(DiscoveryStreamUpdatedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        DiscoverySyncData snapshot = captor.getValue().getDiscoverySyncData();
+        Assertions.assertEquals("selector-1", snapshot.getSelectorId());
+        Assertions.assertEquals(2, snapshot.getUpstreamDataList().size());
+        Assertions.assertEquals("127.0.0.1:8081", snapshot.getUpstreamDataList().get(1).getUrl());
+    }
+
+    @Test
+    void testRolledBackRegistryChangeDoesNotRefreshHealthSnapshot() {
+        prepareRegistryChange();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.initSynchronization();
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED));
+        TransactionSynchronizationManager.getSynchronizations()
+                .forEach(synchronization -> synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+
+        verify(eventPublisher, never()).publishEvent(any(DiscoveryStreamUpdatedEvent.class));
+    }
+
+    @Test
+    void testHealthRefreshPrecedesCommittedGatewayDispatch() {
+        prepareRegistryChange();
+        List<String> delivered = new ArrayList<>();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.initSynchronization();
+        doAnswer(invocation -> {
+            if (invocation.getArgument(0) instanceof DataChangedEvent) {
+                // Model the dispatcher's existing after-commit delivery.
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        delivered.add("gateway");
+                    }
+                });
+            } else if (invocation.getArgument(0) instanceof DiscoveryStreamUpdatedEvent) {
+                delivered.add("health");
+            }
+            return null;
+        }).when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED));
+        Assertions.assertTrue(delivered.isEmpty());
+        TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+
+        Assertions.assertEquals(List.of("health", "gateway"), delivered);
+    }
+
+    @Test
+    void testDeletingLastRegistryUpstreamRefreshesEmptySnapshot() {
+        prepareRegistryChange();
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED));
+
+        ArgumentCaptor<DiscoveryStreamUpdatedEvent> captor = ArgumentCaptor.forClass(DiscoveryStreamUpdatedEvent.class);
+        org.mockito.InOrder order = inOrder(eventPublisher);
+        order.verify(eventPublisher).publishEvent(captor.capture());
+        order.verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        Assertions.assertTrue(captor.getValue().getDiscoverySyncData().getUpstreamDataList().isEmpty());
+    }
+
+    @Test
+    void testRegistryUpdateRefreshesHealthSnapshotWithoutTransaction() {
+        prepareRegistryChange();
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.UPDATED));
+
+        verify(eventPublisher).publishEvent(any(DiscoveryStreamUpdatedEvent.class));
+    }
+
+    private void prepareRegistryChange() {
+        DiscoveryUpstreamData upstream = new DiscoveryUpstreamData();
+        upstream.setUrl("127.0.0.1:8081");
+        when(keyValueParser.parseValue("value")).thenReturn(Collections.singletonList(upstream));
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getPluginName()).thenReturn("divide");
+        when(contextInfo.getSelectorId()).thenReturn("selector-1");
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
     }
 
     @Test
