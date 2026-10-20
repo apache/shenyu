@@ -144,14 +144,23 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    eventPublisher.publishEvent(new DiscoveryStreamUpdatedEvent(syncData, EventTypeEnum.UPDATE));
+                    refreshHealthSnapshot(syncData);
                 }
             });
         } else {
-            eventPublisher.publishEvent(new DiscoveryStreamUpdatedEvent(syncData, EventTypeEnum.UPDATE));
+            refreshHealthSnapshot(syncData);
         }
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
+    }
+
+    private void refreshHealthSnapshot(final DiscoverySyncData syncData) {
+        try {
+            eventPublisher.publishEvent(new DiscoveryStreamUpdatedEvent(syncData, EventTypeEnum.UPDATE));
+        } catch (RuntimeException ex) {
+            // A local refresh failure must not prevent delivery of the committed discovery snapshot.
+            LOG.warn("Failed to refresh health-check upstreams for selector {}", syncData.getSelectorId(), ex);
+        }
     }
 
     private DiscoverySyncData buildProxySelectorData(final DiscoverySyncData discoverySyncData, final String value) {

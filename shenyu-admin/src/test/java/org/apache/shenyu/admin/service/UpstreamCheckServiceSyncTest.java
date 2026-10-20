@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
@@ -54,7 +56,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -259,6 +266,114 @@ class UpstreamCheckServiceSyncTest {
         assertEquals(1, snapshot.getUpstreamDataList().size());
         assertEquals(alive.getUpstreamUrl(), snapshot.getUpstreamDataList().get(0).getUrl());
         assertEquals(0, snapshot.getUpstreamDataList().get(0).getStatus());
+    }
+
+    @Test
+    void testRegistrationCanProceedDuringSlowEventDispatch() throws Exception {
+        CommonUpstream old = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(false).build();
+        CommonUpstream added = DivideUpstream.builder().upstreamUrl("127.0.0.1:8081").protocol("http://").status(true).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(old));
+        CountDownLatch publishing = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            DataChangedEvent event = invocation.getArgument(0);
+            if (event.getGroupKey() == ConfigGroupEnum.SELECTOR) {
+                publishing.countDown();
+                assertTrue(release.await(5, TimeUnit.SECONDS));
+            }
+            return null;
+        }).when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            final Future<?> check = executor.submit(() -> ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID,
+                    Collections.singletonList(old), Collections.emptyList()));
+            assertTrue(publishing.await(5, TimeUnit.SECONDS));
+            Future<?> registration = executor.submit(() -> ReflectionTestUtils.invokeMethod(service, "submitJust", SELECTOR_ID, added));
+            registration.get(2, TimeUnit.SECONDS);
+            release.countDown();
+            check.get(5, TimeUnit.SECONDS);
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+            assertTrue(upstreams.containsKey(SELECTOR_ID));
+            assertTrue(((List<?>) upstreams.get(SELECTOR_ID)).contains(added));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
+    void testQueuedRegistrationCannotPublishSupersededList() {
+        ScheduledThreadPoolExecutor executor = mock(ScheduledThreadPoolExecutor.class);
+        List<Runnable> updates = new ArrayList<>();
+        doAnswer(invocation -> updates.add(invocation.getArgument(0))).when(executor).execute(any(Runnable.class));
+        ReflectionTestUtils.setField(service, "executor", executor);
+        CommonUpstream first = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
+        CommonUpstream second = DivideUpstream.builder().upstreamUrl("127.0.0.1:8081").protocol("http://").status(true).build();
+        service.submit(SELECTOR_ID, first);
+        service.submit(SELECTOR_ID, second);
+
+        updates.get(0).run();
+        verifyNoInteractions(eventPublisher);
+        updates.get(1).run();
+
+        assertEquals(2, publishedSnapshot().getUpstreamDataList().size());
+    }
+
+    @Test
+    void testReentrantDiscoveryRefreshDuringPublicationIsRetained() {
+        CommonUpstream old = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(false).build();
+        CommonUpstream replacement = DivideUpstream.builder().upstreamUrl("127.0.0.1:8081").protocol("http://").status(true).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(old));
+        doAnswer(invocation -> {
+            DataChangedEvent event = invocation.getArgument(0);
+            if (event.getGroupKey() == ConfigGroupEnum.DISCOVER_UPSTREAM) {
+                service.replace(SELECTOR_ID, Collections.singletonList(replacement));
+            }
+            return null;
+        }).when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID, Collections.singletonList(old), Collections.emptyList());
+
+        Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        assertEquals(Collections.singletonList(replacement), upstreams.get(SELECTOR_ID));
+    }
+
+    @Test
+    void testMixedHttpRegistrationDoesNotOverrideAuthoritativeDiscovery() {
+        CommonUpstream http = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
+        DiscoveryUpstreamData discovered = DiscoveryUpstreamData.builder().url("127.0.0.1:8081").protocol("http://")
+                .dateCreated(new Timestamp(1)).status(0).build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(discovered));
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(http), Collections.emptySet());
+
+        List<DiscoveryUpstreamData> outgoing = publishedSnapshot().getUpstreamDataList();
+        assertEquals(1, outgoing.size());
+        assertEquals(discovered.getUrl(), outgoing.get(0).getUrl());
+        ArgumentCaptor<SelectorDO> selector = ArgumentCaptor.forClass(SelectorDO.class);
+        verify(selectorMapper).updateSelective(selector.capture());
+        assertTrue(selector.getValue().getHandle().contains(discovered.getUrl()));
+        org.junit.jupiter.api.Assertions.assertFalse(selector.getValue().getHandle().contains(http.getUpstreamUrl()));
+    }
+
+    @Test
+    void testDiscoveryRefreshPreservesPersistedHealthState() {
+        DiscoveryUpstreamData healthy = DiscoveryUpstreamData.builder().url("127.0.0.1:8080").protocol("http://")
+                .dateCreated(new Timestamp(1)).status(0).build();
+        DiscoveryUpstreamData unhealthy = DiscoveryUpstreamData.builder().url("127.0.0.1:8081").protocol("http://")
+                .dateCreated(new Timestamp(1)).status(1).build();
+        DiscoverySyncData snapshot = new DiscoverySyncData();
+        snapshot.setSelectorId(SELECTOR_ID);
+        snapshot.setPluginName(PluginEnum.DIVIDE.getName());
+        snapshot.setUpstreamDataList(List.of(healthy, unhealthy));
+
+        service.onDiscoveryUpstreamUpdated(new DiscoveryStreamUpdatedEvent(snapshot, EventTypeEnum.UPDATE));
+
+        @SuppressWarnings("unchecked")
+        Map<String, List<CommonUpstream>> upstreams = (Map<String, List<CommonUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        assertTrue(upstreams.get(SELECTOR_ID).get(0).isStatus());
+        org.junit.jupiter.api.Assertions.assertFalse(upstreams.get(SELECTOR_ID).get(1).isStatus());
     }
 
     private DiscoverySyncData publishedSnapshot() {

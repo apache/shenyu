@@ -17,12 +17,18 @@
 
 package org.apache.shenyu.admin.discovery;
 
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.discovery.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
+import org.apache.shenyu.admin.listener.ClusterDataChangedEventForwarder;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.listener.DataChangedEventDispatcher;
+import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.junit.jupiter.api.AfterEach;
@@ -36,14 +42,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,7 +64,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,26 +146,67 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         List<String> delivered = new ArrayList<>();
         TransactionSynchronizationManager.setActualTransactionActive(true);
         TransactionSynchronizationManager.initSynchronization();
-        doAnswer(invocation -> {
-            if (invocation.getArgument(0) instanceof DataChangedEvent) {
-                // Model the dispatcher's existing after-commit delivery.
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        delivered.add("gateway");
-                    }
-                });
-            } else if (invocation.getArgument(0) instanceof DiscoveryStreamUpdatedEvent) {
-                delivered.add("health");
-            }
-            return null;
-        }).when(eventPublisher).publishEvent(any(ApplicationEvent.class));
+        connectGatewayDispatcher(delivered);
 
         discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED));
         Assertions.assertTrue(delivered.isEmpty());
         TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
 
         Assertions.assertEquals(List.of("health", "gateway"), delivered);
+    }
+
+    @Test
+    void testHealthRefreshFailureDoesNotSuppressCommittedGatewayDispatch() {
+        prepareRegistryChange();
+        List<String> delivered = new ArrayList<>();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.initSynchronization();
+        connectGatewayDispatcher(delivered);
+        doThrow(new IllegalArgumentException("invalid discovery properties"))
+                .when(eventPublisher).publishEvent(any(DiscoveryStreamUpdatedEvent.class));
+
+        discoveryDataChangedEventSyncListener.onChange(new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED));
+
+        Assertions.assertDoesNotThrow(() -> TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit));
+        Assertions.assertEquals(Collections.singletonList("gateway"), delivered);
+    }
+
+    @Test
+    void testHealthRefreshFailureDoesNotSuppressNonTransactionalGatewayEvent() {
+        prepareRegistryChange();
+        doThrow(new IllegalArgumentException("invalid discovery properties"))
+                .when(eventPublisher).publishEvent(any(DiscoveryStreamUpdatedEvent.class));
+
+        Assertions.assertDoesNotThrow(() -> discoveryDataChangedEventSyncListener.onChange(
+                new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.UPDATED)));
+
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void connectGatewayDispatcher(final List<String> delivered) {
+        ApplicationContext context = mock(ApplicationContext.class);
+        DataChangedListener gateway = mock(DataChangedListener.class);
+        when(context.getBeansOfType(DataChangedListener.class)).thenReturn(Map.of("gateway", gateway));
+        when(context.getBean(LoadServiceDocEntry.class)).thenReturn(mock(LoadServiceDocEntry.class));
+        ObjectProvider<ClusterDataChangedEventForwarder> forwarder = mock(ObjectProvider.class);
+        when(context.getBeanProvider(ClusterDataChangedEventForwarder.class)).thenReturn(forwarder);
+        DataChangedEventDispatcher dispatcher = new DataChangedEventDispatcher(context);
+        ReflectionTestUtils.setField(dispatcher, "clusterProperties", new ClusterProperties());
+        dispatcher.afterPropertiesSet();
+        doAnswer(invocation -> {
+            delivered.add("gateway");
+            return null;
+        }).when(gateway).onDiscoveryUpstreamChanged(org.mockito.ArgumentMatchers.anyList(), any());
+        doAnswer(invocation -> {
+            ApplicationEvent event = invocation.getArgument(0);
+            if (event instanceof DataChangedEvent) {
+                dispatcher.onApplicationEvent((DataChangedEvent) event);
+            } else if (event instanceof DiscoveryStreamUpdatedEvent) {
+                delivered.add("health");
+            }
+            return null;
+        }).when(eventPublisher).publishEvent(any(ApplicationEvent.class));
     }
 
     @Test
@@ -167,6 +220,7 @@ public class DiscoveryDataChangedEventSyncListenerTest {
         order.verify(eventPublisher).publishEvent(captor.capture());
         order.verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
         Assertions.assertTrue(captor.getValue().getDiscoverySyncData().getUpstreamDataList().isEmpty());
+        Assertions.assertEquals(EventTypeEnum.UPDATE, captor.getValue().getType());
     }
 
     @Test
