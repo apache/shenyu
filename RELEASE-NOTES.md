@@ -28,10 +28,19 @@
 
 ### Behavior Changes
 
+- **Breaking change:** HTTP `ELASTIC` pools now honor the configured connection count, acquisition
+  queue and timeout instead of forcing unlimited capacity. `FIXED` remains the
+  default with the same effective default limits. Configure
+  `shenyu.httpclient.pool.pendingAcquireMaxCount` for an explicit queue bound;
+  `-1` removes the queue bound only; it does not remove the connection-count limit.
+  Existing ELASTIC deployments must review saturation behavior before upgrading. See the
+  [capacity and migration guide](docs/performance/http-connection-pools.md). (#7644)
+
 - CORS origin patterns are compiled when the gateway starts. An invalid
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
   Validate the expression before deploying a configuration change.
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
@@ -78,7 +87,7 @@
   with `Retry sequence took longer than timeout: ...`. Exhausting the retry
   count returns HTTP 408. The aggregate ceiling now also bounds a source that
   never completes; it does not replace the per-attempt response timeout.
-- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. `ELASTIC` also honors the configured bounds; review the breaking-change migration note above.
 - `shenyu.httpclient.responseTimeout` now configures Reactor Netty's response-read
   deadline (default 3000 ms). It limits gaps between reads throughout the response
   body, not just the wait for headers. Slow SSE, long-polling and token streams
