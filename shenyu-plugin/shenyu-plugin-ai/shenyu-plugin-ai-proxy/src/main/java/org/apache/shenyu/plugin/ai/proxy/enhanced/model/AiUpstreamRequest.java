@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.model;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Protocol-independent request sent to an AI upstream.
@@ -33,6 +34,27 @@ public final class AiUpstreamRequest {
     private Map<String, List<String>> headers;
 
     private byte[] body;
+
+    private Function<AiUpstreamResponse, AiUpstreamResponse> responseAdapter = Function.identity();
+
+    /**
+     * Bind request-scoped protocol conversion to its corresponding response.
+     *
+     * @param responseAdapter response conversion retaining this request's tool context
+     */
+    public void setResponseAdapter(final Function<AiUpstreamResponse, AiUpstreamResponse> responseAdapter) {
+        this.responseAdapter = java.util.Objects.requireNonNull(responseAdapter);
+    }
+
+    /**
+     * Adapt the upstream response without subscribing to its body.
+     *
+     * @param response provider response
+     * @return client-protocol response
+     */
+    public AiUpstreamResponse adaptResponse(final AiUpstreamResponse response) {
+        return responseAdapter.apply(response);
+    }
 
     /**
      * Get request URI.

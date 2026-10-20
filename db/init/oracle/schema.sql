@@ -419,6 +419,10 @@ comment on column OPERATION_RECORD_LOG.operation_time
 comment on column OPERATION_RECORD_LOG.operation_type
   is 'operation type：create/update/delete/register...';
 
+create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
+create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
+
 create sequence operation_record_log_seq
     increment by 1
     START WITH 1
@@ -818,6 +822,7 @@ create table data_permission
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
 -- Add comments to the table
 comment on table DATA_PERMISSION
   is 'data permission table';

@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.plugin.cache.memory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import org.apache.shenyu.plugin.cache.ICache;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,10 +32,28 @@ import java.util.concurrent.TimeUnit;
  */
 public final class MemoryCache implements ICache {
 
-    private final Map<String, Cache<String, byte[]>> mainCache;
+    private final Cache<String, byte[]> mainCache;
 
     public MemoryCache() {
-        this.mainCache = new ConcurrentHashMap<>();
+        // Entries must be written through VarExpiration.put(...) to receive their per-entry TTL.
+        this.mainCache = Caffeine.newBuilder()
+                .scheduler(Scheduler.systemScheduler())
+                .expireAfter(new Expiry<String, byte[]>() {
+                    @Override
+                    public long expireAfterCreate(final String key, final byte[] value, final long currentTime) {
+                        return 0;
+                    }
+
+                    @Override
+                    public long expireAfterUpdate(final String key, final byte[] value, final long currentTime, final long currentDuration) {
+                        return 0;
+                    }
+
+                    @Override
+                    public long expireAfterRead(final String key, final byte[] value, final long currentTime, final long currentDuration) {
+                        return currentDuration;
+                    }
+                }).build();
     }
 
     /**
@@ -49,10 +66,11 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<Boolean> cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
-        final Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(timeoutSeconds, TimeUnit.SECONDS).build();
-        cache.put(key, bytes);
-        this.mainCache.put(key, cache);
-        return Mono.fromCallable(() -> Boolean.TRUE).subscribeOn(Schedulers.boundedElastic());
+        // Write the value and its TTL together, overriding the default expiry callbacks.
+        this.mainCache.policy().expireVariably()
+                .orElseThrow(() -> new IllegalStateException("Variable expiration is not configured for the memory cache"))
+                .put(key, bytes, timeoutSeconds, TimeUnit.SECONDS);
+        return Mono.just(Boolean.TRUE);
     }
 
     /**
@@ -63,13 +81,9 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<Boolean> isExist(final String key) {
-        final Cache<String, byte[]> cache = this.mainCache.get(key);
-        if (Objects.isNull(cache) || !cache.asMap().containsKey(key)) {
-            // remove from main cache
-            this.mainCache.remove(key);
-            return Mono.fromCallable(() -> Boolean.FALSE).subscribeOn(Schedulers.boundedElastic());
-        }
-        return Mono.fromCallable(() -> Boolean.TRUE).subscribeOn(Schedulers.boundedElastic());
+        // Deferred until subscription, but evaluated on the subscribing thread: a local map read
+        // does not warrant a hand-off to another scheduler.
+        return Mono.fromCallable(() -> Objects.nonNull(this.mainCache.getIfPresent(key)));
     }
 
     /**
@@ -80,12 +94,7 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<byte[]> getData(final String key) {
-        return isExist(key).mapNotNull(exist -> {
-            if (exist) {
-                return this.mainCache.get(key).asMap().get(key);
-            }
-            return null;
-        });
+        return Mono.fromCallable(() -> this.mainCache.getIfPresent(key));
     }
 
     /**
@@ -93,6 +102,7 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public void close() {
-        this.mainCache.clear();
+        this.mainCache.invalidateAll();
+        this.mainCache.cleanUp();
     }
 }

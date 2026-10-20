@@ -17,27 +17,116 @@
 
 package org.apache.shenyu.plugin.mcp.server.response;
 
+import com.google.gson.JsonObject;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for {@link NonCommittingMcpResponseDecorator}.
  */
+@ExtendWith(MockitoExtension.class)
 public final class NonCommittingMcpResponseDecoratorTest {
+
+    @Mock
+    private ServerHttpResponse delegate;
+
+    private final DefaultDataBufferFactory bufferFactory = new DefaultDataBufferFactory();
+
+    // ---------------------------------------------------------------
+    // Chunks are accumulated incrementally instead of via collectList
+    // ---------------------------------------------------------------
+
+    @Test
+    void testWriteWithAccumulatesChunksAndCompletesFuture() throws Exception {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        decorator.writeWith(Flux.just(buffer("part-1,"), buffer("part-2"))).block();
+
+        assertEquals("part-1,part-2", future.get(5, TimeUnit.SECONDS));
+        verify(delegate, never()).writeWith(any());
+    }
+
+    @Test
+    void testWriteAndFlushWithProcessesInnerPublishersInOrder() throws Exception {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        decorator.writeAndFlushWith(Flux.just(Flux.just(buffer("part-1,")), Flux.just(buffer("part-2")))).block();
+
+        assertEquals("part-1,part-2", future.get(5, TimeUnit.SECONDS));
+        verify(delegate, never()).writeAndFlushWith(any());
+    }
+
+    @Test
+    void testWriteWithAppliesResponseTemplateOnAccumulatedBody() throws Exception {
+        final JsonObject contentTemplate = new JsonObject();
+        contentTemplate.addProperty("type", "text");
+        contentTemplate.addProperty("text", "${result}");
+        final JsonObject responseTemplate = new JsonObject();
+        responseTemplate.add("content", contentTemplate);
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, responseTemplate);
+
+        decorator.writeWith(Flux.just(buffer("{\"result\":"), buffer("\"ok\"}"))).block();
+
+        assertEquals("{\"content\":{\"type\":\"text\",\"text\":\"ok\"}}", future.get(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testWriteWithCompletesFutureExceptionallyOnError() {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        StepVerifier.create(decorator.writeWith(Flux.error(new IllegalStateException("boom"))))
+                .verifyError(IllegalStateException.class);
+
+        assertTrue(future.isCompletedExceptionally());
+    }
+
+    @Test
+    void testSetCompleteCompletesFutureWithEmptyBody() throws Exception {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        StepVerifier.create(decorator.setComplete()).verifyComplete();
+
+        assertEquals("", future.get(5, TimeUnit.SECONDS));
+    }
+
+    // ---------------------------------------------
+    // Emitted buffers must always be released again
+    // ---------------------------------------------
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
@@ -72,8 +161,8 @@ public final class NonCommittingMcpResponseDecoratorTest {
 
     @Test
     public void testWriteWithReleasesCollectedBuffers() {
-        NettyDataBufferFactory bufferFactory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
-        NettyDataBuffer buffer = (NettyDataBuffer) bufferFactory.wrap("response".getBytes(StandardCharsets.UTF_8));
+        NettyDataBufferFactory nettyBufferFactory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        NettyDataBuffer buffer = (NettyDataBuffer) nettyBufferFactory.wrap("response".getBytes(StandardCharsets.UTF_8));
         CompletableFuture<String> responseFuture = new CompletableFuture<>();
         NonCommittingMcpResponseDecorator decorator = new NonCommittingMcpResponseDecorator(
                 new MockServerHttpResponse(), "session", responseFuture, null);
@@ -82,5 +171,47 @@ public final class NonCommittingMcpResponseDecoratorTest {
 
         assertEquals("response", responseFuture.join());
         assertEquals(0, buffer.getNativeBuffer().refCnt());
+    }
+
+    // ---------------------------------------------------------------
+    // Bounded capture: UTF-8 boundaries and over-limit behaviour
+    // ---------------------------------------------------------------
+
+    @Test
+    void testWriteWithPreservesUtf8AcrossChunkBoundaries() throws Exception {
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator =
+                new NonCommittingMcpResponseDecorator(delegate, "session-1", future, null);
+
+        // "a€b" => 0x61 0xE2 0x82 0xAC 0x62; split inside the 3-byte euro sign.
+        final byte[] full = "a€b".getBytes(StandardCharsets.UTF_8);
+        final DataBuffer first = bufferFactory.wrap(new byte[]{full[0], full[1]});
+        final DataBuffer second = bufferFactory.wrap(new byte[]{full[2], full[3], full[4]});
+
+        decorator.writeWith(Flux.just(first, second)).block();
+
+        assertEquals("a€b", future.get(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testWriteWithExceedingCaptureLimitFailsDeterministically() {
+        final int overLimitBytes = 1024 * 1024 + 1;
+        final NettyDataBufferFactory factory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        final NettyDataBuffer buffer = factory.allocateBuffer(overLimitBytes);
+        buffer.write(new byte[overLimitBytes]);
+
+        final CompletableFuture<String> future = new CompletableFuture<>();
+        final NonCommittingMcpResponseDecorator decorator = new NonCommittingMcpResponseDecorator(
+                new MockServerHttpResponse(), "session", future, null);
+
+        decorator.writeWith(Mono.just(buffer)).block();
+
+        assertTrue(future.isCompletedExceptionally());
+        // The over-limit buffer must still be released.
+        assertEquals(0, buffer.getNativeBuffer().refCnt());
+    }
+
+    private DataBuffer buffer(final String content) {
+        return bufferFactory.wrap(content.getBytes(StandardCharsets.UTF_8));
     }
 }

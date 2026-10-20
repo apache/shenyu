@@ -75,7 +75,9 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
 
     @Override
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
-        if (clusterProperties.isEnabled() && TransactionSynchronizationManager.isActualTransactionActive()
+        // dispatch must never overtake the publishing transaction, so an active
+        // transaction defers delivery to afterCommit in every deployment mode
+        if (TransactionSynchronizationManager.isActualTransactionActive()
                 && TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override

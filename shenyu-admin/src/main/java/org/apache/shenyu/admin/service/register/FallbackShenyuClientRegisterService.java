@@ -60,7 +60,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     @Override
     public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String result;
-        String key = key(selectorName);
+        String key = key(selectorName, namespaceId);
         try {
             this.removeFallBack(key);
             result = this.doRegisterURI(selectorName, uriList, namespaceId);
@@ -103,8 +103,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         }
     }
 
-    private String key(final String selectorName) {
-        return String.join(":", selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+    private String key(final String selectorName, final String namespaceId) {
+        return String.join(":", selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
     }
 
     /**

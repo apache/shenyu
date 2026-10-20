@@ -305,10 +305,12 @@ public class UpstreamCheckService {
     }
 
     private void waitFinish() {
-        // wait all check success
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        // clear, for next time
-        futures.clear();
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } finally {
+            // A failed check must not remain in the next cycle.
+            futures.clear();
+        }
     }
 
     private void checkZombie(final ZombieUpstream zombieUpstream) {
@@ -456,6 +458,8 @@ public class UpstreamCheckService {
         discoveryUpstreamDataList.forEach(upstream -> {
             LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
             discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
+            // The snapshot was read before the database update; publish the same healthy status.
+            upstream.setStatus(NumberUtils.INTEGER_ZERO);
         });
         
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();

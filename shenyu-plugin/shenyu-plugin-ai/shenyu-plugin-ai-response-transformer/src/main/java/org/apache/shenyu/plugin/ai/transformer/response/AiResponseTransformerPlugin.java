@@ -58,7 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -73,6 +73,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPlugin.class);
+
+    private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -263,7 +265,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 boolean headerSectionStarted = false;
                 while (Objects.nonNull(line = reader.readLine())) {
                     if (!headerSectionStarted) {
-                        if (line.startsWith("HTTP/1.1") || line.matches("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$")) {
+                        if (line.startsWith("HTTP/1.1") || REQUEST_LINE_PATTERN.matcher(line).matches()) {
                             headerSectionStarted = true;
                             continue;
                         }
@@ -353,9 +355,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                             
                             final String finalMessage = messageWithResponseBody;
                             return chatClient.prompt().user(finalMessage).stream().content()
-                                    .collectList()
-                                    .map(list -> Objects.isNull(list) ? "" : list.stream().filter(Objects::nonNull)
-                                            .collect(Collectors.joining("")))
+                                    .filter(Objects::nonNull)
+                                    .collect(StringBuilder::new, StringBuilder::append)
+                                    .map(StringBuilder::toString)
                                     .flatMap(aiResponse -> {
 
                                         HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);

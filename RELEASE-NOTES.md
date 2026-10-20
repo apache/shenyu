@@ -2,10 +2,36 @@
 
 ### API Changes
 
+- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
+  deprecated for transfer to plugin-store (#7599). All four remain available in
+  the release carrying this notice. Removal requires dev-list consensus, a full
+  released deprecation cycle, compatible external artifact publication and an
+  announced rollback window; no removal release is scheduled. See the
+  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
+  keys and `ApolloPathConstants` remain compatibility contracts.
+
+- `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
+  serialization identifier and existing behavior are retained for downstream
+  source and binary compatibility. No removal release is scheduled; a future
+  removal requires a public API compatibility review and advance release notice.
+  For caches accessed through the `Map` API, consider the existing
+  `WindowTinyLFUMap` with an explicit maximum entry count, for example
+  `new WindowTinyLFUMap<>(maximumEntries)`. Choose that count for the application's
+  working set: the old `maxFreeMemory` argument is a free-memory threshold in
+  bytes, not an entry count. Review the different eviction policy, non-null
+  key/value requirements and absence of `LRUMap`-specific operations. Code that
+  relies on memory-pressure eviction should retain `MemorySafeLRUMap` until an
+  equivalent policy is chosen; `WindowTinyLFUMap` does not implement that
+  threshold. (#7444)
+
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
 ### Behavior Changes
 
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish
@@ -63,6 +89,31 @@
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
 - Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
+- `shenyu-registry-core` no longer transitively provides registry implementations;
+  it depends only on `shenyu-registry-api` and `shenyu-spi`. Applications that
+  depend on `shenyu-registry-core`, or on `shenyu-sdk-core` / `shenyu-sdk-feign`
+  which now sit on `shenyu-registry-api`, must declare the provider matching their
+  configured `registerType` explicitly, for example:
+
+  ```xml
+  <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-registry-zookeeper</artifactId>
+      <version>${shenyu.version}</version>
+      <scope>runtime</scope>
+  </dependency>
+  ```
+
+  Without the provider on the classpath, `ShenyuInstanceRegisterRepositoryFactory`
+  fails with an `IllegalArgumentException` naming the missing `shenyu-registry-<type>`
+  artifact and listing the available SPI types, replacing the previous
+  `ExtensionLoader.getJoin` failure that did not identify the missing artifact.
+  `loadRepository(String)` is public API, and `AbstractDiscoveryProcessor#createDiscovery`
+  resolves its repository through it. `shenyu-admin` and
+  `shenyu-spring-boot-starter-registry` re-declare all five providers, so existing
+  users of the compatibility starter are unaffected; Apollo was never part of that
+  aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
+  provider table and migration steps. (#7578)
 
 ## [v2.7.0]- 2024-12-23
 

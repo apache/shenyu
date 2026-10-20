@@ -17,31 +17,6 @@
 
 package org.apache.shenyu.plugin.mcp.server.transport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.modelcontextprotocol.spec.McpSchema;
-import io.modelcontextprotocol.spec.McpServerSession;
-import io.modelcontextprotocol.spec.McpServerTransport;
-import io.modelcontextprotocol.server.McpRequestHandler;
-import org.apache.shenyu.plugin.mcp.server.session.McpSessionHelper;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
-import reactor.core.Disposable;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.codec.HttpMessageWriter;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.reactive.result.view.ViewResolver;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -51,6 +26,47 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.server.McpRequestHandler;
+import io.modelcontextprotocol.spec.McpSchema;
+import io.modelcontextprotocol.spec.McpServerSession;
+import io.modelcontextprotocol.spec.McpServerTransport;
+import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
+import org.apache.shenyu.plugin.mcp.server.session.McpSessionHelper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.reactive.result.view.ViewResolver;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.netty.http.server.HttpServer;
+import reactor.netty.resources.LoopResources;
+import reactor.test.StepVerifier;
+import reactor.util.context.Context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -393,10 +409,288 @@ class ShenyuStreamableHttpServerTransportProviderTest {
         }
     }
 
+    @Test
+    void testCompletedRequestReleasesLastResponse() throws Exception {
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithRealSessions();
+        final String sessionId = initialize(provider);
+        try {
+            performRequest(provider, postRequest(TOOLS_LIST_REQUEST_BODY, sessionId));
+            final Object transport = readMap(provider, "sessionTransports").get(sessionId);
+            final Method lookup = transport.getClass().getDeclaredMethod("getLastSentMessage");
+            lookup.setAccessible(true);
+            assertNull(lookup.invoke(transport), "A completed request must not retain its result in the session slot");
+        } finally {
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testDuplicatePendingIdDoesNotInvokeSecondHandler() {
+        final AtomicInteger calls = new AtomicInteger();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
+                calls.incrementAndGet() == 1 ? Mono.never() : Mono.just(Map.of("marker", "second")));
+        final String sessionId = initialize(provider);
+        final Disposable pending = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe();
+        try {
+            assertEquals(1, calls.get());
+            final MockServerHttpResponse duplicate = performRequest(provider, postRequest(TOOLS_LIST_REQUEST_BODY, sessionId));
+            assertEquals(HttpStatus.BAD_REQUEST, duplicate.getStatusCode());
+            assertEquals(1, calls.get(), "Duplicate in-flight IDs must be rejected before a second handler executes");
+        } finally {
+            pending.dispose();
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testSessionRemovalCancelsPendingHandler() {
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        final AtomicReference<ServerResponse> result = new AtomicReference<>();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
+                Mono.<Map<String, Object>>never().doOnCancel(() -> cancelled.set(true)));
+        final String sessionId = initialize(provider);
+        final Disposable pending = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe(result::set);
+        try {
+            provider.removeSession(sessionId);
+            assertTrue(cancelled.get(), "Closing a session must cancel its owned handler subscription");
+            assertNotNull(result.get(), "A closed session must terminate the waiting HTTP request");
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.get().statusCode());
+        } finally {
+            pending.dispose();
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testLateResponseAfterCancellationIsDiscarded() throws Exception {
+        final AtomicReference<Context> requestContext = new AtomicReference<>();
+        final AtomicReference<McpServerTransport> transport = new AtomicReference<>();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
+                Mono.deferContextual(context -> {
+                    requestContext.set(Context.of(context));
+                    return Mono.never();
+                }), transport);
+        final String sessionId = initialize(provider);
+        final Disposable pending = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe();
+        try {
+            assertNotNull(requestContext.get());
+            pending.dispose();
+            final McpSchema.JSONRPCResponse late = new McpSchema.JSONRPCResponse("2.0", "req-1", Map.of("private", "late-result"), null);
+            transport.get().sendMessage(late).contextWrite(requestContext.get()).block(Duration.ofSeconds(3));
+            final Field responses = transport.get().getClass().getDeclaredField("responses");
+            responses.setAccessible(true);
+            assertTrue(((Map<?, ?>) responses.get(transport.get())).isEmpty(), "Late responses must not repopulate cancelled request state");
+        } finally {
+            pending.dispose();
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testCancelledOwnerCannotOverwriteSameIdSuccessor() {
+        final AtomicReference<Context> oldContext = new AtomicReference<>();
+        final AtomicReference<McpServerTransport> transport = new AtomicReference<>();
+        final AtomicInteger calls = new AtomicInteger();
+        final Sinks.One<Map<String, Object>> freshResult = Sinks.one();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) -> Mono.deferContextual(context -> {
+            if (calls.incrementAndGet() == 1) {
+                oldContext.set(Context.of(context));
+                return Mono.never();
+            }
+            return freshResult.asMono();
+        }), transport);
+        final String sessionId = initialize(provider);
+        final Disposable first = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe();
+        first.dispose();
+        final AtomicReference<ServerResponse> result = new AtomicReference<>();
+        final Disposable second = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe(result::set);
+        try {
+            assertEquals(2, calls.get());
+            transport.get().sendMessage(new McpSchema.JSONRPCResponse("2.0", "req-1", Map.of("marker", "old-private"), null))
+                    .contextWrite(oldContext.get()).block(Duration.ofSeconds(3));
+            assertNull(result.get());
+            freshResult.emitValue(Map.of("marker", "fresh"), Sinks.EmitFailureHandler.FAIL_FAST);
+            assertNotNull(result.get());
+            final MockServerWebExchange output = MockServerWebExchange.from(MockServerHttpRequest.get("/result"));
+            result.get().writeTo(output, RESPONSE_CONTEXT).block(Duration.ofSeconds(3));
+            final String body = output.getResponse().getBodyAsString().block(Duration.ofSeconds(3));
+            assertTrue(body.contains("\"marker\":\"fresh\""), body);
+            assertTrue(!body.contains("old-private"), body);
+        } finally {
+            first.dispose();
+            second.dispose();
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testSameIdInDifferentSessionsKeepsPrivateResults() {
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) -> {
+            final ServerWebExchange request = (ServerWebExchange) exchange.transportContext().get(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY);
+            return Mono.delay(Duration.ofMillis(10)).thenReturn(Map.of("marker", request.getRequest().getHeaders().getFirst("X-Test-Request")));
+        });
+        final List<String> sessions = List.of(initialize(provider), initialize(provider));
+        try {
+            StepVerifier.create(Flux.range(0, 2).flatMap(index -> {
+                final String marker = "private-" + index;
+                final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/mcp/streamablehttp")
+                        .header("Content-Type", "application/json").header(SESSION_ID_HEADER, sessions.get(index))
+                        .header("X-Test-Request", marker).body(TOOLS_LIST_REQUEST_BODY));
+                return provider.handleUnifiedEndpoint(ServerRequest.create(exchange, HandlerStrategies.withDefaults().messageReaders()))
+                        .flatMap(response -> response.writeTo(exchange, RESPONSE_CONTEXT))
+                        .then(Mono.defer(() -> exchange.getResponse().getBodyAsString()))
+                        .doOnNext(body -> assertTrue(body.contains("\"marker\":\"" + marker + "\""), body));
+            })).expectNextCount(2).verifyComplete();
+        } finally {
+            sessions.forEach(provider::removeSession);
+        }
+    }
+
+    @Test
+    void testClosingOneSessionLeavesAnotherRequestActive() {
+        final AtomicBoolean firstCancelled = new AtomicBoolean();
+        final AtomicBoolean secondCancelled = new AtomicBoolean();
+        final Sinks.One<Map<String, Object>> secondResult = Sinks.one();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) -> {
+            final ServerWebExchange request = (ServerWebExchange) exchange.transportContext().get(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY);
+            return "close".equals(request.getRequest().getHeaders().getFirst("X-Test-Request"))
+                    ? Mono.<Map<String, Object>>never().doOnCancel(() -> firstCancelled.set(true))
+                    : secondResult.asMono().doOnCancel(() -> secondCancelled.set(true));
+        });
+        final String firstSession = initialize(provider);
+        final String secondSession = initialize(provider);
+        final Disposable first = provider.handleUnifiedEndpoint(createRequest(MockServerHttpRequest.post("/mcp/streamablehttp")
+                .header("Content-Type", "application/json").header(SESSION_ID_HEADER, firstSession)
+                .header("X-Test-Request", "close").body(TOOLS_LIST_REQUEST_BODY))).subscribe();
+        final AtomicReference<ServerResponse> result = new AtomicReference<>();
+        final Disposable second = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, secondSession))).subscribe(result::set);
+        try {
+            provider.removeSession(firstSession);
+            assertTrue(firstCancelled.get());
+            assertTrue(!secondCancelled.get());
+            assertNull(result.get());
+            secondResult.emitValue(Map.of("tools", List.of()), Sinks.EmitFailureHandler.FAIL_FAST);
+            assertNotNull(result.get());
+            assertEquals(HttpStatus.OK, result.get().statusCode());
+        } finally {
+            first.dispose();
+            second.dispose();
+            provider.removeSession(firstSession);
+            provider.removeSession(secondSession);
+        }
+    }
+
+    @Test
+    void testCallerDeadlineReleasesPendingRequest() throws Exception {
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
+                Mono.<Map<String, Object>>never().doOnCancel(() -> cancelled.set(true)));
+        final String sessionId = initialize(provider);
+        try {
+            StepVerifier.withVirtualTime(() -> provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId)))
+                    .timeout(Duration.ofSeconds(1)))
+                    .thenAwait(Duration.ofSeconds(1)).expectError(TimeoutException.class).verify(Duration.ofSeconds(3));
+            assertTrue(cancelled.get());
+            final Object transport = readMap(provider, "sessionTransports").get(sessionId);
+            final Field pending = transport.getClass().getDeclaredField("pendingResponses");
+            pending.setAccessible(true);
+            assertTrue(((Map<?, ?>) pending.get(transport)).isEmpty());
+        } finally {
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testGracefulShutdownCancelsPendingRequest() throws Exception {
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
+                Mono.<Map<String, Object>>never().doOnCancel(() -> cancelled.set(true)));
+        final String sessionId = initialize(provider);
+        final Disposable pending = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe();
+        try {
+            StepVerifier.create(provider.closeGracefully()).verifyComplete();
+            assertTrue(cancelled.get());
+            assertTrue(readMap(provider, "sessions").isEmpty());
+            assertTrue(readMap(provider, "sessionTransports").isEmpty());
+            assertNull(ShenyuMcpExchangeHolder.get(sessionId));
+        } finally {
+            pending.dispose();
+            provider.removeSession(sessionId);
+        }
+    }
+
+    @Test
+    void testRealHttpDuplicateAndDisconnectKeepPeerHealthy() throws Exception {
+        final CountDownLatch started = new CountDownLatch(1);
+        final CountDownLatch cancelled = new CountDownLatch(1);
+        final AtomicInteger calls = new AtomicInteger();
+        final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) -> {
+            calls.incrementAndGet();
+            final ServerWebExchange request = (ServerWebExchange) exchange.transportContext().get(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY);
+            final String marker = request.getRequest().getHeaders().getFirst("X-Test-Request");
+            return "pending".equals(marker) ? Mono.<Map<String, Object>>never().doOnSubscribe(subscription -> started.countDown())
+                    .doOnCancel(cancelled::countDown) : Mono.just(Map.of("marker", marker));
+        });
+        final LoopResources loops = LoopResources.create("mcp-lifecycle-test", 2, true);
+        final ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(RouterFunctions.toHttpHandler(
+                RouterFunctions.route(RequestPredicates.POST("/mcp/streamablehttp"), provider::handleUnifiedEndpoint)));
+        final reactor.netty.DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).runOn(loops).handle(adapter).bindNow();
+        final WebClient client = WebClient.create("http://127.0.0.1:" + server.port());
+        CompletableFuture<ResponseEntity<String>> pending = null;
+        String sessionId = null;
+        try {
+            final ResponseEntity<String> initialized = networkPost(client, INITIALIZE_REQUEST_BODY, "", "init").block(Duration.ofSeconds(10));
+            assertNotNull(initialized);
+            sessionId = initialized.getHeaders().getFirst(SESSION_ID_HEADER);
+            assertNotNull(sessionId);
+            assertEquals(HttpStatus.ACCEPTED, networkPost(client, INITIALIZED_NOTIFICATION_BODY, sessionId, "init")
+                    .block(Duration.ofSeconds(10)).getStatusCode());
+            pending = networkPost(client, TOOLS_LIST_REQUEST_BODY, sessionId, "pending").toFuture();
+            assertTrue(started.await(10, TimeUnit.SECONDS));
+            final ResponseEntity<String> duplicate = networkPost(client, TOOLS_LIST_REQUEST_BODY, sessionId, "duplicate").block(Duration.ofSeconds(10));
+            assertNotNull(duplicate);
+            assertEquals(HttpStatus.BAD_REQUEST, duplicate.getStatusCode());
+            assertEquals(1, calls.get());
+            final ResponseEntity<String> peer = networkPost(client, TOOLS_LIST_REQUEST_BODY.replace("req-1", "req-2"), sessionId, "peer")
+                    .block(Duration.ofSeconds(10));
+            assertNotNull(peer);
+            assertTrue(peer.getBody().contains("\"marker\":\"peer\""), peer.getBody());
+            pending.cancel(true);
+            assertTrue(cancelled.await(10, TimeUnit.SECONDS), "Real HTTP disconnect must cancel the owned SDK handler");
+            final ResponseEntity<String> next = networkPost(client, TOOLS_LIST_REQUEST_BODY.replace("req-1", "req-3"), sessionId, "next")
+                    .block(Duration.ofSeconds(10));
+            assertNotNull(next);
+            assertTrue(next.getBody().contains("\"marker\":\"next\""), next.getBody());
+            assertEquals(3, calls.get());
+        } finally {
+            if (Objects.nonNull(pending)) {
+                pending.cancel(true);
+            }
+            if (Objects.nonNull(sessionId)) {
+                provider.removeSession(sessionId);
+            }
+            server.disposeNow();
+            loops.disposeLater().block(Duration.ofSeconds(10));
+        }
+    }
+
+    private Mono<ResponseEntity<String>> networkPost(final WebClient client, final String body, final String sessionId, final String marker) {
+        return client.post().uri("/mcp/streamablehttp").contentType(MediaType.APPLICATION_JSON)
+                .header(SESSION_ID_HEADER, sessionId).header("X-Test-Request", marker).bodyValue(body)
+                .exchangeToMono(response -> response.toEntity(String.class));
+    }
+
     private ShenyuStreamableHttpServerTransportProvider providerWithHandler(final McpRequestHandler<Map<String, Object>> handler) {
+        return providerWithHandler(handler, new AtomicReference<>());
+    }
+
+    private ShenyuStreamableHttpServerTransportProvider providerWithHandler(final McpRequestHandler<Map<String, Object>> handler,
+                                                                          final AtomicReference<McpServerTransport> capturedTransport) {
         ShenyuStreamableHttpServerTransportProvider provider =
                 new ShenyuStreamableHttpServerTransportProvider(new ObjectMapper(), "/mcp/streamablehttp");
-        provider.setSessionFactory(transport -> new McpServerSession(
+        provider.setSessionFactory(transport -> {
+            capturedTransport.set(transport);
+            return new McpServerSession(
                 UUID.randomUUID().toString(),
                 Duration.ofSeconds(10),
                 transport,
@@ -406,7 +700,8 @@ class ShenyuStreamableHttpServerTransportProviderTest {
                         new McpSchema.Implementation("ShenyuMcpServer", "1.0.0"),
                         "test")),
                 Map.<String, McpRequestHandler<?>>of("tools/list", handler),
-                Map.of()));
+                Map.of());
+        });
         return provider;
     }
 

@@ -9,7 +9,7 @@
 | 依赖 | 版本 |
 |------|------|
 | MCP SDK (io.modelcontextprotocol.sdk:mcp-bom) | 0.17.0 |
-| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.2 |
+| Spring AI (org.springframework.ai:spring-ai-bom) | 1.1.8 |
 | Spring Boot | 3.3.1 |
 
 ### 支持的协议

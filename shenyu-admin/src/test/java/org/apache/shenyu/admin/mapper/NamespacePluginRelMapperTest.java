@@ -100,6 +100,25 @@ class NamespacePluginRelMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
+    @Transactional
+    void excludedSearchDropsRelPluginWhenAnySearchableFieldMatches() {
+        pluginMapper.insert(PluginDO.builder().id("excluded-rel-divide").name("mockRelExcluded").role("Proxy").sort(0).enabled(true)
+                .dateCreated(new Timestamp(0)).dateUpdated(new Timestamp(0)).build());
+        pluginMapper.insert(PluginDO.builder().id("excluded-rel-other").name("mockRelRetained").role("HttpProcess").sort(1).enabled(true)
+                .dateCreated(new Timestamp(0)).dateUpdated(new Timestamp(0)).build());
+        namespacePluginRelMapper.insertSelective(NamespacePluginRelDO.builder().id("rel-excluded-0").pluginId("excluded-rel-divide")
+                .namespaceId("excluded-search").enabled(true).sort(0).build());
+        namespacePluginRelMapper.insertSelective(NamespacePluginRelDO.builder().id("rel-excluded-1").pluginId("excluded-rel-other")
+                .namespaceId("excluded-search").enabled(true).sort(1).build());
+        NamespacePluginQueryCondition condition = new NamespacePluginQueryCondition();
+        condition.setKeyword("!mockRelExcluded");
+        condition.init();
+        List<NamespacePluginVO> searched = namespacePluginRelMapper.searchByCondition(condition);
+        Assertions.assertTrue(searched.stream().noneMatch(item -> "mockRelExcluded".equals(item.getName())));
+        Assertions.assertTrue(searched.stream().anyMatch(item -> "mockRelRetained".equals(item.getName())));
+    }
+
+    @Test
     void testSelectByQueryWithStringNamespaceId() {
         String namespaceId = "namespace-text";
         NamespacePluginRelDO relation = NamespacePluginRelDO.builder()

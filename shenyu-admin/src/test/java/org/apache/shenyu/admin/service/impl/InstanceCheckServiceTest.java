@@ -21,10 +21,14 @@ import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,6 +43,7 @@ import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -66,6 +71,47 @@ public final class InstanceCheckServiceTest {
     void setUp() {
         instanceCheckService = new InstanceCheckService(instanceInfoService);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
+    }
+
+    @Test
+    void testHeartbeatNormalizesLegacyInformation() {
+        String information = "{\"cpu\":4,\"os\":\"Windows\"}";
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "http", "ns");
+        dto.setInstanceInfo(GsonUtils.getInstance().toJson(information));
+
+        instanceCheckService.handleBeatInfo(dto);
+
+        InstanceInfoVO actual = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        assertEquals(information, actual.getInstanceInfo());
+        assertEquals(1, actual.getInstanceState());
+    }
+
+    @Test
+    void testCurrentHeartbeatInformationIsPreserved() {
+        String information = "{\"cpu\":4}";
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "http", "ns");
+        dto.setInstanceInfo(information);
+
+        instanceCheckService.handleBeatInfo(dto);
+
+        assertEquals(information, instanceCheckService.getInstanceHealthBeatInfo(dto).getInstanceInfo());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"{broken}", "[]", "true", "not-json"})
+    void testInvalidOptionalInformationDoesNotStopHeartbeats(final String information) {
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "http", "ns");
+        dto.setInstanceInfo(information);
+
+        assertDoesNotThrow(() -> instanceCheckService.handleBeatInfo(dto));
+
+        InstanceInfoVO actual = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        assertEquals("{}", actual.getInstanceInfo());
+        assertEquals(1, actual.getInstanceState());
+        actual.setLastHeartBeatTime(0L);
+        assertDoesNotThrow(() -> instanceCheckService.handleBeatInfo(dto));
+        assertThat(actual.getLastHeartBeatTime(), greaterThan(0L));
     }
 
     @Test
@@ -122,6 +168,36 @@ public final class InstanceCheckServiceTest {
         InstanceInfoVO second = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);
         assertEquals(2000L, second.getLastHeartBeatTime());
+    }
+
+    @Test
+    void testHandleBeatInfoRefreshesInstanceInfoOnExistingIdentity() {
+        InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        first.setInstanceInfo("{\"version\":\"1.0\"}");
+        instanceCheckService.handleBeatInfo(first);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
+        assertNotNull(cached);
+        assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
+
+        // same identity reports again with changed metadata
+        InstanceBeatInfoDTO second = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        second.setInstanceInfo("{\"version\":\"2.0\"}");
+        instanceCheckService.handleBeatInfo(second);
+        assertEquals("{\"version\":\"2.0\"}", cached.getInstanceInfo());
+    }
+
+    @Test
+    void testHandleBeatInfoKeepsInstanceInfoWhenBeatCarriesBlank() {
+        InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        first.setInstanceInfo("{\"version\":\"1.0\"}");
+        instanceCheckService.handleBeatInfo(first);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
+        assertNotNull(cached);
+
+        InstanceBeatInfoDTO blank = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        blank.setInstanceInfo("");
+        instanceCheckService.handleBeatInfo(blank);
+        assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
     }
 
     @Test

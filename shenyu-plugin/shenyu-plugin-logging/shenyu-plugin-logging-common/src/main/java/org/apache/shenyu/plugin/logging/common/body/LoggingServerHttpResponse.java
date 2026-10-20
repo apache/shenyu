@@ -26,9 +26,9 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.reactivestreams.Publisher;
@@ -76,6 +76,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
 
     private final KeyWordMatch keyWordMatch;
 
+    private final int maxResponseBody;
+
     /**
      * Constructor LoggingServerHttpResponse.
      *
@@ -105,12 +107,30 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
                                      final LogCollector<L> logCollector, final boolean desensitized,
                                      final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg) {
+        this(delegate, logInfo, logCollector, desensitized, keyWordMatch, dataDesensitizeAlg, GenericGlobalConfig.DEFAULT_MAX_RESPONSE_BODY);
+    }
+
+    /**
+     * Create a response decorator using the body limit captured for this request.
+     *
+     * @param delegate delegate response
+     * @param logInfo access log
+     * @param logCollector LogCollector instance
+     * @param desensitized desensitize flag
+     * @param keyWordMatch compiled keyword matcher
+     * @param dataDesensitizeAlg desensitize function
+     * @param maxResponseBody maximum logged response body size in bytes
+     */
+    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
+                                     final LogCollector<L> logCollector, final boolean desensitized,
+                                     final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg, final int maxResponseBody) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
         this.desensitized = desensitized;
         this.dataDesensitizeAlg = dataDesensitizeAlg;
         this.keyWordMatch = keyWordMatch;
+        this.maxResponseBody = maxResponseBody;
     }
 
     /**
@@ -153,7 +173,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (MediaTypeUtils.isByteType(mediaType)) {
             return Flux.from(body).doFinally(signal -> logResponse(shenyuContext, null));
         }
-        BodyWriter writer = new BodyWriter();
+        BodyWriter writer = new BodyWriter(maxResponseBody);
         return Flux.from(body).doOnNext(buffer -> {
             if (LogCollectUtils.isNotBinaryType(getHeaders())) {
                 try (DataBuffer.ByteBufferIterator bufferIterator = buffer.readableByteBuffers()) {
@@ -186,8 +206,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
             logInfo.setUpstreamIp(getUpstreamIp());
         }
         if (Objects.nonNull(writer)) {
-            int size = writer.size();
-            if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+            // use the writer's overflow state: size() saturates at Integer.MAX_VALUE
+            if (!writer.isEmpty() && !writer.isLimitExceeded()) {
                 String body = writer.output();
                 logInfo.setResponseBody(body);
             }
@@ -243,7 +263,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
     /**
      * collect access error.
      *
-     * @param throwable Exception occurred。
+     * @param throwable Exception occurred.
      */
     public void logError(final Throwable throwable) {
         HttpStatusCode httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -282,7 +302,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
 
         int size = bytes.length;
-        if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
+        if (size > 0 && size <= maxResponseBody) {
             String body = new String(bytes, StandardCharsets.UTF_8);
             logInfo.setResponseBody(body);
         }

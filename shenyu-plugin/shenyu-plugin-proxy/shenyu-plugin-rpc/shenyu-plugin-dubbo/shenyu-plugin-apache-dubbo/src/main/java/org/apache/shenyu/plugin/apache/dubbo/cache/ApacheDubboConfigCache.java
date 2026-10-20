@@ -162,13 +162,15 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
             registryConfig = registryConfigTemp;
         }
-        if (Objects.isNull(consumerConfig)) {
-            consumerConfig = new ConsumerConfig();
-            consumerConfig.refresh();
-            Optional.ofNullable(dubboRegisterConfig.getThreadpool()).ifPresent(consumerConfig::setThreadpool);
-            Optional.ofNullable(dubboRegisterConfig.getCorethreads()).ifPresent(consumerConfig::setCorethreads);
-            Optional.ofNullable(dubboRegisterConfig.getThreads()).ifPresent(consumerConfig::setThreads);
-            Optional.ofNullable(dubboRegisterConfig.getQueues()).ifPresent(consumerConfig::setQueues);
+        // Refresh a new config so removed overrides fall back to Dubbo defaults instead of stale values.
+        ConsumerConfig consumerConfigTemp = new ConsumerConfig();
+        consumerConfigTemp.refresh();
+        Optional.ofNullable(dubboRegisterConfig.getThreadpool()).ifPresent(consumerConfigTemp::setThreadpool);
+        Optional.ofNullable(dubboRegisterConfig.getCorethreads()).ifPresent(consumerConfigTemp::setCorethreads);
+        Optional.ofNullable(dubboRegisterConfig.getThreads()).ifPresent(consumerConfigTemp::setThreads);
+        Optional.ofNullable(dubboRegisterConfig.getQueues()).ifPresent(consumerConfigTemp::setQueues);
+        if (needUpdateConsumerConfig(consumerConfigTemp)) {
+            consumerConfig = consumerConfigTemp;
         }
     }
 
@@ -177,7 +179,16 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             return true;
         }
         return !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
-                || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress());
+                || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
+                || !Objects.equals(dubboRegisterConfig.getGroup(), registryConfig.getGroup());
+    }
+
+    private boolean needUpdateConsumerConfig(final ConsumerConfig updatedConfig) {
+        return Objects.isNull(consumerConfig)
+                || !Objects.equals(updatedConfig.getThreadpool(), consumerConfig.getThreadpool())
+                || !Objects.equals(updatedConfig.getCorethreads(), consumerConfig.getCorethreads())
+                || !Objects.equals(updatedConfig.getThreads(), consumerConfig.getThreads())
+                || !Objects.equals(updatedConfig.getQueues(), consumerConfig.getQueues());
     }
 
     /**
@@ -475,6 +486,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     private void changeRegistryAddressNamespace(final RegistryConfig currentRegistryConfig, final ReferenceConfig<GenericService> reference, final String namespace) {
         RegistryConfig registryConfigNew = new RegistryConfig();
         registryConfigNew.setRegister(false);
+        registryConfigNew.setGroup(currentRegistryConfig.getGroup());
         registryConfigNew.setAddress(URL.valueOf(currentRegistryConfig.getAddress())
                 .addParameter(Constants.NAMESPACE, namespace)
                 .toFullString());
