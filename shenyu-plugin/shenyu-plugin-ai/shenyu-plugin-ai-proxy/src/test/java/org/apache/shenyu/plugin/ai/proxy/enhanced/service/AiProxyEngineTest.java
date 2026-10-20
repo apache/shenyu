@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -212,7 +213,7 @@ class AiProxyEngineTest {
         engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), request -> {
                     transports.incrementAndGet();
-                    return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT, "unavailable", null));
+                    return Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null));
                 }, Duration.ZERO);
         config.setStream(true);
         final AiCommonConfig fallbackConfig = new AiCommonConfig(config);

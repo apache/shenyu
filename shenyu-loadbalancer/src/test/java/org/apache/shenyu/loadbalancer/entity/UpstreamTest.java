@@ -25,11 +25,60 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Upstream check task test.
  */
 public class UpstreamTest {
+
+    @Test
+    public void selectorKeyIsReusedAndInvalidatedByItsActualIdentity() {
+        Upstream upstream = Upstream.builder().protocol(" http ").url(" host:80 ").group("blue").version("v1").build();
+        String key = upstream.buildSelectorKey("first");
+        Assertions.assertEquals("first:" + upstream.buildDomain(), key);
+        Assertions.assertSame(key, upstream.buildSelectorKey("first"));
+        upstream.setWeight(20);
+        upstream.setGroup("green");
+        upstream.setVersion("v2");
+        Assertions.assertSame(key, upstream.buildSelectorKey("first"));
+        Assertions.assertEquals("second:http://host:80", upstream.buildSelectorKey("second"));
+        Assertions.assertEquals(key, upstream.buildSelectorKey("first"));
+        upstream.setUrl("new:81");
+        Assertions.assertEquals("first:http://new:81", upstream.buildSelectorKey("first"));
+        upstream.setUrl(null);
+        Assertions.assertEquals("null:http://null", upstream.buildSelectorKey(null));
+        JsonObject fields = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(upstream), JsonObject.class);
+        Assertions.assertFalse(fields.has("selectorKey"));
+        Assertions.assertFalse(JsonUtils.toMap(upstream).containsKey("selectorKey"));
+    }
+
+    @Test
+    public void concurrentSelectorsCannotReadEachOthersCachedKey() throws Exception {
+        Upstream upstream = Upstream.builder().protocol("https://").url("shared:443").build();
+        ExecutorService workers = Executors.newFixedThreadPool(4);
+        List<Future<?>> results = new ArrayList<>();
+        try {
+            for (int index = 0; index < 4; index++) {
+                final String selector = "selector-" + index;
+                results.add(workers.submit(() -> {
+                    for (int request = 0; request < 10000; request++) {
+                        Assertions.assertEquals(selector + ":https://shared:443", upstream.buildSelectorKey(selector));
+                    }
+                }));
+            }
+            for (Future<?> result : results) {
+                result.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            workers.shutdownNow();
+        }
+    }
 
     @Test
     public void upstreamTest() {

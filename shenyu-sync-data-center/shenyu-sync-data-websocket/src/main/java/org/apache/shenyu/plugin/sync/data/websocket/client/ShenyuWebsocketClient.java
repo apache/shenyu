@@ -50,7 +50,6 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,6 +59,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * The type shenyu websocket client.
@@ -125,6 +125,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     private volatile Thread reconnectThread;
 
+    private final Consumer<ShenyuWebsocketClient> onMasterLostCallback;
+
     /**
      * Instantiates a new shenyu websocket client.
      *
@@ -146,6 +148,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final Integer port
     ) {
         super(serverUri);
+        this.onMasterLostCallback = null;
         this.namespaceId = namespaceId;
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
@@ -212,11 +215,44 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                                  final String namespaceId,
                                  final Integer port,
                                  final AtomicBoolean initialSyncReady) {
+        this(serverUri, headers, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers,
+                namespaceId, port, initialSyncReady, null);
+    }
+
+    /**
+     * Create a client with an optional startup readiness latch and master lost callback.
+     * @param serverUri server URI
+     * @param headers headers
+     * @param pluginDataSubscriber plugin subscriber
+     * @param metaDataSubscribers metadata subscribers
+     * @param authDataSubscribers authorization subscribers
+     * @param proxySelectorDataSubscribers proxy selector subscribers
+     * @param discoveryUpstreamDataSubscribers discovery subscribers
+     * @param aiProxyApiKeyDataSubscribers API key subscribers
+     * @param namespaceId namespace
+     * @param port gateway port
+     * @param initialSyncReady startup latch, null for the legacy protocol
+     * @param onMasterLostCallback callback invoked when connection to master is lost
+     */
+    public ShenyuWebsocketClient(final URI serverUri,
+                                 final Map<String, String> headers,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                                 final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                                 final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                                 final String namespaceId,
+                                 final Integer port,
+                                 final AtomicBoolean initialSyncReady,
+                                 final Consumer<ShenyuWebsocketClient> onMasterLostCallback) {
         super(serverUri, headers);
         if (Objects.nonNull(initialSyncReady)) {
             this.initialSyncState = new InitialSyncState(initialSyncReady, this::resetSyncFailures);
         }
         this.namespaceId = namespaceId;
+        this.onMasterLostCallback = onMasterLostCallback;
         LOG.info("shenyu bootstrap websocket namespaceId: {}", namespaceId);
         this.addHeader(Constants.SHENYU_NAMESPACE_ID, namespaceId);
         this.addHeader(Constants.CLIENT_PORT_NAME, String.valueOf(port));
@@ -297,10 +333,14 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             if (Objects.equals(WebsocketSyncFrame.EVENT_TYPE, eventType) && Objects.nonNull(initialSyncState)) {
                 initialSyncState.accept(GsonUtils.getInstance().fromJson(result, WebsocketSyncFrame.class), this::handleResult);
             } else if (Objects.equals(DataEventTypeEnum.RUNNING_MODE.name(), eventType)) {
+                boolean wasMaster = this.isConnectedToMaster;
                 String mode = String.valueOf(jsonToMap.get(RunningModeConstants.RUNNING_MODE));
                 if (!Objects.equals(RunningModeEnum.STANDALONE.name(), mode)) {
                     this.masterUrl = String.valueOf(jsonToMap.get(RunningModeConstants.MASTER_URL));
                     this.isConnectedToMaster = Boolean.TRUE.equals(jsonToMap.get(RunningModeConstants.IS_MASTER));
+                    if (wasMaster && !this.isConnectedToMaster && !this.manuallyClosed.get() && Objects.nonNull(onMasterLostCallback)) {
+                        onMasterLostCallback.accept(this);
+                    }
                 }
                 this.runningMode = mode;
             } else if (Objects.nonNull(initialSyncState)) {
@@ -318,7 +358,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     @Override
     public void onClose(final int i, final String s, final boolean b) {
+        boolean wasMaster = this.isConnectedToMaster;
+        this.isConnectedToMaster = false;
         this.close();
+        if (wasMaster && !this.manuallyClosed.get() && Objects.nonNull(onMasterLostCallback)) {
+            onMasterLostCallback.accept(this);
+        }
     }
     
     @Override
@@ -378,6 +423,9 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBackoff.set(0);
                 this.sendPing();
                 send(getInstanceInfo());
+                if (!Objects.equals(RunningModeEnum.STANDALONE.name(), runningMode)) {
+                    send(DataEventTypeEnum.RUNNING_MODE.name());
+                }
                 LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
@@ -453,9 +501,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.warn("Failed to parse websocket message from server[{}], the message will be ignored", this.getURI(), ex);
             return;
         }
-        LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
-                this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
-                websocketData.getNamespaceId(), result.getBytes(StandardCharsets.UTF_8).length);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("server [{}] received config message: groupType: {}, eventType: {}, namespaceId: {}, size: {} bytes",
+                    this.getURI(), websocketData.getGroupType(), websocketData.getEventType(),
+                    websocketData.getNamespaceId(), utf8ByteLength(result));
+        }
         ConfigGroupEnum groupEnum;
         String eventType;
         String json;
@@ -491,6 +541,46 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     private void resetSyncFailures() {
         consecutiveSyncFailures.set(0);
         nextSyncRetryAt = 0;
+    }
+
+    /**
+     * Compute the UTF-8 encoded byte length of a string without allocating a message-sized byte array.
+     * Mirrors {@code value.getBytes(StandardCharsets.UTF_8).length}, including the single-byte {@code '?'}
+     * replacement of unpaired surrogates, so the logged size stays an honest UTF-8 byte count while avoiding
+     * a full-payload allocation on every received frame. {@code String.length()} is not used because it counts
+     * UTF-16 code units, not UTF-8 bytes.
+     *
+     * @param value the string to measure
+     * @return the number of bytes the value occupies when encoded as UTF-8
+     */
+    static int utf8ByteLength(final String value) {
+        if (Objects.isNull(value)) {
+            return 0;
+        }
+        int bytes = 0;
+        int i = 0;
+        final int length = value.length();
+        while (i < length) {
+            final char c = value.charAt(i);
+            if (c <= 0x7F) {
+                bytes++;
+                i++;
+            } else if (c <= 0x7FF) {
+                bytes += 2;
+                i++;
+            } else if (Character.isHighSurrogate(c) && i + 1 < length && Character.isLowSurrogate(value.charAt(i + 1))) {
+                bytes += 4;
+                i += 2;
+            } else if (Character.isSurrogate(c)) {
+                // an unpaired surrogate is encoded as a single replacement byte, matching getBytes(UTF_8)
+                bytes++;
+                i++;
+            } else {
+                bytes += 3;
+                i++;
+            }
+        }
+        return bytes;
     }
 
     /**

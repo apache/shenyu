@@ -143,6 +143,7 @@ class RequestScopedMcpClientTest {
             RequestScopedMcpClient client = fixture.client(events::add);
             try {
                 client.initialize().block(WAIT);
+                awaitIdle(client);
                 int before = events.size();
                 int requestsBefore = fixture.requests.size();
                 StepVerifier.create(client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", "expired")))
