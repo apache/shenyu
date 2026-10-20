@@ -25,6 +25,8 @@ import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -179,6 +181,44 @@ public final class BaseDataCache {
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
     }
+
+    /**
+     * Remove a batch of selectors with a single merge per affected plugin bucket.
+     * Selectors without a plugin name are matched against every bucket, mirroring
+     * {@link #removeSelectData(SelectorData)}.
+     *
+     * @param selectorDataList the selectors to remove
+     */
+    void removeSelectDataBatch(final List<SelectorData> selectorDataList) {
+        if (selectorDataList.isEmpty()) {
+            return;
+        }
+        final Map<String, Set<String>> idsByPlugin = new HashMap<>();
+        final Set<String> danglingIds = new HashSet<>();
+        for (SelectorData data : selectorDataList) {
+            if (Objects.isNull(data) || Objects.isNull(data.getId())) {
+                continue;
+            }
+            if (StringUtils.isBlank(data.getPluginName())) {
+                danglingIds.add(data.getId());
+            } else {
+                idsByPlugin.computeIfAbsent(data.getPluginName(), key -> new HashSet<>()).add(data.getId());
+            }
+        }
+        if (!danglingIds.isEmpty()) {
+            selectorMap.keySet().forEach(pluginName -> removeSelectDataByIds(pluginName, danglingIds));
+        }
+        idsByPlugin.forEach(this::removeSelectDataByIds);
+    }
+
+    private void removeSelectDataByIds(final String pluginName, final Set<String> selectorIds) {
+        selectorMap.computeIfPresent(pluginName, (key, value) -> {
+            final List<SelectorData> result = value.stream()
+                    .filter(selector -> !selectorIds.contains(selector.getId()))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
+        });
+    }
     
     /**
      * Obtain selector data list list.
@@ -238,6 +278,30 @@ public final class BaseDataCache {
      */
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
+    }
+
+    /**
+     * Remove a batch of rules with a single merge per affected selector bucket.
+     *
+     * @param ruleDataList the rules to remove
+     */
+    void removeRuleDataBatch(final List<RuleData> ruleDataList) {
+        if (ruleDataList.isEmpty()) {
+            return;
+        }
+        final Map<String, Set<String>> idsBySelector = new HashMap<>();
+        for (RuleData data : ruleDataList) {
+            if (Objects.isNull(data) || Objects.isNull(data.getId()) || Objects.isNull(data.getSelectorId())) {
+                continue;
+            }
+            idsBySelector.computeIfAbsent(data.getSelectorId(), key -> new HashSet<>()).add(data.getId());
+        }
+        idsBySelector.forEach((selectorId, ruleIds) -> ruleMap.computeIfPresent(selectorId, (key, value) -> {
+            final List<RuleData> result = value.stream()
+                    .filter(rule -> !ruleIds.contains(rule.getId()))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
+        }));
     }
     
     /**
