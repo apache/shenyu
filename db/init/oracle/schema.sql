@@ -122,7 +122,7 @@ create table selector
     sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
-    loged        NUMBER(3) not null,
+    logged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
@@ -148,7 +148,7 @@ comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
 comment on column SELECTOR.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column SELECTOR.loged
+comment on column SELECTOR.logged
   is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
@@ -198,7 +198,7 @@ create table rule
     match_mode    NUMBER(10) not null,
     rule_name     VARCHAR2(128) not null,
     enabled       NUMBER(3) not null,
-    loged         NUMBER(3) not null,
+    logged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id  VARCHAR2(50) not null,
     sort_code     NUMBER(10) not null,
@@ -217,7 +217,7 @@ comment on column RULE.rule_name
   is 'rule name';
 comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column RULE.loged
+comment on column RULE.logged
   is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
