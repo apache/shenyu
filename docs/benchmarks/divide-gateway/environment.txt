@@ -1,0 +1,6 @@
+JDK: openjdk version "17.0.18" 2026-01-20 LTS
+OpenJDK Runtime Environment Microsoft-13106358 (build 17.0.18+8-LTS)
+OpenJDK 64-Bit Server VM Microsoft-13106358 (build 17.0.18+8-LTS, mixed mode, sharing)
+
+Requests: 2000; rate: 500; samples: 3; profile: False
+Separate load, gateway and upstream JVMs; 256 MiB heaps; ActiveProcessorCount=8; 128 connections; 4 gateway server and 4 gateway client event loops; 2 ms upstream delay; 1024-byte body; retry=0; gateway timeout=60 s.

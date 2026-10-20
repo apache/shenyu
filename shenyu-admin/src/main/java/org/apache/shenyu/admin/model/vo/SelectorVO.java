@@ -78,9 +78,9 @@ public class SelectorVO implements Serializable {
     private Boolean enabled;
 
     /**
-     * whether loged.
+     * whether logged.
      */
-    private Boolean loged;
+    private Boolean logged;
 
     /**
      * whether continued.
@@ -146,7 +146,7 @@ public class SelectorVO implements Serializable {
                       final String typeName,
                       final Integer sort,
                       final Boolean enabled,
-                      final Boolean loged,
+                      final Boolean logged,
                       final Boolean continued,
                       final Boolean matchRestful,
                       final String handle,
@@ -163,7 +163,7 @@ public class SelectorVO implements Serializable {
         this.typeName = typeName;
         this.sort = sort;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.continued = continued;
         this.matchRestful = matchRestful;
         this.handle = handle;
@@ -336,21 +336,21 @@ public class SelectorVO implements Serializable {
     }
 
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
 
     /**
@@ -556,7 +556,7 @@ public class SelectorVO implements Serializable {
         return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getSelectorName(), selectorDO.getMatchMode(),
                 MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getSelectorType(),
                 SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getSelectorType()), selectorDO.getSortCode(),
-                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
+                selectorDO.getEnabled(), selectorDO.getLogged(), selectorDO.getContinued(),
                 selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
                 DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()),

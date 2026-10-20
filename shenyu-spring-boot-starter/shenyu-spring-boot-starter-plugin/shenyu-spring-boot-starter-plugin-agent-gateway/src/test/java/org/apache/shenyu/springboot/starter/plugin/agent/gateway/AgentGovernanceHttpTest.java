@@ -299,7 +299,7 @@ class AgentGovernanceHttpTest {
                     .logged(false).sort(0).type(0).matchMode(0).build();
             cache.cacheSelectData(selector);
             RuleData rule = RuleData.builder().id(selector.getId() + "-rule").selectorId(selector.getId()).pluginName(plugin.named())
-                    .namespaceId("namespace").enabled(true).loged(false).sort(0).matchMode(0).handle(handle).build();
+                    .namespaceId("namespace").enabled(true).logged(false).sort(0).matchMode(0).handle(handle).build();
             cache.cacheRuleData(rule);
             return rule;
         }

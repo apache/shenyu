@@ -438,7 +438,7 @@ public final class WebsocketDataChangedListenerTest {
         ruleData.setEnabled(true);
         ruleData.setHandle("{\\\"permission\\\":\\\"reject\\\",\\\"statusCode\\\":\\\"503\\\"}");
         ruleData.setId("1336350040008105984");
-        ruleData.setLoged(true);
+        ruleData.setLogged(true);
         ruleData.setMatchMode(1);
         ruleData.setName("test");
         ruleData.setPluginName("waf");

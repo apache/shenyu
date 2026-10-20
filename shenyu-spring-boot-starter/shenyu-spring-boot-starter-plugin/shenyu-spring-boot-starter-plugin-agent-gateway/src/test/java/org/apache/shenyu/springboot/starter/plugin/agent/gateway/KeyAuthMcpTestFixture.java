@@ -307,7 +307,7 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
 
     private RuleData rule(final SelectorData route, final String id, final String handle) {
         return RuleData.builder().id(id).selectorId(route.getId()).pluginName(route.getPluginName())
-                .namespaceId("namespace").enabled(true).loged(false).sort(0).matchMode(0).handle(handle).build();
+                .namespaceId("namespace").enabled(true).logged(false).sort(0).matchMode(0).handle(handle).build();
     }
 
     @Override
