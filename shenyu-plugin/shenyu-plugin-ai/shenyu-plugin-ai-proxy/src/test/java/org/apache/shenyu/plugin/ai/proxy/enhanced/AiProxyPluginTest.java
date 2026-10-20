@@ -283,7 +283,7 @@ class AiProxyPluginTest {
                     requests.add(request);
                     return transport.execute(request);
                 }, Duration.ZERO);
-        return new AiProxyPlugin(new AiProxyConfigService(), engine, handler);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 
     private Mono<Void> execute(final AiProxyPlugin plugin) {
