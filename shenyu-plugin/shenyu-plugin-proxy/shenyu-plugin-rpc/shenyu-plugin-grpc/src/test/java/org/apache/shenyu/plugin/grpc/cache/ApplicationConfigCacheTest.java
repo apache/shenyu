@@ -75,4 +75,81 @@ public class ApplicationConfigCacheTest {
     public void testWatch() {
         this.applicationConfigCache.watch(selector.getName(), Assertions::assertNotNull);
     }
+
+    @Test
+    public void testObtainGrpcExtInfo() {
+        org.apache.shenyu.common.dto.MetaData metaData = org.apache.shenyu.common.dto.MetaData.builder()
+                .path("/grpc/echo")
+                .serviceName("echoService")
+                .methodName("echo")
+                .rpcExt("{\"methodType\":\"UNARY\",\"timeout\":2500}")
+                .build();
+
+        GrpcExtInfo info1 = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertEquals(2500, info1.getTimeout());
+        org.junit.jupiter.api.Assertions.assertEquals(io.grpc.MethodDescriptor.MethodType.UNARY, info1.getMethodType());
+
+        GrpcExtInfo info2 = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertSame(info1, info2);
+    }
+
+    @Test
+    public void testObtainGrpcExtInfoDefaults() {
+        org.junit.jupiter.api.Assertions.assertNotNull(this.applicationConfigCache.obtainGrpcExtInfo(null));
+
+        org.apache.shenyu.common.dto.MetaData blankMeta = org.apache.shenyu.common.dto.MetaData.builder()
+                .path("/grpc/blank")
+                .rpcExt("")
+                .build();
+        GrpcExtInfo blankInfo = this.applicationConfigCache.obtainGrpcExtInfo(blankMeta);
+        org.junit.jupiter.api.Assertions.assertEquals(5000, blankInfo.getTimeout());
+        org.junit.jupiter.api.Assertions.assertEquals(io.grpc.MethodDescriptor.MethodType.UNARY, blankInfo.getMethodType());
+
+        org.apache.shenyu.common.dto.MetaData emptyJsonMeta = org.apache.shenyu.common.dto.MetaData.builder()
+                .path("/grpc/emptyJson")
+                .rpcExt("{}")
+                .build();
+        GrpcExtInfo emptyJsonInfo = this.applicationConfigCache.obtainGrpcExtInfo(emptyJsonMeta);
+        org.junit.jupiter.api.Assertions.assertEquals(5000, emptyJsonInfo.getTimeout());
+        org.junit.jupiter.api.Assertions.assertEquals(io.grpc.MethodDescriptor.MethodType.UNARY, emptyJsonInfo.getMethodType());
+    }
+
+    @Test
+    public void testObtainGrpcExtInfoUpdate() {
+        org.apache.shenyu.common.dto.MetaData metaData = org.apache.shenyu.common.dto.MetaData.builder()
+                .path("/grpc/update")
+                .rpcExt("{\"methodType\":\"UNARY\",\"timeout\":1000}")
+                .build();
+
+        GrpcExtInfo initial = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertEquals(1000, initial.getTimeout());
+
+        metaData.setRpcExt("{\"methodType\":\"SERVER_STREAMING\",\"timeout\":4000}");
+        GrpcExtInfo updated = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertEquals(4000, updated.getTimeout());
+        org.junit.jupiter.api.Assertions.assertEquals(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING, updated.getMethodType());
+        org.junit.jupiter.api.Assertions.assertNotSame(initial, updated);
+    }
+
+    @Test
+    public void testInvalidateAndCleanGrpcExtInfo() {
+        org.apache.shenyu.common.dto.MetaData metaData = org.apache.shenyu.common.dto.MetaData.builder()
+                .id("meta-1")
+                .path("/grpc/invalidate")
+                .serviceName("service1")
+                .methodName("method1")
+                .rpcExt("{\"methodType\":\"UNARY\",\"timeout\":6000}")
+                .build();
+
+        GrpcExtInfo info1 = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertSame(info1, this.applicationConfigCache.obtainGrpcExtInfo(metaData));
+
+        this.applicationConfigCache.invalidateGrpcExtInfo(metaData);
+        GrpcExtInfo info2 = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertNotSame(info1, info2);
+
+        this.applicationConfigCache.cleanGrpcExtInfo();
+        GrpcExtInfo info3 = this.applicationConfigCache.obtainGrpcExtInfo(metaData);
+        org.junit.jupiter.api.Assertions.assertNotSame(info2, info3);
+    }
 }

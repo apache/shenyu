@@ -105,3 +105,6 @@ INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `
 INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('1960000000000007701', '51', 'reservationTokens', 'reservationTokens', 1, 2, 5, '{"required":"0","placeholder":"Required when reservation is enabled; estimated completion tokens per request","rule":""}', '2026-10-19 00:00:00', '2026-10-19 00:00:00');
 INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007702', 'reservationEnabled', 'RESERVATION_ENABLED', 'disabled', 'false', 'Enable estimated completion token reservations', 0, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
 INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000007703', 'reservationEnabled', 'RESERVATION_ENABLED', 'enabled', 'true', 'Enable estimated completion token reservations', 1, 1, '2026-10-19 00:00:00', '2026-10-19 00:00:00');
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE instance_info ADD COLUMN last_heart_beat_time bigint NOT NULL DEFAULT 0 COMMENT 'last heart beat time';

@@ -39,6 +39,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Objects;
+
 /**
  * this is instance controller.
  */
@@ -85,9 +87,15 @@ public class InstanceController implements PagedController<InstanceQueryConditio
             commonPager.getDataList().forEach(instanceInfoVO -> {
                 String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
                 InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
-                instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
-                instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
-                instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+                if (Objects.isNull(instanceHealthBeatInfo)) {
+                    if (instanceInfoVO.getLastHeartBeatTime() <= 0 && Objects.nonNull(instanceInfoVO.getDateUpdated())) {
+                        instanceInfoVO.setLastHeartBeatTime(instanceInfoVO.getDateUpdated().getTime());
+                    }
+                } else {
+                    instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+                    instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+                    instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+                }
             });
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);

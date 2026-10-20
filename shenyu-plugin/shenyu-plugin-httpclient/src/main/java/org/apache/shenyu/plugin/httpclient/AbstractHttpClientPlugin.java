@@ -40,6 +40,7 @@ import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
@@ -88,7 +89,11 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         final Duration duration = Duration.ofMillis(timeout);
-        final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        // A probe must describe one attempt against its recovering target.
+        // Retrying it (including failover) could turn that target's failure into
+        // another target's success and incorrectly close the original breaker.
+        final int retryTimes = Boolean.TRUE.equals(exchange.getAttribute(UpstreamCircuitBreaker.HALF_OPEN_PROBE))
+                ? 0 : (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
         final String httpMethod = Objects.nonNull(exchange.getRequest().getMethod())
                 ? exchange.getRequest().getMethod().name() : "UNKNOWN";

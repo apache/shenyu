@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
@@ -36,7 +40,10 @@ import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.WebsocketData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,21 +53,28 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -166,6 +180,9 @@ public final class WebsocketDataReconcilerTest {
             // unchanged state: the second cycle pushes nothing
             reconciler.reconcileSafely();
             mocked.verifySends(NAMESPACE_1, 3);
+            verify(namespacePluginService, times(2)).listAll(NAMESPACE_1);
+            verify(selectorService, times(2)).listAllByNamespaceId(NAMESPACE_1);
+            verify(ruleService, times(2)).listAllByNamespaceId(NAMESPACE_1);
         }
     }
 
@@ -183,6 +200,11 @@ public final class WebsocketDataReconcilerTest {
                     .orElse("");
             assertTrue(ruleMessage.contains("\"eventType\":\"REFRESH\""), ruleMessage);
             assertTrue(ruleMessage.contains("\"data\":[]"), ruleMessage);
+            assertTrue(ruleMessage.contains("\"fullSnapshot\":true"), ruleMessage);
+            assertTrue(ruleMessage.contains("\"namespaceId\":\"namespace-1\""), ruleMessage);
+            assertEquals(DigestUtils.md5Hex(""), reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+            reconciler.reconcileSafely();
+            mocked.verifySends(NAMESPACE_1, 3);
         }
     }
 
@@ -233,6 +255,8 @@ public final class WebsocketDataReconcilerTest {
         try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
             reconciler.reconcileSafely();
             mocked.verifyNoSends();
+            verifyNoInteractions(appAuthService, namespacePluginService, selectorService, ruleService,
+                    metaDataService, proxySelectorService, discoveryUpstreamService, aiProxyApiKeyService);
         }
     }
 
@@ -263,6 +287,142 @@ public final class WebsocketDataReconcilerTest {
                     .allMatch(message -> message.contains("\"fullSnapshot\":true")
                             && message.contains("\"namespaceId\":\"namespace-1\"")));
         }
+    }
+
+    @Test
+    public void testCanonicalSnapshotsMatchPreviousDigestAndWireFormat() {
+        String namespaceId = "namespace-中文-<>&\"\\\n😀";
+        String handle = "{\"value\":\"中文😀 <>&=' \\\" \\\\ \\n\",\"empty\":null}";
+        PluginData plugin = PluginData.builder().id("plugin-1").name("divide").config(handle).namespaceId(namespaceId).build();
+        SelectorData selector = SelectorData.builder().id("selector-1").handle(handle).namespaceId(namespaceId).build();
+        RuleData first = new RuleData().setId("rule-1").setHandle(handle);
+        RuleData second = new RuleData().setId("rule-2").setHandle("");
+        List<PluginData> plugins = List.of(plugin);
+        List<SelectorData> selectors = List.of(selector);
+        List<RuleData> rules = Arrays.asList(second, first, null, first);
+        when(namespacePluginService.listAll(namespaceId)).thenReturn(plugins);
+        when(selectorService.listAllByNamespaceId(namespaceId)).thenReturn(selectors);
+        when(ruleService.listAllByNamespaceId(namespaceId)).thenReturn(rules);
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(namespaceId))) {
+            reconciler.reconcileSafely();
+            List<String> messages = mocked.capturedMessages(namespaceId);
+            assertEquals(3, messages.size());
+            assertPreviousEncoding(namespaceId, ConfigGroupEnum.PLUGIN, plugins, messages);
+            assertPreviousEncoding(namespaceId, ConfigGroupEnum.SELECTOR, selectors, messages);
+            assertPreviousEncoding(namespaceId, ConfigGroupEnum.RULE, rules, messages);
+        }
+    }
+
+    @Test
+    public void testFieldChangesAdditionsAndDeletionsAreDetectedWithoutEvents() {
+        stubAllGroups();
+        RuleData first = new RuleData().setId("rule-1").setHandle("old");
+        RuleData changed = new RuleData().setId("rule-1").setHandle("new");
+        RuleData added = new RuleData().setId("rule-2");
+        when(ruleService.listAllByNamespaceId(NAMESPACE_1)).thenReturn(List.of(first), List.of(changed),
+                List.of(added, changed), List.of(added), Collections.emptyList(), Collections.emptyList());
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            for (int cycle = 0; cycle < 6; cycle++) {
+                reconciler.reconcileSafely();
+            }
+            List<String> rules = mocked.capturedMessages(NAMESPACE_1).stream()
+                    .filter(message -> message.contains("\"groupType\":\"RULE\""))
+                    .collect(Collectors.toList());
+            assertEquals(5, rules.size());
+            assertTrue(rules.get(1).contains("\"handle\":\"new\""));
+            assertEquals(2, JsonParser.parseString(rules.get(2)).getAsJsonObject().getAsJsonArray("data").size());
+            assertFalse(rules.get(3).contains("rule-1"));
+            assertTrue(rules.get(4).contains("\"data\":[]"));
+            mocked.verifySends(NAMESPACE_1, 7);
+        }
+    }
+
+    @Test
+    public void testFailedSerializationKeepsPreviousCursorAndRetries() {
+        stubAllGroups();
+        RuleData changed = new RuleData().setId("changed");
+        when(ruleService.listAllByNamespaceId(NAMESPACE_1)).thenReturn(List.of(new RuleData()), List.of(changed));
+        Gson gson = GsonUtils.getGson();
+        GsonUtils serializer = spy(GsonUtils.getInstance());
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            reconciler.reconcileSafely();
+            String previousDigest = reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE");
+            doThrow(new IllegalArgumentException("serialization failed")).doCallRealMethod().when(serializer).toJson(changed);
+            try (MockedStatic<GsonUtils> mockedGson = mockStatic(GsonUtils.class)) {
+                mockedGson.when(GsonUtils::getInstance).thenReturn(serializer);
+                mockedGson.when(GsonUtils::getGson).thenReturn(gson);
+                reconciler.reconcileSafely();
+                assertEquals(previousDigest, reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+                mocked.verifySends(NAMESPACE_1, 3);
+                reconciler.reconcileSafely();
+                mocked.verifySends(NAMESPACE_1, 4);
+                assertEquals(DigestUtils.md5Hex(serializer.toJson(changed)), reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+            }
+        }
+    }
+
+    @Test
+    public void testFailedPublicationDoesNotCreateCursor() {
+        stubAllGroups();
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            mocked.failNextRuleSend(NAMESPACE_1);
+            reconciler.reconcileSafely();
+            assertFalse(reconciler.getDigestCursor().containsKey(NAMESPACE_1 + ":RULE"));
+            assertEquals(2, reconciler.getDigestCursor().size());
+            reconciler.reconcileSafely();
+            assertTrue(reconciler.getDigestCursor().containsKey(NAMESPACE_1 + ":RULE"));
+            mocked.verifySends(NAMESPACE_1, 4);
+        }
+    }
+
+    @Test
+    public void testFailedMessageWritingKeepsPreviousCursorAndRetries() {
+        stubAllGroups();
+        RuleData changed = new RuleData().setId("changed");
+        when(ruleService.listAllByNamespaceId(NAMESPACE_1)).thenReturn(List.of(new RuleData()), List.of(changed));
+        Gson gson = GsonUtils.getGson();
+        GsonUtils serializer = GsonUtils.getInstance();
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            reconciler.reconcileSafely();
+            String previousDigest = reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE");
+            try (MockedStatic<GsonUtils> mockedGson = mockStatic(GsonUtils.class)) {
+                mockedGson.when(GsonUtils::getInstance).thenReturn(serializer);
+                mockedGson.when(GsonUtils::getGson).thenThrow(new IllegalStateException("writer failed")).thenReturn(gson);
+                reconciler.reconcileSafely();
+                assertEquals(previousDigest, reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+                mocked.verifySends(NAMESPACE_1, 3);
+                reconciler.reconcileSafely();
+                mocked.verifySends(NAMESPACE_1, 4);
+                assertEquals(DigestUtils.md5Hex(serializer.toJson(changed)), reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+            }
+        }
+    }
+
+    @Test
+    public void testFailedPublicationKeepsPreviousCursorAndRetriesEmptySnapshot() {
+        stubAllGroups();
+        when(ruleService.listAllByNamespaceId(NAMESPACE_1)).thenReturn(List.of(new RuleData()), Collections.emptyList());
+        try (ReconciledCollector mocked = new ReconciledCollector(Set.of(NAMESPACE_1))) {
+            reconciler.reconcileSafely();
+            String previousDigest = reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE");
+            mocked.failNextRuleSend(NAMESPACE_1);
+            reconciler.reconcileSafely();
+            assertEquals(previousDigest, reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+            reconciler.reconcileSafely();
+            assertEquals(DigestUtils.md5Hex(""), reconciler.getDigestCursor().get(NAMESPACE_1 + ":RULE"));
+            reconciler.reconcileSafely();
+            mocked.verifySends(NAMESPACE_1, 5);
+        }
+    }
+
+    private void assertPreviousEncoding(final String namespaceId, final ConfigGroupEnum group, final List<?> data, final List<String> messages) {
+        List<String> rows = data.stream().map(GsonUtils.getInstance()::toJson).sorted().collect(Collectors.toList());
+        assertEquals(DigestUtils.md5Hex(String.join("\n", rows)), reconciler.getDigestCursor().get(namespaceId + ":" + group.name()));
+        List<JsonElement> trees = rows.stream().map(JsonParser::parseString).collect(Collectors.toList());
+        WebsocketData<?> expected = new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), trees);
+        expected.setNamespaceId(namespaceId);
+        expected.setFullSnapshot(true);
+        assertTrue(messages.contains(GsonUtils.getInstance().toJson(expected)), group.name());
     }
 
     private void stubAllGroups() {
@@ -307,6 +467,11 @@ public final class WebsocketDataReconcilerTest {
 
         private void verifyNoSends() {
             mocked.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+        }
+
+        private void failNextRuleSend(final String namespaceId) {
+            mocked.when(() -> WebsocketCollector.send(eq(namespaceId), contains("\"groupType\":\"RULE\""), eq(DataEventTypeEnum.REFRESH)))
+                    .thenThrow(new IllegalStateException("publication failed")).thenAnswer(invocation -> null);
         }
 
         private List<String> capturedMessages(final String namespaceId) {

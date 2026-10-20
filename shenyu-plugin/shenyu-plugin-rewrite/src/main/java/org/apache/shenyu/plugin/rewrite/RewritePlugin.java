@@ -74,10 +74,17 @@ public class RewritePlugin extends AbstractShenyuPlugin {
         final Integer percentage = Optional.ofNullable(rewriteHandle.getPercentage()).orElse(100);
         if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())
                 && ThreadLocalRandom.current().nextInt(100) < percentage) {
-            rewriteUri = rewriteHandle.getReplace().contains("{") && rewriteHandle.getRegex().contains("{")
-                    ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
-                    rewriteUri.substring(rewriteHandle.getRegex().indexOf("{")))
-                    : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+            try {
+                rewriteUri = rewriteHandle.getReplace().contains("{") && rewriteHandle.getRegex().contains("{")
+                        ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
+                        rewriteUri.substring(rewriteHandle.getRegex().indexOf("{")))
+                        : rewriteUri.replaceAll(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+            } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
+                // an unusable rule must not break the request, skip the rewrite and keep the original uri.
+                LOG.error("failed to rewrite the uri [{}] with rule [{}], regex: {}, replace: {}",
+                        rewriteUri, rule.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), ex);
+                return chain.execute(exchange);
+            }
             Map<String, Object> attributes = exchange.getAttributes();
             if (Optional.ofNullable(rewriteHandle.getRewriteMetaData()).orElse(false)) {
                 // when the rewritten uri crosses plugins, this is necessary

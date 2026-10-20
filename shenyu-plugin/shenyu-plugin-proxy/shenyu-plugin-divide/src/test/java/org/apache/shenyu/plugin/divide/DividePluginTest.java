@@ -151,26 +151,26 @@ public final class DividePluginTest {
                 .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         divideRuleHandle.setHeaderMaxSize(1);
         // hit `ruleHandle.getHeaderMaxSize() > 0`
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(freshExchange(), chain, selectorData, ruleData).block();
         divideRuleHandle.setHeaderMaxSize(1);
         // hit `ruleHandle.getRequestMaxSize() > 0`
         divideRuleHandle.setHeaderMaxSize(0);
         divideRuleHandle.setRequestMaxSize(1);
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(freshExchange(), chain, selectorData, ruleData).block();
         // hit `CollectionUtils.isEmpty(upstreamList)`
         divideRuleHandle.setRequestMaxSize(0);
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         when(selectorData.getHandle()).thenReturn(null);
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(freshExchange(), chain, selectorData, ruleData).block();
         // hit `Objects.isNull(upstream)`
         MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
         loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
                 .thenReturn(null);
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(freshExchange(), chain, selectorData, ruleData).block();
         loadBalancerFactoryMockedStatic.close();
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
-        assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
+        assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData).block());
     }
 
     /**
@@ -193,7 +193,7 @@ public final class DividePluginTest {
         dividePluginDataHandler.handlerSelector(selectorData);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData).block();
         assertEquals(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
     }
 
@@ -206,7 +206,7 @@ public final class DividePluginTest {
         dividePluginDataHandler.handlerSelector(selectorData);
         divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
-        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData).block();
         assertEquals(HttpRetryBackoffSpecEnum.getDefault(), exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC));
     }
 
@@ -315,5 +315,11 @@ public final class DividePluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         postExchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
+    }
+
+    private ServerWebExchange freshExchange() {
+        ServerWebExchange fresh = MockServerWebExchange.from((MockServerHttpRequest) exchange.getRequest());
+        fresh.getAttributes().putAll(exchange.getAttributes());
+        return fresh;
     }
 }
