@@ -37,6 +37,14 @@ existing `id`, and creates the unique `idx_data_permission_user_type` index.
 Each distinct grant is preserved. Fresh installations create the same unique
 index directly.
 
+### Durable instance heartbeat timestamps in 2.7.2
+
+The same `2.7.1-upgrade-2.7.2-<dialect>.sql` script adds a
+`last_heart_beat_time` column to the `instance_info` table, so the last
+reported heartbeat survives Admin restarts and master handover. Existing rows
+are backfilled with `0`, which means "no durable observation yet"; the real
+timestamp is stored on the next heartbeat report.
+
 - 2.7.1-upgrade-2.7.2-mysql.sql
 
 - 2.7.1-upgrade-2.7.2-ob.sql
