@@ -19,12 +19,17 @@ package org.apache.shenyu.plugin.agent.gateway;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AiCallOutcome;
+import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandle;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandleParser;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -34,6 +39,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -50,13 +56,23 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
 
     private final AgentMcpHttpHandler mcpHandler;
 
+    private final AgentMcpSecurityResolver llmSecurityResolver;
+
+    private final AiCallObserver aiObserver;
+
     public AgentGatewayPlugin() {
         this(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION),
                 exchange -> Mono.empty()));
     }
 
     public AgentGatewayPlugin(final AgentMcpHttpHandler mcpHandler) {
+        this(mcpHandler, null, null);
+    }
+
+    public AgentGatewayPlugin(final AgentMcpHttpHandler mcpHandler, final AgentMcpSecurityResolver llmSecurityResolver, final AiCallObserver aiObserver) {
         this.mcpHandler = Objects.requireNonNull(mcpHandler, "mcpHandler");
+        this.llmSecurityResolver = llmSecurityResolver;
+        this.aiObserver = aiObserver;
     }
 
     @Override
@@ -78,9 +94,37 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
                 registerResponseRequestId(exchange, context.getRequestId());
             }
             return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
-                    ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration()) : chain.execute(exchange))
-                    .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context))
+                    ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration())
+                    : handleLlm(exchange, chain, context.toRequestContext(handle.getGeneration())))
+                    .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context)
+                            .put(AgentRequestContext.REACTOR_KEY, context.toRequestContext(handle.getGeneration())))
                     .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
+        });
+    }
+
+    private Mono<Void> handleLlm(final ServerWebExchange exchange, final ShenyuPluginChain chain, final AgentRequestContext initial) {
+        return Mono.defer(() -> {
+            AiRequestObservation observation = new AiRequestObservation(aiObserver, initial);
+            Mono<AgentRequestContext> identity = Objects.isNull(llmSecurityResolver) ? Mono.just(initial)
+                    : Mono.defer(() -> llmSecurityResolver.resolve(exchange))
+                            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED)))
+                            .map(trusted -> initial.withIdentity(trusted.getTenant().orElse(null), trusted.getSubject()));
+            // Only identity resolution errors are recovered here. A downstream write failure
+            // must retain its existing error path and must never trigger another proxy request.
+            Mono<Void> execution = Objects.isNull(llmSecurityResolver) ? Mono.defer(() -> chain.execute(exchange)) : identity.onErrorResume(error -> {
+                observation.failure(error instanceof ResponseStatusException ? AiCallOutcome.REJECTED : AiCallOutcome.ERROR);
+                exchange.getResponse().setStatusCode(error instanceof ResponseStatusException status
+                        ? status.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR);
+                return exchange.getResponse().setComplete().then(Mono.empty());
+            }).flatMap(context -> {
+                observation.updateContext(context);
+                return Mono.defer(() -> chain.execute(exchange))
+                        .contextWrite(reactorContext -> reactorContext.put(AgentRequestContext.REACTOR_KEY, context));
+            });
+            return execution.contextWrite(context -> context.put(AiRequestObservation.REACTOR_KEY, observation))
+                    .doOnError(observation::error)
+                    .doFinally(signal -> observation.finish(signal, Objects.isNull(exchange.getResponse().getStatusCode())
+                            ? null : exchange.getResponse().getStatusCode().value()));
         });
     }
 

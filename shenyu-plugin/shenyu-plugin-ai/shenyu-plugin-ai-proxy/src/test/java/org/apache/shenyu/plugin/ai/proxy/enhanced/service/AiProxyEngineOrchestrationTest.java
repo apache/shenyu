@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -464,7 +465,7 @@ class AiProxyEngineOrchestrationTest {
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
                 .thenAwait(Duration.ofMillis(30)).thenCancel().verify(Duration.ofSeconds(3));
         assertEquals(3, calls.get());
-        assertTrue(cancelled.get());
+        await().atMost(Duration.ofSeconds(5)).untilTrue(cancelled);
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {

@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
@@ -62,12 +64,16 @@ public class AgentGatewayPluginConfiguration {
      * @param resolvers trusted identity adapters
      * @param catalogs optional, unambiguous managed remote catalog
      * @param tracers optional tracing bridge
+     * @param terminalObservers optional application-owned terminal event sink
+     * @param aiObservers optional application-owned AI attempt and terminal sink
      * @param environment deployment-controlled tracing opt-in
      * @return the plugin
      */
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                          final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
+                                         final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
+                                         final ObjectProvider<AiCallObserver> aiObservers,
                                          final Environment environment) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -81,18 +87,24 @@ public class AgentGatewayPluginConfiguration {
                 && resolvers.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.PrincipalMcpSecurityResolver".equals(resolver.getClass().getName()))) {
             throw new IllegalStateException("Enabled MCP principal authorization requires an explicit source and its optional dependencies");
         }
-        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer);
+        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer, terminalObservers.getIfAvailable(),
+                aiObservers.getIfAvailable(), environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer) {
+                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer, final AgentMcpTerminalObserver terminalObserver,
+                                     final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         List<AgentMcpSecurityResolver> candidates = resolvers.stream().toList();
         if (candidates.size() > 1) {
             throw new IllegalStateException("MCP requires exactly one authoritative security resolver");
         }
         AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer));
+        if (llmIdentityEnabled && candidates.isEmpty()) {
+            throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
+        }
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog),
+                resolver, tracer, terminalObserver), llmIdentityEnabled ? resolver : null, aiObserver);
     }
 
     /**
