@@ -449,8 +449,8 @@ public final class HttpClientRegisterRepositoryTest {
             clients.when(OkHttpTools::getInstance).thenReturn(http);
             runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
             when(http.post(anyString(), anyString())).thenReturn("{\"code\":200,\"data\":{\"token\":\"test-token\"}}");
-            when(http.post(anyString(), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
-            when(http.post(eq(failedServer + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn("failure");
+            when(http.postWithStatusCheck(anyString(), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+            when(http.postWithStatusCheck(eq(failedServer + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn("failure");
             HttpClientRegisterRepository actual = new HttpClientRegisterRepository(config(FIRST_SERVER + "," + SECOND_SERVER));
 
             RuntimeException failure = assertThrows(RuntimeException.class, () -> actual.sendHeartbeat(uriRegisterDTO()));
@@ -459,7 +459,7 @@ public final class HttpClientRegisterRepositoryTest {
             assertTrue(failureMap(actual).isEmpty());
             verifyNoInteractions(timer);
             for (String server : new String[]{FIRST_SERVER, SECOND_SERVER}) {
-                verify(http).post(eq(server + Constants.URI_PATH), anyString(), any(Headers.class));
+                verify(http).postWithStatusCheck(eq(server + Constants.URI_PATH), anyString(), any(Headers.class));
             }
         }
     }
