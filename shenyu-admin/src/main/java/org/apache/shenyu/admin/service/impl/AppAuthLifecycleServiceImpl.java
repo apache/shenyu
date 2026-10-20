@@ -102,7 +102,7 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
     /**
      * Canonical request digest: sorted keys, de-duplicated and sorted pathList, trimmed appName, explicit nulls
      * for optional fields, fixed open=true/enabled=false; requestId/caller/credentials excluded.
-     * Test vector: src/test/resources/app-auth/canonical-request.json (shared with the iPaaS side).
+     * Test vector: src/test/resources/app-auth/canonical-request.json (shared with the gateway adapter).
      *
      * @param request apply request
      * @return SHA-256 hex
@@ -152,7 +152,7 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
             } catch (DeadlockLoserDataAccessException | CannotAcquireLockException e) {
                 // reached only after the proxy rolled the transaction back; retry the whole transaction a bounded number of times
                 last = new ShenyuAdminException("Operation failed due to database lock contention, please retry");
-                LOG.warn("FLM_APP_AUTH_RETRY: action={}, requestId={}, attempt={}/{}",
+                LOG.warn("APP_AUTH_RETRY: action={}, requestId={}, attempt={}/{}",
                         action, requestId, attempt, MAX_RETRY_ATTEMPTS);
             }
         }

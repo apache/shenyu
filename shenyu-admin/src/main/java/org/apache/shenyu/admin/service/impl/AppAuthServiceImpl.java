@@ -461,12 +461,12 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         // Lifecycle linkage: lock all associated idempotency keys first in a stable order (selectKeysByAuthIds
         // is ordered by caller/namespace/request to avoid reverse locking); mark REVOKED in the same transaction
-        List<AppAuthRequestDO> x1Records = appAuthRequestMapper.selectKeysByAuthIds(ids);
-        for (AppAuthRequestDO record : x1Records) {
+        List<AppAuthRequestDO> lifecycleRecords = appAuthRequestMapper.selectKeysByAuthIds(ids);
+        for (AppAuthRequestDO record : lifecycleRecords) {
             appAuthRequestMapper.selectByKeyForUpdate(record.getCallerKey(), record.getNamespaceId(), record.getRequestId());
         }
         // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
-        for (AppAuthRequestDO record : x1Records) {
+        for (AppAuthRequestDO record : lifecycleRecords) {
             if (!"REVOKED".equals(record.getState())) {
                 appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete");
             }

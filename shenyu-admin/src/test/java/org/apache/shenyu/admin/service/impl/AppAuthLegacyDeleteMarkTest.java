@@ -88,7 +88,7 @@ class AppAuthLegacyDeleteMarkTest {
         }
     }
 
-    private AppAuthResultVO applyX1Auth() {
+    private AppAuthResultVO applyLifecycleAuth() {
         final AppAuthApplyRequestDTO request = new AppAuthApplyRequestDTO();
         request.setNamespaceId("ns-demo");
         request.setRequestId("req-legacy-del");
@@ -99,8 +99,8 @@ class AppAuthLegacyDeleteMarkTest {
     }
 
     @Test
-    void legacyDeleteMarksX1KeyRevokedAndBlocksLateApply() throws Exception {
-        final AppAuthResultVO created = applyX1Auth();
+    void legacyDeleteMarksLifecycleKeyRevokedAndBlocksLateApply() throws Exception {
+        final AppAuthResultVO created = applyLifecycleAuth();
 
         final int deleted = appAuthService.delete(List.of(created.getId()));
 
@@ -113,7 +113,7 @@ class AppAuthLegacyDeleteMarkTest {
         assertEquals(created.getId(), record.getAuthId(), "the historical authId is kept");
 
         // late applies are rejected; credentials must not resurrect
-        assertThrows(ShenyuAdminException.class, () -> applyX1Auth());
+        assertThrows(ShenyuAdminException.class, () -> applyLifecycleAuth());
         assertEquals(0, AppAuthTestSupport.countRows(sqlSessionFactory, "app_auth", ""));
     }
 
@@ -138,7 +138,7 @@ class AppAuthLegacyDeleteMarkTest {
     }
 
     @Test
-    void legacyNonX1DeleteKeepsOriginalBehavior() throws Exception {
+    void legacyNonLifecycleDeleteKeepsOriginalBehavior() throws Exception {
         // insert a legacy auth without any lifecycle association directly
         try (Connection connection = AppAuthMySqlFixture.openConnection();
              Statement statement = connection.createStatement()) {
@@ -154,7 +154,7 @@ class AppAuthLegacyDeleteMarkTest {
 
     @Test
     void interopWithResultAndRevokeNoResurrection() throws Exception {
-        final AppAuthResultVO created = applyX1Auth();
+        final AppAuthResultVO created = applyLifecycleAuth();
         appAuthService.delete(List.of(created.getId()));
 
         // result returns no credentials for REVOKED; a second revoke is idempotent
