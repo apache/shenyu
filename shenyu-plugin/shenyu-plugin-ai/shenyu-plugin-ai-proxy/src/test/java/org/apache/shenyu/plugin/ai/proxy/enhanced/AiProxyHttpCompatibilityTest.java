@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
@@ -204,6 +205,40 @@ class AiProxyHttpCompatibilityTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void appliesPluginDefaultsAndSelectorOverridesThroughRealHttp(final boolean override) throws Exception {
+        AtomicReference<String> forwarded = new AtomicReference<>();
+        AtomicReference<String> authorization = new AtomicReference<>();
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
+            authorization.set(request.requestHeaders().get("Authorization"));
+            return request.receive().aggregate().asString().flatMap(body -> {
+                forwarded.set(body);
+                return response.header("Content-Type", "application/json").sendString(Flux.just(CHAT_REPLY)).then();
+            });
+        }).bindNow(TIMEOUT);
+        try {
+            AiProxyPluginHandler handler = new AiProxyPluginHandler();
+            PluginData global = new PluginData();
+            global.setConfig(MAPPER.createObjectNode().put("provider", "OpenAI").put("baseUrl", "http://127.0.0.1:" + server.port())
+                    .put("model", "global-model").put("apiKey", "global-key").put("maxTokens", 64).toString());
+            handler.handlerPlugin(global);
+            SelectorData selector = selector();
+            selector.setHandle(override ? "{\"model\":\"selector-model\",\"apiKey\":\"selector-key\"}" : "{}");
+            handler.handlerSelector(selector);
+            MockServerWebExchange exchange = exchange(false);
+            StepVerifier.create(plugin(handler).doExecute(exchange, mock(ShenyuPluginChain.class), selector, new RuleData())).verifyComplete();
+            assertEquals(200, exchange.getResponse().getStatusCode().value());
+            assertEquals("Bearer " + (override ? "selector-key" : "global-key"), authorization.get());
+            JsonNode upstream = MAPPER.readTree(forwarded.get());
+            assertEquals(override ? "selector-model" : "global-model", upstream.get("model").asText());
+            assertEquals(64, upstream.get("max_completion_tokens").asInt());
+            assertEquals(CHAT_REPLY, exchange.getResponse().getBodyAsString().block(TIMEOUT));
+        } finally {
+            server.disposeNow(TIMEOUT);
+        }
+    }
+
     private AiProxyPlugin plugin(final DisposableServer server, final boolean stream) {
         return plugin(server, stream, OpenAiChat.NAME);
     }
@@ -218,9 +253,13 @@ class AiProxyHttpCompatibilityTest {
         handle.setProtocol(protocol);
         handle.setModel("model");
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey("http-selector", Constants.DEFAULT_RULE), handle);
+        return plugin(handler);
+    }
+
+    private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())), new AiProxyProviderFactory(List.of(new OpenAi())),
                 new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
-        return new AiProxyPlugin(new AiProxyConfigService(), engine, handler);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 
     private SelectorData selector() {

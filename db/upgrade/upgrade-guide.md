@@ -4,6 +4,29 @@
 
 ## To Shenyu Users
 
+### `loged` column renamed to `logged` in 2.7.3
+
+Running the `2.7.2-upgrade-2.7.3-<dialect>.sql` script is mandatory for every
+existing deployment: it renames the misspelled `loged` column to `logged` on
+both the `selector` and `rule` tables, and the new Admin expects `logged`.
+Upgrade order matters — the field is part of the Admin-to-bootstrap sync
+contract. Upgrade all bootstrap instances before, or together with, Admin:
+an Admin emitting `logged` is not understood by older bootstraps. Stop Admin
+instances before running the script, then restart them after it completes.
+Fresh installations create the renamed columns directly.
+
+- 2.7.2-upgrade-2.7.3-mysql.sql
+
+- 2.7.2-upgrade-2.7.3-ob.sql
+
+- 2.7.2-upgrade-2.7.3-og.sql
+
+- 2.7.2-upgrade-2.7.3-oracle.sql
+
+- 2.7.2-upgrade-2.7.3-pg.sql
+
+  > this file is the Shenyu upgrade sql from v2.7.2 to v2.7.3
+
 ### Data permission uniqueness in 2.7.2
 
 Stop Admin instances before running the `2.7.1-upgrade-2.7.2-<dialect>.sql`
@@ -13,6 +36,14 @@ once. It removes duplicate `data_permission` rows with the same
 existing `id`, and creates the unique `idx_data_permission_user_type` index.
 Each distinct grant is preserved. Fresh installations create the same unique
 index directly.
+
+### Durable instance heartbeat timestamps in 2.7.2
+
+The same `2.7.1-upgrade-2.7.2-<dialect>.sql` script adds a
+`last_heart_beat_time` column to the `instance_info` table, so the last
+reported heartbeat survives Admin restarts and master handover. Existing rows
+are backfilled with `0`, which means "no durable observation yet"; the real
+timestamp is stored on the next heartbeat report.
 
 - 2.7.1-upgrade-2.7.2-mysql.sql
 

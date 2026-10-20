@@ -116,3 +116,7 @@ WHERE EXISTS (
       AND duplicate_permission.id > retained_permission.id
 );
 CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE instance_info ADD last_heart_beat_time NUMBER DEFAULT 0 NOT NULL;
+COMMENT ON COLUMN instance_info.last_heart_beat_time IS 'last heart beat time';

@@ -19,6 +19,10 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
@@ -28,6 +32,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.junit.jupiter.api.Test;
@@ -125,6 +130,45 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
+    void shouldUseDefaultRetryProperties() {
+        contextRunner.run(context -> {
+            final AiProxyRetryProperties properties = context.getBean(AiProxyRetryProperties.class);
+            assertEquals(3, properties.getMaxRetries());
+            assertEquals(1, properties.getStreamingMaxRetries());
+            assertEquals(Duration.ofSeconds(1), properties.getInitialBackoff());
+        });
+    }
+
+    @Test
+    void shouldBindConfiguredRetryProperties() {
+        contextRunner
+                .withPropertyValues(
+                        "shenyu.plugins.ai.proxy.retry.max-retries=2",
+                        "shenyu.plugins.ai.proxy.retry.streaming-max-retries=0",
+                        "shenyu.plugins.ai.proxy.retry.initial-backoff=500ms")
+                .run(context -> {
+                    final AiProxyRetryProperties properties = context.getBean(AiProxyRetryProperties.class);
+                    assertEquals(2, properties.getMaxRetries());
+                    assertEquals(0, properties.getStreamingMaxRetries());
+                    assertEquals(Duration.ofMillis(500), properties.getInitialBackoff());
+                });
+    }
+
+    @Test
+    void shouldRejectInvalidRetryProperties() {
+        for (String property : List.of(
+                "max-retries=-1",
+                "max-retries=31",
+                "streaming-max-retries=-1",
+                "streaming-max-retries=31",
+                "initial-backoff=-1s")) {
+            contextRunner
+                    .withPropertyValues("shenyu.plugins.ai.proxy.retry." + property)
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
+    }
+
+    @Test
     void shouldConvertConnectTimeoutToNettyMilliseconds() {
         final AiProxyTransportProperties properties = new AiProxyTransportProperties();
         properties.setConnectTimeout(Duration.ofSeconds(5));
@@ -153,5 +197,21 @@ class AiProxyPluginConfigurationTest {
         contextRunner
                 .withPropertyValues("shenyu.plugins.ai.proxy.transport.max-response-bytes=-1")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void resolvesPluginUpdatesFromTheAutoConfiguredHandler() {
+        contextRunner.run(context -> {
+            PluginData plugin = new PluginData();
+            plugin.setConfig("{\"provider\":\"OpenAI\",\"baseUrl\":\"https://example.org\",\"apiKey\":\"global-key\",\"model\":\"global-model\"}");
+            AiProxyPluginHandler handler = context.getBean(AiProxyPluginHandler.class);
+            handler.handlerPlugin(plugin);
+            AiCommonConfig resolved = context.getBean(AiProxyConfigService.class).resolvePrimaryConfig(new AiProxyHandle());
+            assertEquals("global-model", resolved.getModel());
+            assertEquals("global-key", resolved.getApiKey());
+            assertEquals("https://example.org", resolved.getBaseUrl());
+            handler.removePlugin(plugin);
+            org.junit.jupiter.api.Assertions.assertNull(context.getBean(AiProxyConfigService.class).resolvePrimaryConfig(null).getModel());
+        });
     }
 }

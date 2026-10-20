@@ -222,6 +222,10 @@ shenyu:
   file:
     enabled: true
     maxSize : 10
+  # Standalone file mode (opt-in): see shenyu-spring-boot-starter-sync-data-file/README.md.
+  # It suppresses the shipped Admin WebSocket/heartbeat defaults and disables local writers.
+  # sync.file.enabled: true
+  # sync.file.path: /etc/shenyu/gateway.yaml
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
@@ -330,6 +334,13 @@ shenyu:
 #  plugins:
 #    ai:
 #      proxy:
+#        retry:
+#          # Maximum retries after the initial non-streaming request. Default: 3.
+#          max-retries: 3
+#          # Maximum retries before a streaming response emits its first chunk. Default: 1.
+#          streaming-max-retries: 1
+#          # Initial backoff for non-streaming retries. Subsequent delays double. Default: 1s.
+#          initial-backoff: 1s
 #        transport:
 #          # Maximum time allowed to establish a connection to the AI upstream.
 #          # Default: 30s.

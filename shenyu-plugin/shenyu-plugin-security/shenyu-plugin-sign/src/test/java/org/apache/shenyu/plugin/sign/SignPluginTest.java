@@ -29,16 +29,17 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
 import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
 import org.apache.shenyu.plugin.sign.service.ComposableSignService;
-import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
+import org.apache.shenyu.plugin.sign.service.SignService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -148,6 +149,21 @@ public final class SignPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(signPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testAppParamHeaderIsForwarded() {
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        this.exchange.getAttributes().put(Constants.APP_PARAM, "tenant=shenyu");
+        when(signService.signatureVerify(exchange)).thenReturn(VerifyResult.success());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(signPlugin.doExecute(exchange, chain, mock(SelectorData.class), mock(RuleData.class)))
+                .expectSubscription().verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> exchangeCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        org.mockito.Mockito.verify(chain).execute(exchangeCaptor.capture());
+        assertEquals("tenant=shenyu", exchangeCaptor.getValue().getRequest().getHeaders().getFirst(Constants.APP_PARAM));
     }
 
     @Test

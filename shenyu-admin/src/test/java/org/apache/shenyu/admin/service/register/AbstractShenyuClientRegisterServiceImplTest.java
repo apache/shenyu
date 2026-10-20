@@ -234,7 +234,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         assertEquals("Selector_Id", ruleDTO.getSelectorId());
         assertEquals("Context_Path", ruleDTO.getName());
         assertTrue(ruleDTO.getEnabled());
-        assertTrue(ruleDTO.getLoged());
+        assertTrue(ruleDTO.getLogged());
         assertEquals(1, ruleDTO.getSort());
         assertEquals("Rule_Handler", ruleDTO.getHandle());
     }

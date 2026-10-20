@@ -31,15 +31,27 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class Upstream {
 
+    private static final String DEFAULT_PROTOCOL = "http://";
+
     /**
      * protocol.
      */
     private final String protocol;
 
     /**
+     * Normalized protocol prefix, computed once because the protocol is immutable.
+     */
+    private final transient String protocolPrefix;
+
+    /**
      * url.
      */
     private String url;
+
+    /**
+     * One selector-scoped domain key, bounded by this upstream's lifetime.
+     */
+    private transient volatile SelectorKey selectorKey;
 
     /**
      * weight.
@@ -129,6 +141,7 @@ public final class Upstream {
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
+        this.protocolPrefix = normalizeProtocol(builder.protocol);
         this.url = builder.url;
         this.weight = builder.weight;
         this.status = builder.status;
@@ -219,6 +232,7 @@ public final class Upstream {
      */
     public void setUrl(final String url) {
         this.url = url;
+        this.selectorKey = null;
         this.identity = null;
     }
     
@@ -495,13 +509,9 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain() {
-        String protocol = this.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return protocolPrefix + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
-    
+
     /**
      * Build request with protocol.
      *
@@ -509,7 +519,47 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain(final String protocol) {
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return normalizeProtocol(protocol) + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+    }
+
+    /**
+     * Build a selector-scoped domain key without request-time concatenation.
+     *
+     * <p>Only one immutable entry is retained per upstream. Sharing an upstream
+     * between selectors replaces that entry, and URL changes invalidate it.
+     * Weight, group and version do not change the domain key.
+     *
+     * @param selectorId the selector id
+     * @return the selector id and current request domain separated by a colon
+     */
+    public String buildSelectorKey(final String selectorId) {
+        SelectorKey cached = selectorKey;
+        String currentUrl = url;
+        if (Objects.nonNull(cached) && Objects.equals(cached.selectorId, selectorId) && Objects.equals(cached.url, currentUrl)) {
+            return cached.key;
+        }
+        String domain = protocolPrefix + (Objects.isNull(currentUrl) ? null : currentUrl.trim());
+        SelectorKey updated = new SelectorKey(selectorId, currentUrl, selectorId + ":" + domain);
+        selectorKey = updated;
+        return updated.key;
+    }
+
+    /**
+     * Normalize a protocol value to a url prefix, so a bare scheme such as {@code http}
+     * cannot be concatenated directly with the upstream address.
+     *
+     * @param protocol protocol
+     * @return the normalized protocol, always ending with {@code ://}
+     */
+    private static String normalizeProtocol(final String protocol) {
+        if (StringUtils.isBlank(protocol)) {
+            return DEFAULT_PROTOCOL;
+        }
+        String scheme = StringUtils.stripEnd(StringUtils.stripEnd(protocol.trim(), "/"), ":");
+        if (scheme.isEmpty()) {
+            return DEFAULT_PROTOCOL;
+        }
+        return scheme + "://";
     }
     
     /**
@@ -565,7 +615,25 @@ public final class Upstream {
     }
     
     /**
-     * class builder.
+     * Immutable selector-scoped domain cache entry.
+     */
+    private static final class SelectorKey {
+
+        private final String selectorId;
+
+        private final String url;
+
+        private final String key;
+
+        private SelectorKey(final String selectorId, final String url, final String key) {
+            this.selectorId = selectorId;
+            this.url = url;
+            this.key = key;
+        }
+    }
+
+    /**
+     * Class builder.
      */
     public static final class Builder {
 
