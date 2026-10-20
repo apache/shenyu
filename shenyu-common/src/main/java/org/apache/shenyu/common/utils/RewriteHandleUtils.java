@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * The utils that tell whether a rewrite expression can be applied by the rewrite plugin.
+ * The utils that tell whether a rewrite expression can be applied.
  */
 public final class RewriteHandleUtils {
 
@@ -38,8 +38,10 @@ public final class RewriteHandleUtils {
      * Explain why a rewrite expression cannot be applied.
      *
      * <p>The plugin expands the replacement with {@link String#replaceAll(String, String)}, so the
-     * replacement is a template in which a dollar sign references a regex group. The pair is therefore
-     * dry-run against the empty input to let the JDK parser validate both parts. An incomplete
+     * replacement is a template in which a dollar sign references a regex group. The configured
+     * expression is validated on its own first: appending the empty alternative that makes the
+     * dry-run match would turn a trailing backslash into an escaped pipe and hide an invalid
+     * expression. The dry-run that follows only validates the replacement template. An incomplete
      * expression and the placeholder mode, where both values contain a left brace, are always
      * applicable because the plugin skips them or substitutes them literally.</p>
      *
@@ -47,24 +49,25 @@ public final class RewriteHandleUtils {
      * @param replace the configured replacement template
      * @return {@code null} when the plugin can apply the expression, otherwise the reason why it cannot
      */
-    public static String unapplicableReason(final String regex, final String replace) {
-        if (StringUtils.isAnyBlank(regex, replace)) {
-            return null;
-        }
-        if (replace.contains("{") && regex.contains("{")) {
+    public static String applicabilityProblem(final String regex, final String replace) {
+        if (isSkipped(regex, replace)) {
             return null;
         }
         try {
-            // the trailing empty alternative makes the empty input match, so the replacement is parsed too
-            // the configured value is only dry-run against an empty input and never rewrites a request
-            // CHECKSTYLE:OFF
-            Pattern.compile(regex + "|").matcher("").replaceAll(replace); // lgtm[java/regex-injection]
-            // CHECKSTYLE:ON
-            return null;
+            Pattern.compile(regex);
         } catch (PatternSyntaxException ex) {
             return INVALID_REGEX + ex.getDescription();
+        }
+        try {
+            // the trailing empty alternative makes the empty input match, so the replacement is parsed too
+            Pattern.compile(regex + "|").matcher("").replaceAll(replace);
+            return null;
         } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
             return INVALID_REPLACEMENT + ex.getMessage();
         }
+    }
+
+    private static boolean isSkipped(final String regex, final String replace) {
+        return StringUtils.isAnyBlank(regex, replace) || replace.contains("{") && regex.contains("{");
     }
 }

@@ -52,18 +52,20 @@ public final class RewriteRuleHandleValidatorTest {
         "null",
         "{\"regex\":\"test\",\"replace\":\"/new/$1\"}",
         "{\"regex\":\"test\",\"replace\":\"/v1/$$\"}",
-        "{\"regex\":\"test\",\"replace\":\"/v1/$\"}",
+        "{\"regex\":\"test\",\"replace\":\"/new/$\"}",
+        "{\"regex\":\"test\",\"replace\":\"/new/${name\"}",
         "{\"regex\":\"(test\",\"replace\":\"/new\"}",
-        "{\"regex\":\"[a-\",\"replace\":\"/new\"}"
+        "{\"regex\":\"[a-\",\"replace\":\"/new\"}",
+        "{\"regex\":\"test\\\\\",\"replace\":\"/new\"}"
     })
     public void testUnapplicableHandles(final String handle) {
         assertThrows(ShenyuAdminException.class, () -> RewriteRuleHandleValidator.validate(handle));
     }
 
     @Test
-    public void testMissingGroupReferenceIsExplained() {
+    public void testMessageNamesTheProblem() {
         final ShenyuAdminException error = assertThrows(ShenyuAdminException.class,
             () -> RewriteRuleHandleValidator.validate("{\"regex\":\"test\",\"replace\":\"/new/$1\"}"));
-        assertTrue(error.getMessage().contains("No group 1"));
+        assertTrue(error.getMessage().contains("invalid replacement template"));
     }
 }

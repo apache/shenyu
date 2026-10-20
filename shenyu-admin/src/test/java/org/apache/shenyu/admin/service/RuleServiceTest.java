@@ -325,7 +325,7 @@ public final class RuleServiceTest {
     public void testRewriteCreateRejectsUnapplicableHandleBeforeWrite() {
         mockRewritePlugin();
         RuleDTO ruleDTO = buildRuleDTO("");
-        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/v1/$$\"}");
 
         assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
 
@@ -337,7 +337,7 @@ public final class RuleServiceTest {
     public void testRewriteUpdateRejectsUnapplicableHandleBeforeWrite() {
         mockRewritePlugin();
         RuleDTO ruleDTO = buildRuleDTO("123");
-        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/v1/$$\"}");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$\"}");
 
         assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
 
@@ -361,7 +361,7 @@ public final class RuleServiceTest {
         mockRewritePlugin();
         given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
         RuleDTO ruleDTO = buildRuleDTO("");
-        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$x\"}");
 
         assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(ruleDTO)));
         verify(ruleMapper, never()).insertSelective(any());

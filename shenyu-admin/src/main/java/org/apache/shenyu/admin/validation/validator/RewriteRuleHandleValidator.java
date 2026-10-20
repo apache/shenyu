@@ -54,9 +54,9 @@ public final class RewriteRuleHandleValidator {
         if (Objects.isNull(rewriteHandle)) {
             throw new ShenyuAdminException("rewrite rule handle must be a valid JSON object");
         }
-        final String reason = RewriteHandleUtils.unapplicableReason(rewriteHandle.getRegex(), rewriteHandle.getReplace());
-        if (Objects.nonNull(reason)) {
-            throw new ShenyuAdminException("rewrite rule handle can not be applied, " + reason);
+        final String problem = RewriteHandleUtils.applicabilityProblem(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        if (Objects.nonNull(problem)) {
+            throw new ShenyuAdminException("rewrite rule handle can not be applied, " + problem);
         }
     }
 }

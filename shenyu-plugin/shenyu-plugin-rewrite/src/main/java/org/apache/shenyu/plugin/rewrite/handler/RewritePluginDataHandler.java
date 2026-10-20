@@ -78,12 +78,12 @@ public class RewritePluginDataHandler implements PluginDataHandler {
      * @return true when the plugin can apply the handle
      */
     private static boolean canRewrite(final RewriteHandle rewriteHandle, final RuleData ruleData) {
-        final String reason = RewriteHandleUtils.unapplicableReason(rewriteHandle.getRegex(), rewriteHandle.getReplace());
-        if (Objects.isNull(reason)) {
+        final String problem = RewriteHandleUtils.applicabilityProblem(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        if (Objects.isNull(problem)) {
             return true;
         }
         LOG.error("invalid rewrite rule [{}] is ignored, regex: {}, replace: {}, reason: {}",
-                ruleData.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), reason);
+                ruleData.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), problem);
         return false;
     }
 }

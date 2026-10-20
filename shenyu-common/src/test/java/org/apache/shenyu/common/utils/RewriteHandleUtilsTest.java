@@ -30,31 +30,38 @@ public final class RewriteHandleUtilsTest {
 
     @Test
     public void testApplicableExpressions() {
-        assertNull(RewriteHandleUtils.unapplicableReason(null, null));
-        assertNull(RewriteHandleUtils.unapplicableReason("", "/new"));
-        assertNull(RewriteHandleUtils.unapplicableReason("test", null));
-        assertNull(RewriteHandleUtils.unapplicableReason("(test)", "/new/$1"));
-        assertNull(RewriteHandleUtils.unapplicableReason("/shenyu/test", "/new"));
-        assertNull(RewriteHandleUtils.unapplicableReason("/shenyu/{id}", "/target/{id}"));
+        assertNull(RewriteHandleUtils.applicabilityProblem(null, null));
+        assertNull(RewriteHandleUtils.applicabilityProblem("", "/new"));
+        assertNull(RewriteHandleUtils.applicabilityProblem("test", null));
+        assertNull(RewriteHandleUtils.applicabilityProblem("(test)", "/new/$1"));
+        assertNull(RewriteHandleUtils.applicabilityProblem("/shenyu/test", "/new"));
+        assertNull(RewriteHandleUtils.applicabilityProblem("/shenyu/{id}", "/target/{id}"));
     }
 
     @Test
-    public void testReplacementWithMissingGroup() {
-        final String reason = RewriteHandleUtils.unapplicableReason("test", "/new/$1");
-        assertNotNull(reason);
-        assertTrue(reason.contains("No group 1"));
+    public void testMissingGroupReferenceIsReported() {
+        final String problem = RewriteHandleUtils.applicabilityProblem("test", "/new/$1");
+        assertNotNull(problem);
+        assertTrue(problem.startsWith("invalid replacement template"));
     }
 
     @Test
-    public void testReplacementWithBareDollar() {
-        final String reason = RewriteHandleUtils.unapplicableReason("test", "/v1/$$");
-        assertNotNull(reason);
+    public void testBareDollarIsReported() {
+        assertNotNull(RewriteHandleUtils.applicabilityProblem("test", "/v1/$$"));
     }
 
     @Test
-    public void testInvalidRegularExpression() {
-        final String reason = RewriteHandleUtils.unapplicableReason("(test", "/new");
-        assertNotNull(reason);
-        assertTrue(reason.startsWith("invalid regular expression"));
+    public void testUnclosedGroupIsReported() {
+        final String problem = RewriteHandleUtils.applicabilityProblem("(test", "/new");
+        assertNotNull(problem);
+        assertTrue(problem.startsWith("invalid regular expression"));
+    }
+
+    @Test
+    public void testTrailingBackslashExpressionIsReported() {
+        // appending the empty alternative would turn the trailing backslash into an escaped pipe
+        final String problem = RewriteHandleUtils.applicabilityProblem("test\\", "/new");
+        assertNotNull(problem);
+        assertTrue(problem.startsWith("invalid regular expression"));
     }
 }
