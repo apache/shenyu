@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.time.Instant;
 
@@ -33,6 +34,8 @@ public final class AgentMcpExecutionContext {
     private final String requestId;
 
     private final String subject;
+
+    private final String tenant;
 
     private final String ruleId;
 
@@ -59,6 +62,13 @@ public final class AgentMcpExecutionContext {
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, null);
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final String tenant) {
+        this.tenant = Objects.isNull(tenant) ? null : requireText(tenant, "tenant");
         this.deadline = Objects.requireNonNull(deadline, "deadline");
         this.resultFilters = Objects.requireNonNull(resultFilters, "resultFilters");
         this.requestId = requireText(requestId, "requestId");
@@ -84,6 +94,10 @@ public final class AgentMcpExecutionContext {
 
     public String getSubject() {
         return subject;
+    }
+
+    public Optional<String> getTenant() {
+        return Optional.ofNullable(tenant);
     }
 
     public String getRuleId() {

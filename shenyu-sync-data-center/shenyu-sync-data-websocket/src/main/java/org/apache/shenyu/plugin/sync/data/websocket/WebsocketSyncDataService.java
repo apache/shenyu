@@ -25,6 +25,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
+import org.apache.shenyu.common.timer.TaskEntity;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -43,9 +44,11 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,6 +67,8 @@ public class WebsocketSyncDataService implements SyncDataService {
     private final WebsocketConfig websocketConfig;
 
     private final AtomicBoolean initialSyncReady = new AtomicBoolean();
+
+    private final AtomicBoolean rediscoveryScheduled = new AtomicBoolean(false);
 
     
     private final PluginDataSubscriber pluginDataSubscriber;
@@ -129,7 +134,8 @@ public class WebsocketSyncDataService implements SyncDataService {
             clients.add(createClient(url));
         }
         LOG.info("start check task...");
-        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(60)) {
+        long intervalSeconds = websocketConfig.getMasterCheckInterval() <= 0 ? 60 : websocketConfig.getMasterCheckInterval();
+        this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(intervalSeconds)) {
             @Override
             public void doRun(final String key, final TimerTask timerTask) {
                 masterCheck();
@@ -146,10 +152,13 @@ public class WebsocketSyncDataService implements SyncDataService {
         }
         if (CollectionUtils.isEmpty(clients)) {
             List<String> urls = websocketConfig.getUrls();
-            for (String url : urls) {
-                clients.add(createClient(url));
+            if (CollectionUtils.isNotEmpty(urls)) {
+                for (String url : urls) {
+                    clients.add(createClient(url));
+                }
             }
         }
+        Set<URI> masterUrls = new LinkedHashSet<>();
         Iterator<ShenyuWebsocketClient> iterator = clients.iterator();
         while (iterator.hasNext()) {
             ShenyuWebsocketClient websocketClient = iterator.next();
@@ -162,13 +171,82 @@ public class WebsocketSyncDataService implements SyncDataService {
             // check running mode
             if (Objects.equals(runningMode, RunningModeEnum.STANDALONE.name())) {
                 LOG.info("admin running in standalone mode...");
-                timerTask.cancel();
+                if (Objects.nonNull(timerTask)) {
+                    timerTask.cancel();
+                }
                 return;
             }
             
-            if (!websocketClient.isConnectedToMaster()) {
+            // An open socket may still be waiting for its running-mode reply.
+            if (Objects.equals(runningMode, RunningModeEnum.CLUSTER.name()) && !websocketClient.isConnectedToMaster()) {
+                URI masterUri = parseMasterUri(websocketClient.getMasterUrl());
+                if (Objects.nonNull(masterUri) && !masterUri.equals(websocketClient.getURI())) {
+                    masterUrls.add(masterUri);
+                }
                 websocketClient.nowClose();
                 iterator.remove();
+            }
+        }
+        for (URI masterUri : masterUrls) {
+            if (clients.stream().noneMatch(client -> masterUri.equals(client.getURI()))) {
+                try {
+                    clients.add(createClient(masterUri.toString()));
+                } catch (RuntimeException ex) {
+                    LOG.warn("websocket connection to advertised master [{}] failed", masterUri, ex);
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(clients)) {
+            List<String> urls = websocketConfig.getUrls();
+            if (CollectionUtils.isNotEmpty(urls)) {
+                for (String url : urls) {
+                    clients.add(createClient(url));
+                }
+            }
+        }
+    }
+
+    private URI parseMasterUri(final String masterUrl) {
+        if (StringUtils.isBlank(masterUrl)) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(masterUrl);
+            if (("ws".equalsIgnoreCase(uri.getScheme()) || "wss".equalsIgnoreCase(uri.getScheme())) && StringUtils.isNotBlank(uri.getHost())) {
+                return uri;
+            }
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("Ignore invalid websocket master address [{}]", masterUrl, ex);
+            return null;
+        }
+        LOG.warn("Ignore invalid websocket master address [{}]", masterUrl);
+        return null;
+    }
+
+    private void onMasterLost(final ShenyuWebsocketClient client) {
+        if (closed) {
+            return;
+        }
+        LOG.info("master lost detected from websocket server[{}], scheduling rediscovery", client.getURI());
+        triggerMasterRediscovery();
+    }
+
+    private void triggerMasterRediscovery() {
+        if (closed) {
+            return;
+        }
+        if (rediscoveryScheduled.compareAndSet(false, true)) {
+            try {
+                this.timer.add(new TimerTask(200, TimeUnit.MILLISECONDS) {
+                    @Override
+                    public void run(final TaskEntity taskEntity) {
+                        rediscoveryScheduled.set(false);
+                        masterCheck();
+                    }
+                });
+            } catch (Exception ex) {
+                rediscoveryScheduled.set(false);
+                LOG.warn("Failed to schedule master rediscovery task", ex);
             }
         }
     }
@@ -214,7 +292,8 @@ public class WebsocketSyncDataService implements SyncDataService {
                 this.aiProxyApiKeyDataSubscribers,
                 namespaceId,
                 serverProperties.getPort(),
-                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null);
+                websocketConfig.isInitialSyncReadiness() ? initialSyncReady : null,
+                this::onMasterLost);
     }
     
     /**

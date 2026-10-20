@@ -80,10 +80,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
         context.setVariable("nameContent", "Alarm Content");
         context.setVariable("content", alert.getContent());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date alertTime = alert.getDateCreated();
-        if (Objects.isNull(alertTime)) {
-            alertTime = new Date();
-        }
+        Date alertTime = Objects.isNull(alert.getDateCreated()) ? new Date() : alert.getDateCreated();
         String alarmTime = simpleDateFormat.format(alertTime);
         context.setVariable("lastTriggerTime", alarmTime);
         return templateEngine.process("mailAlarm", context);

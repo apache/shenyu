@@ -30,10 +30,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class Upstream {
 
+    private static final String DEFAULT_PROTOCOL = "http://";
+
     /**
      * protocol.
      */
     private final String protocol;
+
+    /**
+     * Normalized protocol prefix, computed once because the protocol is immutable.
+     */
+    private final transient String protocolPrefix;
 
     /**
      * url.
@@ -126,6 +133,7 @@ public final class Upstream {
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
+        this.protocolPrefix = normalizeProtocol(builder.protocol);
         this.url = builder.url;
         this.weight = builder.weight;
         this.status = builder.status;
@@ -474,13 +482,9 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain() {
-        String protocol = this.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return protocolPrefix + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
-    
+
     /**
      * Build request with protocol.
      *
@@ -488,7 +492,25 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain(final String protocol) {
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return normalizeProtocol(protocol) + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+    }
+
+    /**
+     * Normalize a protocol value to a url prefix, so a bare scheme such as {@code http}
+     * cannot be concatenated directly with the upstream address.
+     *
+     * @param protocol protocol
+     * @return the normalized protocol, always ending with {@code ://}
+     */
+    private static String normalizeProtocol(final String protocol) {
+        if (StringUtils.isBlank(protocol)) {
+            return DEFAULT_PROTOCOL;
+        }
+        String scheme = StringUtils.stripEnd(StringUtils.stripEnd(protocol.trim(), "/"), ":");
+        if (scheme.isEmpty()) {
+            return DEFAULT_PROTOCOL;
+        }
+        return scheme + "://";
     }
     
     /**

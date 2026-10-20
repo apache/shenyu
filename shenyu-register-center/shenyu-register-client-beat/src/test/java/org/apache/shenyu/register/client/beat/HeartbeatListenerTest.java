@@ -19,7 +19,10 @@ package org.apache.shenyu.register.client.beat;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,6 +111,23 @@ class HeartbeatListenerTest {
                     Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
             register.verify(() -> RegisterUtils.doHeartBeat(anyString(), Mockito.eq("http://localhost:9096" + Constants.BEAT_URI_PATH),
                     Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
+        }
+    }
+
+    @Test
+    void testPeriodicHeartbeatReportsBootstrapInstanceType() {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> ignored = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig, serverProperties);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            periodic.getValue().run();
+            ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+            register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), anyString(), anyString(), anyString()), Mockito.atLeastOnce());
+            InstanceBeatInfoDTO reported = GsonUtils.getInstance().fromJson(payload.getAllValues().get(0), InstanceBeatInfoDTO.class);
+            assertEquals(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE, reported.getInstanceType());
         }
     }
 
