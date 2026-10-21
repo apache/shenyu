@@ -53,6 +53,78 @@ The Admin plugin is initialized disabled. Enable `agentGateway` in Admin only
 after the starter is loaded. Disabling the Admin plugin stops new context
 creation while leaving the existing AI Proxy and MCP plugins unchanged.
 
+## Optional authenticated JWT identity bridge
+
+The Agent Gateway starter can adapt an existing Spring Security Resource Server
+authentication. It does **not** authenticate raw JWTs, create a decoder/filter chain,
+or turn the legacy JWT plugin's forwarded headers into trusted identity.
+The application must include its Resource Server dependencies and configure its
+reactive security chain to verify signatures, permitted algorithms, issuer,
+audience and token lifetime before requests reach Agent Gateway.
+Reuse the application's authentication; do not register a second authentication
+service merely for MCP.
+
+This bridge is disabled by default. Application configuration, not Admin rule
+JSON or client metadata, selects its authority:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          jwt:
+            enabled: true
+            issuer: https://idp.example.com/issuer
+            audience: shenyu-agent-mcp
+            # Choose exactly one tenant policy:
+            tenant-claim-required: true
+            # Or configure a tenant used only when tenant_id is absent:
+            # tenant-claim-required: false
+            # default-tenant: explicitly-assigned-tenant
+```
+
+Only an authenticated `JwtAuthenticationToken` installed on the exchange principal
+is accepted. The bridge additionally requires the exact configured `iss` and
+an `aud` string or collection containing the configured audience; its principal name must
+equal the nonblank `sub` claim. It reads these dedicated, verified claims:
+
+| Claim | Contract |
+| --- | --- |
+| `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. Startup requires exactly one of `tenant-claim-required: true` or `default-tenant`, so missing-tenant behavior is an explicit deployment policy. |
+| `tool_grants` | Optional array of exact tool names; absence grants nothing. Generic OAuth scopes/roles are not implicitly MCP permissions. |
+| `tool_denies` | Optional array of exact tool names; deny takes precedence over grant. |
+
+For example, signed claims `"tool_grants":["orders.lookup","inventory.lookup"]`
+and `"tool_denies":["inventory.lookup"]` grant only `orders.lookup`, still
+intersected with the rule's `allowedTools`. Listing and execution share that
+same effective set. Denied tools are not disclosed by the list and cannot be
+called directly. Remote names retain their `server.tool` prefix.
+
+Claims are copied into an immutable identity. Identity strings are bounded at
+256 characters; each permission collection at 1,024 entries; tool names at 128
+ASCII letters, digits, underscores, dots or hyphens. Wildcards and malformed
+collections are rejected, not partially accepted. Invalid or absent identities
+produce the existing generic HTTP 401 before consuming the MCP body; transport
+preflight checks still precede identity resolution. Missing permission produces
+the existing authorization result, not an anonymous identity.
+
+Exactly one `AgentMcpSecurityResolver` may be registered. Enabling this bridge
+together with another resolver is a startup error, even with `@Primary`;
+disable the bridge when installing a different explicit authority. Optional
+JWT APIs are not required when it is disabled; enabling without them fails
+startup. Legacy custom adapters remain compatible: their two-argument
+`AgentMcpIdentity` has no tenant, not an implicit default. Tenant-aware governance
+must handle that absence explicitly. This change does not infer OAuth login or
+API-key identity from arbitrary principals.
+
+The tenant is available to a provider through the request-local Reactor
+`AgentMcpExecutionContext.getTenant()`; no identity header is added to remote
+MCP calls. The bridge neither logs credentials/claims nor owns SDK/key lifecycles.
+Cross-request context/event unification and additional authentication adapters
+remain separate work.
+
 ## Rule handle
 
 The LLM rule handle uses these fields:
