@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
@@ -71,6 +72,20 @@ public final class InstanceCheckServiceTest {
     void setUp() {
         instanceCheckService = new InstanceCheckService(instanceInfoService);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
+    }
+
+    @Test
+    void testSpringCreatesServiceWithProductionClock() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(InstanceInfoService.class, () -> instanceInfoService);
+            context.register(InstanceCheckService.class);
+            context.refresh();
+
+            InstanceCheckService service = context.getBean(InstanceCheckService.class);
+            InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+            service.handleBeatInfo(dto);
+            assertNotNull(service.getInstanceHealthBeatInfo(dto));
+        }
     }
 
     @Test
@@ -168,6 +183,7 @@ public final class InstanceCheckServiceTest {
         InstanceInfoVO second = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);
         assertEquals(2000L, second.getLastHeartBeatTime());
+        verify(clock, times(2)).millis();
     }
 
     @Test

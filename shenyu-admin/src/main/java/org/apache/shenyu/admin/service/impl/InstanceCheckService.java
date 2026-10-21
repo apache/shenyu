@@ -30,6 +30,7 @@ import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -74,10 +75,12 @@ public class InstanceCheckService {
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
 
+    @Autowired
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this(instanceInfoService, Clock.systemDefaultZone());
     }
 
+    // Visible for tests that need a controlled clock.
     InstanceCheckService(final InstanceInfoService instanceInfoService, final Clock clock) {
         this.scheduledTime = 10;
         this.clock = clock;
