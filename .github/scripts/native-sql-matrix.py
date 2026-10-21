@@ -449,6 +449,68 @@ class Engine:
             raise AssertionError("Duplicate data permission was accepted")
 
 
+    def insert_instance_observations(self, duplicates=False):
+        # Exercise every winner tie-break and every identity component independently.
+        rows = [
+            ("heartbeat", "ns", "ip", "port", "type", 200, 2, 1),
+            ("updated", "ns-updated", "ip", "port", "type", 0, 2, 1),
+            ("created", "ns-created", "ip", "port", "type", 0, 2, 2),
+            ("tie-z", "ns-tie", "ip", "port", "type", 0, 2, 1),
+            ("namespace", "ns-other", "ip", "port", "type", 50, 2, 1),
+            ("ip", "ns", "ip-other", "port", "type", 50, 2, 1),
+            ("port", "ns", "ip", "port-other", "type", 50, 2, 1),
+            ("type", "ns", "ip", "port", "type-other", 50, 2, 1),
+            ("max", "n" * 50, "i" * 128, "p" * 128, "t" * 128, 50, 2, 1),
+        ]
+        if duplicates:
+            rows += [
+                ("old-heartbeat", "ns", "ip", "port", "type", 100, 3, 1),
+                ("old-updated", "ns-updated", "ip", "port", "type", 0, 1, 1),
+                ("old-created", "ns-created", "ip", "port", "type", 0, 2, 1),
+                ("tie-a", "ns-tie", "ip", "port", "type", 0, 2, 1),
+            ]
+        self.sql("\n".join(
+            "INSERT INTO instance_info (id,namespace_id,instance_ip,instance_port,instance_type,"
+            "instance_info,instance_state,last_heart_beat_time,date_updated,date_created) "
+            f"VALUES ('sql-instance-{identifier}','{namespace}','{ip}','{port}','{kind}','{identifier}',1,{heartbeat},"
+            f"TIMESTAMP '2026-01-0{updated} 00:00:00',TIMESTAMP '2026-01-0{created} 00:00:00');"
+            for identifier, namespace, ip, port, kind, heartbeat, updated, created in rows))
+
+    def check_instance_identity(self, indexes, mapper):
+        index = "uk_instance_info_identity"
+        if indexes.get(("instance_info", index)) != ["namespace_id", "instance_ip", "instance_port", "instance_type"]:
+            raise AssertionError("Wrong instance identity index columns")
+        identifiers = set(self.sql("SELECT id FROM instance_info WHERE id LIKE 'sql-instance-%';").split())
+        expected = {"heartbeat", "updated", "created", "tie-z", "namespace", "ip", "port", "type", "max"}
+        if identifiers != {"sql-instance-" + name for name in expected}:
+            raise AssertionError("Instance migration lost distinct identities or retained the wrong observation")
+        try:
+            self.sql("INSERT INTO instance_info (id,namespace_id,instance_ip,instance_port,instance_type,instance_info,instance_state) "
+                     "VALUES ('sql-instance-conflict','ns','ip','port','type','conflict',2);")
+        except RuntimeError as error:
+            if index not in str(error).lower():
+                raise
+        else:
+            raise AssertionError("Duplicate instance identity was accepted")
+        document = ET.parse(mapper).getroot()
+        statement = "".join(document.find("update[@id='updateById']").itertext())
+        values = {"id": "'sql-instance-heartbeat'", "dateUpdated": "TIMESTAMP '2026-02-01 00:00:00'",
+                  "instanceIp": "'ip'", "instancePort": "'port'", "instanceType": "'type'",
+                  "instanceInfo": "'updated-info'", "instanceState": "2"}
+        for heartbeat, expected_heartbeat in ((100, 200), (0, 200), (300, 300), (300, 300)):
+            values["lastHeartBeatTime"] = str(heartbeat)
+            sql = re.sub(r"#\{(\w+)[^}]*}", lambda match: values[match[1]], statement)
+            self.sql(sql + ";")
+            if scalar(self.sql("SELECT last_heart_beat_time FROM instance_info WHERE id='sql-instance-heartbeat';")) != str(expected_heartbeat):
+                raise AssertionError("Instance update overwrote a newer heartbeat or lost a newer report")
+            state = "1" if heartbeat < 200 else "2"
+            if scalar(self.sql("SELECT instance_state FROM instance_info WHERE id='sql-instance-heartbeat';")) != state:
+                raise AssertionError("Instance state does not match the retained heartbeat")
+        if scalar(self.sql("SELECT COUNT(*) FROM instance_info WHERE id='sql-instance-heartbeat' "
+                           "AND date_created=TIMESTAMP '2026-01-01 00:00:00';")) != "1":
+            raise AssertionError("Instance update changed the canonical row creation time")
+
+
 def execute_matrix(dialect, root, output):
     output.mkdir(parents=True, exist_ok=True)
     listing, detail = fragment_columns(root / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
@@ -470,10 +532,13 @@ def execute_matrix(dialect, root, output):
             if flow == "upgrade":
                 engine.insert_data_permissions(duplicates=True)
                 for step in MIGRATIONS_FROM_BASELINE:
+                    if step == "2.7.2-upgrade-2.7.3":
+                        engine.insert_instance_observations(duplicates=True)
                     migration = root / f"db/upgrade/{step}-{dialect}.sql"
                     engine.sql(migration.read_text(encoding="utf-8"))
             else:
                 engine.insert_data_permissions()
+                engine.insert_instance_observations()
             engine.check_data(listing, detail)
             current_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             if current_listing != original_listing:
@@ -484,6 +549,7 @@ def execute_matrix(dialect, root, output):
                     raise AssertionError(f"Migration removed rows from {table}: {sorted(identifiers - after)}")
             indexes = engine.indexes()
             engine.check_data_permission_uniqueness(indexes)
+            engine.check_instance_identity(indexes, root / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml")
             if flow == "fresh" and dialect in ("mysql", "ob"):
                 engine.check_fresh_mysql_schema(schema, indexes)
             if flow == "fresh" and dialect in ("pg", "og"):

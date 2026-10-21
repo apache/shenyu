@@ -2951,7 +2951,9 @@ CREATE TABLE instance_info (
     instance_state number          NOT NULL,
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
-    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+    last_heart_beat_time number     DEFAULT 0 NOT NULL,
+    CONSTRAINT instance_info_pk PRIMARY KEY (id),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 COMMENT ON TABLE instance_info IS 'Instance information table';
@@ -2964,6 +2966,7 @@ COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
 COMMENT ON COLUMN instance_info.instance_state IS 'instance_state';
 COMMENT ON COLUMN instance_info.date_created IS 'create time';
 COMMENT ON COLUMN instance_info.date_updated IS 'update time';
+COMMENT ON COLUMN instance_info.last_heart_beat_time IS 'last heart beat time';
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) 
 VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'));

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolArgumentException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolCapabilityException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolDefinition;
@@ -31,6 +32,8 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -89,6 +92,14 @@ public final class AgentMcpDispatcher {
         Objects.requireNonNull(contextFactory, "contextFactory");
         return Mono.defer(() -> {
             AgentMcpExecutionContext context = Objects.requireNonNull(contextFactory.get(), "execution context");
+            if (!context.getHttpTools().getTools().isEmpty()) {
+                AgentToolRegistry captured = registry.withProviders(context.getHttpTools().getTools().values().stream()
+                        .map(tool -> (AgentToolProvider) new AgentHttpToolProvider(tool, context.getHttpInvoker())).toList());
+                AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
+                        context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters(),
+                        context.getRuleResources(), context.getAllowedResources(), AgentGatewayHttpToolConfig.empty(), null, context.getTenant().orElse(null));
+                return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog).dispatch(request, () -> bound);
+            }
             if (Objects.nonNull(remoteCatalog)) {
                 return remoteCatalog.withSnapshot(snapshot -> routeWithRemote(request, context, snapshot))
                         .contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
@@ -102,6 +113,9 @@ public final class AgentMcpDispatcher {
             }
             return route(request, context).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
         }).onErrorMap(error -> {
+            if (error instanceof AgentHttpToolProvider.DeadlineExceededException) {
+                return failure(request, 504, -32025, "HTTP tool deadline exceeded");
+            }
             if (error instanceof TimeoutException) {
                 return error;
             }
