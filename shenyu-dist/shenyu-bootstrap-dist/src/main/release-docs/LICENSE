@@ -560,7 +560,6 @@ The text of each license is the standard Apache 2.0 license.
     byte-buddy 1.14.11: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.14.17: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
-    eureka-client 2.0.2 https://github.com/Netflix/eureka, Apache 2.0
     eureka-core 2.0.2 https://github.com/Netflix/eureka, Apache 2.0
     evictor 1.0.0 https://github.com/stoyanr/Evictor, Apache 2.0
     guice 4.1.0 https://github.com/google/guice, Apache 2.0
