@@ -126,3 +126,6 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE `instance_info` ADD COLUMN `last_heart_beat_time` bigint NOT NULL DEFAULT 0 COMMENT 'last heart beat time';

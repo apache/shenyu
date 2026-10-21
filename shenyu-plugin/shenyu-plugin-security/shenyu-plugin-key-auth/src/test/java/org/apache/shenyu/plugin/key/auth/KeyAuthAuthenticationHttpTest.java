@@ -148,7 +148,7 @@ class KeyAuthAuthenticationHttpTest {
             rule.setSelectorId(selector.getId());
             rule.setNamespaceId("http-namespace");
             rule.setEnabled(true);
-            rule.setLoged(false);
+            rule.setLogged(false);
             rule.setSort(0);
             rule.setHandle("{\"keyName\":\"X-Api-Key\",\"key\":\"test-secret\"}");
             handler.handlerRule(rule);

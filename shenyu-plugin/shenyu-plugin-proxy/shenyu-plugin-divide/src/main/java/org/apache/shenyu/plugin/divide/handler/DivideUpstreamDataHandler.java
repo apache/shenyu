@@ -62,6 +62,7 @@ public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHand
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
             upstream.setMetadata(metadata);
+            upstream.setLabels(props.getLabels());
             return upstream;
         }).collect(Collectors.toList());
     }

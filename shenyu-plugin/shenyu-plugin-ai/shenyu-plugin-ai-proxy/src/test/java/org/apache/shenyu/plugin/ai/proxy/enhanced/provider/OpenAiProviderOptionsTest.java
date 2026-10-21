@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
@@ -234,9 +235,10 @@ class OpenAiProviderOptionsTest {
                 + "\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"reasoning_content\":\"think\",\"content\":\"answer\"},\"finish_reason\":\"stop\"}],"
                 + "\"usage\":{\"prompt_tokens\":3,\"completion_tokens\":5,\"total_tokens\":8,\"prompt_cache_hit_tokens\":2}}";
         AiUpstreamResponse response = new AiUpstreamResponse(200, Map.of("Content-Type", List.of("application/json")), Flux.just(bytes(reply)));
-        assertEquals(reply, text(provider.buildRequest(chat(CHAT), config).adaptResponse(response).getBody().single().block(Duration.ofSeconds(3))));
-        AiUpstreamRequest request = provider.buildRequest(responses("{\"model\":\"deepseek-flash\",\"input\":\"hi\"}"), config);
-        JsonNode converted = MAPPER.readTree(request.adaptResponse(response).getBody().single().block(Duration.ofSeconds(3)));
+        PreparedAiRequest chat = provider.prepareRequest(chat(CHAT), config);
+        assertEquals(reply, text(chat.responseAdapter().adapt(response).getBody().single().block(Duration.ofSeconds(3))));
+        PreparedAiRequest responses = provider.prepareRequest(responses("{\"model\":\"deepseek-flash\",\"input\":\"hi\"}"), config);
+        JsonNode converted = MAPPER.readTree(responses.responseAdapter().adapt(response).getBody().single().block(Duration.ofSeconds(3)));
         assertEquals("response", converted.get("object").asText());
         assertTrue(converted.toString().contains("think"));
         assertTrue(converted.toString().contains("answer"));

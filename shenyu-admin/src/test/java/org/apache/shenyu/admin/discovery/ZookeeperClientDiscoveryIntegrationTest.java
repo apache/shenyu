@@ -226,7 +226,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private void createSelector(final String app) {
         jdbcTemplate.update("INSERT INTO selector (id, plugin_id, selector_name, match_mode, selector_type, sort_code, "
-                + "enabled, loged, continued, match_restful, namespace_id) "
+                + "enabled, logged, continued, match_restful, namespace_id) "
                 + "VALUES (?, '5', ?, 0, 0, 0, 1, 0, 0, 0, ?)", "zk-6525-" + app, "/zk-6525-" + app, Constants.SYS_DEFAULT_NAMESPACE_ID);
     }
 

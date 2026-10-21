@@ -31,6 +31,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.tracing.extract.TraceContextExtractor;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -199,6 +201,8 @@ public class TraceContinuityTest {
     }
 
     private SpanData onlyFinishedSpan() {
+        // doFinally can export the span after StepVerifier observes the request's completion.
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until(() -> !spanExporter.getFinishedSpanItems().isEmpty());
         List<SpanData> spans = spanExporter.getFinishedSpanItems();
         Assertions.assertEquals(1, spans.size());
         return spans.get(0);

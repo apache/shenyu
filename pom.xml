@@ -183,6 +183,7 @@
         <swagger-models.version>2.2.34</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
+        <slf4j.version>2.0.17</slf4j.version>
         <!-- dependency version end -->
     </properties>
 
@@ -193,6 +194,15 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
                 <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Keep the API and bridges aligned with OSHI's SLF4J requirement before Spring Boot's BOM. -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
