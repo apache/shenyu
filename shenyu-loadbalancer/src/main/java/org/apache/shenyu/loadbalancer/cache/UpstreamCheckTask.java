@@ -441,6 +441,13 @@ public final class UpstreamCheckTask implements Runnable {
      * Must be called while holding {@link #lock} so readers never observe a
      * snapshot torn across concurrent structural changes.
      *
+     * <p>{@link List#copyOf} rejects null elements, so a healthy list must never
+     * contain a null upstream; today no code path inserts one, and this guard
+     * documents that invariant rather than defending against it. The
+     * {@code isNull} branch is defensive only: both current callers reach this
+     * method right after the selector's list is present, so {@code live} is
+     * non-null in practice.
+     *
      * @param selectorId selectorId
      */
     private void publishHealthySnapshot(final String selectorId) {
@@ -495,8 +502,14 @@ public final class UpstreamCheckTask implements Runnable {
     /**
      * Get the published read-only healthy upstream snapshot of the selector.
      * The snapshot is re-published on configuration and health-state updates and
-     * must not be mutated by callers; it may be empty but never contains a
-     * removed target after the removal has been published.
+     * must not be mutated by callers.
+     *
+     * <p>Return contract: {@code null} when the selector has no snapshot entry at
+     * all (never submitted, or removed via {@link #triggerRemoveAll}); otherwise an
+     * immutable list that may be empty (all upstreams unhealthy) but never contains
+     * a removed target once the removal has been published. Callers treat both the
+     * {@code null} and empty cases as "no healthy upstream" via
+     * {@code CollectionUtils.isEmpty}.
      *
      * @param selectorId selectorId
      * @return immutable snapshot list, or null when the selector has no entry

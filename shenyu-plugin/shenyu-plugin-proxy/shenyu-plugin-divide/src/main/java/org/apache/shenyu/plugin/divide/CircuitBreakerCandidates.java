@@ -22,16 +22,21 @@ import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker.HalfOpenProbe;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * Request-local candidates and their circuit-breaker keys.
  *
- * <p>The cache supplies a mutable list copy for each request. Compact that copy
- * in place, preserving upstream order, identity and load-balancing statistics.
- * Keys are retained only for this request, so configuration changes need no
- * additional cache invalidation.
+ * <p>The cache publishes a read-only (immutable) snapshot of the healthy upstreams for
+ * each selector. The happy path — nothing blocked — hands that snapshot straight back
+ * untouched, so routing never copies the healthy list per request. Only when at least one
+ * upstream is blocked by the breaker, or a half-open probe is granted, does this class
+ * materialise a mutable working list to compact the candidates, preserving upstream order,
+ * identity and load-balancing statistics. The caller's snapshot is never mutated in place.
+ * Keys are retained only for this request, so configuration changes need no additional
+ * cache invalidation.
  */
 final class CircuitBreakerCandidates {
 
@@ -51,10 +56,11 @@ final class CircuitBreakerCandidates {
     }
 
     /**
-     * Filter a request's upstream snapshot without allocating another upstream list.
+     * Filter a request's upstream snapshot without allocating another upstream list
+     * on the happy path.
      *
      * @param selectorId the selector id
-     * @param upstreams a mutable, request-owned copy from the upstream cache
+     * @param upstreams the read-only upstream snapshot published by the cache
      * @return candidates with the keys used to check their breaker state
      */
     static CircuitBreakerCandidates filter(final String selectorId, final List<Upstream> upstreams) {
@@ -65,7 +71,7 @@ final class CircuitBreakerCandidates {
      * Filter candidates while preferring an explicitly requested probe target.
      *
      * @param selectorId the selector id
-     * @param upstreams a mutable request-owned snapshot
+     * @param upstreams the read-only upstream snapshot published by the cache
      * @param requested the explicit target, or null
      * @return ordinary candidates or exactly one acquired recovery probe
      */
@@ -74,20 +80,22 @@ final class CircuitBreakerCandidates {
         int size = upstreams.size();
         String[] keys = new String[size];
         int allowed = 0;
+        int blocked = -1;
         for (int index = 0; index < size; index++) {
             Upstream upstream = upstreams.get(index);
             String key = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
             keys[index] = key;
             if (breaker.isRequestAllowed(key)) {
-                if (allowed != index) {
-                    upstreams.set(allowed, upstream);
-                    keys[allowed] = key;
-                }
                 allowed++;
-            } else if (Objects.isNull(requested) || requested.equals(upstream.getUrl())) {
+                continue;
+            }
+            if (blocked < 0) {
+                blocked = index;
+            }
+            if (Objects.isNull(requested) || requested.equals(upstream.getUrl())) {
                 HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(key);
                 if (Objects.nonNull(acquired)) {
-                    return probeCandidates(selectorId, upstreams, keys, upstream, key, acquired);
+                    return probeCandidates(selectorId, upstream, key, acquired);
                 }
             }
         }
@@ -97,22 +105,34 @@ final class CircuitBreakerCandidates {
             for (int index = 0; index < size; index++) {
                 HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(keys[index]);
                 if (Objects.nonNull(acquired)) {
-                    return probeCandidates(selectorId, upstreams, keys, upstreams.get(index), keys[index], acquired);
+                    return probeCandidates(selectorId, upstreams.get(index), keys[index], acquired);
                 }
             }
         }
-        if (allowed < size) {
-            upstreams.subList(allowed, size).clear();
+        if (blocked < 0) {
+            // Happy path: nothing was blocked, so keys[] already aligns 1:1 with the snapshot.
+            // Hand the immutable snapshot back untouched and keep the request path zero-copy.
+            return new CircuitBreakerCandidates(selectorId, upstreams, keys, null);
         }
-        return new CircuitBreakerCandidates(selectorId, upstreams, keys, null);
+        // Degraded path: at least one upstream is blocked. Materialise a mutable working copy
+        // and compact out the blocked entries, leaving the caller's immutable snapshot intact.
+        List<Upstream> working = new ArrayList<>(size);
+        String[] compactedKeys = new String[size];
+        int kept = 0;
+        for (int index = 0; index < size; index++) {
+            if (breaker.isRequestAllowed(keys[index])) {
+                working.add(upstreams.get(index));
+                compactedKeys[kept++] = keys[index];
+            }
+        }
+        return new CircuitBreakerCandidates(selectorId, working, compactedKeys, null);
     }
 
-    private static CircuitBreakerCandidates probeCandidates(final String selectorId, final List<Upstream> upstreams, final String[] keys,
-                                                             final Upstream upstream, final String key, final HalfOpenProbe probe) {
-        upstreams.set(0, upstream);
-        keys[0] = key;
-        upstreams.subList(1, upstreams.size()).clear();
-        return new CircuitBreakerCandidates(selectorId, upstreams, keys, probe);
+    private static CircuitBreakerCandidates probeCandidates(final String selectorId, final Upstream upstream,
+                                                            final String key, final HalfOpenProbe probe) {
+        // A probe targets exactly one upstream. Build a fresh single-element view rather than
+        // mutating the caller's snapshot, which may be an immutable List.copyOf result.
+        return new CircuitBreakerCandidates(selectorId, List.of(upstream), new String[] {key}, probe);
     }
 
     /**
