@@ -115,6 +115,18 @@ public interface SelectorMapper extends ExistProvider {
                                                    @Param("namespaceId") String namespaceId);
 
     /**
+     * Read the current selector while holding the registration transaction's plugin lock.
+     *
+     * @param name selector name
+     * @param pluginId plugin identifier
+     * @param namespaceId namespace identifier
+     * @return existing selector, or null
+     */
+    SelectorDO findByNameAndPluginIdAndNamespaceIdForUpdate(@Param("name") String name,
+                                                          @Param("pluginId") String pluginId,
+                                                          @Param("namespaceId") String namespaceId);
+
+    /**
      * count selector by query.
      *
      * @param selectorQuery {@linkplain SelectorQuery}

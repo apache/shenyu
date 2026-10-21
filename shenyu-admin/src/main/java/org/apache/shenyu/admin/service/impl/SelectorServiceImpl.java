@@ -202,12 +202,15 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
         String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
-        SelectorDO selectorDO = findByNameAndPluginNameAndNamespaceId(contextPath, pluginName, namespaceId);
+        // Lock a persistent parent row even when the selector does not exist yet, across all Admin instances.
+        PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
+        SelectorDO selectorDO = selectorMapper.findByNameAndPluginIdAndNamespaceIdForUpdate(contextPath, pluginDO.getId(), namespaceId);
         if (Objects.isNull(selectorDO)) {
-            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
+            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginDO.getId());
             selectorDTO.setHandle(selectorHandler);
             selectorDTO.setNamespaceId(namespaceId);
             return registerDefault(selectorDTO);
