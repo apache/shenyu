@@ -120,7 +120,8 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
                     return Flux.empty();
                 }
             };
-            ServerHttpRequest base = seed.mutate().uri(URI.create("http://localhost" + path)).contextPath("")
+            final URI target = URI.create("http://localhost" + path);
+            ServerHttpRequest base = seed.mutate().uri(target).contextPath("")
                     .method(HttpMethod.valueOf(tool.getMethod())).headers(headers -> {
                         headers.clear();
                         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
@@ -133,8 +134,10 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
             ShenyuContext context = new ShenyuContext();
             context.setRpcType("http");
             context.setHttpMethod(tool.getMethod());
-            context.setPath(URI.create(path).getPath());
-            context.setRealUrl(path);
+            context.setPath(target.getRawPath());
+            // Keep only the route path. RequestUrlUtils appends the request query to realUrl, and the child
+            // request URI already carries the encoded arguments, so a query here would be forwarded twice.
+            context.setRealUrl(target.getRawPath());
             context.setStartDateTime(LocalDateTime.now());
             child.getAttributes().put(Constants.CONTEXT, context);
             child.getAttributes().put(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE, true);
