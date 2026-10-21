@@ -23,13 +23,15 @@ import org.apache.shenyu.admin.model.entity.ScalePolicyDO;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.apache.shenyu.admin.scale.monitor.subject.cache.ScaleRuleCache;
 import org.apache.shenyu.admin.scale.scaler.cache.ScalePolicyCache;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Manages scaling cache initialization and the scaling service lifecycle.
+ */
 @Component
-public class ScaleTaskInitializer implements CommandLineRunner {
+public class ScaleLifecycleService {
 
     private final ScalePolicyMapper scalePolicyMapper;
 
@@ -41,11 +43,20 @@ public class ScaleTaskInitializer implements CommandLineRunner {
 
     private final ScaleService scaleService;
 
-    public ScaleTaskInitializer(final ScalePolicyMapper scalePolicyMapper,
-                                final ScalePolicyCache scalePolicyCache,
-                                final ScaleService scaleService,
-                                final ScaleRuleMapper scaleRuleMapper,
-                                final ScaleRuleCache scaleRuleCache) {
+    /**
+     * Instantiates a scaling lifecycle service.
+     *
+     * @param scalePolicyMapper scale policy mapper
+     * @param scalePolicyCache scale policy cache
+     * @param scaleService scale service
+     * @param scaleRuleMapper scale rule mapper
+     * @param scaleRuleCache scale rule cache
+     */
+    public ScaleLifecycleService(final ScalePolicyMapper scalePolicyMapper,
+                                 final ScalePolicyCache scalePolicyCache,
+                                 final ScaleService scaleService,
+                                 final ScaleRuleMapper scaleRuleMapper,
+                                 final ScaleRuleCache scaleRuleCache) {
         this.scalePolicyMapper = scalePolicyMapper;
         this.scalePolicyCache = scalePolicyCache;
         this.scaleService = scaleService;
@@ -53,14 +64,23 @@ public class ScaleTaskInitializer implements CommandLineRunner {
         this.scaleRuleCache = scaleRuleCache;
     }
 
-    @Override
-    public void run(final String... args) {
+    /**
+     * Reload scaling caches and activate scaling.
+     */
+    public synchronized void start() {
         List<ScalePolicyDO> policies = scalePolicyMapper.selectAll();
         scalePolicyCache.initialize(policies);
 
         List<ScaleRuleDO> rules = scaleRuleMapper.selectAll();
         scaleRuleCache.initialize(rules);
 
-        scaleService.executeScaling();
+        scaleService.start();
+    }
+
+    /**
+     * Deactivate scaling.
+     */
+    public synchronized void stop() {
+        scaleService.stop();
     }
 }

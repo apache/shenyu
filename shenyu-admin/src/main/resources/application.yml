@@ -154,6 +154,10 @@ shenyu:
       - /rule/batch
       - /rule
       - /rule/**
+      - /scale/policy
+      - /scale/policy/**
+      - /scale/rule
+      - /scale/rule/**
       - /plugin
       - /plugin/**
       - /plugin/createPluginResource/**
