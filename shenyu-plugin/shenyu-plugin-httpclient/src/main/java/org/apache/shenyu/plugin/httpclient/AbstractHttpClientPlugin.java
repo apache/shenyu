@@ -104,9 +104,23 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
-        RetryStrategy<R> strategy;
-        String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC)).orElse(HttpRetryBackoffSpecEnum.getDefault());
-        HttpRetryBackoffSpecEnum spec = HttpRetryBackoffSpecEnum.acquireByName(retryStrategyType);
+        final Mono<R> retriedResponse = retryTimes <= 0
+                ? response
+                : executeWithRetry(response, exchange, duration, retryTimes);
+        return retriedResponse
+                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
+                .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
+                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
+                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+    }
+
+    private Mono<R> executeWithRetry(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
+        final RetryStrategy<R> strategy;
+        final String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC))
+                .orElse(HttpRetryBackoffSpecEnum.getDefault());
+        final HttpRetryBackoffSpecEnum spec = HttpRetryBackoffSpecEnum.acquireByName(retryStrategyType);
         switch (spec) {
             case EXPONENTIAL_BACKOFF:
                 strategy = new ExponentialRetryBackoffStrategy<>(this);
@@ -117,14 +131,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             default:
                 strategy = new DefaultRetryStrategy<>(this);
         }
-        Mono<R> retriedResponse = strategy.execute(response, exchange, duration, retryTimes);
-        return retriedResponse
-                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
-                .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
-                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                        "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
-                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+        return strategy.execute(response, exchange, duration, retryTimes);
     }
 
     /**
