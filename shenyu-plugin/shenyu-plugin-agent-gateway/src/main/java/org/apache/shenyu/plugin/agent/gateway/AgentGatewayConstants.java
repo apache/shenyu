@@ -35,6 +35,11 @@ public final class AgentGatewayConstants {
     public static final String REQUEST_CONTEXT_ATTRIBUTE = AgentGatewayConstants.class.getName() + ".REQUEST_CONTEXT";
 
     /**
+     * Internal-only marker preventing the HTTP child dispatch from re-entering the MCP entry.
+     */
+    public static final String HTTP_TOOL_CALL_ATTRIBUTE = AgentGatewayConstants.class.getName() + ".HTTP_TOOL_CALL";
+
+    /**
      * Reactor context key containing the current request context.
      */
     public static final String REACTOR_CONTEXT_KEY = AgentGatewayConstants.class.getName() + ".REACTOR_CONTEXT";

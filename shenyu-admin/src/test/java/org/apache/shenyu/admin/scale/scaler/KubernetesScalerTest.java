@@ -35,6 +35,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -68,7 +69,7 @@ public final class KubernetesScalerTest {
      */
     @Test
     public void testScaleByNumSetsSpecBeforeReplace() throws Exception {
-        kubernetesScaler.scaleByNum(3);
+        assertTrue(kubernetesScaler.scaleByNum(3));
 
         final ArgumentCaptor<V1Scale> captor = ArgumentCaptor.forClass(V1Scale.class);
         verify(appsV1Api).replaceNamespacedDeploymentScale(

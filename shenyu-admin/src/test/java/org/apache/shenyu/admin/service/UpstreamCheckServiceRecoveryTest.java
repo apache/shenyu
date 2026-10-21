@@ -121,7 +121,8 @@ class UpstreamCheckServiceRecoveryTest {
             ReflectionTestUtils.invokeMethod(service, "checkZombie", ZombieUpstream.transform(upstream, 1, SELECTOR_ID));
         } else {
             service.replace(SELECTOR_ID, Collections.singletonList(upstream));
-            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, Collections.singletonList(upstream));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
         }
 
         CompletionException exception = assertThrows(CompletionException.class, () -> ReflectionTestUtils.invokeMethod(service, "waitFinish"));

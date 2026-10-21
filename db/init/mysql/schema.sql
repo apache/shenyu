@@ -1742,7 +1742,7 @@ CREATE TABLE `rule`  (
   `match_mode` int(0) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
-  `loged` tinyint(0) NOT NULL COMMENT 'whether to log or not (0 no print, 1 print) ',
+  `logged` tinyint(0) NOT NULL COMMENT 'whether to log or not (0 no print, 1 print) ',
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(0) NOT NULL COMMENT 'sort',
@@ -1789,7 +1789,7 @@ CREATE TABLE `selector`  (
   `sort_code` int(0) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
-  `loged` tinyint(0) NOT NULL COMMENT 'whether to print the log (0 no print, 1 print) ',
+  `logged` tinyint(0) NOT NULL COMMENT 'whether to print the log (0 no print, 1 print) ',
   `continued` tinyint(0) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
@@ -2364,7 +2364,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
+INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `logged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 
 DROP TABLE IF EXISTS `instance_info`;
 
@@ -2378,7 +2378,9 @@ CREATE TABLE IF NOT EXISTS `instance_info` (
     `instance_state`  tinyint(4)  NOT NULL COMMENT '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 DROP TABLE IF EXISTS `registry_config`;
