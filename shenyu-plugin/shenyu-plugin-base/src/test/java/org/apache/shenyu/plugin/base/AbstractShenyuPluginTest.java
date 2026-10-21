@@ -319,7 +319,7 @@ public final class AbstractShenyuPluginTest {
         try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
             StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
             assertTrue(capture.infoMessages().stream().noneMatch(message -> message.contains("rule")),
-                    "no rule match line may reach INFO when the rule's loged flag is false, got: " + capture.infoMessages());
+                    "no rule match line may reach INFO when the rule's logged flag is false, got: " + capture.infoMessages());
         }
     }
 
@@ -342,7 +342,7 @@ public final class AbstractShenyuPluginTest {
                     .filter(message -> message.contains("rule"))
                     .collect(Collectors.toList());
             assertEquals(1, ruleLines.size(),
-                    "exactly one rule match line is expected at INFO when loged is true, got: " + ruleLines);
+                    "exactly one rule match line is expected at INFO when logged is true, got: " + ruleLines);
             assertTrue(ruleLines.get(0).contains("rule success match"),
                     "the surviving line should be the one that carries the rule name, got: " + ruleLines.get(0));
         }
