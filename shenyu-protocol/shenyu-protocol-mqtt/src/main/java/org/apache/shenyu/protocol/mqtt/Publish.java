@@ -33,9 +33,11 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -133,5 +135,43 @@ public class Publish extends MessageType {
 
     private static MqttQoS minQoS(final MqttQoS publishQoS, final MqttQoS grantedQoS) {
         return publishQoS.value() <= grantedQoS.value() ? publishQoS : grantedQoS;
+    }
+
+    /**
+     * Publish a Last Will message to all subscribers of the will topic.
+     *
+     * @param will the will entry containing topic, message, qos, and retain flag
+     */
+    static void publishWill(final WillRepository.WillEntry will) {
+        if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
+            return;
+        }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
+        if (will.isRetain()) {
+            if (will.getMessage().length > 0) {
+                Singleton.INST.get(TopicRepository.class).add(will.getTopic(), will.getMessage());
+            } else {
+                Singleton.INST.get(TopicRepository.class).remove(will.getTopic());
+            }
+        }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
+        final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
+        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
+            if (channel.isActive()) {
+                MqttQoS qos = minQoS(willQos, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos
+                        ? 0
+                        : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, will.isRetain(), 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), packetId);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
+                        Unpooled.wrappedBuffer(will.getMessage()));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
     }
 }

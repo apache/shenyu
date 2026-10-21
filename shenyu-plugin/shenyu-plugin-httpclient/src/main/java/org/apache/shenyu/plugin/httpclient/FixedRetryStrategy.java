@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -40,6 +43,8 @@ import java.util.concurrent.TimeoutException;
 public class FixedRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(FixedRetryStrategy.class);
 
+    private static final Duration BACKOFF = Duration.ofSeconds(2);
+
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
     public FixedRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
@@ -56,15 +61,22 @@ public class FixedRetryStrategy<R> implements RetryStrategy<R> {
      * @return Response Mono object after retry processing
      */
     public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
-        Retry retrySpec = initFixedBackoff(exchange, retryTimes);
-        Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(2));
-        return response.retryWhen(retrySpec)
+        Mono<R> retriedResponse;
+        if (RetryEnum.FAILOVER.getName().equals(exchange.getAttribute(Constants.RETRY_STRATEGY))) {
+            retriedResponse = new DefaultRetryStrategy<>(httpClientPlugin).executeFailover(response, exchange, duration, retryTimes, BACKOFF,
+                    throwable -> HttpMethod.GET.equals(exchange.getRequest().getMethod())
+                            && (isTransientFailure(throwable) || throwable instanceof ShenyuUpstreamStatusException));
+        } else {
+            retriedResponse = response.retryWhen(initFixedBackoff(exchange, retryTimes));
+        }
+        Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, BACKOFF);
+        return retriedResponse
                 .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 
     private Retry initFixedBackoff(final ServerWebExchange exchange, final int retryTimes) {
-        return Retry.fixedDelay(retryTimes, Duration.ofSeconds(2))
+        return Retry.fixedDelay(retryTimes, BACKOFF)
                 .filter(throwable -> HttpMethod.GET.equals(exchange.getRequest().getMethod()) && isTransientFailure(throwable))
                 .onRetryExhaustedThrow((retrySpec, retrySignal) -> retrySignal.failure());
     }

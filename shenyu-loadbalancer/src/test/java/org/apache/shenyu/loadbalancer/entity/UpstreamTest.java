@@ -17,13 +17,85 @@
 
 package org.apache.shenyu.loadbalancer.entity;
 
+import com.google.gson.JsonObject;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Upstream check task test.
  */
 public class UpstreamTest {
+
+    @Test
+    public void testLabelsAreImmutableSnapshotsIndependentOfIdentityAndMetadata() {
+        Upstream upstream = Upstream.builder().url("backend:8080").build();
+        final UpstreamIdentity identity = upstream.identity();
+        Map<String, String> labels = new HashMap<>();
+        labels.put("release", "stable");
+        upstream.setLabels(labels);
+        upstream.setMetadata(Map.of("release", "metadata-value"));
+        labels.put("release", "next");
+        Assertions.assertEquals(Map.of("release", "stable"), upstream.getLabels());
+        Assertions.assertEquals("metadata-value", upstream.getMetadata().get("release"));
+        Assertions.assertSame(identity, upstream.identity());
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> upstream.getLabels().put("release", "next"));
+        upstream.setLabels(Map.of());
+        Assertions.assertTrue(upstream.getLabels().isEmpty());
+    }
+
+    @Test
+    public void selectorKeyIsReusedAndInvalidatedByItsActualIdentity() {
+        Upstream upstream = Upstream.builder().protocol(" http ").url(" host:80 ").group("blue").version("v1").build();
+        String key = upstream.buildSelectorKey("first");
+        Assertions.assertEquals("first:" + upstream.buildDomain(), key);
+        Assertions.assertSame(key, upstream.buildSelectorKey("first"));
+        upstream.setWeight(20);
+        upstream.setGroup("green");
+        upstream.setVersion("v2");
+        Assertions.assertSame(key, upstream.buildSelectorKey("first"));
+        Assertions.assertEquals("second:http://host:80", upstream.buildSelectorKey("second"));
+        Assertions.assertEquals(key, upstream.buildSelectorKey("first"));
+        upstream.setUrl("new:81");
+        Assertions.assertEquals("first:http://new:81", upstream.buildSelectorKey("first"));
+        upstream.setUrl(null);
+        Assertions.assertEquals("null:http://null", upstream.buildSelectorKey(null));
+        JsonObject fields = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(upstream), JsonObject.class);
+        Assertions.assertFalse(fields.has("selectorKey"));
+        Assertions.assertFalse(JsonUtils.toMap(upstream).containsKey("selectorKey"));
+    }
+
+    @Test
+    public void concurrentSelectorsCannotReadEachOthersCachedKey() throws Exception {
+        Upstream upstream = Upstream.builder().protocol("https://").url("shared:443").build();
+        ExecutorService workers = Executors.newFixedThreadPool(4);
+        List<Future<?>> results = new ArrayList<>();
+        try {
+            for (int index = 0; index < 4; index++) {
+                final String selector = "selector-" + index;
+                results.add(workers.submit(() -> {
+                    for (int request = 0; request < 10000; request++) {
+                        Assertions.assertEquals(selector + ":https://shared:443", upstream.buildSelectorKey(selector));
+                    }
+                }));
+            }
+            for (Future<?> result : results) {
+                result.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            workers.shutdownNow();
+        }
+    }
 
     @Test
     public void upstreamTest() {
@@ -83,6 +155,105 @@ public class UpstreamTest {
         Assertions.assertEquals(upstream2, upstream4);
         Assertions.assertEquals(upstream2.hashCode(), upstream4.hashCode());
         Assertions.assertNotNull(upstream2.toString());
-        Assertions.assertTrue(upstream2.hashCode() >= 0);
+    }
+
+    @Test
+    public void buildDomainShouldNormalizeBareProtocols() {
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("http")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https:")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https:/")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("https://127.0.0.1:8080", Upstream.builder()
+                .protocol("https://")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("  http  ")
+                .url(" 127.0.0.1:8080 ")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol(":")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+        Assertions.assertEquals("http://127.0.0.1:8080", Upstream.builder()
+                .protocol("/")
+                .url("127.0.0.1:8080")
+                .build()
+                .buildDomain());
+    }
+
+    @Test
+    public void buildDomainWithExplicitProtocolShouldNormalizeBareSchemes() {
+        Upstream upstream = Upstream.builder()
+                .url("127.0.0.1:8080")
+                .build();
+        Assertions.assertEquals("ws://127.0.0.1:8080", upstream.buildDomain("ws"));
+        Assertions.assertEquals("ws://127.0.0.1:8080", upstream.buildDomain("ws://"));
+        Assertions.assertEquals("http://127.0.0.1:8080", upstream.buildDomain(null));
+        Assertions.assertEquals("http://127.0.0.1:8080", upstream.buildDomain(":"));
+    }
+
+    @Test
+    public void identityShouldRemainAnImmutableSnapshot() {
+        final Upstream upstream = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").weight(10).build();
+        final UpstreamIdentity original = upstream.identity();
+        final String originalHashKey = original.hashKey();
+        final String originalLeastActiveKey = original.leastActiveKey();
+        final Map<UpstreamIdentity, String> cached = new HashMap<>();
+        cached.put(original, "original");
+
+        upstream.setWeight(20);
+        upstream.setStatus(false);
+        Assertions.assertSame(original, upstream.identity());
+        upstream.setUrl("127.0.0.2:20880");
+        final UpstreamIdentity changedUrl = upstream.identity();
+        Assertions.assertNotEquals(original, changedUrl);
+        upstream.setGroup("green");
+        final UpstreamIdentity changedGroup = upstream.identity();
+        Assertions.assertNotEquals(changedUrl, changedGroup);
+        upstream.setVersion("v2");
+        Assertions.assertNotEquals(changedGroup, upstream.identity());
+        Assertions.assertEquals(originalHashKey, original.hashKey());
+        Assertions.assertEquals(originalLeastActiveKey, original.leastActiveKey());
+        Assertions.assertEquals("original", cached.get(original));
+        final Upstream originalTarget = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").build();
+        Assertions.assertEquals("original", cached.get(originalTarget.identity()));
+        final Upstream currentTarget = Upstream.builder().protocol("dubbo://").url("127.0.0.2:20880")
+                .group("green").version("v2").build();
+        Assertions.assertEquals(currentTarget, upstream);
+        Assertions.assertEquals(currentTarget.hashCode(), upstream.hashCode());
+
+        final JsonObject gsonFields = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(upstream), JsonObject.class);
+        Assertions.assertFalse(gsonFields.has("identity"));
+        Assertions.assertFalse(gsonFields.has("protocolPrefix"));
+        Assertions.assertEquals("127.0.0.2:20880", gsonFields.get("url").getAsString());
+        Assertions.assertEquals("green", gsonFields.get("group").getAsString());
+        Assertions.assertEquals("v2", gsonFields.get("version").getAsString());
+        final Map<String, Object> jacksonFields = JsonUtils.toMap(upstream);
+        Assertions.assertFalse(jacksonFields.containsKey("identity"));
+        Assertions.assertEquals("127.0.0.2:20880", jacksonFields.get("url"));
+        Assertions.assertEquals("green", jacksonFields.get("group"));
+        Assertions.assertEquals("v2", jacksonFields.get("version"));
     }
 }

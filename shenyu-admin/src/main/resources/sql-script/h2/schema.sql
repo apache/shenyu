@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `sort_code` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `rule_name` varchar(128) NOT NULL COMMENT 'rule name',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(4) NOT NULL COMMENT 'sort',
@@ -1417,7 +1417,9 @@ CREATE TABLE IF NOT EXISTS instance_info
     `instance_state`  int  NOT NULL COMMENT  '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382720', '1346358560427216896', '1346778036402483300', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
@@ -1567,7 +1569,7 @@ CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
 CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
 CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
 CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
-CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
 CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
 CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
 CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);

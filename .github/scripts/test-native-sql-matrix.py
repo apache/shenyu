@@ -223,6 +223,72 @@ class NativeSqlMatrixTest(unittest.TestCase):
             with patch.object(engine, "sql", side_effect=RuntimeError("connection refused")), self.assertRaisesRegex(RuntimeError, "connection"):
                 engine.check_discovery_upstream_uniqueness()
 
+    def test_data_permission_uniqueness_requires_the_intended_constraint(self):
+        indexes = {("data_permission", "idx_data_permission_user_type"): ["user_id", "data_type", "data_id"]}
+        for dialect in matrix.DIALECTS:
+            for conflict, error in ((RuntimeError("duplicate key: IDX_DATA_PERMISSION_USER_TYPE"), None),
+                                    (RuntimeError("different constraint"), RuntimeError), (None, AssertionError)):
+                def sql(query):
+                    if query.startswith("INSERT"):
+                        if conflict:
+                            raise conflict
+                        return ""
+                    if query.startswith("SELECT id"):
+                        return "\n".join(f"sql-matrix-grant-{number}" for number in (1, 4, 5, 6))
+                    return "3" if "information_schema.statistics" in query else "1"
+
+                with self.subTest(dialect=dialect, conflict=conflict), tempfile.TemporaryDirectory() as directory:
+                    engine = matrix.Engine(dialect, "upgrade", Path(directory))
+                    with patch.object(engine, "sql", side_effect=sql):
+                        if error:
+                            with self.assertRaises(error):
+                                engine.check_data_permission_uniqueness(indexes)
+                        else:
+                            engine.check_data_permission_uniqueness(indexes)
+
+    def test_data_permission_check_rejects_nonunique_index_and_incorrect_cleanup(self):
+        indexes = {("data_permission", "idx_data_permission_user_type"): ["user_id", "data_type", "data_id"]}
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("mysql", "upgrade", Path(directory))
+            with patch.object(engine, "sql", return_value="0"), self.assertRaisesRegex(AssertionError, "not unique"):
+                engine.check_data_permission_uniqueness(indexes)
+            for numbers in ((1, 2, 4, 5, 6), (1, 5, 6)):
+                with patch.object(engine, "sql", side_effect=["3", "\n".join(f"sql-matrix-grant-{number}" for number in numbers)]), \
+                        self.assertRaisesRegex(AssertionError, "lost distinct grants or retained duplicate"):
+                    engine.check_data_permission_uniqueness(indexes)
+
+    def test_instance_identity_check_rejects_missing_uniqueness_and_stale_updates(self):
+        indexes = {("instance_info", "uk_instance_info_identity"): ["namespace_id", "instance_ip", "instance_port", "instance_type"]}
+        names = "heartbeat updated created tie-z namespace ip port type max".split()
+        mapper = ROOT / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml"
+        for dialect in matrix.DIALECTS:
+            for mode in ("success", "missing-key", "wrong-winner", "stale-overwrite", "unrelated-error"):
+                heartbeats = iter((100, 200, 300, 300) if mode == "stale-overwrite" else (200, 200, 300, 300))
+                states = iter((1, 1, 2, 2))
+
+                def sql(query):
+                    if query.startswith("SELECT id"):
+                        kept = names + (["old-heartbeat"] if mode == "wrong-winner" else [])
+                        return "\n".join("sql-instance-" + name for name in kept)
+                    if query.startswith("INSERT"):
+                        if mode == "missing-key":
+                            return ""
+                        raise RuntimeError("other error" if mode == "unrelated-error" else "duplicate UK_INSTANCE_INFO_IDENTITY")
+                    if query.startswith("SELECT last_heart"):
+                        return str(next(heartbeats))
+                    if query.startswith("SELECT instance_state"):
+                        return str(next(states))
+                    return "1"
+
+                with self.subTest(dialect=dialect, mode=mode), tempfile.TemporaryDirectory() as directory:
+                    engine = matrix.Engine(dialect, "upgrade", Path(directory))
+                    with patch.object(engine, "sql", side_effect=sql):
+                        if mode == "success":
+                            engine.check_instance_identity(indexes, mapper)
+                        else:
+                            with self.assertRaises(RuntimeError if mode == "unrelated-error" else AssertionError):
+                                engine.check_instance_identity(indexes, mapper)
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)

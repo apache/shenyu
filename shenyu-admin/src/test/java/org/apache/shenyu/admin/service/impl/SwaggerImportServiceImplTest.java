@@ -41,15 +41,13 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -214,11 +212,6 @@ public class SwaggerImportServiceImplTest {
         public void addDocInfo(final UpstreamInstance instance, final String docJson, final String oldMd5,
                                final Consumer<DocInfo> callback) {
             this.docJson = docJson;
-        }
-
-        @Override
-        public Collection<DocInfo> listAll() {
-            return Collections.emptyList();
         }
 
         private String getDocJson() {

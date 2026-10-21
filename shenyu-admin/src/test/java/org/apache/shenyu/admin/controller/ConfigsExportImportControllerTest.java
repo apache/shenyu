@@ -19,7 +19,9 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.ConfigsService;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
@@ -43,6 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -71,6 +75,9 @@ public class ConfigsExportImportControllerTest {
      */
     @Mock
     private SyncDataService syncDataService;
+
+    @Mock
+    private NamespaceService namespaceService;
 
     @BeforeEach
     public void setUp() {
@@ -106,6 +113,7 @@ public class ConfigsExportImportControllerTest {
 
         when(this.configsService.configsImport(anyString(), any())).thenReturn(
                 ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS));
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
 
         // mock file
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE, ZipUtil.zip(zipItemList));
@@ -120,6 +128,21 @@ public class ConfigsExportImportControllerTest {
 
         // Verify the results
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    public void testImportConfigsWithUnknownNamespace() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE, new byte[]{1});
+        when(this.namespaceService.findByNamespaceId("ghost-ns")).thenReturn(null);
+
+        mockMvc.perform(multipart("/configs/import")
+                        .file(file)
+                        .param("namespace", "ghost-ns")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message", is("namespace is not exist")))
+                .andExpect(status().isOk());
+
+        verify(this.configsService, never()).configsImport(anyString(), any());
     }
 
 }

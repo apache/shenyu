@@ -17,122 +17,45 @@
 
 package org.apache.shenyu.client.mcp.common.dto;
 
-import io.swagger.v3.oas.models.Operation;
 import org.apache.shenyu.client.mcp.utils.OpenApiConvertorUtil;
 
+import java.util.Objects;
+
 /**
- * the shenyu mcp tool object.
+ * Client annotation adapter for the shared MCP tool model.
  */
-public class ShenyuMcpTool {
-
-    private io.swagger.v3.oas.models.Operation operation;
-
-    private ShenyuMcpRequestConfig requestConfig;
-
-    private String toolName;
-
-    private Boolean enable = true;
-
-    private String method;
+public class ShenyuMcpTool extends org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool {
 
     public ShenyuMcpTool() {
     }
 
-    public ShenyuMcpTool(final org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool shenyuMcpTool) {
-        this.operation = OpenApiConvertorUtil.convertOperation(shenyuMcpTool.operation());
-        this.requestConfig = OpenApiConvertorUtil.convertRequestConfig(shenyuMcpTool.requestConfig());
-        this.toolName = shenyuMcpTool.toolName();
-        this.enable = shenyuMcpTool.enabled();
+    public ShenyuMcpTool(final org.apache.shenyu.client.mcp.common.annotation.ShenyuMcpTool tool) {
+        setOperation(OpenApiConvertorUtil.convertOperation(tool.operation()));
+        setRequestConfig(OpenApiConvertorUtil.convertRequestConfig(tool.requestConfig()));
+        setToolName(tool.toolName());
+        setEnable(tool.enabled());
     }
 
-    /**
-     * get operation.
-     *
-     * @return operation;
-     */
-    public Operation getOperation() {
-        return operation;
-    }
-
-    /**
-     * set operation.
-     *
-     * @param operation operation
-     */
-    public void setOperation(final Operation operation) {
-        this.operation = operation;
-    }
-
-    /**
-     * get requestConfig.
-     *
-     * @return requestConfig;
-     */
+    @Override
     public ShenyuMcpRequestConfig getRequestConfig() {
-        return requestConfig;
+        org.apache.shenyu.register.mcp.common.dto.ShenyuMcpRequestConfig config = super.getRequestConfig();
+        if (Objects.isNull(config) || config instanceof ShenyuMcpRequestConfig) {
+            return (ShenyuMcpRequestConfig) config;
+        }
+        // Deserializers populate the inherited field using its shared model type.
+        ShenyuMcpRequestConfig clientConfig = new ShenyuMcpRequestConfig();
+        clientConfig.setHeaders(config.getHeaders());
+        clientConfig.setBodyToJson(config.getBodyToJson());
+        super.setRequestConfig(clientConfig);
+        return clientConfig;
     }
 
     /**
-     * set requestConfig.
+     * Set the client request model.
      *
-     * @param requestConfig requestConfig
+     * @param requestConfig the request model
      */
     public void setRequestConfig(final ShenyuMcpRequestConfig requestConfig) {
-        this.requestConfig = requestConfig;
-    }
-
-    /**
-     * get toolName.
-     *
-     * @return toolName;
-     */
-    public String getToolName() {
-        return toolName;
-    }
-
-    /**
-     * set toolName.
-     *
-     * @param toolName toolName
-     */
-    public void setToolName(final String toolName) {
-        this.toolName = toolName;
-    }
-
-    /**
-     * get enable.
-     *
-     * @return enable;
-     */
-    public Boolean getEnable() {
-        return enable;
-    }
-
-    /**
-     * set enable.
-     *
-     * @param enable enable
-     */
-    public void setEnable(final Boolean enable) {
-        this.enable = enable;
-    }
-
-
-    /**
-     * get method.
-     *
-     * @return method;
-     */
-    public String getMethod() {
-        return method;
-    }
-
-    /**
-     * set method.
-     *
-     * @param method method
-     */
-    public void setMethod(final String method) {
-        this.method = method;
+        super.setRequestConfig(requestConfig);
     }
 }

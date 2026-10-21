@@ -86,6 +86,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     if (preserveHost) {
                         headers.add(HttpHeaders.HOST, request.getHeaders().getFirst(HttpHeaders.HOST));
                     }
+                    // the headers of the client have been copied by now, so the trace context of the
+                    // gateway wins and the upstream continues the trace of the gateway span
+                    this.injectTraceContext(exchange, new HttpHeadersTraceContextCarrier(headers));
                 });
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = requestBodySpec;
         // Do not attach a request body for GET/HEAD to avoid unexpected transfer encoding.

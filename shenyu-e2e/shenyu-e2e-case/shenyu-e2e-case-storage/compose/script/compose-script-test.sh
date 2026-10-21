@@ -19,6 +19,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+export RETRY_SCRIPT="$SCRIPT_DIR/../../../../../.github/scripts/maven-with-retry.sh"
 TEST_TMP=$(mktemp -d)
 trap 'rm -f "$TEST_TMP/mvnw" "$TEST_TMP/trace"; rmdir "$TEST_TMP"' EXIT
 export RUN_TRACE="$TEST_TMP/trace"
@@ -30,6 +31,7 @@ sleep() { :; }
 docker() { return "${DOCKER_EXIT:-0}"; }
 bash() {
     case "$1" in
+        .github/scripts/maven-with-retry.sh) command bash "$RETRY_SCRIPT" "${@:2}" ;;
         */storage_init_*.sh) return "${INIT_EXIT:-0}" ;;
         */healthcheck.sh)
             test -f "$1" || return 99

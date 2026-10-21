@@ -245,4 +245,23 @@ public final class NamespacePluginServiceTest {
         Assertions.assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, namespacePluginService.update(dto));
         Mockito.verify(namespacePluginEventPublisher).onUpdated(after, before);
     }
+
+    @Test
+    public void testDeleteScopedToRequestNamespace() {
+        NamespacePluginVO own = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(own.getId()).thenReturn("rel-own");
+        Mockito.when(own.getNamespaceId()).thenReturn("namespace-a");
+        NamespacePluginVO foreign = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(foreign.getId()).thenReturn("rel-foreign");
+        Mockito.when(foreign.getNamespaceId()).thenReturn("namespace-b");
+        Mockito.when(namespacePluginRelMapper.selectByIds(Mockito.anyList()))
+                .thenReturn(java.util.Arrays.asList(own, foreign));
+        Mockito.when(namespacePluginRelMapper.deleteByIds(Mockito.anyList())).thenReturn(1);
+
+        String result = namespacePluginService.delete(java.util.Arrays.asList("rel-own", "rel-foreign"), "namespace-a");
+
+        Assertions.assertEquals(org.apache.commons.lang3.StringUtils.EMPTY, result);
+        Mockito.verify(namespacePluginRelMapper).deleteByIds(java.util.Collections.singletonList("rel-own"));
+        Mockito.verify(namespacePluginEventPublisher).onDeleted(java.util.Collections.singletonList(own));
+    }
 }

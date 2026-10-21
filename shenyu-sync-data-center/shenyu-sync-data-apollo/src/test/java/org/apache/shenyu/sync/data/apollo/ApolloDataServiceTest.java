@@ -271,7 +271,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.test-proxy",
+                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.selector-id",
                 null,
                 PropertyChangeType.DELETED
         );
@@ -280,7 +280,7 @@ class ApolloDataServiceTest {
         ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
         verify(proxySelectorDataSubscriber, times(1)).unSubscribe(captor.capture());
         assertEquals("test-plugin", captor.getValue().getPluginName());
-        assertEquals("test-proxy", captor.getValue().getName());
+        assertEquals("selector-id", captor.getValue().getId());
     }
 
     @Test

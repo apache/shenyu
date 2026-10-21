@@ -2,6 +2,14 @@
 
 ### API Changes
 
+- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
+  deprecated for transfer to plugin-store (#7599). All four remain available in
+  the release carrying this notice. Removal requires dev-list consensus, a full
+  released deprecation cycle, compatible external artifact publication and an
+  announced rollback window; no removal release is scheduled. See the
+  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
+  keys and `ApolloPathConstants` remain compatibility contracts.
+
 - `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
   serialization identifier and existing behavior are retained for downstream
   source and binary compatibility. No removal release is scheduled; a future
@@ -19,6 +27,42 @@
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
 ### Behavior Changes
+
+- Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
+  HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
+  request-local plugin cursors, attributes and captured responses; upstream
+  configuration remains owned by existing routing plugins. Caller credentials,
+  cookies and web sessions are not delegated. Results pass through existing MCP
+  authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
+  restart is required for rule updates; absent plans preserve previous behavior.
+
+- `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
+  upstream connections and reducing connection setup overhead. It previously
+  defaulted to `false` as a workaround for stale pooled connections being reset
+  by the peer (Reactor Netty issue #388).
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream or load balancer idle timeout
+  when using a fixed connection pool. If connection resets persist, restore
+  the previous behavior with `shenyu.httpclient.keepAlive=false`.
+  For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
+  size the connection limit for the deployment; the default follows Reactor Netty.
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
+
+- The misspelled `loged` column of the `selector` and `rule` tables is renamed
+  to `logged`, together with the matching fields of the Admin REST DTOs/VOs
+  (`SelectorDTO`, `RuleDTO`, `SelectorVO`, `RuleVO`) and the gateway-side
+  `RuleData`. Existing deployments must run the `2.7.2-upgrade-2.7.3-*.sql`
+  script for their database dialect (MySQL, PostgreSQL, Oracle, openGauss,
+  OceanBase) before upgrading. Upgrade order matters: the field is part of the
+  admin-to-bootstrap sync contract, so upgrade all bootstrap instances before,
+  or together with, admin — a new admin emitting `logged` is not understood by
+  old bootstraps, and that direction cannot be tolerated in code. For one release the Admin REST layer keeps
+  accepting the old `loged` request field via a JSON alias, but responses
+  always use `logged`; stored rate-limiter handle JSON keeps parsing the old
+  `loged` key via a Gson alternate. REST API clients that read `loged` from
+  responses must switch to `logged`. (#7589)
 
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
@@ -77,6 +121,31 @@
   The client factory now retains its connection-handler configuration, so configured
   read, write and idle handlers are installed on new connections.
 - Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
+- `shenyu-registry-core` no longer transitively provides registry implementations;
+  it depends only on `shenyu-registry-api` and `shenyu-spi`. Applications that
+  depend on `shenyu-registry-core`, or on `shenyu-sdk-core` / `shenyu-sdk-feign`
+  which now sit on `shenyu-registry-api`, must declare the provider matching their
+  configured `registerType` explicitly, for example:
+
+  ```xml
+  <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-registry-zookeeper</artifactId>
+      <version>${shenyu.version}</version>
+      <scope>runtime</scope>
+  </dependency>
+  ```
+
+  Without the provider on the classpath, `ShenyuInstanceRegisterRepositoryFactory`
+  fails with an `IllegalArgumentException` naming the missing `shenyu-registry-<type>`
+  artifact and listing the available SPI types, replacing the previous
+  `ExtensionLoader.getJoin` failure that did not identify the missing artifact.
+  `loadRepository(String)` is public API, and `AbstractDiscoveryProcessor#createDiscovery`
+  resolves its repository through it. `shenyu-admin` and
+  `shenyu-spring-boot-starter-registry` re-declare all five providers, so existing
+  users of the compatibility starter are unaffected; Apollo was never part of that
+  aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
+  provider table and migration steps. (#7578)
 
 ## [v2.7.0]- 2024-12-23
 

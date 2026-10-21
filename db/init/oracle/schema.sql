@@ -122,7 +122,7 @@ create table selector
     sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
-    loged        NUMBER(3) not null,
+    logged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
@@ -148,7 +148,7 @@ comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
 comment on column SELECTOR.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column SELECTOR.loged
+comment on column SELECTOR.logged
   is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
@@ -198,7 +198,7 @@ create table rule
     match_mode    NUMBER(10) not null,
     rule_name     VARCHAR2(128) not null,
     enabled       NUMBER(3) not null,
-    loged         NUMBER(3) not null,
+    logged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id  VARCHAR2(50) not null,
     sort_code     NUMBER(10) not null,
@@ -217,7 +217,7 @@ comment on column RULE.rule_name
   is 'rule name';
 comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column RULE.loged
+comment on column RULE.logged
   is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
@@ -418,6 +418,10 @@ comment on column OPERATION_RECORD_LOG.operation_time
   is 'operation time';
 comment on column OPERATION_RECORD_LOG.operation_type
   is 'operation type：create/update/delete/register...';
+
+create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
+create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
 
 create sequence operation_record_log_seq
     increment by 1
@@ -818,6 +822,7 @@ create table data_permission
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
 -- Add comments to the table
 comment on table DATA_PERMISSION
   is 'data permission table';
@@ -2946,7 +2951,9 @@ CREATE TABLE instance_info (
     instance_state number          NOT NULL,
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
-    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+    last_heart_beat_time number     DEFAULT 0 NOT NULL,
+    CONSTRAINT instance_info_pk PRIMARY KEY (id),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 COMMENT ON TABLE instance_info IS 'Instance information table';
@@ -2959,6 +2966,7 @@ COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
 COMMENT ON COLUMN instance_info.instance_state IS 'instance_state';
 COMMENT ON COLUMN instance_info.date_created IS 'create time';
 COMMENT ON COLUMN instance_info.date_updated IS 'update time';
+COMMENT ON COLUMN instance_info.last_heart_beat_time IS 'last heart beat time';
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) 
 VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'));

@@ -21,6 +21,8 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 class MetaDataCacheTest {
@@ -43,6 +45,54 @@ class MetaDataCacheTest {
         cache.cache(specific);
 
         assertSame(specific, cache.obtain("/api/users/42"));
+    }
+
+    @Test
+    void shouldRemoveByIdOnlyRecordWithoutPath() {
+        MetaData full = createMetaData("id-1", "/rpc/dubbo/save");
+        cache.cache(full);
+        assertSame(full, cache.obtain("/rpc/dubbo/save"));
+
+        MetaData idOnly = new MetaData();
+        idOnly.setId("id-1");
+
+        assertDoesNotThrow(() -> cache.remove(idOnly));
+        assertNull(cache.obtain("/rpc/dubbo/save"));
+    }
+
+    @Test
+    void shouldRemoveByPathOnlyRecordWithoutId() {
+        MetaData full = createMetaData("id-2", "/rpc/sofa/find");
+        cache.cache(full);
+        assertSame(full, cache.obtain("/rpc/sofa/find"));
+
+        MetaData pathOnly = new MetaData();
+        pathOnly.setPath("/rpc/sofa/find");
+
+        assertDoesNotThrow(() -> cache.remove(pathOnly));
+        assertNull(cache.obtain("/rpc/sofa/find"));
+    }
+
+    @Test
+    void shouldKeepRemovingFullRecord() {
+        MetaData full = createMetaData("id-3", "/rpc/http/get");
+        cache.cache(full);
+
+        cache.remove(createMetaData("id-3", "/rpc/http/get"));
+
+        assertNull(cache.obtain("/rpc/http/get"));
+    }
+
+    @Test
+    void shouldBeIdempotentForPartialRecords() {
+        MetaData idOnly = new MetaData();
+        idOnly.setId("missing-id");
+        MetaData pathOnly = new MetaData();
+        pathOnly.setPath("/rpc/never/cached");
+
+        assertDoesNotThrow(() -> cache.remove(idOnly));
+        assertDoesNotThrow(() -> cache.remove(pathOnly));
+        assertDoesNotThrow(() -> cache.remove(idOnly));
     }
 
     private MetaData createMetaData(final String id, final String path) {
