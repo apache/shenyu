@@ -26,20 +26,24 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
@@ -134,6 +138,51 @@ public class FormDataOperatorTest {
         verify(this.chain).execute(formExchange);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "flag,flag&injected=yes",
+        "flag=,flag=&injected=yes",
+        "flag&flag=&flag=value,flag&flag=&flag=value&injected=yes",
+        "encoded%20key&name=hello+world,encoded+key&name=hello+world&injected=yes"
+    })
+    public void testPreserveValuelessAndEmptyFormParameters(final String originalBody, final String expectedBody) {
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body(originalBody));
+
+        String body = applyAndReadBody(formExchange, additionRule("yes"));
+
+        assertEquals(expectedBody, body);
+        ArgumentCaptor<ServerWebExchange> downstream = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(this.chain).execute(downstream.capture());
+        assertEquals(body.getBytes(StandardCharsets.UTF_8).length, downstream.getValue().getRequest().getHeaders().getContentLength());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"UTF-8", "ISO-8859-1", "UTF-16LE"})
+    public void testFormEncodingAndLengthUseTheConfiguredCharset(final String charsetName) {
+        Charset charset = Charset.forName(charsetName);
+        String originalBody = URLEncoder.encode("clé", charset) + "=" + URLEncoder.encode("été &+", charset) + "&flag";
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(new MediaType("application", "x-www-form-urlencoded", charset))
+                .body(Flux.just(new DefaultDataBufferFactory().wrap(originalBody.getBytes(charset)))));
+
+        String body = applyAndReadBody(formExchange, additionRule("yes"), charset);
+
+        assertEquals(originalBody + "&injected=yes", body);
+        ArgumentCaptor<ServerWebExchange> downstream = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(this.chain).execute(downstream.capture());
+        assertEquals(charset, downstream.getValue().getRequest().getHeaders().getContentType().getCharset());
+        assertEquals(body.getBytes(charset).length, downstream.getValue().getRequest().getHeaders().getContentLength());
+    }
+
+    @Test
+    public void testAddValuelessParameter() {
+        ServerWebExchange formExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/form")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("a=1"));
+
+        assertEquals("a=1&injected", applyAndReadBody(formExchange, additionRule(null)));
+    }
+
     private ParamMappingRuleHandle additionRule(final String value) {
         ParamMappingRuleHandle.ParamMapInfo add = new ParamMappingRuleHandle.ParamMapInfo();
         add.setPath("$");
@@ -145,12 +194,16 @@ public class FormDataOperatorTest {
     }
 
     private String applyAndReadBody(final ServerWebExchange formExchange, final ParamMappingRuleHandle rule) {
+        return applyAndReadBody(formExchange, rule, StandardCharsets.UTF_8);
+    }
+
+    private String applyAndReadBody(final ServerWebExchange formExchange, final ParamMappingRuleHandle rule, final Charset charset) {
         AtomicReference<String> body = new AtomicReference<>("");
         when(this.chain.execute(any())).thenAnswer(invocation -> {
             ServerWebExchange downstream = invocation.getArgument(0);
             return DataBufferUtils.join(downstream.getRequest().getBody()).doOnNext(buffer -> {
                 try {
-                    body.set(buffer.toString(StandardCharsets.UTF_8));
+                    body.set(buffer.toString(charset));
                 } finally {
                     DataBufferUtils.release(buffer);
                 }

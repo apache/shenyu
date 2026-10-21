@@ -69,9 +69,9 @@ public final class SelectorDO extends BaseDO {
     private Boolean enabled;
 
     /**
-     * whether loged.
+     * whether logged.
      */
-    private Boolean loged;
+    private Boolean logged;
 
     /**
      * whether continued.
@@ -102,7 +102,7 @@ public final class SelectorDO extends BaseDO {
                       final Integer selectorType,
                       final Integer sortCode,
                       final Boolean enabled,
-                      final Boolean loged,
+                      final Boolean logged,
                       final Boolean continued,
                       final String handle,
                       final Boolean matchRestful,
@@ -113,7 +113,7 @@ public final class SelectorDO extends BaseDO {
         this.selectorType = selectorType;
         this.sortCode = sortCode;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.continued = continued;
         this.handle = handle;
         this.matchRestful = matchRestful;
@@ -230,21 +230,21 @@ public final class SelectorDO extends BaseDO {
     }
 
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
 
     /**
@@ -346,7 +346,7 @@ public final class SelectorDO extends BaseDO {
                 && Objects.equals(selectorType, that.selectorType)
                 && Objects.equals(sortCode, that.sortCode)
                 && Objects.equals(enabled, that.enabled)
-                && Objects.equals(loged, that.loged)
+                && Objects.equals(logged, that.logged)
                 && Objects.equals(continued, that.continued)
                 && Objects.equals(handle, that.handle)
                 && Objects.equals(matchRestful, that.matchRestful)
@@ -355,7 +355,7 @@ public final class SelectorDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, selectorName, matchMode, selectorType, sortCode, enabled, loged, continued, handle, matchRestful, namespaceId);
+        return Objects.hash(super.hashCode(), pluginId, selectorName, matchMode, selectorType, sortCode, enabled, logged, continued, handle, matchRestful, namespaceId);
     }
 
     /**
@@ -371,7 +371,7 @@ public final class SelectorDO extends BaseDO {
                     .selectorType(item.getType())
                     .sortCode(item.getSort())
                     .enabled(item.getEnabled())
-                    .loged(item.getLoged())
+                    .logged(item.getLogged())
                     .continued(item.getContinued())
                     .dateUpdated(currentTime)
                     .handle(item.getHandle())
@@ -415,7 +415,7 @@ public final class SelectorDO extends BaseDO {
                 .type(selectorDO.getSelectorType())
                 .sort(selectorDO.getSortCode())
                 .enabled(selectorDO.getEnabled())
-                .logged(selectorDO.getLoged())
+                .logged(selectorDO.getLogged())
                 .continued(selectorDO.getContinued())
                 .handle(selectorDO.getHandle())
                 .conditionList(conditionDataList)
@@ -457,7 +457,7 @@ public final class SelectorDO extends BaseDO {
 
         private Boolean enabled;
 
-        private Boolean loged;
+        private Boolean logged;
 
         private Boolean continued;
 
@@ -570,13 +570,13 @@ public final class SelectorDO extends BaseDO {
         }
 
         /**
-         * loged.
+         * logged.
          *
-         * @param loged the loged.
+         * @param logged the logged.
          * @return SelectorDOBuilder.
          */
-        public SelectorDOBuilder loged(final Boolean loged) {
-            this.loged = loged;
+        public SelectorDOBuilder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
 
@@ -640,7 +640,7 @@ public final class SelectorDO extends BaseDO {
             selectorDO.setSelectorType(selectorType);
             selectorDO.setSortCode(sortCode);
             selectorDO.setEnabled(enabled);
-            selectorDO.setLoged(loged);
+            selectorDO.setLogged(logged);
             selectorDO.setContinued(continued);
             selectorDO.setHandle(handle);
             selectorDO.setMatchRestful(matchRestful);
