@@ -264,7 +264,7 @@ public final class ConfigsImportDuplicateTest {
         final DiscoveryProcessor processor = mock(DiscoveryProcessor.class);
         final DiscoveryHandlerMapper handlerMapper = mock(DiscoveryHandlerMapper.class);
         final DiscoveryServiceImpl service = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, mock(DiscoveryRelMapper.class),
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, selectorMapper, holder, mock(PlatformTransactionManager.class), mock(PluginMapper.class), mock(DiscoveryUpstreamMapper.class));
         when(holder.chooseProcessor("local")).thenReturn(processor);
         when(discoveryMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(existing
                 ? Collections.singletonList(DiscoveryDO.builder().pluginName("divide").discoveryName("same").build()) : Collections.emptyList());
@@ -327,7 +327,7 @@ public final class ConfigsImportDuplicateTest {
         final DiscoveryHandlerMapper handlerMapper = mock(DiscoveryHandlerMapper.class);
         final DiscoveryRelMapper relMapper = mock(DiscoveryRelMapper.class);
         final DiscoveryServiceImpl discoveries = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, relMapper,
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, selectorMapper, holder, mock(PlatformTransactionManager.class), mock(PluginMapper.class), mock(DiscoveryUpstreamMapper.class));
         final DiscoveryUpstreamServiceImpl upstreams = new DiscoveryUpstreamServiceImpl(upstreamMapper, handlerMapper, proxySelectorMapper,
                 discoveryMapper, relMapper, selectorMapper, pluginMapper, holder);
         final ConfigsImportContext context = new ConfigsImportContext();

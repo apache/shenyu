@@ -20,12 +20,15 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.TagService;
@@ -44,6 +47,9 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -51,6 +57,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +73,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 
 /**
  * Test cases for AbstractShenyuClientRegisterServiceImpl.
@@ -103,6 +116,20 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Mock
     private PluginMapper pluginMapper;
+
+    @Mock
+    private SelectorMapper selectorMapper;
+
+    @Mock
+    private DiscoveryService discoveryService;
+
+    @BeforeEach
+    void setUpTransaction() {
+        PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
+        when(transactionManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        abstractShenyuClientRegisterService.setTransactionManager(transactionManager);
+        when(discoveryService.registerDefaultDiscovery(any(), any(), any())).thenReturn("handler");
+    }
 
     @Test
     public void testRegister() {
@@ -177,7 +204,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         assertThrows(ShenyuException.class, () -> abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
 
         SelectorDO selectorDO = mock(SelectorDO.class);
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorDO);
+        when(selectorMapper.findByNameAndPluginNameAndNamespaceIdForUpdate(any(), any(), any())).thenReturn(selectorDO);
         SelectorData selectorData = new SelectorData();
         when(selectorService.buildByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorData);
         PluginDO plugin = new PluginDO();
@@ -239,7 +266,30 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         assertEquals("Rule_Handler", ruleDTO.getHandle());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testLocalDiscoveryPublishesOnlyAfterCommit(final boolean committed) {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            abstractShenyuClientRegisterService.publishLocal(SelectorDO.builder().id("selector").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build());
+            verify(eventPublisher, never()).publishEvent(any(DataChangedEvent.class));
+            if (committed) {
+                TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+            } else {
+                TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+            }
+            verify(eventPublisher, times(committed ? 1 : 0)).publishEvent(any(DataChangedEvent.class));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
     static class MockAbstractShenyuClientRegisterServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
+
+        void publishLocal(final SelectorDO selector) {
+            super.doDiscoveryLocal(selector, "grpc", Collections.emptyList());
+        }
+
 
         @Override
         protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {

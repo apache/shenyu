@@ -26,6 +26,7 @@ import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
@@ -37,7 +38,6 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.DiscoveryServiceImpl;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -153,7 +153,7 @@ class NacosDiscoveryRecoveryTest {
             when(handlerMapper.selectBySelectorId("selector-id")).thenReturn(handler);
         }
         DiscoveryServiceImpl service = new DiscoveryServiceImpl(discoveryMapper, proxyMapper, mock(DiscoveryRelMapper.class),
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, selectorMapper, holder, mock(PlatformTransactionManager.class), mock(PluginMapper.class), mock(DiscoveryUpstreamMapper.class));
 
         assertFalse(processor.getShenyuDiscoveryService(discovery.getId()).serviceExists(SERVICE));
         assertDoesNotThrow(() -> service.syncData());
