@@ -119,7 +119,6 @@ public final class BaseDataCache {
      */
     public synchronized void cleanPluginData() {
         pluginMap.clear();
-        cleanSelectorData();
         version++;
     }
     
@@ -129,7 +128,7 @@ public final class BaseDataCache {
      * @param pluginDataList the plugin data list
      */
     public synchronized void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
-        pluginDataList.forEach(this::removePluginData);
+        pluginDataList.forEach(data -> pluginMap.remove(data.getName()));
         version++;
     }
     
@@ -198,7 +197,6 @@ public final class BaseDataCache {
      */
     public synchronized void cleanSelectorData() {
         selectorMap.clear();
-        ruleMap.clear();
         version++;
     }
     

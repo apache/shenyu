@@ -137,6 +137,45 @@ public final class BaseDataCacheTest {
     }
 
     @Test
+    public void testPluginAndSelectorRefreshesPreserveOtherGroups() {
+        PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).pluginName(mockPluginName1).build();
+        RuleData ruleData = RuleData.builder().id(mockName1).selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        cache.cachePluginData(pluginData);
+        cache.cacheSelectData(selectorData);
+        cache.cacheRuleData(ruleData);
+
+        // PluginDataRefresh clears and reloads only the plugin group.
+        cache.cleanPluginData();
+        cache.cachePluginData(pluginData);
+
+        assertEquals(List.of(selectorData), cache.obtainSelectorData(mockPluginName1));
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
+
+        // SelectorDataRefresh clears and reloads only the selector group.
+        cache.cleanSelectorData();
+        cache.cacheSelectData(selectorData);
+
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
+    }
+
+    @Test
+    public void testCleanPluginDataSelfPreservesSelectorAndRuleGroups() {
+        PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).pluginName(mockPluginName1).build();
+        RuleData ruleData = RuleData.builder().id(mockName1).selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        cache.cachePluginData(pluginData);
+        cache.cacheSelectData(selectorData);
+        cache.cacheRuleData(ruleData);
+
+        cache.cleanPluginDataSelf(Lists.newArrayList(pluginData));
+
+        assertNull(cache.obtainPluginData(mockPluginName1));
+        assertEquals(List.of(selectorData), cache.obtainSelectorData(mockPluginName1));
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
+    }
+
+    @Test
     public void testObtainPluginData() throws NoSuchFieldException, IllegalAccessException {
         PluginData pluginData = PluginData.builder().name(mockName1).build();
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
