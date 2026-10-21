@@ -117,6 +117,21 @@ public final class ClientIdTakeoverTest {
         assertTrue(channelRepository.isOwner(CLIENT_ID, second));
     }
 
+    /**
+     * A clean disconnect must release the ownership, so the next connect with
+     * the same id is not mistaken for a duplicate-clientId takeover (#7918).
+     */
+    @Test
+    public void testCleanDisconnectReleasesOwnership() {
+        final EmbeddedChannel channel = connect(CLIENT_ID, false);
+        assertAccepted(channel);
+        assertTrue(channelRepository.isOwner(CLIENT_ID, channel));
+
+        Disconnect.cleanChannel(channel);
+
+        assertFalse(channelRepository.isOwner(CLIENT_ID, channel));
+    }
+
     @Test
     public void testStaleChannelCleanupKeepsTheNewSession() {
         final EmbeddedChannel first = connect(CLIENT_ID, true);

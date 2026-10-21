@@ -20,31 +20,46 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 import io.netty.channel.Channel;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * channel repository.
+ * Channel and client-id ownership registry.
+ *
+ * <p>The ownership index is written only by {@link #takeover}: ownership of a
+ * client id is transferred atomically with the duplicate-clientId takeover, and
+ * {@link #remove} clears it with a conditional two-argument remove so a replaced
+ * connection closing late cannot evict the connection that took over (#7918).</p>
+ *
+ * <p>Note that on a takeover the replaced connection's stored will is discarded
+ * on purpose: the client is alive on the new connection, so publishing the will
+ * of the old one would be wrong. Other brokers publish it instead — this is a
+ * deliberate deviation, not a spec-mandated choice.</p>
  */
 public class ChannelRepository implements BaseRepository<Channel, String> {
 
-    private static final Map<Channel, String> CHANNEL_FACTORY = new ConcurrentHashMap<>();
+    private final Map<Channel, String> channelFactory = new ConcurrentHashMap<>();
 
-    private static final Map<String, Channel> CLIENT_FACTORY = new ConcurrentHashMap<>();
+    private final Map<String, Channel> clientFactory = new ConcurrentHashMap<>();
 
     @Override
     public void add(final Channel channel, final String clientId) {
-        CHANNEL_FACTORY.put(channel, clientId);
-        CLIENT_FACTORY.put(clientId, channel);
+        channelFactory.put(channel, clientId);
     }
 
     @Override
     public void remove(final Channel channel) {
-        CHANNEL_FACTORY.remove(channel);
+        final String clientId = channelFactory.remove(channel);
+        if (Objects.nonNull(clientId)) {
+            // only clear ownership if this channel still holds it: a stale channel
+            // closing late must not evict the connection that took over (#7918)
+            clientFactory.remove(clientId, channel);
+        }
     }
 
     @Override
     public String get(final Channel channel) {
-        return CHANNEL_FACTORY.get(channel);
+        return channelFactory.get(channel);
     }
 
     /**
@@ -57,8 +72,8 @@ public class ChannelRepository implements BaseRepository<Channel, String> {
      * @return the previously owning channel, or null when the client was not connected
      */
     public synchronized Channel takeover(final Channel channel, final String clientId) {
-        final Channel previous = CLIENT_FACTORY.put(clientId, channel);
-        CHANNEL_FACTORY.put(channel, clientId);
+        final Channel previous = clientFactory.put(clientId, channel);
+        channelFactory.put(channel, clientId);
         return previous;
     }
 
@@ -72,6 +87,6 @@ public class ChannelRepository implements BaseRepository<Channel, String> {
      * @return true when the channel is the current owner of the client id
      */
     public boolean isOwner(final String clientId, final Channel channel) {
-        return CLIENT_FACTORY.get(clientId) == channel;
+        return clientFactory.get(clientId) == channel;
     }
 }
