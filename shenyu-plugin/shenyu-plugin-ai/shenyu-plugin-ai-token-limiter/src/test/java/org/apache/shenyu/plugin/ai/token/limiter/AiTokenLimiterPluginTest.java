@@ -19,8 +19,10 @@ package org.apache.shenyu.plugin.ai.token.limiter;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,6 +42,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.test.StepVerifier;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +53,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -108,6 +114,60 @@ class AiTokenLimiterPluginTest {
         body.tryEmitComplete().orThrow();
         assertTrue(errors.isEmpty());
         assertEquals(List.of(12L), recorded);
+    }
+
+    @Test
+    void testLegacyAdmissionAllowsInFlightRequestsToExceedRemainingBudget() {
+        final RuleData rule = RuleData.builder().id("legacy-admission-rule").selectorId("legacy-admission-selector").build();
+        final String ruleKey = CacheKeyUtils.INST.getKey(rule);
+        final String counterKey = "SHENYU:AI:TOKENLIMIT:" + ruleKey + ":/ai/chat";
+        final AtomicLong recordedTokens = new AtomicLong(80L);
+        final ReactiveRedisTemplate<String, String> redisTemplate = mockRedisTemplate();
+        final ReactiveValueOperations<String, String> valueOperations = mockValueOperations();
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(valueOperations.get(counterKey)).thenReturn(Mono.fromSupplier(() -> Long.toString(recordedTokens.get())));
+        Mockito.when(valueOperations.setIfAbsent(counterKey, "0", Duration.ofSeconds(60L))).thenReturn(Mono.just(false));
+        Mockito.when(redisTemplate.getExpire(counterKey)).thenReturn(Mono.just(Duration.ofSeconds(60L)));
+        Mockito.when(valueOperations.increment(counterKey, 10L)).thenReturn(Mono.fromSupplier(() -> recordedTokens.addAndGet(10L)));
+
+        final AiTokenLimiterHandle handle = AiTokenLimiterHandle.newDefaultInstance();
+        handle.setAiTokenLimitType("uri");
+        handle.setTokenLimit(100L);
+        AiTokenLimiterPluginHandler.CACHED_HANDLE.get().cachedHandle(ruleKey, handle);
+        final ReactiveRedisTemplate<String, String> previousRedis = AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get()
+                .obtainHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+        AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), redisTemplate);
+        try {
+            final Sinks.Empty<Void> responsesReady = Sinks.empty();
+            final AtomicInteger admitted = new AtomicInteger();
+            final ShenyuPluginChain chain = exchange -> Mono.defer(() -> {
+                admitted.incrementAndGet();
+                exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+                return responsesReady.asMono().then(Mono.defer(() -> exchange.getResponse().writeWith(Mono.just(
+                        exchange.getResponse().bufferFactory().wrap("{\"usage\":{\"completion_tokens\":10}}".getBytes(StandardCharsets.UTF_8))))));
+            });
+            final AiTokenLimiterPlugin plugin = new AiTokenLimiterPlugin();
+            final Mono<Void> requests = Flux.range(0, 3).flatMap(index -> plugin.doExecute(
+                    MockServerWebExchange.from(MockServerHttpRequest.post("/ai/chat").build()), chain, null, rule), 3).then();
+
+            StepVerifier.create(requests).then(() -> {
+                assertEquals(3, admitted.get());
+                assertEquals(80L, recordedTokens.get());
+                Mockito.verify(valueOperations, Mockito.times(3)).get(counterKey);
+                Mockito.verify(valueOperations, Mockito.never()).increment(Mockito.anyString(), Mockito.anyLong());
+                assertEquals(Sinks.EmitResult.OK, responsesReady.tryEmitEmpty());
+            }).expectComplete().verify(Duration.ofSeconds(5));
+
+            assertEquals(110L, recordedTokens.get());
+            Mockito.verify(valueOperations, Mockito.times(3)).increment(counterKey, 10L);
+        } finally {
+            AiTokenLimiterPluginHandler.CACHED_HANDLE.get().removeHandle(ruleKey);
+            if (Objects.nonNull(previousRedis)) {
+                AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(PluginEnum.AI_TOKEN_LIMITER.getName(), previousRedis);
+            } else {
+                AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().removeHandle(PluginEnum.AI_TOKEN_LIMITER.getName());
+            }
+        }
     }
 
     @Test

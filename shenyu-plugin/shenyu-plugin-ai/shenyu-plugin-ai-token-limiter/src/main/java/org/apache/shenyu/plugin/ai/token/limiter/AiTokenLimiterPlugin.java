@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,10 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.metrics.AiTokenBudgetObserver;
+import org.apache.shenyu.plugin.ai.token.limiter.budget.RedisTokenBudgetStore;
+import org.apache.shenyu.plugin.ai.token.limiter.budget.RedisTokenBudgetStore.ReservationResult;
+import org.apache.shenyu.plugin.ai.token.limiter.budget.TokenBudgetRequest;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -96,6 +101,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
         String cacheKey = REDIS_KEY_PREFIX + CacheKeyUtils.INST.getKey(rule) + ":" + getCacheKey(exchange, tokenLimitType, keyName);
 
+        if (aiTokenLimiterHandle.isReservationEnabled()) {
+            return executeWithReservation(exchange, chain, reactiveRedisTemplate, cacheKey, aiTokenLimiterHandle);
+        }
+
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(),
                 tokens -> recordTokensUsage(reactiveRedisTemplate,
                         cacheKey,
@@ -106,11 +115,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return isAllowed(reactiveRedisTemplate, cacheKey, tokenLimit)
                 .flatMap(allowed -> {
                     if (!allowed) {
-                        exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-                        final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
-                        Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
-                        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.RUN_OUT_OF_TOKENS);
-                        return WebFluxResultUtils.result(exchange, error);
+                        return rejectAdmission(exchange);
                     }
                     // record tokens usage
                     ServerWebExchange mutatedExchange = exchange.mutate()
@@ -120,6 +125,58 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     return chain.execute(mutatedExchange);
                 });
 
+    }
+
+    private Mono<Void> executeWithReservation(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                              final ReactiveRedisTemplate<String, String> redisTemplate, final String scope,
+                                              final AiTokenLimiterHandle handle) {
+        // Snapshot the rule: a config update must not change an in-flight request's budget contract.
+        final long limit = handle.getTokenLimit();
+        final long amount = handle.getReservationTokens();
+        final Duration windowSize = Duration.ofSeconds(handle.getTimeWindowSeconds());
+        final RedisTokenBudgetStore store = new RedisTokenBudgetStore(redisTemplate);
+        return Mono.usingWhen(Mono.fromSupplier(() -> {
+            final Object callback = exchange.getAttribute(Constants.METRICS_AI_TOKEN_BUDGET);
+            return new TokenBudgetRequest(store, callback instanceof AiTokenBudgetObserver observer ? observer : null);
+        }),
+                request -> request.reserve(scope, windowSize, limit, amount).flatMap(result -> {
+                    if (result == ReservationResult.REJECTED) {
+                        return rejectAdmission(exchange);
+                    }
+                    if (result != ReservationResult.RESERVED) {
+                        return Mono.error(new IllegalStateException("Unexpected repeated AI token reservation: " + result));
+                    }
+                    return Mono.defer(() -> {
+                        if (!request.beginForwarding()) {
+                            return Mono.empty();
+                        }
+                        final AiStatisticServerHttpResponse response = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(), request::recordUsage, true);
+                        return chain.execute(exchange.mutate().response(response).build());
+                    });
+                }),
+                this::finishReservation,
+                (request, failure) -> finishReservation(request).onErrorResume(cleanupFailure -> {
+                    if (failure != cleanupFailure) {
+                        failure.addSuppressed(cleanupFailure);
+                    }
+                    return Mono.empty();
+                }),
+                request -> finishReservation(request).onErrorResume(failure -> Mono.empty()));
+    }
+
+    private Mono<Void> finishReservation(final TokenBudgetRequest request) {
+        return request.finish().timeout(Duration.ofSeconds(5))
+                .doOnError(failure -> {
+                    request.accountingFailed();
+                    LOG.error("Failed to reconcile AI token reservation; window expiry bounds retained capacity", failure);
+                });
+    }
+
+    private Mono<Void> rejectAdmission(final ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+        final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
+        Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+        return WebFluxResultUtils.result(exchange, ShenyuResultWrap.error(exchange, ShenyuResultEnum.RUN_OUT_OF_TOKENS));
     }
 
     /**
@@ -205,13 +262,20 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
         private final Consumer<Long> tokensRecorder;
 
+        private final boolean reservationMode;
+
         private final AtomicBoolean streamingUsageRecorded = new AtomicBoolean(false);
 
         AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder) {
+            this(exchange, delegate, tokensRecorder, false);
+        }
+
+        AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder, final boolean reservationMode) {
             super(delegate);
             this.exchange = exchange;
             this.serverHttpResponse = delegate;
             this.tokensRecorder = tokensRecorder;
+            this.reservationMode = reservationMode;
         }
 
         @Override
@@ -221,6 +285,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 final BodyWriter writer = new BodyWriter();
                 final GzipStreamDecoder decoder = createDecoder();
                 return super.writeWith(appendResponse(body, writer, decoder))
+                        .doOnSuccess(unused -> recordResponseUsage(writer))
                         .doFinally(signal -> finishResponse(writer, decoder));
             });
         }
@@ -234,6 +299,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
                         .map(inner -> appendResponse(inner, writer, decoder));
                 return super.writeAndFlushWith(intercepted)
+                        .doOnSuccess(unused -> recordResponseUsage(writer))
                         .doFinally(signal -> finishResponse(writer, decoder));
             });
         }
@@ -268,11 +334,24 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     });
         }
 
+        private void recordResponseUsage(final BodyWriter writer) {
+            if (reservationMode) {
+                // Capture reliable usage before usingWhen starts reservation settlement.
+                String body = writer.output();
+                recordKnownUsage(body);
+                for (String line : SSE_LINE_PATTERN.split(body)) {
+                    if (line.startsWith("data:")) {
+                        recordKnownUsage(line.substring("data:".length()).trim());
+                    }
+                }
+            }
+        }
+
         private void finishResponse(final BodyWriter writer, final GzipStreamDecoder decoder) {
             if (Objects.nonNull(decoder)) {
                 decoder.close();
             }
-            if (!streamingUsageRecorded.get()) {
+            if (!reservationMode && !streamingUsageRecorded.get()) {
                 String sse = writer.output();
                 long usageTokens = extractUsageTokensFromSse(sse);
                 tokensRecorder.accept(usageTokens);
@@ -293,9 +372,12 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     continue;
                 }
                 try {
-                    JsonNode node = MAPPER.readTree(payload);
+                    JsonNode node = reservationMode ? MAPPER.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(payload) : MAPPER.readTree(payload);
                     JsonNode usage = node.get(Constants.USAGE);
                     if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
+                        if (reservationMode && !isKnownUsage(usage.get(Constants.COMPLETION_TOKENS))) {
+                            continue;
+                        }
                         long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
                         tokensRecorder.accept(c);
                         streamingUsageRecorded.set(true);
@@ -305,6 +387,24 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 }
             }
             writer.write(ByteBuffer.wrap(processedBytes));
+        }
+
+        private void recordKnownUsage(final String body) {
+            try {
+                final JsonNode node = MAPPER.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(body);
+                if (Objects.nonNull(node)) {
+                    final JsonNode tokens = node.path(Constants.USAGE).path(Constants.COMPLETION_TOKENS);
+                    if (isKnownUsage(tokens)) {
+                        tokensRecorder.accept(tokens.asLong());
+                    }
+                }
+            } catch (Exception ignored) {
+                // Partial, malformed or unsupported usage remains unknown; do not turn it into zero.
+            }
+        }
+
+        private boolean isKnownUsage(final JsonNode tokens) {
+            return tokens.isIntegralNumber() && tokens.canConvertToLong() && tokens.asLong() >= 0L && tokens.asLong() <= 9_007_199_254_740_991L;
         }
 
         private long extractUsageTokensFromSse(final String sse) {
