@@ -40,6 +40,8 @@ import org.apache.shenyu.plugin.mcp.server.utils.JsonSchemaUtil;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 /**
@@ -63,13 +65,15 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
     private final ShenyuMcpServerManager shenyuMcpServerManager;
 
+    private final ConcurrentMap<String, RuleData> rules = new ConcurrentHashMap<>();
+
     public McpServerPluginDataHandler(
             final ShenyuMcpServerManager shenyuMcpServerManager) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
     }
 
     @Override
-    public void handlerSelector(final SelectorData selectorData) {
+    public synchronized void handlerSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
@@ -107,19 +111,30 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             shenyuMcpServerManager.getOrCreateStreamableHttpTransport(path + STREAMABLE_HTTP_PATH);
         }
 
+        // Sync groups can arrive in either order after restart. Replay rules once their server exists.
+        rules.values().stream().filter(rule -> selectorData.getId().equals(rule.getSelectorId()))
+                .forEach(this::registerTool);
+
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
         MetaDataCache.getInstance().clean();
     }
 
     @Override
-    public void removeSelector(final SelectorData selectorData) {
+    public synchronized void removeSelector(final SelectorData selectorData) {
         if (Objects.isNull(selectorData) || Objects.isNull(selectorData.getId())) {
             return;
         }
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+        rules.values().removeIf(rule -> {
+            if (selectorData.getId().equals(rule.getSelectorId())) {
+                CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(rule));
+                return true;
+            }
+            return false;
+        });
 
         String path = normalizeSelectorPath(extractSelectorUri(selectorData));
 
@@ -131,8 +146,18 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
-    public void handlerRule(final RuleData ruleData) {
+    public synchronized void handlerRule(final RuleData ruleData) {
         if (Objects.isNull(ruleData)) {
+            return;
+        }
+        if (Objects.nonNull(ruleData.getId())) {
+            rules.put(ruleData.getId(), ruleData);
+        }
+        registerTool(ruleData);
+    }
+
+    private void registerTool(final RuleData ruleData) {
+        if (Boolean.FALSE.equals(ruleData.getEnabled())) {
             return;
         }
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
@@ -159,9 +184,12 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
-    public void removeRule(final RuleData ruleData) {
+    public synchronized void removeRule(final RuleData ruleData) {
         if (Objects.isNull(ruleData)) {
             return;
+        }
+        if (Objects.nonNull(ruleData.getId())) {
+            rules.remove(ruleData.getId());
         }
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));

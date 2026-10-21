@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -53,7 +55,64 @@ class McpServerPluginDataHandlerTest {
 
     @BeforeEach
     void setUp() {
+        McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
         dataHandler = new McpServerPluginDataHandler(shenyuMcpServerManager);
+    }
+
+    @AfterEach
+    void tearDown() {
+        McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
+    }
+
+    @Test
+    void rulesArrivingBeforeSelectorsAreReplayedWithoutToggling() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        verify(shenyuMcpServerManager, never()).addTool(anyString(), anyString(), any(), any(), anyString());
+
+        dataHandler.handlerSelector(restartSelector());
+
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void deletedRulesAreNotReplayedWhenSelectorsArrive() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        dataHandler.removeRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager, never()).addTool(anyString(), anyString(), any(), any(), anyString());
+    }
+
+    @Test
+    void disabledRulesAreNotReplayedWhenSelectorsArrive() {
+        RuleData rule = restartRule();
+        rule.setEnabled(false);
+        dataHandler.handlerRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager, never()).addTool(anyString(), anyString(), any(), any(), anyString());
+    }
+
+    private RuleData restartRule() {
+        RuleData rule = new RuleData();
+        rule.setId("restart-rule");
+        rule.setSelectorId("restart-selector");
+        rule.setName("restart-tool");
+        rule.setHandle("{\"name\":\"restart-tool\",\"parameters\":[]}");
+        return rule;
+    }
+
+    private SelectorData restartSelector() {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/restart/**");
+        SelectorData selector = new SelectorData();
+        selector.setId("restart-selector");
+        selector.setConditionList(Collections.singletonList(condition));
+        selector.setHandle("{\"messageEndpoint\":\"/message\"}");
+        return selector;
     }
 
     @Test
