@@ -30,6 +30,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -403,6 +404,10 @@ public class UpstreamCacheManagerTest {
                     .group("blue").version("v1").weight(30).healthCheckEnabled(false).build();
             final Upstream updatedSecond = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
                     .group(secondGroup).version(secondVersion).weight(40).healthCheckEnabled(false).build();
+            updatedFirst.setLabels(Map.of("release", "canary"));
+            updatedFirst.setMetadata(Map.of("region", "east"));
+            updatedSecond.setLabels(Map.of("release", "stable"));
+            updatedSecond.setMetadata(Map.of("region", "west"));
             manager.submit(selectorId, List.of(updatedFirst, updatedSecond));
             List<Upstream> updated = manager.findUpstreamListBySelectorId(selectorId);
             Assertions.assertNotNull(updated);
@@ -411,6 +416,10 @@ public class UpstreamCacheManagerTest {
             Assertions.assertSame(second, updated.get(1));
             Assertions.assertEquals(30, first.getWeight());
             Assertions.assertEquals(40, second.getWeight());
+            Assertions.assertEquals(Map.of("release", "canary"), first.getLabels());
+            Assertions.assertEquals(Map.of("region", "east"), first.getMetadata());
+            Assertions.assertEquals(Map.of("release", "stable"), second.getLabels());
+            Assertions.assertEquals(Map.of("region", "west"), second.getMetadata());
 
             final Upstream offlineFirst = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
                     .group("blue").version("v1").status(false).healthCheckEnabled(true).build();

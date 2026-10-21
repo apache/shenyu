@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -127,6 +128,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (CollectionUtils.isEmpty(upstreams)) {
             return;
         }
+        upstreams.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         Set<String> handlerIds = new LinkedHashSet<>();
         for (DiscoveryUpstreamDTO upstream : upstreams) {
             DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
@@ -143,6 +145,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional
     public int updateBatch(final String discoveryHandlerId, final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
+        // Validate the complete replacement before deleting anything or emitting a sync event.
+        discoveryUpstreamDTOList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
             discoveryUpstreamDTO.setId(null);
@@ -169,6 +173,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
@@ -294,6 +299,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String create(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -307,6 +313,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -352,6 +359,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
         }
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -398,6 +406,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             return ConfigImportResult.success();
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, Set<String>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
