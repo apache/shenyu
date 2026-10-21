@@ -2693,7 +2693,8 @@ CREATE TABLE "public"."instance_info" (
     "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "last_heart_beat_time" int8          NOT NULL DEFAULT 0,
-    PRIMARY KEY ("id")
+    PRIMARY KEY ("id"),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';

@@ -59,6 +59,7 @@
           last_heart_beat_time = #{lastHeartBeatTime, jdbcType=BIGINT}
         WHERE
           id = #{id, jdbcType=VARCHAR}
+          AND last_heart_beat_time &lt;= #{lastHeartBeatTime, jdbcType=BIGINT}
     </update>
     
     <select id="findAllByNamespaceId" resultMap="BaseResultMap">

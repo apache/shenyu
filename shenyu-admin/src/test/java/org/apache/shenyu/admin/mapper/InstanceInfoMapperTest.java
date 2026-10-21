@@ -31,6 +31,7 @@ import jakarta.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -44,6 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for InstanceInfoMapper.
  */
 public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest {
+
+    private static final AtomicInteger NEXT_PORT = new AtomicInteger(10000);
 
     private static final long FIXED_HEART_BEAT_TIME = 1700000000000L;
 
@@ -198,12 +201,12 @@ public final class InstanceInfoMapperTest extends AbstractSpringIntegrationTest 
         data.setDateCreated(now);
         data.setDateUpdated(now);
         data.setInstanceIp("127.0.0.1");
-        data.setInstancePort("8080");
+        data.setInstancePort(Integer.toString(NEXT_PORT.getAndIncrement()));
         data.setInstanceType("grpc");
         data.setInstanceInfo("info");
         data.setInstanceState(1);
         data.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        data.setLastHeartBeatTime(System.currentTimeMillis());
+        data.setLastHeartBeatTime(FIXED_HEART_BEAT_TIME - 1);
         return data;
     }
 }
