@@ -309,6 +309,7 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         // Try to parse IP and port from URL
         try {
             URL url = new URL(request.getSwaggerUrl());
+            instance.setScheme(url.getProtocol());
             instance.setIp(url.getHost());
             instance.setPort(url.getPort() == -1 ? (url.getProtocol().equals("https") ? 443 : 80) : url.getPort());
         } catch (Exception e) {
