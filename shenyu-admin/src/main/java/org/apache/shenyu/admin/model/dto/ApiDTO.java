@@ -103,11 +103,11 @@ public class ApiDTO implements Serializable {
     private String apiDesc;
 
     /**
-     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
+     * 0-swagger,1-annotation generation,2-create manually,3-import swagger.
      */
     @NotNull(message = "apiSource not null")
-    @Min(value = 0, message = "state min 0")
-    @Max(value = 4, message = "state max 4")
+    @Min(value = 0, message = "apiSource min 0")
+    @Max(value = 3, message = "apiSource max 3")
     private Integer apiSource;
 
     /**
