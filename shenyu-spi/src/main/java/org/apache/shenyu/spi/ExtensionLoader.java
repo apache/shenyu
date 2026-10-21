@@ -121,7 +121,19 @@ public final class ExtensionLoader<T> {
     }
 
     /**
+     * Remove the loader for one extension type and class loader.
+     * Previously returned loaders and extensions must also be released by their callers for class unloading.
+     *
+     * @param clazz extension type to evict
+     * @param classLoader class loader to evict
+     */
+    public static void removeExtensionLoader(final Class<?> clazz, final ClassLoader classLoader) {
+        LOADERS.remove(new LoaderKey(clazz, classLoader));
+    }
+
+    /**
      * Remove extension loaders associated with a class loader.
+     * Previously returned loaders and extensions must also be released by their callers for class unloading.
      *
      * @param classLoader class loader to evict
      */

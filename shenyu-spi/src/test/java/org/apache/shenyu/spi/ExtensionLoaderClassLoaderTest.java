@@ -30,6 +30,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ExtensionLoaderClassLoaderTest {
 
@@ -44,11 +45,35 @@ class ExtensionLoaderClassLoaderTest {
         ClassLoader applicationClassLoader = ExtensionLoaderClassLoaderTest.class.getClassLoader();
 
         try (URLClassLoader pluginClassLoader = new URLClassLoader(new java.net.URL[]{directory.toUri().toURL()}, applicationClassLoader)) {
-            ExtensionLoader<JdbcSPI> applicationLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, applicationClassLoader);
-            ExtensionLoader<JdbcSPI> pluginLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, pluginClassLoader);
+            try {
+                ExtensionLoader<JdbcSPI> applicationLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, applicationClassLoader);
+                ExtensionLoader<JdbcSPI> pluginLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, pluginClassLoader);
 
-            assertNotSame(applicationLoader, pluginLoader);
-            assertEquals(MysqlSPI.class, pluginLoader.getJoin("plugin").getClass());
+                assertNotSame(applicationLoader, pluginLoader);
+                assertEquals(MysqlSPI.class, pluginLoader.getJoin("plugin").getClass());
+            } finally {
+                ExtensionLoader.removeExtensionLoaders(pluginClassLoader);
+            }
+        }
+    }
+
+    @Test
+    void shouldEvictOnlyRequestedExtensionTypeAndClassLoader() throws IOException {
+        ClassLoader applicationClassLoader = getClass().getClassLoader();
+        ExtensionLoader<JdbcSPI> applicationLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, applicationClassLoader);
+        try (URLClassLoader pluginClassLoader = new URLClassLoader(new java.net.URL[0], applicationClassLoader)) {
+            try {
+                ExtensionLoader<JdbcSPI> pluginLoader = ExtensionLoader.getExtensionLoader(JdbcSPI.class, pluginClassLoader);
+                final ExtensionLoader<ExtensionFactory> factoryLoader = ExtensionLoader.getExtensionLoader(ExtensionFactory.class, pluginClassLoader);
+
+                ExtensionLoader.removeExtensionLoader(JdbcSPI.class, pluginClassLoader);
+
+                assertNotSame(pluginLoader, ExtensionLoader.getExtensionLoader(JdbcSPI.class, pluginClassLoader));
+                assertSame(applicationLoader, ExtensionLoader.getExtensionLoader(JdbcSPI.class, applicationClassLoader));
+                assertSame(factoryLoader, ExtensionLoader.getExtensionLoader(ExtensionFactory.class, pluginClassLoader));
+            } finally {
+                ExtensionLoader.removeExtensionLoaders(pluginClassLoader);
+            }
         }
     }
 }
