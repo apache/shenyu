@@ -2701,7 +2701,7 @@ COMMENT ON COLUMN "public"."instance_info"."instance_ip" IS 'instance_ip';
 COMMENT ON COLUMN "public"."instance_info"."instance_port" IS 'instance_port';
 COMMENT ON COLUMN "public"."instance_info"."instance_type" IS 'instance_type';
 COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
-COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
+COMMENT ON COLUMN "public"."instance_info"."instance_state" IS '0-deleted 1-online 2-offline';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
 COMMENT ON COLUMN "public"."instance_info"."last_heart_beat_time" IS 'last heart beat time';

@@ -17,3 +17,6 @@
 -- this file works for MySQL.
 ALTER TABLE `selector` RENAME COLUMN `loged` TO `logged`;
 ALTER TABLE `rule` RENAME COLUMN `loged` TO `logged`;
+
+-- Clarify existing instance states; stored numeric values are unchanged.
+ALTER TABLE `instance_info` MODIFY COLUMN `instance_state` tinyint(4) NOT NULL COMMENT '0-deleted 1-online 2-offline';

@@ -17,3 +17,6 @@
 -- this file works for Oracle.
 ALTER TABLE selector RENAME COLUMN loged TO logged;
 ALTER TABLE rule RENAME COLUMN loged TO logged;
+
+-- Clarify existing instance states; stored numeric values are unchanged.
+COMMENT ON COLUMN instance_info.instance_state IS '0-deleted 1-online 2-offline';
