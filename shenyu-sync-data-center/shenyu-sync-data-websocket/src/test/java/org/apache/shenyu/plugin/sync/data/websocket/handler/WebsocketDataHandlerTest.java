@@ -68,6 +68,36 @@ public final class WebsocketDataHandlerTest {
     }
 
     @Test
+    public void testConstructingAnotherHandlerDoesNotReplaceSubscribers() {
+        PluginDataSubscriber otherSubscriber = mock(PluginDataSubscriber.class);
+        final WebsocketDataHandler other = new WebsocketDataHandler(otherSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson(), DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(pluginDataSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        Mockito.verifyNoInteractions(otherSubscriber);
+
+        other.executor(ConfigGroupEnum.PLUGIN, getJson(), DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(otherSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        Mockito.verifyNoMoreInteractions(pluginDataSubscriber, otherSubscriber);
+    }
+
+    @Test
+    public void testSnapshotUsesTheConnectionSubscriber() {
+        PluginDataSubscriber otherSubscriber = mock(PluginDataSubscriber.class);
+        final WebsocketDataHandler other = new WebsocketDataHandler(otherSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+        websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
+        Mockito.verify(pluginDataSubscriber).applyPluginDataSnapshot("namespace-a", Collections.emptyList());
+        Mockito.verifyNoInteractions(otherSubscriber);
+
+        other.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-b", "namespace-b");
+        Mockito.verify(otherSubscriber).applyPluginDataSnapshot("namespace-b", Collections.emptyList());
+        Mockito.verifyNoMoreInteractions(pluginDataSubscriber, otherSubscriber);
+    }
+
+    @Test
     public void testPluginRefreshExecutor() {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
