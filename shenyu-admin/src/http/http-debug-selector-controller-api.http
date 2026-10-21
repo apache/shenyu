@@ -77,7 +77,7 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
   "type": 1,
   "sort": 1,
   "matchMode": 1,
-  "loged": true,
+  "logged": true,
   "enabled": true,
   "continued": true,
   "selectorConditions": [
@@ -101,7 +101,7 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
   "name": "test-create-selector",
   "type": 0,
   "sort": 1,
-  "loged": true,
+  "logged": true,
   "enabled": true,
   "continued": true,
   "selectorConditions": [

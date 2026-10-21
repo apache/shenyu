@@ -165,7 +165,6 @@
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
         <spring-cloud.version>4.1.2</spring-cloud.version>
-        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
@@ -184,6 +183,7 @@
         <swagger-models.version>2.2.34</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
+        <slf4j.version>2.0.17</slf4j.version>
         <!-- dependency version end -->
     </properties>
 
@@ -194,6 +194,15 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
                 <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Keep the API and bridges aligned with OSHI's SLF4J requirement before Spring Boot's BOM. -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -365,12 +374,6 @@
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>log4j</artifactId>
-                        <groupId>log4j</groupId>
-                    </exclusion>
-                </exclusions>
                 <version>${zookeeper.version}</version>
             </dependency>
 

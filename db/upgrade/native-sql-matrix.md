@@ -82,6 +82,15 @@ of every production table. No gateway request or Docker e2e coverage is claimed.
 Per-engine artifacts contain flow results, durations and startup logs, including
 failed attempts. Cleanup is restricted to that job's generated test containers.
 
+Instance identity checks seed duplicate observations immediately before the
+2.7.2-to-2.7.3 migration. They require the newest heartbeat, update timestamp,
+creation timestamp and stable ID tie-break, retain different namespaces/IPs/ports/
+types, and exercise maximum declared identity lengths. Both flows reject a real
+duplicate insert on `uk_instance_info_identity` and execute the actual mapper
+update SQL with stale, zero, newer and equal heartbeat timestamps. The H2 service
+suite additionally forces two independent writers to observe absence before
+either insert, in both insertion orders, and verifies caller-transaction suspension.
+
 ## Local execution
 
 With a Linux Docker daemon available, from the repository root:

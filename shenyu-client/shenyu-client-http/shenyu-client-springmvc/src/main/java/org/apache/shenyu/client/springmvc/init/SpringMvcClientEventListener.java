@@ -239,15 +239,18 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-            List<String> namespaceIds = super.getNamespace();
-            for (String namespaceId : namespaceIds) {
-                final String apiPath = hasMethodAnnotation
-                        ? buildApiPath(method, superPath, methodShenyuClient)
-                        : buildApiPathFromRequestMapping(method, superPath);
-                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
-                        apiPath, clazz, method, namespaceId);
-                getPublisher().publishEvent(metaData);
-                getMetaDataMap().put(method, metaData);
+            // register every method-level alias (native and ShenYu) under the current class super path
+            final List<String> apiPaths = (hasMethodAnnotation
+                    ? buildApiPaths(method, superPath, methodShenyuClient)
+                    : buildApiPathsFromRequestMapping(method, superPath))
+                    .stream().distinct().collect(Collectors.toList());
+            for (String namespaceId : super.getNamespace()) {
+                for (String apiPath : apiPaths) {
+                    final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                            apiPath, clazz, method, namespaceId);
+                    getPublisher().publishEvent(metaData);
+                    getMetaDataMap().put(method, metaData);
+                }
             }
         }
     }
@@ -255,55 +258,94 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     @Override
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
-        String contextPath = getContextPath();
-        final String[] annotationPaths = methodShenyuClient.path();
-        final String annotationPath = ArrayUtils.isNotEmpty(annotationPaths) ? annotationPaths[0] : "";
-        if (StringUtils.isNotBlank(annotationPath)) {
-            return pathJoin(contextPath, superPath, annotationPath);
+        return buildApiPaths(method, superPath, methodShenyuClient).get(0);
+    }
+
+    /**
+     * Builds every effective api path alias for the method under the given super path, honouring an
+     * explicit {@link ShenyuSpringMvcClient} override first and falling back to the native mapping array.
+     *
+     * @param method              the method
+     * @param superPath           the class-level super path
+     * @param methodShenyuClient  the effective ShenYu annotation
+     * @return all effective api paths, never empty
+     */
+    protected List<String> buildApiPaths(final Method method, final String superPath,
+                                         @NonNull final ShenyuSpringMvcClient methodShenyuClient) {
+        final String contextPath = getContextPath();
+        final List<String> annotationPaths = distinctNonBlank(methodShenyuClient.path());
+        if (!annotationPaths.isEmpty()) {
+            return joinAll(contextPath, superPath, annotationPaths);
         }
-        final String path = getPathByMethod(method);
-        if (StringUtils.isNotBlank(path)) {
-            return pathJoin(contextPath, superPath, path);
+        final List<String> nativePaths = getPathListByMethod(method);
+        if (!nativePaths.isEmpty()) {
+            return joinAll(contextPath, superPath, nativePaths);
         }
-        return pathJoin(contextPath, superPath);
+        return Collections.singletonList(pathJoin(contextPath, superPath));
     }
 
     String buildApiPathFromRequestMapping(final Method method, final String superPath) {
-        String contextPath = getContextPath();
-        final String path = getPathByMethod(method);
-        if (StringUtils.isNotBlank(path)) {
-            return pathJoin(contextPath, superPath, path);
+        return buildApiPathsFromRequestMapping(method, superPath).get(0);
+    }
+
+    /**
+     * Builds every effective api path alias for the method from its native mapping array under the given super path.
+     *
+     * @param method    the method
+     * @param superPath the class-level super path
+     * @return all effective api paths, never empty
+     */
+    protected List<String> buildApiPathsFromRequestMapping(final Method method, final String superPath) {
+        final String contextPath = getContextPath();
+        final List<String> nativePaths = getPathListByMethod(method);
+        if (!nativePaths.isEmpty()) {
+            return joinAll(contextPath, superPath, nativePaths);
         }
-        return pathJoin(contextPath, superPath);
+        return Collections.singletonList(pathJoin(contextPath, superPath));
+    }
+
+    private List<String> joinAll(final String contextPath, final String superPath, final List<String> paths) {
+        return paths.stream()
+                .map(path -> pathJoin(contextPath, superPath, path))
+                .collect(Collectors.toList());
     }
 
     private String formatPath(final String path) {
         return path.replaceAll("/+", "/").replaceFirst("/$", "");
     }
 
-    private String getPathByMethod(@NonNull final Method method) {
+    private List<String> getPathListByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
-            final String pathByAnnotation = getPathByAnnotation(AnnotatedElementUtils.findMergedAnnotation(method, mapping));
-            if (StringUtils.isNotBlank(pathByAnnotation)) {
-                return pathByAnnotation;
+            final List<String> paths = getPathListByAnnotation(AnnotatedElementUtils.findMergedAnnotation(method, mapping));
+            if (!paths.isEmpty()) {
+                return paths;
             }
         }
-        return null;
+        return Collections.emptyList();
     }
 
-    private String getPathByAnnotation(@Nullable final Annotation annotation) {
+    private List<String> getPathListByAnnotation(@Nullable final Annotation annotation) {
         if (Objects.isNull(annotation)) {
-            return null;
+            return Collections.emptyList();
         }
         final Object value = AnnotationUtils.getValue(annotation, "value");
         if (value instanceof String && StringUtils.isNotBlank((String) value)) {
-            return (String) value;
+            return Collections.singletonList((String) value);
         }
-        // Only the first path is supported temporarily
-        if (value instanceof String[] && ArrayUtils.isNotEmpty((String[]) value) && StringUtils.isNotBlank(((String[]) value)[0])) {
-            return ((String[]) value)[0];
+        if (value instanceof String[]) {
+            return distinctNonBlank((String[]) value);
         }
-        return null;
+        return Collections.emptyList();
+    }
+
+    private List<String> distinctNonBlank(final String[] paths) {
+        if (ArrayUtils.isEmpty(paths)) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(paths)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Override

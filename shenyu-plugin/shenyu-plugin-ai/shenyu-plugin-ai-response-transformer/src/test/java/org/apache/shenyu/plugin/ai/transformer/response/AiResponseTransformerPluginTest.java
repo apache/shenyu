@@ -234,6 +234,114 @@ class AiResponseTransformerPluginTest {
     }
 
     @Test
+    void testGeneratedStatusIsApplied() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.OK);
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 404 Not Found\nContent-Type: application/json\n\n{\"error\":\"missing\"}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("{\"error\":\"missing\"}", response.getBodyAsString().block());
+    }
+
+    @Test
+    void testGeneratedSuccessStatusReplacesErrorStatus() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 201 Created\nContent-Type: application/json\n\n{\"created\":true}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("failed".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("{\"created\":true}", response.getBodyAsString().block());
+    }
+
+    @Test
+    void testUpstreamStatusRetainedWhenGeneratedStatusIsInvalid() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.ACCEPTED);
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 999 Not Real\nContent-Type: application/json\n\n{\"ok\":true}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertEquals("{\"ok\":true}", response.getBodyAsString().block());
+    }
+
+    @Test
+    void testUpstreamStatusRetainedWhenGeneratedStatusIsOmitted() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.ACCEPTED);
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("Content-Type: application/json\n\n{\"ok\":true}"));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertEquals("{\"ok\":true}", response.getBodyAsString().block());
+    }
+
+    @Test
+    void testNoContentStatusDropsBody() {
+        MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.setStatusCode(HttpStatus.OK);
+        AiResponseTransformerTemplate template = mock(AiResponseTransformerTemplate.class);
+        when(template.assembleMessage(exchange)).thenReturn(Mono.just("{\"response\":{\"body\":\"\"}}"));
+        ChatClient chatClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(chatClient.prompt().user(anyString()).stream().content())
+                .thenReturn(Flux.just("HTTP/1.1 204 No Content\nContent-Type: application/json\n\n"));
+        AiResponseTransformerPlugin.AiResponseTransformerDecorator decorator =
+                new AiResponseTransformerPlugin.AiResponseTransformerDecorator(exchange, template, chatClient);
+        DataBuffer responseBody = response.bufferFactory().wrap("original".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(responseBody))).verifyComplete();
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE));
+        assertEquals("", response.getBodyAsString().block());
+    }
+
+    @Test
     void testOriginalHeadersRemainWhenTransformedBodyIsInvalid() {
         MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
         response.getHeaders().set("X-Original", "original");
@@ -345,6 +453,45 @@ class AiResponseTransformerPluginTest {
     void testExtractBodyFromAiResponseWithNullResponse() {
         String body = AiResponseTransformerPlugin.extractBodyFromAiResponse(null);
         assertNull(body);
+    }
+
+    @Test
+    void testExtractStatusFromAiResponse() {
+        assertEquals(HttpStatus.NOT_FOUND.value(),
+                AiResponseTransformerPlugin.extractStatusFromAiResponse("HTTP/1.1 404 Not Found\nContent-Type: application/json\n\n{}"));
+        assertEquals(HttpStatus.NO_CONTENT.value(),
+                AiResponseTransformerPlugin.extractStatusFromAiResponse("HTTP/1.1 204 No Content\n\n"));
+        assertEquals(HttpStatus.OK.value(),
+                AiResponseTransformerPlugin.extractStatusFromAiResponse("HTTP/1.0 200 OK\nContent-Type: application/json\n\n{}"));
+    }
+
+    @Test
+    void testExtractStatusFromAiResponseWithCodeBlock() {
+        assertEquals(HttpStatus.CREATED.value(), AiResponseTransformerPlugin
+                .extractStatusFromAiResponse("```\nHTTP/1.1 201 Created\nContent-Type: application/json\n\n{\"id\":1}\n```"));
+    }
+
+    @Test
+    void testExtractStatusFromAiResponseWithInvalidOrMissingStatusLine() {
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse("HTTP/1.1 999 Not Real\nContent-Type: application/json\n\n{}"));
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse("HTTP/1.1 abc OK\nContent-Type: application/json\n\n{}"));
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse("Content-Type: application/json\n\n{}"));
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse("{\"status\":\"success\"}"));
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse(""));
+        assertNull(AiResponseTransformerPlugin.extractStatusFromAiResponse(null));
+    }
+
+    @Test
+    void testExtractStatusFromAiResponseIgnoresStatusLookingHeaderValue() {
+        assertNull(AiResponseTransformerPlugin
+                .extractStatusFromAiResponse("Content-Type: application/json\nX-Debug: HTTP/1.1 500 Internal Server Error\n\n{}"));
+    }
+
+    @Test
+    void testExtractHeadersFromAiResponseWithHttp10StatusLine() {
+        HttpHeaders headers = AiResponseTransformerPlugin
+                .extractHeadersFromAiResponse("HTTP/1.0 200 OK\nContent-Type: application/json\n\n{\"status\":\"success\"}");
+        assertEquals("application/json", headers.getFirst("Content-Type"));
     }
 
     @Test

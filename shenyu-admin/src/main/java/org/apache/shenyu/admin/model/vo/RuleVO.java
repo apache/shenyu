@@ -62,9 +62,9 @@ public class RuleVO implements Serializable {
     private Boolean enabled;
 
     /**
-     * whether loged.
+     * whether logged.
      */
-    private Boolean loged;
+    private Boolean logged;
 
     /**
      * sort type.
@@ -105,7 +105,7 @@ public class RuleVO implements Serializable {
                   final String matchModeName,
                   final String name,
                   final Boolean enabled,
-                  final Boolean loged,
+                  final Boolean logged,
                   final Integer sort,
                   final String handle,
                   final Boolean matchRestful,
@@ -118,7 +118,7 @@ public class RuleVO implements Serializable {
         this.matchModeName = matchModeName;
         this.name = name;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.sort = sort;
         this.handle = handle;
         this.matchRestful = matchRestful;
@@ -236,21 +236,21 @@ public class RuleVO implements Serializable {
     }
 
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
 
     /**
@@ -380,7 +380,7 @@ public class RuleVO implements Serializable {
      */
     public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
         return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getRuleName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSortCode(), ruleDO.getHandle(),
+                ruleDO.getRuleName(), ruleDO.getEnabled(), ruleDO.getLogged(), ruleDO.getSortCode(), ruleDO.getHandle(),
                 ruleDO.getMatchRestful(), ruleConditions,
                 DateUtils.localDateTimeToString(ruleDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(ruleDO.getDateUpdated().toLocalDateTime()));

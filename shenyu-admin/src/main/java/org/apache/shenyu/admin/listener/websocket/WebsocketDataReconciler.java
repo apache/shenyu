@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import com.google.gson.stream.JsonWriter;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
@@ -30,7 +32,6 @@ import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -40,10 +41,11 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Collections;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +55,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Reconciles the configuration pushed through WebSocket data sync with the state
@@ -208,26 +211,53 @@ public class WebsocketDataReconciler implements InitializingBean, DisposableBean
                     .map(GsonUtils.getInstance()::toJson)
                     .sorted()
                     .collect(Collectors.toList());
-            String digest = DigestUtils.md5Hex(String.join("\n", rows));
+            String digest = digest(rows);
             if (digest.equals(digestCursor.get(cursorKey))) {
                 LOG.debug("websocket reconciliation group {} in namespace {} is unchanged, skip push",
                         group, namespaceId);
                 return;
             }
-            List<JsonElement> dataList = rows.stream().map(JsonParser::parseString).collect(Collectors.toList());
-            WebsocketData<?> websocketData =
-                    new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), dataList);
-            websocketData.setNamespaceId(namespaceId);
-            websocketData.setFullSnapshot(true);
-            push(namespaceId, GsonUtils.getInstance().toJson(websocketData));
+            push(namespaceId, snapshotMessage(namespaceId, group, rows));
             digestCursor.put(cursorKey, digest);
             LOG.info("websocket reconciliation pushed group {} for namespace {}, size: {}",
-                    group, namespaceId, dataList.size());
+                    group, namespaceId, rows.size());
         } catch (Exception e) {
             // the cursor is not advanced, so the next cycle retries this group
             LOG.error("websocket reconciliation failed for group {} in namespace {}, cursor not advanced",
                     group, namespaceId, e);
         }
+    }
+
+    private String digest(final List<String> rows) {
+        MessageDigest digest = DigestUtils.getMd5Digest();
+        for (int index = 0; index < rows.size(); index++) {
+            // Match the previous MD5 of String.join("\n", rows), including no trailing delimiter.
+            if (index > 0) {
+                digest.update((byte) '\n');
+            }
+            digest.update(rows.get(index).getBytes(StandardCharsets.UTF_8));
+        }
+        return Hex.encodeHexString(digest.digest());
+    }
+
+    private String snapshotMessage(final String namespaceId, final ConfigGroupEnum group, final List<String> rows) throws IOException {
+        StringWriter message = new StringWriter();
+        try (JsonWriter writer = GsonUtils.getGson().newJsonWriter(message)) {
+            // Keep the WebsocketData envelope and reuse the canonical row JSON verbatim.
+            // Rows come only from Gson above, so they need neither reparsing nor escaping again.
+            writer.beginObject();
+            writer.name("groupType").value(group.name());
+            writer.name("eventType").value(DataEventTypeEnum.REFRESH.name());
+            writer.name("data").beginArray();
+            for (String row : rows) {
+                writer.jsonValue(row);
+            }
+            writer.endArray();
+            writer.name("namespaceId").value(namespaceId);
+            writer.name("fullSnapshot").value(true);
+            writer.endObject();
+        }
+        return message.toString();
     }
 
     /**

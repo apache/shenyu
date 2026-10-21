@@ -20,6 +20,7 @@ package org.apache.shenyu.alert.strategy;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.dto.AlarmContent;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.mockito.Mockito;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -34,15 +36,19 @@ import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,6 +66,10 @@ public class EmailAlertNotifyStrategyTest {
 
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
+    private static Method buildAlertHtmlTemplateMethod;
+
+    private static EmailAlertNotifyStrategy strategy;
+
     @Mock
     private JavaMailSender javaMailSender;
 
@@ -68,8 +78,6 @@ public class EmailAlertNotifyStrategyTest {
 
     @Mock
     private AlertReceiverDTO receiver;
-
-    private EmailAlertNotifyStrategy strategy;
 
     private final AtomicReference<Context> capturedContext = new AtomicReference<>();
 
@@ -111,5 +119,58 @@ public class EmailAlertNotifyStrategyTest {
         Context context = capturedContext.get();
         assertNotNull(context);
         assertEquals("2026-08-21 10:00:00", context.getVariable("lastTriggerTime"));
+    }
+
+    @BeforeAll
+    public static void setUpAll() throws Exception {
+        TemplateEngine mockEngine = Mockito.mock(TemplateEngine.class);
+        when(mockEngine.process(eq("mailAlarm"), any(org.thymeleaf.context.IContext.class)))
+                .thenReturn("<html>Rendered mailAlarm template</html>");
+
+        strategy = new EmailAlertNotifyStrategy(mockEngine, null);
+        buildAlertHtmlTemplateMethod = EmailAlertNotifyStrategy.class
+                .getDeclaredMethod("buildAlertHtmlTemplate", AlarmContent.class);
+        buildAlertHtmlTemplateMethod.setAccessible(true);
+    }
+
+    private String invokeBuildAlertHtmlTemplate(final AlarmContent alert) {
+        try {
+            return (String) buildAlertHtmlTemplateMethod.invoke(strategy, alert);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testNullDateCreatedShouldNotThrowNpe() {
+        AlarmContent alert = new AlarmContent.Builder()
+                .title("test title")
+                .content("test content")
+                .dateCreated(null)
+                .build();
+
+        assertDoesNotThrow(() -> invokeBuildAlertHtmlTemplate(alert));
+    }
+
+    @Test
+    public void testValidAlertShouldNotThrow() {
+        AlarmContent alert = new AlarmContent.Builder()
+                .title("test title")
+                .content("test content")
+                .dateCreated(new Date())
+                .build();
+
+        assertDoesNotThrow(() -> invokeBuildAlertHtmlTemplate(alert));
+    }
+
+    @Test
+    public void testNullContentShouldNotThrow() {
+        AlarmContent alert = new AlarmContent.Builder()
+                .title("test title")
+                .content(null)
+                .dateCreated(new Date())
+                .build();
+
+        assertDoesNotThrow(() -> invokeBuildAlertHtmlTemplate(alert));
     }
 }

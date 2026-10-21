@@ -54,6 +54,7 @@ import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
+import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -415,6 +416,8 @@ public class RuleServiceImpl implements RuleService {
         }
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
+        } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {
+            RewriteRuleHandleValidator.validate(handle);
         }
     }
     
