@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.listener.http;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
@@ -43,6 +42,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -65,7 +65,6 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -86,7 +85,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 @SuppressWarnings("all")
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener implements DisposableBean {
 
-    public static final long DEFAULT_HEARTBEAT_INTERVAL_MS = 10000L;
+    private static final long DEFAULT_HEARTBEAT_INTERVAL_MS = 10000L;
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
@@ -97,6 +96,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
 
     private static final String X_REAL_PORT = "X-Real-PORT";
+
+    private static final String CLIENT_PORT_ZERO = "0";
 
     /**
      * Blocked client.
@@ -110,7 +111,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     private final ScheduledExecutorService livenessScheduler;
 
     private final HttpCacheRebuildCoordinator cacheRebuildCoordinator;
-    private final long heartbeatIntervalMs;
+
+    private long heartbeatIntervalMs;
+
     private final HttpSyncProperties httpSyncProperties;
 
     /**
@@ -151,10 +154,13 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             this.livenessScheduler = livenessPoolExecutor;
         }
         this.httpSyncProperties = httpSyncProperties;
-        this.cacheRebuildCoordinator = Objects.nonNull(httpSyncProperties.getCacheRebuildWindow()) && !httpSyncProperties.getCacheRebuildWindow().isZero()
+        this.cacheRebuildCoordinator = Objects.nonNull(httpSyncProperties) && Objects.nonNull(httpSyncProperties.getCacheRebuildWindow())
+                && !httpSyncProperties.getCacheRebuildWindow().isZero()
                 ? new HttpCacheRebuildCoordinator(new ScheduledThreadPoolExecutor(httpSyncProperties.getCacheRebuildThreads(),
                         ShenyuThreadFactory.create("http-cache-rebuild", true)),
                         httpSyncProperties.getCacheRebuildWindow().toMillis(), httpSyncProperties.getCacheRebuildMaxPendingKeys()) : null;
+        this.heartbeatIntervalMs = Objects.nonNull(httpSyncProperties) && httpSyncProperties.getHeartbeatInterval() > 0
+                ? httpSyncProperties.getHeartbeatInterval() : DEFAULT_HEARTBEAT_INTERVAL_MS;
     }
 
     @Override
@@ -200,12 +206,17 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     @Override
+    @PreDestroy
     public void destroy() {
         if (Objects.nonNull(cacheRebuildCoordinator)) {
             cacheRebuildCoordinator.close();
         }
-        scheduler.shutdownNow();
-        this.heartbeatIntervalMs = heartbeatIntervalMs;
+        if (Objects.nonNull(this.scheduler)) {
+            this.scheduler.shutdown();
+        }
+        if (Objects.nonNull(this.livenessScheduler)) {
+            this.livenessScheduler.shutdown();
+        }
     }
 
     /**
@@ -233,17 +244,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         LOG.info("http sync strategy refresh interval: {}ms", syncInterval);
     }
 
-    @Override
-    @PreDestroy
-    public void destroy() {
-        if (Objects.nonNull(this.scheduler)) {
-            this.scheduler.shutdown();
-        }
-        if (Objects.nonNull(this.livenessScheduler)) {
-            this.livenessScheduler.shutdown();
-        }
-    }
-
     Map<String, BlockingQueue<LongPollingClient>> getClientsMap() {
         return clientsMap;
     }
@@ -263,17 +263,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // The header already contains JSON text; encoding it again adds a string wrapper.
         final String bootstrapInfo = StringUtils.defaultString(request.getHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO), "");
         final String clientPort = StringUtils.defaultString(request.getHeader(X_REAL_PORT), StringUtils.EMPTY);
-        if (NumberUtils.toInt(clientPort, -1) > 0) {
-            InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
-                    .instanceIp(clientIp)
-                    .instancePort(clientPort)
-                    .instanceInfo(bootstrapInfo)
-                    .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
-                    .instanceState(1)
-                    .namespaceId(namespaceId)
-                    .build();
-            SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoReportEvent);
-        }
         reportInstanceInfo(clientIp, clientPort, bootstrapInfo, namespaceId);
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
@@ -297,7 +286,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 InstanceInfoReportEvent instanceInfoReportEvent = InstanceInfoReportEvent.builder()
                         .instanceIp(clientIp)
                         .instancePort(clientPort)
-                        .instanceInfo(GsonUtils.getInstance().toJson(bootstrapInfo))
+                        .instanceInfo(bootstrapInfo)
                         .instanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE)
                         .instanceState(1)
                         .namespaceId(namespaceId)
@@ -616,6 +605,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         @Override
         public void run() {
+            // Fast-path lock-free check; thread-safety is guaranteed by atomic CAS in sendResponse.
             if (isCompleted.get()) {
                 return;
             }
@@ -638,7 +628,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 if (shouldReportInstance(port)) {
                     long interval = Objects.nonNull(httpSyncProperties) && httpSyncProperties.getHeartbeatInterval() > 0
-                            ? httpSyncProperties.getHeartbeatInterval() : 10000L;
+                            ? httpSyncProperties.getHeartbeatInterval() : DEFAULT_HEARTBEAT_INTERVAL_MS;
                     ScheduledExecutorService executor = Objects.nonNull(livenessScheduler) ? livenessScheduler : scheduler;
                     this.heartbeatFuture = executor.scheduleWithFixedDelay(
                             this::refreshLiveness,
