@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -258,7 +259,7 @@ class AiProxyHttpCompatibilityTest {
 
     private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+                protocolConverterFactory(), new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 

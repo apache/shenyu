@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiProxyEngineTest {
@@ -79,6 +80,7 @@ class AiProxyEngineTest {
         engine = new AiProxyEngine(
                 new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
+                protocolConverterFactory(),
                 transport);
         config = new AiCommonConfig();
         config.setProvider("OpenAI");
@@ -153,25 +155,31 @@ class AiProxyEngineTest {
     }
 
     @Test
-    void testCustomProviderProtocolRejectedBeforeBuildAndTransport() {
+    void testCustomChatProviderAcceptsResponsesThroughConversion() throws Exception {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         final AtomicInteger builds = new AtomicInteger();
         useCustomProvider(new AiProviderCapabilities(Set.of(OpenAiChat.NAME), all.operations(), all.features()), builds);
         config.setProtocol(OpenAiResponses.NAME);
 
-        StepVerifier.create(engine.execute("{\"input\":\"hello\"}", config, Optional.empty(), response -> response.getBody().then()))
-                .expectError(ShenyuException.class).verify();
+        AiUpstreamRequest request = engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\"}", config);
+        JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
 
-        assertEquals(0, builds.get());
+        assertEquals(1, builds.get());
+        assertEquals("hello", payload.at("/messages/0/content").asText());
         assertNull(transportedRequest.get());
     }
 
     @Test
-    void testCustomProviderOperationRejectedBeforeBuildAndTransport() {
+    void testCustomChatProviderValidatesConvertedOperation() {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AtomicInteger builds = new AtomicInteger();
+        useCustomProvider(new AiProviderCapabilities(all.protocols(),
+                Set.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), all.features()), builds);
         config.setProtocol(OpenAiResponses.NAME);
-        assertCapabilityRejected("{\"input\":\"hello\"}",
-                new AiProviderCapabilities(all.protocols(), Set.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), all.features()), "operation");
+
+        engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\"}", config);
+
+        assertEquals(1, builds.get());
     }
 
     @Test
@@ -211,7 +219,7 @@ class AiProxyEngineTest {
         final AtomicInteger transports = new AtomicInteger();
         final AiProxyProvider fallback = customProvider(new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), builds);
         engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), request -> {
+                new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), protocolConverterFactory(), request -> {
                     transports.incrementAndGet();
                     return Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null));
                 }, Duration.ZERO);
@@ -241,7 +249,7 @@ class AiProxyEngineTest {
 
     private void useCustomProvider(final AiProviderCapabilities capabilities, final AtomicInteger builds) {
         engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(customProvider(capabilities, builds))), request -> {
+                new AiProxyProviderFactory(List.of(customProvider(capabilities, builds))), protocolConverterFactory(), request -> {
                     transportedRequest.set(request);
                     return Mono.just(upstreamResponse);
                 });
