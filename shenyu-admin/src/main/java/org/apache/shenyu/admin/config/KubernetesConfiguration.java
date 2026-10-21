@@ -21,7 +21,6 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.util.Config;
 import org.apache.shenyu.admin.config.properties.DeploymentProperties;
-import org.apache.shenyu.admin.scale.scaler.KubernetesScaler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -32,7 +31,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Optional;
 
 @Configuration
 @EnableConfigurationProperties(DeploymentProperties.class)
@@ -47,7 +45,7 @@ public class KubernetesConfiguration {
      */
     @Bean
     @ConditionalOnProperty(value = "shenyu.k8s.scale.enabled", havingValue = "true")
-    @ConditionalOnMissingBean(DeploymentProperties.class)
+    @ConditionalOnMissingBean(AppsV1Api.class)
     public AppsV1Api apiClient(final DeploymentProperties deploymentProperties) {
         try {
             ApiClient client = Config.fromToken(
@@ -64,18 +62,6 @@ public class KubernetesConfiguration {
             logger.error("kubernetes apiClient create error", e);
         }
         return null;
-    }
-
-    /**
-     * kubernetes scaler.
-     * @param appsV1Api appsV1Api
-     * @param deploymentProperties deploymentProperties
-     * @return KubernetesScaler KubernetesScaler
-     */
-    @Bean
-    @ConditionalOnMissingBean({AppsV1Api.class, DeploymentProperties.class})
-    public KubernetesScaler kubernetesScaler(final Optional<AppsV1Api> appsV1Api, final DeploymentProperties deploymentProperties) {
-        return new KubernetesScaler(appsV1Api, deploymentProperties);
     }
 
 }
