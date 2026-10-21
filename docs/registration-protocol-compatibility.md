@@ -92,7 +92,8 @@ explicit valid namespace for nondefault deployments, including nested MCP metada
 | appName, contextPath | string | Application/selector identity; a missing context path can fall back to appName in registration helpers |
 | path, rpcType | string | Endpoint and protocol/plugin identity; required by the selected registration consumer |
 | serviceName, methodName, parameterTypes, rpcExt | string | Protocol-specific invocation descriptor; required according to the RPC plugin. Keep rpcExt's embedded JSON schema compatible |
-| ruleName, pathDesc | string | Optional rule name override and description |
+| ruleName | string | Required nonblank by the asynchronous registration consumer |
+| pathDesc | string | Optional description |
 | host, port | string, integer | Backend address; supply a valid host/port for consumers that also register upstreams |
 | namespaceId | string | Tenant identity; null controller default as above |
 | enabled, registerMetaData, addPrefixed | boolean | Endpoint enablement, metadata persistence selection and path-prefix behavior. Java no-arg defaults are false; builders may choose other values, so send these explicitly |
@@ -101,6 +102,10 @@ explicit valid namespace for nondefault deployments, including nested MCP metada
 
 Do not serialize service objects or Java class names as the contract itself.
 Keep parameterTypes/rpcExt formatting stable for the selected invocation plugin.
+The current consumer drops metadata events missing appName, path, ruleName,
+rpcType or namespaceId; the HTTP acknowledgement can already have been sent.
+URI events similarly require nonblank contextPath, rpcType and namespaceId before
+dispatch, in addition to the upstream address checks in the service.
 
 ### URI registration and offline
 
