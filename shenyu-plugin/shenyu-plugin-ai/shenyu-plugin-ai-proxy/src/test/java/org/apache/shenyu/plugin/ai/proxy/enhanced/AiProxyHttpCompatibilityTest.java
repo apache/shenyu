@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
@@ -43,6 +45,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
@@ -114,6 +117,54 @@ class AiProxyHttpCompatibilityTest {
         } finally {
             server.disposeNow(TIMEOUT);
         }
+    }
+
+    @Test
+    void proxyKeysRemainIsolatedAcrossSequentialAndConcurrentRequests() {
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) ->
+                response.header("Content-Type", "application/json")
+                        .header("X-Upstream-Account", request.requestHeaders().get("Authorization"))
+                        .sendString(Flux.just(CHAT_REPLY))).bindNow(TIMEOUT);
+        final AiProxyPluginHandler handler = new AiProxyPluginHandler();
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setProvider("OpenAI");
+        handle.setBaseUrl("http://127.0.0.1:" + server.port());
+        handle.setApiKey("selector-default");
+        handle.setProxyEnabled("true");
+        handle.setProtocol(OpenAiChat.NAME);
+        handle.setModel("model");
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey("http-selector", Constants.DEFAULT_RULE), handle);
+        AiProxyPlugin plugin = plugin(handler);
+        for (String account : List.of("account-a", "account-b")) {
+            AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId("http-selector")
+                    .proxyApiKey("proxy-" + account).realApiKey(account).enabled(true).build());
+        }
+        try {
+            for (String account : List.of("account-a", "account-b", "account-a")) {
+                StepVerifier.create(executeForAccount(plugin, account)).verifyComplete();
+            }
+            StepVerifier.create(Flux.range(0, 32)
+                    .flatMap(index -> executeForAccount(plugin, index % 2 == 0 ? "account-a" : "account-b"), 8)
+                    .then()).expectComplete().verify(TIMEOUT);
+            assertEquals("selector-default", handle.getApiKey());
+        } finally {
+            server.disposeNow(TIMEOUT);
+            for (String account : List.of("account-a", "account-b")) {
+                AiProxyApiKeyCache.getInstance().remove(ProxyApiKeyData.builder().selectorId("http-selector")
+                        .proxyApiKey("proxy-" + account).build());
+            }
+        }
+    }
+
+    private Mono<Void> executeForAccount(final AiProxyPlugin plugin, final String account) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/chat")
+                .header(Constants.X_API_KEY, "proxy-" + account)
+                .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}"));
+        return plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())
+                .then(Mono.fromRunnable(() -> {
+                    assertEquals(200, exchange.getResponse().getStatusCode().value());
+                    assertEquals("Bearer " + account, exchange.getResponse().getHeaders().getFirst("X-Upstream-Account"));
+                }));
     }
 
     @Test
