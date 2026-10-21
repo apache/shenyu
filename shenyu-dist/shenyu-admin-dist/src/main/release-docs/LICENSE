@@ -230,7 +230,6 @@ The text of each license is the standard Apache 2.0 license.
     client-java-api 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java-api, Apache 2.0
     client-java 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java, Apache 2.0
     client-java-proto 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java-proto, Apache 2.0
-    eureka-client-jersey3 2.0.6: https://github.com/Netflix/eureka, Apache 2.0
     annotations 13.0: http://source.android.com, Apache 2.0
     annotations 4.1.1.4: http://source.android.com, Apache 2.0
     attoparser 2.0.7.RELEASE: http://www.attoparser.org, Apache 2.0
@@ -434,10 +433,9 @@ The text of each license is the standard Apache 2.0 license.
     commons-jxpath 1.3: https://github.com/apache/commons-jxpath, Apache 2.0
     commons-lang 2.6: https://github.com/apache/commons-lang, Apache 2.0
     commons-logging 1.2: https://github.com/apache/commons-logging, Apache 2.0
-    eureka-client 2.0.2 https://github.com/Netflix/eureka, Apache 2.0
     j2objc-annotations 3.1 https://github.com/google/j2objc, Apache 2.0
     jettison 1.5.4: https://github.com/jettison-json/jettison, Apache 2.0
-    joda-time 2.3 https://www.joda.org/joda-time/, Apache 2.0
+    joda-time 2.10.5 https://www.joda.org/joda-time/, Apache 2.0
     netflix-eventbus 0.3.0: https://github.com/Netflix/netflix-commons, Apache 2.0
     netflix-infix 0.3.0: https://github.com/Netflix/netflix-commons, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
