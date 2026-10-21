@@ -28,6 +28,14 @@
 
 ### Behavior Changes
 
+- Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
+  HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
+  request-local plugin cursors, attributes and captured responses; upstream
+  configuration remains owned by existing routing plugins. Caller credentials,
+  cookies and web sessions are not delegated. Results pass through existing MCP
+  authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
+  restart is required for rule updates; absent plans preserve previous behavior.
+
 - `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
   upstream connections and reducing connection setup overhead. It previously
   defaulted to `false` as a workaround for stale pooled connections being reset

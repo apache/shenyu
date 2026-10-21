@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -86,6 +87,20 @@ public final class AgentMcpHttpHandler {
      */
     public Mono<Void> handle(final ServerWebExchange exchange, final AgentGatewayMcpConfig config,
                              final AgentTrafficContext traffic, final long configurationVersion) {
+        return handle(exchange, config, traffic, configurationVersion, null);
+    }
+
+    /**
+     * Handle a rule with an optional request-owned internal HTTP executor.
+     * @param exchange matched MCP exchange
+     * @param config captured rule
+     * @param traffic request identity
+     * @param configurationVersion rule generation
+     * @param httpInvoker isolated gateway dispatch, never a client-supplied callback
+     * @return completion linked to cancellation
+     */
+    public Mono<Void> handle(final ServerWebExchange exchange, final AgentGatewayMcpConfig config,
+                             final AgentTrafficContext traffic, final long configurationVersion, final AgentHttpToolInvoker httpInvoker) {
         return Mono.deferContextual(parentContext -> {
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
             Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
@@ -101,7 +116,8 @@ public final class AgentMcpHttpHandler {
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(),
                                         identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
-                                        identity.getToolGrants(), deadline, config.getResultFilters(), identity.getTenant().orElse(null)))
+                                        identity.getToolGrants(), deadline, config.getResultFilters(), config.getHttpTools(), httpInvoker,
+                                        identity.getTenant().orElse(null)))
                                         .contextWrite(observation::traceContext);
                             }))
                     .flatMap(response -> {

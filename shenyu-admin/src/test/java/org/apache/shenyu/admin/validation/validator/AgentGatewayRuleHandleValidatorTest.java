@@ -67,6 +67,22 @@ public final class AgentGatewayRuleHandleValidatorTest {
     }
 
     @Test
+    public void testValidConfiguredHttpTool() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("""
+                {"trafficType":"mcp","mcp":{"allowedTools":["lookup"],"httpTools":{"lookup":{
+                "description":"HTTP lookup","inputSchema":{"type":"object","properties":{}},
+                "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders/status"},"argsPosition":{}}}}}}
+                """));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{\"foreign\":{}}", "{\"lookup\":{\"future\":true}}"})
+    public void testInvalidConfiguredHttpTool(final String plans) {
+        String handle = "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"lookup\"],\"httpTools\":" + plans + "}}";
+        assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));
+    }
+
+    @Test
     public void testValidStructuredContentDeletion() {
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"crm.profile\"],"
                 + "\"structuredContentRemovals\":{\"crm.profile\":[\"/secret\"]}}}"));
