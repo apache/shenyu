@@ -51,6 +51,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -122,6 +123,39 @@ class UpstreamCheckServiceSyncTest {
         UpstreamCheckService.removeByKey(SELECTOR_ID);
         ((Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "PENDING_SYNC")).clear();
         ((Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET")).clear();
+    }
+
+    @Test
+    void testCrashedBackendIsEvictedWithoutAnOfflineNotification() throws Exception {
+        final String failedUrl;
+        try (ServerSocket crashed = new ServerSocket(0)) {
+            failedUrl = "127.0.0.1:" + crashed.getLocalPort();
+        }
+        try (ServerSocket healthy = new ServerSocket(0)) {
+            String healthyUrl = "127.0.0.1:" + healthy.getLocalPort();
+            CommonUpstream dead = DivideUpstream.builder().upstreamUrl(failedUrl).protocol("http://").status(true).build();
+            CommonUpstream live = DivideUpstream.builder().upstreamUrl(healthyUrl).protocol("http://").status(true).build();
+            dead.setHealthCheckEnabled(true);
+            live.setHealthCheckEnabled(true);
+            when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(List.of(
+                    DiscoveryUpstreamData.builder().url(failedUrl).protocol("http://").status(0).dateCreated(new Timestamp(1)).build(),
+                    DiscoveryUpstreamData.builder().url(healthyUrl).protocol("http://").status(0).dateCreated(new Timestamp(1)).build()));
+            ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+            service.replace(SELECTOR_ID, List.of(dead, live));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+            verify(discoveryUpstreamService).changeStatusBySelectorIdAndUrl(SELECTOR_ID, failedUrl, Boolean.FALSE);
+            DiscoverySyncData snapshot = publishedSnapshot();
+            assertEquals(1, snapshot.getUpstreamDataList().size());
+            assertEquals(healthyUrl, snapshot.getUpstreamDataList().get(0).getUrl());
+            assertEquals(Collections.singletonList(live), upstreams.get(SELECTOR_ID));
+            ArgumentCaptor<SelectorDO> selector = ArgumentCaptor.forClass(SelectorDO.class);
+            verify(selectorMapper).updateSelective(selector.capture());
+            assertTrue(!selector.getValue().getHandle().contains(failedUrl));
+        }
     }
 
     @Test
