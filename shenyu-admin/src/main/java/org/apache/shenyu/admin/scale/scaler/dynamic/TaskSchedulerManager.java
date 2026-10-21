@@ -22,11 +22,13 @@ import org.apache.shenyu.admin.scale.config.ScaleProperties;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class TaskSchedulerManager {
@@ -60,6 +62,35 @@ public class TaskSchedulerManager {
         );
 
         taskMap.put(taskName, future);
+    }
+
+    /**
+     * Register a task to run once at the specified instant.
+     *
+     * @param taskName taskName
+     * @param task task
+     * @param fireAt fireAt
+     */
+    public void registerOnceTask(final String taskName, final Runnable task, final Instant fireAt) {
+        cancelMonitorTask(taskName);
+        AtomicReference<ScheduledFuture<?>> futureReference = new AtomicReference<>();
+        CountDownLatch registered = new CountDownLatch(1);
+        Runnable oneShotTask = () -> {
+            try {
+                registered.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            ScheduledFuture<?> future = futureReference.get();
+            if (taskMap.remove(taskName, future)) {
+                task.run();
+            }
+        };
+        ScheduledFuture<?> future = scheduler.schedule(oneShotTask, fireAt);
+        futureReference.set(future);
+        taskMap.put(taskName, future);
+        registered.countDown();
     }
 
     /**

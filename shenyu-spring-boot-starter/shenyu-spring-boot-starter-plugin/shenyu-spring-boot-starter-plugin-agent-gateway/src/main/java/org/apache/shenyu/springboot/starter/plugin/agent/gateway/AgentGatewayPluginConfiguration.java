@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -58,6 +59,8 @@ import reactor.core.publisher.Mono;
 @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.enabled", havingValue = "true", matchIfMissing = false)
 public class AgentGatewayPluginConfiguration {
 
+    private static final String JWT_SECURITY_RESOLVER_BEAN_NAME = "agentGatewayJwtSecurityResolver";
+
     /**
      * Create a plugin with an optional managed remote catalog.
      * @param providers local providers
@@ -67,6 +70,7 @@ public class AgentGatewayPluginConfiguration {
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
      * @param environment deployment-controlled tracing opt-in
+     * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
      */
     @Bean
@@ -74,37 +78,43 @@ public class AgentGatewayPluginConfiguration {
                                          final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
                                          final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                          final ObjectProvider<AiCallObserver> aiObservers,
-                                         final Environment environment) {
+                                         final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
         }
+        List<AgentMcpSecurityResolver> authorities = resolvers.stream().toList();
+        if (authorities.size() > 1) {
+            throw new IllegalStateException("MCP requires exactly one authoritative security resolver");
+        }
         if (environment.getProperty("shenyu.plugins.agent.gateway.security.key-auth.enabled", Boolean.class, false)
-                && resolvers.stream().noneMatch(resolver -> resolver instanceof KeyAuthMcpSecurityResolver)) {
+                && authorities.stream().noneMatch(resolver -> resolver instanceof KeyAuthMcpSecurityResolver)) {
             throw new IllegalStateException("Enabled key-auth MCP authorization requires the key-auth plugin dependency");
         }
         if (environment.getProperty("shenyu.plugins.agent.gateway.security.principal.enabled", Boolean.class, false)
-                && resolvers.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.PrincipalMcpSecurityResolver".equals(resolver.getClass().getName()))) {
+                && authorities.stream().noneMatch(resolver -> "org.apache.shenyu.springboot.starter.plugin.agent.gateway.PrincipalMcpSecurityResolver".equals(resolver.getClass().getName()))) {
             throw new IllegalStateException("Enabled MCP principal authorization requires an explicit source and its optional dependencies");
         }
-        return createPlugin(providers, resolvers, catalogs.getIfAvailable(), tracer, terminalObservers.getIfAvailable(),
+        if (environment.getProperty("shenyu.plugins.agent.gateway.security.jwt.enabled", Boolean.class, false)
+                && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
+            throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
+        }
+        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, terminalObservers.getIfAvailable(),
                 aiObservers.getIfAvailable(), environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
-                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer, final AgentMcpTerminalObserver terminalObserver,
-                                     final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
+                                      final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
+                                      final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
+                                      final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        List<AgentMcpSecurityResolver> candidates = resolvers.stream().toList();
-        if (candidates.size() > 1) {
-            throw new IllegalStateException("MCP requires exactly one authoritative security resolver");
-        }
-        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
-        if (llmIdentityEnabled && candidates.isEmpty()) {
+        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
+        if (llmIdentityEnabled && resolvers.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog),
-                resolver, tracer, terminalObserver), llmIdentityEnabled ? resolver : null, aiObserver);
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
+                AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer, terminalObserver),
+                llmIdentityEnabled ? resolver : null, aiObserver);
     }
 
     /**
@@ -232,6 +242,29 @@ public class AgentGatewayPluginConfiguration {
             return new PrincipalMcpSecurityResolver<>(properties, org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken.class,
                     authentication -> authentication.getPrincipal().getAttributes(),
                     authentication -> registration.equals(authentication.getAuthorizedClientRegistrationId()), AgentGatewayPluginConfiguration::keyAuthenticationPresent);
+        }
+    }
+
+    /**
+     * Optional bridge for an application-owned, authenticated Resource Server JWT principal.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = {"org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken",
+        "org.springframework.security.oauth2.jwt.Jwt"})
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.security.jwt.enabled", havingValue = "true")
+    static class JwtIdentityConfiguration {
+
+        /**
+         * Adapt verified claims without creating a decoder or authentication filter chain.
+         * @param environment deployment-owned identity policy
+         * @return the sole identity authority
+         */
+        @Bean(name = JWT_SECURITY_RESOLVER_BEAN_NAME)
+        AgentMcpSecurityResolver agentGatewayJwtSecurityResolver(final Environment environment) {
+            String prefix = "shenyu.plugins.agent.gateway.security.jwt.";
+            return new JwtAgentMcpSecurityResolver(environment.getRequiredProperty(prefix + "issuer"),
+                    environment.getRequiredProperty(prefix + "audience"), environment.getProperty(prefix + "default-tenant"),
+                    environment.getProperty(prefix + "tenant-claim-required", Boolean.class, false));
         }
     }
 

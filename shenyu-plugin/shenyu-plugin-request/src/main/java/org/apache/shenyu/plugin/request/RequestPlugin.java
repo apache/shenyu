@@ -217,7 +217,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void replaceParameterKey(final Map.Entry<String, String> shenyuParam, final MultiValueMap<String, String> queryParams) {
         List<String> values = queryParams.get(shenyuParam.getKey());
-        if (Objects.nonNull(values)) {
+        if (Objects.nonNull(values) && !Objects.equals(shenyuParam.getKey(), shenyuParam.getValue())) {
             queryParams.addAll(shenyuParam.getValue(), values);
             queryParams.remove(shenyuParam.getKey());
         }
@@ -250,9 +250,9 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void replaceHeaderKey(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         List<String> values = headers.get(shenyuHeader.getKey());
-        if (Objects.nonNull(values)) {
-            headers.addAll(shenyuHeader.getValue(), values);
+        if (Objects.nonNull(values) && !Objects.equals(shenyuHeader.getKey(), shenyuHeader.getValue())) {
             headers.remove(shenyuHeader.getKey());
+            headers.addAll(shenyuHeader.getValue(), values);
         }
     }
 

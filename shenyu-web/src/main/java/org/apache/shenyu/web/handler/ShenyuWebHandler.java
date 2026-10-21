@@ -302,6 +302,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             this.plugins = plugins;
         }
 
+        @Override
+        public ShenyuPluginChain fork() {
+            return new DefaultShenyuPluginChain(plugins);
+        }
+
         /**
          * Delegate to the next {@code WebFilter} in the chain.
          *

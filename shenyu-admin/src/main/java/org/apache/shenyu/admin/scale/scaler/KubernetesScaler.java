@@ -67,8 +67,9 @@ public class KubernetesScaler {
      * scale by number.
      *
      * @param replicaCount replicaCount
+     * @return true when the scale request succeeds
      */
-    public void scaleByNum(final int replicaCount) {
+    public boolean scaleByNum(final int replicaCount) {
         try {
             V1Scale scale = new V1Scale();
             scale.setSpec(new V1ScaleSpec().replicas(replicaCount));
@@ -86,9 +87,10 @@ public class KubernetesScaler {
                     // fieldValidation
                     null
             );
-
+            return true;
         } catch (ApiException e) {
             LOG.error("Failed to scale deployment. Cause: {}", e.getMessage());
+            return false;
         }
     }
 

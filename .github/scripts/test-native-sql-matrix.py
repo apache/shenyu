@@ -257,6 +257,38 @@ class NativeSqlMatrixTest(unittest.TestCase):
                         self.assertRaisesRegex(AssertionError, "lost distinct grants or retained duplicate"):
                     engine.check_data_permission_uniqueness(indexes)
 
+    def test_instance_identity_check_rejects_missing_uniqueness_and_stale_updates(self):
+        indexes = {("instance_info", "uk_instance_info_identity"): ["namespace_id", "instance_ip", "instance_port", "instance_type"]}
+        names = "heartbeat updated created tie-z namespace ip port type max".split()
+        mapper = ROOT / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml"
+        for dialect in matrix.DIALECTS:
+            for mode in ("success", "missing-key", "wrong-winner", "stale-overwrite", "unrelated-error"):
+                heartbeats = iter((100, 200, 300, 300) if mode == "stale-overwrite" else (200, 200, 300, 300))
+                states = iter((1, 1, 2, 2))
+
+                def sql(query):
+                    if query.startswith("SELECT id"):
+                        kept = names + (["old-heartbeat"] if mode == "wrong-winner" else [])
+                        return "\n".join("sql-instance-" + name for name in kept)
+                    if query.startswith("INSERT"):
+                        if mode == "missing-key":
+                            return ""
+                        raise RuntimeError("other error" if mode == "unrelated-error" else "duplicate UK_INSTANCE_INFO_IDENTITY")
+                    if query.startswith("SELECT last_heart"):
+                        return str(next(heartbeats))
+                    if query.startswith("SELECT instance_state"):
+                        return str(next(states))
+                    return "1"
+
+                with self.subTest(dialect=dialect, mode=mode), tempfile.TemporaryDirectory() as directory:
+                    engine = matrix.Engine(dialect, "upgrade", Path(directory))
+                    with patch.object(engine, "sql", side_effect=sql):
+                        if mode == "success":
+                            engine.check_instance_identity(indexes, mapper)
+                        else:
+                            with self.assertRaises(RuntimeError if mode == "unrelated-error" else AssertionError):
+                                engine.check_instance_identity(indexes, mapper)
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)

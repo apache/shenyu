@@ -28,9 +28,11 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
@@ -203,8 +205,9 @@ public final class AiProxyEngine {
                         }
                         return observed.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
                     }
-                    AiUpstreamResponse adapted = prepared.request().adaptResponse(prepared.provider().adaptResponse(observed));
-                    AiUpstreamResponse encoded = prepared.protocol().encodeResponse(adapted, prepared.stream());
+                    AiUpstreamResponse providerAdapted = prepared.provider().adaptResponse(observed);
+                    AiUpstreamResponse requestAdapted = prepared.responseAdapter().adapt(providerAdapted);
+                    AiUpstreamResponse encoded = prepared.protocol().encodeResponse(requestAdapted, prepared.stream());
                     return consumeResponse(encoded, consumer, emitted);
                 });
     }
@@ -267,8 +270,9 @@ public final class AiProxyEngine {
         boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
         provider.capabilities().validate(decoded, stream);
         try {
-            AiUpstreamRequest request = provider.buildRequest(decoded, config);
-            return new PreparedExchange(protocol, provider, request, stream, selectedModel(request), decoded.getOperation().name());
+            PreparedAiRequest preparedRequest = provider.prepareRequest(decoded, config);
+            return new PreparedExchange(protocol, provider, preparedRequest.request(),
+                    preparedRequest.responseAdapter(), stream, selectedModel(preparedRequest.request()), decoded.getOperation().name());
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
@@ -286,7 +290,14 @@ public final class AiProxyEngine {
         }
     }
 
-    private record PreparedExchange(AiProxyProtocol protocol, AiProxyProvider provider, AiUpstreamRequest request, boolean stream, String target, String operation) {
+    private record PreparedExchange(
+            AiProxyProtocol protocol,
+            AiProxyProvider provider,
+            AiUpstreamRequest request,
+            AiResponseAdapter responseAdapter,
+            boolean stream,
+            String target,
+            String operation) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {

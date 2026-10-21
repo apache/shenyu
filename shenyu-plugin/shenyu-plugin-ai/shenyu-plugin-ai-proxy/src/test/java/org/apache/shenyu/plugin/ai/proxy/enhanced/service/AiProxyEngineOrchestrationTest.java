@@ -17,16 +17,19 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -56,8 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Retry, fallback, response adaptation and cancellation across the engine boundary.
@@ -417,38 +418,72 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
-    void providerAndProtocolBothAdaptTheResponse() {
-        AtomicBoolean providerAdapted = new AtomicBoolean();
-        AtomicBoolean protocolEncoded = new AtomicBoolean();
-        AiProxyProvider provider = mock(AiProxyProvider.class);
-        when(provider.name()).thenReturn("custom");
-        when(provider.supports("openai-chat")).thenReturn(true);
-        when(provider.capabilities()).thenReturn(AiProviderCapabilities.chat());
-        when(provider.buildRequest(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(new AiUpstreamRequest());
-        when(provider.adaptResponse(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
-            providerAdapted.set(true);
-            return invocation.getArgument(0);
-        });
-        AiProxyProtocol protocol = mock(AiProxyProtocol.class);
-        when(protocol.name()).thenReturn("openai-chat");
-        when(protocol.matches(org.mockito.ArgumentMatchers.any())).thenReturn(true);
-        when(protocol.decodeRequest(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenAnswer(invocation ->
-                new OpenAiChat().decodeRequest(invocation.getArgument(0), invocation.getArgument(1)));
-        when(protocol.encodeResponse(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean())).thenAnswer(invocation -> {
-            assertTrue(providerAdapted.get());
-            protocolEncoded.set(true);
-            return invocation.getArgument(0);
-        });
+    void providerRequestAdapterAndProtocolConvertTheResponseInOrder() {
+        List<String> conversions = new ArrayList<>();
+        AtomicBoolean supported = new AtomicBoolean(true);
+        AiProxyProvider provider = new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "custom";
+            }
+
+            @Override
+            public boolean supports(final String protocol) {
+                return supported.get();
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return new AiUpstreamRequest();
+            }
+
+            @Override
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return new PreparedAiRequest(buildRequest(request, config), response -> {
+                    conversions.add("request");
+                    return response;
+                });
+            }
+
+            @Override
+            public AiUpstreamResponse adaptResponse(final AiUpstreamResponse response) {
+                conversions.add("provider");
+                return response;
+            }
+        };
+        OpenAiChat delegate = new OpenAiChat();
+        AiProxyProtocol protocol = new AiProxyProtocol() {
+            @Override
+            public String name() {
+                return delegate.name();
+            }
+
+            @Override
+            public boolean matches(final JsonNode payload) {
+                return delegate.matches(payload);
+            }
+
+            @Override
+            public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
+                return delegate.decodeRequest(rawBody, payload);
+            }
+
+            @Override
+            public AiUpstreamResponse encodeResponse(final AiUpstreamResponse response, final boolean stream) {
+                conversions.add("protocol");
+                return response;
+            }
+        };
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(protocol)), new AiProxyProviderFactory(List.of(provider)),
                 request -> Mono.just(response(200, Flux.just(bytes("ok")))), Duration.ZERO);
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).verifyComplete();
-        assertTrue(protocolEncoded.get());
-        when(provider.supports("openai-chat")).thenReturn(false);
-        providerAdapted.set(false);
+        assertEquals(List.of("provider", "request", "protocol"), conversions);
+        supported.set(false);
+        conversions.clear();
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).expectError(ShenyuException.class).verify();
-        assertFalse(providerAdapted.get());
+        assertTrue(conversions.isEmpty());
     }
 
     @Test
