@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
@@ -30,25 +29,20 @@ import java.util.Objects;
  */
 public class MetaDataRegisterDTO implements DataTypeParent {
 
-    @NotBlank
     private String appName;
 
-    @NotBlank
     private String contextPath;
 
-    @NotBlank
     private String path;
 
     private String pathDesc;
 
-    @NotBlank
     private String rpcType;
 
     private String serviceName;
 
     private String methodName;
 
-    @NotBlank
     private String ruleName;
 
     private String parameterTypes;
@@ -57,7 +51,6 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
     private boolean enabled;
 
-    @NotBlank
     private String host;
 
     private Integer port;

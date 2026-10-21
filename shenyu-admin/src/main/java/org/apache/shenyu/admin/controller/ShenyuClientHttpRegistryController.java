@@ -20,9 +20,11 @@ package org.apache.shenyu.admin.controller;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.validation.validator.ShenyuClientRegistryValidator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
@@ -30,13 +32,20 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type shenyu client controller.
@@ -50,6 +59,31 @@ public class ShenyuClientHttpRegistryController {
 
     @Resource
     private NamespaceService namespaceService;
+
+    /**
+     * Registers HTTP request validation without adding framework dependencies to protocol DTOs.
+     *
+     * @param binder the request binder
+     */
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) {
+        binder.addValidators(new ShenyuClientRegistryValidator());
+    }
+
+    /**
+     * Returns HTTP 400 for invalid registrations before any event is published.
+     *
+     * @param exception the validation failure
+     * @return the registration error
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ShenyuAdminResult handleInvalidRegistration(final MethodArgumentNotValidException exception) {
+        String message = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("| "));
+        return ShenyuAdminResult.error(String.format("Request error! invalid argument [%s]", message));
+    }
 
     /**
      * Register metadata string.

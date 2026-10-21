@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
@@ -31,16 +30,12 @@ public class URIRegisterDTO implements DataTypeParent {
 
     private String protocol;
 
-    @NotBlank
     private String appName;
 
-    @NotBlank
     private String contextPath;
 
-    @NotBlank
     private String rpcType;
 
-    @NotBlank
     private String host;
 
     private Integer port;

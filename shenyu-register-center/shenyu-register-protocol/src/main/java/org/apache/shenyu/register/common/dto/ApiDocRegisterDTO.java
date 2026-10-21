@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.register.common.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
@@ -34,19 +32,16 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     /**
      * the context_path.
      */
-    @NotBlank
     private String contextPath;
 
     /**
      * the apiPath.
      */
-    @NotBlank
     private String apiPath;
 
     /**
      * 0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace.
      */
-    @NotNull
     private Integer httpMethod;
 
     /**
@@ -67,7 +62,6 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     /**
      * http,dubbo,sofa,tars,websocket,grpc.
      */
-    @NotBlank
     private String rpcType;
 
     /**
@@ -105,7 +99,6 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     /**
      * event type.
      */
-    @NotNull
     private EventType eventType;
 
     /**

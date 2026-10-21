@@ -17,63 +17,153 @@
 
 package org.apache.shenyu.admin.controller;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
-import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
-import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+import org.apache.shenyu.register.common.type.DataTypeParent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.support.StaticMessageSource;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Tests validation declarations on the HTTP registration API.
+ * Exercises Admin-side registration validation with the production global exception advice.
  */
+@ExtendWith(MockitoExtension.class)
 public final class ShenyuClientHttpRegistryControllerValidationTest {
 
-    @Test
-    public void shouldValidateAllMutatingRequestBodies() {
-        List<String> methods = Arrays.asList("registerMetadata", "registerURI", "registerApiDoc",
-                "registerDiscoveryConfig", "registerMcpTools", "offline");
-        for (String methodName : methods) {
-            Method method = Arrays.stream(ShenyuClientHttpRegistryController.class.getDeclaredMethods())
-                    .filter(candidate -> candidate.getName().equals(methodName)).findFirst().orElseThrow();
-            assertTrue(Arrays.stream(method.getParameterAnnotations()[0])
-                    .anyMatch(annotation -> annotation.annotationType().equals(Valid.class)), methodName);
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Mock
+    private ShenyuClientServerRegisterPublisher publisher;
+
+    @InjectMocks
+    private ShenyuClientHttpRegistryController controller;
+
+    private MockMvc mvc;
+
+    @BeforeEach
+    void setUp() {
+        mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new ExceptionHandlers(new StaticMessageSource())).build();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRequests")
+    void acceptsValidRegistrations(final String fixture, final String path) throws Exception {
+        mvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(fixture(fixture))))
+                .andExpect(status().isOk()).andExpect(content().string(RegistrationProtocol.SUCCESS));
+        verify(publisher).publish(any(DataTypeParent.class));
+        verifyNoMoreInteractions(publisher);
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRequests")
+    void rejectsEmptyRegistrations(final String fixture, final String path) throws Exception {
+        mvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(publisher);
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidFields")
+    void rejectsEachInvalidRequiredField(final String fixture, final String path, final String field, final String mutation) throws Exception {
+        ObjectNode request = fixture(fixture);
+        int separator = field.indexOf('.');
+        ObjectNode target = separator < 0 ? request : (ObjectNode) request.get(field.substring(0, separator));
+        String name = separator < 0 ? field : field.substring(separator + 1);
+        switch (mutation) {
+            case "missing":
+                target.remove(name);
+                break;
+            case "null":
+                target.putNull(name);
+                break;
+            case "empty":
+                target.put(name, "");
+                break;
+            case "blank":
+                target.put(name, " \t\r\n");
+                break;
+            default:
+                throw new IllegalArgumentException(mutation);
         }
+        mvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString(field + ": must not be")))
+                .andExpect(result -> {
+                    MethodArgumentNotValidException exception = assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException());
+                    assertEquals(List.of(field), exception.getBindingResult().getFieldErrors().stream().map(FieldError::getField).toList());
+                });
+        verifyNoInteractions(publisher);
     }
 
     @Test
-    public void shouldDeclareRequiredRegistrationFields() throws NoSuchFieldException {
-        assertNotBlank(MetaDataRegisterDTO.class, "appName", "contextPath", "path", "rpcType", "ruleName", "host");
-        assertNotBlank(URIRegisterDTO.class, "appName", "contextPath", "rpcType", "host");
-        assertNotBlank(ApiDocRegisterDTO.class, "contextPath", "apiPath", "rpcType");
-        assertNotNull(ApiDocRegisterDTO.class, "httpMethod");
-        assertNotBlank(DiscoveryConfigRegisterDTO.class, "selectorName", "name", "discoveryType",
-                "serverList", "pluginName");
-        assertNotNull(McpToolsRegisterDTO.class, "metaDataRegisterDTO");
-        assertNotBlank(McpToolsRegisterDTO.class, "mcpConfig");
+    void acceptsUriWithoutOptionalFields() throws Exception {
+        mvc.perform(post(RegistrationProtocol.URI_PATH).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"appName\":\"app\",\"contextPath\":\"/app\",\"rpcType\":\"http\",\"host\":\"127.0.0.1\"}"))
+                .andExpect(status().isOk()).andExpect(content().string(RegistrationProtocol.SUCCESS));
+        verify(publisher).publish(any(DataTypeParent.class));
+        verifyNoMoreInteractions(publisher);
     }
 
-    private void assertNotBlank(final Class<?> type, final String... names) throws NoSuchFieldException {
-        for (String name : names) {
-            Field field = type.getDeclaredField(name);
-            assertTrue(field.isAnnotationPresent(NotBlank.class), type.getSimpleName() + "." + name);
-        }
+    private static Stream<Arguments> validRequests() {
+        return Stream.of(Arguments.of("metadata", RegistrationProtocol.META_PATH), Arguments.of("uri", RegistrationProtocol.URI_PATH),
+                Arguments.of("api-doc", RegistrationProtocol.API_DOC_PATH), Arguments.of("discovery-config", RegistrationProtocol.DISCOVERY_CONFIG_PATH),
+                Arguments.of("mcp", RegistrationProtocol.MCP_TOOLS_PATH), Arguments.of("offline", RegistrationProtocol.OFFLINE_PATH));
     }
 
-    private void assertNotNull(final Class<?> type, final String... names) throws NoSuchFieldException {
-        for (String name : names) {
-            Field field = type.getDeclaredField(name);
-            assertTrue(field.isAnnotationPresent(NotNull.class), type.getSimpleName() + "." + name);
+    private static Stream<Arguments> invalidFields() {
+        return Stream.of(
+                new String[]{"metadata", RegistrationProtocol.META_PATH, "appName,contextPath,path,rpcType,ruleName,host"},
+                new String[]{"uri", RegistrationProtocol.URI_PATH, "appName,contextPath,rpcType,host"},
+                new String[]{"offline", RegistrationProtocol.OFFLINE_PATH, "appName,contextPath,rpcType,host"},
+                new String[]{"api-doc", RegistrationProtocol.API_DOC_PATH, "contextPath,apiPath,rpcType,httpMethod,eventType"},
+                new String[]{"discovery-config", RegistrationProtocol.DISCOVERY_CONFIG_PATH, "selectorName,name,discoveryType,serverList,pluginName"},
+                new String[]{"mcp", RegistrationProtocol.MCP_TOOLS_PATH, "mcpConfig,metaDataRegisterDTO"},
+                new String[]{"mcp", RegistrationProtocol.MCP_TOOLS_PATH, "metaDataRegisterDTO.appName,metaDataRegisterDTO.contextPath,metaDataRegisterDTO.path,"
+                        + "metaDataRegisterDTO.rpcType,metaDataRegisterDTO.ruleName,metaDataRegisterDTO.host"})
+                .flatMap(spec -> Arrays.stream(spec[2].split(",")).flatMap(field -> {
+                    boolean stringField = !List.of("httpMethod", "eventType", "metaDataRegisterDTO").contains(field);
+                    return (stringField ? Stream.of("missing", "null", "empty", "blank") : Stream.of("missing", "null"))
+                            .map(mutation -> Arguments.of(spec[0], spec[1], field, mutation));
+                }));
+    }
+
+    private ObjectNode fixture(final String name) throws Exception {
+        try (InputStream input = Objects.requireNonNull(getClass().getResourceAsStream("/registration/v1/" + name + ".json"))) {
+            return (ObjectNode) mapper.readTree(input);
         }
     }
 }
