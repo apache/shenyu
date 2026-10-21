@@ -100,6 +100,31 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
+    void tracingReusesOnlyTheExplicitlyNamedGatewayTracer() {
+        io.opentelemetry.api.trace.Tracer shared = OpenTelemetry.noop().getTracer("gateway");
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean("tracingTracer", io.opentelemetry.api.trace.Tracer.class, () -> shared)
+                .run(context -> {
+                    assertEquals(shared, ReflectionTestUtils.getField(context.getBean(AgentMcpCallTracer.class), "tracer"));
+                    assertTrue(context.getBeansOfType(OpenTelemetry.class).isEmpty());
+                });
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean("unrelatedTracer", io.opentelemetry.api.trace.Tracer.class, () -> shared)
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void explicitApplicationTelemetryWinsOverGatewayTracer() {
+        OpenTelemetry telemetry = mock(OpenTelemetry.class);
+        io.opentelemetry.api.trace.Tracer application = mock(io.opentelemetry.api.trace.Tracer.class);
+        when(telemetry.getTracer("org.apache.shenyu.agent.gateway")).thenReturn(application);
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean(OpenTelemetry.class, () -> telemetry)
+                .withBean("tracingTracer", io.opentelemetry.api.trace.Tracer.class, () -> OpenTelemetry.noop().getTracer("gateway"))
+                .run(context -> assertEquals(application, ReflectionTestUtils.getField(context.getBean(AgentMcpCallTracer.class), "tracer")));
+    }
+
+    @Test
     void optionalTelemetryApiIsNotRequiredWhenDisabled() {
         contextRunner.withClassLoader(new FilteredClassLoader("io.opentelemetry"))
                 .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")

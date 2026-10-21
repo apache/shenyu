@@ -26,6 +26,7 @@ import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalEvent;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
@@ -79,6 +80,64 @@ import static org.mockito.Mockito.when;
 class AgentMcpTerminalObservationTest {
 
     private final AgentTrafficContext traffic = new AgentTrafficContext("gateway-id", "mcp", "selector", "rule");
+
+    @Test
+    void runtimeMetricsWorkWithoutAnApplicationObserverBeforeParsing() {
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        MockServerWebExchange exchange = exchange("tools/call");
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
+        StepVerifier.create(handler(Mono.just(new JsonObject()), ignored -> Mono.empty(), null)
+                .handle(exchange, config("json", 30000), traffic, 1)).verifyComplete();
+        verify(metrics).started(AgentRuntimeMetrics.Traffic.MCP);
+        verify(metrics).finished(org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Traffic.MCP),
+                org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Outcome.REJECTED),
+                org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Reason.AUTHENTICATION), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void runtimeMetricsFinishOnceOnCancellationEvenIfApplicationObserverThrows() {
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        AgentMcpTerminalObservation observation = new AgentMcpTerminalObservation(event -> {
+            throw new IllegalStateException("private");
+        }, traffic, 1, metrics);
+        observation.finish(SignalType.CANCEL, null);
+        observation.finish(SignalType.ON_COMPLETE, 200);
+        verify(metrics).started(AgentRuntimeMetrics.Traffic.MCP);
+        verify(metrics).finished(org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Traffic.MCP),
+                org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Outcome.CANCELLED),
+                org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Reason.NONE), org.mockito.ArgumentMatchers.anyLong());
+        org.mockito.Mockito.verifyNoMoreInteractions(metrics);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"401,AUTHENTICATION", "403,PROTOCOL", "413,RESOURCE_LIMIT", "429,RESOURCE_LIMIT", "400,PROTOCOL", "500,OTHER"})
+    void runtimeMetricsUseBoundedFailureReasons(final int status, final AgentRuntimeMetrics.Reason reason) {
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        AgentMcpTerminalObservation observation = new AgentMcpTerminalObservation(null, traffic, 1, metrics);
+        observation.failure(new IllegalStateException("private"), status);
+        observation.finish(SignalType.ON_COMPLETE, status);
+        verify(metrics).finished(org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Traffic.MCP), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(reason), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void metricsFailureCannotChangeTheMcpResult() {
+        AgentRuntimeMetrics metrics = new AgentRuntimeMetrics() {
+            @Override
+            public void started(final Traffic trafficType) {
+                throw new IllegalStateException("private");
+            }
+
+            @Override
+            public void finished(final Traffic trafficType, final AgentRuntimeMetrics.Outcome outcome, final Reason reason, final long millis) {
+                throw new IllegalStateException("private");
+            }
+        };
+        MockServerWebExchange exchange = exchange("tools/call");
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
+        StepVerifier.create(handler(Mono.just(new JsonObject()), identity(), null).handle(exchange, config("json", 30000), traffic, 1)).verifyComplete();
+        assertEquals(200, exchange.getResponse().getStatusCode().value());
+    }
 
     @Test
     void trustedTenantAndCommonContextReachProviderAndTerminalWithoutSessionFabrication() {

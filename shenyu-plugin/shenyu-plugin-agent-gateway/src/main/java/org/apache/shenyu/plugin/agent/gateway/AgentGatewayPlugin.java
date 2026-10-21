@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -104,7 +105,9 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
 
     private Mono<Void> handleLlm(final ServerWebExchange exchange, final ShenyuPluginChain chain, final AgentRequestContext initial) {
         return Mono.defer(() -> {
-            AiRequestObservation observation = new AiRequestObservation(aiObserver, initial);
+            Object callback = exchange.getAttribute(AgentRuntimeMetrics.KEY);
+            AiRequestObservation observation = new AiRequestObservation(aiObserver, initial,
+                    callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
             Mono<AgentRequestContext> identity = Objects.isNull(llmSecurityResolver) ? Mono.just(initial)
                     : Mono.defer(() -> llmSecurityResolver.resolve(exchange))
                             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED)))
