@@ -65,6 +65,53 @@ class AiTokenLimiterPluginTest {
 
     private static final String USAGE_EVENT = "data: {\"usage\":{\"completion_tokens\":12}}\n\n";
 
+    private static final String RESPONSES_COMPLETED_EVENT = "event: response.completed\n"
+            + "data: {\"type\":\"response.completed\",\"sequence_number\":4,\"response\":{\"id\":\"resp_1\",\"object\":\"response\","
+            + "\"status\":\"completed\",\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}}\n\n";
+
+    private static final String RESPONSES_BODY = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"completed\","
+            + "\"output\":[],\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}";
+
+    @Test
+    void testResponsesStreamEventRecordsOutputTokens() {
+        // Issue #7911: a Responses terminal event carries its usage inside the response object.
+        assertResponseUsage(RESPONSES_COMPLETED_EVENT, new byte[][] {RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8)},
+                false, false, 12L);
+    }
+
+    @Test
+    void testResponsesStreamEventAcrossBuffersRecordsOutputTokens() {
+        // Split inside the output_tokens key: neither buffer holds a complete event, so the streaming JSON-parse path
+        // finds nothing and the regex fallback over the accumulated SSE tail is what accounts the usage.
+        byte[] content = RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8);
+        int split = RESPONSES_COMPLETED_EVENT.indexOf("\"output_tokens\"");
+        byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
+        for (boolean flush : new boolean[] {false, true}) {
+            assertResponseUsage(RESPONSES_COMPLETED_EVENT, chunks, flush, false, 12L);
+        }
+    }
+
+    @Test
+    void testCompleteResponsesBodyRecordsOutputTokens() {
+        // A converted, non-streaming Responses body is not SSE framed: only the buffered fallback sees it.
+        byte[] content = RESPONSES_BODY.getBytes(StandardCharsets.UTF_8);
+        assertResponseUsage(RESPONSES_BODY, new byte[][] {content}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageIsNotReadFromMaxOutputTokens() {
+        // max_output_tokens is an echo of the request limit, never an accounted count.
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"max_output_tokens\":99,\"usage\":{\"input_tokens\":3,"
+                + "\"output_tokens\":12,\"total_tokens\":15}}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageWithoutOutputTokensRecordsNothing() {
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"incomplete\",\"max_output_tokens\":99}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 0L);
+    }
+
     @ParameterizedTest
     @CsvSource({"false, field", "true, field", "true, number"})
     void testResponseUsageAcrossBuffers(final boolean flush, final String boundary) {
@@ -306,6 +353,16 @@ class AiTokenLimiterPluginTest {
     }
 
     private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip) {
+        assertResponseUsage(expected, chunks, flush, gzip, 12L);
+    }
+
+    private void assertResponseUsage(final String expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
+        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, flush, gzip, expectedTokens);
+    }
+
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
         exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
         if (gzip) {
@@ -318,7 +375,7 @@ class AiTokenLimiterPluginTest {
         Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
         completion.block();
 
-        assertEquals(List.of(12L), recorded);
+        assertEquals(List.of(expectedTokens), recorded);
         byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
