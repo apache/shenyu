@@ -115,6 +115,20 @@ class AppAuthAccessPolicyImplTest {
     }
 
     @Test
+    void nullSubjectIsRejected() {
+        loginAs(SVC_USER);
+        ThreadContext.unbindSubject();
+        // a mock SecurityManager left bound in the JVM (as PermissionServiceTest does) makes
+        // SecurityUtils.getSubject() build a subject via the mock and receive null back
+        ThreadContext.bind(mock(org.apache.shiro.mgt.SecurityManager.class));
+        try {
+            assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
+        } finally {
+            ThreadContext.unbindSecurityManager();
+        }
+    }
+
+    @Test
     void whitelistedPermittedCallerPasses() {
         loginAs(SVC_USER);
         permit("system:authen:lifecycleApply", true);

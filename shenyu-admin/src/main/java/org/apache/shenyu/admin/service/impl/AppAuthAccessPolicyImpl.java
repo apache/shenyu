@@ -99,7 +99,10 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
 
     private boolean isPermitted(final String permission) {
         try {
-            return SecurityUtils.getSubject().isPermitted(permission);
+            final org.apache.shiro.subject.Subject subject = SecurityUtils.getSubject();
+            // a missing Shiro context can also surface as a null subject (no usable thread binding):
+            // reject instead of throwing a NullPointerException to the caller
+            return Objects.nonNull(subject) && subject.isPermitted(permission);
         } catch (UnavailableSecurityManagerException | IllegalStateException e) {
             // reject whenever no Shiro context exists (unexpected call path or direct invocation)
             return false;
