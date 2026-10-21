@@ -25,13 +25,16 @@ Source preparation, local snapshot installation and this guide are not publicati
 
 ## Compatibility and ownership
 
-Development validation uses store 2.7.1-SNAPSHOT, core 2.7.2-SNAPSHOT at 87c22dde7,
+Development validation uses store 2.7.1-SNAPSHOT, core 2.7.2-SNAPSHOT at cutover commit cfc267c8b (base 87c22dde7),
 Microsoft OpenJDK 17.0.18 and Netflix eureka-client/eureka-client-jersey3 2.0.2.
 The disposable server uses ShenYu's Spring Cloud Eureka example (4.1.2).
 These are development coordinates and test scope, not a released compatibility matrix.
 
 The provider keeps its packages, non-singleton @Join annotation, eureka type key,
-SPI resource, registration/discovery/lease behavior and polling-failure recovery.
+SPI resource and existing lease/registration behavior. Runtime parity testing also
+corrects identity-only update comparison: changed upstream payloads produce updates;
+an IP/port change removes the old URL before adding its replacement. Polling-failure
+recovery remains covered.
 No core factory dispatch or enum/SQL key changes are needed. It resolves through
 ShenyuInstanceRegisterRepositoryFactory with an external provider JAR.
 This transfer does not redesign Eureka instance identity, authentication or refresh policy.
@@ -61,7 +64,8 @@ For gateway instance registration, add:
 </dependency>
 ```
 
-The external starter retains the core registry lifecycle and explicitly excludes
+The external starter retains bound-port registration and owns provider cleanup on
+application-context shutdown. It explicitly excludes
 the core starter's old transitive Eureka provider. It contributes its external
 provider instead. Other retained compatibility providers may remain on that
 starter's classpath; exclude those explicitly if building a minimal assembly.
@@ -77,8 +81,10 @@ wiring need the provider rather than the gateway starter:
 </dependency>
 ```
 
-Resolve the complete runtime dependency closure, including Eureka's Jersey 3
-transport, when installing into lib/ distributions. Do not copy only the provider
+The provider JAR isolates Jersey 3 transport, HK2 and JAX-RS classes under private
+packages. This avoids the older Jersey providers found on the full Bootstrap
+classpath while retaining shared ShenYu API/SPI class identity. Resolve the complete
+runtime dependency closure when installing into lib/ distributions. Do not copy only the provider
 JAR or replace retained core API/SPI classes with bundled duplicates.
 The source remains ASF/Apache-2.0. Preserve Netflix/Jersey and resolved third-party
 licenses/notices in custom binary distributions.
@@ -136,11 +142,29 @@ API artifacts from a pinned main commit, then runs the receiving provider.
    release and announce migration/rollback versions. Do not close #7596 before the
    complete deployment and publication evidence exists.
 
-Local evidence: six unit/SPI/starter tests pass with Checkstyle and RAT. The real
-server lifecycle test also passes locally. Full Admin/bootstrap/Eureka container
-E2E has not been run: the local Docker Linux-engine pipe was unavailable even
-after a desktop launch attempt. That gate is outstanding, not certified by the
-provider-only test.
+Local evidence on 2026-10-21: seven unit/SPI/starter tests pass with Checkstyle
+and RAT, and a separate real-server provider lifecycle test passes. The complete
+local process E2E passes 13 checkpoints using actual Eureka, H2 Admin and bootstrap
+JVMs with the external provider JAR. It verifies class origins in both server
+processes, bound-port registration, discovery/proxying, endpoint refresh and old
+endpoint removal, graceful gateway deregistration, gateway restart, healthy sibling
+preservation and final route removal. The harness uses a stdin-controlled Spring
+context for graceful shutdown on Windows as well as Linux.
+
+The runtime source pair is core cfc267c8b and extension 8bf73dd; the tested registry
+JAR SHA-256 is e5fefda48d00b17cf505549e100479b87c04a5d83ca7c0ef6c3547225fc8fc31.
+The receiving repository retains the machine-readable process result under its
+Eureka e2e/results directory. The CI lane is configured to repeat the live provider
+and complete process tests; its configuration alone is not a passing CI result.
+Docker image/container execution was not run.
+
+To reproduce the full process harness, first package core Admin, bootstrap and the
+retained registry starter with dependency:build-classpath, setting
+-Dmdep.outputFile=target/eureka-classpath.txt -DincludeScope=runtime. Package the
+external Eureka starter reactor with the same classpath goal. Start the real Eureka
+example server, then run e2e/run-local.py with --core, --store, --java, --eureka and
+--output paths. The workflow records the complete wrapper commands and retains
+redacted process/class-origin logs plus result.json.
 
 ## Upgrade and rollback
 
@@ -155,4 +179,3 @@ that included the provider, removing the external copy. Preserve database/type
 keys and Eureka applications. Clean up or expire obsolete instance records using
 the deployment's existing lease/identity procedure. Do not clear the whole registry
 or run two versions with identical classes in the same JVM.
-
