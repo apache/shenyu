@@ -24,9 +24,11 @@ import org.apache.shenyu.admin.scale.scaler.KubernetesScaler;
 import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Component
 public class ScaleObserver implements Observer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScaleObserver.class);
