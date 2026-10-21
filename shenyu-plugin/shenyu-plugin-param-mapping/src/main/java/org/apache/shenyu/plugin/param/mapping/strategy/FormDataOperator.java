@@ -64,7 +64,8 @@ public class FormDataOperator implements Operator {
         return exchange.getFormData()
                 .switchIfEmpty(Mono.just(new LinkedMultiValueMap<>()))
                 .flatMap(multiValueMap -> {
-                    if (Objects.isNull(multiValueMap) || multiValueMap.isEmpty()) {
+                    if (Objects.isNull(multiValueMap)
+                            || (multiValueMap.isEmpty() && CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys()))) {
                         return shenyuPluginChain.execute(exchange);
                     }
                     String original = GsonUtils.getInstance().toJson(multiValueMap);

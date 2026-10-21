@@ -1,0 +1,71 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Close
+
+# Post /close as the entire comment on an open PR. The PR author and users
+# with write, maintain, or admin access may close it. A rocket confirms success.
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  close:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/close')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    concurrency:
+      group: close-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      # Use the default-branch script without checking out or executing PR code.
+      - name: Close pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {issue, comment, action} = context.payload;
+            if (action !== 'created' || !issue?.pull_request || comment?.body?.trim() !== '/close') {
+                return;
+            }
+
+            const repo = context.repo;
+            const pullRequest = {...repo, pull_number: issue.number};
+            const {data: pr} = await github.rest.pulls.get(pullRequest);
+            if (pr.state !== 'open') {
+                core.info('Skipping a closed pull request.');
+                return;
+            }
+
+            if (comment.user.login.toLowerCase() !== pr.user.login.toLowerCase()) {
+                const {data: access} = await github.rest.repos.getCollaboratorPermissionLevel({
+                    ...repo,
+                    username: comment.user.login,
+                });
+                if (!['write', 'maintain', 'admin'].includes(access.permission)) {
+                    core.info('Only the pull request author or a user with write access can close it.');
+                    return;
+                }
+            }
+
+            await github.rest.pulls.update({...pullRequest, state: 'closed'});
+            await github.rest.reactions.createForIssueComment({
+                ...repo,
+                comment_id: comment.id,
+                content: 'rocket',
+            });

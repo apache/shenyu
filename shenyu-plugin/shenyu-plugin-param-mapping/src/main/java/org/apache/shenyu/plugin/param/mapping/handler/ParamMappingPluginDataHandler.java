@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.param.mapping.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -39,6 +40,10 @@ public class ParamMappingPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            if (StringUtils.isBlank(s)) {
+                removeRule(ruleData);
+                return;
+            }
             ParamMappingRuleHandle paramMappingRuleHandle = GsonUtils.getInstance().fromJson(s, ParamMappingRuleHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), paramMappingRuleHandle);
         });

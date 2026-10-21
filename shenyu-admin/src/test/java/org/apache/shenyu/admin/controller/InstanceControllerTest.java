@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -77,9 +78,12 @@ public final class InstanceControllerTest {
 
     @Test
     public void testQueryPlugins() throws Exception {
-        PageParameter pageParameter = new PageParameter(1, 10);
+        final PageParameter pageParameter = new PageParameter(1, 10);
         List<InstanceInfoVO> vos = new ArrayList<>();
         vos.add(vo);
+        InstanceInfoVO second = buildVO();
+        second.setId("instance-2");
+        vos.add(second);
         CommonPager<InstanceInfoVO> pager = new CommonPager<>();
         pager.setPage(pageParameter);
         pager.setDataList(vos);
@@ -88,7 +92,8 @@ public final class InstanceControllerTest {
         InstanceInfoVO health = buildVO();
         health.setInstanceState(2);
         health.setLastHeartBeatTime(123L);
-        health.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        Timestamp healthDateUpdated = new Timestamp(456L);
+        health.setDateUpdated(healthDateUpdated);
         given(this.instanceCheckService.getInstanceHealthBeatInfo(anyString())).willReturn(health);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance")
@@ -100,7 +105,44 @@ public final class InstanceControllerTest {
                         .param("pageSize", String.valueOf(pageParameter.getPageSize())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())));
+                .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())))
+                .andExpect(jsonPath("$.data.dataList[0].id", is("instance-1")))
+                .andExpect(jsonPath("$.data.dataList[1].id", is("instance-2")));
+        assertEquals(health.getLastHeartBeatTime(), vo.getLastHeartBeatTime());
+        assertEquals(health.getInstanceState(), vo.getInstanceState());
+        assertEquals(healthDateUpdated, vo.getDateUpdated());
+    }
+
+    @Test
+    public void testQueryPluginsWithMissingHealthBeatInfo() throws Exception {
+        final PageParameter pageParameter = new PageParameter(1, 10);
+        Timestamp dateUpdated = new Timestamp(123L);
+        vo.setInstanceState(2);
+        vo.setLastHeartBeatTime(0L);
+        vo.setDateUpdated(dateUpdated);
+        InstanceInfoVO persistedHeartbeatVO = buildVO();
+        persistedHeartbeatVO.setInstanceState(3);
+        persistedHeartbeatVO.setLastHeartBeatTime(456L);
+        CommonPager<InstanceInfoVO> pager = new CommonPager<>();
+        pager.setPage(pageParameter);
+        pager.setDataList(List.of(vo, persistedHeartbeatVO));
+        given(this.instanceInfoService.listByPage(any(InstanceQuery.class))).willReturn(pager);
+        given(this.instanceCheckService.getInstanceKey((InstanceInfoVO) any())).willReturn("key");
+        given(this.instanceCheckService.getInstanceHealthBeatInfo(anyString())).willReturn(null);
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance")
+                        .param("instanceType", vo.getInstanceType())
+                        .param("instanceIp", vo.getInstanceIp())
+                        .param("instancePort", vo.getInstancePort())
+                        .param("namespaceId", vo.getNamespaceId())
+                        .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
+                        .param("pageSize", String.valueOf(pageParameter.getPageSize())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.dataList[0].instanceState", is(2)))
+                .andExpect(jsonPath("$.data.dataList[0].lastHeartBeatTime", is(123)))
+                .andExpect(jsonPath("$.data.dataList[1].instanceState", is(3)))
+                .andExpect(jsonPath("$.data.dataList[1].lastHeartBeatTime", is(456)));
+        assertEquals(dateUpdated, vo.getDateUpdated());
     }
 
     @Test
@@ -109,7 +151,8 @@ public final class InstanceControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())));
+                .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())))
+                .andExpect(jsonPath("$.data.id", is("instance-1")));
     }
 
     @Test
@@ -131,6 +174,7 @@ public final class InstanceControllerTest {
 
     private InstanceInfoVO buildVO() {
         InstanceInfoVO v = new InstanceInfoVO();
+        v.setId("instance-1");
         v.setInstanceIp("127.0.0.1");
         v.setInstancePort("8080");
         v.setInstanceType("grpc");

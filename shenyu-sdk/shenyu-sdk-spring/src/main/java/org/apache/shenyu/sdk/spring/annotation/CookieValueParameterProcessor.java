@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
@@ -27,7 +25,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -51,16 +51,11 @@ public class CookieValueParameterProcessor implements AnnotatedParameterProcesso
         CookieValue cookie = ANNOTATION.cast(annotation);
         String name = StringUtils.defaultIfBlank(cookie.value(), StringUtils.defaultIfBlank(cookie.name(), StringUtils.EMPTY)).trim();
         checkState(StringUtils.isNotBlank(name), "Cookie.name() was empty on parameter %s", requestTemplate.getMethod());
-        Collection<String> cookieExpression = requestTemplate.getHeaders().getOrDefault(HttpHeaders.COOKIE, Lists.newArrayList());
-        cookieExpression.add(String.format("%s=%s", name, arg));
+        // operate on the per-invocation header map only: never mutate collections owned by the shared request template
         Map<String, Collection<String>> headers = shenyuRequest.getHeaders();
-        headers.compute(HttpHeaders.COOKIE, (key, old) -> {
-            if (CollectionUtils.isEmpty(old)) {
-                return cookieExpression;
-            }
-            CollectionUtils.addAll(old, cookieExpression);
-            return old;
-        });
+        Collection<String> cookieExpression = new ArrayList<>(headers.getOrDefault(HttpHeaders.COOKIE, Collections.emptyList()));
+        cookieExpression.add(String.format("%s=%s", name, arg));
+        headers.put(HttpHeaders.COOKIE, cookieExpression);
         shenyuRequest.setHeaders(headers);
         return true;
     }

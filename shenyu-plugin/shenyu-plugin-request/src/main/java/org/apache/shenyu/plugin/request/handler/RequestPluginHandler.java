@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.request.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -39,6 +40,10 @@ public class RequestPluginHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            if (StringUtils.isBlank(s)) {
+                removeRule(ruleData);
+                return;
+            }
             RequestHandle requestHandle = GsonUtils.getInstance().fromJson(s, RequestHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), requestHandle);
         });

@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
@@ -87,8 +88,8 @@ public class AiProxyPluginConfiguration {
     }
 
     @Bean
-    public AiProxyConfigService aiProxyConfigService() {
-        return new AiProxyConfigService();
+    public AiProxyConfigService aiProxyConfigService(final AiProxyPluginHandler aiProxyPluginHandler) {
+        return new AiProxyConfigService(aiProxyPluginHandler);
     }
 
     /**
@@ -107,12 +108,15 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyProtocolFactory protocol factory
      * @param aiProxyProviderFactory provider factory
      * @param aiProxyTransport       transport
+     * @param retryProperties        retry properties
      * @return the AI proxy engine
      */
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
-                                       final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport) {
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport);
+                                       final AiProxyProviderFactory aiProxyProviderFactory,
+                                       final AiProxyTransport aiProxyTransport,
+                                       final AiProxyRetryProperties retryProperties) {
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport, retryProperties);
     }
 
     /**
@@ -242,6 +246,17 @@ public class AiProxyPluginConfiguration {
     @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.transport")
     public AiProxyTransportProperties aiProxyTransportProperties() {
         return new AiProxyTransportProperties();
+    }
+
+    /**
+     * AI proxy retry properties.
+     *
+     * @return AI proxy retry properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.retry")
+    public AiProxyRetryProperties aiProxyRetryProperties() {
+        return new AiProxyRetryProperties();
     }
 
     HttpClient createHttpClient(final AiProxyTransportProperties properties) {

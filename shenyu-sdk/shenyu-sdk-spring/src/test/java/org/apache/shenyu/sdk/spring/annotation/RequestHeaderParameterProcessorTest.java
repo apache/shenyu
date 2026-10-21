@@ -19,13 +19,16 @@ package org.apache.shenyu.sdk.spring.annotation;
 
 import com.google.common.collect.Maps;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,6 +94,25 @@ public class RequestHeaderParameterProcessorTest {
 
         assertTrue(headers.get(headerName).contains(headerValue));
 
+    }
+
+    @Test
+    public void processArgumentOnStaticSingletonHeaderTest() throws NoSuchMethodException {
+        final RequestTemplate template = new RequestTemplate();
+        template.setHttpMethod(ShenyuRequest.HttpMethod.GET);
+        template.setMethod(getClass().getDeclaredMethod("processArgumentOnStaticSingletonHeaderTest"));
+        template.getHeaders().put("X-Mode", Collections.singleton("static"));
+
+        final ShenyuRequest perCall = RequestTemplate.from(template).request();
+        final RequestHeader header = spy(RequestHeader.class);
+        when(header.value()).thenReturn("X-Mode");
+
+        processor.processArgument(perCall, header, "dynamic");
+
+        assertTrue(perCall.getHeaders().get("X-Mode").containsAll(Arrays.asList("static", "dynamic")),
+                "dynamic header value must merge with the static one");
+        assertEquals(Collections.singleton("static"), template.getHeaders().get("X-Mode"),
+                "the shared template must not be mutated");
     }
 
     @Test
