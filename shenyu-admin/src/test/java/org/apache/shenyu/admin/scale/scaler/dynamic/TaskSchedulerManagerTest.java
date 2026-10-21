@@ -20,16 +20,20 @@ package org.apache.shenyu.admin.scale.scaler.dynamic;
 import org.apache.shenyu.admin.scale.config.ScaleProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -73,5 +77,21 @@ class TaskSchedulerManagerTest {
 
         assertTrue(executor.isShutdown(), "Closing the context should shut down the monitor scheduler");
         assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS), "Monitor threads should terminate after context close");
+    }
+
+    @Test
+    void testRegisterOnceTaskFiresOnceAndRemovesEntry() throws InterruptedException {
+        final CountDownLatch taskFired = new CountDownLatch(1);
+        final AtomicInteger invocationCount = new AtomicInteger();
+
+        manager.registerOnceTask("once", () -> {
+            invocationCount.incrementAndGet();
+            taskFired.countDown();
+        }, Instant.now().plusMillis(20));
+
+        assertTrue(taskFired.await(5, TimeUnit.SECONDS), "The one-shot task should fire");
+        assertEquals(1, invocationCount.get());
+        final Object taskMap = ReflectionTestUtils.getField(manager, "taskMap");
+        assertFalse(((java.util.Map<?, ?>) taskMap).containsKey("once"));
     }
 }
