@@ -37,7 +37,6 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -85,21 +84,19 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            if (StringUtils.isBlank(s)) {
-                // an explicitly cleared handle must evict the previous rule,
-                // not leave it cached and enforcing (#7914)
-                CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-                return;
-            }
-            final RateLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, RateLimiterHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
-        });
+        if (StringUtils.isBlank(ruleData.getHandle())) {
+            // a cleared (null or blank) handle must evict the previous rule,
+            // not leave it cached and enforcing (#7914)
+            removeRule(ruleData);
+            return;
+        }
+        final RateLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), RateLimiterHandle.class);
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
     }
 
     @Override

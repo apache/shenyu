@@ -127,6 +127,20 @@ public final class SentinelRuleHandleTest {
         assertEquals(1, FlowRuleManager.getRules().size());
     }
 
+    @Test
+    public void handlerRuleNullHandleEvictsCacheAndEnforcement() {
+        final RuleData data = createRuleData("null-clear-test");
+        sentinelRuleHandle.handlerRule(data);
+        assertEquals(1, FlowRuleManager.getRules().size());
+
+        // a handle that disappeared entirely (null) is a clear too (#7914)
+        data.setHandle(null);
+        sentinelRuleHandle.handlerRule(data);
+        assertTrue(FlowRuleManager.getRules().isEmpty());
+        assertTrue(DegradeRuleManager.getRules().isEmpty());
+        assertNull(SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle("sentinel_null-clear-test"));
+    }
+
     private SentinelHandle sentinelHandle() {
         SentinelHandle handle = new SentinelHandle();
         handle.setFlowRuleCount(10);

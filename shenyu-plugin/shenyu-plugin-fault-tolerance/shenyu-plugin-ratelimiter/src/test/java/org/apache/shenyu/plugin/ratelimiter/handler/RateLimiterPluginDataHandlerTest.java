@@ -27,6 +27,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.infra.redis.RedisConfigProperties;
 import org.apache.shenyu.infra.redis.RedisConnectionFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,6 +79,13 @@ public final class RateLimiterPluginDataHandlerTest {
     private static final int DEFAULT_MIN_IDLE = 0;
 
     private RedisConnectionFactory redisConnectionFactory;
+
+    @AfterEach
+    public void clearTestKeys() {
+        RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_clear-test");
+        RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_null-clear-test");
+        RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_remove-null-test");
+    }
 
     @BeforeEach
     public void setUp() {
@@ -222,6 +230,43 @@ public final class RateLimiterPluginDataHandlerTest {
         handler.handlerRule(ruleData);
         assertNotNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_clear-test"),
                 "a subsequent valid update must re-cache the rule");
+    }
+
+    /**
+     * A handle that disappeared entirely (null) is a clear too (#7914).
+     */
+    @Test
+    public void handlerRuleNullHandleEvictsPreviousRule() {
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("1");
+        ruleData.setId("null-clear-test");
+        ruleData.setHandle(GsonUtils.getGson().toJson(RateLimiterHandle.newDefaultInstance()));
+        handler.handlerRule(ruleData);
+        assertNotNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_null-clear-test"));
+
+        ruleData.setHandle(null);
+        handler.handlerRule(ruleData);
+        assertNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_null-clear-test"),
+                "a null handle must evict the previously cached rule");
+    }
+
+    /**
+     * Deleting a rule whose handle is already null must still evict the cached entry (#7914).
+     */
+    @Test
+    public void removeRuleWithoutHandleStillEvicts() {
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("1");
+        ruleData.setId("remove-null-test");
+        ruleData.setHandle(null);
+        RateLimiterPluginDataHandler.CACHED_HANDLE.get().cachedHandle("1_remove-null-test",
+                RateLimiterHandle.newDefaultInstance());
+
+        handler.removeRule(ruleData);
+
+        assertNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_remove-null-test"));
     }
 
     /**

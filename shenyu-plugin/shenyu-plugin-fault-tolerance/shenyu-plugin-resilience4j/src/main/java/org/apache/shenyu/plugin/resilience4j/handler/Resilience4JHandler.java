@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.resilience4j.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -55,24 +54,24 @@ public class Resilience4JHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         String key = CacheKeyUtils.INST.getKey(ruleData);
+        // resetting the registry on every update is intentional: a rule change must
+        // not keep breaker/bulkhead/limiter state built from the previous handle (#7914)
         Resilience4JRegistryFactory.remove(key);
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            if (StringUtils.isBlank(s)) {
-                // an explicitly cleared handle must evict the previous rule,
-                // not leave it cached and enforcing (#7914)
-                CACHED_HANDLE.get().removeHandle(key);
-                return;
-            }
-            final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(s, Resilience4JHandle.class);
-            CACHED_HANDLE.get().cachedHandle(key, resilience4JHandle);
-        });
+        if (StringUtils.isBlank(ruleData.getHandle())) {
+            // a cleared (null or blank) handle must evict the previous rule,
+            // not leave it cached and enforcing (#7914)
+            removeRule(ruleData);
+            return;
+        }
+        final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), Resilience4JHandle.class);
+        CACHED_HANDLE.get().cachedHandle(key, resilience4JHandle);
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         String key = CacheKeyUtils.INST.getKey(ruleData);
         Resilience4JRegistryFactory.remove(key);
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(key));
+        CACHED_HANDLE.get().removeHandle(key);
     }
 
     @Override
