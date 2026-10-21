@@ -130,6 +130,7 @@
                         <executions>
                             <execution>
                                 <id>start</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
