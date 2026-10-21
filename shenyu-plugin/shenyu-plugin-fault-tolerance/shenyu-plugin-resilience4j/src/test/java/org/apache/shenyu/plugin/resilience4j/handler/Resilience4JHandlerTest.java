@@ -56,6 +56,34 @@ public final class Resilience4JHandlerTest {
         Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }
 
+    /**
+     * An explicitly cleared handle must evict the previous rule, whitespace
+     * counts as a clear, and a subsequent valid update re-caches (#7914).
+     */
+    @Test
+    public void testHandlerRuleExplicitClearEvictsPreviousRule() {
+        Supplier<CommonHandleCache<String, Resilience4JHandle>> cache = Resilience4JHandler.CACHED_HANDLE;
+        ruleData.setSelectorId("1");
+        ruleData.setId("clear-test");
+        ruleData.setHandle("{\"urlPath\":\"test\"}");
+        resilience4JHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(cache.get().obtainHandle("1_clear-test"));
+
+        ruleData.setHandle("");
+        resilience4JHandler.handlerRule(ruleData);
+        Assertions.assertNull(cache.get().obtainHandle("1_clear-test"),
+                "an empty handle must evict the previously cached rule");
+
+        ruleData.setHandle("   ");
+        resilience4JHandler.handlerRule(ruleData);
+        Assertions.assertNull(cache.get().obtainHandle("1_clear-test"));
+
+        ruleData.setHandle("{\"urlPath\":\"test\"}");
+        resilience4JHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(cache.get().obtainHandle("1_clear-test"),
+                "a subsequent valid update must re-cache the rule");
+    }
+
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(resilience4JHandler.pluginNamed(), "resilience4j");

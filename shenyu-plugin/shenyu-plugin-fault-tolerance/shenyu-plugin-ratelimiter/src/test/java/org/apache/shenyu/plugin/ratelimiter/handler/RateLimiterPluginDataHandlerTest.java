@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.ratelimiter.handler;
 import com.google.common.collect.Sets;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -46,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -191,6 +194,34 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         assertEquals(PluginEnum.RATE_LIMITER.getName(), new RateLimiterPluginDataHandler().pluginNamed());
+    }
+
+    /**
+     * an explicitly cleared handle must evict the previously cached rule (#7914).
+     */
+    @Test
+    public void handlerRuleExplicitClearEvictsPreviousRule() {
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("1");
+        ruleData.setId("clear-test");
+        ruleData.setHandle(GsonUtils.getGson().toJson(RateLimiterHandle.newDefaultInstance()));
+        handler.handlerRule(ruleData);
+        assertNotNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_clear-test"));
+
+        ruleData.setHandle("");
+        handler.handlerRule(ruleData);
+        assertNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_clear-test"),
+                "an empty handle must evict the previously cached rule");
+
+        ruleData.setHandle("   ");
+        handler.handlerRule(ruleData);
+        assertNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_clear-test"));
+
+        ruleData.setHandle(GsonUtils.getGson().toJson(RateLimiterHandle.newDefaultInstance()));
+        handler.handlerRule(ruleData);
+        assertNotNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_clear-test"),
+                "a subsequent valid update must re-cache the rule");
     }
 
     /**

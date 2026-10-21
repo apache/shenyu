@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,6 +105,40 @@ public final class SentinelRuleHandleTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    public void handlerRuleExplicitClearEvictsCacheAndEnforcement() {
+        final RuleData data = createRuleData("clear-test");
+        sentinelRuleHandle.handlerRule(data);
+        assertEquals(1, FlowRuleManager.getRules().size());
+        assertEquals(1, DegradeRuleManager.getRules().size());
+
+        // an explicitly cleared handle must evict cache and enforcement, not NPE (#7914)
+        data.setHandle("");
+        sentinelRuleHandle.handlerRule(data);
+        assertTrue(FlowRuleManager.getRules().isEmpty());
+        assertTrue(DegradeRuleManager.getRules().isEmpty());
+        assertNull(SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle("sentinel_clear-test"));
+
+        // a subsequent valid update re-establishes enforcement
+        data.setHandle(GsonUtils.getGson().toJson(sentinelHandle()));
+        sentinelRuleHandle.handlerRule(data);
+        assertEquals(1, FlowRuleManager.getRules().size());
+    }
+
+    private SentinelHandle sentinelHandle() {
+        SentinelHandle handle = new SentinelHandle();
+        handle.setFlowRuleCount(10);
+        handle.setFlowRuleGrade(0);
+        handle.setFlowRuleControlBehavior(0);
+        handle.setDegradeRuleCount(1d);
+        handle.setDegradeRuleGrade(0);
+        handle.setDegradeRuleTimeWindow(5);
+        handle.setDegradeRuleMinRequestAmount(5);
+        handle.setDegradeRuleStatIntervals(10);
+        handle.setDegradeRuleSlowRatioThreshold(0.5d);
+        return handle;
     }
 
     private RuleData createRuleData(final String ruleId) {

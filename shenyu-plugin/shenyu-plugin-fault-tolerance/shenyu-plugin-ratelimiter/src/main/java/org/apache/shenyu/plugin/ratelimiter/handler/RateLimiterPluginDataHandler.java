@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ratelimiter.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -85,6 +86,12 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            if (StringUtils.isBlank(s)) {
+                // an explicitly cleared handle must evict the previous rule,
+                // not leave it cached and enforcing (#7914)
+                CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+                return;
+            }
             final RateLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, RateLimiterHandle.class);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
         });

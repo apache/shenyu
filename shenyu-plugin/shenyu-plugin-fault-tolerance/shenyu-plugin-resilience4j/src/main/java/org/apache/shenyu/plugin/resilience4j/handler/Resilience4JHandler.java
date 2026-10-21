@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -56,6 +57,12 @@ public class Resilience4JHandler implements PluginDataHandler {
         String key = CacheKeyUtils.INST.getKey(ruleData);
         Resilience4JRegistryFactory.remove(key);
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            if (StringUtils.isBlank(s)) {
+                // an explicitly cleared handle must evict the previous rule,
+                // not leave it cached and enforcing (#7914)
+                CACHED_HANDLE.get().removeHandle(key);
+                return;
+            }
             final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(s, Resilience4JHandle.class);
             CACHED_HANDLE.get().cachedHandle(key, resilience4JHandle);
         });

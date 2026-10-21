@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -33,6 +34,7 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -59,42 +61,50 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
-        sentinelHandle.checkData();
-        String key = CacheKeyUtils.INST.getKey(ruleData);
-        synchronized (RULE_UPDATE_LOCK) {
-            CACHED_HANDLE.get().cachedHandle(key, sentinelHandle);
-            List<FlowRule> flowRules = FlowRuleManager.getRules()
-                    .stream()
-                    .filter(r -> !r.getResource().equals(key))
-                    .collect(Collectors.toList());
-            if (sentinelHandle.getFlowRuleEnable() == Constants.SENTINEL_ENABLE_FLOW_RULE) {
-                FlowRule rule = new FlowRule(key);
-                rule.setCount(sentinelHandle.getFlowRuleCount());
-                rule.setGrade(sentinelHandle.getFlowRuleGrade());
-                rule.setControlBehavior(sentinelHandle.getFlowRuleControlBehavior());
-                rule.setMaxQueueingTimeMs(sentinelHandle.getFlowRuleMaxQueueingTimeMs());
-                rule.setWarmUpPeriodSec(sentinelHandle.getFlowRuleWarmUpPeriodSec());
-                flowRules.add(rule);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(handle -> {
+            if (StringUtils.isBlank(handle)) {
+                // an explicitly cleared handle must evict the cached rule and
+                // its flow/degrade enforcement, not crash or go stale (#7914)
+                removeRule(ruleData);
+                return;
             }
-            FlowRuleManager.loadRules(flowRules);
+            SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(handle, SentinelHandle.class);
+            sentinelHandle.checkData();
+            String key = CacheKeyUtils.INST.getKey(ruleData);
+            synchronized (RULE_UPDATE_LOCK) {
+                CACHED_HANDLE.get().cachedHandle(key, sentinelHandle);
+                List<FlowRule> flowRules = FlowRuleManager.getRules()
+                        .stream()
+                        .filter(r -> !r.getResource().equals(key))
+                        .collect(Collectors.toList());
+                if (sentinelHandle.getFlowRuleEnable() == Constants.SENTINEL_ENABLE_FLOW_RULE) {
+                    FlowRule rule = new FlowRule(key);
+                    rule.setCount(sentinelHandle.getFlowRuleCount());
+                    rule.setGrade(sentinelHandle.getFlowRuleGrade());
+                    rule.setControlBehavior(sentinelHandle.getFlowRuleControlBehavior());
+                    rule.setMaxQueueingTimeMs(sentinelHandle.getFlowRuleMaxQueueingTimeMs());
+                    rule.setWarmUpPeriodSec(sentinelHandle.getFlowRuleWarmUpPeriodSec());
+                    flowRules.add(rule);
+                }
+                FlowRuleManager.loadRules(flowRules);
 
-            List<DegradeRule> degradeRules = DegradeRuleManager.getRules()
-                    .stream()
-                    .filter(r -> !r.getResource().equals(key))
-                    .collect(Collectors.toList());
-            if (sentinelHandle.getDegradeRuleEnable() == Constants.SENTINEL_ENABLE_DEGRADE_RULE) {
-                DegradeRule rule = new DegradeRule(key);
-                rule.setCount(sentinelHandle.getDegradeRuleCount());
-                rule.setGrade(sentinelHandle.getDegradeRuleGrade());
-                rule.setTimeWindow(sentinelHandle.getDegradeRuleTimeWindow());
-                rule.setStatIntervalMs(sentinelHandle.getDegradeRuleStatIntervals() * 1000);
-                rule.setMinRequestAmount(sentinelHandle.getDegradeRuleMinRequestAmount());
-                rule.setSlowRatioThreshold(sentinelHandle.getDegradeRuleSlowRatioThreshold());
-                degradeRules.add(rule);
+                List<DegradeRule> degradeRules = DegradeRuleManager.getRules()
+                        .stream()
+                        .filter(r -> !r.getResource().equals(key))
+                        .collect(Collectors.toList());
+                if (sentinelHandle.getDegradeRuleEnable() == Constants.SENTINEL_ENABLE_DEGRADE_RULE) {
+                    DegradeRule rule = new DegradeRule(key);
+                    rule.setCount(sentinelHandle.getDegradeRuleCount());
+                    rule.setGrade(sentinelHandle.getDegradeRuleGrade());
+                    rule.setTimeWindow(sentinelHandle.getDegradeRuleTimeWindow());
+                    rule.setStatIntervalMs(sentinelHandle.getDegradeRuleStatIntervals() * 1000);
+                    rule.setMinRequestAmount(sentinelHandle.getDegradeRuleMinRequestAmount());
+                    rule.setSlowRatioThreshold(sentinelHandle.getDegradeRuleSlowRatioThreshold());
+                    degradeRules.add(rule);
+                }
+                DegradeRuleManager.loadRules(degradeRules);
             }
-            DegradeRuleManager.loadRules(degradeRules);
-        }
+        });
     }
 
     @Override
