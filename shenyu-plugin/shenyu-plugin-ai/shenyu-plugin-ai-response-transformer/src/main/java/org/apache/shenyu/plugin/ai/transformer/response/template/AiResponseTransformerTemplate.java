@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.transformer.response.template;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.plugin.ai.transformer.response.support.CachedRequestBodyDecorator;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -78,9 +79,27 @@ public class AiResponseTransformerTemplate {
      */
     private ServerHttpRequest originalRequest;
 
+    /**
+     * the request body captured while the downstream chain consumes it.
+     */
+    private final CachedRequestBodyDecorator requestBodySnapshot;
+
     public AiResponseTransformerTemplate(final String userContent, final ServerHttpRequest originalRequest) {
+        this(userContent, originalRequest, null);
+    }
+
+    /**
+     * Creates a template that reads the request body from the captured snapshot.
+     *
+     * @param userContent user content
+     * @param originalRequest original request
+     * @param requestBodySnapshot the request body captured while the downstream chain consumes it
+     */
+    public AiResponseTransformerTemplate(final String userContent, final ServerHttpRequest originalRequest,
+                                         final CachedRequestBodyDecorator requestBodySnapshot) {
         this.userContent = userContent;
         this.originalRequest = originalRequest;
+        this.requestBodySnapshot = requestBodySnapshot;
     }
 
     /**
@@ -154,7 +173,10 @@ public class AiResponseTransformerTemplate {
         
         MediaType requestContentType = originalRequest.getHeaders().getContentType();
 
-        return bodyToString(originalRequest.getBody())
+        Mono<String> requestBody = Objects.isNull(requestBodySnapshot)
+                ? bodyToString(originalRequest.getBody())
+                : Mono.fromSupplier(requestBodySnapshot::bodyAsString);
+        return requestBody
                 .flatMap(requestBodyString -> {
                     
                     ObjectNode rootNode = objectMapper.createObjectNode();
