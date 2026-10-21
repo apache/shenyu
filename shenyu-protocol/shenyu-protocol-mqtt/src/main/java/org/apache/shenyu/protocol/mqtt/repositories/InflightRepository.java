@@ -25,8 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Tracks the inbound packet identifiers currently being acknowledged, so that
  * a retransmitted (DUP) publish can be answered without re-delivering it (#7919).
- * Entries are released by PUBREL; a clean-session disconnect discards them with
- * the rest of the session state.
+ * Entries are released by PUBREL, and a new session (clean-session connect or no
+ * stored session) discards them, since it resets the packet id space.
+ *
+ * <p>The state is keyed by the client id, not by the channel: session state
+ * belongs to the client id per spec, so during a duplicate-clientId takeover the
+ * replacement channel shares — and must keep honoring — the same in-flight ids.</p>
  */
 public class InflightRepository implements BaseRepository<String, Set<Integer>> {
 
@@ -60,14 +64,17 @@ public class InflightRepository implements BaseRepository<String, Set<Integer>> 
 
     /**
      * Releases the packet identifier once the client confirms it with PUBREL.
+     * The client entry itself is dropped when its last in-flight id is released,
+     * so ids that never publish again do not linger for the lifetime of the JVM.
      *
      * @param clientId the client that published the packet
      * @param packetId the packet identifier to release
      */
     public void release(final String clientId, final int packetId) {
         Set<Integer> packetIds = INBOUND_INFLIGHT.get(clientId);
-        if (Objects.nonNull(packetIds)) {
-            packetIds.remove(packetId);
+        if (Objects.nonNull(packetIds) && packetIds.remove(packetId) && packetIds.isEmpty()) {
+            // two-arg remove: a concurrent register must not be evicted
+            INBOUND_INFLIGHT.remove(clientId, packetIds);
         }
     }
 }

@@ -68,6 +68,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -108,6 +109,8 @@ public final class PublishTest {
     private static final int PUBLISHER_PACKET_ID = 12345;
 
     private static final int RETRANSMIT_PACKET_ID = 77;
+
+    private static final int BARRIER_PACKET_ID = 78;
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
@@ -291,7 +294,8 @@ public final class PublishTest {
         captureMessages(subscriberChannel, 1);
         captureMessages(otherSubscriberChannel, 1);
 
-        publishToSubscribers(MqttQoS.EXACTLY_ONCE);
+        // a conforming client never reuses a packet id before its acknowledgement
+        publishToSubscribers(MqttQoS.EXACTLY_ONCE, PUBLISHER_PACKET_ID + 1, false);
 
         List<MqttPublishMessage> messages = captureMessages(subscriberChannel, 2);
         assertEquals(1, messages.get(0).variableHeader().packetId());
@@ -356,9 +360,49 @@ public final class PublishTest {
             // the retransmission is answered, but must not be delivered again (#7919)
             publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, true);
             assertPubRec(RETRANSMIT_PACKET_ID);
-            verify(subscriberChannel, timeout(TIMEOUT.toMillis()).times(1)).writeAndFlush(any(MqttPublishMessage.class));
+
+            // ordering barrier: a fan-out happens on the common pool, so the next publish
+            // would queue behind it — if the retransmission had been delivered, the count
+            // here could only be 3, and times(2) fails deterministically
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, BARRIER_PACKET_ID, false);
+            assertPubRec(BARRIER_PACKET_ID);
+            captureMessages(subscriberChannel, 2);
         } finally {
             CHANNEL_REPOSITORY.remove(publisherChannel);
+        }
+    }
+
+    /**
+     * A new session (clean-session reconnect) resets the packet id space, so a
+     * stale in-flight id must not suppress a publish of the same id (#7919).
+     */
+    @Test
+    public void testCleanSessionReconnectClearsInflightIds() {
+        CHANNEL_REPOSITORY.add(publisherChannel, CLIENT_ID);
+        addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
+        final EmbeddedChannel reconnected = channel(false);
+        CHANNEL_REPOSITORY.add(reconnected, CLIENT_ID);
+        try {
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, false);
+            captureMessages(subscriberChannel, 1);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+
+            // reconnect with cleanSession=1: a new session starts, the packet id space resets
+            new Connect().connect(reconnected.pipeline().lastContext(), connectMessage());
+            assertNotNull(reconnected.readOutbound());
+
+            // the same packet id is legal again on the new session and must be delivered
+            final MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, true, MqttQoS.EXACTLY_ONCE, false, 0);
+            final MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, RETRANSMIT_PACKET_ID);
+            new Publish().publish(reconnected.pipeline().lastContext(),
+                    new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8)));
+            final MqttMessage pubRec = reconnected.readOutbound();
+            assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
+            captureMessages(subscriberChannel, 2);
+        } finally {
+            CHANNEL_REPOSITORY.remove(publisherChannel);
+            CHANNEL_REPOSITORY.remove(reconnected);
+            reconnected.finishAndReleaseAll();
         }
     }
 

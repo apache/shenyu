@@ -31,6 +31,8 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
@@ -50,6 +52,8 @@ import static io.netty.handler.codec.mqtt.MqttMessageType.PUBREC;
  * Publish message.
  */
 public class Publish extends MessageType {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Publish.class);
 
     @Override
     public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
@@ -124,7 +128,12 @@ public class Publish extends MessageType {
      */
     private boolean registerInbound(final Channel channel, final int packetId) {
         String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
-        return Objects.isNull(clientId) || Singleton.INST.get(InflightRepository.class).register(clientId, packetId);
+        if (Objects.isNull(clientId)) {
+            // dedup is keyed by the client id: without one, deliver as before
+            LOG.debug("mqtt publish on channel {} has no client id, skipping qos2 dedup", channel.id());
+            return true;
+        }
+        return Singleton.INST.get(InflightRepository.class).register(clientId, packetId);
     }
 
     /**

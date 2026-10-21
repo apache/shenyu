@@ -26,6 +26,7 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
@@ -109,6 +110,11 @@ public class Connect extends MessageType {
             // Resume the stored subscriptions (with their QoS) for the new channel.
             Singleton.INST.get(SubscribeRepository.class)
                     .add(ctx.channel(), session.getTopicSubscriptions());
+        }
+        if (!sessionPresent) {
+            // a new session resets the packet id space, so stale inbound ids must
+            // not suppress new publishes on this connection (#7919)
+            Singleton.INST.get(InflightRepository.class).remove(clientId);
         }
 
         MqttConnAckMessage ackMessage = MqttMessageBuilders.connAck()
