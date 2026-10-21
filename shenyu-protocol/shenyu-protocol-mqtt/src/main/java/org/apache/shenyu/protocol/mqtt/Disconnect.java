@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
@@ -60,6 +61,7 @@ public class Disconnect extends MessageType {
             if (Objects.nonNull(session) && session.isCleanSession()) {
                 // A clean-session disconnect discards all stored session state.
                 Singleton.INST.get(SessionRepository.class).remove(clientId);
+                Singleton.INST.get(InflightRepository.class).remove(clientId);
             }
         }
         Singleton.INST.get(SubscribeRepository.class).remove(channel);

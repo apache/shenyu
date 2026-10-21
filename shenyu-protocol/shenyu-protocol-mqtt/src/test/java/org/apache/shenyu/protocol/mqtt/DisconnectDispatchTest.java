@@ -23,6 +23,7 @@ import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
@@ -55,6 +56,7 @@ public class DisconnectDispatchTest {
         Singleton.INST.single(SessionRepository.class, new SessionRepository());
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
         Singleton.INST.single(WillRepository.class, new WillRepository());
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
         ctx = mock(ChannelHandlerContext.class);
         channel = mock(Channel.class);
         when(ctx.channel()).thenReturn(channel);
