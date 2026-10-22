@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
@@ -51,7 +52,7 @@ public final class WebsocketDataHandlerTest {
     private WebsocketDataHandler websocketDataHandler;
 
     @BeforeEach
-    public void testWebsocketDataHandler() {
+    public void setUp() {
         pluginDataSubscriber = mock(PluginDataSubscriber.class);
         List<AuthDataSubscriber> authDataSubscribers = new LinkedList<>();
         List<MetaDataSubscriber> metaDataSubscribers = new LinkedList<>();
@@ -95,6 +96,25 @@ public final class WebsocketDataHandlerTest {
         other.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-b", "namespace-b");
         Mockito.verify(otherSubscriber).applyPluginDataSnapshot("namespace-b", Collections.emptyList());
         Mockito.verifyNoMoreInteractions(pluginDataSubscriber, otherSubscriber);
+    }
+
+    @Test
+    public void testDiscoverySubscriberListsAreConnectionLocal() {
+        DiscoveryUpstreamDataSubscriber firstSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        DiscoveryUpstreamDataSubscriber secondSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        final WebsocketDataHandler first = new WebsocketDataHandler(pluginDataSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.singletonList(firstSubscriber), Collections.emptyList());
+        final WebsocketDataHandler second = new WebsocketDataHandler(pluginDataSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.singletonList(secondSubscriber), Collections.emptyList());
+        String json = "[{\"selectorId\":\"selector-1\",\"pluginName\":\"divide\",\"namespaceId\":\"namespace-a\",\"upstreamDataList\":[]}]";
+
+        first.executor(ConfigGroupEnum.DISCOVER_UPSTREAM, json, DataEventTypeEnum.UPDATE.name());
+        verify(firstSubscriber).onSubscribe(Mockito.any(DiscoverySyncData.class));
+        Mockito.verifyNoInteractions(secondSubscriber);
+
+        second.executor(ConfigGroupEnum.DISCOVER_UPSTREAM, json, DataEventTypeEnum.UPDATE.name());
+        verify(secondSubscriber).onSubscribe(Mockito.any(DiscoverySyncData.class));
+        Mockito.verifyNoMoreInteractions(firstSubscriber, secondSubscriber);
     }
 
     @Test
