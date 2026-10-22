@@ -326,7 +326,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     /**
      * Calculate request header size in bytes.
      * Header size includes field names, field values, and line delimiters (": " and CRLF) per header line,
-     * plus the terminating CRLF of the HTTP header section.
+     * plus the terminating CRLF of the HTTP header section. If headers is null or empty, 0L is returned.
+     * Note: This measures the header field section; request line and HTTP/2 pseudo-headers are not included.
      *
      * @param headers the http headers
      * @return total header size in bytes
@@ -338,7 +339,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         long headerSize = 0L;
         for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
             // Uses UTF-8 byte counting conservatively across HTTP/1.1 and HTTP/2 without protocol branching.
-            int nameSize = StringUtils.defaultString(entry.getKey()).getBytes(StandardCharsets.UTF_8).length;
+            int nameSize = entry.getKey().getBytes(StandardCharsets.UTF_8).length;
             List<String> values = entry.getValue();
             if (CollectionUtils.isEmpty(values)) {
                 headerSize += nameSize + 4L;

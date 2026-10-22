@@ -28,6 +28,12 @@
 
 ### Behavior Changes
 
+- In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
+  field section: header names, field values, line framing (`: ` and CRLF),
+  and section-terminating CRLF. Previously only header values were counted. Existing
+  deployments with strict `headerMaxSize` limits may see requests near the boundary
+  rejected; adjust `headerMaxSize` if needed. (#7818)
+
 - The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
   concurrent requests that miss the same response cache key share one upstream
   fill on that gateway instance instead of one per request, and the followers
