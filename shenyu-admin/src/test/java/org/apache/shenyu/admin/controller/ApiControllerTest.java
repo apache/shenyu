@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -248,21 +249,23 @@ public final class ApiControllerTest {
 
     }
 
-    @Test
-    public void testUpdateApiRejectsUnsupportedSource() throws Exception {
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(ints = {4})
+    public void testUpdateApiAcceptsHistoricalOrOmittedSource(final Integer apiSource) throws Exception {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setId("123");
         apiDTO.setHttpMethod(0);
         apiDTO.setState(0);
-        apiDTO.setApiSource(4);
+        apiDTO.setApiSource(apiSource);
         when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
         when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Request error! invalid argument [apiSource: apiSource max 3]")));
-        verifyNoInteractions(apiService);
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)));
     }
 
     @Test
