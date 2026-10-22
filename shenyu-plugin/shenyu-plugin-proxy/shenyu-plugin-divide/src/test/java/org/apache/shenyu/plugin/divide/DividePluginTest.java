@@ -359,6 +359,43 @@ public final class DividePluginTest {
     }
 
     @Test
+    public void shortestResponseInflightReturnsToBaselineOnTerminalSignals() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("shortestResponse");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.empty());
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.error(new IllegalStateException("boom")));
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                    .verifyError(IllegalStateException.class);
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.never());
+            Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+            subscription.dispose();
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(0);
+            when(chain.execute(exchange)).thenReturn(Mono.empty());
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(0, upstream.getInflight().get());
+        }
+    }
+
+    @Test
     public void successResponseTriggerTest() throws Exception {
         dividePlugin = DividePlugin.class.newInstance();
         Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class, long.class);
