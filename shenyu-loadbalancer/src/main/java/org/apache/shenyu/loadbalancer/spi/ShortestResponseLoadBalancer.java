@@ -67,7 +67,7 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
         }
 
         if (shortestCount == 1) {
-            return upstreamList.get(shortestIndexes[0]);
+            return trackInflight(upstreamList.get(shortestIndexes[0]));
         }
         if (!sameWeight && totalWeight > 0) {
             int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
@@ -75,10 +75,15 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
                 int shortestIndex = shortestIndexes[i];
                 offsetWeight -= weights[shortestIndex];
                 if (offsetWeight < 0) {
-                    return upstreamList.get(shortestIndex);
+                    return trackInflight(upstreamList.get(shortestIndex));
                 }
             }
         }
-        return upstreamList.get(shortestIndexes[ThreadLocalRandom.current().nextInt(shortestCount)]);
+        return trackInflight(upstreamList.get(shortestIndexes[ThreadLocalRandom.current().nextInt(shortestCount)]));
+    }
+
+    private Upstream trackInflight(final Upstream upstream) {
+        upstream.getInflight().incrementAndGet();
+        return upstream;
     }
 }

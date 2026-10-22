@@ -166,6 +166,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
             if (P2C.equals(ruleHandle.getLoadBalance())) {
                 upstream.getInflight().incrementAndGet();
                 upstream.setLastPicked(System.currentTimeMillis());
+            } else if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
+                upstream.getInflight().incrementAndGet();
             }
         } else if (CollectionUtils.isNotEmpty(specifyDomains)) {
             String requested = specifyDomains.get(0);
@@ -251,9 +253,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
             response = response.doFinally(signalType -> upstream.getInflight().decrementAndGet());
         } else if (ruleHandle.getLoadBalance().equals(P2C)) {
             response = response.doFinally(signalType -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+        } else if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
             long beginTime = System.currentTimeMillis();
-            response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
+            response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime))
+                    .doFinally(signalType -> releaseShortestResponseInflight(upstream));
         }
         return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
     }
@@ -288,6 +291,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private void successResponseTrigger(final Upstream upstream, final long beginTime) {
         upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
         upstream.getSucceeded().incrementAndGet();
+    }
+
+    private void releaseShortestResponseInflight(final Upstream upstream) {
+        upstream.getInflight().updateAndGet(current -> current > 0 ? current - 1 : 0);
     }
 
 }
