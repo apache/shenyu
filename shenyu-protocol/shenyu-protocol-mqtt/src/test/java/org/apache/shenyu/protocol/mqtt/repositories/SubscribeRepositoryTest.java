@@ -19,7 +19,6 @@ package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
 import io.netty.channel.embedded.EmbeddedChannel;
-import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.shenyu.common.utils.Singleton;
@@ -30,9 +29,11 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for {@link SubscribeRepository}.
@@ -71,10 +71,6 @@ public final class SubscribeRepositoryTest {
             ABSENT_TOPIC, TOPIC, OTHER_TOPIC,
             EXACT_TOPIC, SINGLE_LEVEL_FILTER, MULTI_LEVEL_FILTER, MATCH_ALL_FILTER, CONCURRENT_TOPIC);
 
-    private static final String SPORT_TOPIC = "test/sport/tennis";
-
-    private static final String PLAYER_TOPIC = "test/sport/tennis/player1";
-
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
     private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
@@ -85,15 +81,17 @@ public final class SubscribeRepositoryTest {
 
     private final List<EmbeddedChannel> subscribers = new ArrayList<>();
 
-    private Channel channel;
+    private EmbeddedChannel channel;
 
-    private Channel otherChannel;
+    private EmbeddedChannel otherChannel;
 
     @BeforeEach
     public void setUp() {
         repository = new SubscribeRepository();
-        channel = mock(Channel.class);
-        otherChannel = mock(Channel.class);
+        channel = new EmbeddedChannel();
+        otherChannel = new EmbeddedChannel();
+        subscribers.add(channel);
+        subscribers.add(otherChannel);
         Singleton.INST.single(SubscribeRepository.class, repository);
         clearAllTopics();
     }
@@ -263,10 +261,11 @@ public final class SubscribeRepositoryTest {
     public void concurrentSubscribersOfTheSameNewTopicAreAllRegistered() throws InterruptedException {
         int subscriberCount = 8;
         CountDownLatch startGate = new CountDownLatch(1);
-        List<Channel> subscribers = new ArrayList<>();
+        List<EmbeddedChannel> concurrentSubscribers = new ArrayList<>();
         List<Thread> subscribingThreads = new ArrayList<>();
         for (int i = 0; i < subscriberCount; i++) {
-            Channel subscriber = mock(Channel.class);
+            EmbeddedChannel subscriber = new EmbeddedChannel();
+            concurrentSubscribers.add(subscriber);
             subscribers.add(subscriber);
             Thread thread = new Thread(() -> subscribeAfter(startGate, subscriber, CONCURRENT_TOPIC));
             thread.start();
@@ -282,7 +281,7 @@ public final class SubscribeRepositoryTest {
         awaitAssert(() -> assertEquals(subscriberCount, repository.get(CONCURRENT_TOPIC).size()));
         Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CONCURRENT_TOPIC);
         assertEquals(subscriberCount, matched.size());
-        assertTrue(matched.keySet().containsAll(subscribers));
+        assertTrue(matched.keySet().containsAll(concurrentSubscribers));
     }
 
     private void subscribeAfter(final CountDownLatch startGate, final Channel subscriber, final String topic) {
@@ -299,20 +298,20 @@ public final class SubscribeRepositoryTest {
     public void testGetChannelsByTopicSingleLevelWildcardMatch() {
         EmbeddedChannel subscriber = subscribe(SINGLE_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
 
-        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(PLAYER_TOPIC);
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CHILD_TOPIC);
         assertEquals(1, matched.size());
         assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
     }
 
     @Test
     public void testGetChannelsByTopicMultiLevelWildcardMatch() {
         EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
 
-        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(PLAYER_TOPIC);
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CHILD_TOPIC);
         assertEquals(1, matched.size());
         assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).containsKey(subscriber));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).containsKey(subscriber));
     }
 
     @Test
@@ -322,17 +321,17 @@ public final class SubscribeRepositoryTest {
                 new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE));
 
         // MQTT requires at most one delivery per publish per client, granted with the maximum qos
-        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(SPORT_TOPIC);
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
         assertEquals(1, matched.size());
         assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(subscriber));
     }
 
     @Test
     public void testGetChannelsByTopicMultipleSubscribers() {
-        EmbeddedChannel first = subscribe(SPORT_TOPIC, MqttQoS.AT_MOST_ONCE);
-        EmbeddedChannel second = subscribe(SPORT_TOPIC, MqttQoS.AT_LEAST_ONCE);
+        EmbeddedChannel first = subscribe(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE);
+        EmbeddedChannel second = subscribe(EXACT_TOPIC, MqttQoS.AT_LEAST_ONCE);
 
-        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(SPORT_TOPIC);
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
         assertEquals(2, matched.size());
         assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(first));
         assertEquals(MqttQoS.AT_LEAST_ONCE, matched.get(second));
@@ -345,7 +344,7 @@ public final class SubscribeRepositoryTest {
         repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), subscriber);
         awaitAssert(() -> assertTrue(repository.get(MULTI_LEVEL_FILTER).isEmpty()));
 
-        assertTrue(repository.getChannelsByTopic(SPORT_TOPIC).isEmpty());
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
     }
 
     /**
