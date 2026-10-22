@@ -91,6 +91,24 @@ public final class MetricsMonitorTest {
     }
 
     @Test
+    public void testMetricAtMinimumDoesNotScale() {
+        prepareMetric(rule(1), 40.0);
+
+        metricsMonitor.monitorMetrics();
+
+        verifyNoInteractions(kubernetesScaler);
+    }
+
+    @Test
+    public void testMetricAtMaximumDoesNotScale() {
+        prepareMetric(rule(1), 80.0);
+
+        metricsMonitor.monitorMetrics();
+
+        verifyNoInteractions(kubernetesScaler);
+    }
+
+    @Test
     public void testDisabledRuleIsNotEvaluated() {
         when(scaleRuleCache.getAllRules()).thenReturn(List.of(rule(0)));
 
