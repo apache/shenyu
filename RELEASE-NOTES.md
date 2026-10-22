@@ -28,6 +28,18 @@
 
 ### Behavior Changes
 
+- Admin now validates all six HTTP client registration endpoints before
+  publishing registration events and returns HTTP 400 for invalid required
+  fields. Metadata registration now requires non-blank `host`, `ruleName`, and
+  `contextPath` in addition to `appName`, `rpcType`, and `path`. URI registration
+  and offline requests now require both `appName` and `contextPath`, rather
+  than accepting either one; `rpcType` and `host` must also be non-blank.
+  Third-party and independently released clients that omit these fields
+  must update their registration payloads before upgrading Admin.
+  Validation is implemented in Admin; protocol DTOs remain JDK-only.
+  Successful responses still acknowledge enqueueing, not completion of
+  registration. (#6713)
+
 - Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
   HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
   request-local plugin cursors, attributes and captured responses; upstream
