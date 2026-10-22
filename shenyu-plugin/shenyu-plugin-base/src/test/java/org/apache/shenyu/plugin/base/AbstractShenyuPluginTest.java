@@ -41,7 +41,10 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -74,7 +77,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchRestful(false)
                 .sort(1).build();
         this.conditionData = new ConditionData();
@@ -103,6 +106,15 @@ public final class AbstractShenyuPluginTest {
     /**
      * The plugin is null test.
      */
+    @Test
+    public void printLogToleratesNullLoggedFlag() throws Exception {
+        java.lang.reflect.Method printLog = AbstractShenyuPlugin.class
+                .getDeclaredMethod("printLog", RuleData.class, String.class);
+        printLog.setAccessible(true);
+        RuleData nullLogged = RuleData.builder().id("id").name("rule").pluginName("plugin").build();
+        printLog.invoke(testShenyuPlugin, nullLogged, "plugin");
+    }
+
     @Test
     public void executePluginIsNullTest() {
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
@@ -207,7 +219,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -218,7 +230,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -239,6 +251,110 @@ public final class AbstractShenyuPluginTest {
         this.selectorData.setMatchMode(0);
         this.selectorData.setMatchRestful(false);
         this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void defaultStrategySelectorMatchShouldNotLogWhenLoggingDisabled() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(false);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            assertTrue(capture.infoMessages().stream().noneMatch(message -> message.contains("selector")),
+                    "no selector match line may reach INFO when the selector's logged flag is false, got: " + capture.infoMessages());
+        }
+    }
+
+    @Test
+    public void defaultStrategySelectorMatchShouldLogExactlyOnceWhenLoggingEnabled() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            List<String> selectorLines = capture.infoMessages().stream()
+                    .filter(message -> message.contains("selector"))
+                    .collect(Collectors.toList());
+            assertEquals(1, selectorLines.size(),
+                    "exactly one selector match line is expected at INFO when logged is true, got: " + selectorLines);
+            assertTrue(selectorLines.get(0).contains("selector success match"),
+                    "the surviving line should be the one that carries the selector name, got: " + selectorLines.get(0));
+        }
+    }
+
+    @Test
+    public void defaultStrategyRuleMatchShouldNotLogWhenLoggingDisabled() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setLogged(false);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(false);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            assertTrue(capture.infoMessages().stream().noneMatch(message -> message.contains("rule")),
+                    "no rule match line may reach INFO when the rule's logged flag is false, got: " + capture.infoMessages());
+        }
+    }
+
+    @Test
+    public void defaultStrategyRuleMatchShouldLogExactlyOnceWhenLoggingEnabled() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setLogged(true);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
+            StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+            List<String> ruleLines = capture.infoMessages().stream()
+                    .filter(message -> message.contains("rule"))
+                    .collect(Collectors.toList());
+            assertEquals(1, ruleLines.size(),
+                    "exactly one rule match line is expected at INFO when logged is true, got: " + ruleLines);
+            assertTrue(ruleLines.get(0).contains("rule success match"),
+                    "the surviving line should be the one that carries the rule name, got: " + ruleLines.get(0));
+        }
+    }
+
+    @Test
+    public void defaultStrategyMatchLogsShouldNotChangeRoutingResults() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);

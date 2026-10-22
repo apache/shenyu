@@ -16,6 +16,11 @@
 server:
   port: 9195
   address: 0.0.0.0
+  reactive:
+    session:
+      cookie:
+        # Keep gateway sessions separate from backend SESSION cookies.
+        name: SHENYU_SESSION
   compression:
     enabled: true
     minResponseSize: 1MB # If the response data is greater than 1MB, enable compression.
@@ -87,12 +92,14 @@ shenyu:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
+      ttl: 60000 # milliseconds after write; shorter TTL reduces stale reuse but increases matching work
   ruleMatchCache:
     ## rule L1 cache
     cache:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 65536 # max size in cache
+      ttl: 60000 # milliseconds after write; applies to positive and negative matches
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
@@ -220,6 +227,10 @@ shenyu:
   file:
     enabled: true
     maxSize : 10
+  # Standalone file mode (opt-in): see shenyu-spring-boot-starter-sync-data-file/README.md.
+  # It suppresses the shipped Admin WebSocket/heartbeat defaults and disables local writers.
+  # sync.file.enabled: true
+  # sync.file.path: /etc/shenyu/gateway.yaml
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
@@ -307,7 +318,50 @@ shenyu:
     jmxConfig:
     props:
       jvm_enabled: true
+  tracing:
+    enabled: false
+    serviceName: shenyu-gateway
+    createSpan: true
+    # parent_based continues the decision of the client and samples a request which has none,
+    # always_on and always_off decide about every request, even about the request of a client which
+    # has decided already, and ratio continues the decision of the client as well while it samples a
+    # request which carries no parent context with the given ratio
+    sampler: parent_based
+    # only used by the ratio sampler, and only for the requests which carry no parent context
+    # sampleRatio: 0.1
+#    resourceAttributes:
+#      deployment.environment: prod
+#    otlp:
+#      endpoint: http://127.0.0.1:4318/v1/traces
+#      timeout: 10s
+#      headers:
+#        authorization: Bearer example
 #  plugins:
+#    ai:
+#      proxy:
+#        retry:
+#          # Maximum retries after the initial non-streaming request. Default: 3.
+#          max-retries: 3
+#          # Maximum retries before a streaming response emits its first chunk. Default: 1.
+#          streaming-max-retries: 1
+#          # Initial backoff for non-streaming retries. Subsequent delays double. Default: 1s.
+#          initial-backoff: 1s
+#        transport:
+#          # Maximum time allowed to establish a connection to the AI upstream.
+#          # Default: 30s.
+#          connect-timeout: 30s
+#          # Maximum time to wait for upstream HTTP response headers.
+#          # It does not limit the subsequent SSE body. Default: 30s.
+#          response-header-timeout: 30s
+#          # Maximum interval between two upstream SSE or body chunks.
+#          # The timer restarts after each chunk. Default: 60s.
+#          streaming-idle-timeout: 60s
+#          # Maximum duration of the entire upstream response body stream.
+#          # New chunks do not reset this limit. Default: 10m.
+#          total-stream-duration: 10m
+#          # Maximum cumulative bytes read from one upstream response.
+#          # Zero means unlimited. Default: 0.
+#          max-response-bytes: 0
 #    rate-limiter.enabled: false
   local:
     enabled: false

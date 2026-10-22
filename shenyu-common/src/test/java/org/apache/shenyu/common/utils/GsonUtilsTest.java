@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -335,8 +336,19 @@ public class GsonUtilsTest {
         String json = "[{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
                 + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
                 + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"}]";
-        List<? extends Map> testList = GsonUtils.getInstance().fromCurrentList(json, map.getClass());
+        List<? extends Map> testList = GsonUtils.getInstance().fromCurrentList(json, Map.class);
         Assertions.assertEquals(list, testList);
+        assertTrue(testList instanceof CopyOnWriteArrayList);
+    }
+
+    @Test
+    public void testFromCurrentListPreservesElementType() {
+        TestObject expected = generateTestObject();
+        List<TestObject> actual = GsonUtils.getInstance().fromCurrentList(
+                GsonUtils.getInstance().toJson(List.of(expected)), TestObject.class);
+        assertTrue(actual instanceof CopyOnWriteArrayList);
+        assertEquals(1, actual.size());
+        assertEquals(expected, actual.get(0));
     }
 
     private static class TestObject {

@@ -76,8 +76,8 @@ jobs:
           cache: maven
       - name: Verify list/detail/export and index contracts
         run: >-
-          ./mvnw -B -ntp -pl shenyu-admin -am test
-          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin -am test
+          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest,DataPermissionMapperTest,PermissionListenerIntegrationTest,InstanceInfoUpsertTest,MockRequestHeaderPersistenceTest,MockRequestHeaderMigrationTest,OracleSQLPrepareInterceptorTest
           -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
 
   native-sql:

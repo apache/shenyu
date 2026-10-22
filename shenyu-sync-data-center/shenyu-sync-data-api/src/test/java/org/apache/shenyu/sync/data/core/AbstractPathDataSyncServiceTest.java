@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.core;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -116,6 +117,26 @@ public class AbstractPathDataSyncServiceTest {
         verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
         assertEquals("divide", captor.getValue().pluginName());
         assertEquals("testSelectorId", captor.getValue().selectorId());
+    }
+
+    @Test
+    public void testProxySelectorEventsPreserveIdAndName() {
+        String namespace = "/namespace";
+        String registerPath = namespace + DefaultPathConstants.PROXY_SELECTOR;
+        String updatePath = registerPath + "/tcp/selector-id";
+        String json = "{\"id\":\"selector-id\",\"name\":\"listener-name\",\"pluginName\":\"tcp\"}";
+
+        pathDataSyncService.event(namespace, updatePath, json, registerPath, AbstractPathDataSyncService.EventType.PUT);
+        ArgumentCaptor<ProxySelectorData> added = ArgumentCaptor.forClass(ProxySelectorData.class);
+        verify(proxySelectorDataSubscriber).onSubscribe(added.capture());
+        assertEquals("selector-id", added.getValue().getId());
+        assertEquals("listener-name", added.getValue().getName());
+
+        pathDataSyncService.event(namespace, updatePath, null, registerPath, AbstractPathDataSyncService.EventType.DELETE);
+        ArgumentCaptor<ProxySelectorData> deleted = ArgumentCaptor.forClass(ProxySelectorData.class);
+        verify(proxySelectorDataSubscriber).unSubscribe(deleted.capture());
+        assertEquals("selector-id", deleted.getValue().getId());
+        assertEquals("tcp", deleted.getValue().getPluginName());
     }
 
     // Mock implementation

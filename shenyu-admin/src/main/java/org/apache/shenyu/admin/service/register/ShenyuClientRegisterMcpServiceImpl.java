@@ -109,7 +109,7 @@ public class ShenyuClientRegisterMcpServiceImpl extends AbstractShenyuClientRegi
                 .matchMode(MatchModeEnum.AND.getCode())
                 .name(metaDataRegisterDTO.getRuleName())
                 .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
+                .logged(Boolean.TRUE)
                 .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .handle(ruleHandler)

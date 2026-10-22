@@ -61,6 +61,8 @@ add_e2e_all() {
   add_unique e2e_cases "e2e-grpc-sync-compose"
   add_unique e2e_cases "e2e-websocket-sync-compose"
   add_unique e2e_cases "e2e-logging-rocketmq-compose"
+  add_unique e2e_cases "e2e-cluster-jdbc-compose"
+  add_unique e2e_cases "e2e-cluster-zookeeper-compose"
 }
 
 add_integration_all() {
@@ -71,6 +73,7 @@ add_integration_all() {
   add_unique integration_cases "shenyu-integrated-test-spring-cloud"
   add_unique integration_cases "shenyu-integrated-test-websocket"
   add_unique integration_cases "shenyu-integrated-test-rewrite"
+  add_unique integration_cases "shenyu-integrated-test-tracing"
   add_unique integration_cases "shenyu-integrated-test-combination"
   add_unique integration_cases "shenyu-integrated-test-sdk-apache-dubbo"
   add_unique integration_cases "shenyu-integrated-test-sdk-http"
@@ -264,6 +267,10 @@ map_direct_case_path() {
       shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-logging-rocketmq/*)
         add_unique e2e_cases "e2e-logging-rocketmq-compose"
         ;;
+      shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-cluster/*)
+        add_unique e2e_cases "e2e-cluster-jdbc-compose"
+        add_unique e2e_cases "e2e-cluster-zookeeper-compose"
+        ;;
     esac
   else
     case "${file}" in
@@ -290,6 +297,9 @@ map_direct_case_path() {
         ;;
       shenyu-integrated-test/shenyu-integrated-test-rewrite/*)
         add_unique integration_cases "shenyu-integrated-test-rewrite"
+        ;;
+      shenyu-integrated-test/shenyu-integrated-test-tracing/*)
+        add_unique integration_cases "shenyu-integrated-test-tracing"
         ;;
       shenyu-integrated-test/shenyu-integrated-test-combination/*)
         add_unique integration_cases "shenyu-integrated-test-combination"
@@ -358,11 +368,24 @@ map_domain_path() {
         add_unique integration_cases "shenyu-integrated-test-http"
       fi
       ;;
+    *cluster*|*Cluster*)
+      if [[ "${mode}" == "e2e" ]]; then
+        add_unique e2e_cases "e2e-cluster-jdbc-compose"
+        add_unique e2e_cases "e2e-cluster-zookeeper-compose"
+      fi
+      ;;
     *rewrite*)
       if [[ "${mode}" == "e2e" ]]; then
         add_unique e2e_cases "e2e-http-sync-compose"
       else
         add_unique integration_cases "shenyu-integrated-test-rewrite"
+      fi
+      ;;
+    *tracing*)
+      if [[ "${mode}" == "e2e" ]]; then
+        add_unique e2e_cases "e2e-http-sync-compose"
+      else
+        add_unique integration_cases "shenyu-integrated-test-tracing"
       fi
       ;;
     *https*)
@@ -460,6 +483,14 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
       },
       "e2e-logging-rocketmq-compose": {
         case: "shenyu-e2e-case-logging-rocketmq",
+        example_projects: ":shenyu-examples-http"
+      },
+      "e2e-cluster-jdbc-compose": {
+        case: "shenyu-e2e-case-cluster",
+        example_projects: ":shenyu-examples-http"
+      },
+      "e2e-cluster-zookeeper-compose": {
+        case: "shenyu-e2e-case-cluster",
         example_projects: ":shenyu-examples-http"
       }
     }[.];

@@ -21,20 +21,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import reactor.core.publisher.Flux;
@@ -43,7 +52,9 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiProxyEngineTest {
@@ -69,6 +80,7 @@ class AiProxyEngineTest {
         engine = new AiProxyEngine(
                 new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
+                protocolConverterFactory(),
                 transport);
         config = new AiCommonConfig();
         config.setProvider("OpenAI");
@@ -104,7 +116,7 @@ class AiProxyEngineTest {
 
         assertEquals("gpt-4o-mini", payload.get("model").asText());
         assertEquals(256, payload.get("max_completion_tokens").intValue());
-        assertEquals(256, payload.get("max_tokens").intValue());
+        assertFalse(payload.has("max_tokens"));
         assertTrue(payload.get("unknown").booleanValue());
         assertTrue(payload.get("stream_options").get("include_usage").booleanValue());
         assertEquals("text/event-stream", request.getHeaders().get("Accept").get(0));
@@ -129,5 +141,138 @@ class AiProxyEngineTest {
         final JsonNode transportedPayload = OBJECT_MAPPER.readTree(transportedRequest.get().getBody());
         assertEquals("hello", transportedPayload.get("messages").get(0).get("content").asText());
         assertFalse(transportedPayload.get("stream").booleanValue());
+    }
+
+    @Test
+    void testCustomProviderSupportsOnlyDeclaredProtocols() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AiProxyProvider provider = customProvider(new AiProviderCapabilities(Set.of(OpenAiChat.NAME), all.operations(), all.features()), new AtomicInteger());
+
+        assertTrue(provider.supports(OpenAiChat.NAME));
+        assertFalse(provider.supports(OpenAiResponses.NAME));
+        assertFalse(provider.supports("unknown"));
+        assertFalse(provider.supports(null));
+    }
+
+    @Test
+    void testCustomChatProviderAcceptsResponsesThroughConversion() throws Exception {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AtomicInteger builds = new AtomicInteger();
+        useCustomProvider(new AiProviderCapabilities(Set.of(OpenAiChat.NAME), all.operations(), all.features()), builds);
+        config.setProtocol(OpenAiResponses.NAME);
+
+        AiUpstreamRequest request = engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\"}", config);
+        JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertEquals(1, builds.get());
+        assertEquals("hello", payload.at("/messages/0/content").asText());
+        assertNull(transportedRequest.get());
+    }
+
+    @Test
+    void testCustomChatProviderValidatesConvertedOperation() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AtomicInteger builds = new AtomicInteger();
+        useCustomProvider(new AiProviderCapabilities(all.protocols(),
+                Set.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), all.features()), builds);
+        config.setProtocol(OpenAiResponses.NAME);
+
+        engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\"}", config);
+
+        assertEquals(1, builds.get());
+    }
+
+    @Test
+    void testCustomProviderRequestStreamRejectedBeforeBuildAndTransport() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        config.setStream(false);
+        assertCapabilityRejected("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"stream\":true}",
+                new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), "STREAMING");
+    }
+
+    @Test
+    void testCustomProviderConfiguredStreamRejectedBeforeBuildAndTransport() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        config.setStream(true);
+        assertCapabilityRejected("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), "STREAMING");
+    }
+
+    @Test
+    void testCustomProviderExplicitNonStreamingOverridesConfiguration() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AtomicInteger builds = new AtomicInteger();
+        useCustomProvider(new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), builds);
+        config.setStream(true);
+
+        StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"stream\":false}",
+                config, Optional.empty(), response -> response.getBody().then())).verifyComplete();
+
+        assertEquals(1, builds.get());
+        assertEquals("https://api.openai.com/v1/chat/completions", transportedRequest.get().getUri().toString());
+    }
+
+    @Test
+    void testFallbackProviderCapabilitiesCheckedBeforeBuildAndTransport() {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final AtomicInteger builds = new AtomicInteger();
+        final AtomicInteger transports = new AtomicInteger();
+        final AiProxyProvider fallback = customProvider(new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), builds);
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), protocolConverterFactory(), request -> {
+                    transports.incrementAndGet();
+                    return Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null));
+                }, Duration.ZERO);
+        config.setStream(true);
+        final AiCommonConfig fallbackConfig = new AiCommonConfig(config);
+        fallbackConfig.setProvider("custom");
+
+        StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                config, Optional.of(fallbackConfig), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException && ((AiProxyException) error).getKind() == AiProxyException.Kind.REQUEST).verify();
+
+        assertEquals(2, transports.get());
+        assertEquals(0, builds.get());
+    }
+
+    private void assertCapabilityRejected(final String body, final AiProviderCapabilities capabilities, final String capability) {
+        final AtomicInteger builds = new AtomicInteger();
+        useCustomProvider(capabilities, builds);
+
+        StepVerifier.create(engine.execute(body, config, Optional.empty(), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException && ((AiProxyException) error).getKind() == AiProxyException.Kind.REQUEST
+                        && error.getMessage().contains(capability)).verify();
+
+        assertEquals(0, builds.get());
+        assertNull(transportedRequest.get());
+    }
+
+    private void useCustomProvider(final AiProviderCapabilities capabilities, final AtomicInteger builds) {
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                new AiProxyProviderFactory(List.of(customProvider(capabilities, builds))), protocolConverterFactory(), request -> {
+                    transportedRequest.set(request);
+                    return Mono.just(upstreamResponse);
+                });
+        config.setProvider("custom");
+    }
+
+    private AiProxyProvider customProvider(final AiProviderCapabilities capabilities, final AtomicInteger builds) {
+        return new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "custom";
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                return capabilities;
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig providerConfig) {
+                builds.incrementAndGet();
+                return new OpenAi().buildRequest(request, providerConfig);
+            }
+        };
     }
 }

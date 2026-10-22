@@ -49,6 +49,7 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.dto.ProxySelectorData;
@@ -239,6 +240,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String create(final ProxySelectorAddDTO proxySelectorAddDTO) {
+        validateUpstreamProps(proxySelectorAddDTO);
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
@@ -341,6 +343,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String bindingDiscoveryHandler(final ProxySelectorAddDTO proxySelectorAddDTO) {
+        validateUpstreamProps(proxySelectorAddDTO);
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String selectorId = proxySelectorAddDTO.getSelectorId();
         final ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
@@ -392,6 +395,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      */
     @Transactional(rollbackFor = Exception.class)
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
+        validateUpstreamProps(proxySelectorAddDTO);
         ProxySelectorAddDTO.Discovery discovery = proxySelectorAddDTO.getDiscovery();
         Assert.notNull(discovery, "Discovery configuration is required");
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
@@ -459,6 +463,12 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             eventPublisher.publishEvent(event);
         }
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    private void validateUpstreamProps(final ProxySelectorAddDTO dto) {
+        if (Objects.nonNull(dto.getDiscoveryUpstreams())) {
+            dto.getDiscoveryUpstreams().forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
+        }
     }
 
     @Override
@@ -581,19 +591,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             return ConfigImportResult.success();
         }
         Map<String, String> proxySelectorIdMapping = new HashMap<>();
-        Map<String, List<ProxySelectorDO>> pluginProxySelectorMap = proxySelectorMapper
+        Map<String, Map<String, String>> pluginProxySelectorMap = proxySelectorMapper
                 .selectByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName));
+                .collect(Collectors.groupingBy(ProxySelectorDO::getPluginName,
+                        Collectors.toMap(ProxySelectorDO::getName, ProxySelectorDO::getId, (first, second) -> first)));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (ProxySelectorData selectorData : proxySelectorList) {
             String pluginName = selectorData.getPluginName();
             String proxySelectorName = selectorData.getName();
-            Map<String, String> existProxySelectorNameSet = pluginProxySelectorMap
-                    .getOrDefault(pluginName, Lists.newArrayList())
-                    .stream()
-                    .collect(Collectors.toMap(ProxySelectorDO::getName, ProxySelectorDO::getId));
+            Map<String, String> existProxySelectorNameSet = pluginProxySelectorMap.computeIfAbsent(pluginName, key -> new HashMap<>());
             
             if (existProxySelectorNameSet.containsKey(proxySelectorName)) {
                 errorMsgBuilder
@@ -608,6 +616,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             proxySelectorDO.setId(newProxySelectorId);
             proxySelectorDO.setNamespaceId(namespace);
             if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+                existProxySelectorNameSet.put(proxySelectorName, newProxySelectorId);
                 proxySelectorIdMapping.put(oldProxySelectorId, newProxySelectorId);
                 successCount++;
             }

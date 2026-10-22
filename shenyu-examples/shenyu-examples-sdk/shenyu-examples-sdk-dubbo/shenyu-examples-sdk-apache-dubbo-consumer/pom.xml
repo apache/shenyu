@@ -30,13 +30,14 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-sdk-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.shenyu</groupId>
-                    <artifactId>shenyu-registry-eureka</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

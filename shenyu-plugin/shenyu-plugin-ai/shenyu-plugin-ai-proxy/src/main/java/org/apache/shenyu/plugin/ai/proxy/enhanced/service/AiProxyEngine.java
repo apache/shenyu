@@ -24,15 +24,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConversion;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -49,24 +55,45 @@ public final class AiProxyEngine {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
+    private static final AiProxyRetryPolicy RETRY_POLICY = new AiProxyRetryPolicy();
+
     private final AiProxyProtocolFactory aiProxyProtocolFactory;
 
     private final AiProxyProviderFactory aiProxyProviderFactory;
 
+    private final AiProtocolConverterFactory aiProtocolConverterFactory;
+
     private final AiProxyTransport aiProxyTransport;
 
-    private final Duration retryBackoff;
+    private final AiProxyRetryProperties retryProperties;
 
-    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
-        this(protocols, providers, transport, Duration.ofSeconds(1));
+    public AiProxyEngine(
+            final AiProxyProtocolFactory protocols,
+            final AiProxyProviderFactory providers,
+            final AiProtocolConverterFactory converters,
+            final AiProxyTransport transport) {
+        this(
+                protocols,
+                providers,
+                converters,
+                transport,
+                new AiProxyRetryProperties());
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
-                        final AiProxyTransport transport, final Duration retryBackoff) {
-        this.aiProxyProtocolFactory = protocols;
-        this.aiProxyProviderFactory = providers;
-        this.aiProxyTransport = transport;
-        this.retryBackoff = retryBackoff;
+                         final AiProtocolConverterFactory converters, final AiProxyTransport transport,
+                         final AiProxyRetryProperties retryProperties) {
+        this.aiProxyProtocolFactory = Objects.requireNonNull(protocols, "protocols must not be null");
+        this.aiProxyProviderFactory = Objects.requireNonNull(providers, "providers must not be null");
+        this.aiProtocolConverterFactory = Objects.requireNonNull(converters, "converters must not be null");
+        this.aiProxyTransport = Objects.requireNonNull(transport, "transport must not be null");
+        this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
+    }
+
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProtocolConverterFactory converters, final AiProxyTransport transport,
+                         final Duration retryBackoff) {
+        this(protocols, providers, converters, transport, new AiProxyRetryProperties(3, 1, retryBackoff));
     }
 
     /**
@@ -87,9 +114,12 @@ public final class AiProxyEngine {
             Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                 AiCommonConfig copy = new AiCommonConfig(config);
                 copy.setStream(primary.stream());
+                // Fallback changes the upstream, never the already selected client protocol.
+                copy.setProtocol(primary.clientProtocol());
                 return copy;
             });
-            return attempt(requestBody, primary, fallback, primary.stream() ? 1 : 3, responseConsumer, new AtomicBoolean());
+            final int maxRetries = retryProperties.maxRetries(primary.stream());
+            return attempt(requestBody, primary, fallback, maxRetries, maxRetries, responseConsumer, new AtomicBoolean());
         });
     }
 
@@ -105,47 +135,77 @@ public final class AiProxyEngine {
     }
 
     private Mono<Void> attempt(final String requestBody, final PreparedExchange prepared,
-                               final Optional<AiCommonConfig> fallback, final int retries,
+                               final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
                                final Function<AiUpstreamResponse, Mono<Void>> consumer, final AtomicBoolean emitted) {
         return Mono.defer(() -> aiProxyTransport.execute(prepared.request()))
                 .flatMap(response -> {
                     int status = response.getStatusCode();
-                    if (status >= 400 && ((retryableStatus(status) && retries > 0) || fallback.isPresent())) {
-                        // Release this response without accumulating the error body before another attempt.
+                    if (status >= 400) {
+                        final AiProxyRetryPolicy.Decision decision =
+                                RETRY_POLICY.decideStatus(status, retriesRemaining, fallback.isPresent());
+                        if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
+                            return consumeResponse(response, consumer, emitted);
+                        }
                         return response.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
                     }
-                    AiUpstreamResponse adapted = prepared.provider().adaptResponse(response);
-                    AiUpstreamResponse encoded = prepared.protocol().encodeResponse(adapted, prepared.stream());
-                    return encoded.getBody().switchOnFirst((signal, body) -> {
-                        if (signal.isOnError()) {
-                            return Flux.error(Objects.requireNonNull(signal.getThrowable()));
-                        }
-                        AiUpstreamResponse ready = new AiUpstreamResponse(encoded.getStatusCode(), encoded.getHeaders(),
-                                body.doOnNext(bytes -> emitted.set(true)));
-                        return Mono.defer(() -> consumer.apply(ready)).flux();
-                    }).then();
+                    AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
+                    return consumeResponse(adapted, consumer, emitted);
                 })
                 .onErrorResume(error -> {
-                    boolean transportFailure = error instanceof AiProxyException
-                            && ((AiProxyException) error).getKind() == AiProxyException.Kind.TRANSPORT;
-                    boolean statusFailure = error instanceof UpstreamStatusFailure;
-                    if (emitted.get() || !(transportFailure || statusFailure)) {
+                    final AiProxyRetryPolicy.Decision decision;
+                    if (emitted.get()) {
                         return Mono.error(error);
                     }
-                    boolean retryable = transportFailure || retryableStatus(((UpstreamStatusFailure) error).status);
-                    if (retryable && retries > 0) {
-                        Duration delay = prepared.stream() ? Duration.ZERO : retryBackoff.multipliedBy(1L << (3 - retries));
-                        return Mono.delay(delay).then(attempt(requestBody, prepared, fallback, retries - 1, consumer, emitted));
+                    if (error instanceof AiTransportException transportException) {
+                        decision = RETRY_POLICY.decideTransport(
+                                transportException.getKind(),
+                                retriesRemaining,
+                                fallback.isPresent());
+                    } else if (error instanceof UpstreamStatusFailure statusFailure) {
+                        decision = RETRY_POLICY.decideStatus(
+                                statusFailure.status,
+                                retriesRemaining,
+                                fallback.isPresent());
+                    } else {
+                        return Mono.error(error);
                     }
-                    if (fallback.isPresent()) {
-                        return Mono.defer(() -> attempt(requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, consumer, emitted));
+                    if (decision == AiProxyRetryPolicy.Decision.RETRY) {
+                        final int retryIndex = maxRetries - retriesRemaining;
+                        final Duration delay = retryProperties.retryDelay(prepared.stream(), retryIndex);
+                        return Mono.delay(delay).then(attempt(
+                                requestBody, prepared, fallback, maxRetries, retriesRemaining - 1, consumer, emitted));
+                    }
+                    if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
+                        return Mono.defer(() -> attempt(
+                                requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, 0, consumer, emitted));
                     }
                     return Mono.error(error);
                 });
     }
 
-    private boolean retryableStatus(final int status) {
-        return status == 429 || (status >= 500 && status < 600);
+    private Mono<Void> consumeResponse(
+            final AiUpstreamResponse response,
+            final Function<AiUpstreamResponse, Mono<Void>> consumer,
+            final AtomicBoolean emitted) {
+        return response.getBody()
+                .switchOnFirst((signal, body) -> {
+                    if (signal.isOnError()) {
+                        return Flux.error(
+                                Objects.requireNonNull(
+                                        signal.getThrowable()));
+                    }
+
+                    final AiUpstreamResponse ready =
+                            new AiUpstreamResponse(
+                                    response.getStatusCode(),
+                                    response.getHeaders(),
+                                    body.doOnNext(
+                                            bytes -> emitted.set(true)));
+
+                    return Mono.defer(
+                            () -> consumer.apply(ready)).flux();
+                })
+                .then();
     }
 
     private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
@@ -172,22 +232,46 @@ public final class AiProxyEngine {
         if (!protocol.matches(payload)) {
             throw new ShenyuException("Request body does not match AI protocol: " + protocol.name());
         }
-        ShenyuAiRequest decoded = protocol.decodeRequest(upstreamBody, payload);
+        ShenyuAiRequest decoded = applyModelOverride(protocol.decodeRequest(upstreamBody, payload), protocol, config);
         AiProxyProvider provider = aiProxyProviderFactory.getProvider(
                 Objects.isNull(config.getProvider()) || config.getProvider().isBlank() ? "openai" : config.getProvider());
-        if (!provider.supports(protocol.name())) {
-            throw new ShenyuException("Unsupported AI protocol/provider combination");
+        boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
+        AiProtocolConverter converter = aiProtocolConverterFactory.resolveConverter(
+                decoded.getProtocol(), provider.capabilities().protocols());
+        AiProtocolConversion conversion = converter.convert(decoded, stream);
+        ShenyuAiRequest providerRequest = conversion.request();
+        if (!provider.supports(providerRequest.getProtocol())) {
+            throw new ShenyuException("Unsupported AI upstream protocol/provider combination: "
+                    + providerRequest.getProtocol() + " -> " + provider.name());
         }
+        provider.capabilities().validate(providerRequest, stream);
         try {
-            AiUpstreamRequest request = provider.buildRequest(decoded, config);
-            boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
-            return new PreparedExchange(protocol, provider, request, stream);
+            PreparedAiRequest preparedRequest = provider.prepareRequest(providerRequest, config);
+            AiResponseAdapter responseAdapter = response -> protocol.encodeResponse(
+                    conversion.responseAdapter().adapt(preparedRequest.responseAdapter().adapt(response)), stream);
+            return new PreparedExchange(preparedRequest.request(), responseAdapter, protocol.name(), stream);
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
     }
 
-    private record PreparedExchange(AiProxyProtocol protocol, AiProxyProvider provider, AiUpstreamRequest request, boolean stream) {
+    private ShenyuAiRequest applyModelOverride(final ShenyuAiRequest request, final AiProxyProtocol protocol,
+                                               final AiCommonConfig config) {
+        String configuredModel = config.getModel();
+        if (Objects.isNull(configuredModel) || configuredModel.isBlank()
+                || configuredModel.equals(request.getModel())) {
+            return request;
+        }
+        ObjectNode effectivePayload = request.getRawPayload().deepCopy();
+        effectivePayload.put("model", configuredModel);
+        return protocol.decodeRequest(effectivePayload.toString(), effectivePayload);
+    }
+
+    private record PreparedExchange(
+            AiUpstreamRequest request,
+            AiResponseAdapter responseAdapter,
+            String clientProtocol,
+            boolean stream) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {

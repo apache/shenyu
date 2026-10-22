@@ -54,6 +54,7 @@ import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
+import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -347,10 +348,11 @@ public class RuleServiceImpl implements RuleService {
             return ConfigImportResult.success();
         }
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
-        Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
+        Map<String, Set<String>> selectorRuleMap = ruleMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(RuleDO::getSelectorId));
+                .collect(Collectors.groupingBy(RuleDO::getSelectorId,
+                        Collectors.mapping(RuleDO::getRuleName, Collectors.toSet())));
 
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
@@ -365,11 +367,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
-            Set<String> existRuleNameSet = selectorRuleMap
-                    .getOrDefault(newSelectorId, Lists.newArrayList())
-                    .stream()
-                    .map(RuleDO::getRuleName)
-                    .collect(Collectors.toSet());
+            Set<String> existRuleNameSet = selectorRuleMap.computeIfAbsent(newSelectorId, key -> new HashSet<>());
 
             if (existRuleNameSet.contains(ruleName)) {
                 errorMsgBuilder
@@ -391,6 +389,7 @@ public class RuleServiceImpl implements RuleService {
                     });
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
+                existRuleNameSet.add(ruleName);
                 successCount++;
             }
         }
@@ -417,6 +416,8 @@ public class RuleServiceImpl implements RuleService {
         }
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
+        } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {
+            RewriteRuleHandleValidator.validate(handle);
         }
     }
     

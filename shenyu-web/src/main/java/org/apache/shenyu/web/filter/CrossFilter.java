@@ -50,8 +50,13 @@ public class CrossFilter implements WebFilter {
 
     private final CrossFilterConfig filterConfig;
 
+    private volatile Pattern originPattern;
+
     public CrossFilter(final CrossFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
+        if (Objects.nonNull(filterConfig.getAllowedOrigin()) && StringUtils.isNotBlank(filterConfig.getAllowedOrigin().getOriginRegex())) {
+            originPattern = Pattern.compile(filterConfig.getAllowedOrigin().getOriginRegex().trim());
+        }
     }
 
     @Override
@@ -91,7 +96,7 @@ public class CrossFilter implements WebFilter {
                 // if the origin is not allow check match origin again
                 String originRegex;
                 if (!allowCors && StringUtils.isNotBlank(originRegex = this.filterConfig.getAllowedOrigin().getOriginRegex())) {
-                    allowCors = Pattern.matches(originRegex.trim(), origin);
+                    allowCors = getOriginPattern(originRegex.trim()).matcher(origin).matches();
                 }
             }
             if (allowCors) {
@@ -119,6 +124,15 @@ public class CrossFilter implements WebFilter {
             }
         }
         return chain.filter(exchange);
+    }
+
+    private Pattern getOriginPattern(final String regex) {
+        Pattern pattern = originPattern;
+        if (Objects.isNull(pattern) || !pattern.pattern().equals(regex)) {
+            pattern = Pattern.compile(regex);
+            originPattern = pattern;
+        }
+        return pattern;
     }
 
     /**

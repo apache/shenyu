@@ -42,6 +42,11 @@ public class ClusterDataChangedEventPayload implements Serializable {
      */
     private String source;
 
+    /**
+     * the namespace id of the event.
+     */
+    private String namespaceId;
+
     public ClusterDataChangedEventPayload() {
     }
 
@@ -110,5 +115,23 @@ public class ClusterDataChangedEventPayload implements Serializable {
      */
     public void setSource(final String source) {
         this.source = source;
+    }
+
+    /**
+     * Gets the namespace id.
+     *
+     * @return the namespace id
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Sets the namespace id.
+     *
+     * @param namespaceId the namespace id
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
     }
 }

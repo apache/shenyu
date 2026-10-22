@@ -39,6 +39,23 @@ flow still reads its own `db/init/ob/schema.sql` **at the immutable released
 baseline commit**, then executes the unchanged `*-ob.sql` upgrade script.
 The historical baseline is not a current initialization file.
 
+PostgreSQL and openGauss fresh installations both execute
+`db/init/pg/create-table.sql`, without a compatibility overlay. The openGauss
+upgrade flow still reads its original `db/init/og/create-table.sql` **at the
+immutable released baseline commit**, then executes the unchanged `*-og.sql`
+upgrade script. That historical path is not a current initialization file.
+Storage Compose and Kubernetes E2E initialization also use the shared source.
+
+The PostgreSQL/openGauss fresh flows require the declared columns/nullability, primary keys,
+secondary indexes and unique indexes. They reject orphan seed relations,
+duplicate plugin-handle/permission/namespace-plugin natural keys and invalid
+configuration JSON; require admin permissions for every resource and a default
+namespace relation for every plugin; and compare the reconciled plugin and
+default-namespace configs. Discovery-upstream uniqueness is checked by native
+catalog inspection and an actual duplicate insert that must fail on the intended
+index. See the [initialization guide](../init/init-guide.md) for reconciliation
+decisions and installation commands.
+
 Both flows insert a plugin with a nonempty binary JAR including zero/high-bit
 bytes. The checks execute the actual shared mapper column projections, require
 the list projection to exclude `plugin_jar`, preserve all sentinel list metadata
@@ -46,6 +63,8 @@ and JAR bytes, preserve pre-upgrade row IDs in plugin/selector/rule/resource/
 permission/user-role/namespace-plugin relation tables, and inspect native index
 catalogs. Composite indexes only count when the requested column leads the index.
 The exact new selector/plugin and permission/resource indexes must also exist.
+Both flows verify data-permission uniqueness; the upgrade flow also verifies
+duplicate-grant cleanup preserves distinct grants.
 
 The shared MySQL/OceanBase fresh flows additionally require all declared tables,
 secondary indexes and unique constraints, reject orphan seed relations and
@@ -62,6 +81,22 @@ of every production table. No gateway request or Docker e2e coverage is claimed.
 
 Per-engine artifacts contain flow results, durations and startup logs, including
 failed attempts. Cleanup is restricted to that job's generated test containers.
+
+Instance identity checks seed duplicate observations immediately before the
+2.7.2-to-2.7.3 migration. They require the newest heartbeat, update timestamp,
+creation timestamp and stable ID tie-break, retain different namespaces/IPs/ports/
+types, and exercise maximum declared identity lengths. Both flows reject a real
+duplicate insert on `uk_instance_info_identity` and execute the actual mapper
+update SQL with stale, zero, newer and equal heartbeat timestamps. The H2 service
+suite additionally forces two independent writers to observe absence before
+either insert, in both insertion orders, and verifies caller-transaction suspension.
+
+Mock-request header checks preserve a legacy header/body row across the complete
+upgrade chain and insert a 6,000-character header in both flows. The H2 mapper
+suite covers API create/update, selective/batch inserts, 60,000-character equality
+filters, Unicode and absent-header defaults; a separate H2 migration test verifies
+existing rows survive the documented type alteration. Oracle expression handling
+has dedicated interceptor regressions.
 
 ## Local execution
 

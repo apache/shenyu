@@ -18,9 +18,12 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+
+import java.util.Objects;
 
 /**
  * Contract for adapting a ShenYu AI request to a provider request.
@@ -44,22 +47,34 @@ public interface AiProxyProvider {
     AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
 
     /**
-     * Check whether the provider supports a client protocol.
+     * Get provider feature and operation declarations.
+     * Existing custom providers retain the general Chat capability default.
      *
-     * @param protocol client protocol identifier
-     * @return whether supported
+     * @return provider capabilities
      */
-    default boolean supports(final String protocol) {
-        return true;
+    default AiProviderCapabilities capabilities() {
+        return AiProviderCapabilities.chat();
     }
 
     /**
-     * Adapt provider-specific response details before protocol encoding.
+     * Check whether the provider natively accepts an upstream protocol.
      *
-     * @param response raw upstream response
-     * @return adapted response
+     * @param protocol upstream protocol identifier
+     * @return whether supported
      */
-    default AiUpstreamResponse adaptResponse(final AiUpstreamResponse response) {
-        return response;
+    default boolean supports(final String protocol) {
+        return Objects.nonNull(protocol) && capabilities().protocols().contains(protocol);
+    }
+
+    /**
+     * Prepare an upstream request and the response conversion bound to it.
+     * Existing providers receive an identity response adapter by default.
+     *
+     * @param request decoded AI request
+     * @param config provider configuration
+     * @return prepared upstream request
+     */
+    default PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+        return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
     }
 }

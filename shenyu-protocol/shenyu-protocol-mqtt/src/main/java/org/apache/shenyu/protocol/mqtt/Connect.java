@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
@@ -29,6 +30,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +79,25 @@ public class Connect extends MessageType {
             return;
         }
 
-        // record connect
-        Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
+        // record connect and take over the client id: a duplicate clientId must
+        // replace the existing connection instead of coexisting with it (#7918)
+        final Channel previous = Singleton.INST.get(ChannelRepository.class).takeover(ctx.channel(), clientId);
+        if (Objects.nonNull(previous) && previous != ctx.channel()) {
+            LOG.info("MQTT clientId {} is already connected, closing the previous connection.", clientId);
+            // the replaced connection's will is discarded: the client is alive on the new connection
+            Singleton.INST.get(WillRepository.class).remove(previous);
+            previous.close();
+        }
+
+        // store will if present
+        if (msg.variableHeader().isWillFlag()) {
+            WillRepository.WillEntry will = new WillRepository.WillEntry(
+                    msg.payload().willTopic(),
+                    msg.payload().willMessageInBytes(),
+                    msg.variableHeader().willQos(),
+                    msg.variableHeader().isWillRetain());
+            Singleton.INST.get(WillRepository.class).add(ctx.channel(), will);
+        }
 
         boolean cleanSession = msg.variableHeader().isCleanSession();
         SessionRepository sessionRepository = Singleton.INST.get(SessionRepository.class);

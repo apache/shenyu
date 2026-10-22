@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
 
@@ -48,6 +49,9 @@ class AdminQueryIndexTest extends AbstractSpringIntegrationTest {
             while (indexes.next()) {
                 if (index.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
                     actual.add(indexes.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
+                    if ("data_permission".equals(table)) {
+                        assertFalse(indexes.getBoolean("NON_UNIQUE"));
+                    }
                 }
             }
         }

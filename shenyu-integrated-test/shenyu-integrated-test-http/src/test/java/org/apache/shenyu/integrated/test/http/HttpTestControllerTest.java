@@ -221,7 +221,7 @@ public final class HttpTestControllerTest extends AbstractTest {
 
     @Test
     public void testResponseBodyIsNull() throws IOException {
-        Object result = HttpHelper.INSTANCE.getFromGateway("/http/test/nullResponse", null);
+        Object result = HttpHelper.INSTANCE.getFromGateway("/http/test/nullResponse", Object.class);
         assertNull(result);
     }
 

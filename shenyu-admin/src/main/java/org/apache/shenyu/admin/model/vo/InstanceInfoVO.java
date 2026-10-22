@@ -27,6 +27,11 @@ import java.util.Objects;
 public class InstanceInfoVO implements Serializable {
 
     private static final long serialVersionUID = -5798225577222473005L;
+
+    /**
+     * primary key.
+     */
+    private String id;
     
     /**
      * instance ip.
@@ -73,6 +78,24 @@ public class InstanceInfoVO implements Serializable {
      */
     private long lastHeartBeatTime;
     
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
     /**
      * get instanceIp.
      *
