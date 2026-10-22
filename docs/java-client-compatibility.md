@@ -17,6 +17,10 @@
 
 # Java client and server compatibility
 
+Evidence last verified: 2026-10-22. The client CI run 35421426447 and server CI
+run 38836735672 below still refer to the pinned commits recorded in this matrix;
+this date does not certify newer commits or untested deployment combinations.
+
 This matrix describes business application registration through [shenyu-client-java](https://github.com/apache/shenyu-client-java) to ShenYu Admin, and the JDK requirements of Admin and bootstrap. It addresses [issue #6370](https://github.com/apache/shenyu/issues/6370).
 
 ## Version dimensions and support levels
