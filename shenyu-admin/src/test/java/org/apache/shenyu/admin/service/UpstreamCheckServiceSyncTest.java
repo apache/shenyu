@@ -32,6 +32,7 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
+import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -52,6 +53,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +68,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -127,16 +131,14 @@ class UpstreamCheckServiceSyncTest {
 
     @Test
     void testCrashedBackendIsEvictedWithoutAnOfflineNotification() throws Exception {
-        final String failedUrl;
-        try (ServerSocket crashed = new ServerSocket(0)) {
-            failedUrl = "127.0.0.1:" + crashed.getLocalPort();
-        }
-        try (ServerSocket healthy = new ServerSocket(0)) {
+        try (Socket crashed = new Socket(); ServerSocket healthy = new ServerSocket(0)) {
+            // Reserve the dead port without listening, so another process cannot reuse it.
+            crashed.bind(new InetSocketAddress("127.0.0.1", 0));
+            String failedUrl = "127.0.0.1:" + crashed.getLocalPort();
+            assertFalse(UpstreamCheckUtils.checkUrl(failedUrl));
             String healthyUrl = "127.0.0.1:" + healthy.getLocalPort();
-            CommonUpstream dead = DivideUpstream.builder().upstreamUrl(failedUrl).protocol("http://").status(true).build();
-            CommonUpstream live = DivideUpstream.builder().upstreamUrl(healthyUrl).protocol("http://").status(true).build();
-            dead.setHealthCheckEnabled(true);
-            live.setHealthCheckEnabled(true);
+            CommonUpstream dead = DivideUpstream.builder().upstreamUrl(failedUrl).protocol("http://").status(true).healthCheckEnabled(true).build();
+            CommonUpstream live = DivideUpstream.builder().upstreamUrl(healthyUrl).protocol("http://").status(true).healthCheckEnabled(true).build();
             when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(List.of(
                     DiscoveryUpstreamData.builder().url(failedUrl).protocol("http://").status(0).dateCreated(new Timestamp(1)).build(),
                     DiscoveryUpstreamData.builder().url(healthyUrl).protocol("http://").status(0).dateCreated(new Timestamp(1)).build()));
@@ -154,7 +156,10 @@ class UpstreamCheckServiceSyncTest {
             assertEquals(Collections.singletonList(live), upstreams.get(SELECTOR_ID));
             ArgumentCaptor<SelectorDO> selector = ArgumentCaptor.forClass(SelectorDO.class);
             verify(selectorMapper).updateSelective(selector.capture());
-            assertTrue(!selector.getValue().getHandle().contains(failedUrl));
+            assertFalse(selector.getValue().getHandle().contains(failedUrl));
+            Collection<?> zombies = (Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "ZOMBIE_SET");
+            assertTrue(zombies.stream().map(ZombieUpstream.class::cast).anyMatch(zombie -> SELECTOR_ID.equals(zombie.getSelectorId())
+                    && failedUrl.equals(zombie.getCommonUpstream().getUpstreamUrl()) && zombie.getZombieCheckTimes() > 0));
         }
     }
 
