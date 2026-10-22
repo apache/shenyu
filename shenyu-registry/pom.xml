@@ -32,7 +32,6 @@
         <module>shenyu-registry-zookeeper</module>
         <module>shenyu-registry-etcd</module>
         <module>shenyu-registry-nacos</module>
-        <module>shenyu-registry-apollo</module>
         <module>shenyu-registry-eureka</module>
         <module>shenyu-registry-kubernetes</module>
     </modules>

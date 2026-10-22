@@ -236,12 +236,6 @@ shenyu:
       urls: ws://localhost:9095/websocket
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigin: ws://localhost:9195
-#    apollo:
-#      appId: shenyu
-#      meta: http://localhost:8080
-#      env: dev
-#      clusterName: test
-#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeoutMilliseconds: 5000

@@ -168,7 +168,6 @@
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
-        <apollo.version>2.1.0</apollo.version>
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
         <lettuce.version>6.1.2.RELEASE</lettuce.version>
@@ -375,18 +374,6 @@
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.ctrip.framework.apollo</groupId>
-                <artifactId>apollo-client</artifactId>
-                <version>${apollo.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.ctrip.framework.apollo</groupId>
-                <artifactId>apollo-openapi</artifactId>
-                <version>${apollo.version}</version>
             </dependency>
 
             <dependency>

@@ -2,13 +2,11 @@
 
 ### API Changes
 
-- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
-  deprecated for transfer to plugin-store (#7599). All four remain available in
-  the release carrying this notice. Removal requires dev-list consensus, a full
-  released deprecation cycle, compatible external artifact publication and an
-  announced rollback window; no removal release is scheduled. See the
-  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
-  keys and `ApolloPathConstants` remain compatibility contracts.
+- The external Apollo stack retains the `apollo` SPI/configuration type and
+  existing stored keys (#7599). `ApolloPathConstants` remains in core as a small
+  compatibility shim without an Apollo SDK dependency. The separate deprecation
+  notice must have shipped in a preceding core release before this cutover can
+  merge; see the [migration guide](docs/plugin-store-apollo.md).
 
 - `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
   serialization identifier and existing behavior are retained for downstream
@@ -27,6 +25,12 @@
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
 ### Behavior Changes
+
+- Apollo's runtime modules and sync starter are transferred to plugin-store in
+  this later cutover change (#7599). Merge and release only after the separate
+  deprecation notice has shipped in a preceding core release, dev-list agreement,
+  passing receiving CI and external publication. Existing configurations and
+  `ApolloPathConstants` remain compatible; see the [migration guide](docs/plugin-store-apollo.md).
 
 - Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
   HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
