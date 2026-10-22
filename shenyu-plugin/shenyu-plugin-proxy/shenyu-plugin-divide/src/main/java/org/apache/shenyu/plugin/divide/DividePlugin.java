@@ -60,6 +60,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String P2C = "p2c";
 
+    private static final String LEAST_ACTIVE = "leastActive";
+
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
     @Override
@@ -145,6 +147,11 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        if (LEAST_ACTIVE.equals(ruleHandle.getLoadBalance())) {
+            // Least active compares outstanding requests, so the choice is reserved here and released
+            // once the request terminates, whatever its outcome.
+            upstream.getInflight().incrementAndGet();
+        }
         // set domain
         String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
@@ -199,7 +206,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                                  final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream, final boolean probe) {
         Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
+        if (ruleHandle.getLoadBalance().equals(LEAST_ACTIVE)) {
+            response = response.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        } else if (ruleHandle.getLoadBalance().equals(P2C)) {
             response = response.doFinally(signalType -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
