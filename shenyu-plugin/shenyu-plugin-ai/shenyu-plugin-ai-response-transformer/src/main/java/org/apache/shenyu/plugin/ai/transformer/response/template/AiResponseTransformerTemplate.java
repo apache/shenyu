@@ -56,6 +56,8 @@ public class AiResponseTransformerTemplate {
             + "- A blank line  \n"
             + "- A JSON-formatted body (the body must be valid JSON text)  \n"
             + "Do not include any extra explanations, comments, or text.  \n"
+            + "The status line is applied to the response, so only change the status when the transformation requires it; "
+            + "otherwise keep the upstream status. Do not send a body with 204 or 304.  \n"
             + "Example:\n"
             + "\n"
             + "HTTP/1.1 200 OK\n"

@@ -19,6 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,6 +47,11 @@ public final class Upstream {
      * url.
      */
     private String url;
+
+    /**
+     * One selector-scoped domain key, bounded by this upstream's lifetime.
+     */
+    private transient volatile SelectorKey selectorKey;
 
     /**
      * weight.
@@ -119,7 +125,9 @@ public final class Upstream {
      */
     private boolean healthCheckEnabled = true;
     
-    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    private volatile Map<String, String> labels = Collections.emptyMap();
+
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
     /**
@@ -145,6 +153,24 @@ public final class Upstream {
         this.healthCheckEnabled = builder.healthCheckEnabled;
     }
     
+    /**
+     * Gets upstream labels independently of scalar metadata.
+     *
+     * @return immutable upstream labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    /**
+     * Sets an immutable snapshot of upstream labels.
+     *
+     * @param labels upstream labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = Map.copyOf(labels);
+    }
+
     /**
      * Gets protocol.
      *
@@ -206,6 +232,7 @@ public final class Upstream {
      */
     public void setUrl(final String url) {
         this.url = url;
+        this.selectorKey = null;
         this.identity = null;
     }
     
@@ -496,6 +523,28 @@ public final class Upstream {
     }
 
     /**
+     * Build a selector-scoped domain key without request-time concatenation.
+     *
+     * <p>Only one immutable entry is retained per upstream. Sharing an upstream
+     * between selectors replaces that entry, and URL changes invalidate it.
+     * Weight, group and version do not change the domain key.
+     *
+     * @param selectorId the selector id
+     * @return the selector id and current request domain separated by a colon
+     */
+    public String buildSelectorKey(final String selectorId) {
+        SelectorKey cached = selectorKey;
+        String currentUrl = url;
+        if (Objects.nonNull(cached) && Objects.equals(cached.selectorId, selectorId) && Objects.equals(cached.url, currentUrl)) {
+            return cached.key;
+        }
+        String domain = protocolPrefix + (Objects.isNull(currentUrl) ? null : currentUrl.trim());
+        SelectorKey updated = new SelectorKey(selectorId, currentUrl, selectorId + ":" + domain);
+        selectorKey = updated;
+        return updated.key;
+    }
+
+    /**
      * Normalize a protocol value to a url prefix, so a bare scheme such as {@code http}
      * cannot be concatenated directly with the upstream address.
      *
@@ -566,7 +615,25 @@ public final class Upstream {
     }
     
     /**
-     * class builder.
+     * Immutable selector-scoped domain cache entry.
+     */
+    private static final class SelectorKey {
+
+        private final String selectorId;
+
+        private final String url;
+
+        private final String key;
+
+        private SelectorKey(final String selectorId, final String url, final String key) {
+            this.selectorId = selectorId;
+            this.url = url;
+            this.key = key;
+        }
+    }
+
+    /**
+     * Class builder.
      */
     public static final class Builder {
 

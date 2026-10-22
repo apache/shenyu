@@ -45,6 +45,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -805,5 +806,31 @@ public class ShenyuWebsocketClientTest {
         assertEquals(2, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         verify(client, times(2)).close();
         verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testUtf8ByteLengthMatchesGetBytes() {
+        final String cjk = new String(Character.toChars(0x4E2D));
+        final String emoji = new String(Character.toChars(0x1F600));
+        final String accent = new String(Character.toChars(0x00E9));
+        final String loneHigh = String.valueOf((char) 0xD83D);
+        final String loneLow = String.valueOf((char) 0xDE00);
+        final String[] samples = {
+                "",
+                "abc",
+                "{\"groupType\":\"PLUGIN\",\"eventType\":\"REFRESH\",\"data\":[]}",
+                cjk + cjk + cjk,
+                "emoji " + emoji + " tail",
+                "mixed " + cjk + " " + emoji + " ascii " + accent,
+                loneHigh,
+                loneLow,
+                loneHigh + "abc",
+        };
+        for (String sample : samples) {
+            final int expected = sample.getBytes(StandardCharsets.UTF_8).length;
+            assertEquals(expected, ShenyuWebsocketClient.utf8ByteLength(sample),
+                    () -> "utf8ByteLength mismatch for sample of " + expected + " bytes");
+        }
+        assertEquals(0, ShenyuWebsocketClient.utf8ByteLength(null));
     }
 }

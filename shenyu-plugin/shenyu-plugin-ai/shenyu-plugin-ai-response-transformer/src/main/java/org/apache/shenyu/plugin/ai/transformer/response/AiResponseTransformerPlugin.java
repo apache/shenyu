@@ -40,6 +40,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
@@ -58,6 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -75,6 +77,8 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AiResponseTransformerPlugin.class);
 
     private static final Pattern REQUEST_LINE_PATTERN = Pattern.compile("^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\s.*\\sHTTP/1.1$");
+
+    private static final Pattern STATUS_LINE_PATTERN = Pattern.compile("^HTTP/1\\.[01]\\s+(\\d{3})(?:\\s+.*)?$");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -169,10 +173,40 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
     }
 
     /**
+     * For unit test.
+     *
+     * @param aiResponse the AI response
+     * @return the extracted status code, or {@code null} when the response has no usable status line
+     */
+    public static Integer extractStatusFromAiResponse(final String aiResponse) {
+        return AiResponseParser.extractStatusFromAiResponse(aiResponse);
+    }
+
+    /**
      * Utility class for parsing AI responses.
      */
     private static class AiResponseParser {
-        
+
+        /**
+         * Remove the surrounding markdown code block markers, if any.
+         *
+         * @param aiResponse the AI response
+         * @return the response without code block markers
+         */
+        static String stripCodeBlockMarkers(final String aiResponse) {
+            String cleanedResponse = aiResponse;
+            if (cleanedResponse.contains("```")) {
+                int startIndex = cleanedResponse.indexOf("```");
+                int endIndex = cleanedResponse.lastIndexOf("```");
+
+                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+                    cleanedResponse = cleanedResponse.substring(startIndex + 3, endIndex).trim();
+                    LOG.debug("Removed code block markers, cleaned response: {}", cleanedResponse);
+                }
+            }
+            return cleanedResponse;
+        }
+
         /**
          * Extract body from AI response.
          *
@@ -184,16 +218,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 return null;
             }
 
-            String cleanedResponse = aiResponse;
-            if (cleanedResponse.contains("```")) {
-                int startIndex = cleanedResponse.indexOf("```");
-                int endIndex = cleanedResponse.lastIndexOf("```");
-                
-                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                    cleanedResponse = cleanedResponse.substring(startIndex + 3, endIndex).trim();
-                    LOG.debug("Removed code block markers, cleaned response: {}", cleanedResponse);
-                }
-            }
+            String cleanedResponse = stripCodeBlockMarkers(aiResponse);
 
             if (cleanedResponse.startsWith("{") && cleanedResponse.endsWith("}")
                     || cleanedResponse.startsWith("[") && cleanedResponse.endsWith("]")) {
@@ -249,23 +274,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 return headers;
             }
 
-            String cleanedResponse = aiResponse;
-            if (cleanedResponse.contains("```")) {
-                int startIndex = cleanedResponse.indexOf("```");
-                int endIndex = cleanedResponse.lastIndexOf("```");
-                
-                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                    cleanedResponse = cleanedResponse.substring(startIndex + 3, endIndex).trim();
-                    LOG.debug("Removed code block markers for header extraction, cleaned response: {}", cleanedResponse);
-                }
-            }
+            String cleanedResponse = stripCodeBlockMarkers(aiResponse);
 
             try (BufferedReader reader = new BufferedReader(new StringReader(cleanedResponse))) {
                 String line;
                 boolean headerSectionStarted = false;
                 while (Objects.nonNull(line = reader.readLine())) {
                     if (!headerSectionStarted) {
-                        if (line.startsWith("HTTP/1.1") || REQUEST_LINE_PATTERN.matcher(line).matches()) {
+                        if (STATUS_LINE_PATTERN.matcher(line.trim()).matches() || REQUEST_LINE_PATTERN.matcher(line.trim()).matches()) {
                             headerSectionStarted = true;
                             continue;
                         }
@@ -285,6 +301,44 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 LOG.error("AI response transformer plugin: extract headers from AiResponse fail");
             }
             return headers;
+        }
+
+        /**
+         * Extract the status code from the status line of an AI response.
+         * The status line is only accepted as the first non-empty line, so a status-looking
+         * header value further down cannot change the response status.
+         *
+         * @param aiResponse the AI response
+         * @return the extracted status code, or {@code null} when there is no valid status line
+         */
+        static Integer extractStatusFromAiResponse(final String aiResponse) {
+            if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
+                return null;
+            }
+
+            String cleanedResponse = stripCodeBlockMarkers(aiResponse);
+            try (BufferedReader reader = new BufferedReader(new StringReader(cleanedResponse))) {
+                String line;
+                while (Objects.nonNull(line = reader.readLine())) {
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
+                    Matcher matcher = STATUS_LINE_PATTERN.matcher(line.trim());
+                    if (!matcher.matches()) {
+                        return null;
+                    }
+                    int statusCode = Integer.parseInt(matcher.group(1));
+                    // HttpStatus resolves only codes defined by the HTTP specification.
+                    if (Objects.isNull(HttpStatus.resolve(statusCode))) {
+                        LOG.warn("AI response contains an invalid HTTP status code: {}", statusCode);
+                        return null;
+                    }
+                    return statusCode;
+                }
+            } catch (IOException | NumberFormatException e) {
+                LOG.warn("AI response transformer plugin: extract status from AiResponse fail");
+            }
+            return null;
         }
     }
 
@@ -358,21 +412,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                                     .filter(Objects::nonNull)
                                     .collect(StringBuilder::new, StringBuilder::append)
                                     .map(StringBuilder::toString)
-                                    .flatMap(aiResponse -> {
-
-                                        HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
-                                        String newBody = extractBodyFromAiResponse(aiResponse);
-
-                                        if (Objects.nonNull(newBody) && !newBody.isEmpty()) {
-                                            this.getHeaders().clear();
-                                            this.getHeaders().putAll(newHeaders);
-                                            LOG.debug("Returning transformed response body: {}", newBody);
-                                            return WebFluxResultUtils.result(this.exchange, newBody.getBytes(StandardCharsets.UTF_8));
-                                        } else {
-                                            LOG.warn("response body is empty or null, returning original response: {}", finalResponseBody);
-                                            return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
-                                        }
-                                    })
+                                    .flatMap(aiResponse -> applyTransformedResponse(aiResponse, finalResponseBody))
                                     .onErrorResume(throwable -> {
                                         LOG.error("response transformation failed", throwable);
                                         LOG.info("Returning original response due to error: {}", finalResponseBody);
@@ -389,6 +429,36 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
             return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
+        private Mono<Void> applyTransformedResponse(final String aiResponse, final String originalResponseBody) {
+            HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
+            String newBody = extractBodyFromAiResponse(aiResponse);
+            Integer newStatus = extractStatusFromAiResponse(aiResponse);
+
+            if (isBodylessStatus(newStatus)) {
+                // 204/304 must not carry a body, so the generated status and headers are applied as-is
+                this.getHeaders().clear();
+                this.getHeaders().putAll(newHeaders);
+                this.getHeaders().remove(HttpHeaders.CONTENT_TYPE);
+                this.getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+                this.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+                this.setStatusCode(HttpStatus.valueOf(newStatus));
+                LOG.debug("Returning transformed bodyless response with status: {}", newStatus);
+                return super.writeWith(Flux.empty());
+            }
+            if (Objects.nonNull(newBody) && !newBody.isEmpty()) {
+                this.getHeaders().clear();
+                this.getHeaders().putAll(newHeaders);
+                if (Objects.nonNull(newStatus)) {
+                    this.setStatusCode(HttpStatus.valueOf(newStatus));
+                }
+                LOG.debug("Returning transformed response body: {}", newBody);
+                return WebFluxResultUtils.result(this.exchange, newBody.getBytes(StandardCharsets.UTF_8));
+            }
+            // the generated response has no usable body, so the original response (and its status) is kept
+            LOG.warn("response body is empty or null, returning original response: {}", originalResponseBody);
+            return WebFluxResultUtils.result(this.exchange, originalResponseBody.getBytes(StandardCharsets.UTF_8));
+        }
+
         private String extractBodyFromAiResponse(final String aiResponse) {
             if (Objects.isNull(aiResponse) || aiResponse.isEmpty()) {
                 LOG.warn("response is null or empty");
@@ -402,6 +472,14 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 LOG.debug("Successfully extracted body from AI response: {}", result);
             }
             return result;
+        }
+
+        private static boolean isBodylessStatus(final Integer statusCode) {
+            if (Objects.isNull(statusCode)) {
+                return false;
+            }
+            HttpStatus status = HttpStatus.resolve(statusCode);
+            return HttpStatus.NO_CONTENT.equals(status) || HttpStatus.NOT_MODIFIED.equals(status);
         }
 
         private HttpHeaders extractHeadersFromAiResponse(final String aiResponse) {

@@ -322,7 +322,16 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("namespaceId can not be null");
         }
-        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, maskSensitive(message));
+        if (LOG.isInfoEnabled()) {
+            // Log bounded delivery metadata instead of reparsing, redacting and re-serializing the whole
+            // payload on the publisher thread. The group/eventType/item count are already logged by the
+            // publisher (WebsocketDataChangedListener); the full redacted payload stays opt-in at DEBUG.
+            LOG.info("websocket send message to namespaceId: {}, eventType: {}, size: {} chars",
+                    namespaceId, type, message.length());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("websocket send message to namespaceId: {}, payload: {}", namespaceId, maskSensitive(message));
+        }
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {

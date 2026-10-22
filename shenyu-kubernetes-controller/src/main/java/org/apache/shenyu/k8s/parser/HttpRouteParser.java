@@ -324,7 +324,7 @@ public class HttpRouteParser {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(conditions)
                 .handle(GsonUtils.getInstance().toJson(divideRuleHandle))
-                .loged(false)
+                .logged(false)
                 .enabled(true)
                 .build();
     }

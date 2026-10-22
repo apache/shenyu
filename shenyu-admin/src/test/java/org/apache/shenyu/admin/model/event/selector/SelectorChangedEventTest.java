@@ -87,7 +87,7 @@ public final class SelectorChangedEventTest {
         builder.append(String.format("type[%s => %s] ", before.getSelectorType(), after.getSelectorType()));
         builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         builder.append(String.format("sort[%s => %s] ", before.getSortCode(), after.getSortCode()));
-        builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
+        builder.append(String.format("logged[%s => %s] ", before.getLogged(), after.getLogged()));
 
         String changeMsg = builder.toString();
         String expectMsg = String.format("the namespace [%s] selector [%s] is %s : %s", after.getNamespaceId(), after.getSelectorName(),
@@ -124,7 +124,7 @@ public final class SelectorChangedEventTest {
         selectorDO.setDateUpdated(now);
         selectorDO.setEnabled(true);
         selectorDO.setSortCode(0);
-        selectorDO.setLoged(true);
+        selectorDO.setLogged(true);
         return selectorDO;
     }
 
@@ -142,7 +142,7 @@ public final class SelectorChangedEventTest {
         selectorDO.setDateUpdated(now);
         selectorDO.setEnabled(false);
         selectorDO.setSortCode(1);
-        selectorDO.setLoged(false);
+        selectorDO.setLogged(false);
         return selectorDO;
     }
 }

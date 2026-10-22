@@ -29,6 +29,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +80,16 @@ public class Connect extends MessageType {
 
         // record connect
         Singleton.INST.get(ChannelRepository.class).add(ctx.channel(), clientId);
+
+        // store will if present
+        if (msg.variableHeader().isWillFlag()) {
+            WillRepository.WillEntry will = new WillRepository.WillEntry(
+                    msg.payload().willTopic(),
+                    msg.payload().willMessageInBytes(),
+                    msg.variableHeader().willQos(),
+                    msg.variableHeader().isWillRetain());
+            Singleton.INST.get(WillRepository.class).add(ctx.channel(), will);
+        }
 
         boolean cleanSession = msg.variableHeader().isCleanSession();
         SessionRepository sessionRepository = Singleton.INST.get(SessionRepository.class);

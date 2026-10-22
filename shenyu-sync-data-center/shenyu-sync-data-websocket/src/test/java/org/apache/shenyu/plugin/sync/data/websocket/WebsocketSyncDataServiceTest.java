@@ -32,7 +32,6 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -150,8 +149,7 @@ public final class WebsocketSyncDataServiceTest {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.emptyList(),
-                mock(ServerProperties.class));
+                Collections.emptyList());
         try {
             Field timerTaskField = WebsocketSyncDataService.class.getDeclaredField("timerTask");
             timerTaskField.setAccessible(true);
@@ -178,8 +176,7 @@ public final class WebsocketSyncDataServiceTest {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.emptyList(),
-                mock(ServerProperties.class));
+                Collections.emptyList());
         Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
         clientsField.setAccessible(true);
         List<ShenyuWebsocketClient> clients = (List<ShenyuWebsocketClient>) clientsField.get(service);
@@ -187,6 +184,9 @@ public final class WebsocketSyncDataServiceTest {
         ShenyuWebsocketClient closedClient = mock(ShenyuWebsocketClient.class);
         when(closedClient.isOpen()).thenReturn(false);
         clients.add(closedClient);
+        Field boundPort = WebsocketSyncDataService.class.getDeclaredField("boundPort");
+        boundPort.setAccessible(true);
+        boundPort.setInt(service, 9195);
 
         try {
             Method masterCheck = WebsocketSyncDataService.class.getDeclaredMethod("masterCheck");
@@ -230,7 +230,6 @@ public final class WebsocketSyncDataServiceTest {
                 Collections.<AuthDataSubscriber>emptyList(),
                 Collections.<ProxySelectorDataSubscriber>emptyList(),
                 Collections.<DiscoveryUpstreamDataSubscriber>emptyList(),
-                Collections.<AiProxyApiKeyDataSubscriber>emptyList(),
-                mock(ServerProperties.class));
+                Collections.<AiProxyApiKeyDataSubscriber>emptyList());
     }
 }

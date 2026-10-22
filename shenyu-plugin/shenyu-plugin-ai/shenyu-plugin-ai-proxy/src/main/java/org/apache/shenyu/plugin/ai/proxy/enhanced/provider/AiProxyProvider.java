@@ -18,8 +18,10 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
 import java.util.Objects;
@@ -73,5 +75,17 @@ public interface AiProxyProvider {
      */
     default AiUpstreamResponse adaptResponse(final AiUpstreamResponse response) {
         return response;
+    }
+
+    /**
+     * Prepare an upstream request and the response conversion bound to it.
+     * Existing providers receive an identity response adapter by default.
+     *
+     * @param request decoded AI request
+     * @param config provider configuration
+     * @return prepared upstream request
+     */
+    default PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+        return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
     }
 }

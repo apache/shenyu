@@ -373,6 +373,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Opt-in standalone file configuration. -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-file</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--shenyu data sync start use websocket-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -486,18 +493,22 @@
     </profiles>
     <build>
         <finalName>shenyu-bootstrap</finalName>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>application.yml</include>
+                </includes>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
             </plugin>
         </plugins>
     </build>
