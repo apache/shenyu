@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
@@ -49,6 +50,8 @@ import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.ALL;
 import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.FIELD;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.containsString;
 
 public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
@@ -118,17 +121,20 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
     }
 
-    @Test
-    @DisplayName("return original message when request doesnt exist filed")
-    public void testWhenDoesntExistFiled() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"decrypt", "encrypt"})
+    @DisplayName("reject a response missing the configured field")
+    public void testWhenConfiguredFieldDoesNotExist(final String way) throws Exception {
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt", FIELD.getMapType()));
+                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", way, FIELD.getMapType()));
 
-        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, UserDTO.class);
-
-        assertThat(actualUser.getUserId(), is(originalBody.getUserId()));
-        assertThat(actualUser.getUserName(), is(originalBody.getUserName()));
-
+        String body = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, String.class);
+        AdminResponse response = GsonUtils.getInstance().fromJson(body, AdminResponse.class);
+        ShenyuResultEnum error = ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION;
+        assertThat(response.getCode(), is(error.getCode()));
+        assertThat(response.getMessage(), is(error.getMsg() + "[fieldNames]"));
+        assertThat(body, not(containsString(TEST_USER_ID)));
+        assertThat(body, not(containsString(TEST_USER_NAME)));
     }
 
     @DisplayName("return failed message when decrypt or encrypt failed")
