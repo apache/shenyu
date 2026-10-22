@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -200,6 +202,73 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void selectorCacheShouldNotShadowDynamicCandidate() {
+        ConditionData uriCondition = new ConditionData();
+        uriCondition.setOperator("match");
+        uriCondition.setParamName("/");
+        uriCondition.setParamType("uri");
+        uriCondition.setParamValue("/http/**");
+        ConditionData headerCondition = new ConditionData();
+        headerCondition.setOperator("=");
+        headerCondition.setParamName("X-Tenant");
+        headerCondition.setParamType("header");
+        headerCondition.setParamValue("a");
+        SelectorData genericSelector = SelectorData.builder()
+                .id("generic").pluginName("SHENYU").enabled(true).continued(false).logged(false)
+                .matchMode(0).sort(2).conditionList(Collections.singletonList(uriCondition))
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
+        SelectorData tenantSelector = SelectorData.builder()
+                .id("tenant").pluginName("SHENYU").enabled(true).continued(false).logged(false)
+                .matchMode(0).sort(1).conditionList(List.of(uriCondition, headerCondition))
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(genericSelector);
+        BaseDataCache.getInstance().cacheSelectData(tenantSelector);
+
+        ServerWebExchange ordinaryExchange = exchangeWithTenant("b");
+        StepVerifier.create(testShenyuPlugin.execute(ordinaryExchange, shenyuPluginChain)).verifyComplete();
+        ServerWebExchange tenantExchange = exchangeWithTenant("a");
+        StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
+
+        verify(testShenyuPlugin).doExecute(any(), any(), argThat(selector -> "tenant".equals(selector.getId())), any());
+    }
+
+    @Test
+    public void ruleCacheShouldNotShadowDynamicCandidate() {
+        ConditionData uriCondition = new ConditionData();
+        uriCondition.setOperator("match");
+        uriCondition.setParamName("/");
+        uriCondition.setParamType("uri");
+        uriCondition.setParamValue("/http/**");
+        ConditionData headerCondition = new ConditionData();
+        headerCondition.setOperator("=");
+        headerCondition.setParamName("X-Tenant");
+        headerCondition.setParamType("header");
+        headerCondition.setParamValue("a");
+        this.selectorData.setContinued(true);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(false);
+        this.selectorData.setConditionList(Collections.singletonList(uriCondition));
+        RuleData genericRule = RuleData.builder()
+                .id("generic").pluginName("SHENYU").selectorId("1").enabled(true).logged(false)
+                .matchMode(0).sort(2).conditionDataList(Collections.singletonList(uriCondition)).build();
+        RuleData tenantRule = RuleData.builder()
+                .id("tenant").pluginName("SHENYU").selectorId("1").enabled(true).logged(false)
+                .matchMode(0).sort(1).conditionDataList(List.of(uriCondition, headerCondition)).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(genericRule);
+        BaseDataCache.getInstance().cacheRuleData(tenantRule);
+
+        ServerWebExchange ordinaryExchange = exchangeWithTenant("b");
+        StepVerifier.create(testShenyuPlugin.execute(ordinaryExchange, shenyuPluginChain)).verifyComplete();
+        ServerWebExchange tenantExchange = exchangeWithTenant("a");
+        StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
+
+        verify(testShenyuPlugin).doExecute(any(), any(), any(), argThat(rule -> "tenant".equals(rule.getId())));
     }
 
     @Test
@@ -380,6 +449,13 @@ public final class AbstractShenyuPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
         SpringBeanUtils.getInstance().setApplicationContext(context);
+    }
+
+    private ServerWebExchange exchangeWithTenant(final String tenant) {
+        ServerWebExchange result = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
+                .header("X-Tenant", tenant).build());
+        result.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        return result;
     }
 
     static class TestShenyuPlugin extends AbstractShenyuPlugin {

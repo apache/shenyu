@@ -195,6 +195,23 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
+    private boolean canCacheSelectorMatch(final Collection<SelectorData> selectors) {
+        return selectors.stream()
+                .filter(selector -> Boolean.TRUE.equals(selector.getEnabled()))
+                .allMatch(selector -> hasOnlyUriConditions(selector.getConditionList()));
+    }
+
+    private boolean canCacheRuleMatch(final Collection<RuleData> rules) {
+        return rules.stream()
+                .filter(rule -> Boolean.TRUE.equals(rule.getEnabled()))
+                .allMatch(rule -> hasOnlyUriConditions(rule.getConditionDataList()));
+    }
+
+    private boolean hasOnlyUriConditions(final Collection<ConditionData> conditions) {
+        return CollectionUtils.isNotEmpty(conditions)
+                && conditions.stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+    }
+
     private RuleData defaultRuleData(final SelectorData selectorData) {
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId(selectorData.getId());
@@ -292,13 +309,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
             // cache selector data
-            if (matchSelectorPair.getLeft()) {
+            if (matchSelectorPair.getLeft() && canCacheSelectorMatch(selectors)) {
                 cacheSelectorData(path, selectorData);
             }
             return selectorData;
         } else {
             // if not match selector, cache empty selector data.
-            if (matchSelectorPair.getLeft()) {
+            if (matchSelectorPair.getLeft() && canCacheSelectorMatch(selectors)) {
                 SelectorData emptySelectorData = SelectorData.builder().pluginName(named()).build();
                 cacheSelectorData(path, emptySelectorData);
             }
@@ -311,13 +328,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
             // cache rule data
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && canCacheRuleMatch(rules)) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
         } else {
             // if not match rule, cache empty rule data.
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && canCacheRuleMatch(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }
