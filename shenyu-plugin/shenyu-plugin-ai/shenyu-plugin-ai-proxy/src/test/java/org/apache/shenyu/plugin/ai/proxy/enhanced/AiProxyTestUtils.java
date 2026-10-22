@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 
 import java.util.List;
 
@@ -31,11 +32,13 @@ public final class AiProxyTestUtils {
     }
 
     /**
-     * Creates the protocol converter factory used by the default Spring configuration.
+     * Creates the protocol route resolver used by the default Spring configuration.
      *
-     * @return protocol converter factory
+     * @return protocol route resolver
      */
-    public static AiProtocolConverterFactory protocolConverterFactory() {
-        return new AiProtocolConverterFactory(List.of(new ConnectResponsesToChatConverter()));
+    public static AiProtocolRouteResolver protocolRouteResolver() {
+        AiProtocolConverterFactory converterFactory =
+                new AiProtocolConverterFactory(List.of(new ConnectResponsesToChatConverter()));
+        return new AiProtocolRouteResolver(converterFactory);
     }
 }
