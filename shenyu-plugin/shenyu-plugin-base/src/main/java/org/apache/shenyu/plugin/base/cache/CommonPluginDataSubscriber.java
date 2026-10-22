@@ -28,7 +28,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -56,6 +55,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     private final Map<String, PluginDataHandler> handlerMap;
 
+    private final Set<String> builtInHandlerNames;
+
     private ApplicationEventPublisher eventPublisher;
     
     private final SelectorMatchCache selectorMatchConfig;
@@ -73,6 +74,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = handlerMap.keySet().stream().collect(Collectors.toSet());
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
@@ -90,6 +92,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = handlerMap.keySet().stream().collect(Collectors.toSet());
         this.eventPublisher = eventPublisher;
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
@@ -106,13 +109,26 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            MapUtils.computeIfAbsent(handlerMap, pluginNamed, name -> {
-                LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
+            handlerMap.compute(pluginNamed, (name, current) -> {
+                if (builtInHandlerNames.contains(name)) {
+                    return current;
+                }
+                LOG.info("shenyu add or replace extends plugin data handler name is :{}", pluginNamed);
                 return handler;
             });
         }
     }
     
+    /**
+     * Remove extension handlers owned by a displaced loader without removing their replacements.
+     *
+     * @param classLoader owner class loader
+     */
+    public void removeExtendPluginDataHandlers(final ClassLoader classLoader) {
+        handlerMap.entrySet().removeIf(entry -> !builtInHandlerNames.contains(entry.getKey())
+                && entry.getValue().getClass().getClassLoader() == classLoader);
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
         LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());
