@@ -43,9 +43,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The type McpServer plugin data handler.
+ * Handler mutations are serialized before calling the manager, whose tool registration blocks.
  */
 public class McpServerPluginDataHandler implements PluginDataHandler {
 
@@ -95,16 +97,18 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         // when the selector moves to another path, close the server registered for the old
         // one, otherwise its routes and transports stay alive under the previous endpoint
         ShenyuMcpServer previousServer = CACHED_SERVER.get().obtainHandle(selectorData.getId());
-        if (Objects.nonNull(previousServer) && StringUtils.isNotBlank(previousServer.getPath())
-                && !previousServer.getPath().equals(path) && shenyuMcpServerManager.hasMcpServer(previousServer.getPath())) {
+        final boolean pathMoved = Objects.nonNull(previousServer) && StringUtils.isNotBlank(previousServer.getPath())
+                && !previousServer.getPath().equals(path);
+        if (pathMoved && shenyuMcpServerManager.hasMcpServer(previousServer.getPath())) {
             shenyuMcpServerManager.removeMcpServer(previousServer.getPath());
         }
         CACHED_SERVER.get().cachedHandle(
                 selectorData.getId(),
                 shenyuMcpServer);
         String messageEndpoint = shenyuMcpServer.getMessageEndpoint();
+        final boolean serverCreated = !shenyuMcpServerManager.hasMcpServer(path);
         // Get or create McpServer for this URI
-        if (StringUtils.isNotBlank(path) && !shenyuMcpServerManager.hasMcpServer(path)) {
+        if (serverCreated) {
             shenyuMcpServerManager.getOrCreateMcpServerTransport(path, messageEndpoint);
         }
         if (StringUtils.isNotBlank(path)) {
@@ -112,8 +116,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         }
 
         // Sync groups can arrive in either order after restart. Replay rules once their server exists.
-        rules.values().stream().filter(rule -> selectorData.getId().equals(rule.getSelectorId()))
-                .forEach(this::registerTool);
+        if (serverCreated || pathMoved) {
+            rules.values().stream().filter(rule -> selectorData.getId().equals(rule.getSelectorId()))
+                    .forEach(this::registerTool);
+        }
 
         // the update is also need to clean, but there is no way to
         // distinguish between crate and update, so it is always clean
@@ -128,12 +134,11 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
-        rules.values().removeIf(rule -> {
-            if (selectorData.getId().equals(rule.getSelectorId())) {
-                CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(rule));
-                return true;
-            }
-            return false;
+        List<RuleData> removedRules = rules.values().stream().filter(rule -> selectorData.getId().equals(rule.getSelectorId()))
+                .collect(Collectors.toList());
+        removedRules.forEach(rule -> {
+            rules.remove(rule.getId());
+            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(rule));
         });
 
         String path = normalizeSelectorPath(extractSelectorUri(selectorData));
@@ -151,7 +156,11 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             return;
         }
         if (Objects.nonNull(ruleData.getId())) {
-            rules.put(ruleData.getId(), ruleData);
+            RuleData snapshot = RuleData.builder().id(ruleData.getId()).selectorId(ruleData.getSelectorId())
+                    .name(ruleData.getName()).enabled(ruleData.getEnabled()).handle(ruleData.getHandle()).build();
+            rules.put(snapshot.getId(), snapshot);
+            registerTool(snapshot);
+            return;
         }
         registerTool(ruleData);
     }
