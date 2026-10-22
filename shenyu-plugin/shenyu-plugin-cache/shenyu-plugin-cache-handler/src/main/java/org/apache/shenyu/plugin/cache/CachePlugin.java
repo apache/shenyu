@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cache.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.cache.cache.ResponseSingleFlight;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.reactivestreams.Publisher;
@@ -106,10 +107,55 @@ public class CachePlugin extends AbstractShenyuPlugin {
                         if (dataFlg.isPresent()) {
                             return dataFlg.get().writeTo(exchange.getResponse());
                         }
-                        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId(), responseKey)).build());
+                        return fillCache(exchange, chain, cacheRuleHandle, selector.getId(), responseKey);
                     });
         }
-        return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle, selector.getId(), responseKey)).build());
+        return fillCache(exchange, chain, cacheRuleHandle, selector.getId(), responseKey);
+    }
+
+    /**
+     * Fill a missing key, sharing one upstream call between the requests that miss on it at the same time.
+     *
+     * @param exchange the exchange
+     * @param chain the plugin chain
+     * @param cacheRuleHandle the matched rule handle
+     * @param selectorId the matched selector
+     * @param responseKey the response cache key
+     * @return the response completion
+     */
+    private Mono<Void> fillCache(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                 final CacheRuleHandle cacheRuleHandle, final String selectorId, final String responseKey) {
+        final ResponseSingleFlight singleFlight = CacheUtils.getSingleFlight();
+        final Optional<ResponseSingleFlight.Fill> owned = singleFlight.lead(responseKey);
+        if (owned.isEmpty()) {
+            final Optional<Mono<Optional<byte[]>>> followed = singleFlight.follow(responseKey);
+            if (followed.isPresent()) {
+                return followed.get().flatMap(packet -> packet
+                        .flatMap(CachedResponse::decode)
+                        .map(response -> response.writeTo(exchange.getResponse()))
+                        .orElseGet(() -> forward(exchange, chain, cacheRuleHandle, selectorId, responseKey)));
+            }
+        }
+        final ResponseSingleFlight.Fill fill = owned.orElse(null);
+        final Mono<Void> forward = forward(exchange, chain, cacheRuleHandle, selectorId, responseKey, fill);
+        if (Objects.isNull(fill)) {
+            return forward;
+        }
+        // Release the key on error and cancellation. A successful write has already published or released
+        // the fill, and releasing twice is a no-op.
+        return forward.doFinally(ignored -> fill.release());
+    }
+
+    private Mono<Void> forward(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                               final CacheRuleHandle cacheRuleHandle, final String selectorId, final String responseKey) {
+        return forward(exchange, chain, cacheRuleHandle, selectorId, responseKey, null);
+    }
+
+    private Mono<Void> forward(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                               final CacheRuleHandle cacheRuleHandle, final String selectorId,
+                               final String responseKey, final ResponseSingleFlight.Fill fill) {
+        return chain.execute(exchange.mutate().response(
+                new CacheHttpResponse(exchange, cacheRuleHandle, selectorId, responseKey, fill)).build());
     }
 
     /**
@@ -152,13 +198,22 @@ public class CachePlugin extends AbstractShenyuPlugin {
 
         private final CacheRuleHandle cacheRuleHandle;
 
+        private final ResponseSingleFlight.Fill fill;
+
         CacheHttpResponse(final ServerWebExchange exchange,
                           final CacheRuleHandle cacheRuleHandle,
                           final String selectorId, final String responseKey) {
+            this(exchange, cacheRuleHandle, selectorId, responseKey, null);
+        }
+
+        CacheHttpResponse(final ServerWebExchange exchange,
+                          final CacheRuleHandle cacheRuleHandle,
+                          final String selectorId, final String responseKey, final ResponseSingleFlight.Fill fill) {
             super(exchange.getResponse());
             this.responseKey = responseKey;
             this.cacheRuleHandle = cacheRuleHandle;
             this.selectorId = selectorId;
+            this.fill = fill;
         }
 
         @Override
@@ -194,26 +249,49 @@ public class CachePlugin extends AbstractShenyuPlugin {
                 } else {
                     getHeaders().setContentLength(body.length);
                 }
-                AtomicReference<CachedResponse> captured = new AtomicReference<>();
+                AtomicReference<Optional<CachedResponse>> captured = new AtomicReference<>(Optional.empty());
                 getDelegate().beforeCommit(() -> {
                     try {
-                        captured.set(CachedResponse.capture(getDelegate(), body).orElse(null));
+                        captured.set(CachedResponse.capture(getDelegate(), body));
                     } catch (RuntimeException ex) {
                         LOG.warn("Failed to capture response cache metadata", ex);
                     }
                     return Mono.empty();
                 });
                 Mono<Void> write = body.length == 0 ? super.setComplete() : super.writeWith(Mono.just(bufferFactory().wrap(body)));
-                return write.doOnSuccess(ignored -> Optional.ofNullable(captured.get()).ifPresent(this::cacheResponse));
+                return write.doOnSuccess(ignored -> publish(captured.get()));
             });
         }
 
-        private void cacheResponse(final CachedResponse response) {
+        /**
+         * Store the captured response and hand the same bytes to the requests waiting on this fill.
+         *
+         * @param response the captured response, empty when this response cannot be reused
+         */
+        private void publish(final Optional<CachedResponse> response) {
+            if (response.isEmpty()) {
+                releaseFill();
+                return;
+            }
+            final byte[] packet = response.get().encode();
+            storeCache(packet);
+            if (Objects.nonNull(fill)) {
+                fill.complete(Optional.of(packet));
+            }
+        }
+
+        private void releaseFill() {
+            if (Objects.nonNull(fill)) {
+                fill.release();
+            }
+        }
+
+        private void storeCache(final byte[] packet) {
             try {
                 ICache selectorCache = ApplicationConfigCache.getInstance().get(selectorId);
                 ICache cache = Objects.isNull(selectorCache) ? CacheUtils.getCache() : selectorCache;
                 if (Objects.nonNull(cache)) {
-                    cache.cacheData(responseKey, response.encode(), cacheRuleHandle.getTimeoutSeconds())
+                    cache.cacheData(responseKey, packet, cacheRuleHandle.getTimeoutSeconds())
                             .subscribeOn(Schedulers.boundedElastic())
                             .subscribe(ignored -> { }, error -> LOG.warn("Failed to store response cache entry", error));
                 }
