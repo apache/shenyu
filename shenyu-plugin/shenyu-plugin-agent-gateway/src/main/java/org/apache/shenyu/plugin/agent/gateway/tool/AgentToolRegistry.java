@@ -54,6 +54,11 @@ public final class AgentToolRegistry {
         definitions = Collections.unmodifiableMap(metadata);
     }
 
+    private AgentToolRegistry(final Map<String, AgentToolProvider> providers, final Map<String, AgentToolDefinition> definitions) {
+        this.providers = Collections.unmodifiableMap(new LinkedHashMap<>(providers));
+        this.definitions = Collections.unmodifiableMap(new LinkedHashMap<>(definitions));
+    }
+
     /**
      * List only registered tools allowed by the trusted authorization snapshot.
      * @param allowedTools effective permission set, not client-supplied metadata
@@ -93,6 +98,23 @@ public final class AgentToolRegistry {
      */
     public boolean isRegistered(final String name) {
         return providers.containsKey(name);
+    }
+
+    /**
+     * Add request-local configured providers without changing startup registrations.
+     * @param additions captured HTTP tool providers
+     * @return independent namespace, rejecting collisions
+     */
+    public AgentToolRegistry withProviders(final Collection<AgentToolProvider> additions) {
+        AgentToolRegistry extra = new AgentToolRegistry(additions);
+        if (extra.providers.keySet().stream().anyMatch(providers::containsKey)) {
+            throw new IllegalArgumentException("Tool namespace collision");
+        }
+        Map<String, AgentToolProvider> combined = new LinkedHashMap<>(providers);
+        combined.putAll(extra.providers);
+        Map<String, AgentToolDefinition> metadata = new LinkedHashMap<>(definitions);
+        metadata.putAll(extra.definitions);
+        return new AgentToolRegistry(combined, metadata);
     }
 
     /**

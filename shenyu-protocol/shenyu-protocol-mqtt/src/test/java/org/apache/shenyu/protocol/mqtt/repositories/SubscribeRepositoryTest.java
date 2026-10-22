@@ -27,11 +27,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -53,11 +55,27 @@ public final class SubscribeRepositoryTest {
 
     private static final String OTHER_TOPIC = "test/other-topic";
 
-    private static final List<String> ALL_TOPICS = Arrays.asList(ABSENT_TOPIC, TOPIC, OTHER_TOPIC);
+    private static final String EXACT_TOPIC = "sport/tennis";
+
+    private static final String CHILD_TOPIC = "sport/tennis/player1";
+
+    private static final String SINGLE_LEVEL_FILTER = "sport/+/player1";
+
+    private static final String MULTI_LEVEL_FILTER = "sport/#";
+
+    private static final String MATCH_ALL_FILTER = "#";
+
+    private static final String CONCURRENT_TOPIC = "sport/concurrent";
+
+    private static final List<String> ALL_TOPICS = Arrays.asList(
+            ABSENT_TOPIC, TOPIC, OTHER_TOPIC,
+            EXACT_TOPIC, SINGLE_LEVEL_FILTER, MULTI_LEVEL_FILTER, MATCH_ALL_FILTER, CONCURRENT_TOPIC);
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
     private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
+
+    private static final long JOIN_TIMEOUT_MILLIS = 5000L;
 
     private SubscribeRepository repository;
 
@@ -195,6 +213,86 @@ public final class SubscribeRepositoryTest {
 
         assertTrue(repository.get(ABSENT_TOPIC).isEmpty());
         assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
+    }
+
+    @Test
+    public void testGetChannelsByTopicExactMatch() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).containsKey(channel)));
+        assertTrue(repository.getChannelsByTopic(CHILD_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void testGetChannelsByTopicWildcardMatch() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(SINGLE_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+        awaitAssert(() -> assertTrue(repository.getChannelsByTopic(CHILD_TOPIC).containsKey(channel)));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void testGetChannelsByTopicDeduplicatesOverlappingSubscriptions() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(MATCH_ALL_FILTER, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE)));
+        awaitAssert(() -> {
+            assertTrue(repository.get(MATCH_ALL_FILTER).containsKey(channel));
+            assertTrue(repository.get(MULTI_LEVEL_FILTER).containsKey(channel));
+        });
+
+        // MQTT requires at most one delivery per publish per client, at the maximum qos of the matching filters
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(channel));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMultipleSubscribers() {
+        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
+        awaitAssert(() -> assertEquals(2, repository.getChannelsByTopic(EXACT_TOPIC).size()));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).keySet().containsAll(Arrays.asList(channel, otherChannel)));
+    }
+
+    /**
+     * Regression guard: subscribing to a brand new topic must keep every client
+     * when several clients send SUBSCRIBE at the same time.
+     *
+     * @throws InterruptedException if a subscribing thread is interrupted
+     */
+    @Test
+    public void concurrentSubscribersOfTheSameNewTopicAreAllRegistered() throws InterruptedException {
+        int subscriberCount = 8;
+        CountDownLatch startGate = new CountDownLatch(1);
+        List<Channel> subscribers = new ArrayList<>();
+        List<Thread> subscribingThreads = new ArrayList<>();
+        for (int i = 0; i < subscriberCount; i++) {
+            Channel subscriber = mock(Channel.class);
+            subscribers.add(subscriber);
+            Thread thread = new Thread(() -> subscribeAfter(startGate, subscriber, CONCURRENT_TOPIC));
+            thread.start();
+            subscribingThreads.add(thread);
+        }
+
+        startGate.countDown();
+        for (Thread thread : subscribingThreads) {
+            thread.join(JOIN_TIMEOUT_MILLIS);
+            assertFalse(thread.isAlive(), "subscribing thread did not finish in time");
+        }
+
+        awaitAssert(() -> assertEquals(subscriberCount, repository.get(CONCURRENT_TOPIC).size()));
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CONCURRENT_TOPIC);
+        assertEquals(subscriberCount, matched.size());
+        assertTrue(matched.keySet().containsAll(subscribers));
+    }
+
+    private void subscribeAfter(final CountDownLatch startGate, final Channel subscriber, final String topic) {
+        try {
+            startGate.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        repository.add(subscriber, Collections.singletonList(new MqttTopicSubscription(topic, MqttQoS.AT_MOST_ONCE)));
     }
 
     /**

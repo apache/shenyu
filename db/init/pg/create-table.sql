@@ -1685,7 +1685,7 @@ CREATE TABLE "public"."rule" (
   "match_mode" int4 NOT NULL,
   "rule_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "enabled" int2 NOT NULL,
-  "loged" int2 NOT NULL,
+  "logged" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
   "sort_code" int4 NOT NULL,
@@ -1699,7 +1699,7 @@ COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
 COMMENT ON COLUMN "public"."rule"."rule_name" IS 'rule name';
 COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
-COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
+COMMENT ON COLUMN "public"."rule"."logged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMENT ON COLUMN "public"."rule"."namespace_id" IS 'namespace id';
 COMMENT ON COLUMN "public"."rule"."sort_code" IS 'sort';
@@ -1752,7 +1752,7 @@ CREATE TABLE "public"."selector" (
   "sort_code" int4 NOT NULL,
   "handle" varchar(1024) COLLATE "pg_catalog"."default",
   "enabled" int2 NOT NULL,
-  "loged" int2 NOT NULL,
+  "logged" int2 NOT NULL,
   "continued" int2 NOT NULL,
   "match_restful" int2 NOT NULL,
   "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
@@ -1768,7 +1768,7 @@ COMMENT ON COLUMN "public"."selector"."selector_type" IS 'type (0, full flow, 1 
 COMMENT ON COLUMN "public"."selector"."sort_code" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
-COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
+COMMENT ON COLUMN "public"."selector"."logged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."match_restful" IS 'whether to match restful(0 cache, 1 not cache)';
 COMMENT ON COLUMN "public"."selector"."namespace_id" IS 'namespace id';
@@ -2692,7 +2692,9 @@ CREATE TABLE "public"."instance_info" (
     "instance_state" int2          NOT NULL,
     "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    PRIMARY KEY ("id")
+    "last_heart_beat_time" int8          NOT NULL DEFAULT 0,
+    PRIMARY KEY ("id"),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';
@@ -2703,6 +2705,7 @@ COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
 COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
+COMMENT ON COLUMN "public"."instance_info"."last_heart_beat_time" IS 'last heart beat time';
 
 INSERT INTO "public"."permission" VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569642742', '1346358560427216896', '1844026099075554851', '2023-08-31 07:22:07', '2023-08-31 07:22:07');

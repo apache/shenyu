@@ -36,7 +36,9 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
+import org.springframework.boot.web.server.WebServer;
 
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
@@ -208,15 +210,18 @@ class WebsocketMasterRedirectTest {
         config.setAllowOrigin("https://gateway.example");
         ShenyuConfig shenyu = new ShenyuConfig();
         shenyu.setNamespace("cluster-test");
-        ServerProperties properties = new ServerProperties();
-        properties.setPort(9195);
         PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
         doAnswer(invocation -> {
             applied.countDown();
             return null;
         }).when(subscriber).onSubscribe(any());
         service = new WebsocketSyncDataService(config, shenyu, subscriber, Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), properties);
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        WebServer webServer = mock(WebServer.class);
+        when(webServer.getPort()).thenReturn(9195);
+        ServletWebServerApplicationContext applicationContext = mock(ServletWebServerApplicationContext.class);
+        when(applicationContext.getServerNamespace()).thenReturn(null);
+        service.onWebServerInitialized(new ServletWebServerInitializedEvent(webServer, applicationContext));
     }
 
     private TestServer startServer(final boolean master) throws InterruptedException {

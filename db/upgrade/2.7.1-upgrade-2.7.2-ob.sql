@@ -99,3 +99,6 @@ JOIN data_permission retained_permission
  AND duplicate_permission.data_id = retained_permission.data_id
  AND duplicate_permission.id > retained_permission.id;
 CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE instance_info ADD COLUMN last_heart_beat_time bigint NOT NULL DEFAULT 0 COMMENT 'last heart beat time';
