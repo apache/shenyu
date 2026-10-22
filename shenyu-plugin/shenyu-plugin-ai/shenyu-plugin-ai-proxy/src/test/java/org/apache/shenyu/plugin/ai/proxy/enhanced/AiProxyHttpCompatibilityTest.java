@@ -121,6 +121,7 @@ class AiProxyHttpCompatibilityTest {
 
     @Test
     void proxyKeysRemainIsolatedAcrossSequentialAndConcurrentRequests() {
+        // The engine replaced cached ChatClient instances; keep isolation covered at the HTTP boundary.
         DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) ->
                 response.header("Content-Type", "application/json")
                         .header("X-Upstream-Account", request.requestHeaders().get("Authorization"))
@@ -130,6 +131,7 @@ class AiProxyHttpCompatibilityTest {
         handle.setProvider("OpenAI");
         handle.setBaseUrl("http://127.0.0.1:" + server.port());
         handle.setApiKey("selector-default");
+        handle.setStream(false);
         handle.setProxyEnabled("true");
         handle.setProtocol(OpenAiChat.NAME);
         handle.setModel("model");
@@ -145,7 +147,7 @@ class AiProxyHttpCompatibilityTest {
             }
             StepVerifier.create(Flux.range(0, 32)
                     .flatMap(index -> executeForAccount(plugin, index % 2 == 0 ? "account-a" : "account-b"), 8)
-                    .then()).expectComplete().verify(TIMEOUT);
+                    .then()).expectComplete().verify(Duration.ofSeconds(15));
             assertEquals("selector-default", handle.getApiKey());
         } finally {
             server.disposeNow(TIMEOUT);
@@ -153,6 +155,44 @@ class AiProxyHttpCompatibilityTest {
                 AiProxyApiKeyCache.getInstance().remove(ProxyApiKeyData.builder().selectorId("http-selector")
                         .proxyApiKey("proxy-" + account).build());
             }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void unknownOrDisabledProxyKeysCannotUseTheSelectorCredential(final boolean disabled) {
+        AtomicBoolean called = new AtomicBoolean();
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
+            called.set(true);
+            return response.sendString(Mono.just(CHAT_REPLY));
+        }).bindNow(TIMEOUT);
+        final AiProxyPluginHandler handler = new AiProxyPluginHandler();
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setProvider("OpenAI");
+        handle.setBaseUrl("http://127.0.0.1:" + server.port());
+        handle.setApiKey("selector-default");
+        handle.setProxyEnabled("true");
+        handle.setStream(false);
+        handle.setProtocol(OpenAiChat.NAME);
+        handle.setModel("model");
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey("http-selector", Constants.DEFAULT_RULE), handle);
+        ProxyApiKeyData mapping = ProxyApiKeyData.builder().selectorId("http-selector")
+                .proxyApiKey("rejected-proxy-key").realApiKey("disabled-real-key").enabled(false).build();
+        if (disabled) {
+            AiProxyApiKeyCache.getInstance().cache(mapping);
+        }
+        try {
+            MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/chat")
+                    .header(Constants.X_API_KEY, mapping.getProxyApiKey())
+                    .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}"));
+            StepVerifier.create(plugin(handler).doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData()))
+                    .expectComplete().verify(TIMEOUT);
+            assertEquals(401, exchange.getResponse().getStatusCode().value());
+            assertTrue(!called.get(), "rejected proxy keys must not open an upstream connection");
+            assertEquals("selector-default", handle.getApiKey());
+        } finally {
+            AiProxyApiKeyCache.getInstance().remove(mapping);
+            server.disposeNow(TIMEOUT);
         }
     }
 
