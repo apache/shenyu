@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -129,7 +130,8 @@ class AiProxyProviderHttpTest {
 
     private AiProxyEngine engine(final AiProxyProvider provider) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(provider)), new WebClientAiProxyTransport(WebClient.builder().build()));
+                new AiProxyProviderFactory(List.of(provider)), protocolConverterFactory(),
+                new WebClientAiProxyTransport(WebClient.builder().build()));
     }
 
     private AiCommonConfig config(final DisposableServer server, final String provider, final String protocol) {
