@@ -116,6 +116,7 @@ public interface SelectorMapper extends ExistProvider {
 
     /**
      * Read the current selector while holding the registration transaction's plugin lock.
+     * FOR UPDATE forces a current read rather than an older REPEATABLE READ snapshot.
      *
      * @param name selector name
      * @param pluginId plugin identifier

@@ -83,6 +83,14 @@ class SelectorRegistrationConcurrencyTest {
                 assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM selector WHERE selector_name = ? AND namespace_id = ?",
                         Integer.class, path, SYS_DEFAULT_NAMESPACE_ID));
             }
+            MetaDataRegisterDTO existing = new MetaDataRegisterDTO();
+            existing.setContextPath("/concurrent-0");
+            existing.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+            String expectedId = jdbc.queryForObject("SELECT id FROM selector WHERE selector_name = ? AND namespace_id = ?",
+                    String.class, "/concurrent-0", SYS_DEFAULT_NAMESPACE_ID);
+            assertEquals(expectedId, first.registerDefault(existing, "divide", "[]"));
+            assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM selector WHERE selector_name = ? AND namespace_id = ?",
+                    Integer.class, "/concurrent-0", SYS_DEFAULT_NAMESPACE_ID));
         } finally {
             workers.shutdownNow();
             jdbc.execute("SHUTDOWN");
