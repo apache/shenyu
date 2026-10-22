@@ -84,6 +84,16 @@ public class AiResponseTransformerTemplate {
      */
     private final CachedRequestBodyDecorator requestBodySnapshot;
 
+    /**
+     * Creates a template without a request-body snapshot.
+     *
+     * <p>This keeps the previous behaviour of reading the original request body when the prompt is
+     * assembled and is only meant for callers and tests that run outside the plugin chain. The
+     * snapshot constructor should be preferred, because a request body can only be read once.
+     *
+     * @param userContent user content
+     * @param originalRequest original request
+     */
     public AiResponseTransformerTemplate(final String userContent, final ServerHttpRequest originalRequest) {
         this(userContent, originalRequest, null);
     }

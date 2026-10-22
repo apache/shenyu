@@ -21,12 +21,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,32 +44,35 @@ class CachedRequestBodyDecoratorTest {
     @Test
     void testForwardsAndCapturesBody() {
         ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(Flux.just(BUFFER_FACTORY.wrap("{\"customer\":\"alice\"}".getBytes(StandardCharsets.UTF_8))));
         CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request);
 
-        assertEquals("{\"customer\":\"alice\"}", readBody(decorator.getBody()));
+        assertEquals("{\"customer\":\"alice\"}", readBodyAsString(decorator.getBody()));
         assertEquals("{\"customer\":\"alice\"}", decorator.bodyAsString());
     }
 
     @Test
     void testCapturesMultipleBuffersInOrder() {
         ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(Flux.just(BUFFER_FACTORY.wrap("{\"id\":".getBytes(StandardCharsets.UTF_8)),
                         BUFFER_FACTORY.wrap("\"A\"}".getBytes(StandardCharsets.UTF_8))));
         CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request);
 
-        assertEquals("{\"id\":\"A\"}", readBody(decorator.getBody()));
+        assertEquals("{\"id\":\"A\"}", readBodyAsString(decorator.getBody()));
         assertEquals("{\"id\":\"A\"}", decorator.bodyAsString());
     }
 
     @Test
-    void testOverflowStillForwardsButDropsSnapshot() {
+    void testTruncatesSnapshotButForwardsCompleteBody() {
         ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(Flux.just(BUFFER_FACTORY.wrap("0123456789".getBytes(StandardCharsets.UTF_8))));
         CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request, 4);
 
-        assertEquals("0123456789", readBody(decorator.getBody()));
-        assertEquals("", decorator.bodyAsString());
+        assertEquals("0123456789", readBodyAsString(decorator.getBody()));
+        assertEquals("0123", decorator.bodyAsString());
     }
 
     @Test
@@ -74,7 +80,42 @@ class CachedRequestBodyDecoratorTest {
         ServerHttpRequest request = MockServerHttpRequest.post("/orders").build();
         CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request);
 
-        assertEquals("", readBody(decorator.getBody()));
+        assertEquals("", readBodyAsString(decorator.getBody()));
+        assertEquals("", decorator.bodyAsString());
+    }
+
+    @Test
+    void testSkipsCaptureForBinaryContent() {
+        ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(Flux.just(BUFFER_FACTORY.wrap(new byte[] {'P', 'N', 'G', 0})));
+        CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request);
+
+        assertEquals(4, readBodyAsBytes(decorator.getBody()).length);
+        assertEquals("", decorator.bodyAsString());
+    }
+
+    @Test
+    void testSkipsCaptureForCompressedRequest() {
+        ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .body(Flux.just(BUFFER_FACTORY.wrap("{\"customer\":\"alice\"}".getBytes(StandardCharsets.UTF_8))));
+        CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request);
+
+        assertEquals("{\"customer\":\"alice\"}", readBodyAsString(decorator.getBody()));
+        assertEquals("", decorator.bodyAsString());
+    }
+
+    @Test
+    void testSkipsCaptureWhenDeclaredLengthExceedsLimit() {
+        ServerHttpRequest request = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .contentLength(10)
+                .body(Flux.just(BUFFER_FACTORY.wrap("0123456789".getBytes(StandardCharsets.UTF_8))));
+        CachedRequestBodyDecorator decorator = new CachedRequestBodyDecorator(request, 4);
+
+        assertEquals("0123456789", readBodyAsString(decorator.getBody()));
         assertEquals("", decorator.bodyAsString());
     }
 
@@ -93,12 +134,20 @@ class CachedRequestBodyDecoratorTest {
         assertEquals("{\"customer\":", decorator.bodyAsString());
     }
 
-    private String readBody(final Flux<DataBuffer> body) {
+    private String readBodyAsString(final Flux<DataBuffer> body) {
+        return new String(readBodyAsBytes(body), StandardCharsets.UTF_8);
+    }
+
+    private byte[] readBodyAsBytes(final Flux<DataBuffer> body) {
         return body.map(dataBuffer -> {
             byte[] bytes = new byte[dataBuffer.readableByteCount()];
             dataBuffer.read(bytes);
             DataBufferUtils.release(dataBuffer);
-            return new String(bytes, StandardCharsets.UTF_8);
-        }).collectList().map(parts -> String.join("", parts)).block();
+            return bytes;
+        }).collectList().map(parts -> {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            parts.forEach(part -> result.write(part, 0, part.length));
+            return result.toByteArray();
+        }).block();
     }
 }

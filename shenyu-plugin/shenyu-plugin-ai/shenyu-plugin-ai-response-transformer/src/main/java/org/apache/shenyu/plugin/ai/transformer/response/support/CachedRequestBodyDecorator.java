@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.ai.transformer.response.support;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.lang.NonNull;
@@ -28,6 +30,7 @@ import reactor.core.publisher.Flux;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Captures a bounded copy of the request body while the downstream chain reads it.
@@ -37,8 +40,10 @@ import java.util.Objects;
  * every byte. The captured copy lets the response phase build a prompt from a request body that
  * the downstream chain has already consumed.
  *
- * <p>A body that exceeds the snapshot limit is not captured; it is still forwarded unchanged and
- * the prompt simply keeps the previous empty request body, so memory stays bounded.
+ * <p>The snapshot is a best-effort prefix: it holds at most {@link #DEFAULT_MAX_BYTES} bytes, and
+ * only for bodies that can be used as a text prompt. Compressed requests, bodies whose declared
+ * content length already exceeds the limit, and non-text payloads such as multipart or binary
+ * uploads are not captured at all, which keeps the memory and the prompt content sound.
  */
 public final class CachedRequestBodyDecorator extends ServerHttpRequestDecorator {
 
@@ -49,11 +54,15 @@ public final class CachedRequestBodyDecorator extends ServerHttpRequestDecorator
 
     private static final Logger LOG = LoggerFactory.getLogger(CachedRequestBodyDecorator.class);
 
+    private static final AtomicBoolean TRUNCATION_WARNED = new AtomicBoolean();
+
     private final int maxBytes;
+
+    private final boolean captureEnabled;
 
     private final ByteArrayOutputStream snapshot = new ByteArrayOutputStream();
 
-    private boolean overflow;
+    private boolean truncated;
 
     /**
      * Creates a decorator that keeps up to {@link #DEFAULT_MAX_BYTES} body bytes.
@@ -73,6 +82,7 @@ public final class CachedRequestBodyDecorator extends ServerHttpRequestDecorator
     public CachedRequestBodyDecorator(final ServerHttpRequest request, final int maxBytes) {
         super(request);
         this.maxBytes = maxBytes;
+        this.captureEnabled = isCapturable(request.getHeaders(), maxBytes);
     }
 
     /**
@@ -83,33 +93,73 @@ public final class CachedRequestBodyDecorator extends ServerHttpRequestDecorator
     @Override
     @NonNull
     public Flux<DataBuffer> getBody() {
+        if (!captureEnabled) {
+            return super.getBody();
+        }
         return super.getBody().doOnNext(this::record);
     }
 
+    private static boolean isCapturable(final HttpHeaders headers, final int maxBytes) {
+        if (headers.containsKey(HttpHeaders.CONTENT_ENCODING)) {
+            return false;
+        }
+        long contentLength = headers.getContentLength();
+        if (contentLength > maxBytes) {
+            return false;
+        }
+        MediaType contentType = headers.getContentType();
+        return Objects.isNull(contentType) || isTextual(contentType);
+    }
+
+    private static boolean isTextual(final MediaType contentType) {
+        String subtype = contentType.getSubtype();
+        return "text".equals(contentType.getType())
+                || MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                || MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)
+                || MediaType.APPLICATION_XML.isCompatibleWith(contentType)
+                || subtype.endsWith("+json")
+                || subtype.endsWith("+xml");
+    }
+
     private synchronized void record(final DataBuffer dataBuffer) {
-        if (overflow || Objects.isNull(dataBuffer)) {
+        if (truncated || Objects.isNull(dataBuffer)) {
             return;
         }
         int readable = dataBuffer.readableByteCount();
         if (readable <= 0) {
             return;
         }
-        if (snapshot.size() + readable > maxBytes) {
-            overflow = true;
-            snapshot.reset();
-            LOG.warn("Request body exceeds the {} byte snapshot limit and is not sent to the ai model", maxBytes);
+        int remaining = maxBytes - snapshot.size();
+        if (remaining <= 0) {
+            markTruncated();
             return;
         }
-        byte[] bytes = new byte[readable];
-        dataBuffer.toByteBuffer(dataBuffer.readPosition(), readable).get(bytes);
-        snapshot.write(bytes, 0, readable);
+        int toCopy = Math.min(readable, remaining);
+        byte[] bytes = new byte[toCopy];
+        dataBuffer.toByteBuffer(dataBuffer.readPosition(), toCopy).get(bytes);
+        snapshot.write(bytes, 0, toCopy);
+        if (toCopy < readable) {
+            markTruncated();
+        }
+    }
+
+    private void markTruncated() {
+        truncated = true;
+        if (TRUNCATION_WARNED.compareAndSet(false, true)) {
+            LOG.warn("Request body exceeds the {} byte prompt snapshot limit, only the prefix is sent to the ai model", maxBytes);
+        } else {
+            LOG.debug("Request body exceeds the {} byte prompt snapshot limit, only the prefix is sent to the ai model", maxBytes);
+        }
     }
 
     /**
      * Returns the captured request body decoded as UTF-8.
      *
-     * <p>Returns an empty string when the downstream chain never read the body or the body
-     * exceeded the snapshot limit, which keeps the previous prompt content for those requests.
+     * <p>Returns an empty string when the downstream chain never read the body, when the body is
+     * compressed, binary or declared larger than the snapshot limit, or when the request was not
+     * a text payload. When the body exceeds the limit, the returned value is a prefix of the body,
+     * so the prompt may contain a truncated payload if the upstream answers before the whole
+     * request body was forwarded.
      *
      * @return the captured request body
      */

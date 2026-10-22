@@ -421,7 +421,7 @@ class AiResponseTransformerTemplateTest {
     }
 
     @Test
-    void testAssembleMessageKeepsEmptyBodyWhenSnapshotOverflows() {
+    void testAssembleMessageUsesTruncatedPrefixWhenSnapshotLimitIsExceeded() {
         MockServerHttpRequest largeRequest = MockServerHttpRequest.post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Flux.just(BUFFER_FACTORY.wrap("{\"customer\":\"alice\"}".getBytes(StandardCharsets.UTF_8))));
@@ -432,7 +432,10 @@ class AiResponseTransformerTemplateTest {
         AiResponseTransformerTemplate snapshotTemplate =
                 new AiResponseTransformerTemplate("Transform this response", largeRequest, requestBodySnapshot);
         StepVerifier.create(snapshotTemplate.assembleMessage(exchange))
-                .assertNext(message -> assertFalse(message.contains("alice")))
+                .assertNext(message -> {
+                    assertFalse(message.contains("alice"));
+                    assertTrue(message.contains("{\\\"cu"));
+                })
                 .verifyComplete();
     }
 
