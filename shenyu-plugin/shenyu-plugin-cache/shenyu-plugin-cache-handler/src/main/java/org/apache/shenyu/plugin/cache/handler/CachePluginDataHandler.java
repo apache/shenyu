@@ -132,6 +132,10 @@ public class CachePluginDataHandler implements PluginDataHandler {
     /**
      * Build the miss coordinator from the plugin configuration.
      *
+     * <p>A configuration reload installs a new coordinator. Fills already running keep their own
+     * coordinator and still signal their waiters, so nothing hangs; a request that follows just after
+     * the swap starts a new fill on the new instance.</p>
+     *
      * @param cacheConfig the plugin configuration
      * @return the coordinator, disabled unless configured otherwise
      */

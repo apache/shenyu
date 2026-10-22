@@ -95,6 +95,8 @@ public final class ResponseSingleFlight {
         if (maxKeys <= 0) {
             return Optional.empty();
         }
+        // The size check and putIfAbsent are not atomic, so concurrent leaders can exceed maxKeys by the
+        // number of requests racing here. This bounds capacity; it is not an exact count.
         if (fills.size() >= maxKeys) {
             expireStale();
             if (fills.size() >= maxKeys) {
@@ -113,6 +115,9 @@ public final class ResponseSingleFlight {
      * @return a signal resolving to the reusable response packet, or empty when there is nothing to follow
      */
     public Optional<Mono<Optional<byte[]>>> follow(final String key) {
+        // Sweep here as well as in lead(), so a fill whose leader vanished on an otherwise idle key is
+        // released by time rather than waiting for the next request to reach the key limit.
+        expireStale();
         // A fill that has already published stays visible until it is removed, so a request arriving in
         // that window still replays the packet instead of filling the key again.
         final Fill fill = fills.get(key);

@@ -34,8 +34,11 @@ import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -330,6 +333,104 @@ class CacheSingleFlightTest {
                     .verifyComplete();
 
             assertEquals("shared", follower.getResponse().getBodyAsString().block());
+        } finally {
+            leaderSubscription.dispose();
+        }
+    }
+
+    @Test
+    void testFillsWhenNoKeySlotIsAvailable() throws Exception {
+        Singleton.INST.single(ResponseSingleFlight.class, new ResponseSingleFlight(1, 64, 50L, 30000L, 1048576L));
+        Sinks.One<Void> gate = Sinks.one();
+        CountDownLatch leaderStarted = new CountDownLatch(1);
+        AtomicInteger calls = new AtomicInteger();
+        ShenyuPluginChain chain = exchange -> {
+            int call = calls.incrementAndGet();
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            if (call == 1) {
+                leaderStarted.countDown();
+                return gate.asMono().then(write(exchange, "slow"));
+            }
+            return write(exchange, "fast-" + call);
+        };
+        MockServerWebExchange leader = request();
+        Disposable leaderSubscription = execute(leader, chain).subscribe();
+        try {
+            assertTrue(leaderStarted.await(5, TimeUnit.SECONDS));
+            MockServerWebExchange otherKey = MockServerWebExchange.from(
+                    MockServerHttpRequest.get(URI + "/capacity").build());
+
+            StepVerifier.create(execute(otherKey, chain)).verifyComplete();
+
+            assertEquals(2, calls.get());
+            assertEquals("fast-2", otherKey.getResponse().getBodyAsString().block());
+        } finally {
+            leaderSubscription.dispose();
+        }
+    }
+
+    @Test
+    void testFollowerFillsWhenLeaderChainFails() throws Exception {
+        Singleton.INST.single(ResponseSingleFlight.class, new ResponseSingleFlight(64, 64, 5000L, 30000L, 1048576L));
+        Sinks.One<Void> gate = Sinks.one();
+        CountDownLatch leaderStarted = new CountDownLatch(1);
+        AtomicInteger calls = new AtomicInteger();
+        IllegalStateException failure = new IllegalStateException("upstream failed");
+        ShenyuPluginChain chain = exchange -> {
+            int call = calls.incrementAndGet();
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            if (call == 1) {
+                leaderStarted.countDown();
+                return gate.asMono().then(Mono.error(failure));
+            }
+            return write(exchange, "recovered");
+        };
+        MockServerWebExchange leader = request();
+        Disposable leaderSubscription = execute(leader, chain).subscribe();
+        try {
+            assertTrue(leaderStarted.await(5, TimeUnit.SECONDS));
+            MockServerWebExchange follower = request();
+
+            StepVerifier.create(execute(follower, chain))
+                    .then(() -> gate.tryEmitEmpty())
+                    .verifyComplete();
+
+            assertEquals(2, calls.get());
+            assertEquals("recovered", follower.getResponse().getBodyAsString().block());
+        } finally {
+            leaderSubscription.dispose();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {201, 404})
+    void testFollowerReplaysLeaderStatus(final int status) throws Exception {
+        Singleton.INST.single(ResponseSingleFlight.class, new ResponseSingleFlight(64, 64, 5000L, 30000L, 1048576L));
+        Sinks.One<Void> gate = Sinks.one();
+        CountDownLatch leaderStarted = new CountDownLatch(1);
+        AtomicInteger calls = new AtomicInteger();
+        ShenyuPluginChain chain = exchange -> {
+            calls.incrementAndGet();
+            exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(status));
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            exchange.getResponse().getHeaders().set("X-Upstream", "leader");
+            leaderStarted.countDown();
+            return gate.asMono().then(write(exchange, "body"));
+        };
+        MockServerWebExchange leader = request();
+        Disposable leaderSubscription = execute(leader, chain).subscribe();
+        try {
+            assertTrue(leaderStarted.await(5, TimeUnit.SECONDS));
+            MockServerWebExchange follower = request();
+
+            StepVerifier.create(execute(follower, chain))
+                    .then(() -> gate.tryEmitEmpty())
+                    .verifyComplete();
+
+            assertEquals(1, calls.get());
+            assertEquals(status, follower.getResponse().getStatusCode().value());
+            assertEquals("leader", follower.getResponse().getHeaders().getFirst("X-Upstream"));
+            assertEquals("body", follower.getResponse().getBodyAsString().block());
         } finally {
             leaderSubscription.dispose();
         }
