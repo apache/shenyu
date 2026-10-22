@@ -200,8 +200,8 @@ public class WasmLoader implements AutoCloseable {
             }
             this.module = Parser.parse(wasmBytes);
             if (limits.getMaxMemoryPages() > 0 && (module.importSection().count(ExternalType.MEMORY) > 0
-                    || module.memorySection().map(section -> section.memoryCount() != 1).orElse(true))) {
-                throw new ShenyuWasmInitException("A configured memory budget requires exactly one module-owned memory");
+                    || module.memorySection().map(section -> section.memoryCount() > 1).orElse(false))) {
+                throw new ShenyuWasmInitException("A configured memory budget permits at most one module-owned memory");
             }
 
             this.importValues = store.toImportValues();
@@ -288,11 +288,7 @@ public class WasmLoader implements AutoCloseable {
         if (Objects.nonNull(machineFactory)) {
             builder = builder.withMachineFactory(machineFactory);
         }
-        Instance instance = builder.build();
-        if (Objects.isNull(instance.memory())) {
-            throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
-        }
-        return instance;
+        return builder.build();
     }
 
     private void initialize(final Instance instance) {
@@ -581,7 +577,7 @@ public class WasmLoader implements AutoCloseable {
      * memory, so there is no safe fallback and unbound callers fail fast.
      *
      * @return the WASM linear memory of the currently executing instance
-     * @throws IllegalStateException when no instance is executing on this thread
+     * @throws IllegalStateException when no instance is executing on this thread or the module has no memory
      */
     public Memory getMemory() {
         final Instance current = bindings.get().peek();
@@ -590,7 +586,11 @@ public class WasmLoader implements AutoCloseable {
                     "getMemory() called outside an exported call or host callback of " + wasmName
                             + "; pooled instances have per-instance memory");
         }
-        return current.memory();
+        Memory memory = current.memory();
+        if (Objects.isNull(memory)) {
+            throw new IllegalStateException("memory not available in wasm file: " + wasmName);
+        }
+        return memory;
     }
 
     /**

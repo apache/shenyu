@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.wasm.api.loader;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 /**
  * Immutable, startup-only execution and per-instance linear-memory limits.
  */
@@ -53,14 +56,20 @@ public final class WasmExecutionLimits {
     public static WasmExecutionLimits fromSystemProperties(final Class<?> pluginClass) {
         String prefix = "shenyu.wasm.";
         String override = prefix + pluginClass.getName() + ".";
-        long timeout = Long.parseLong(property(prefix, override, "execution-timeout-millis", "0"));
-        long initialization = Long.parseLong(property(prefix, override, "initialization-timeout-millis", timeout > 0 ? "10000" : "0"));
-        int pages = Integer.parseInt(property(prefix, override, "max-memory-pages", "0"));
+        long timeout = property(prefix, override, "execution-timeout-millis", "0", Long::parseLong);
+        long initialization = property(prefix, override, "initialization-timeout-millis", timeout > 0 ? "10000" : "0", Long::parseLong);
+        int pages = property(prefix, override, "max-memory-pages", "0", Integer::parseInt);
         return new WasmExecutionLimits(timeout, initialization, pages);
     }
 
-    private static String property(final String prefix, final String override, final String name, final String fallback) {
-        return System.getProperty(override + name, System.getProperty(prefix + name, fallback));
+    private static <T> T property(final String prefix, final String override, final String name, final String fallback, final Function<String, T> parser) {
+        String key = Objects.isNull(System.getProperty(override + name)) ? prefix + name : override + name;
+        String value = System.getProperty(key, fallback);
+        try {
+            return parser.apply(value);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid WASM property " + key + "='" + value + "'", e);
+        }
     }
 
     /**

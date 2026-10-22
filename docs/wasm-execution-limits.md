@@ -80,6 +80,8 @@ on the invoking thread. Default-disabled request construction semantics are reta
 A custom host callback that ignores interruption cannot safely be forcibly stopped
 inside the JVM. It retains its worker and instance capacity until physical exit;
 further work stays bounded and fails/times out instead of creating more threads.
+If the host never exits, that worker is permanently occupied. The configured
+pool size caps the number of such calls; timed-out workers are never replaced.
 Use trusted cooperative host functions, or process isolation when hard termination
 of arbitrary host/native work is required. Existing argument maps still remove
 their entries in finally after each invocation result/error; custom adapters must
@@ -93,7 +95,8 @@ allocation silently. An initial allocation above the budget fails initialization
 memory.grow beyond the ceiling follows WASM semantics and returns -1; later valid
 requests still work.
 
-A budget currently requires exactly one module-owned, non-shared linear memory.
+A budget permits zero or one module-owned, non-shared linear memory. A memory-free
+module can execute exports, but getMemory() fails explicitly inside its callbacks.
 Imported, shared or multiple memories are rejected with a configuration error
 when budgeting is enabled, because those layouts require a separate aggregate/
 ownership contract. Disabled budgeting retains existing runtime behavior.

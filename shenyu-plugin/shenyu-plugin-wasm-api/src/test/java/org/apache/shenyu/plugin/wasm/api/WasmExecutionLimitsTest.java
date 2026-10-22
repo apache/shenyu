@@ -38,6 +38,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -54,6 +55,8 @@ class WasmExecutionLimitsTest {
 
     private static final String INIT_PREFIX = "shenyu.wasm." + InitializationGuest.class.getName() + ".";
 
+    private static final String MEMORY_FREE_PREFIX = "shenyu.wasm." + MemoryFreeGuest.class.getName() + ".";
+
     @BeforeEach
     void configure() {
         System.setProperty(PREFIX + "execution-timeout-millis", "300");
@@ -63,7 +66,7 @@ class WasmExecutionLimitsTest {
 
     @AfterEach
     void clear() {
-        for (String prefix : List.of(PREFIX, INIT_PREFIX)) {
+        for (String prefix : List.of(PREFIX, INIT_PREFIX, MEMORY_FREE_PREFIX)) {
             for (String setting : List.of("execution-timeout-millis", "initialization-timeout-millis", "max-memory-pages")) {
                 System.clearProperty(prefix + setting);
             }
@@ -171,6 +174,38 @@ class WasmExecutionLimitsTest {
         assertThrows(IllegalArgumentException.class, () -> loader(true, () -> { }));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"execution-timeout-millis", "initialization-timeout-millis", "max-memory-pages"})
+    void malformedPropertyNamesItsKeyAndValue(final String name) {
+        System.setProperty(PREFIX + name, "8m");
+        IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> loader(true, () -> { }));
+        assertTrue(failure.getMessage().contains(PREFIX + name));
+        assertTrue(failure.getMessage().contains("8m"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void memoryFreeModuleRunsWithOrWithoutABudget(final boolean interpreted) {
+        for (int pages : List.of(0, 2)) {
+            System.setProperty(MEMORY_FREE_PREFIX + "max-memory-pages", Integer.toString(pages));
+            AtomicReference<WasmLoader> binding = new AtomicReference<>();
+            Consumer<Store> initializer = store -> store.addFunction(new HostFunction("test", "memory",
+                    FunctionType.of(List.of(), List.of()), (instance, args) -> {
+                        binding.get().getMemory();
+                        return new long[0];
+                    }));
+            try (WasmLoader loader = interpreted ? new InterpretedLoader(MemoryFreeGuest.class, initializer)
+                    : new WasmLoader(MemoryFreeGuest.class, initializer, 1)) {
+                binding.set(loader);
+                assertEquals(7, loader.getWasmExtern("value").orElseThrow().apply(7)[0]);
+                assertThrows(IllegalStateException.class, loader::getMemory);
+                RuntimeException failure = assertThrows(RuntimeException.class, () -> loader.getWasmExtern("memory").orElseThrow().apply());
+                assertTrue(failure.getMessage().contains("memory not available"));
+                assertEquals(9, loader.getWasmExtern("value").orElseThrow().apply(9)[0]);
+            }
+        }
+    }
+
     private void awaitIgnoringInterruption(final CountDownLatch release) {
         try {
             release.await();
@@ -195,6 +230,9 @@ class WasmExecutionLimitsTest {
     }
 
     private static final class LargeGuest {
+    }
+
+    private static final class MemoryFreeGuest {
     }
 
     private static final class InterpretedLoader extends WasmLoader {
