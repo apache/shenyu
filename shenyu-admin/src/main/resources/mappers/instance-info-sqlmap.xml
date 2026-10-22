@@ -188,4 +188,10 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteExpired">
+        DELETE FROM instance_info
+        WHERE instance_state = 0
+          AND last_heart_beat_time &lt; #{cutoff, jdbcType=BIGINT}
+    </delete>
+
 </mapper>

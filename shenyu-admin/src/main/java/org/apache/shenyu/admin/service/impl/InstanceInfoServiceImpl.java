@@ -110,6 +110,12 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
     }
 
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public int deleteExpired(final long cutoff) {
+        return instanceInfoMapper.deleteExpired(cutoff);
+    }
+
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
         if (instanceInfoDOList.isEmpty()) {
             return List.of();
