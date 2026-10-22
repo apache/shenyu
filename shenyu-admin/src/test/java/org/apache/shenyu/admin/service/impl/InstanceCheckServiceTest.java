@@ -442,6 +442,34 @@ public final class InstanceCheckServiceTest {
         holdingThread.join(5000);
     }
 
+    @Test
+    void testCopyInstanceInfoVO() {
+        InstanceInfoVO original = new InstanceInfoVO();
+        original.setId("test-id");
+        original.setInstanceIp("127.0.0.1");
+        original.setInstancePort("8080");
+        original.setInstanceType("http");
+        original.setInstanceInfo("{\"app\":\"test\"}");
+        original.setNamespaceId("test-ns");
+        original.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+        original.setDateCreated(new Timestamp(System.currentTimeMillis()));
+        original.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        original.setLastHeartBeatTime(System.currentTimeMillis());
+
+        InstanceInfoVO copy = ReflectionTestUtils.invokeMethod(instanceCheckService, "copyInstanceInfoVO", original);
+        assertNotNull(copy);
+        assertEquals(original.getId(), copy.getId());
+        assertEquals(original.getInstanceIp(), copy.getInstanceIp());
+        assertEquals(original.getInstancePort(), copy.getInstancePort());
+        assertEquals(original.getInstanceType(), copy.getInstanceType());
+        assertEquals(original.getInstanceInfo(), copy.getInstanceInfo());
+        assertEquals(original.getNamespaceId(), copy.getNamespaceId());
+        assertEquals(original.getInstanceState(), copy.getInstanceState());
+        assertEquals(original.getDateCreated(), copy.getDateCreated());
+        assertEquals(original.getDateUpdated(), copy.getDateUpdated());
+        assertEquals(original.getLastHeartBeatTime(), copy.getLastHeartBeatTime());
+    }
+
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
         InstanceInfoVO v = new InstanceInfoVO();
         v.setInstanceIp(ip);

@@ -232,6 +232,7 @@ public class InstanceCheckService {
 
     private InstanceInfoVO copyInstanceInfoVO(final InstanceInfoVO vo) {
         InstanceInfoVO copy = new InstanceInfoVO();
+        copy.setId(vo.getId());
         copy.setInstanceIp(vo.getInstanceIp());
         copy.setInstancePort(vo.getInstancePort());
         copy.setInstanceType(vo.getInstanceType());
@@ -251,7 +252,9 @@ public class InstanceCheckService {
     public void close() {
         try {
             closeExecutors();
-            syncDB(5, TimeUnit.SECONDS);
+            if (!syncDB(5, TimeUnit.SECONDS)) {
+                LOG.warn("timed out waiting for instance db sync lock during shutdown, skipping final sync");
+            }
         } finally {
             instanceHealthBeatInfo.clear();
         }
