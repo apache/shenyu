@@ -109,7 +109,8 @@ public class DisconnectDispatchTest {
     }
 
     private void registerChannel(final String clientId) {
-        Singleton.INST.get(ChannelRepository.class).add(channel, clientId);
+        // production registers ownership through takeover; add() no longer writes the index
+        Singleton.INST.get(ChannelRepository.class).takeover(channel, clientId);
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
                 assertEquals(clientId, Singleton.INST.get(ChannelRepository.class).get(channel)));
     }
