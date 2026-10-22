@@ -44,8 +44,8 @@ public class ScaleObserver implements Observer {
     public void update(final MetricData metricData, final ScaleRuleDO rule) {
         try {
             ScaleAction action = ruleEvaluator.evaluate(metricData, rule);
-            if (Objects.nonNull(action)) {
-                kubernetesScaler.scaleByAction(action);
+            if (Objects.nonNull(action) && !kubernetesScaler.scaleByAction(action)) {
+                LOG.warn("scale action {} was not applied to the deployment", action.getActionType());
             }
         } catch (Exception e) {
             LOG.error("update observer error. cause: {} ", e.getMessage());
