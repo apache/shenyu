@@ -125,7 +125,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, rules, path);
+            ruleData = defaultMatchRule(exchange, selectors, rules, path);
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
@@ -298,6 +298,46 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
+
+    private boolean isUriOnlyConditionList(final List<ConditionData> conditionList) {
+        if (CollectionUtils.isEmpty(conditionList)) {
+            return true;
+        }
+        for (ConditionData condition : conditionList) {
+            if (!URI_CONDITION_TYPE.equals(condition.getParamType())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPathDeterminedSelectorSet(final List<SelectorData> selectors) {
+        for (SelectorData selector : selectors) {
+            if (!Boolean.TRUE.equals(selector.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(selector.getMatchRestful())) {
+                return false;
+            }
+            if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selector.getType())
+                    && !isUriOnlyConditionList(selector.getConditionList())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPathDeterminedRuleSet(final List<RuleData> rules) {
+        for (RuleData rule : rules) {
+            if (!Boolean.TRUE.equals(rule.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(rule.getMatchRestful()) || !isUriOnlyConditionList(rule.getConditionDataList())) {
+                return false;
+            }
+        }
+        return true;
+    }
     
     private SelectorData defaultMatchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors, final String path) {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
@@ -309,8 +349,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return selectorData;
         } else {
-            // if not match selector, cache empty selector data.
-            if (matchSelectorPair.getLeft()) {
+            // A negative entry is keyed by (plugin, path), so it is only sound when the
+            // whole candidate set is decided by the path.
+            if (matchSelectorPair.getLeft() && isPathDeterminedSelectorSet(selectors)) {
                 SelectorData emptySelectorData = SelectorData.builder().pluginName(named()).build();
                 cacheSelectorData(path, emptySelectorData);
             }
@@ -318,7 +359,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
+                                      final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
@@ -328,8 +370,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return ruleData;
         } else {
-            // if not match rule, cache empty rule data.
-            if (matchRulePair.getLeft()) {
+            // The rule cache key carries no selector id, so a negative entry is only sound when
+            // both the selected selector and the whole rule set are decided by the path.
+            if (matchRulePair.getLeft() && isPathDeterminedSelectorSet(selectors) && isPathDeterminedRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }

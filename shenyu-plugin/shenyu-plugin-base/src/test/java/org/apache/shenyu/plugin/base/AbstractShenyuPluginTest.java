@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -41,11 +42,15 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -418,6 +423,152 @@ public final class AbstractShenyuPluginTest {
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
 
+    @Test
+    public void negativeSelectorCacheMustNotSuppressDynamicMatch() {
+        SelectorData dynamicSelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "a")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(dynamicSelector);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange miss = newExchange("/neg-selector", null);
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(miss);
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/neg-selector"),
+                "a miss caused by a missing header must not be cached across dynamic candidates");
+
+        ServerWebExchange hit = newExchange("/neg-selector", "a");
+        StepVerifier.create(testShenyuPlugin.execute(hit, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(hit), eq(shenyuPluginChain), eq(dynamicSelector), any(RuleData.class));
+    }
+
+    @Test
+    public void negativeRuleCacheMustNotSuppressDynamicMatch() {
+        SelectorData pathSelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "=", "/neg-rule")))
+                .build();
+        RuleData dynamicRule = RuleData.builder()
+                .id("1").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "a")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathSelector);
+        BaseDataCache.getInstance().cacheRuleData(dynamicRule);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange miss = newExchange("/neg-rule", null);
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(miss);
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", "/neg-rule"),
+                "a rule miss caused by a missing header must not be cached across dynamic candidates");
+
+        ServerWebExchange hit = newExchange("/neg-rule", "a");
+        StepVerifier.create(testShenyuPlugin.execute(hit, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(hit), eq(shenyuPluginChain), eq(pathSelector), eq(dynamicRule));
+    }
+
+    @Test
+    public void negativeRuleCacheMustRequirePathDeterminedSelectors() {
+        SelectorData firstSelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "a")))
+                .build();
+        SelectorData secondSelector = SelectorData.builder()
+                .id("2").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(2).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "b")))
+                .build();
+        RuleData pathOnlyRule = RuleData.builder()
+                .id("1").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/elsewhere/**")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(firstSelector);
+        BaseDataCache.getInstance().cacheSelectData(secondSelector);
+        BaseDataCache.getInstance().cacheRuleData(pathOnlyRule);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange miss = newExchange("/neg-cross", "a");
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(miss);
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", "/neg-cross"),
+                "a rule miss is keyed by path only, so it must not be cached while selector matching is dynamic");
+    }
+
+    @Test
+    public void negativeSelectorCacheStillAppliesToPathOnlyCandidates() {
+        SelectorData pathOnlySelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange miss = newExchange("/neg-control", null);
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        SelectorData cached = MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/neg-control");
+        assertNotNull(cached, "a path-only candidate set may still cache a negative selector result");
+        assertNull(cached.getId());
+    }
+
+    @Test
+    public void negativeRuleCacheStillAppliesToPathOnlyCandidates() {
+        SelectorData pathOnlySelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        RuleData pathOnlyRule = RuleData.builder()
+                .id("1").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/elsewhere/**")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
+        BaseDataCache.getInstance().cacheRuleData(pathOnlyRule);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange miss = newExchange("/http/neg-control", null);
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/neg-control");
+        assertNotNull(cached, "a path-only candidate set may still cache a negative rule result");
+        assertNull(cached.getId());
+    }
+
+    private ConditionData condition(final String paramType, final String paramName, final String operator, final String paramValue) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(paramType);
+        condition.setParamName(paramName);
+        condition.setOperator(operator);
+        condition.setParamValue(paramValue);
+        return condition;
+    }
+
+    private ServerWebExchange newExchange(final String path, final String tenant) {
+        MockServerHttpRequest request = Objects.isNull(tenant)
+                ? MockServerHttpRequest.get(path).build()
+                : MockServerHttpRequest.get(path).header("X-Tenant", tenant).build();
+        return MockServerWebExchange.from(request);
+    }
+
     @AfterEach
     public void clear() {
         MatchDataCache.getInstance().cleanSelectorData();
@@ -428,6 +579,8 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cleanPluginData();
         BaseDataCache.getInstance().cleanSelectorData();
         BaseDataCache.getInstance().cleanRuleData();
+        MatchDataCache.getInstance().cleanSelectorData();
+        MatchDataCache.getInstance().cleanRuleDataData();
     }
 
     private void mockShenyuConfig() {
