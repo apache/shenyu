@@ -43,6 +43,7 @@ import java.util.List;
 import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.ruleLocalData;
 import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonRuleLocalDataList;
 import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
+import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.DECRYPTION_ERROR;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.ENCRYPTION_ERROR;
 import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.ALL;
@@ -119,16 +120,17 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     }
 
     @Test
-    @DisplayName("return original message when request doesnt exist filed")
-    public void testWhenDoesntExistFiled() throws Exception {
+    @DisplayName("return failed message when the configured field is absent from the response")
+    public void testWhenFieldDoesNotExistInResponse() throws Exception {
+        // A stale fieldNames rule must not let the plaintext response through, so the plugin reports a configuration
+        // error instead of returning the original body (#7903).
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
                 "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt", FIELD.getMapType()));
 
-        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, UserDTO.class);
+        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, AdminResponse.class);
 
-        assertThat(actualUser.getUserId(), is(originalBody.getUserId()));
-        assertThat(actualUser.getUserName(), is(originalBody.getUserName()));
-
+        assertThat(response.getCode(), is(CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode()));
+        assertThat(response.getMessage(), is(CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[fieldNames]"));
     }
 
     @DisplayName("return failed message when decrypt or encrypt failed")
