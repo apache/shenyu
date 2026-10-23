@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -484,17 +485,20 @@ class AiProxyEngineOrchestrationTest {
     void cancellationDuringFallbackReachesOnlyTheActiveBody() {
         AtomicInteger calls = new AtomicInteger();
         AtomicBoolean cancelled = new AtomicBoolean();
+        AtomicBoolean bodySubscribed = new AtomicBoolean();
         AiProxyEngine engine = engine(request -> {
             if (calls.incrementAndGet() <= 2) {
                 return Mono.error(networkFailure());
             }
             return Mono.just(response(200, Flux.just(bytes("data: {\"fallback\":true}\n\n"))
-                    .concatWith(Flux.never()).doOnCancel(() -> cancelled.set(true))));
+                    .concatWith(Flux.never()).doOnSubscribe(subscription -> bodySubscribed.set(true))
+                    .doOnCancel(() -> cancelled.set(true))));
         });
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .thenAwait(Duration.ofMillis(30)).thenCancel().verify(Duration.ofSeconds(3));
+                .then(() -> await().atMost(Duration.ofSeconds(5)).untilTrue(bodySubscribed))
+                .thenCancel().verify(Duration.ofSeconds(10));
         assertEquals(3, calls.get());
-        assertTrue(cancelled.get());
+        await().atMost(Duration.ofSeconds(5)).untilTrue(cancelled);
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {
