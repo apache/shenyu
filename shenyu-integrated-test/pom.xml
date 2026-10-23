@@ -60,6 +60,12 @@
     </properties>
 
     <dependencies>
+        <!-- Integration applications package Guava into their executable gateway jars. -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
