@@ -22,6 +22,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,6 +31,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Join
 public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
+
+    @Override
+    public Upstream select(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        Upstream picked = super.select(upstreamList, data);
+        // A single candidate returns before doSelect, so the inflight increment there is skipped
+        // while Divide still releases it. Count the selection here. See #7980.
+        if (Objects.nonNull(picked) && upstreamList.size() == 1) {
+            picked.getInflight().incrementAndGet();
+        }
+        return picked;
+    }
 
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {

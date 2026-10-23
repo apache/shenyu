@@ -159,6 +159,12 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             // Least active compares outstanding requests, so this attempt stays reserved until it terminates.
             upstream.getInflight().incrementAndGet();
             resend = resend.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        } else if (LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(loadBalance)) {
+            // Selection already incremented this standby. Divide only releases the original upstream,
+            // so release this attempt once on every terminal signal. #7982 does the same for P2C and
+            // should extend that guard instead of adding a second decrement.
+            resend = resend.doFinally(signalType -> upstream.getInflight()
+                    .updateAndGet(current -> current > 0 ? current - 1 : 0));
         }
         return UpstreamCircuitBreaker.recordOutcome(resend, breakerKey);
     }
