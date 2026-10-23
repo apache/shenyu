@@ -156,13 +156,24 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             return;
         }
         if (Objects.nonNull(ruleData.getId())) {
+            RuleData previous = rules.get(ruleData.getId());
             RuleData snapshot = RuleData.builder().id(ruleData.getId()).selectorId(ruleData.getSelectorId())
                     .name(ruleData.getName()).enabled(ruleData.getEnabled()).handle(ruleData.getHandle()).build();
             rules.put(snapshot.getId(), snapshot);
+            // an enabled -> disabled update reaches this handler, not removeRule, so the tool
+            // registered while the rule was enabled has to be revoked here or it stays callable
+            if (isRegistered(previous) && Boolean.FALSE.equals(snapshot.getEnabled())) {
+                unregisterTool(previous);
+                MetaDataCache.getInstance().clean();
+            }
             registerTool(snapshot);
             return;
         }
         registerTool(ruleData);
+    }
+
+    private boolean isRegistered(final RuleData ruleData) {
+        return Objects.nonNull(ruleData) && !Boolean.FALSE.equals(ruleData.getEnabled());
     }
 
     private void registerTool(final RuleData ruleData) {
@@ -183,13 +194,27 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
             if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
                 shenyuMcpServerManager.addTool(server.getPath(),
-                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
-                                : mcpServerTool.getName(),
+                        effectiveToolName(ruleData, mcpServerTool),
                         mcpServerTool.getDescription(),
                         mcpServerTool.getRequestConfig(),
                         inputSchema);
             }
         });
+    }
+
+    private void unregisterTool(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
+            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
+                shenyuMcpServerManager.removeTool(server.getPath(), effectiveToolName(ruleData, mcpServerTool));
+            }
+        });
+    }
+
+    private String effectiveToolName(final RuleData ruleData, final ShenyuMcpServerTool tool) {
+        return StringUtils.isBlank(tool.getName()) ? ruleData.getName() : tool.getName();
     }
 
     @Override
@@ -200,15 +225,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         if (Objects.nonNull(ruleData.getId())) {
             rules.remove(ruleData.getId());
         }
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
-            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
-                shenyuMcpServerManager.removeTool(server.getPath(),
-                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName() : mcpServerTool.getName());
-            }
-        });
+        unregisterTool(ruleData);
         MetaDataCache.getInstance().clean();
     }
 
