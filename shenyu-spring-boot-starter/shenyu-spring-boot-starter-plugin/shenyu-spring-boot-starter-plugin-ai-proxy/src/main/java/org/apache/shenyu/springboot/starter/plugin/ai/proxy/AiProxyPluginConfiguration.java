@@ -304,6 +304,7 @@ public class AiProxyPluginConfiguration {
     public AiProxyTransportProperties aiProxyTransportProperties() {
         return new AiProxyTransportProperties();
     }
+
     /**
      * AI proxy retry properties.
      *
