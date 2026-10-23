@@ -114,6 +114,8 @@
         <mysql.version>8.3.0</mysql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
+        <checker-qual.version>3.33.0</checker-qual.version>
+        <error-prone-annotations.version>2.41.0</error-prone-annotations.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
@@ -340,6 +342,18 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>${checker-qual.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>${error-prone-annotations.version}</version>
             </dependency>
 
             <dependency>
