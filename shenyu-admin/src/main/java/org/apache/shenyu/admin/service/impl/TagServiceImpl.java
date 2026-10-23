@@ -102,6 +102,8 @@ public class TagServiceImpl implements TagService {
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setParentTagId(parentTagId);
+        tagDO.setName(Objects.isNull(tagDTO.getTagName()) ? before.getTagName() : tagDTO.getTagName());
+        tagDO.setTagDesc(Objects.isNull(tagDTO.getTagDesc()) ? before.getTagDesc() : tagDTO.getTagDesc());
         if (AdminConstants.TAG_ROOT_PARENT_ID.equals(parentTagId)) {
             tagDO.setExt(buildRootExt(before.getExt()));
         } else {
