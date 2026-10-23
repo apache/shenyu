@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.transfer.AppAuthTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
@@ -464,16 +465,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
 
-        List<AppAuthData> appAuthData = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+        Map<String, List<AppAuthData>> namespaceDataList = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+                .namespaceId(StringUtils.defaultString(appAuthDO.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID))
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
                 .paramDataList(null)
                 .pathDataList(null)
-                .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
-        // publish delete event of AppAuthData
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, appAuthData));
+                .build()).collect(Collectors.groupingBy(AppAuthData::getNamespaceId));
+        // publish a separate delete event for each namespace
+        namespaceDataList.forEach((namespaceId, dataList) -> eventPublisher.publishEvent(
+                new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, dataList, namespaceId)));
 
         return affectCount;
     }

@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToC
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
@@ -118,7 +119,7 @@ public class AiProxyPluginConfiguration {
      *
      * @param aiProxyProtocolFactory protocol factory
      * @param aiProxyProviderFactory provider factory
-     * @param aiProtocolConverterFactory protocol converter factory
+     * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
      * @param observers optional application terminal sink
      * @param retryProperties        retry properties
@@ -126,10 +127,13 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
-                                       final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport,
-                                       final AiProtocolConverterFactory aiProtocolConverterFactory,
-                                       final ObjectProvider<AiCallObserver> observers, final AiProxyRetryProperties retryProperties) {
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProtocolConverterFactory, aiProxyTransport, retryProperties, observer(observers));
+                                       final AiProxyProviderFactory aiProxyProviderFactory,
+                                       final AiProtocolRouteResolver aiProtocolRouteResolver,
+                                       final AiProxyTransport aiProxyTransport,
+                                       final ObjectProvider<AiCallObserver> observers,
+                                       final AiProxyRetryProperties retryProperties) {
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties, observer(observers));
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
@@ -161,6 +165,18 @@ public class AiProxyPluginConfiguration {
     @ConditionalOnMissingBean
     public AiProtocolConverterFactory aiProtocolConverterFactory(final List<AiProtocolConverter> converters) {
         return new AiProtocolConverterFactory(converters);
+    }
+
+    /**
+     * AI protocol route resolver.
+     *
+     * @param converterFactory protocol converter factory
+     * @return the AI protocol route resolver
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AiProtocolRouteResolver aiProtocolRouteResolver(final AiProtocolConverterFactory converterFactory) {
+        return new AiProtocolRouteResolver(converterFactory);
     }
 
     /**

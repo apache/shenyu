@@ -49,6 +49,9 @@ public final class UpstreamCacheManager {
 
     private static final Map<String, List<Upstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    // Include unhealthy configured gray nodes so legacy traffic never falls back to ordinary nodes.
+    private static final Map<String, Boolean> LEGACY_GRAY_SELECTORS = Maps.newConcurrentMap();
+
     private UpstreamCheckTask task;
 
     /**
@@ -128,6 +131,21 @@ public final class UpstreamCacheManager {
      * @return the list
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
+        List<Upstream> upstreamList = findAllUpstreamListBySelectorId(selectorId);
+        if (Objects.isNull(upstreamList) || !Boolean.TRUE.equals(LEGACY_GRAY_SELECTORS.get(selectorId))) {
+            return upstreamList;
+        }
+        return upstreamList.stream().filter(Upstream::isGray).collect(Collectors.toList());
+    }
+
+    /**
+     * Find all healthy upstreams for rules that select their own label partition.
+     * The regular lookup retains the legacy gray-exclusive policy, including for failover.
+     *
+     * @param selectorId selector identifier
+     * @return a snapshot of all healthy upstreams, or null when the selector has no healthy pool
+     */
+    public List<Upstream> findAllUpstreamListBySelectorId(final String selectorId) {
         List<Upstream> upstreamList = task.getHealthyUpstream().get(selectorId);
         return Objects.isNull(upstreamList) ? null : new ArrayList<>(upstreamList);
     }
@@ -139,6 +157,7 @@ public final class UpstreamCacheManager {
      */
     public void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
+        LEGACY_GRAY_SELECTORS.remove(key);
         task.triggerRemoveAll(key);
     }
 
@@ -157,6 +176,7 @@ public final class UpstreamCacheManager {
             return;
         }
 
+        LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
@@ -181,6 +201,7 @@ public final class UpstreamCacheManager {
             if (Objects.nonNull(cached)) {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
                 cached.setLabels(upstream.getLabels());
+                cached.setGray(upstream.isGray());
             }
         });
     }

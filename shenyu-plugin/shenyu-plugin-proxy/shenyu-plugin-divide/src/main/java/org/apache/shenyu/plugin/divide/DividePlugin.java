@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -40,9 +41,14 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -60,7 +66,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String P2C = "p2c";
 
+    private static final String LEAST_ACTIVE = "leastActive";
+
     private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private final CanaryDecisionService canaryDecisionService;
+
+    public DividePlugin() {
+        this(new DefaultCanaryDecisionService());
+    }
+
+    public DividePlugin(final CanaryDecisionService canaryDecisionService) {
+        this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
+    }
 
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
@@ -95,8 +113,18 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 return WebFluxResultUtils.result(exchange, error);
             }
         }
-        List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        boolean canaryRouting = Objects.nonNull(ruleHandle.getCanary())
+                && CollectionUtils.isEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
+        List<Upstream> upstreamList = canaryRouting
+                ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
+                : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        if (canaryRouting && CollectionUtils.isNotEmpty(upstreamList)) {
+            upstreamList = selectPartition(exchange, rule.getId(), ruleHandle.getCanary(), upstreamList);
+        }
         if (CollectionUtils.isEmpty(upstreamList)) {
+            if (canaryRouting) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            }
             LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
@@ -105,11 +133,26 @@ public class DividePlugin extends AbstractShenyuPlugin {
         final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
+            if (canaryRouting) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            }
             LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
         return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(exchange, chain, selector, ruleHandle, candidates)));
+    }
+
+    private List<Upstream> selectPartition(final ServerWebExchange exchange, final String ruleId,
+                                           final CanaryConfig config, final List<Upstream> upstreams) {
+        CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams,
+                decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels());
+        if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
+            candidates = UpstreamLabelUtils.filter(upstreams, config.getStableLabels());
+        }
+        // Resolve the pool before circuit-breaker probes and load balancing; neither may escape it.
+        return candidates;
     }
 
     private Mono<Void> forwardSelected(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
@@ -144,6 +187,11 @@ public class DividePlugin extends AbstractShenyuPlugin {
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
+        }
+        if (LEAST_ACTIVE.equals(ruleHandle.getLoadBalance())) {
+            // Least active compares outstanding requests, so the choice is reserved here and released
+            // once the request terminates, whatever its outcome.
+            upstream.getInflight().incrementAndGet();
         }
         // set domain
         String domain = upstream.buildDomain();
@@ -199,7 +247,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                                  final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream, final boolean probe) {
         Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
-        if (ruleHandle.getLoadBalance().equals(P2C)) {
+        if (ruleHandle.getLoadBalance().equals(LEAST_ACTIVE)) {
+            response = response.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        } else if (ruleHandle.getLoadBalance().equals(P2C)) {
             response = response.doFinally(signalType -> responseTrigger(upstream));
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
