@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolRequestOverrides;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRoute;
@@ -243,6 +244,18 @@ public final class AiProxyEngine {
                     + providerRequest.getProtocol() + " -> " + provider.name());
         }
         provider.capabilities().validate(providerRequest, stream);
+        AiProxyProtocol targetProtocol = aiProxyProtocolFactory.getProtocol(route.targetProtocol());
+        AiProtocolRequestOverrides requestOverrides = new AiProtocolRequestOverrides(
+                config.getTemperature(), config.getMaxTokens(), providerRequest.hasStream() ? null : config.getStream());
+        ObjectNode originalPayload = providerRequest.getRawPayload();
+        ObjectNode outgoingPayload = Objects.requireNonNull(
+                targetProtocol.prepareOutgoingRequest(originalPayload.deepCopy(), requestOverrides),
+                "AI protocol prepared payload is required");
+        if (!originalPayload.equals(outgoingPayload)) {
+            providerRequest.setRawPayload(outgoingPayload);
+            providerRequest.setRawBody(outgoingPayload.toString());
+        }
+        providerRequest.setStream(stream);
         try {
             PreparedAiRequest preparedRequest = provider.prepareRequest(providerRequest, config);
             AiResponseAdapter responseAdapter = response -> protocol.encodeResponse(

@@ -23,25 +23,63 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * Declared provider capabilities, independent of HTTP execution and model discovery.
+ * Declared provider capabilities and behavior for each native protocol.
  *
- * @param protocols protocols accepted by the provider-facing request builder
+ * @param protocolBindings behavior for each protocol accepted natively by the provider
  * @param operations supported AI operations
  * @param features supported request features
  */
-public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.Operation> operations, Set<Feature> features) {
+public record AiProviderCapabilities(Map<String, AiProviderProtocolBinding> protocolBindings,
+                                     Set<ShenyuAiRequest.Operation> operations, Set<Feature> features) {
 
     /**
      * Copy declarations so request handling never mutates provider configuration.
      */
     public AiProviderCapabilities {
-        protocols = Set.copyOf(protocols);
+        protocolBindings = Map.copyOf(protocolBindings);
+        if (protocolBindings.isEmpty() || protocolBindings.keySet().stream().anyMatch(protocol -> protocol.isBlank())) {
+            throw new IllegalArgumentException("AI provider protocol bindings must use non-empty protocol names");
+        }
         operations = Set.copyOf(operations);
         features = Set.copyOf(features);
+    }
+
+    /**
+     * Get protocols accepted natively by this provider.
+     *
+     * @return native protocol identifiers
+     */
+    public Set<String> protocols() {
+        return protocolBindings.keySet();
+    }
+
+    /**
+     * Get provider behavior for one native target protocol.
+     *
+     * @param protocol target protocol
+     * @return provider protocol binding
+     */
+    public AiProviderProtocolBinding protocolBinding(final String protocol) {
+        AiProviderProtocolBinding binding = protocolBindings.get(protocol);
+        if (Objects.isNull(binding)) {
+            throw new IllegalArgumentException("Unsupported AI provider protocol: " + protocol);
+        }
+        return binding;
+    }
+
+    /**
+     * Replace native protocol bindings while retaining operation and feature declarations.
+     *
+     * @param bindings native protocol bindings
+     * @return updated capabilities
+     */
+    public AiProviderCapabilities withProtocolBindings(final Map<String, AiProviderProtocolBinding> bindings) {
+        return new AiProviderCapabilities(bindings, operations, features);
     }
 
     /**
@@ -50,7 +88,8 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
      * @return general capabilities
      */
     public static AiProviderCapabilities chat() {
-        return new AiProviderCapabilities(Set.of(OpenAiChat.NAME),
+        return new AiProviderCapabilities(Map.of(OpenAiChat.NAME,
+                new AiProviderProtocolBinding("/v1/chat/completions", AiProviderRequestRewriter.identity())),
                 EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION),
                 EnumSet.of(Feature.STREAMING, Feature.TOOL_CALLING, Feature.CUSTOM_TOOLS, Feature.JSON_MODE,
                         Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT));
@@ -63,7 +102,7 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
      * @param stream effective streaming setting
      */
     public void validate(final ShenyuAiRequest request, final boolean stream) {
-        if (!protocols.contains(request.getProtocol())) {
+        if (!protocolBindings.containsKey(request.getProtocol())) {
             reject("protocol " + request.getProtocol());
         }
         if (Objects.isNull(request.getOperation()) || !operations.contains(request.getOperation())) {

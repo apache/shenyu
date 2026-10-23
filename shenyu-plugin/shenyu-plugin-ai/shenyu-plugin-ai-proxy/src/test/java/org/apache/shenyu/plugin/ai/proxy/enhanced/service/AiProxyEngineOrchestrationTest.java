@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
@@ -26,6 +27,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolRequestOverrides;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
@@ -103,6 +105,7 @@ class AiProxyEngineOrchestrationTest {
                     .concatWith(Flux.error(networkFailure()))));
         });
         AiCommonConfig primary = config(true, "main");
+        primary.setProvider("DeepSeek");
         primary.setProtocol(OpenAiResponses.NAME);
         StepVerifier.create(engine.execute("{\"input\":\"hi\",\"stream\":true}", primary, Optional.of(config(true, "fallback")),
                 response -> consume(response, received))).expectError(AiProxyException.class).verify();
@@ -478,6 +481,84 @@ class AiProxyEngineOrchestrationTest {
         conversions.clear();
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).expectError(ShenyuException.class).verify();
         assertTrue(conversions.isEmpty());
+    }
+
+    @Test
+    void preparesTheConvertedTargetProtocolBeforeTheProvider() throws Exception {
+        AtomicInteger clientPrepared = new AtomicInteger();
+        AtomicInteger prepared = new AtomicInteger();
+        OpenAiResponses responses = new OpenAiResponses();
+        AiProxyProtocol clientProtocol = new AiProxyProtocol() {
+            @Override
+            public String name() {
+                return responses.name();
+            }
+
+            @Override
+            public boolean matches(final JsonNode payload) {
+                return responses.matches(payload);
+            }
+
+            @Override
+            public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
+                return responses.decodeRequest(rawBody, payload);
+            }
+
+            @Override
+            public ObjectNode prepareOutgoingRequest(final ObjectNode payload, final AiProtocolRequestOverrides overrides) {
+                clientPrepared.incrementAndGet();
+                return payload;
+            }
+        };
+        OpenAiChat chat = new OpenAiChat();
+        AiProxyProtocol targetProtocol = new AiProxyProtocol() {
+            @Override
+            public String name() {
+                return chat.name();
+            }
+
+            @Override
+            public boolean matches(final JsonNode payload) {
+                return chat.matches(payload);
+            }
+
+            @Override
+            public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
+                return chat.decodeRequest(rawBody, payload);
+            }
+
+            @Override
+            public ObjectNode prepareOutgoingRequest(final ObjectNode payload, final AiProtocolRequestOverrides overrides) {
+                prepared.incrementAndGet();
+                payload.put("target_prepared", true);
+                return payload;
+            }
+        };
+        AiProxyProvider provider = new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "custom";
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                AiUpstreamRequest upstream = new AiUpstreamRequest();
+                upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
+                return upstream;
+            }
+        };
+        AiProxyEngine engine = new AiProxyEngine(
+                new AiProxyProtocolFactory(List.of(clientProtocol, targetProtocol)),
+                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty());
+        AiCommonConfig config = config(false, "model");
+        config.setProvider("custom");
+        config.setProtocol(OpenAiResponses.NAME);
+
+        AiUpstreamRequest upstream = engine.buildRequest("{\"input\":\"hi\"}", config);
+
+        assertEquals(0, clientPrepared.get());
+        assertEquals(1, prepared.get());
+        assertTrue(new ObjectMapper().readTree(upstream.getBody()).path("target_prepared").asBoolean());
     }
 
     @Test

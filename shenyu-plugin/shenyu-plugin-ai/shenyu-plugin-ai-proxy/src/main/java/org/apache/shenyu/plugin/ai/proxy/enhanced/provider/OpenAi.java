@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.agenticai.connect.ProviderProfile;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
@@ -108,7 +107,8 @@ public final class OpenAi implements AiProxyProvider {
         if (!supports(request.getProtocol())) {
             throw new IllegalArgumentException("Unsupported OpenAI protocol: " + request.getProtocol());
         }
-        boolean stream = request.hasStream() ? request.isStream() : Boolean.TRUE.equals(config.getStream());
+        final AiProviderProtocolBinding protocolBinding = options.protocolBinding(request.getProtocol());
+        boolean stream = request.hasStream() && request.isStream();
         capabilities().validate(request, stream);
         ObjectNode payload = request.getRawPayload().deepCopy();
         payload.remove("fallbackConfig");
@@ -117,42 +117,21 @@ public final class OpenAi implements AiProxyProvider {
                 payload.set(entry.getKey(), entry.getValue());
             }
         });
-        String configuredModel = config.getModel();
-        String model = Objects.nonNull(configuredModel) && !configuredModel.isBlank() ? configuredModel : payload.path("model").asText(null);
+        String model = payload.path("model").asText(null);
         String mappedModel = Objects.isNull(model) ? null : options.modelMappings().getOrDefault(model, model);
         if (Objects.nonNull(mappedModel)) {
             payload.put("model", mappedModel);
         }
-        if (Objects.nonNull(config.getTemperature())) {
-            payload.put("temperature", config.getTemperature());
-        }
-        if (Objects.nonNull(config.getMaxTokens())) {
-            if (config.getMaxTokens() <= 0) {
-                throw new IllegalArgumentException("AI maxTokens must be positive");
-            }
-            String field = options.maxTokensField().isEmpty()
-                    ? (payload.hasNonNull("max_completion_tokens") ? "max_completion_tokens" : "max_tokens") : options.maxTokensField();
-            payload.remove("max_tokens");
-            payload.remove("max_completion_tokens");
-            payload.put(field, config.getMaxTokens());
-        }
-        if (!request.hasStream() && Objects.nonNull(config.getStream())) {
-            payload.put("stream", stream);
-        }
-        ConnectProviderDialectAdapter adapter = new ConnectProviderDialectAdapter(mappedModel, options.connectProfile());
-        ObjectNode converted = adapter.adapt(payload);
+        ObjectNode converted = protocolBinding.requestRewriter().rewrite(payload, mappedModel);
         JsonNode convertedStream = converted.get("stream");
         if (Objects.nonNull(convertedStream) && !convertedStream.isNull() && !convertedStream.isBoolean()
                 || converted.path("stream").asBoolean() != stream) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI provider dialect must preserve the selected streaming mode", null);
         }
-        if (stream && capabilities().features().contains(AiProviderCapabilities.Feature.STREAM_USAGE)) {
-            enableStreamUsage(converted);
-        }
         capabilities().validatePayload(converted);
         AiUpstreamRequest upstream = new AiUpstreamRequest();
         upstream.setMethod(HttpMethod.POST.name());
-        upstream.setUri(resolveEndpoint(config));
+        upstream.setUri(resolveEndpoint(config, protocolBinding.path()));
         upstream.setHeaders(headers(config, stream));
         String body = request.getRawPayload().equals(converted) ? request.getRawBody() : converted.toString();
         upstream.setBody(body.getBytes(StandardCharsets.UTF_8));
@@ -178,21 +157,6 @@ public final class OpenAi implements AiProxyProvider {
         headers.put(name, List.of(value));
     }
 
-    private void enableStreamUsage(final ObjectNode payload) {
-        JsonNode current = payload.get("stream_options");
-        ObjectNode streamOptions;
-        if (Objects.isNull(current) || current.isNull()) {
-            streamOptions = payload.putObject("stream_options");
-        } else if (current.isObject()) {
-            streamOptions = (ObjectNode) current;
-        } else {
-            throw new ShenyuException("OpenAI Chat field 'stream_options' must be an object");
-        }
-        if (!streamOptions.has("include_usage")) {
-            streamOptions.put("include_usage", true);
-        }
-    }
-
     private void validateConfig(final AiCommonConfig config) {
         Objects.requireNonNull(config, "AI provider configuration is required");
         if (Objects.isNull(config.getBaseUrl()) || config.getBaseUrl().isBlank()) {
@@ -204,13 +168,13 @@ public final class OpenAi implements AiProxyProvider {
         }
     }
 
-    private URI resolveEndpoint(final AiCommonConfig config) {
+    private URI resolveEndpoint(final AiCommonConfig config, final String configuredPath) {
         URI base = URI.create(config.getBaseUrl());
         if (!("http".equalsIgnoreCase(base.getScheme()) || "https".equalsIgnoreCase(base.getScheme()))
                 || Objects.isNull(base.getHost()) || Objects.nonNull(base.getRawQuery()) || Objects.nonNull(base.getRawFragment()) || Objects.nonNull(base.getRawUserInfo())) {
             throw new IllegalArgumentException("AI baseUrl must be an HTTP(S) endpoint without credentials, query or fragment");
         }
-        String path = options.path().startsWith("/") ? options.path().substring(1) : options.path();
+        String path = configuredPath.startsWith("/") ? configuredPath.substring(1) : configuredPath;
         String basePath = base.getPath().endsWith("/") ? base.getPath().substring(0, base.getPath().length() - 1) : base.getPath();
         URI endpoint;
         if (basePath.endsWith("/" + path)) {

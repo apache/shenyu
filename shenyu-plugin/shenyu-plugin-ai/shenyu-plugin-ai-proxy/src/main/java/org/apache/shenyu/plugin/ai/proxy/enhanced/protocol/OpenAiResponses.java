@@ -73,4 +73,24 @@ public final class OpenAiResponses implements AiProxyProtocol {
         request.setMaxTokens(Objects.isNull(maxTokens) || maxTokens.isNull() ? null : maxTokens.intValue());
         return request;
     }
+
+    @Override
+    public ObjectNode prepareOutgoingRequest(final ObjectNode payload, final AiProtocolRequestOverrides overrides) {
+        Objects.requireNonNull(payload, "OpenAI Responses payload is required");
+        Objects.requireNonNull(overrides, "OpenAI Responses request overrides are required");
+        if (Objects.nonNull(overrides.temperature())) {
+            payload.put("temperature", overrides.temperature());
+        }
+        if (Objects.nonNull(overrides.maxTokens())) {
+            if (overrides.maxTokens() <= 0) {
+                throw new IllegalArgumentException("AI maxTokens must be positive");
+            }
+            payload.remove("max_output_tokens");
+            payload.put("max_output_tokens", overrides.maxTokens());
+        }
+        if (Objects.nonNull(overrides.stream()) && !payload.has("stream")) {
+            payload.put("stream", overrides.stream());
+        }
+        return payload;
+    }
 }

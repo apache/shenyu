@@ -71,4 +71,35 @@ class OpenAiChatTest {
 
         assertThrows(ShenyuException.class, () -> protocol.decodeRequest(body, payload));
     }
+
+    @Test
+    void preparesChatSpecificOutgoingFields() throws Exception {
+        ObjectNode payload = (ObjectNode) OBJECT_MAPPER.readTree("{\"messages\":[{\"role\":\"user\"}],"
+                + "\"max_tokens\":10,\"max_completion_tokens\":20}");
+
+        ObjectNode prepared = protocol.prepareOutgoingRequest(payload,
+                new AiProtocolRequestOverrides(0.2, 32, true));
+
+        assertEquals(0.2, prepared.path("temperature").asDouble());
+        assertEquals(32, prepared.path("max_completion_tokens").asInt());
+        assertFalse(prepared.has("max_tokens"));
+        assertTrue(prepared.path("stream").asBoolean());
+        assertTrue(prepared.path("stream_options").path("include_usage").asBoolean());
+    }
+
+    @Test
+    void preservesExplicitStreamUsageAndRejectsInvalidOptions() throws Exception {
+        ObjectNode payload = (ObjectNode) OBJECT_MAPPER.readTree("{\"messages\":[{\"role\":\"user\"}],"
+                + "\"stream\":true,\"stream_options\":{\"include_usage\":false}}");
+
+        ObjectNode prepared = protocol.prepareOutgoingRequest(payload,
+                new AiProtocolRequestOverrides(null, null, null));
+
+        assertFalse(prepared.path("stream_options").path("include_usage").asBoolean());
+        assertThrows(IllegalArgumentException.class, () -> protocol.prepareOutgoingRequest(payload.deepCopy(),
+                new AiProtocolRequestOverrides(null, 0, null)));
+        payload.put("stream_options", false);
+        assertThrows(ShenyuException.class, () -> protocol.prepareOutgoingRequest(payload,
+                new AiProtocolRequestOverrides(null, null, null)));
+    }
 }

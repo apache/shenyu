@@ -52,6 +52,8 @@ public final class OpenAiChat implements AiProxyProtocol {
 
     private static final String FIELD_MAX_COMPLETION_TOKENS = "max_completion_tokens";
 
+    private static final String FIELD_TEMPERATURE = "temperature";
+
     @Override
     public String name() {
         return NAME;
@@ -83,6 +85,45 @@ public final class OpenAiChat implements AiProxyProtocol {
         request.setMessages(readMessages(payload));
 
         return request;
+    }
+
+    @Override
+    public ObjectNode prepareOutgoingRequest(final ObjectNode payload, final AiProtocolRequestOverrides overrides) {
+        Objects.requireNonNull(payload, "OpenAI Chat payload is required");
+        Objects.requireNonNull(overrides, "OpenAI Chat request overrides are required");
+        if (Objects.nonNull(overrides.temperature())) {
+            payload.put(FIELD_TEMPERATURE, overrides.temperature());
+        }
+        if (Objects.nonNull(overrides.maxTokens())) {
+            if (overrides.maxTokens() <= 0) {
+                throw new IllegalArgumentException("AI maxTokens must be positive");
+            }
+            payload.remove(FIELD_MAX_TOKENS);
+            payload.remove(FIELD_MAX_COMPLETION_TOKENS);
+            payload.put(FIELD_MAX_COMPLETION_TOKENS, overrides.maxTokens());
+        }
+        if (Objects.nonNull(overrides.stream()) && !payload.has(FIELD_STREAM)) {
+            payload.put(FIELD_STREAM, overrides.stream());
+        }
+        if (payload.path(FIELD_STREAM).asBoolean()) {
+            enableStreamUsage(payload);
+        }
+        return payload;
+    }
+
+    private void enableStreamUsage(final ObjectNode payload) {
+        JsonNode current = payload.get("stream_options");
+        ObjectNode streamOptions;
+        if (Objects.isNull(current) || current.isNull()) {
+            streamOptions = payload.putObject("stream_options");
+        } else if (current.isObject()) {
+            streamOptions = (ObjectNode) current;
+        } else {
+            throw new ShenyuException("OpenAI Chat field 'stream_options' must be an object");
+        }
+        if (!streamOptions.has("include_usage")) {
+            streamOptions.put("include_usage", true);
+        }
     }
 
     private void validateRequest(

@@ -34,6 +34,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolve
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderProtocolBinding;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderRequestRewriter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -84,7 +86,7 @@ class AiProxyEngineTest {
             return Mono.just(upstreamResponse);
         };
         engine = new AiProxyEngine(
-                new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
                 protocolRouteResolver(),
                 transport);
@@ -150,9 +152,26 @@ class AiProxyEngineTest {
     }
 
     @Test
+    void testOpenAiUsesNativeResponsesRoute() throws Exception {
+        config.setProtocol(OpenAiResponses.NAME);
+        config.setMaxTokens(32);
+
+        AiUpstreamRequest request = engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\",\"stream\":true}", config);
+        JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertEquals("https://api.openai.com/v1/responses", request.getUri().toString());
+        assertEquals("hello", payload.path("input").asText());
+        assertEquals(32, payload.path("max_output_tokens").asInt());
+        assertFalse(payload.has("messages"));
+        assertFalse(payload.has("max_completion_tokens"));
+        assertFalse(payload.has("stream_options"));
+    }
+
+    @Test
     void testCustomProviderSupportsOnlyDeclaredProtocols() {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
-        final AiProxyProvider provider = customProvider(new AiProviderCapabilities(Set.of(OpenAiChat.NAME), all.operations(), all.features()), new AtomicInteger());
+        final AiProxyProvider provider = customProvider(
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), all.features()), new AtomicInteger());
 
         assertTrue(provider.supports(OpenAiChat.NAME));
         assertFalse(provider.supports(OpenAiResponses.NAME));
@@ -164,7 +183,7 @@ class AiProxyEngineTest {
     void testCustomChatProviderAcceptsResponsesThroughConversion() throws Exception {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         final AtomicInteger builds = new AtomicInteger();
-        useCustomProvider(new AiProviderCapabilities(Set.of(OpenAiChat.NAME), all.operations(), all.features()), builds);
+        useCustomProvider(new AiProviderCapabilities(all.protocolBindings(), all.operations(), all.features()), builds);
         config.setProtocol(OpenAiResponses.NAME);
 
         AiUpstreamRequest request = engine.buildRequest("{\"model\":\"test\",\"input\":\"hello\"}", config);
@@ -179,7 +198,7 @@ class AiProxyEngineTest {
     void testCustomChatProviderValidatesConvertedOperation() {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         final AtomicInteger builds = new AtomicInteger();
-        useCustomProvider(new AiProviderCapabilities(all.protocols(),
+        useCustomProvider(new AiProviderCapabilities(all.protocolBindings(),
                 Set.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), all.features()), builds);
         config.setProtocol(OpenAiResponses.NAME);
 
@@ -193,7 +212,7 @@ class AiProxyEngineTest {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         config.setStream(false);
         assertCapabilityRejected("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"stream\":true}",
-                new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), "STREAMING");
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of()), "STREAMING");
     }
 
     @Test
@@ -201,14 +220,14 @@ class AiProxyEngineTest {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         config.setStream(true);
         assertCapabilityRejected("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
-                new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), "STREAMING");
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of()), "STREAMING");
     }
 
     @Test
     void testCustomProviderExplicitNonStreamingOverridesConfiguration() {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         final AtomicInteger builds = new AtomicInteger();
-        useCustomProvider(new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), builds);
+        useCustomProvider(new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of()), builds);
         config.setStream(true);
 
         StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"stream\":false}",
@@ -223,7 +242,8 @@ class AiProxyEngineTest {
         final AiProviderCapabilities all = AiProviderCapabilities.chat();
         final AtomicInteger builds = new AtomicInteger();
         final AtomicInteger transports = new AtomicInteger();
-        final AiProxyProvider fallback = customProvider(new AiProviderCapabilities(all.protocols(), all.operations(), Set.of()), builds);
+        final AiProxyProvider fallback = customProvider(
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of()), builds);
         engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), protocolRouteResolver(), request -> {
                     transports.incrementAndGet();
@@ -267,12 +287,13 @@ class AiProxyEngineTest {
         final List<String> preparedProtocols = new ArrayList<>();
         final AiProxyProvider primary = recordingProvider(
                 "primary", AiProviderCapabilities.chat(), preparedProtocols);
-        final AiProviderCapabilities responses = new AiProviderCapabilities(
-                Set.of(OpenAiResponses.NAME), Set.of(ShenyuAiRequest.Operation.RESPONSE), Set.of());
+        final AiProviderCapabilities responses = new AiProviderCapabilities(Map.of(
+                OpenAiResponses.NAME, new AiProviderProtocolBinding("/v1/responses", AiProviderRequestRewriter.identity())),
+                Set.of(ShenyuAiRequest.Operation.RESPONSE), Set.of());
         final AiProxyProvider fallback = recordingProvider("fallback", responses, preparedProtocols);
         final AtomicInteger transports = new AtomicInteger();
         engine = new AiProxyEngine(
-                new AiProxyProtocolFactory(List.of(new OpenAiResponses())),
+                new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(primary, fallback)),
                 routeResolver,
                 request -> transports.incrementAndGet() == 1

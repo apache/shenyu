@@ -79,4 +79,20 @@ class OpenAiResponsesTest {
             assertThrows(ShenyuException.class, () -> protocol.decodeRequest(body, (ObjectNode) MAPPER.readTree(body)));
         }
     }
+
+    @Test
+    void preparesResponsesSpecificOutgoingFields() throws Exception {
+        ObjectNode payload = (ObjectNode) MAPPER.readTree("{\"input\":\"hi\",\"max_output_tokens\":10}");
+
+        ObjectNode prepared = protocol.prepareOutgoingRequest(payload,
+                new AiProtocolRequestOverrides(0.2, 32, true));
+
+        assertEquals(0.2, prepared.path("temperature").asDouble());
+        assertEquals(32, prepared.path("max_output_tokens").asInt());
+        assertTrue(prepared.path("stream").asBoolean());
+        assertFalse(prepared.has("max_completion_tokens"));
+        assertFalse(prepared.has("stream_options"));
+        assertThrows(IllegalArgumentException.class, () -> protocol.prepareOutgoingRequest(payload,
+                new AiProtocolRequestOverrides(null, 0, null)));
+    }
 }

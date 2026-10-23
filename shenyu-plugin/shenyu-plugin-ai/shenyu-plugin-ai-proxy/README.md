@@ -20,8 +20,9 @@ limitations under the License.
 The AI Proxy uses `io.github.agentic-ai-java:connect:0.1.0` for JSON protocol
 conversion and explicitly selected provider dialects. ShenYu remains the
 reactive gateway, not an agent runtime. This integration supports OpenAI Chat
-Completions and OpenAI Responses clients against existing Chat Completions
-upstreams. It does not add Claude, Gemini, or native Responses upstream transports.
+Completions and OpenAI Responses clients. The built-in OpenAI provider uses the
+native `/v1/responses` endpoint; Chat-only providers use protocol conversion.
+It does not add native Claude or Gemini upstream transports.
 
 ## Responsibility boundary
 
@@ -35,23 +36,26 @@ upstreams. It does not add Claude, Gemini, or native Responses upstream transpor
 | Gateway execution | No networking or gateway policy | Configuration synchronization, selector/rule matching, credentials, endpoints, WebClient transport, HTTP status/headers, retries and fallback |
 | Billing and agents | Normalize usage; no charging or tool execution | Billing/quota policy remains a gateway concern; this change adds no billing system or agent/tool execution |
 
-Protocol field mappings belong in Connect, not duplicated in provider classes.
-A new upstream protocol still requires a ShenYu transport/provider integration:
-a library codec alone does not define its endpoint or authentication contract.
+Native request preparation belongs to the target protocol. Connect owns
+cross-protocol conversion and explicitly selected provider dialects. A provider
+declares each native protocol's endpoint and optional request-body rewriter; a
+library codec alone does not define endpoint or authentication contracts.
 
 ## Exchange lifecycle
 
 1. ShenYu resolves global/selector configuration, proxy credentials and fallback.
 2. The protocol decoder validates the envelope and retains the original payload.
-3. The provider applies gateway overrides, then `ConnectResponsesToChatConverter` converts
-   to Chat using a request-scoped `ConversionContext`. The configured upstream
-   model is authoritative. The provider profile runs once after conversion.
-4. ShenYu constructs the HTTP endpoint and authorization headers and sends the
+3. ShenYu prefers a provider-native target protocol and otherwise selects a
+   converter. The target protocol prepares its outgoing payload after routing.
+4. The provider applies gateway overrides and its target-protocol binding. A
+   selected Connect provider profile runs once after protocol conversion.
+5. ShenYu constructs the HTTP endpoint and authorization headers and sends the
    request through its existing reactive transport.
-5. The request-bound response adapter uses the same context to convert successful
-   Chat responses back to Responses, including custom-tool restoration. HTTP
-   errors and Chat client responses remain passthrough.
-6. For streams, ShenYu incrementally frames upstream SSE; Connect consumes JSON
+6. For cross-protocol routes, the request-bound response adapter uses the same
+   context to convert successful Chat responses back to Responses, including
+   custom-tool restoration. Native routes, HTTP errors and Chat client responses
+   remain passthrough.
+7. For streams, ShenYu incrementally frames upstream SSE; Connect consumes JSON
    chunks; ShenYu emits `event: <type>` and `data: <json>` Responses SSE frames.
    Stream state is allocated per subscription, including retries. Finalization
    runs only on normal completion, never cancellation or transport failure.
@@ -117,11 +121,11 @@ Route a client request such as the following to that selector:
 }
 ```
 
-The upstream receives Chat `messages`, the configured routed model and
-`max_completion_tokens` at `/v1/chat/completions`. The client receives Responses
-events, including usage when supplied upstream. An explicit client `stream`
-setting takes precedence over the configured default. Existing `maxTokens` and
-`temperature` gateway overrides still apply before conversion.
+The OpenAI upstream receives Responses `input` and `max_output_tokens` at
+`/v1/responses`. A Chat-only upstream receives converted `messages` and its
+configured token field at its Chat endpoint. An explicit client `stream` setting
+takes precedence over the configured default. Existing `maxTokens` and
+`temperature` gateway overrides apply to the selected target protocol.
 
 The existing `DeepSeek` provider identifier selects Connect's DeepSeek Chat
 profile. Other compatible identifiers (`ALiYun`, `OpenAPI`, `Moonshot`) remain
@@ -136,12 +140,16 @@ The explicit Provider registry remains the extension point. Built-in identifiers
 and case are normalized by the registry. Both existing client protocols are supported.
 The protocol decoder also declares the request operation (`CHAT_COMPLETION` or
 `RESPONSE`), so a profile can restrict operations separately from protocol support.
-Responses clients continue to use conversion to a Chat upstream; these declarations
-do not enable native Responses endpoints or other HTTP operations.
+The built-in OpenAI provider declares both `openai-chat` and `openai-responses`;
+compatible and DeepSeek providers remain Chat-only unless explicitly configured
+with another native protocol binding.
 
-`AiProviderCapabilities` declares streaming, function/custom tools, JSON mode, JSON
-schema output, stream usage and audio output. The default `supports()` follows the
-declared protocols. The engine validates decoded protocol, operation and effective
+`AiProviderCapabilities` maps each native protocol to an `AiProviderProtocolBinding`,
+which owns that protocol's endpoint path and provider request rewriter. Its binding keys
+are the single source for `protocols()` and the default `supports()` implementation; a
+provider does not maintain a second protocol-name set. Capabilities also declare streaming,
+function/custom tools, JSON mode, JSON schema output, stream usage and audio output.
+The engine validates decoded protocol, operation and effective
 stream settings before invoking any provider, including custom implementations.
 Providers also validate the final converted payload, including provider defaults. Unsupported
 features or operations fail as request errors before HTTP execution. Generic capabilities

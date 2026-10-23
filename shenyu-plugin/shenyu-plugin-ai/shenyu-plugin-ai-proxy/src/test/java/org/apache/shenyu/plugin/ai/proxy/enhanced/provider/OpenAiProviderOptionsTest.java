@@ -71,6 +71,16 @@ class OpenAiProviderOptionsTest {
     }
 
     @Test
+    void nativeProtocolsComeFromProviderBindings() {
+        AiProviderCapabilities capabilities = new OpenAi().capabilities();
+
+        assertEquals(capabilities.protocolBindings().keySet(), capabilities.protocols());
+        assertEquals("/v1/chat/completions", capabilities.protocolBinding(OpenAiChat.NAME).path());
+        assertEquals("/v1/responses", capabilities.protocolBinding(OpenAiResponses.NAME).path());
+        assertThrows(IllegalArgumentException.class, () -> capabilities.protocolBinding("unknown"));
+    }
+
+    @Test
     void genericCompatibleProfilePreservesUnknownFieldsAndOriginalBytes() throws Exception {
         AiUpstreamRequest result = new OpenAiCompatible("custom").buildRequest(chat(CHAT), config);
         assertEquals(CHAT, text(result.getBody()));
@@ -128,7 +138,7 @@ class OpenAiProviderOptionsTest {
     }
 
     @Test
-    void modelAliasesAndDefaultsRespectClientValuesAndGatewayOverrides() throws Exception {
+    void modelAliasesAndDefaultsRespectRequestValues() throws Exception {
         OpenAiProviderOptions options = options("/generate", OpenAiProviderOptions.Authentication.HEADER, "Authorization", "Bearer ",
                 Map.of(), Map.of(), Map.of("client-alias", "native-client", "route-alias", "native-route"),
                 object("{\"model\":\"client-alias\",\"temperature\":0.7,\"vendor_default\":{\"x\":1}}"), AiProviderCapabilities.chat(), "");
@@ -138,13 +148,10 @@ class OpenAiProviderOptionsTest {
         assertEquals(0.7, first.get("temperature").asDouble());
         assertEquals(1, first.at("/vendor_default/x").asInt());
         assertEquals(object(CHAT).get("vendor_extra"), first.get("vendor_extra"));
-        config.setModel("route-alias");
-        config.setTemperature(0.2);
-        JsonNode routed = MAPPER.readTree(provider.buildRequest(chat(CHAT), config).getBody());
+        String routedBody = CHAT.replace("client-alias", "route-alias").replace("\"stream\": false", "\"temperature\": 0.2, \"stream\": false");
+        JsonNode routed = MAPPER.readTree(provider.buildRequest(chat(routedBody), config).getBody());
         assertEquals("native-route", routed.get("model").asText());
         assertEquals(0.2, routed.get("temperature").asDouble());
-        config.setModel(null);
-        config.setTemperature(null);
         JsonNode absent = MAPPER.readTree(provider.buildRequest(chat("{\"messages\":[{\"role\":\"user\"}],\"temperature\":0.4}"), config).getBody());
         assertEquals("native-client", absent.get("model").asText());
         assertEquals(0.4, absent.get("temperature").asDouble());
@@ -168,18 +175,12 @@ class OpenAiProviderOptionsTest {
     }
 
     @Test
-    void openAiMapsLegacyTokensAndOverrideToOneField() throws Exception {
+    void openAiMapsLegacyTokensToOneProviderField() throws Exception {
         String body = CHAT.substring(0, CHAT.length() - 1) + ",\"max_tokens\":10,\"max_completion_tokens\":20}";
         JsonNode first = MAPPER.readTree(new OpenAi().buildRequest(chat(body), config).getBody());
         assertEquals(20, first.get("max_completion_tokens").asInt());
         assertFalse(first.has("max_tokens"));
-        config.setMaxTokens(32);
-        JsonNode overridden = MAPPER.readTree(new OpenAi().buildRequest(chat(body), config).getBody());
-        assertEquals(32, overridden.get("max_completion_tokens").asInt());
-        assertFalse(overridden.has("max_tokens"));
-        assertEquals(object(CHAT).get("vendor_extra"), overridden.get("vendor_extra"));
-        config.setMaxTokens(0);
-        assertThrows(IllegalArgumentException.class, () -> new OpenAi().buildRequest(chat(CHAT), config));
+        assertEquals(object(CHAT).get("vendor_extra"), first.get("vendor_extra"));
     }
 
     @Test
@@ -193,12 +194,11 @@ class OpenAiProviderOptionsTest {
     @Test
     void compatibleTokenFieldChoiceRunsInConnectAfterResponsesConversion() throws Exception {
         OpenAiCompatible provider = new OpenAiCompatible("legacy", OpenAiProviderOptions.generic(null).withMaxTokensField("max_tokens"));
-        config.setMaxTokens(17);
         AiProtocolConversion conversion = new ConnectResponsesToChatConverter().convert(
                 responses("{\"model\":\"m\",\"input\":\"hi\",\"max_output_tokens\":7}"), false);
         AiUpstreamRequest upstream = provider.buildRequest(conversion.request(), config);
         JsonNode payload = MAPPER.readTree(upstream.getBody());
-        assertEquals(17, payload.get("max_tokens").asInt());
+        assertEquals(7, payload.get("max_tokens").asInt());
         assertFalse(payload.has("max_completion_tokens"));
         assertFalse(payload.has("max_output_tokens"));
         assertEquals("hi", payload.at("/messages/0/content").asText());
@@ -258,7 +258,7 @@ class OpenAiProviderOptionsTest {
     void unsupportedOperationsFailBeforeTransportWithoutEngineChanges() {
         AiProviderCapabilities all = AiProviderCapabilities.chat();
         AiProviderCapabilities restricted = new AiProviderCapabilities(
-                all.protocols(), Set.of(ShenyuAiRequest.Operation.RESPONSE), all.features());
+                all.protocolBindings(), Set.of(ShenyuAiRequest.Operation.RESPONSE), all.features());
         OpenAiCompatible custom = new OpenAiCompatible("restricted", options("/generate", OpenAiProviderOptions.Authentication.NONE, "", "",
                 Map.of(), Map.of(), Map.of(), MAPPER.createObjectNode(), restricted, ""));
         AtomicInteger calls = new AtomicInteger();
@@ -277,7 +277,7 @@ class OpenAiProviderOptionsTest {
     @Test
     void validatesStreamingToolsJsonAndAudioCapabilitiesOnFinalPayload() throws Exception {
         AiProviderCapabilities all = AiProviderCapabilities.chat();
-        AiProviderCapabilities restricted = new AiProviderCapabilities(all.protocols(), all.operations(), Set.of());
+        AiProviderCapabilities restricted = new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of());
         OpenAiCompatible provider = new OpenAiCompatible("restricted", options("/generate", OpenAiProviderOptions.Authentication.NONE, "", "",
                 Map.of(), Map.of(), Map.of(), object("{}"), restricted, ""));
         for (String feature : List.of("\"stream\":true", "\"function_call\":{\"name\":\"forced\"}", "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"f\"}}]",
@@ -288,7 +288,7 @@ class OpenAiProviderOptionsTest {
         EnumSet<AiProviderCapabilities.Feature> features = EnumSet.allOf(AiProviderCapabilities.Feature.class);
         features.remove(AiProviderCapabilities.Feature.STREAM_USAGE);
         OpenAiCompatible noUsage = new OpenAiCompatible("no-usage", options("/generate", OpenAiProviderOptions.Authentication.NONE, "", "",
-                Map.of(), Map.of(), Map.of(), object("{}"), new AiProviderCapabilities(all.protocols(), all.operations(), features), ""));
+                Map.of(), Map.of(), Map.of(), object("{}"), new AiProviderCapabilities(all.protocolBindings(), all.operations(), features), ""));
         JsonNode payload = MAPPER.readTree(noUsage.buildRequest(chat("{\"messages\":[{\"role\":\"user\"}],\"stream\":true}"), config).getBody());
         assertFalse(payload.has("stream_options"));
         assertThrows(AiProxyException.class, () -> noUsage.buildRequest(chat("{\"messages\":[{\"role\":\"user\"}],\"stream\":true,"
