@@ -37,4 +37,42 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>divide-gateway-benchmark</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-web</artifactId>
+                    <version>${project.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-plugin-global</artifactId>
+                    <version>${project.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-plugin-httpclient</artifactId>
+                    <version>${project.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-plugin-uri</artifactId>
+                    <version>${project.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-plugin-response</artifactId>
+                    <version>${project.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

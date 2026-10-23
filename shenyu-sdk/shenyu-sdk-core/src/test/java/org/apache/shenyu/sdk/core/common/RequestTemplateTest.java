@@ -79,6 +79,15 @@ public class RequestTemplateTest {
     }
 
     @Test
+    public void testFromCopiesHeaderValues() {
+        RequestTemplate copy = RequestTemplate.from(requestTemplate);
+        copy.getHeaders().get("header").add("header3");
+
+        Assert.assertEquals(Arrays.asList("header1", "header2"), requestTemplate.getHeaders().get("header"));
+        Assert.assertTrue(copy.getHeaders().get("header").contains("header3"));
+    }
+
+    @Test
     public void testRequest() {
         assertNotNull(requestTemplate);
         ShenyuRequest shenyuRequest = requestTemplate.request();

@@ -2,6 +2,19 @@
 
 The `shenyu-dist` module is used to build packages and releases.
 
+### Release compatibility checklist
+
+Complete this checklist for every main repository or `shenyu-client-java` release. Record results in the [Java client and server compatibility matrix](../docs/java-client-compatibility.md#updating-the-matrix).
+
+- [ ] Record exact client artifact versions and source tag/commit, Admin and bootstrap versions, application framework, registration transport, and sync channel.
+- [ ] Confirm client and server JDK baselines from the release POMs and resolved dependencies; record build and runtime JDK vendors and versions separately.
+- [ ] Run client tests on each claimed JDK, considering 8, 17, 21, 23, and 25; keep configured CI and passing results separate. Record exclusions and unsupported combinations.
+- [ ] Run server checks and Admin/bootstrap startup and routing smoke tests on every claimed server JDK. A client test on JDK 8 does not qualify the server for JDK 8.
+- [ ] Test the old client with the candidate Admin and the candidate client with the oldest claimed Admin. Verify authentication, persisted metadata/URIs, heartbeat, offline, discovery, gateway sync and routing, plus API docs/MCP when claimed.
+- [ ] Replay registration contract fixtures and verify the selected registry transport. Record protocol/capability changes, rolling upgrade behavior, and rollback results.
+- [ ] Add or update exact version rows with dated, passing test evidence and supported, best-effort, or unsupported status. Preserve historical evidence and document remaining limitations.
+- [ ] Link the updated matrix and any incompatible changes from the release notes before publishing the release.
+
 ### Quickstart
 
 * git clone https://github.com/apache/shenyu.git

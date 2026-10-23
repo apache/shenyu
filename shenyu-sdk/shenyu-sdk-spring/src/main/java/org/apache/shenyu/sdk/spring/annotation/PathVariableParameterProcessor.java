@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * {@link PathVariable} parameter processor.
@@ -51,7 +52,7 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
             String varName = "{" + name + "}";
             String varNameRegex = "\\{" + name + "\\}";
             if (shenyuRequest.getUrl().contains(varName)) {
-                shenyuRequest.setUrl(RegExUtils.replaceAll(shenyuRequest.getUrl(), varNameRegex, String.valueOf(arg)));
+                shenyuRequest.setUrl(RegExUtils.replaceAll(shenyuRequest.getUrl(), varNameRegex, Matcher.quoteReplacement(String.valueOf(arg))));
             }
             return true;
         }
@@ -63,7 +64,7 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
                 String varName = "{" + key + "}";
                 String varNameRegex = "\\{" + key + "\\}";
                 if (url.contains(varName)) {
-                    url = RegExUtils.replaceAll(url, varNameRegex, (String) value);
+                    url = RegExUtils.replaceAll(url, varNameRegex, Matcher.quoteReplacement((String) value));
                 }
             }
         }

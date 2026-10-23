@@ -20,9 +20,9 @@ package org.apache.shenyu.admin.scale.monitor.subject.cache;
 import org.apache.shenyu.admin.model.entity.ScaleRuleDO;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -37,7 +37,7 @@ public class ScaleRuleCache {
      */
     public void initialize(final List<ScaleRuleDO> rules) {
         ruleCache.clear();
-        rules.forEach(rule -> ruleCache.put(rule.getMetricName(), rule));
+        rules.forEach(rule -> ruleCache.put(rule.getId(), rule));
     }
 
     /**
@@ -46,7 +46,7 @@ public class ScaleRuleCache {
      * @param rule rule
      */
     public void addOrUpdateRuleToCache(final ScaleRuleDO rule) {
-        ruleCache.put(rule.getMetricName(), rule);
+        ruleCache.put(rule.getId(), rule);
     }
 
     /**
@@ -55,7 +55,11 @@ public class ScaleRuleCache {
      * @param metricNames metricNames
      */
     public void removeRulesFromCache(final List<String> metricNames) {
-        metricNames.forEach(ruleCache::remove);
+        ruleCache.forEach((id, rule) -> {
+            if (metricNames.contains(rule.getMetricName())) {
+                ruleCache.remove(id, rule);
+            }
+        });
     }
 
     /**
@@ -64,12 +68,7 @@ public class ScaleRuleCache {
      * @param ids rule primary keys
      */
     public void removeRulesByIdsFromCache(final List<String> ids) {
-        final Set<String> idSet = new HashSet<>(ids);
-        ruleCache.forEach((metricName, rule) -> {
-            if (idSet.contains(rule.getId())) {
-                ruleCache.remove(metricName, rule);
-            }
-        });
+        ids.forEach(ruleCache::remove);
     }
 
     /**
@@ -82,12 +81,16 @@ public class ScaleRuleCache {
     }
 
     /**
-     * getRuleByMetricName.
+     * Gets the highest-priority rule for a metric, breaking equal priorities by rule ID.
      *
      * @param metricName metricName
      * @return ScaleRuleDO
      */
     public ScaleRuleDO getRuleByMetricName(final String metricName) {
-        return ruleCache.get(metricName);
+        return ruleCache.values().stream()
+                .filter(rule -> Objects.equals(metricName, rule.getMetricName()))
+                .min(Comparator.comparing(ScaleRuleDO::getSort, Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(ScaleRuleDO::getId))
+                .orElse(null);
     }
 }

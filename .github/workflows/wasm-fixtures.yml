@@ -1,0 +1,68 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: wasm-fixtures
+
+on:
+  pull_request:
+    paths:
+      - 'shenyu-plugin/shenyu-plugin-wasm-api/**'
+      - 'shenyu-plugin/shenyu-plugin-wasm-base/**'
+      - '.github/scripts/verify-wasm-fixtures.py'
+      - '.github/scripts/test-wasm-fixtures.py'
+      - '.github/workflows/wasm-fixtures.yml'
+      - 'pom.xml'
+  push:
+    branches: [master]
+    paths:
+      - 'shenyu-plugin/shenyu-plugin-wasm-api/**'
+      - 'shenyu-plugin/shenyu-plugin-wasm-base/**'
+      - '.github/scripts/verify-wasm-fixtures.py'
+      - '.github/scripts/test-wasm-fixtures.py'
+      - '.github/workflows/wasm-fixtures.yml'
+      - 'pom.xml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rebuild-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test fixture verification failures and resource restoration
+        run: python3 .github/scripts/test-wasm-fixtures.py
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Install pinned WABT
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/WebAssembly/wabt/releases/download/1.0.42/wabt-1.0.42-linux-x64.tar.gz \
+            --output "${RUNNER_TEMP}/wabt.tar.gz"
+          echo "84895407a6bbb80e918f33b16b2fb2206021c150b6bc9ff6f761263a745ab131  ${RUNNER_TEMP}/wabt.tar.gz" | sha256sum --check
+          tar -xzf "${RUNNER_TEMP}/wabt.tar.gz" -C "${RUNNER_TEMP}"
+          echo "${RUNNER_TEMP}/wabt-1.0.42/bin" >> "${GITHUB_PATH}"
+      - name: Install pinned Rust and WASI target
+        run: rustup toolchain install 1.90.0 --profile minimal --target wasm32-wasip1
+      - name: Check WAT binaries and test rebuilt Rust guests
+        run: python3 .github/scripts/verify-wasm-fixtures.py

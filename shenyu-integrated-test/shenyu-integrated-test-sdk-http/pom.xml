@@ -30,6 +30,13 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -41,7 +48,19 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-etcd</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-nacos</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
                     <artifactId>shenyu-registry-eureka</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shenyu</groupId>
+                    <artifactId>shenyu-registry-kubernetes</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

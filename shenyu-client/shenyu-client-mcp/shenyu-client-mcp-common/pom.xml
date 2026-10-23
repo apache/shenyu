@@ -26,6 +26,12 @@
     <artifactId>shenyu-client-mcp-common</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-mcp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springdoc</groupId>

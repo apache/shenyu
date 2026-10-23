@@ -21,9 +21,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
 import java.util.Objects;
@@ -42,7 +44,8 @@ public class Disconnect extends MessageType {
 
     @Override
     public void disconnect(final ChannelHandlerContext ctx) {
-        //// todo Last words
+        // MQTT-3.1.2-8: a graceful DISCONNECT discards the stored will.
+        Singleton.INST.get(WillRepository.class).remove(ctx.channel());
         cleanChannel(ctx.channel());
         ctx.close();
     }
@@ -52,16 +55,23 @@ public class Disconnect extends MessageType {
      * @param channel disconnected channel
      */
     static void cleanChannel(final Channel channel) {
-        String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
+        final ChannelRepository channelRepository = Singleton.INST.get(ChannelRepository.class);
+        String clientId = channelRepository.get(channel);
         if (Objects.nonNull(clientId)) {
-            MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
-            if (Objects.nonNull(session) && session.isCleanSession()) {
-                // A clean-session disconnect discards all stored session state.
-                Singleton.INST.get(SessionRepository.class).remove(clientId);
+            // fenced on ownership: a replaced connection closing late must not
+            // discard the session of the connection that took over (#7918)
+            if (channelRepository.isOwner(clientId, channel)) {
+                MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+                if (Objects.nonNull(session) && session.isCleanSession()) {
+                    // A clean-session disconnect discards all stored session state,
+                    // including the inbound packet ids still being acknowledged (#7919)
+                    Singleton.INST.get(SessionRepository.class).remove(clientId);
+                    Singleton.INST.get(InflightRepository.class).remove(clientId);
+                }
             }
         }
         Singleton.INST.get(SubscribeRepository.class).remove(channel);
-        Singleton.INST.get(ChannelRepository.class).remove(channel);
+        channelRepository.remove(channel);
         MqttPacketIdGenerator.remove(channel);
     }
 }

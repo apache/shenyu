@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>shenyu-spring-boot-starter-sync-data-file</module>
         <module>shenyu-spring-boot-starter-sync-data-zookeeper</module>
         <module>shenyu-spring-boot-starter-sync-data-websocket</module>
         <module>shenyu-spring-boot-starter-sync-data-http</module>

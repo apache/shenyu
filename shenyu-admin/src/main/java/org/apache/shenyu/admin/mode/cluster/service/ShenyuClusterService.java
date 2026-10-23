@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mode.cluster.service;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
+import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -31,9 +32,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ShenyuClusterService implements ShenyuRunningModeService {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClusterService.class);
-    
+
+    private static final long SHUTDOWN_WAIT_SECONDS = 5L;
+
     private final ClusterSelectMasterService shenyuClusterSelectMasterService;
     
     private final UpstreamCheckService upstreamCheckService;
@@ -43,10 +46,13 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     private final ClusterProperties clusterProperties;
 
     private final InstanceCheckService instanceCheckService;
+
+    private final ScaleLifecycleService scaleLifecycleService;
     
     public ShenyuClusterService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final UpstreamCheckService upstreamCheckService,
                                 final InstanceCheckService instanceCheckService,
+                                final ScaleLifecycleService scaleLifecycleService,
                                 final ClusterProperties clusterProperties) {
         this.shenyuClusterSelectMasterService = shenyuClusterSelectMasterService;
         this.upstreamCheckService = upstreamCheckService;
@@ -54,6 +60,7 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
         this.executorService = new ScheduledThreadPoolExecutor(1,
                 ShenyuThreadFactory.create("master-selector", true));
         this.instanceCheckService = instanceCheckService;
+        this.scaleLifecycleService = scaleLifecycleService;
     }
     
     /**
@@ -88,6 +95,8 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
 
             instanceCheckService.setup();
 
+            scaleLifecycleService.start();
+
             boolean renewed = shenyuClusterSelectMasterService.checkMasterStatus();
             
             while (renewed) {
@@ -106,10 +115,12 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
             // close the upstream check service
             upstreamCheckService.close();
             instanceCheckService.close();
+            scaleLifecycleService.stop();
             
             String message = String.format("renew master fail, %s", e.getMessage());
             throw new ShenyuException(message);
         } finally {
+            scaleLifecycleService.stop();
             try {
                 shenyuClusterSelectMasterService.releaseMaster();
             } catch (Exception e) {
@@ -125,6 +136,14 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     @Override
     public void shutdown() {
-    
+        executorService.shutdownNow();
+        try {
+            if (!executorService.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                LOG.warn("master selector scheduler did not terminate within {}s", SHUTDOWN_WAIT_SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("interrupted while waiting for the master selector scheduler to terminate");
+        }
     }
 }

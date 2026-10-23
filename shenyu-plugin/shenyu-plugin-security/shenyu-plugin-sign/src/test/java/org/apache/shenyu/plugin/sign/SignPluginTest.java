@@ -17,21 +17,29 @@
 
 package org.apache.shenyu.plugin.sign;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.sign.service.SignService;
+import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
+import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
+import org.apache.shenyu.plugin.sign.service.ComposableSignService;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
+import org.apache.shenyu.plugin.sign.service.SignService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -53,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -97,6 +106,40 @@ public final class SignPluginTest {
         assertTrue(signRuleHandler.getSignRequestBody());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testMalformedAuthorizationIsRejected(final boolean signBody) {
+        MockServerWebExchange malformedExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .header(Constants.VERSION, DefaultExtractor.VERSION_2)
+                .header(Constants.SHENYU_AUTHORIZATION, "%%%.signature")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        assertMalformedInputRejected(malformedExchange, signBody);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"not-a-number", "9223372036854775808"})
+    public void testMalformedTimestampIsRejected(final String timestamp) {
+        MockServerWebExchange malformedExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header(Constants.VERSION, DefaultExtractor.VERSION_1)
+                .header(Constants.APP_KEY, "app-key")
+                .header(Constants.TIMESTAMP, timestamp)
+                .header(Constants.SIGN, "signature").build());
+        assertMalformedInputRejected(malformedExchange, false);
+    }
+
+    private void assertMalformedInputRejected(final MockServerWebExchange malformedExchange, final boolean signBody) {
+        malformedExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        ruleData.setHandle("{\"signRequestBody\": " + signBody + "}");
+        signPluginDataHandler.handlerRule(ruleData);
+        SignPlugin plugin = new SignPlugin(HandlerStrategies.withDefaults().messageReaders(),
+                new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider()));
+
+        StepVerifier.create(plugin.doExecute(malformedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        assertTrue(malformedExchange.getResponse().getBodyAsString().block().contains(Constants.SIGN_PARAMS_ERROR));
+        verifyNoInteractions(chain);
+    }
+
     @Test
     public void testSignPluginSimple() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -106,6 +149,21 @@ public final class SignPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(signPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testAppParamHeaderIsForwarded() {
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        this.exchange.getAttributes().put(Constants.APP_PARAM, "tenant=shenyu");
+        when(signService.signatureVerify(exchange)).thenReturn(VerifyResult.success());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(signPlugin.doExecute(exchange, chain, mock(SelectorData.class), mock(RuleData.class)))
+                .expectSubscription().verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> exchangeCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        org.mockito.Mockito.verify(chain).execute(exchangeCaptor.capture());
+        assertEquals("tenant=shenyu", exchangeCaptor.getValue().getRequest().getHeaders().getFirst(Constants.APP_PARAM));
     }
 
     @Test

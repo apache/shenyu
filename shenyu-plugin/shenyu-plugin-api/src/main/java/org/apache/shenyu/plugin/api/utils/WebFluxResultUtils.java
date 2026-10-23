@@ -46,6 +46,7 @@ public final class WebFluxResultUtils {
 
     /**
      * Response result.
+     * An existing response content type takes precedence over the result's default.
      *
      * @param exchange the exchange
      * @param result   the result
@@ -57,12 +58,14 @@ public final class WebFluxResultUtils {
         }
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
-        // basic data use text/plain
-        MediaType mediaType = MediaType.TEXT_PLAIN;
-        if (!ObjectTypeUtils.isBasicType(result)) {
-            mediaType = shenyuResult.contentType(exchange, resultData);
+        if (Objects.isNull(exchange.getResponse().getHeaders().getContentType())) {
+            // basic data use text/plain
+            MediaType mediaType = MediaType.TEXT_PLAIN;
+            if (!ObjectTypeUtils.isBasicType(result)) {
+                mediaType = shenyuResult.contentType(exchange, resultData);
+            }
+            exchange.getResponse().getHeaders().setContentType(mediaType);
         }
-        exchange.getResponse().getHeaders().setContentType(mediaType);
         final Object responseData = shenyuResult.result(exchange, resultData);
         Objects.requireNonNull(responseData);
         final byte[] bytes = (responseData instanceof byte[])

@@ -34,7 +34,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
@@ -89,7 +88,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
                     if (map.isPresent()) {
                         String param = resolveBodyFromRequest(map.get());
                         LinkedMultiValueMap<String, String> linkedMultiValueMap;
-                        linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8));
+                        linkedMultiValueMap = BodyParamUtils.buildBodyParams(param);
                         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     }
                     return chain.execute(exchange);
@@ -97,7 +96,7 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
     }
 
     private Mono<Void> query(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
-        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.ofString(() -> serverHttpRequest.getURI().getQuery()));
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.ofString(() -> serverHttpRequest.getURI().getRawQuery()));
         return chain.execute(exchange);
     }
 

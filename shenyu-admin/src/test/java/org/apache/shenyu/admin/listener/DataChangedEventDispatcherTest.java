@@ -28,12 +28,17 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -41,15 +46,19 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -121,6 +130,28 @@ public final class DataChangedEventDispatcherTest {
         clusterPropertiesField.setAccessible(false);
         
         dataChangedEventDispatcher.afterPropertiesSet();
+    }
+
+
+    /**
+     * standalone mode must not dispatch inside an active transaction before commit.
+     */
+    @Test
+    public void onApplicationEventStandaloneWaitsForCommit() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        ConfigGroupEnum configGroupEnum = ConfigGroupEnum.RULE;
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(configGroupEnum, null, new ArrayList<>());
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+            verify(websocketDataChangedListener, times(0)).onRuleChanged(anyList(), any(), any());
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.setActualTransactionActive(false);
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+        verify(websocketDataChangedListener, times(1)).onRuleChanged(anyList(), any(), any());
     }
 
     /**
@@ -261,7 +292,7 @@ public final class DataChangedEventDispatcherTest {
     }
 
     /**
-     * onApplicationEvent DISCOVER_UPSTREAM configGroupEnum test case — also triggers loadDocOnUpstreamChanged.
+     * All discovery listeners receive the event, but documentation is loaded only once.
      */
     @Test
     void onApplicationEventWithDiscoverUpstreamConfigGroupTest() {
@@ -273,7 +304,118 @@ public final class DataChangedEventDispatcherTest {
         verify(nacosDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
         verify(websocketDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
         verify(zookeeperDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
-        verify(loadServiceDocEntry, atLeastOnce()).loadDocOnUpstreamChanged(anyList(), any());
+        verify(loadServiceDocEntry, times(1)).loadDocOnUpstreamChanged(anyList(), any());
+    }
+
+    /**
+     * Documentation is still loaded once when a later listener fails, and the listener failure is rethrown.
+     */
+    @Test
+    void onApplicationEventDiscoverUpstreamListenerFailureStillLoadsDocTest() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(orderedListeners());
+        dataChangedEventDispatcher.afterPropertiesSet();
+        IllegalStateException listenerFailure = new IllegalStateException("listener failed");
+        doThrow(listenerFailure).when(websocketDataChangedListener).onDiscoveryUpstreamChanged(anyList(), any());
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+
+        IllegalStateException thrown = assertThrows(IllegalStateException.class,
+                () -> dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent));
+
+        assertSame(listenerFailure, thrown);
+        verify(nacosDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(loadServiceDocEntry, times(1)).loadDocOnUpstreamChanged(anyList(), any());
+    }
+
+    /**
+     * A documentation failure does not replace the listener failure; it is attached as suppressed.
+     */
+    @ParameterizedTest
+    @MethodSource("listenerAndDocFailures")
+    void onApplicationEventDiscoverUpstreamListenerAndDocFailureKeepsListenerFailureTest(final Throwable listenerFailure, final Throwable docFailure) {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(orderedListeners());
+        dataChangedEventDispatcher.afterPropertiesSet();
+        doThrow(listenerFailure).when(websocketDataChangedListener).onDiscoveryUpstreamChanged(anyList(), any());
+        doThrow(docFailure).when(loadServiceDocEntry).loadDocOnUpstreamChanged(anyList(), any());
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+
+        Throwable thrown = assertThrows(listenerFailure.getClass(),
+                () -> dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent));
+
+        assertSame(listenerFailure, thrown);
+        assertArrayEquals(new Throwable[]{docFailure}, thrown.getSuppressed());
+        verify(loadServiceDocEntry, times(1)).loadDocOnUpstreamChanged(anyList(), any());
+    }
+
+    /**
+     * Without a listener failure, a documentation failure is propagated as before.
+     */
+    @ParameterizedTest
+    @MethodSource("docFailures")
+    void onApplicationEventDiscoverUpstreamDocFailurePropagatesTest(final Throwable docFailure) {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        doThrow(docFailure).when(loadServiceDocEntry).loadDocOnUpstreamChanged(anyList(), any());
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+
+        Throwable thrown = assertThrows(docFailure.getClass(),
+                () -> dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent));
+
+        assertSame(docFailure, thrown);
+        verify(zookeeperDataChangedListener, times(1)).onDiscoveryUpstreamChanged(anyList(), any());
+    }
+
+    private static Stream<Arguments> listenerAndDocFailures() {
+        return Stream.of(
+                Arguments.of(new IllegalStateException("listener failed"), new IllegalArgumentException("doc failed")),
+                Arguments.of(new LinkageError("listener failed"), new IllegalArgumentException("doc failed")),
+                Arguments.of(new IllegalStateException("listener failed"), new AssertionError("doc failed")),
+                Arguments.of(new LinkageError("listener failed"), new AssertionError("doc failed")));
+    }
+
+    private static Stream<Throwable> docFailures() {
+        return Stream.of(new IllegalArgumentException("doc failed"), new AssertionError("doc failed"));
+    }
+
+    private Map<String, DataChangedListener> orderedListeners() {
+        Map<String, DataChangedListener> listenerMap = new LinkedHashMap<>();
+        listenerMap.put("nacosDataChangedListener", nacosDataChangedListener);
+        listenerMap.put("websocketDataChangedListener", websocketDataChangedListener);
+        listenerMap.put("zookeeperDataChangedListener", zookeeperDataChangedListener);
+        return listenerMap;
+    }
+
+    /**
+     * Discovery events do not load documentation when no listeners are registered.
+     */
+    @Test
+    void onApplicationEventWithoutListenersSkipsDocLoadingTest() {
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(Collections.emptyMap());
+        dataChangedEventDispatcher.afterPropertiesSet();
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+
+        verify(loadServiceDocEntry, never()).loadDocOnUpstreamChanged(anyList(), any());
+    }
+
+    /**
+     * Discovery events do not load documentation when all listeners are skipped on a follower.
+     */
+    @Test
+    void onApplicationEventNotMasterWithoutCacheListenersSkipsDocLoadingTest() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(false);
+        when(applicationContext.getBeansOfType(DataChangedListener.class))
+                .thenReturn(Collections.singletonMap("nacosDataChangedListener", nacosDataChangedListener));
+        dataChangedEventDispatcher.afterPropertiesSet();
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, null, new ArrayList<>());
+
+        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+
+        verify(nacosDataChangedListener, never()).onDiscoveryUpstreamChanged(anyList(), any());
+        verify(loadServiceDocEntry, never()).loadDocOnUpstreamChanged(anyList(), any());
     }
 
     /**

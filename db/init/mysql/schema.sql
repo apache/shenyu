@@ -263,7 +263,7 @@ CREATE TABLE `mock_request_record`  (
     `url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request url',
     `path_variable` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'the request param in url',
     `query` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'the request param after url',
-    `header` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'the request param in header',
+    `header` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header',
     `body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'the request body',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
@@ -1742,7 +1742,7 @@ CREATE TABLE `rule`  (
   `match_mode` int(0) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `rule_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rule name',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
-  `loged` tinyint(0) NOT NULL COMMENT 'whether to log or not (0 no print, 1 print) ',
+  `logged` tinyint(0) NOT NULL COMMENT 'whether to log or not (0 no print, 1 print) ',
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(0) NOT NULL COMMENT 'sort',
@@ -1789,7 +1789,7 @@ CREATE TABLE `selector`  (
   `sort_code` int(0) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open (0 close, 1 open) ',
-  `loged` tinyint(0) NOT NULL COMMENT 'whether to print the log (0 no print, 1 print) ',
+  `logged` tinyint(0) NOT NULL COMMENT 'whether to print the log (0 no print, 1 print) ',
   `continued` tinyint(0) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
@@ -2364,7 +2364,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
 
-INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `loged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
+INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `logged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 
 DROP TABLE IF EXISTS `instance_info`;
 
@@ -2378,7 +2378,9 @@ CREATE TABLE IF NOT EXISTS `instance_info` (
     `instance_state`  tinyint(4)  NOT NULL COMMENT '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 DROP TABLE IF EXISTS `registry_config`;
@@ -2459,7 +2461,7 @@ CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
 CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
 CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
 CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
-CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
 CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
 CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
 CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);

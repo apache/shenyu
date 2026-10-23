@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
@@ -46,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -84,70 +86,81 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
+        return executeFailover(clientResponse, exchange, duration, retryTimes, Duration.ZERO, th -> true);
+    }
+
+    /**
+     * Retry eligible failures on another upstream after the configured delay.
+     *
+     * @param clientResponse original request response
+     * @param exchange current exchange
+     * @param duration timeout per request
+     * @param retryTimes number of retries
+     * @param backoff delay before selecting the next upstream
+     * @param retryFilter eligible failures
+     * @return response after failover
+     */
+    Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration,
+                           final int retryTimes, final Duration backoff, final Predicate<Throwable> retryFilter) {
         final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
-        return resend(clientResponse, exchange, duration, exclude, retryTimes)
-                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        Mono<R> result = clientResponse;
+        for (int i = 0; i < retryTimes; i++) {
+            result = result.onErrorResume(retryFilter, th -> backoff.isZero()
+                    ? resend(exchange, duration, exclude)
+                    : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
+        }
+        return result.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
     }
 
-    private Mono<R> resend(final Mono<R> clientResponse,
-                           final ServerWebExchange exchange,
-                           final Duration duration,
-                           final Set<URI> exclude,
-                           final int retryTimes) {
-        Mono<R> result = clientResponse;
-        for (int i = 0; i < retryTimes; i++) {
-            result = resend(result, exchange, duration, exclude);
-        }
-        return result;
-    }
-
-    private Mono<R> resend(final Mono<R> response,
-                           final ServerWebExchange exchange,
+    private Mono<R> resend(final ServerWebExchange exchange,
                            final Duration duration,
                            final Set<URI> exclude) {
-        // does it necessary to add backoff interval time ?
-        return response.onErrorResume(th -> {
-            final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
-            final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
-            //always query the latest available list
-            final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
-            if (Objects.isNull(availableUpstreamList)) {
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
-            }
-            final List<Upstream> upstreamList = availableUpstreamList
-                    .stream().filter(data -> {
-                        final URI upstreamUri = URI.create(data.buildDomain());
-                        for (URI needToExclude : exclude) {
-                            if (isSameUpstream(needToExclude, upstreamUri)) {
-                                return false;
-                            }
+        final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
+        final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
+        //always query the latest available list
+        final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        if (Objects.isNull(availableUpstreamList)) {
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final List<Upstream> upstreamList = availableUpstreamList
+                .stream().filter(data -> {
+                    final URI upstreamUri = URI.create(data.buildDomain());
+                    for (URI needToExclude : exclude) {
+                        if (isSameUpstream(needToExclude, upstreamUri)) {
+                            return false;
                         }
-                        return true;
-                    })
-                    //skip upstreams that are still blocked by the built-in circuit breaker
-                    .filter(data -> UpstreamCircuitBreaker.getInstance()
-                            .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
-                    .collect(Collectors.toList());
-            if (upstreamList.isEmpty()) {
-                // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
-            }
-            final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
-            if (Objects.isNull(upstream)) {
-                // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
-            }
-            final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
-            // in order not to affect the next retry call, newUri needs to be excluded
-            exclude.add(newUri);
-            final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-            return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
-                    .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
-                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
-        });
+                    }
+                    return true;
+                })
+                //skip upstreams that are still blocked by the built-in circuit breaker
+                .filter(data -> UpstreamCircuitBreaker.getInstance()
+                        .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
+                .collect(Collectors.toList());
+        if (upstreamList.isEmpty()) {
+            // no need to retry anymore
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
+        if (Objects.isNull(upstream)) {
+            // no need to retry anymore
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
+        // in order not to affect the next retry call, newUri needs to be excluded
+        exclude.add(newUri);
+        final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+        Mono<R> resend = httpClientPlugin
+                .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
+                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+                .doOnError(e -> LOG.error(e.getMessage(), e));
+        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            // Least active compares outstanding requests, so this attempt stays reserved until it terminates.
+            upstream.getInflight().incrementAndGet();
+            resend = resend.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        }
+        return UpstreamCircuitBreaker.recordOutcome(resend, breakerKey);
     }
 
     private boolean isSameUpstream(final URI first, final URI second) {

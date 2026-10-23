@@ -59,6 +59,11 @@ public enum PluginEnum {
      * Monitor plugin enum.
      */
     METRICS(15, 0, "metrics"),
+
+    /**
+     * Tracing plugin enum.
+     */
+    TRACING(0, 0, "tracing"),
     
     /**
      * Sign plugin enum.

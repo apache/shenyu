@@ -25,6 +25,8 @@ import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -36,6 +38,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -136,8 +140,28 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         // Registry events contain individual instances, but gateways consume a complete snapshot.
         syncData.setUpstreamDataList(discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList()));
+        if (TransactionSynchronizationManager.isActualTransactionActive()
+                && TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    refreshHealthSnapshot(syncData);
+                }
+            });
+        } else {
+            refreshHealthSnapshot(syncData);
+        }
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(syncData));
         eventPublisher.publishEvent(dataChangedEvent);
+    }
+
+    private void refreshHealthSnapshot(final DiscoverySyncData syncData) {
+        try {
+            eventPublisher.publishEvent(new DiscoveryStreamUpdatedEvent(syncData, EventTypeEnum.UPDATE));
+        } catch (RuntimeException ex) {
+            // A local refresh failure must not prevent delivery of the committed discovery snapshot.
+            LOG.warn("Failed to refresh health-check upstreams for selector {}", syncData.getSelectorId(), ex);
+        }
     }
 
     private DiscoverySyncData buildProxySelectorData(final DiscoverySyncData discoverySyncData, final String value) {
