@@ -53,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -192,6 +193,34 @@ public class RetryStrategyTest {
         ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
         verify(plugin).doRequest(eq(exchange), eq("GET"), uriCaptor.capture(), any());
         assertEquals(URI.create(standby.buildDomain() + "/test?mode=retry"), uriCaptor.getValue());
+    }
+
+    @Test
+    void testFailoverReservesAndReleasesLeastActiveAccounting() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        AtomicLong inflightDuringResend = new AtomicLong();
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.defer(() -> {
+            inflightDuringResend.set(standby.getInflight().get());
+            return Mono.just("success");
+        }));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // the attempt is counted while it runs and released once it terminates
+        assertEquals(2, inflightDuringResend.get());
+        assertEquals(1, standby.getInflight().get());
     }
 
     @Test
