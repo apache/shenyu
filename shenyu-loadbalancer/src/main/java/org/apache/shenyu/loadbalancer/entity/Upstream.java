@@ -118,7 +118,7 @@ public final class Upstream {
     /**
      * this is gray.
      */
-    private boolean gray;
+    private volatile boolean gray;
 
     /**
      * health check enabled.
