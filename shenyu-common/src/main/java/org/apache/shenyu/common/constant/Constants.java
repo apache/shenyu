@@ -1092,6 +1092,12 @@ public interface Constants {
     String GB = "GB";
 
     /**
+     * The constant bootTime, JVM start time in epoch millis, used as the boot identity
+     * to correlate instance status reports with metrics, logs and traces.
+     */
+    String BOOT_TIME = "bootTime";
+
+    /**
      * String q.
      */
     default void findConstants() {
