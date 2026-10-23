@@ -1057,6 +1057,11 @@ public interface Constants {
     String COMPLETION_TOKENS = "completion_tokens";
 
     /**
+     * The output tokens reported by the OpenAI Responses protocol, the counterpart of COMPLETION_TOKENS.
+     */
+    String OUTPUT_TOKENS = "output_tokens";
+
+    /**
      * The constant AI_MODEL.
      */
     String AI_MODEL = "ai_model";
