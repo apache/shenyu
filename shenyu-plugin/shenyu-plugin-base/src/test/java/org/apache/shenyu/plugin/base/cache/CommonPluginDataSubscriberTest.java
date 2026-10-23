@@ -111,7 +111,6 @@ public final class CommonPluginDataSubscriberTest {
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
     }
 
-
     @Test
     public void testPluginGroupRefreshPreservesSelectorAndRuleData() {
         final PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
@@ -127,6 +126,7 @@ public final class CommonPluginDataSubscriberTest {
         assertEquals(List.of(selectorData), baseDataCache.obtainSelectorData(mockPluginName1));
         assertEquals(List.of(ruleData), baseDataCache.obtainRuleData(mockSelectorId1));
     }
+
     @Test
     public void testReloadedExtensionReceivesConfigurationUpdates() {
         PluginDataHandler replacement = mock(PluginDataHandler.class);

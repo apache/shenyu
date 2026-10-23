@@ -103,7 +103,7 @@ public final class MatchCacheLifecycleTest {
     }
 
     private RuleData rule(final String id, final String selector, final int sort) {
-        return RuleData.builder().id(id).selectorId(selector).pluginName("audit").sort(sort).enabled(true).loged(false)
+        return RuleData.builder().id(id).selectorId(selector).pluginName("audit").sort(sort).enabled(true).logged(false)
                 .matchRestful(false).matchMode(0).conditionDataList(List.of(condition("uri", "/", "/audit"))).build();
     }
 
