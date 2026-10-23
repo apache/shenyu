@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.netty.NettyPipeline;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -86,7 +87,10 @@ public final class AiProxyHttpClientResources implements AutoCloseable {
 
     private HttpClient createHttpClient(final ConnectionProvider provider, final AiProxyTransportProperties properties) {
         HttpClient client = HttpClient.create(provider)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMillis(properties));
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMillis(properties))
+                .responseTimeout(properties.getResponseHeaderTimeout())
+                .doOnResponse((response, connection) ->
+                        connection.removeHandler(NettyPipeline.ResponseTimeoutHandler));
         if (!properties.getTls().isVerify()) {
             LOG.warn("AI proxy upstream TLS certificate verification is disabled");
             client = configureInsecureTls(client);

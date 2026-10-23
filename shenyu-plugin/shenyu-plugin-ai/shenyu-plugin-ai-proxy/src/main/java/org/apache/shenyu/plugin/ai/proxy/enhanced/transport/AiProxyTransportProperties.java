@@ -46,6 +46,11 @@ public class AiProxyTransportProperties {
     private Duration totalStreamDuration = Duration.ofMinutes(10);
 
     /**
+     * Maximum total bytes allowed for one upstream request. Zero means unlimited.
+     */
+    private long maxRequestBytes;
+
+    /**
      * Maximum total bytes allowed for one upstream response. Zero means unlimited.
      */
     private long maxResponseBytes;
@@ -153,6 +158,24 @@ public class AiProxyTransportProperties {
      */
     public void setTotalStreamDuration(final Duration totalStreamDuration) {
         this.totalStreamDuration = requirePositive(totalStreamDuration, "totalStreamDuration");
+    }
+
+    /**
+     * Get maximum upstream request bytes.
+     *
+     * @return maximum upstream request bytes, or zero when unlimited
+     */
+    public long getMaxRequestBytes() {
+        return maxRequestBytes;
+    }
+
+    /**
+     * Set maximum upstream request bytes.
+     *
+     * @param maxRequestBytes maximum upstream request bytes, or zero when unlimited
+     */
+    public void setMaxRequestBytes(final long maxRequestBytes) {
+        this.maxRequestBytes = requireNonNegative(maxRequestBytes, "maxRequestBytes");
     }
 
     /**
