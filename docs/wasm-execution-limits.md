@@ -97,6 +97,9 @@ requests still work.
 
 A budget permits zero or one module-owned, non-shared linear memory. A memory-free
 module can execute exports, but getMemory() fails explicitly inside its callbacks.
+This also changes the failure point for memory-free guests without a configured
+budget: loading now succeeds, and only a callback that accesses memory fails;
+previously the guest was rejected during initialization.
 Imported, shared or multiple memories are rejected with a configuration error
 when budgeting is enabled, because those layouts require a separate aggregate/
 ownership contract. Disabled budgeting retains existing runtime behavior.
