@@ -98,7 +98,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector)
+            return executeRequest(exchange, selector, observation)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doOnError(observation::error)
@@ -112,7 +112,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final AiRequestObservation observation) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -128,13 +128,15 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
                         if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
                             String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
-                            String realKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
-                                    : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                            org.apache.shenyu.common.dto.ProxyApiKeyData mapping = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                                    : AiProxyApiKeyCache.getInstance().getValidatedMapping(selector.getId(), proxyKey);
+                            String realKey = Objects.isNull(mapping) ? null : mapping.getRealApiKey();
                             if (Objects.isNull(realKey)) {
                                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                                 return exchange.getResponse().setComplete();
                             }
                             config.setApiKey(realKey);
+                            observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
                         }
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));

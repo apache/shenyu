@@ -18,6 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.trace.SpanKind;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -117,6 +120,10 @@ class AgentGovernanceHttpTest {
             fixture.request("wrong").expectBody().consumeWith(ignored -> { });
             assertEquals(0, fixture.upstreamCalls.get());
             assertEquals(0, fixture.terminals.size());
+            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.audits.size()));
+            assertEquals("CREDENTIAL_REJECTED", fixture.audits.element().getReason());
+            assertTrue(fixture.audits.element().getSubject().isEmpty());
+            assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, fixture.audits.element().getRecordType());
             assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL,
                     new String[]{"source", "reason"}, new String[]{"key_auth", "credential_rejected"}));
             assertNull(CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_TOTAL,
@@ -132,6 +139,9 @@ class AgentGovernanceHttpTest {
             assertEquals(fixture.response, response);
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             assertEquals(1, fixture.attempts.size());
+            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(2, fixture.audits.size()));
+            assertTrue(fixture.audits.stream().allMatch(audit -> audit.getTenant().orElseThrow().equals("tenant")
+                    && audit.getSubject().orElseThrow().equals("service") && audit.getOutcome().equals("SUCCESS")));
             assertEquals(1, fixture.upstreamCalls.get());
             assertEquals(1, fixture.bodySubscriptions.get());
             AiTerminalEvent event = fixture.terminals.element();
@@ -169,6 +179,9 @@ class AgentGovernanceHttpTest {
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             AiTerminalEvent event = fixture.terminals.element();
             assertEquals(AiCallOutcome.RATE_LIMITED, event.outcome());
+            assertEquals(1, fixture.audits.size());
+            assertEquals("RATE_LIMITED", fixture.audits.element().getOutcome());
+            assertEquals(AgentInvocationAuditEvent.Decision.REJECTED, fixture.audits.element().getDecision());
             assertEquals("tenant", event.context().getTenant());
             assertEquals(0, event.attemptCount());
             assertEquals(AiUsage.UNKNOWN, event.usage());
@@ -189,6 +202,8 @@ class AgentGovernanceHttpTest {
         private final ConcurrentLinkedQueue<AiTerminalEvent> terminals = new ConcurrentLinkedQueue<>();
 
         private final ConcurrentLinkedQueue<AiAttemptEvent> attempts = new ConcurrentLinkedQueue<>();
+
+        private final ConcurrentLinkedQueue<AgentInvocationAuditEvent> audits = new ConcurrentLinkedQueue<>();
 
         private final AtomicInteger upstreamCalls = new AtomicInteger();
 
@@ -271,7 +286,8 @@ class AgentGovernanceHttpTest {
                 }
             };
             AgentGatewayPlugin agent = new AgentGatewayPlugin(new AgentMcpHttpHandler(
-                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver, observer);
+                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver,
+                    AgentInvocationAuditBridge.ai(observer, audits::add));
             agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
             AiPromptPlugin prompt = new AiPromptPlugin(ServerCodecConfigurer.create().getReaders());
             RuleData promptRule = register(prompt, "{\"prepend\":\"governed\",\"preRole\":\"system\"}");
@@ -307,6 +323,7 @@ class AgentGovernanceHttpTest {
             gateway = HttpServer.create().host("127.0.0.1").port(0).runOn(loops).handle(new ReactorHttpHandlerAdapter(
                     WebHttpHandlerBuilder.webHandler(exchange -> {
                         exchange.getAttributes().put(AgentRuntimeMetrics.KEY, MetricsReporter.agentRuntimeMetrics());
+                        exchange.getAttributes().put(AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE, (AgentInvocationAuditObserver) audits::add);
                         org.springframework.http.server.reactive.ServerHttpRequestDecorator request = new org.springframework.http.server.reactive.ServerHttpRequestDecorator(exchange.getRequest()) {
                             @Override
                             public Flux<DataBuffer> getBody() {

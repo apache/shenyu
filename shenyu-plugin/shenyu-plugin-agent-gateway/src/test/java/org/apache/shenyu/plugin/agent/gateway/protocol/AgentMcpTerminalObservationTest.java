@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.dto.AgentRequestContext;
@@ -82,6 +84,24 @@ class AgentMcpTerminalObservationTest {
     private final AgentTrafficContext traffic = new AgentTrafficContext("gateway-id", "mcp", "selector", "rule");
 
     @Test
+    void auditUsesActualAttemptAndTerminalOwner() {
+        List<AgentInvocationAuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        AgentMcpTerminalObserver observer = AgentInvocationAuditBridge.mcp(null, events::add);
+        StepVerifier.create(handler(Mono.just(new JsonObject()), ignored -> Mono.just(new AgentMcpIdentity("tenant", "subject", Set.of("read"), Set.of())), observer)
+                .handle(exchange("tools/call"), config("json", 30000), traffic, 7)).verifyComplete();
+        assertEquals(2, events.size());
+        assertEquals(AgentInvocationAuditEvent.RecordType.ATTEMPT, events.get(0).getRecordType());
+        assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, events.get(1).getRecordType());
+        assertEquals("tenant", events.get(1).getTenant().orElseThrow());
+        events.clear();
+        StepVerifier.create(handler(Mono.just(new JsonObject()), ignored -> Mono.empty(), observer)
+                .handle(exchange("tools/call"), config("json", 30000), traffic, 7)).verifyComplete();
+        assertEquals(1, events.size());
+        assertEquals("REJECTED", events.get(0).getOutcome());
+        assertTrue(events.get(0).getSubject().isEmpty());
+    }
+
+    @Test
     void runtimeMetricsWorkWithoutAnApplicationObserverBeforeParsing() {
         AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
         MockServerWebExchange exchange = exchange("tools/call");
@@ -92,6 +112,25 @@ class AgentMcpTerminalObservationTest {
         verify(metrics).finished(org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Traffic.MCP),
                 org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Outcome.REJECTED),
                 org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Reason.AUTHENTICATION), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"success,SUCCESS,2", "tool-error,TOOL_ERROR,2", "timeout,TIMEOUT,2", "rejected,REJECTED,1"})
+    void realHttpAuditPreservesResponseAndCorrelatesExecution(final String scenario, final String outcome, final int count) throws Exception {
+        List<AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();
+        Mono<JsonObject> action = "timeout".equals(scenario) ? Mono.never()
+                : "tool-error".equals(scenario) ? Mono.error(new AgentToolExecutionException("secret"))
+                : Mono.just(new JsonObject());
+        AgentMcpSecurityResolver resolver = "rejected".equals(scenario) ? ignored -> Mono.empty() : identity();
+        try (TerminalHttpFixture fixture = new TerminalHttpFixture(
+                handler(action, resolver, AgentInvocationAuditBridge.mcp(null, audits::add)), config("json", 500), traffic, 7)) {
+            HttpResponse<String> response = send(fixture);
+            assertEquals("timeout".equals(scenario) ? 504 : "rejected".equals(scenario) ? 401 : 200, response.statusCode());
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(count, audits.size()));
+            assertTrue(audits.stream().allMatch(event -> outcome.equals(event.getOutcome()) && "gateway-id".equals(event.getRequestId())));
+            assertEquals(1, audits.stream().filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).count());
+            assertFalse(response.body().contains("secret"));
+        }
     }
 
     @Test
@@ -467,7 +506,8 @@ class AgentMcpTerminalObservationTest {
     }
 
     private AgentMcpHttpHandler handler(final Mono<JsonObject> action, final AgentMcpSecurityResolver resolver, final AgentMcpTerminalObserver observer) {
-        return new AgentMcpHttpHandler(dispatcher(action), resolver, null, observer);
+        return new AgentMcpHttpHandler(dispatcher(action), resolver, null,
+                observer instanceof Recording recording ? AgentInvocationAuditBridge.mcp(observer, recording.audits::add) : observer);
     }
 
     private AgentMcpDispatcher dispatcher(final Mono<JsonObject> action) {
@@ -547,6 +587,8 @@ class AgentMcpTerminalObservationTest {
 
         private final ConcurrentLinkedQueue<AgentMcpTerminalEvent> events = new ConcurrentLinkedQueue<>();
 
+        private final ConcurrentLinkedQueue<AgentInvocationAuditEvent> audits = new ConcurrentLinkedQueue<>();
+
         @Override
         public void record(final AgentMcpTerminalEvent event) {
             events.add(event);
@@ -557,6 +599,12 @@ class AgentMcpTerminalObservationTest {
             assertEquals(1, events.size());
             AgentMcpTerminalEvent event = events.element();
             assertEquals(outcome, event.getOutcome());
+            if (!audits.isEmpty()) {
+                List<AgentInvocationAuditEvent> logical = audits.stream().filter(audit -> audit.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).toList();
+                assertEquals(1, logical.size());
+                assertEquals(event.getOutcome().name(), logical.get(0).getOutcome());
+                assertEquals(event.getRequestId(), logical.get(0).getRequestId());
+            }
             return event;
         }
     }

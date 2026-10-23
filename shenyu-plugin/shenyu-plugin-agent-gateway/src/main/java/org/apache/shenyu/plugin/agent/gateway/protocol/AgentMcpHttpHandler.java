@@ -140,7 +140,11 @@ public final class AgentMcpHttpHandler {
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(),
                                         identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
                                         identity.getToolGrants(), deadline, config.getResultFilters(), config.getHttpTools(), httpInvoker,
-                                        identity.getTenant().orElse(null)))
+                                        identity.getTenant().orElse(null), () -> {
+                                            if (Objects.nonNull(terminal)) {
+                                                terminal.attempted();
+                                            }
+                                        }))
                                         .contextWrite(observation::traceContext)
                                         .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics))
                                         .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,

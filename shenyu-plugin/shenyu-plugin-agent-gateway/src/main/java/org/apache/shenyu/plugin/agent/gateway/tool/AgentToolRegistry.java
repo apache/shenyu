@@ -137,6 +137,19 @@ public final class AgentToolRegistry {
      */
     public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
                                   final Supplier<AgentToolInvocation> input) {
+        return invoke(name, allowedTools, input, () -> { });
+    }
+
+    /**
+     * Invoke a tool, notifying the request observer only after pre-execution validation.
+     * @param name tool name
+     * @param allowedTools effective permissions
+     * @param input request-local invocation factory
+     * @param onAttempt nonblocking callback before provider execution
+     * @return request-local result
+     */
+    public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
+                                  final Supplier<AgentToolInvocation> input, final Runnable onAttempt) {
         Set<String> permissions = Set.copyOf(allowedTools);
         Objects.requireNonNull(input, "input");
         return Mono.defer(() -> {
@@ -154,6 +167,7 @@ public final class AgentToolRegistry {
             } catch (IllegalArgumentException error) {
                 throw new AgentToolArgumentException(error);
             }
+            onAttempt.run();
             return provider.invoke(invocation)
                     .switchIfEmpty(Mono.error(new IllegalStateException("Tool completed without a result")))
                     .map(JsonObject::deepCopy);

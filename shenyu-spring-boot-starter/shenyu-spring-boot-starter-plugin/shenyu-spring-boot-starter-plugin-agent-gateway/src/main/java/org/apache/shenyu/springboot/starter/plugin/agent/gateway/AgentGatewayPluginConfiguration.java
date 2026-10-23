@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
@@ -69,6 +71,7 @@ public class AgentGatewayPluginConfiguration {
      * @param tracers optional tracing bridge
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
+     * @param auditors optional unified audit sink
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
@@ -78,6 +81,7 @@ public class AgentGatewayPluginConfiguration {
                                          final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentMcpCallTracer> tracers,
                                          final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                          final ObjectProvider<AiCallObserver> aiObservers,
+                                         final ObjectProvider<AgentInvocationAuditObserver> auditors,
                                          final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -99,8 +103,10 @@ public class AgentGatewayPluginConfiguration {
                 && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
-        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, terminalObservers.getIfAvailable(),
-                aiObservers.getIfAvailable(), environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
+        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer,
+                AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
+                AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
+                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
