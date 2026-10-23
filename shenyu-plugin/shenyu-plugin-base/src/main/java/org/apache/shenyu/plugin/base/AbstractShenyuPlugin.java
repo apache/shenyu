@@ -343,14 +343,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
-            // cache selector data
-            if (matchSelectorPair.getLeft()) {
+            // Both entries are keyed by (plugin, path), so either kind is only sound when the
+            // whole candidate set is decided by the path: a dynamic candidate that lost this
+            // request could win the next one, and the cache would pin the first outcome (#7981).
+            if (matchSelectorPair.getLeft() && isPathDeterminedSelectorSet(selectors)) {
                 cacheSelectorData(path, selectorData);
             }
             return selectorData;
         } else {
-            // A negative entry is keyed by (plugin, path), so it is only sound when the
-            // whole candidate set is decided by the path.
             if (matchSelectorPair.getLeft() && isPathDeterminedSelectorSet(selectors)) {
                 SelectorData emptySelectorData = SelectorData.builder().pluginName(named()).build();
                 cacheSelectorData(path, emptySelectorData);
@@ -364,13 +364,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
-            // cache rule data
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && isPathDeterminedSelectorSet(selectors) && isPathDeterminedRuleSet(rules)) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
         } else {
-            // The rule cache key carries no selector id, so a negative entry is only sound when
+            // The rule cache key carries no selector id, so a rule entry is only sound when
             // both the selected selector and the whole rule set are decided by the path.
             if (matchRulePair.getLeft() && isPathDeterminedSelectorSet(selectors) && isPathDeterminedRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();

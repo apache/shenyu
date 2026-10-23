@@ -40,6 +40,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -551,6 +552,136 @@ public final class AbstractShenyuPluginTest {
         RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/neg-control");
         assertNotNull(cached, "a path-only candidate set may still cache a negative rule result");
         assertNull(cached.getId());
+    }
+
+    /**
+     * #7981: a positive selector match keyed by (plugin, path) must not shadow a
+     * more specific dynamic candidate that lost the warming request.
+     */
+    @Test
+    public void positiveSelectorCacheMustNotShadowDynamicMatch() {
+        SelectorData generic = SelectorData.builder()
+                .id("generic").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(2).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/shadow/**")))
+                .build();
+        SelectorData tenant = SelectorData.builder()
+                .id("tenant").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Arrays.asList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", "/shadow/**"),
+                        condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "a")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(generic);
+        BaseDataCache.getInstance().cacheSelectData(tenant);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange warm = newExchange("/shadow/x", "b");
+        StepVerifier.create(testShenyuPlugin.execute(warm, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(warm), eq(shenyuPluginChain), eq(generic), any(RuleData.class));
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/shadow/x"),
+                "a positive match must not be cached while a dynamic candidate could win another request");
+
+        ServerWebExchange vip = newExchange("/shadow/x", "a");
+        StepVerifier.create(testShenyuPlugin.execute(vip, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(vip), eq(shenyuPluginChain), eq(tenant), any(RuleData.class));
+    }
+
+    /**
+     * #7981 for rules: the rule cache is keyed by (plugin, path) without the
+     * selector id, so a dynamic rule candidate must not be shadowed either.
+     */
+    @Test
+    public void positiveRuleCacheMustNotShadowDynamicMatch() {
+        SelectorData pathSelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/shadow-rule/**")))
+                .build();
+        RuleData generic = RuleData.builder()
+                .id("generic").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(2)
+                .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/shadow-rule/**")))
+                .build();
+        RuleData tenant = RuleData.builder()
+                .id("tenant").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Arrays.asList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", "/shadow-rule/**"),
+                        condition(ParamTypeEnum.HEADER.getName(), "X-Tenant", "=", "a")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathSelector);
+        BaseDataCache.getInstance().cacheRuleData(generic);
+        BaseDataCache.getInstance().cacheRuleData(tenant);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange warm = newExchange("/shadow-rule/x", "b");
+        StepVerifier.create(testShenyuPlugin.execute(warm, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(warm), eq(shenyuPluginChain), eq(pathSelector), eq(generic));
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", "/shadow-rule/x"),
+                "a positive rule match must not be cached while a dynamic candidate could win another request");
+
+        ServerWebExchange vip = newExchange("/shadow-rule/x", "a");
+        StepVerifier.create(testShenyuPlugin.execute(vip, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(eq(vip), eq(shenyuPluginChain), eq(pathSelector), eq(tenant));
+    }
+
+    /**
+     * A path-only candidate set keeps caching positive results: the gate must not
+     * turn the match cache off for the configurations it was built for.
+     */
+    @Test
+    public void positiveSelectorCacheStillAppliesToPathOnlyCandidates() {
+        SelectorData pathOnly = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathOnly);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange exchange = newExchange("/http/ctrl", null);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        SelectorData cached = MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/http/ctrl");
+        assertNotNull(cached, "a path-only candidate set may still cache a positive selector result");
+        assertEquals("1", cached.getId());
+    }
+
+    /**
+     * Path-only rules keep caching positive results too.
+     */
+    @Test
+    public void positiveRuleCacheStillAppliesToPathOnlyCandidates() {
+        SelectorData pathOnlySelector = SelectorData.builder()
+                .id("1").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        RuleData pathOnlyRule = RuleData.builder()
+                .id("2").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
+        BaseDataCache.getInstance().cacheRuleData(pathOnlyRule);
+        when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        ServerWebExchange exchange = newExchange("/http/ctrl", null);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/ctrl");
+        assertNotNull(cached, "a path-only candidate set may still cache a positive rule result");
+        assertEquals("2", cached.getId());
     }
 
     private ConditionData condition(final String paramType, final String paramName, final String operator, final String paramValue) {
