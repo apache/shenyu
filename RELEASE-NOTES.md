@@ -28,6 +28,24 @@
 
 ### Behavior Changes
 
+- The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
+  concurrent requests that miss the same response cache key share one upstream
+  fill on that gateway instance instead of one per request, and the followers
+  replay the captured bytes as a cache hit would. A response that the cache would
+  not have stored, a fill that errors, a follower that waits longer than
+  `singleFlightWaitTimeoutMillis`, a full waiter set and a response above
+  `singleFlightMaxResponseBytes` all fall back to forwarding that request, so
+  coalescing never widens cache eligibility or merges responses kept apart by
+  cookie, `Vary` or cache-control rules. Bounds are set by
+  `singleFlightMaxKeys`, `singleFlightMaxWaiters`, `singleFlightWaitTimeoutMillis`,
+  `singleFlightFillTimeoutMillis` and `singleFlightMaxResponseBytes`. The feature
+  is disabled by default and absent configuration preserves the previous
+  one-forward-per-request behavior. Coordination is per gateway instance: replicas
+  still fill the same key independently and no distributed lock is taken. Set
+  `singleFlightWaitTimeoutMillis` to at least the upstream p99, otherwise slow
+  upstreams finish after followers have already given up and the burst is not
+  collapsed. (#7932)
+
 - Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
   HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
   request-local plugin cursors, attributes and captured responses; upstream

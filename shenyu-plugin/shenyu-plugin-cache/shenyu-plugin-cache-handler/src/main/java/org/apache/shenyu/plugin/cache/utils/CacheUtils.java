@@ -21,10 +21,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.ICache;
+import org.apache.shenyu.plugin.cache.cache.ResponseSingleFlight;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * CacheUtils.
@@ -81,5 +83,15 @@ public final class CacheUtils {
      */
     public static ICache getCache() {
         return Singleton.INST.get(ICache.class);
+    }
+
+    /**
+     * get the miss coordinator of this gateway.
+     *
+     * @return the coordinator, never null
+     */
+    public static ResponseSingleFlight getSingleFlight() {
+        ResponseSingleFlight singleFlight = Singleton.INST.get(ResponseSingleFlight.class);
+        return Objects.isNull(singleFlight) ? ResponseSingleFlight.disabled() : singleFlight;
     }
 }
