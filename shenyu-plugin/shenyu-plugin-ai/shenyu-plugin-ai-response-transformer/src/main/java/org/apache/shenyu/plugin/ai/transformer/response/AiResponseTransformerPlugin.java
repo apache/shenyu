@@ -27,6 +27,7 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.transformer.response.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.response.handler.AiResponseTransformerPluginHandler;
+import org.apache.shenyu.plugin.ai.transformer.response.support.CachedRequestBodyDecorator;
 import org.apache.shenyu.plugin.ai.transformer.response.template.AiResponseTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -133,9 +134,12 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         }
 
         ChatClient finalClient = client;
-        AiResponseTransformerTemplate aiResponseTransformerTemplate = new AiResponseTransformerTemplate(aiResponseTransformerConfig.getContent(), exchange.getRequest());
-        
+        CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(exchange.getRequest());
+        AiResponseTransformerTemplate aiResponseTransformerTemplate =
+                new AiResponseTransformerTemplate(aiResponseTransformerConfig.getContent(), exchange.getRequest(), requestBodySnapshot);
+
         return chain.execute(exchange.mutate()
+                .request(requestBodySnapshot)
                 .response(new AiResponseTransformerDecorator(exchange, aiResponseTransformerTemplate, finalClient))
                 .build());
     }

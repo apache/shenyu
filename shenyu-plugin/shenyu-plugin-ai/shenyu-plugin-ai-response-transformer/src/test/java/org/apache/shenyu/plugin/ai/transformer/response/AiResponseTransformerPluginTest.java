@@ -26,6 +26,7 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.spring.ai.AiModelFactory;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
+import org.apache.shenyu.plugin.ai.transformer.response.support.CachedRequestBodyDecorator;
 import org.apache.shenyu.plugin.ai.transformer.response.template.AiResponseTransformerTemplate;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +50,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -153,6 +156,7 @@ class AiResponseTransformerPluginTest {
         // Mock exchange mutate for the full plugin flow
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
         lenient().when(exchange.mutate()).thenReturn(builder);
+        lenient().when(builder.request(any(ServerHttpRequest.class))).thenReturn(builder);
         lenient().when(builder.response(any())).thenReturn(builder);
         lenient().when(builder.build()).thenReturn(exchange);
         
@@ -166,6 +170,10 @@ class AiResponseTransformerPluginTest {
         // Verify execution result
         StepVerifier.create(result)
                 .verifyComplete();
+
+        ArgumentCaptor<ServerHttpRequest> requestCaptor = ArgumentCaptor.forClass(ServerHttpRequest.class);
+        verify(builder).request(requestCaptor.capture());
+        assertTrue(requestCaptor.getValue() instanceof CachedRequestBodyDecorator);
     }
 
     @Test
