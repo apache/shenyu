@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,13 +43,14 @@ public class KubernetesConfiguration {
      * kubernetes deployment properties. Registered as a conditional bean rather
      * than through {@code @EnableConfigurationProperties}, so a user-supplied
      * {@link DeploymentProperties} bean cleanly wins instead of competing with the
-     * one registered here for the {@code apiClient} argument (#7912).
+     * one registered here for the {@code apiClient} argument (#7912). The prefix
+     * comes from {@link DeploymentProperties} itself: repeating it on this method
+     * is a duplicate definition the configuration processor rejects at compile time.
      *
      * @return the deployment properties bound from {@code shenyu.k8s.deployment}
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConfigurationProperties(prefix = "shenyu.k8s.deployment")
     public DeploymentProperties deploymentProperties() {
         return new DeploymentProperties();
     }

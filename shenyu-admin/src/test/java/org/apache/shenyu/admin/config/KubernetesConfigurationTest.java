@@ -71,8 +71,8 @@ public final class KubernetesConfigurationTest {
     private Path tempDir;
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            // @ConfigurationProperties on a @Bean method needs the binding post-processor,
-            // which a plain runner does not register (a real Boot app always has it)
+            // @ConfigurationProperties binding needs the post-processor, which a plain
+            // runner does not register (a real Boot app always has it)
             .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class))
             .withUserConfiguration(KubernetesConfiguration.class);
 
@@ -80,6 +80,22 @@ public final class KubernetesConfigurationTest {
     public void shouldCreateClientWithStandardBindingWhenEnabled() {
         runner.withPropertyValues(enabledProps())
                 .run(context -> assertHasSingleClient(context, "the api client must be created when scaling is enabled"));
+    }
+
+    /**
+     * The prefix still binds with only the class-level annotation on the way: the
+     * bound values are what the api client is built from, so an unbound bean would
+     * surface as a null api server.
+     */
+    @Test
+    public void shouldBindDeploymentPropertiesFromTheConfiguredPrefix() {
+        runner.withPropertyValues(enabledProps())
+                .run(context -> {
+                    final DeploymentProperties properties = context.getBean(DeploymentProperties.class);
+                    assertEquals("shenyu-bootstrap", properties.getName());
+                    assertEquals("https://127.0.0.1:6443", properties.getApiServer());
+                    assertEquals("token", properties.getToken());
+                });
     }
 
     /**
