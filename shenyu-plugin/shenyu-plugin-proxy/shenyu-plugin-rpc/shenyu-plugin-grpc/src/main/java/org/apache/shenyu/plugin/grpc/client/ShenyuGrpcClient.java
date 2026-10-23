@@ -160,14 +160,14 @@ public class ShenyuGrpcClient implements Closeable {
                 asyncServerStreamingCall(call, requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case CLIENT_STREAMING:
-                requestObserver = asyncClientStreamingCall(call, compositeObserver);
-                requestList.forEach(requestObserver::onNext);
-                requestObserver.onCompleted();
+                StreamingResponseObserver clientStreamingObserver = new StreamingResponseObserver(compositeObserver, requestList);
+                requestObserver = asyncClientStreamingCall(call, clientStreamingObserver);
+                startStreaming(doneObserver, requestObserver, clientStreamingObserver, requestList);
                 return doneObserver.getCompletionFuture();
             case BIDI_STREAMING:
-                requestObserver = asyncBidiStreamingCall(call, compositeObserver);
-                requestList.forEach(requestObserver::onNext);
-                requestObserver.onCompleted();
+                StreamingResponseObserver bidiStreamingObserver = new StreamingResponseObserver(compositeObserver, requestList);
+                requestObserver = asyncBidiStreamingCall(call, bidiStreamingObserver);
+                startStreaming(doneObserver, requestObserver, bidiStreamingObserver, requestList);
                 return doneObserver.getCompletionFuture();
             default:
                 LOG.info("Unknown methodType:{}", methodType);
@@ -189,6 +189,18 @@ public class ShenyuGrpcClient implements Closeable {
             return 0L;
         }
         return Optional.ofNullable(getter.apply(config)).orElse(0L);
+    }
+
+    private void startStreaming(final CompleteObserver<DynamicMessage> doneObserver,
+                                final StreamObserver<DynamicMessage> requestObserver,
+                                final StreamingResponseObserver streamingObserver,
+                                final List<DynamicMessage> requestList) {
+        if (streamingObserver.start()) {
+            doneObserver.getCompletionFuture().addListener(streamingObserver::terminate, MoreExecutors.directExecutor());
+            return;
+        }
+        requestList.forEach(requestObserver::onNext);
+        requestObserver.onCompleted();
     }
     
     @Override
