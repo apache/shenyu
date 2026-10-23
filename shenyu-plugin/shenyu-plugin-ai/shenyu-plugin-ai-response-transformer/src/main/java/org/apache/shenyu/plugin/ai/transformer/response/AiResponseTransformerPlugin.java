@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.transformer.response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.plugin.AiResponseTransformerConfig;
@@ -24,6 +25,7 @@ import org.apache.shenyu.common.dto.convert.rule.AiResponseTransformerHandle;
 import org.apache.shenyu.common.enums.AiModelProviderEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.transformer.response.cache.ChatClientCache;
 import org.apache.shenyu.plugin.ai.transformer.response.handler.AiResponseTransformerPluginHandler;
@@ -37,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -94,46 +95,44 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        AiResponseTransformerConfig aiResponseTransformerConfig = Singleton.INST.get(AiResponseTransformerConfig.class);
-        if (Objects.isNull(aiResponseTransformerConfig)) {
-            aiResponseTransformerConfig = new AiResponseTransformerConfig();
+        AiResponseTransformerConfig globalConfig = Singleton.INST.get(AiResponseTransformerConfig.class);
+        AiResponseTransformerConfig aiResponseTransformerConfig = new AiResponseTransformerConfig();
+        if (Objects.nonNull(globalConfig)) {
+            aiResponseTransformerConfig.setProvider(globalConfig.getProvider());
+            aiResponseTransformerConfig.setBaseUrl(globalConfig.getBaseUrl());
+            aiResponseTransformerConfig.setApiKey(globalConfig.getApiKey());
+            aiResponseTransformerConfig.setModel(globalConfig.getModel());
+            aiResponseTransformerConfig.setContent(globalConfig.getContent());
         }
 
         AiResponseTransformerHandle aiResponseTransformerHandle = AiResponseTransformerPluginHandler.CACHED_HANDLE.get()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        ChatClient client = ChatClientCache.getInstance().getClient("default");
         // Create final config with rule handle taking precedence
         if (Objects.nonNull(aiResponseTransformerHandle)) {
-            aiResponseTransformerConfig = new AiResponseTransformerConfig();
             Optional.ofNullable(aiResponseTransformerHandle.getProvider()).ifPresent(aiResponseTransformerConfig::setProvider);
             Optional.ofNullable(aiResponseTransformerHandle.getBaseUrl()).ifPresent(aiResponseTransformerConfig::setBaseUrl);
             Optional.ofNullable(aiResponseTransformerHandle.getApiKey()).ifPresent(aiResponseTransformerConfig::setApiKey);
             Optional.ofNullable(aiResponseTransformerHandle.getModel()).ifPresent(aiResponseTransformerConfig::setModel);
             Optional.ofNullable(aiResponseTransformerHandle.getContent()).ifPresent(aiResponseTransformerConfig::setContent);
-            client = ChatClientCache.getInstance().getClient(rule.getId());
         }
 
         String baseUrl = aiResponseTransformerConfig.getBaseUrl();
         String apiKey = aiResponseTransformerConfig.getApiKey();
         String provider = aiResponseTransformerConfig.getProvider();
-        if (Stream.of(baseUrl, apiKey, provider).anyMatch(Objects::isNull)) {
+        if (Stream.of(baseUrl, apiKey, provider).anyMatch(StringUtils::isBlank)) {
             String missing = "";
-            missing += Objects.isNull(baseUrl) ? "baseUrl, " : "";
-            missing += Objects.isNull(apiKey) ? "apiKey, " : "";
-            missing += Objects.isNull(provider) ? "provider, " : "";
+            missing += StringUtils.isBlank(baseUrl) ? "baseUrl, " : "";
+            missing += StringUtils.isBlank(apiKey) ? "apiKey, " : "";
+            missing += StringUtils.isBlank(provider) ? "provider, " : "";
 
             LOG.error("Missing configurations: {}", missing.substring(0, missing.length() - 2));
             return chain.execute(exchange);
         }
 
-        if (Objects.isNull(client)) {
-            ChatModel aiModel = aiModelFactoryRegistry
-                    .getFactory(AiModelProviderEnum.getByName(provider))
-                    .createAiModel(AiResponseTransformerPluginHandler.convertConfig(aiResponseTransformerConfig));
-            client = ChatClientCache.getInstance().init(rule.getId(), aiModel);
-        }
-
-        ChatClient finalClient = client;
+        AiCommonConfig effectiveConfig = AiResponseTransformerPluginHandler.convertConfig(aiResponseTransformerConfig);
+        String clientKey = Objects.isNull(aiResponseTransformerHandle) ? "default" : rule.getId();
+        ChatClient finalClient = ChatClientCache.getInstance().getOrCreate(clientKey, effectiveConfig,
+                () -> aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(provider)).createAiModel(effectiveConfig));
         CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(exchange.getRequest());
         AiResponseTransformerTemplate aiResponseTransformerTemplate =
                 new AiResponseTransformerTemplate(aiResponseTransformerConfig.getContent(), exchange.getRequest(), requestBodySnapshot);
