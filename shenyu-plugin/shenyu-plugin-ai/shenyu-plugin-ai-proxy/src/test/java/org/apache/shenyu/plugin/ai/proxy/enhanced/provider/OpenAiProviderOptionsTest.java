@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -263,7 +263,7 @@ class OpenAiProviderOptionsTest {
                 Map.of(), Map.of(), Map.of(), MAPPER.createObjectNode(), restricted, ""));
         AtomicInteger calls = new AtomicInteger();
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(custom)), protocolConverterFactory(), request -> {
+                new AiProxyProviderFactory(List.of(custom)), protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.empty();
                 });
