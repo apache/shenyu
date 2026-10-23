@@ -47,7 +47,30 @@ public class WebsocketSyncProperties {
      */
     private String token;
 
+    /**
+     * Omit Discovery persistence fields from gateway messages. Opt in only after auditing all consumers.
+     */
+    private boolean compactDiscoveryPayload;
+
     private final Reconciliation reconciliation = new Reconciliation();
+
+    /**
+     * Whether Discovery messages use the gateway-only projection.
+     *
+     * @return whether compact messages are enabled
+     */
+    public boolean isCompactDiscoveryPayload() {
+        return compactDiscoveryPayload;
+    }
+
+    /**
+     * Enable the Discovery projection for WebSocket consumers.
+     *
+     * @param compactDiscoveryPayload whether to omit persistence fields
+     */
+    public void setCompactDiscoveryPayload(final boolean compactDiscoveryPayload) {
+        this.compactDiscoveryPayload = compactDiscoveryPayload;
+    }
 
     /**
      * Gets the value of enabled.

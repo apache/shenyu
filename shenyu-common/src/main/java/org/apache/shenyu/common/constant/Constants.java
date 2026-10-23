@@ -1057,6 +1057,11 @@ public interface Constants {
     String COMPLETION_TOKENS = "completion_tokens";
 
     /**
+     * The output tokens reported by the OpenAI Responses protocol, the counterpart of COMPLETION_TOKENS.
+     */
+    String OUTPUT_TOKENS = "output_tokens";
+
+    /**
      * The constant AI_MODEL.
      */
     String AI_MODEL = "ai_model";
@@ -1085,6 +1090,12 @@ public interface Constants {
      * The constant GB.
      */
     String GB = "GB";
+
+    /**
+     * The constant bootTime, JVM start time in epoch millis, used as the boot identity
+     * to correlate instance status reports with metrics, logs and traces.
+     */
+    String BOOT_TIME = "bootTime";
 
     /**
      * String q.

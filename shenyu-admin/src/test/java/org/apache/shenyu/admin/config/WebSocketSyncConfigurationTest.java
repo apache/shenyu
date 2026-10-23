@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,7 +27,7 @@ public class WebSocketSyncConfigurationTest {
     @Test
     public void testWebsocketDataChangedListener() {
         WebSocketSyncConfiguration websocketListener = new WebSocketSyncConfiguration();
-        assertNotNull(websocketListener.websocketDataChangedListener());
+        assertNotNull(websocketListener.websocketDataChangedListener(new WebsocketSyncProperties()));
     }
     
     @Test

@@ -21,16 +21,20 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.plugin.jwt.rule.DefaultJwtRuleHandle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultJwtConvertStrategyTest {
@@ -186,6 +190,100 @@ public class DefaultJwtConvertStrategyTest {
         
         assertEquals(1, headers.get("X-Can-Read").size());
         assertEquals("true", headers.get("X-Can-Read").get(0));
+    }
+
+    @Test
+    public void testConvertOverridesClientSuppliedHeader() {
+        ServerWebExchange spoofed = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("X-User-Id", "admin")
+                .header("X-Web", "evil")
+                .build());
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"X-User-Id\"},"
+                + "{\"jwtVal\":\"multi.web\",\"headerVal\":\"X-Web\"}]}";
+        HttpHeaders headers = defaultJwtConvertStrategy
+                .convert(defaultJwtConvertStrategy.parseHandleJson(handleJson), spoofed, jwtBody)
+                .getRequest().getHeaders();
+
+        assertEquals(List.of("12345"), headers.get("X-User-Id"));
+        assertEquals(List.of("shenyu"), headers.get("X-Web"));
+    }
+
+    @Test
+    public void testConvertRemovesHeaderWhenClaimMissing() {
+        ServerWebExchange spoofed = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("X-Tenant", "evil")
+                .header("X-Nested", "evil")
+                .build());
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"tenant\",\"headerVal\":\"X-Tenant\"},"
+                + "{\"jwtVal\":\"multi.absent\",\"headerVal\":\"X-Nested\"}]}";
+        HttpHeaders headers = defaultJwtConvertStrategy
+                .convert(defaultJwtConvertStrategy.parseHandleJson(handleJson), spoofed, jwtBody)
+                .getRequest().getHeaders();
+
+        assertFalse(headers.containsKey("X-Tenant"));
+        assertFalse(headers.containsKey("X-Nested"));
+    }
+
+    @Test
+    public void testConvertRemovesHeaderWhenIntermediateNodeIsNotMap() {
+        ServerWebExchange spoofed = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("X-User-Id", "evil")
+                .header("X-Deep", "evil")
+                .build());
+        Map<String, Object> body = ImmutableMap.of("user", "admin",
+                "multi", ImmutableMap.of("web", "shenyu"));
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"user.id\",\"headerVal\":\"X-User-Id\"},"
+                + "{\"jwtVal\":\"multi.web.name\",\"headerVal\":\"X-Deep\"}]}";
+        HttpHeaders headers = defaultJwtConvertStrategy
+                .convert(defaultJwtConvertStrategy.parseHandleJson(handleJson), spoofed, body)
+                .getRequest().getHeaders();
+
+        assertFalse(headers.containsKey("X-User-Id"));
+        assertFalse(headers.containsKey("X-Deep"));
+    }
+
+    @Test
+    public void testConvertOverridesMixedCaseAndMultiValueHeaders() {
+        ServerWebExchange spoofed = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("x-user-id", "admin")
+                .header("X-USER-ID", "root")
+                .header("X-Web", "evil1", "evil2")
+                .build());
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"X-User-Id\"},"
+                + "{\"jwtVal\":\"multi.web\",\"headerVal\":\"x-web\"}]}";
+        HttpHeaders headers = defaultJwtConvertStrategy
+                .convert(defaultJwtConvertStrategy.parseHandleJson(handleJson), spoofed, jwtBody)
+                .getRequest().getHeaders();
+
+        assertEquals(List.of("12345"), headers.get("x-user-id"));
+        assertEquals(List.of("12345"), headers.get("X-User-Id"));
+        assertEquals(List.of("shenyu"), headers.get("X-Web"));
+    }
+
+    @Test
+    public void testConvertRemovesHeaderWhenClaimIsExplicitNull() {
+        Map<String, Object> nested = new HashMap<>();
+        nested.put("tenant", null);
+        Map<String, Object> body = new HashMap<>();
+        body.put("tenant", null);
+        body.put("multi", nested);
+        ServerWebExchange spoofed = MockServerWebExchange.from(MockServerHttpRequest
+                .get("localhost")
+                .header("X-Tenant", "evil")
+                .header("X-Nested", "evil1", "evil2")
+                .build());
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"tenant\",\"headerVal\":\"x-tenant\"},"
+                + "{\"jwtVal\":\"multi.tenant\",\"headerVal\":\"X-Nested\"}]}";
+        HttpHeaders headers = defaultJwtConvertStrategy
+                .convert(defaultJwtConvertStrategy.parseHandleJson(handleJson), spoofed, body)
+                .getRequest().getHeaders();
+
+        assertFalse(headers.containsKey("X-Tenant"));
+        assertFalse(headers.containsKey("X-Nested"));
     }
 
 }

@@ -48,6 +48,9 @@ public final class UpstreamCacheManager {
 
     private static final Map<String, List<Upstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    // Include unhealthy configured gray nodes so legacy traffic never falls back to ordinary nodes.
+    private static final Map<String, Boolean> LEGACY_GRAY_SELECTORS = Maps.newConcurrentMap();
+
     private UpstreamCheckTask task;
 
     /**
@@ -121,17 +124,39 @@ public final class UpstreamCacheManager {
     }
 
     /**
-     * Find upstream list by selector id list.
+     * Find upstream list by selector id.
      *
      * <p>Returns the read-only snapshot published by the health-check task on
      * configuration and health-state updates, so the request path does not copy
-     * the healthy list per lookup. Callers must not mutate the returned list;
-     * elements keep the same shared-instance semantics as before.</p>
+     * the healthy list per lookup. Legacy gray-exclusive selectors instead get a
+     * filtered view narrowed to their gray upstreams. Callers must not mutate the
+     * returned list either way; elements keep the same shared-instance semantics
+     * as before.</p>
      *
      * @param selectorId the selector id
-     * @return the immutable snapshot list, or null when the selector has no entry
+     * @return the healthy upstreams for the selector, or null when it has no entry
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
+        List<Upstream> upstreamList = findAllUpstreamListBySelectorId(selectorId);
+        if (Objects.isNull(upstreamList) || !Boolean.TRUE.equals(LEGACY_GRAY_SELECTORS.get(selectorId))) {
+            return upstreamList;
+        }
+        return upstreamList.stream().filter(Upstream::isGray).collect(Collectors.toList());
+    }
+
+    /**
+     * Find all healthy upstreams for rules that select their own label partition.
+     * The regular lookup retains the legacy gray-exclusive policy, including for failover.
+     *
+     * <p>Returns the same read-only snapshot that backs
+     * {@link #findUpstreamListBySelectorId} before gray narrowing, so the canary
+     * path also avoids a per-request copy. Callers must not mutate the returned
+     * list; elements keep the same shared-instance semantics as before.</p>
+     *
+     * @param selectorId selector identifier
+     * @return a read-only snapshot of all healthy upstreams, or null when the selector has no healthy pool
+     */
+    public List<Upstream> findAllUpstreamListBySelectorId(final String selectorId) {
         return task.getHealthySnapshot(selectorId);
     }
 
@@ -142,6 +167,7 @@ public final class UpstreamCacheManager {
      */
     public void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
+        LEGACY_GRAY_SELECTORS.remove(key);
         task.triggerRemoveAll(key);
     }
 
@@ -160,6 +186,7 @@ public final class UpstreamCacheManager {
             return;
         }
 
+        LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
@@ -184,6 +211,7 @@ public final class UpstreamCacheManager {
             if (Objects.nonNull(cached)) {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
                 cached.setLabels(upstream.getLabels());
+                cached.setGray(upstream.isGray());
             }
         });
     }

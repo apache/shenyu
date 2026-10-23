@@ -19,12 +19,29 @@ package org.apache.shenyu.plugin.agent.gateway.tool;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
+import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.context.path.ContextPathPlugin;
+import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpCookie;
@@ -48,11 +65,80 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Fresh cursors, independent exchanges/responses, bounded capture and downstream cancellation.
  */
 class AgentHttpToolExecutorTest {
+
+    @BeforeEach
+    void preparePluginCaches() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        ShenyuConfig config = new ShenyuConfig();
+        config.getSelectorMatchCache().getCache().setEnabled(false);
+        config.getRuleMatchCache().getCache().setEnabled(false);
+        when(context.getBean(ShenyuConfig.class)).thenReturn(config);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+    }
+
+    @AfterEach
+    void cleanPluginCaches() {
+        BaseDataCache.getInstance().cleanPluginData();
+        BaseDataCache.getInstance().cleanSelectorData();
+        BaseDataCache.getInstance().cleanRuleData();
+        ContextPathPluginDataHandler.CACHED_HANDLE.get().getAllCache().clear();
+    }
+
+    @Test
+    void forwardsEncodedQueryArgumentsExactlyOnceThroughTheOrdinaryHttpRoute() {
+        // The route the executor hands to the ordinary chain is the same input RequestUrlUtils receives in
+        // production, so building the upstream URI here proves what the gateway would actually send.
+        RecordingChain chain = new RecordingChain(child -> {
+            assertEquals("http://127.0.0.1:18080/orders/status?id=A%26B",
+                    RequestUrlUtils.buildRequestUri(child, "http://127.0.0.1:18080").toString());
+            return write(child, "{}");
+        });
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(tool("GET"), invocation("A&B"))).expectNextCount(1).verifyComplete();
+        assertEquals(1, chain.forks.get());
+    }
+
+    @Test
+    void forwardsABodyArgumentWithoutInventingAQuery() {
+        RecordingChain chain = new RecordingChain(child -> {
+            assertEquals("http://127.0.0.1:18080/orders/status",
+                    RequestUrlUtils.buildRequestUri(child, "http://127.0.0.1:18080").toString());
+            return write(child, "{}");
+        });
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(tool("POST"), invocation("A&B"))).expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    void forwardsAQuerylessRouteWithoutAddingAQuestionMark() {
+        RecordingChain chain = new RecordingChain(child -> {
+            assertEquals("http://127.0.0.1:18080/orders/status",
+                    RequestUrlUtils.buildRequestUri(child, "http://127.0.0.1:18080").toString());
+            return write(child, "{}");
+        });
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(toolWithoutArguments(), invocation(new JsonObject())))
+                .expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    void keepsTheContextPathRewriteWithoutDuplicatingTheQuery() {
+        cacheContextPathRule("/api", "context-rule");
+        final ContextPathPlugin contextPath = new ContextPathPlugin();
+        RecordingChain chain = new RecordingChain(child -> contextPath.execute(child, routed -> {
+            // The context path plugin only rewrites realUrl; the encoded argument must survive untouched.
+            assertEquals("/orders/status", ((ShenyuContext) routed.getAttribute(Constants.CONTEXT)).getRealUrl());
+            assertEquals("http://127.0.0.1:18080/orders/status?id=A%26B",
+                    RequestUrlUtils.buildRequestUri(routed, "http://127.0.0.1:18080").toString());
+            return write(routed, "{}");
+        }));
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(tool("GET", "/api/orders/status"), invocation("A&B")))
+                .expectNextCount(1).verifyComplete();
+    }
 
     @Test
     void doesNotReuseClientBodyHeadersCookiesAttributesOrResponse() {
@@ -225,17 +311,61 @@ class AgentHttpToolExecutorTest {
     }
 
     private AgentGatewayHttpToolConfig.Tool tool(final String method) {
+        return tool(method, "/orders/status");
+    }
+
+    private AgentGatewayHttpToolConfig.Tool tool(final String method, final String url) {
         JsonObject plans = JsonParser.parseString("""
                 {"lookup":{"description":"Look up a record","inputSchema":{"type":"object","properties":{"id":{"type":"string"}},"required":["id"]},
                 "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders/status"},"argsPosition":{"id":"query"}}}}
                 """).getAsJsonObject();
         plans.getAsJsonObject("lookup").getAsJsonObject("requestConfig").getAsJsonObject("requestTemplate").addProperty("method", method);
+        plans.getAsJsonObject("lookup").getAsJsonObject("requestConfig").getAsJsonObject("requestTemplate").addProperty("url", url);
         plans.getAsJsonObject("lookup").getAsJsonObject("requestConfig").getAsJsonObject("argsPosition").addProperty("id", "POST".equals(method) ? "body" : "query");
         return AgentGatewayHttpToolConfig.parse(plans, Set.of("lookup")).getTools().get("lookup");
     }
 
+    private AgentGatewayHttpToolConfig.Tool toolWithoutArguments() {
+        JsonObject plans = JsonParser.parseString("""
+                {"lookup":{"description":"Look up a record","inputSchema":{"type":"object","properties":{}},
+                "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders/status"},"argsPosition":{}}}}
+                """).getAsJsonObject();
+        return AgentGatewayHttpToolConfig.parse(plans, Set.of("lookup")).getTools().get("lookup");
+    }
+
+    private void cacheContextPathRule(final String contextPath, final String ruleId) {
+        PluginData plugin = new PluginData();
+        plugin.setName(new ContextPathPlugin().named());
+        plugin.setEnabled(true);
+        BaseDataCache.getInstance().cachePluginData(plugin);
+        SelectorData selector = new SelectorData();
+        selector.setId("context-selector");
+        selector.setPluginName(plugin.getName());
+        selector.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        selector.setContinued(true);
+        selector.setEnabled(true);
+        selector.setLogged(false);
+        selector.setSort(0);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        RuleData rule = new RuleData();
+        rule.setId(ruleId);
+        rule.setSelectorId(selector.getId());
+        rule.setEnabled(true);
+        rule.setLogged(false);
+        rule.setSort(0);
+        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+        handle.setContextPath(contextPath);
+        rule.setHandle(GsonUtils.getInstance().toJson(handle));
+        new ContextPathPluginDataHandler().handlerRule(rule);
+        BaseDataCache.getInstance().cacheRuleData(rule);
+    }
+
     private AgentToolInvocation invocation(final String id) {
-        return new AgentToolInvocation("same-id", "subject", arguments(id), "rule", 1, Instant.now().plusSeconds(10));
+        return invocation(arguments(id));
+    }
+
+    private AgentToolInvocation invocation(final JsonObject value) {
+        return new AgentToolInvocation("same-id", "subject", value, "rule", 1, Instant.now().plusSeconds(10));
     }
 
     private JsonObject arguments(final String id) {

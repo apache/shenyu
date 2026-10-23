@@ -38,3 +38,7 @@ JOIN instance_info retained_instance ON
             AND retained_instance.date_created = duplicate_instance.date_created
             AND retained_instance.id > duplicate_instance.id));
 CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, instance_ip, instance_port, instance_type);
+
+-- Preserve complete API-debug request headers, including long Authorization values.
+-- Stop Admin writers and back up mock_request_record before the one-time migration.
+ALTER TABLE mock_request_record MODIFY COLUMN header TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header';

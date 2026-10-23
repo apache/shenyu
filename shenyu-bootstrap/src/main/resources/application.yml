@@ -16,6 +16,11 @@
 server:
   port: 9195
   address: 0.0.0.0
+  reactive:
+    session:
+      cookie:
+        # Keep gateway sessions separate from backend SESSION cookies.
+        name: SHENYU_SESSION
   compression:
     enabled: true
     minResponseSize: 1MB # If the response data is greater than 1MB, enable compression.

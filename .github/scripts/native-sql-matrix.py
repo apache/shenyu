@@ -400,6 +400,26 @@ class Engine:
         else:
             raise AssertionError("Duplicate discovery upstream was accepted")
 
+    def insert_legacy_mock_header(self):
+        self.sql("INSERT INTO mock_request_record (id,api_id,host,port,url,path_variable,query,header,body) "
+                 "VALUES ('sql-header-legacy','sql-header-api','localhost',9195,'http://localhost/test','path','query',"
+                 "'{\"Authorization\":\"legacy-token\"}','legacy-body');")
+
+    def check_mock_headers(self, upgrade=False):
+        if upgrade:
+            combined = "header||'|'||body" if self.dialect in ("pg", "og", "oracle") else "CONCAT(header,'|',body)"
+            if scalar(self.sql("SELECT " + combined + " FROM mock_request_record WHERE id='sql-header-legacy';")) != (
+                    '{"Authorization":"legacy-token"}|legacy-body'):
+                raise AssertionError("Header migration changed the existing header/body or row identity")
+        if self.dialect == "oracle":
+            value = "TO_CLOB(RPAD('t',3000,'t'))||TO_CLOB(RPAD('t',3000,'t'))"
+        else:
+            value = "REPEAT('t',6000)"
+        self.sql("INSERT INTO mock_request_record (id,api_id,host,port,url,path_variable,query,header) "
+                 "VALUES ('sql-header-long','sql-header-api','localhost',9195,'http://localhost/test','path','query'," + value + ");")
+        if scalar(self.sql("SELECT LENGTH(header) FROM mock_request_record WHERE id='sql-header-long';")) != "6000":
+            raise AssertionError("Long request header was truncated")
+
     def insert_data_permissions(self, duplicates=False):
         grants = [("1", "sql-matrix-user", "sql-matrix-data", 0),
                   ("4", "sql-matrix-user-other", "sql-matrix-data", 0),
@@ -531,6 +551,7 @@ def execute_matrix(dialect, root, output):
             before = {table: set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split()) for table in TABLES}
             if flow == "upgrade":
                 engine.insert_data_permissions(duplicates=True)
+                engine.insert_legacy_mock_header()
                 for step in MIGRATIONS_FROM_BASELINE:
                     if step == "2.7.2-upgrade-2.7.3":
                         engine.insert_instance_observations(duplicates=True)
@@ -550,6 +571,8 @@ def execute_matrix(dialect, root, output):
             indexes = engine.indexes()
             engine.check_data_permission_uniqueness(indexes)
             engine.check_instance_identity(indexes, root / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml")
+
+            engine.check_mock_headers(upgrade=flow == "upgrade")
             if flow == "fresh" and dialect in ("mysql", "ob"):
                 engine.check_fresh_mysql_schema(schema, indexes)
             if flow == "fresh" and dialect in ("pg", "og"):
