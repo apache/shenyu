@@ -66,6 +66,8 @@ final class AiProxyRetryPolicy {
                  CONNECTION_RESET,
                  IO_FAILURE -> true;
             case STREAM_DURATION_TIMEOUT,
+                 CONNECTION_POOL_TIMEOUT,
+                 REQUEST_TOO_LARGE,
                  RESPONSE_TOO_LARGE,
                  DNS_FAILURE,
                  TLS_FAILURE,
@@ -82,6 +84,8 @@ final class AiProxyRetryPolicy {
                  IO_FAILURE -> true;
             case STREAM_IDLE_TIMEOUT,
                  STREAM_DURATION_TIMEOUT,
+                 CONNECTION_POOL_TIMEOUT,
+                 REQUEST_TOO_LARGE,
                  DNS_FAILURE,
                  TLS_FAILURE,
                  UNKNOWN -> false;

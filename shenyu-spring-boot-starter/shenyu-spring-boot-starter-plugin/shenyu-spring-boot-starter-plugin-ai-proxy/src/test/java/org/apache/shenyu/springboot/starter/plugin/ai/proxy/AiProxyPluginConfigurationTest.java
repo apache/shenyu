@@ -117,6 +117,7 @@ class AiProxyPluginConfigurationTest {
             assertEquals(Duration.ofSeconds(30), properties.getResponseHeaderTimeout());
             assertEquals(Duration.ofSeconds(60), properties.getStreamingIdleTimeout());
             assertEquals(Duration.ofMinutes(10), properties.getTotalStreamDuration());
+            assertEquals(0, properties.getMaxRequestBytes());
             assertEquals(0, properties.getMaxResponseBytes());
             assertEquals(30, properties.getPool().getMaxConnections());
             assertEquals(60, properties.getPool().getPendingAcquireMaxCount());
@@ -136,6 +137,7 @@ class AiProxyPluginConfigurationTest {
                         "shenyu.plugins.ai.proxy.transport.response-header-timeout=7s",
                         "shenyu.plugins.ai.proxy.transport.streaming-idle-timeout=11s",
                         "shenyu.plugins.ai.proxy.transport.total-stream-duration=12m",
+                        "shenyu.plugins.ai.proxy.transport.max-request-bytes=512",
                         "shenyu.plugins.ai.proxy.transport.max-response-bytes=1024",
                         "shenyu.plugins.ai.proxy.transport.pool.enabled=false",
                         "shenyu.plugins.ai.proxy.transport.pool.name=test-ai-pool",
@@ -159,6 +161,7 @@ class AiProxyPluginConfigurationTest {
                     assertEquals(Duration.ofSeconds(7), properties.getResponseHeaderTimeout());
                     assertEquals(Duration.ofSeconds(11), properties.getStreamingIdleTimeout());
                     assertEquals(Duration.ofMinutes(12), properties.getTotalStreamDuration());
+                    assertEquals(512, properties.getMaxRequestBytes());
                     assertEquals(1024, properties.getMaxResponseBytes());
                     assertFalse(properties.getPool().isEnabled());
                     assertEquals("test-ai-pool", properties.getPool().getName());
@@ -231,10 +234,12 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
-    void shouldRejectNegativeMaximumResponseBytes() {
-        contextRunner
-                .withPropertyValues("shenyu.plugins.ai.proxy.transport.max-response-bytes=-1")
-                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    void shouldRejectNegativeMaximumBodyBytes() {
+        for (String property : List.of("max-request-bytes", "max-response-bytes")) {
+            contextRunner
+                    .withPropertyValues("shenyu.plugins.ai.proxy.transport." + property + "=-1")
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
     }
 
     @Test

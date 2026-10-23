@@ -359,6 +359,9 @@ shenyu:
 #          # Maximum duration of the entire upstream response body stream.
 #          # New chunks do not reset this limit. Default: 10m.
 #          total-stream-duration: 10m
+#          # Maximum bytes allowed in one upstream request body.
+#          # Zero means unlimited. Default: 0.
+#          max-request-bytes: 0
 #          # Maximum cumulative bytes read from one upstream response.
 #          # Zero means unlimited. Default: 0.
 #          max-response-bytes: 0
