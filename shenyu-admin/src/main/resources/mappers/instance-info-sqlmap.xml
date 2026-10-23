@@ -188,6 +188,7 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
 
+    <!-- instance_state = 0 is the DELETED state, see org.apache.shenyu.common.enums.InstanceStatusEnum. -->
     <delete id="deleteExpired">
         DELETE FROM instance_info
         WHERE instance_state = 0

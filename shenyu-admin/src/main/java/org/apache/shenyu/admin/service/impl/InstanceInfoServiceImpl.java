@@ -111,6 +111,8 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
 
     @Override
+    // Scheduled bulk delete: deliberately outside any transaction so it does not pin a long-lived
+    // transaction/undo for the whole maintenance cycle. Do not switch it to REQUIRES_NEW.
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public int deleteExpired(final long cutoff) {
         return instanceInfoMapper.deleteExpired(cutoff);

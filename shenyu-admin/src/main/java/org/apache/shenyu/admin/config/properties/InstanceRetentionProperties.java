@@ -18,14 +18,12 @@
 package org.apache.shenyu.admin.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
 /**
  * Instance retention properties, used to bound the records kept for expired instances.
  */
-@Configuration
 @ConfigurationProperties(prefix = "shenyu.instance-retention")
 public class InstanceRetentionProperties {
 

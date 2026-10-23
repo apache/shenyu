@@ -57,6 +57,8 @@ public class InstanceCheckService {
 
     private static final int MAX_HISTORY_SIZE = 20;
 
+    private static final long DB_CLEANUP_INTERVAL_MS = TimeUnit.HOURS.toMillis(1);
+
     private static final Logger LOG = LoggerFactory.getLogger(InstanceCheckService.class);
 
     private ScheduledThreadPoolExecutor executor;
@@ -74,6 +76,8 @@ public class InstanceCheckService {
     private final InstanceRetentionProperties instanceRetentionProperties;
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
+
+    private volatile long lastDbCleanupTime;
 
     public InstanceCheckService(final InstanceInfoService instanceInfoService,
                                 final InstanceRetentionProperties instanceRetentionProperties) {
@@ -190,12 +194,13 @@ public class InstanceCheckService {
      * The cleanup runs only on the node that owns the liveness checks (the master Admin in a cluster),
      * and the database delete is guarded by the same cutoff so a renewed identity is never removed.
      */
-    private void purgeExpiredInstances() {
+    void purgeExpiredInstances() {
         if (!instanceRetentionProperties.isEnabled()) {
             return;
         }
+        long now = System.currentTimeMillis();
         long ttlMillis = instanceRetentionProperties.getTtl().toMillis();
-        long cutoff = System.currentTimeMillis() - ttlMillis;
+        long cutoff = now - ttlMillis;
         if (cutoff < 0) {
             return;
         }
@@ -219,6 +224,12 @@ public class InstanceCheckService {
         if (purgedCount > 0) {
             LOG.info("[instanceHealthInfo]{} expired instance record(s) removed from memory", purgedCount);
         }
+        // The in-memory purge needs the liveness cadence, but the bulk delete does not:
+        // run the database cleanup at most once per interval instead of on every check cycle.
+        if (now - lastDbCleanupTime < DB_CLEANUP_INTERVAL_MS) {
+            return;
+        }
+        lastDbCleanupTime = now;
         int deletedRows = instanceInfoService.deleteExpired(cutoff);
         if (deletedRows > 0) {
             LOG.info("[instanceHealthInfo]{} expired instance record(s) removed from database", deletedRows);
@@ -226,7 +237,8 @@ public class InstanceCheckService {
     }
 
     private boolean shouldPurge(final InstanceInfoVO instance, final long cutoff) {
-        return Objects.equals(InstanceStatusEnum.DELETED.getCode(), instance.getInstanceState())
+        return Objects.nonNull(instance.getInstanceState())
+                && InstanceStatusEnum.DELETED.getCode() == instance.getInstanceState()
                 && instance.getLastHeartBeatTime() < cutoff;
     }
 
