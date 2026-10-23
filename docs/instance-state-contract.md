@@ -24,4 +24,6 @@ The Admin static resources were generated from `apache/shenyu-dashboard` commit 
 
 Build: Node.js `22.23.1`, npm `12.0.0`; `npm ci --no-audit --no-fund --allow-remote=all --ignore-scripts`, then `npm run build`. The install uses the checked-in lockfile; no dependency or lockfile was changed.
 
-Generated JavaScript: `index.72158727.js`; SHA-256 `64ee3e37e174959916dc130b618347de618326aad1df2b3fe526c8537164f5b3`. The files under Admin's `static` directory match the build output byte for byte.
+To preserve the YAPI removal merged in ShenYu #7946, the build also removes the `"import yapi"` entry from `src/routes/Document/components/globalData.js` on top of that source commit. No other source adjustment is applied.
+
+Generated JavaScript: `index.6d21accc.js`; SHA-256 `6592649c1ded15553687bf802fa7fff5cb0d8c631139bc3bae4d517434c703a7`. The files under Admin's `static` directory match the build output byte for byte.

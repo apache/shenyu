@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -54,7 +55,9 @@ public class ServerWebExchangeUtils {
                 .switchIfEmpty(Mono.just(""))
                 .flatMap(convert)
                 .flatMap(body -> {
-                    BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(body);
+                    // A single-value inserter encodes eagerly to calculate content length. RequestDecorator
+                    // uses chunked headers, so encode only when the downstream actually reads the body.
+                    BodyInserter<Flux<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(Flux.just(body), String.class);
                     return bodyInserter.insert(outputMessage, new BodyInserterContext());
                 }).then(Mono.defer(() -> {
                     ServerHttpRequestDecorator decorator = new RequestDecorator(exchange, outputMessage);

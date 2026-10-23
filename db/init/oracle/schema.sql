@@ -317,7 +317,7 @@ create table mock_request_record
     url VARCHAR2(1024) not null,
     path_variable VARCHAR2(255) default '' not null,
     query VARCHAR2(1024) default '' not null,
-    header VARCHAR2(1024) default '' not null,
+    header CLOB default EMPTY_CLOB() not null,
     body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
@@ -2952,7 +2952,8 @@ CREATE TABLE instance_info (
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     last_heart_beat_time number     DEFAULT 0 NOT NULL,
-    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+    CONSTRAINT instance_info_pk PRIMARY KEY (id),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 COMMENT ON TABLE instance_info IS 'Instance information table';

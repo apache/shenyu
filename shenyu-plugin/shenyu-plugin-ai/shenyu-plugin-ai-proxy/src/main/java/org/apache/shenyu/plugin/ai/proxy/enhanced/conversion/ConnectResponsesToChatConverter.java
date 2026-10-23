@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.conversion;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,11 +29,13 @@ import io.github.agenticai.connect.Diagnostic;
 import io.github.agenticai.connect.Format;
 import io.github.agenticai.connect.Json;
 import io.github.agenticai.connect.Options;
-import io.github.agenticai.connect.ProviderProfile;
 import io.github.agenticai.connect.ResponseStreamState;
 import io.github.agenticai.connect.StreamOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -46,12 +48,11 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Request-scoped bridge between ShenYu's reactive HTTP boundary and Connect's JSON codecs.
- * No transport, routing, credentials, retry or billing policy is delegated to Connect.
+ * Converts OpenAI Responses requests to Chat Completions and binds the reverse response conversion.
  */
-public final class ConnectProtocolAdapter {
+public final class ConnectResponsesToChatConverter implements AiProtocolConverter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConnectProtocolAdapter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectResponsesToChatConverter.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
@@ -59,90 +60,101 @@ public final class ConnectProtocolAdapter {
 
     private static final int MAX_CONVERSION_BYTES = 5 * 1024 * 1024;
 
-    private final Format clientFormat;
-
-    private final ConversionContext context;
-
-    /**
-     * Create an isolated context for a request and its response, never a singleton context.
-     *
-     * @param protocol client protocol identifier
-     * @param upstreamModel authoritative routed model, or null to retain the client model
-     * @param profile explicitly selected provider dialect, or null for generic Chat
-     */
-    public ConnectProtocolAdapter(final String protocol, final String upstreamModel, final ProviderProfile profile) {
-        clientFormat = OpenAiResponses.NAME.equals(protocol) ? Format.OPENAI_RESPONSES : Format.OPENAI_CHAT;
-        Options options = new Options();
-        options.toolLossPolicy = Options.LossPolicy.SAFE;
-        options.providerProfile = profile;
-        context = new ConversionContext(options);
-        context.upstreamModel = Objects.isNull(upstreamModel) ? "" : upstreamModel;
+    @Override
+    public String sourceProtocol() {
+        return OpenAiResponses.NAME;
     }
 
-    /**
-     * Convert the final gateway-configured payload to Chat and apply the provider profile once.
-     *
-     * @param payload copied client payload with gateway overrides applied
-     * @return converted payload
-     */
-    public ObjectNode convertRequest(final ObjectNode payload) {
+    @Override
+    public String targetProtocol() {
+        return OpenAiChat.NAME;
+    }
+
+    @Override
+    public AiProtocolConversion convert(final ShenyuAiRequest request, final boolean stream) {
+        Objects.requireNonNull(request, "AI request is required");
+        if (!sourceProtocol().equals(request.getProtocol())) {
+            throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                    "Expected OpenAI Responses request", null);
+        }
+
+        ConversionContext context = createContext(request);
+        ObjectNode convertedPayload = convertRequest(request.getRawPayload(), context);
+        ShenyuAiRequest convertedRequest = new OpenAiChat().decodeRequest(
+                convertedPayload.toString(), convertedPayload);
+        AiResponseAdapter responseAdapter = response -> convertResponse(response, stream, context);
+        return new AiProtocolConversion(convertedRequest, responseAdapter);
+    }
+
+    private ConversionContext createContext(final ShenyuAiRequest request) {
+        Options options = new Options();
+        options.toolLossPolicy = Options.LossPolicy.SAFE;
+        ConversionContext context = new ConversionContext(options);
+        context.upstreamModel = Objects.requireNonNullElse(request.getModel(), "");
+        return context;
+    }
+
+    private ObjectNode convertRequest(final ObjectNode payload, final ConversionContext context) {
+        if (Objects.isNull(payload)) {
+            throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request payload is required", null);
+        }
         try {
-            ConversionResult result = CONNECT.convertRequest(clientFormat, Format.OPENAI_CHAT, Json.object(payload.toString()), context);
+            ConversionResult result = CONNECT.convertRequest(Format.OPENAI_RESPONSES, Format.OPENAI_CHAT,
+                    Json.object(payload.toString()), context);
             reportDiagnostics(result.diagnostics());
             return (ObjectNode) MAPPER.readTree(result.json());
         } catch (Exception error) {
-            if (error instanceof ConversionException) {
-                reportDiagnostics(((ConversionException) error).diagnostics());
+            if (error instanceof ConversionException conversionException) {
+                reportDiagnostics(conversionException.diagnostics());
             }
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request protocol conversion failed", error);
         }
     }
 
-    /**
-     * Convert successful Responses bodies; preserve Chat and upstream HTTP errors unchanged.
-     *
-     * @param response upstream response with an unconsumed body
-     * @param stream effective streaming mode
-     * @return adapted response without subscribing or blocking
-     */
-    public AiUpstreamResponse convertResponse(final AiUpstreamResponse response, final boolean stream) {
-        if (clientFormat == Format.OPENAI_CHAT || response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+    private AiUpstreamResponse convertResponse(final AiUpstreamResponse response, final boolean stream,
+                                               final ConversionContext context) {
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
             return response;
         }
         if (stream) {
             // Reuse ShenYu's incremental SSE framing and content-type validation, not a library HTTP client.
             AiUpstreamResponse framed = new OpenAiChat().encodeResponse(response, true);
-            return new AiUpstreamResponse(response.getStatusCode(), responseHeaders(response, "text/event-stream"), convertStream(framed.getBody()));
+            return new AiUpstreamResponse(response.getStatusCode(), responseHeaders(response, "text/event-stream"),
+                    convertStream(framed.getBody(), context));
         }
         Flux<byte[]> body = response.getBody().reduceWith(ByteArrayOutputStream::new, (buffer, bytes) -> {
             if (bytes.length > MAX_CONVERSION_BYTES - buffer.size()) {
-                throw new AiProxyException(AiProxyException.Kind.PROTOCOL, "AI response exceeds the conversion size limit", null);
+                throw new AiProxyException(AiProxyException.Kind.PROTOCOL,
+                        "AI response exceeds the conversion size limit", null);
             }
             buffer.writeBytes(bytes);
             return buffer;
-        }).map(buffer -> convertCompleteResponse(buffer.toString(StandardCharsets.UTF_8))).flux();
+        }).map(buffer -> convertCompleteResponse(buffer.toString(StandardCharsets.UTF_8), context)).flux();
         return new AiUpstreamResponse(response.getStatusCode(), responseHeaders(response, "application/json"), body);
     }
 
-    private byte[] convertCompleteResponse(final String body) {
+    private byte[] convertCompleteResponse(final String body, final ConversionContext context) {
         try {
             JsonNode payload = MAPPER.readTree(body);
             if (Objects.isNull(payload) || !payload.isObject()) {
                 throw new IllegalArgumentException("Expected an AI response object");
             }
-            ConversionResult result = CONNECT.convertResponse(Format.OPENAI_CHAT, clientFormat, Json.object(payload.toString()), context);
+            ConversionResult result = CONNECT.convertResponse(Format.OPENAI_CHAT, Format.OPENAI_RESPONSES,
+                    Json.object(payload.toString()), context);
             reportDiagnostics(result.diagnostics());
             return result.json().getBytes(StandardCharsets.UTF_8);
         } catch (Exception error) {
-            throw new AiProxyException(AiProxyException.Kind.PROTOCOL, "AI response protocol conversion failed", error);
+            throw new AiProxyException(AiProxyException.Kind.PROTOCOL,
+                    "AI response protocol conversion failed", error);
         }
     }
 
-    private Flux<byte[]> convertStream(final Flux<byte[]> framed) {
+    private Flux<byte[]> convertStream(final Flux<byte[]> framed, final ConversionContext context) {
         return Flux.defer(() -> {
             StreamOptions options = new StreamOptions();
             options.emitSequenceNumber = true;
-            ResponseStreamState state = CONNECT.newResponseStream(Format.OPENAI_CHAT, clientFormat, options, context);
+            ResponseStreamState state = CONNECT.newResponseStream(
+                    Format.OPENAI_CHAT, Format.OPENAI_RESPONSES, options, context);
             int[] size = {0};
             return framed.concatMapIterable(bytes -> {
                 // The framer produces exactly one validated event, retaining multiline JSON.
@@ -152,7 +164,8 @@ public final class ConnectProtocolAdapter {
                     return List.<ConversionResult>of();
                 }
                 if (bytes.length > MAX_CONVERSION_BYTES - size[0]) {
-                    throw new AiProxyException(AiProxyException.Kind.PROTOCOL, "AI stream exceeds the conversion size limit", null);
+                    throw new AiProxyException(AiProxyException.Kind.PROTOCOL,
+                            "AI stream exceeds the conversion size limit", null);
                 }
                 size[0] += bytes.length;
                 return state.accept(payload);
@@ -162,7 +175,8 @@ public final class ConnectProtocolAdapter {
                 return Flux.fromIterable(terminal);
             })).map(this::frameEvent)
                     .onErrorMap(error -> !(error instanceof AiProxyException),
-                            error -> new AiProxyException(AiProxyException.Kind.PROTOCOL, "AI stream protocol conversion failed", error));
+                            error -> new AiProxyException(AiProxyException.Kind.PROTOCOL,
+                                    "AI stream protocol conversion failed", error));
         });
     }
 
@@ -173,8 +187,9 @@ public final class ConnectProtocolAdapter {
 
     private Map<String, List<String>> responseHeaders(final AiUpstreamResponse response, final String contentType) {
         Map<String, List<String>> headers = new LinkedHashMap<>(response.getHeaders());
-        headers.keySet().removeIf(name -> "Content-Length".equalsIgnoreCase(name) || "Content-Type".equalsIgnoreCase(name)
-                || "ETag".equalsIgnoreCase(name) || "Content-MD5".equalsIgnoreCase(name) || "Digest".equalsIgnoreCase(name));
+        headers.keySet().removeIf(name -> "Content-Length".equalsIgnoreCase(name)
+                || "Content-Type".equalsIgnoreCase(name) || "ETag".equalsIgnoreCase(name)
+                || "Content-MD5".equalsIgnoreCase(name) || "Digest".equalsIgnoreCase(name));
         headers.put("Content-Type", List.of(contentType));
         return headers;
     }

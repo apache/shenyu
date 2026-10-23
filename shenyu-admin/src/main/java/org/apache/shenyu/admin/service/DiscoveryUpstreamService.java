@@ -114,6 +114,14 @@ public interface DiscoveryUpstreamService {
      */
     List<DiscoveryUpstreamData> findBySelectorId(String selectorId);
 
+    /**
+     * Whether a selector has authoritative discovery state, including an empty instance list.
+     *
+     * @param selectorId selector id
+     * @return whether a discovery handler exists
+     */
+    boolean hasDiscoveryHandler(String selectorId);
+
 
     /**
      * deleteBySelectorIdAndUrl.

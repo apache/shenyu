@@ -114,6 +114,7 @@ class HeartbeatBoundPortTest {
         Properties props = new Properties();
         props.setProperty(Constants.USER_NAME, "admin");
         props.setProperty(Constants.PASS_WORD, "123456");
+        props.setProperty("heartbeatDirectExecution", "true");
         ShenyuBootstrapHeartBeatConfig config = new ShenyuBootstrapHeartBeatConfig();
         config.setServerLists("http://127.0.0.1:1");
         config.setProps(props);

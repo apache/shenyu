@@ -31,6 +31,10 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
@@ -48,6 +52,8 @@ import static io.netty.handler.codec.mqtt.MqttMessageType.PUBREC;
  * Publish message.
  */
 public class Publish extends MessageType {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Publish.class);
 
     @Override
     public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
@@ -68,7 +74,40 @@ public class Publish extends MessageType {
             }
         }
         int packetId = msg.variableHeader().packetId();
-        // The inbound message is released by MqttTransportHandler once publish returns, retain the payload for the asynchronous send.
+        switch (mqttQoS.value()) {
+            case 0:
+                deliverAsync(topic, payload, mqttQoS);
+                break;
+
+            case 1:
+                deliverAsync(topic, payload, mqttQoS);
+                qos1(ctx, packetId);
+                break;
+
+            case 2:
+                // exactly-once: a retransmitted publish is answered with PUBREC
+                // but must not be delivered to subscribers again (#7919)
+                if (registerInbound(ctx.channel(), packetId)) {
+                    deliverAsync(topic, payload, mqttQoS);
+                }
+                qos2(ctx, packetId);
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    /**
+     * Delivers the message to the subscribers of the topic on the common pool.
+     * The inbound message is released by MqttTransportHandler once publish returns,
+     * retain the payload for the asynchronous send.
+     *
+     * @param topic the topic of the publish
+     * @param payload the payload of the publish
+     * @param mqttQoS the qos level of the publish
+     */
+    private void deliverAsync(final String topic, final ByteBuf payload, final MqttQoS mqttQoS) {
         payload.retain();
         CompletableFuture.runAsync(() -> {
             try {
@@ -77,22 +116,24 @@ public class Publish extends MessageType {
                 ReferenceCountUtil.safeRelease(payload);
             }
         });
+    }
 
-        switch (mqttQoS.value()) {
-            case 0:
-                break;
-
-            case 1:
-                qos1(ctx, packetId);
-                break;
-
-            case 2:
-                qos2(ctx, packetId);
-                break;
-            default:
-                break;
+    /**
+     * Registers the inbound packet for deduplication. QoS 2 packet ids are scoped
+     * to the connection, so without a known client the publish is delivered as before.
+     *
+     * @param channel the channel of the publisher
+     * @param packetId the packet identifier of the inbound publish
+     * @return true when the packet was seen for the first time
+     */
+    private boolean registerInbound(final Channel channel, final int packetId) {
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
+        if (Objects.isNull(clientId)) {
+            // dedup is keyed by the client id: without one, deliver as before
+            LOG.debug("mqtt publish on channel {} has no client id, skipping qos2 dedup", channel.id());
+            return true;
         }
-
+        return Singleton.INST.get(InflightRepository.class).register(clientId, packetId);
     }
 
     /**

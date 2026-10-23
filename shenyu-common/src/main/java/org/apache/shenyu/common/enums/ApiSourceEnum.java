@@ -40,12 +40,7 @@ public enum ApiSourceEnum {
     /**
      * import_swagger.
      */
-    IMPORT_SWAGGER("import_swagger", 3),
-
-    /**
-     * import_yapi.
-     */
-    IMPORT_YAPI("import_yapi", 4);
+    IMPORT_SWAGGER("import_swagger", 3);
 
     private final String name;
 

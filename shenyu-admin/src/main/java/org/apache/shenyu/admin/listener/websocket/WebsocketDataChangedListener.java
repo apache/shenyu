@@ -22,6 +22,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.model.dto.DiscoverySyncPayload;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -53,6 +54,24 @@ import java.util.function.Function;
 public class WebsocketDataChangedListener implements DataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketDataChangedListener.class);
+
+    private final boolean compactDiscoveryPayload;
+
+    /**
+     * Create a listener using the legacy payload.
+     */
+    public WebsocketDataChangedListener() {
+        this(false);
+    }
+
+    /**
+     * Create a listener with optional Discovery payload projection.
+     *
+     * @param compactDiscoveryPayload whether to omit Discovery management fields
+     */
+    public WebsocketDataChangedListener(final boolean compactDiscoveryPayload) {
+        this.compactDiscoveryPayload = compactDiscoveryPayload;
+    }
 
     @Override
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
@@ -142,6 +161,16 @@ public class WebsocketDataChangedListener implements DataChangedListener {
 
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
+        if (compactDiscoveryPayload && CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            List<DiscoverySyncPayload> payloads = new ArrayList<>(discoveryUpstreamList.size());
+            for (DiscoverySyncData data : discoveryUpstreamList) {
+                if (Objects.nonNull(data)) {
+                    payloads.add(DiscoverySyncPayload.from(data));
+                }
+            }
+            sendByNamespace(payloads, eventType, ConfigGroupEnum.DISCOVER_UPSTREAM, DiscoverySyncPayload::namespaceId);
+            return;
+        }
         sendByNamespace(discoveryUpstreamList, eventType, ConfigGroupEnum.DISCOVER_UPSTREAM, DiscoverySyncData::getNamespaceId);
     }
 
