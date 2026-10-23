@@ -40,3 +40,7 @@ WHERE EXISTS (
             AND retained_instance.id > duplicate_instance.id))
 );
 CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, instance_ip, instance_port, instance_type);
+
+-- Preserve complete API-debug request headers, including long Authorization values.
+-- Stop Admin writers and back up mock_request_record before the one-time migration.
+ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;

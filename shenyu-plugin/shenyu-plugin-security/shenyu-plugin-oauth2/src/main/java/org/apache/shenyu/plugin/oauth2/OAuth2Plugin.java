@@ -57,7 +57,9 @@ public class OAuth2Plugin extends AbstractShenyuPlugin {
                 .filter(OAuth2AuthenticationToken.class::isInstance)
                 .cast(OAuth2AuthenticationToken.class)
                 .flatMap(this::buildAuthorizedClient)
-                .flatMap(client -> chain.execute(this.writeToken(exchange, client)));
+                .map(client -> this.writeToken(exchange, client))
+                .defaultIfEmpty(exchange)
+                .flatMap(chain::execute);
     }
     
     @Override

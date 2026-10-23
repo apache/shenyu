@@ -87,6 +87,15 @@
                  </foreach>
     </select>
 
+    <select id="findByNameAndPluginIdAndNamespaceIdForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE selector_name = #{name, jdbcType=VARCHAR}
+          AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        FOR UPDATE
+    </select>
+
     <select id="selectByNameAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>

@@ -45,7 +45,9 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -258,6 +260,58 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithMultipleEnabledRulesTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData secondRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(secondRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, secondRule);
+        verify(testShenyuPlugin, never()).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithLastRuleDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData disabledRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(false)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(disabledRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithAllRulesDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        this.ruleData.setEnabled(false);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+        verify(testShenyuPlugin, never()).doExecute(any(), any(), any(), any());
     }
 
     @Test

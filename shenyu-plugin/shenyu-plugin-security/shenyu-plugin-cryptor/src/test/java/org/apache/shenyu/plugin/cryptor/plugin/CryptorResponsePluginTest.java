@@ -21,12 +21,24 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuEntity;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
+import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,8 +52,13 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -52,6 +69,8 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public class CryptorResponsePluginTest {
+
+    private static KeyPair testKeyPair;
 
     private RuleData ruleData;
 
@@ -64,6 +83,13 @@ public class CryptorResponsePluginTest {
     private CryptorResponsePluginDataHandler cryptorResponsePluginDataHandler;
 
     private SelectorData selectorData;
+
+    @BeforeAll
+    static void generateTestKeys() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        testKeyPair = generator.generateKeyPair();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -194,6 +220,87 @@ public class CryptorResponsePluginTest {
     public void getOrderTest() {
         final int result = cryptorResponsePlugin.getOrder();
         assertEquals(PluginEnum.CRYPTOR_RESPONSE.getCode(), result);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "encrypt, field, missing",
+        "decrypt, field, missing",
+        "encrypt, all, data.missing",
+        "decrypt, all, data.missing",
+        "encrypt, all, 'missingOne,missingTwo'",
+        "decrypt, all, 'missingOne,missingTwo'"
+    })
+    void testMissingFieldsReturnConfigurationErrorInsteadOfOriginalBody(final String way, final String mapType, final String fields) {
+        CryptorRuleHandler handle = bodyRule(way, mapType, fields);
+        String originalBody = "{\"data\":{\"other\":\"confidential-marker\"}}";
+
+        MockServerWebExchange responseExchange = writeResponse(handle, originalBody);
+
+        String responseBody = responseExchange.getResponse().getBodyAsString().block();
+        DefaultShenyuEntity error = GsonUtils.getInstance().fromJson(responseBody, DefaultShenyuEntity.class);
+        assertEquals(ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(), error.getCode());
+        assertEquals(ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", error.getMessage());
+        assertFalse(responseBody.contains("confidential-marker"));
+        assertEquals(responseBody.getBytes(StandardCharsets.UTF_8).length, responseExchange.getResponse().getHeaders().getContentLength());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"encrypt, field", "encrypt, all", "decrypt, field", "decrypt, all"})
+    void testExistingFieldIsStillTransformed(final String way, final String mapType) throws Exception {
+        CryptorRuleHandler handle = bodyRule(way, mapType, "data");
+        RsaStrategy strategy = new RsaStrategy();
+        String input = "decrypt".equals(way) ? strategy.encrypt(handle.getEncryptKey(), "classified") : "classified";
+
+        MockServerWebExchange responseExchange = writeResponse(handle, "{\"data\":\"" + input + "\",\"other\":\"unchanged\"}");
+
+        String responseBody = responseExchange.getResponse().getBodyAsString().block();
+        String transformed = responseBody;
+        if ("all".equals(mapType)) {
+            assertEquals("unchanged", GsonUtils.getInstance().toObjectMap(responseBody).get("other"));
+            transformed = GsonUtils.getInstance().toObjectMap(responseBody).get("data").toString();
+        }
+        if ("encrypt".equals(way)) {
+            assertFalse(responseBody.contains("classified"));
+            assertEquals("classified", strategy.decrypt(handle.getDecryptKey(), Base64.getDecoder().decode(transformed)));
+        } else {
+            assertEquals("classified", transformed);
+        }
+    }
+
+    private CryptorRuleHandler bodyRule(final String way, final String mapType, final String fields) {
+        CryptorRuleHandler handle = CryptorRuleHandler.newInstance();
+        handle.setStrategyName("rsa");
+        handle.setWay(way);
+        handle.setMapType(mapType);
+        handle.setFieldNames(fields);
+        handle.setEncryptKey(Base64.getEncoder().encodeToString(testKeyPair.getPublic().getEncoded()));
+        handle.setDecryptKey(Base64.getEncoder().encodeToString(testKeyPair.getPrivate().getEncoded()));
+        return handle;
+    }
+
+    private MockServerWebExchange writeResponse(final CryptorRuleHandler handle, final String originalBody) {
+        ApplicationContext applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
+        MockServerWebExchange responseExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/cryptor-response-test"));
+        ruleData.setHandle(GsonUtils.getInstance().toJson(handle));
+        cryptorResponsePluginDataHandler.handlerRule(ruleData);
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            ServerWebExchange downstream = invocation.getArgument(0);
+            downstream.getResponse().setStatusCode(HttpStatus.OK);
+            downstream.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            byte[] bytes = originalBody.getBytes(StandardCharsets.UTF_8);
+            downstream.getResponse().getHeaders().setContentLength(bytes.length);
+            return downstream.getResponse().writeWith(Mono.just(downstream.getResponse().bufferFactory().wrap(bytes)));
+        });
+        try {
+            StepVerifier.create(cryptorResponsePlugin.doExecute(responseExchange, chain, selectorData, ruleData)).verifyComplete();
+            return responseExchange;
+        } finally {
+            cryptorResponsePluginDataHandler.removeRule(ruleData);
+            SpringBeanUtils.getInstance().setApplicationContext(null);
+        }
     }
 
     private ServerWebExchange generateServerWebExchange() {

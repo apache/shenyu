@@ -283,6 +283,43 @@ public final class DividePluginTest {
     }
 
     @Test
+    public void leastActiveInflightShouldBeReservedAndReleased() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("leastActive");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(1, upstream.getInflight().get());
+        }
+    }
+
+    @Test
+    public void leastActiveInflightShouldBeReleasedOnCancellation() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("leastActive");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        upstream.getInflight().set(2);
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+            Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+            assertEquals(3, upstream.getInflight().get());
+
+            subscription.dispose();
+
+            assertEquals(2, upstream.getInflight().get());
+        }
+    }
+
+    @Test
     public void successResponseTriggerTest() throws Exception {
         dividePlugin = DividePlugin.class.newInstance();
         Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class, long.class);
