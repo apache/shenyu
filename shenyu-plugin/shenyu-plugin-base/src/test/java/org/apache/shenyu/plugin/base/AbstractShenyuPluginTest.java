@@ -32,6 +32,8 @@ import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -44,10 +46,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -102,7 +109,7 @@ public final class AbstractShenyuPluginTest {
         ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         clearCache();
-        when(shenyuPluginChain.execute(exchange)).thenReturn(Mono.empty());
+        when(shenyuPluginChain.execute(any())).thenReturn(Mono.empty());
     }
 
     /**
@@ -230,6 +237,7 @@ public final class AbstractShenyuPluginTest {
 
         ServerWebExchange ordinaryExchange = exchangeWithTenant("b");
         StepVerifier.create(testShenyuPlugin.execute(ordinaryExchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", ordinaryExchange.getRequest().getURI().getRawPath()));
         ServerWebExchange tenantExchange = exchangeWithTenant("a");
         StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
 
@@ -265,10 +273,151 @@ public final class AbstractShenyuPluginTest {
 
         ServerWebExchange ordinaryExchange = exchangeWithTenant("b");
         StepVerifier.create(testShenyuPlugin.execute(ordinaryExchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", ordinaryExchange.getRequest().getURI().getRawPath()));
         ServerWebExchange tenantExchange = exchangeWithTenant("a");
         StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
 
         verify(testShenyuPlugin).doExecute(any(), any(), any(), argThat(rule -> "tenant".equals(rule.getId())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void uriOnlySelectorResultsShouldBeCachedAndReused(final boolean matched) {
+        final SelectorData candidate = spy(cacheTestSelector("candidate", uriCondition(matched ? "/http/**" : "/other/**")));
+        SelectorData disabled = cacheTestSelector("disabled", tenantCondition("a"));
+        disabled.setEnabled(false);
+        disabled.setMatchRestful(true);
+        SelectorData empty = cacheTestSelector("empty");
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(candidate);
+        BaseDataCache.getInstance().cacheSelectData(disabled);
+        BaseDataCache.getInstance().cacheSelectData(empty);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        SelectorData cached = MatchDataCache.getInstance().obtainSelectorData("SHENYU", exchange.getRequest().getURI().getRawPath());
+        assertNotNull(cached);
+        assertEquals(matched ? "candidate" : null, cached.getId());
+        clearInvocations(candidate);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        verify(candidate, never()).getConditionList();
+        assertSame(cached, MatchDataCache.getInstance().obtainSelectorData("SHENYU", exchange.getRequest().getURI().getRawPath()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void uriOnlyRuleResultsShouldBeCachedAndReused(final boolean matched) {
+        SelectorData selector = cacheTestSelector("selector", uriCondition("/http/**"));
+        selector.setContinued(true);
+        final RuleData candidate = spy(cacheTestRule("candidate", "selector", uriCondition(matched ? "/http/**" : "/other/**")));
+        RuleData disabled = cacheTestRule("disabled", "selector", tenantCondition("a"));
+        disabled.setEnabled(false);
+        disabled.setMatchRestful(true);
+        RuleData empty = cacheTestRule("empty", "selector");
+        empty.setMatchMode(1);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        BaseDataCache.getInstance().cacheRuleData(candidate);
+        BaseDataCache.getInstance().cacheRuleData(disabled);
+        BaseDataCache.getInstance().cacheRuleData(empty);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", exchange.getRequest().getURI().getRawPath());
+        assertNotNull(cached);
+        assertEquals(matched ? "candidate" : null, cached.getId());
+        clearInvocations(candidate);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        verify(candidate, never()).getConditionDataList();
+        assertSame(cached, MatchDataCache.getInstance().obtainRuleData("SHENYU", exchange.getRequest().getURI().getRawPath()));
+    }
+
+    @Test
+    public void selectorMissShouldNotSuppressLaterDynamicMatch() {
+        final SelectorData candidate = cacheTestSelector("tenant", tenantCondition("a"));
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(candidate);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", exchange.getRequest().getURI().getRawPath()));
+        ServerWebExchange tenantExchange = exchangeWithTenant("a");
+        StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
+        verify(testShenyuPlugin).doExecute(any(), any(), argThat(selector -> "tenant".equals(selector.getId())), any());
+    }
+
+    @Test
+    public void ruleMissShouldNotSuppressLaterDynamicMatch() {
+        SelectorData selector = cacheTestSelector("selector", uriCondition("/http/**"));
+        selector.setContinued(true);
+        final RuleData candidate = cacheTestRule("tenant", "selector", tenantCondition("a"));
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        BaseDataCache.getInstance().cacheRuleData(candidate);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", exchange.getRequest().getURI().getRawPath()));
+        ServerWebExchange tenantExchange = exchangeWithTenant("a");
+        StepVerifier.create(testShenyuPlugin.execute(tenantExchange, shenyuPluginChain)).verifyComplete();
+        verify(testShenyuPlugin).doExecute(any(), any(), any(), argThat(rule -> "tenant".equals(rule.getId())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void ruleResultsShouldNotBeReusedAcrossDynamicSelectors(final boolean firstMatches) {
+        SelectorData first = cacheTestSelector("first", tenantCondition("a"));
+        SelectorData second = cacheTestSelector("second", tenantCondition("b"));
+        first.setContinued(true);
+        second.setContinued(true);
+        RuleData firstRule = cacheTestRule("first-rule", "first", uriCondition(firstMatches ? "/http/**" : "/other/**"));
+        RuleData secondRule = cacheTestRule("second-rule", "second", uriCondition("/http/**"));
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(first);
+        BaseDataCache.getInstance().cacheSelectData(second);
+        BaseDataCache.getInstance().cacheRuleData(firstRule);
+        BaseDataCache.getInstance().cacheRuleData(secondRule);
+
+        ServerWebExchange firstExchange = exchangeWithTenant("a");
+        StepVerifier.create(testShenyuPlugin.execute(firstExchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", firstExchange.getRequest().getURI().getRawPath()));
+        if (firstMatches) {
+            verify(testShenyuPlugin).doExecute(firstExchange, shenyuPluginChain, first, firstRule);
+        } else {
+            verify(shenyuPluginChain).execute(firstExchange);
+        }
+        ServerWebExchange secondExchange = exchangeWithTenant("b");
+        StepVerifier.create(testShenyuPlugin.execute(secondExchange, shenyuPluginChain)).verifyComplete();
+        verify(testShenyuPlugin).doExecute(secondExchange, shenyuPluginChain, second, secondRule);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void restfulSelectorCandidateShouldPreventResultCaching(final boolean matched) {
+        final SelectorData candidate = cacheTestSelector("candidate", uriCondition(matched ? "/http/**" : "/other/**"));
+        SelectorData restful = cacheTestSelector("restful", uriCondition("/restful/{id}"));
+        restful.setMatchRestful(true);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(candidate);
+        BaseDataCache.getInstance().cacheSelectData(restful);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", exchange.getRequest().getURI().getRawPath()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void restfulRuleCandidateShouldPreventResultCaching(final boolean matched) {
+        SelectorData selector = cacheTestSelector("selector", uriCondition("/http/**"));
+        selector.setContinued(true);
+        final RuleData candidate = cacheTestRule("candidate", "selector", uriCondition(matched ? "/http/**" : "/other/**"));
+        RuleData restful = cacheTestRule("restful", "selector", uriCondition("/restful/{id}"));
+        restful.setMatchRestful(true);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        BaseDataCache.getInstance().cacheRuleData(candidate);
+        BaseDataCache.getInstance().cacheRuleData(restful);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", exchange.getRequest().getURI().getRawPath()));
     }
 
     @Test
@@ -449,6 +598,34 @@ public final class AbstractShenyuPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
         SpringBeanUtils.getInstance().setApplicationContext(context);
+    }
+
+    private SelectorData cacheTestSelector(final String id, final ConditionData... conditions) {
+        return SelectorData.builder().id(id).pluginName("SHENYU").enabled(true).continued(false).logged(false)
+                .matchMode(0).sort(1).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).conditionList(List.of(conditions)).build();
+    }
+
+    private RuleData cacheTestRule(final String id, final String selectorId, final ConditionData... conditions) {
+        return RuleData.builder().id(id).selectorId(selectorId).pluginName("SHENYU").enabled(true).logged(false)
+                .matchMode(0).sort(1).conditionDataList(List.of(conditions)).build();
+    }
+
+    private ConditionData uriCondition(final String pattern) {
+        ConditionData result = new ConditionData();
+        result.setParamType("uri");
+        result.setParamName("/");
+        result.setOperator("match");
+        result.setParamValue(pattern);
+        return result;
+    }
+
+    private ConditionData tenantCondition(final String tenant) {
+        ConditionData result = new ConditionData();
+        result.setParamType("header");
+        result.setParamName("X-Tenant");
+        result.setOperator("=");
+        result.setParamValue(tenant);
+        return result;
     }
 
     private ServerWebExchange exchangeWithTenant(final String tenant) {

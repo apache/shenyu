@@ -123,7 +123,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, rules, path);
+            ruleData = defaultMatchRule(exchange, selectors, rules, path);
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
@@ -195,21 +195,26 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
+    // A dynamic candidate disables result caching for the whole set, trading cache hits for correct routing.
     private boolean canCacheSelectorMatch(final Collection<SelectorData> selectors) {
         return selectors.stream()
                 .filter(selector -> Boolean.TRUE.equals(selector.getEnabled()))
-                .allMatch(selector -> hasOnlyUriConditions(selector.getConditionList()));
+                .allMatch(selector -> !Boolean.TRUE.equals(selector.getMatchRestful())
+                        && (selector.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode()
+                        || hasOnlyUriConditions(selector.getConditionList())));
     }
 
     private boolean canCacheRuleMatch(final Collection<RuleData> rules) {
         return rules.stream()
                 .filter(rule -> Boolean.TRUE.equals(rule.getEnabled()))
-                .allMatch(rule -> hasOnlyUriConditions(rule.getConditionDataList()));
+                .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful())
+                        && hasOnlyUriConditions(rule.getConditionDataList()));
     }
 
     private boolean hasOnlyUriConditions(final Collection<ConditionData> conditions) {
-        return CollectionUtils.isNotEmpty(conditions)
-                && conditions.stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+        // Empty conditions are request-independent: custom selectors never match, and rule matching is constant.
+        return CollectionUtils.isEmpty(conditions)
+                || conditions.stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
     }
 
     private RuleData defaultRuleData(final SelectorData selectorData) {
@@ -323,18 +328,20 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors, final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
+        // Rule cache keys omit selector IDs, so a dynamic selector set also makes rule results unsafe to reuse.
+        boolean canCache = matchRulePair.getLeft() && canCacheSelectorMatch(selectors) && canCacheRuleMatch(rules);
         if (Objects.nonNull(ruleData)) {
             // cache rule data
-            if (matchRulePair.getLeft() && canCacheRuleMatch(rules)) {
+            if (canCache) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
         } else {
             // if not match rule, cache empty rule data.
-            if (matchRulePair.getLeft() && canCacheRuleMatch(rules)) {
+            if (canCache) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }
