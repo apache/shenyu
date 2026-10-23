@@ -319,6 +319,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Boolean.TRUE.equals(selector.getMatchRestful())) {
                 return false;
             }
+            // type cannot be null here: filterSelector already unboxes it for every enabled row.
             if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selector.getType())
                     && !isUriOnlyConditionList(selector.getConditionList())) {
                 return false;

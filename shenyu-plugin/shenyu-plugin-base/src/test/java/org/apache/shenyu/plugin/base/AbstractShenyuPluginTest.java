@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -49,9 +51,11 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -510,12 +514,12 @@ public final class AbstractShenyuPluginTest {
 
     @Test
     public void negativeSelectorCacheStillAppliesToPathOnlyCandidates() {
-        SelectorData pathOnlySelector = SelectorData.builder()
+        SelectorData pathOnlySelector = spy(SelectorData.builder()
                 .id("1").pluginName("SHENYU").enabled(true).logged(true)
                 .matchRestful(false).matchMode(0).sort(1).continued(false)
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
-                .build();
+                .build());
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
         when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
@@ -526,6 +530,11 @@ public final class AbstractShenyuPluginTest {
         SelectorData cached = MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/neg-control");
         assertNotNull(cached, "a path-only candidate set may still cache a negative selector result");
         assertNull(cached.getId());
+        clearInvocations(pathOnlySelector);
+
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(pathOnlySelector, never()).getConditionList();
+        assertSame(cached, MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/neg-control"));
     }
 
     @Test
@@ -536,11 +545,11 @@ public final class AbstractShenyuPluginTest {
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
                 .build();
-        RuleData pathOnlyRule = RuleData.builder()
+        RuleData pathOnlyRule = spy(RuleData.builder()
                 .id("1").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
                 .matchRestful(false).matchMode(0).sort(1)
                 .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/elsewhere/**")))
-                .build();
+                .build());
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
         BaseDataCache.getInstance().cacheRuleData(pathOnlyRule);
@@ -552,6 +561,11 @@ public final class AbstractShenyuPluginTest {
         RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/neg-control");
         assertNotNull(cached, "a path-only candidate set may still cache a negative rule result");
         assertNull(cached.getId());
+        clearInvocations(pathOnlyRule);
+
+        StepVerifier.create(testShenyuPlugin.execute(miss, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(pathOnlyRule, never()).getConditionDataList();
+        assertSame(cached, MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/neg-control"));
     }
 
     /**
@@ -637,12 +651,12 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void positiveSelectorCacheStillAppliesToPathOnlyCandidates() {
-        SelectorData pathOnly = SelectorData.builder()
+        SelectorData pathOnly = spy(SelectorData.builder()
                 .id("1").pluginName("SHENYU").enabled(true).logged(true)
                 .matchRestful(false).matchMode(0).sort(1).continued(false)
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
-                .build();
+                .build());
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(pathOnly);
         when(shenyuPluginChain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
@@ -653,6 +667,11 @@ public final class AbstractShenyuPluginTest {
         SelectorData cached = MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/http/ctrl");
         assertNotNull(cached, "a path-only candidate set may still cache a positive selector result");
         assertEquals("1", cached.getId());
+        clearInvocations(pathOnly);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(pathOnly, never()).getConditionList();
+        assertSame(cached, MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/http/ctrl"));
     }
 
     /**
@@ -666,11 +685,11 @@ public final class AbstractShenyuPluginTest {
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .conditionList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
                 .build();
-        RuleData pathOnlyRule = RuleData.builder()
+        RuleData pathOnlyRule = spy(RuleData.builder()
                 .id("2").pluginName("SHENYU").selectorId("1").enabled(true).logged(true)
                 .matchRestful(false).matchMode(0).sort(1)
                 .conditionDataList(Collections.singletonList(condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
-                .build();
+                .build());
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(pathOnlySelector);
         BaseDataCache.getInstance().cacheRuleData(pathOnlyRule);
@@ -682,6 +701,71 @@ public final class AbstractShenyuPluginTest {
         RuleData cached = MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/ctrl");
         assertNotNull(cached, "a path-only candidate set may still cache a positive rule result");
         assertEquals("2", cached.getId());
+        clearInvocations(pathOnlyRule);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(pathOnlyRule, never()).getConditionDataList();
+        assertSame(cached, MatchDataCache.getInstance().obtainRuleData("SHENYU", "/http/ctrl"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void restfulSelectorCandidateShouldPreventResultCaching(final boolean matched) {
+        SelectorData candidate = SelectorData.builder()
+                .id("candidate").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", matched ? "/http/**" : "/other/**")))
+                .build();
+        SelectorData restful = SelectorData.builder()
+                .id("restful").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(true).matchMode(0).sort(2).continued(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", "/restful/{id}")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(candidate);
+        BaseDataCache.getInstance().cacheSelectData(restful);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", exchange.getRequest().getURI().getRawPath()),
+                "a RESTful selector makes the candidate set path-ambiguous, so no entry may be cached");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void restfulRuleCandidateShouldPreventResultCaching(final boolean matched) {
+        SelectorData selector = SelectorData.builder()
+                .id("selector").pluginName("SHENYU").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1).continued(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .conditionList(Collections.singletonList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", "/http/**")))
+                .build();
+        RuleData candidate = RuleData.builder()
+                .id("candidate").pluginName("SHENYU").selectorId("selector").enabled(true).logged(true)
+                .matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", matched ? "/http/**" : "/other/**")))
+                .build();
+        RuleData restful = RuleData.builder()
+                .id("restful").pluginName("SHENYU").selectorId("selector").enabled(true).logged(true)
+                .matchRestful(true).matchMode(0).sort(2)
+                .conditionDataList(Collections.singletonList(
+                        condition(ParamTypeEnum.URI.getName(), "/", "match", "/restful/{id}")))
+                .build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        BaseDataCache.getInstance().cacheRuleData(candidate);
+        BaseDataCache.getInstance().cacheRuleData(restful);
+
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+
+        assertNull(MatchDataCache.getInstance().obtainRuleData("SHENYU", exchange.getRequest().getURI().getRawPath()),
+                "a RESTful rule makes the candidate set path-ambiguous, so no entry may be cached");
     }
 
     private ConditionData condition(final String paramType, final String paramName, final String operator, final String paramValue) {
