@@ -107,6 +107,15 @@ public class ShortestResponseLoadBalancerTest {
         Assertions.assertTrue(fastHits < 100);
         Assertions.assertTrue(fast.getInflight().get() > 1);
         Assertions.assertTrue(slow.getInflight().get() > 1);
-        Assertions.assertEquals(100, fast.getInflight().get() + slow.getInflight().get() - 2);
+        Assertions.assertEquals(2 + 100, fast.getInflight().get() + slow.getInflight().get());
+    }
+
+    @Test
+    public void singletonSelectionIncrementsInflightOnce() {
+        Upstream upstream = Upstream.builder().url("only").weight(1).build();
+        long before = upstream.getInflight().get();
+        Upstream picked = new ShortestResponseLoadBalancer().select(List.of(upstream), new LoadBalanceData());
+        Assertions.assertSame(upstream, picked);
+        Assertions.assertEquals(before + 1, upstream.getInflight().get());
     }
 }
