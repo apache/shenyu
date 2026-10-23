@@ -23,6 +23,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -105,8 +106,18 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
+        Mono<Void> proxySession = this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
+        if (!LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance())) {
+            return proxySession;
+        }
+        // Least active compares outstanding requests, so the chosen upstream stays reserved for as long as
+        // the proxied session runs and is released when it terminates, whatever its outcome. The reservation
+        // happens on subscription, so a session that is never subscribed does not leak the count.
+        return Mono.defer(() -> {
+            upstream.getInflight().incrementAndGet();
+            return proxySession.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        });
     }
 
     private WebSocketRuleHandle buildRuleHandle(final RuleData rule) {

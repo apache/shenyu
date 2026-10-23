@@ -24,11 +24,13 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
@@ -43,6 +45,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -136,6 +139,55 @@ public class WebSocketPluginTest {
     }
 
     /**
+     * Least active counts the proxied session while it runs and releases it when it terminates.
+     */
+    @Test
+    public void leastActiveShouldCountTheProxiedSession() {
+        initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        long initial = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.never());
+
+        Disposable subscription = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        assertEquals(initial + 1, upstream.getInflight().get());
+
+        subscription.dispose();
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * A proxied session that completes normally is released as well.
+     */
+    @Test
+    public void leastActiveShouldReleaseOnCompletion() {
+        initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        long initial = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * The other algorithms do not read the count, so they must not touch it.
+     */
+    @Test
+    public void otherAlgorithmsShouldNotCountTheProxiedSession() {
+        initMockInfo(LoadBalanceEnum.RANDOM.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        long initial = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.never());
+
+        Disposable subscription = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        assertEquals(initial, upstream.getInflight().get());
+
+        subscription.dispose();
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
      * Skip.
      */
     @Test
@@ -187,9 +239,19 @@ public class WebSocketPluginTest {
      * Init mock info.
      */
     private void initMockInfo() {
+        initMockInfo(LoadBalanceEnum.RANDOM.getName());
+    }
+
+    /**
+     * Init mock info with the given load balance algorithm.
+     *
+     * @param loadBalance the load balance algorithm
+     */
+    private void initMockInfo(final String loadBalance) {
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
         WebSocketRuleHandle handle = new WebSocketRuleHandle();
+        handle.setLoadBalance(loadBalance);
         when(selectorData.getId()).thenReturn("mock");
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         when(discoverySyncData.getSelectorId()).thenReturn("mock");

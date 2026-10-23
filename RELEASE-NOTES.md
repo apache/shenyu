@@ -28,6 +28,17 @@
 
 ### Behavior Changes
 
+- The `leastActive` load balancer now sees outstanding requests for the websocket
+  plugin and for apache dubbo gray routing, not only for the divide plugin. A
+  proxied websocket session is counted for as long as it runs, and a gray routed
+  RPC is counted from the moment the invoker starts it until its result
+  completes, so `leastActive` distributes by concurrent work on those paths
+  instead of falling back to weight. `shortestResponse` is unchanged outside the
+  divide plugin: it also needs the average elapsed time of successful requests,
+  which only divide records, so it keeps falling back to weight there. The grpc
+  picker, the tcp proxy and the java sdk rebuild their `Upstream` objects on every
+  call and remain weight-based for both algorithms.
+
 - The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
   concurrent requests that miss the same response cache key share one upstream
   fill on that gateway instance instead of one per request, and the followers
