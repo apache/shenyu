@@ -28,6 +28,7 @@ import org.apache.ibatis.plugin.Signature;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 /**
  * the mybatis interceptor for update/insert/delete.
@@ -36,6 +37,8 @@ import java.util.Properties;
         @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
 })
 public class OracleSQLPrepareInterceptor implements Interceptor {
+
+    private static final Pattern MULTI_ROW_VALUES = Pattern.compile("\\)\\s*,\\s*\\(");
 
     @Override
     public Object intercept(final Invocation invocation) throws Throwable {
@@ -72,7 +75,7 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
                     .replace("update resource", "update \"resource\"");
         }
         // replace batch insert into
-        if (replaceSql.contains("insert into") && replaceSql.split("\\(").length > 3) {
+        if (replaceSql.contains("insert into") && MULTI_ROW_VALUES.matcher(replaceSql).find()) {
             replaceSql = replaceSql.replaceAll("\r|\n|\\s", "")
                     .replace("insertinto", "insert into ")
                     .replace("values", " SELECT * FROM (")

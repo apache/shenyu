@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -94,12 +95,12 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     }
 
     /**
-     * Chain before operation.
+     * Start monotonic chain timing for a subscription, before any scheduler queueing.
      *
      * @param exchange context
      */
     public void before(final ServerWebExchange exchange) {
-        exchange.getAttributes().put(Constants.CHAIN_START_TIME, System.currentTimeMillis());
+        exchange.getAttributes().put(Constants.CHAIN_START_TIME, System.nanoTime());
     }
 
     /**
@@ -108,8 +109,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * <p>It runs with the terminal signal of the request, not while the chain is assembled, so the
      * reported cost is the duration of the request and the trace id of the gateway span is already
      * populated. A long lived response, for example a streamed one, reports its timing once the
-     * stream has ended. The operation is idempotent: a request which is subscribed again does not
-     * report a second time.</p>
+     * stream has ended. Each subscription starts its own timing; repeated cleanup of the same
+     * subscription is ignored. The cost is reported in milliseconds.</p>
      *
      * @param exchange context
      */
@@ -119,27 +120,30 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         if (Objects.isNull(startTime)) {
             return;
         }
-        long cost = System.currentTimeMillis() - (long) startTime;
+        long cost = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - (long) startTime);
         LOG.debug("shenyu chain handle uri:{}, traceId:{}, cost:{}", exchange.getRequest().getPath(), TraceIdUtils.traceId(exchange), cost);
     }
 
     /**
      * Handle the web server exchange.
      *
+     * <p>Timing includes scheduler queueing and asynchronous execution until completion, failure
+     * or cancellation. Creating the publisher does not start timing. Each subscription creates
+     * a fresh chain, so sequential subscriptions execute all plugins again.</p>
+     *
      * @param exchange the current server exchange
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        before(exchange);
-        Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
-        if (scheduled) {
-            execute = execute.subscribeOn(scheduler);
-        }
-        // the chain is assembled here but only runs once it is subscribed, and the tracing span is
-        // created at that point as well, so the timing and the trace id are read with the terminal
-        // signal of the request instead of while the chain is assembled.
-        return execute.doFinally(signalType -> after(exchange));
+        return Mono.defer(() -> {
+            before(exchange);
+            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+            if (scheduled) {
+                execute = execute.subscribeOn(scheduler);
+            }
+            return execute.doFinally(signalType -> after(exchange));
+        });
     }
     
     /**
