@@ -31,15 +31,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 /**
  * Test case for {@link InstanceInfoServiceImpl}.
@@ -94,6 +97,25 @@ public final class InstanceInfoServiceImplTest {
         ArgumentCaptor<InstanceInfoDO> captor = ArgumentCaptor.forClass(InstanceInfoDO.class);
         verify(instanceInfoMapper).updateById(captor.capture());
         assertEquals(FIXED_HEART_BEAT_TIME, captor.getValue().getLastHeartBeatTime());
+    }
+
+    @Test
+    public void testDuplicateRegistrationUpdatesTheCanonicalRow() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(null, buildDO("winner"));
+        given(instanceInfoMapper.insert(any(InstanceInfoDO.class))).willThrow(new DuplicateKeyException("identity conflict"));
+        instanceInfoService.createOrUpdate(buildReport());
+        ArgumentCaptor<InstanceInfoDO> captor = ArgumentCaptor.forClass(InstanceInfoDO.class);
+        verify(instanceInfoMapper).updateById(captor.capture());
+        assertEquals("winner", captor.getValue().getId());
+        assertEquals(FIXED_HEART_BEAT_TIME, captor.getValue().getLastHeartBeatTime());
+    }
+
+    @Test
+    public void testUnrelatedPrimaryKeyConflictIsNotTreatedAsAnIdentityConflict() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(null);
+        given(instanceInfoMapper.insert(any(InstanceInfoDO.class))).willThrow(new DuplicateKeyException("primary key conflict"));
+        assertThrows(DuplicateKeyException.class, () -> instanceInfoService.createOrUpdate(buildReport()));
+        verify(instanceInfoMapper, never()).updateById(any());
     }
 
     private InstanceInfoVO buildReport() {

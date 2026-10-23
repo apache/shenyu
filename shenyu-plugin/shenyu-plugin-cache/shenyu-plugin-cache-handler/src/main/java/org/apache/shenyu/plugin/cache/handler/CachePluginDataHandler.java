@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.ICacheBuilder;
 import org.apache.shenyu.plugin.cache.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.cache.cache.ResponseSingleFlight;
 import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -77,6 +78,7 @@ public class CachePluginDataHandler implements PluginDataHandler {
             return;
         }
         Singleton.INST.single(CacheConfig.class, cacheConfig);
+        Singleton.INST.single(ResponseSingleFlight.class, buildSingleFlight(cacheConfig));
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin(cacheConfig.getCacheType());
         final ICache lastCache = CacheUtils.getCache();
         ApplicationConfigCache.getInstance().invalidateAll();
@@ -128,11 +130,31 @@ public class CachePluginDataHandler implements PluginDataHandler {
     }
 
     /**
+     * Build the miss coordinator from the plugin configuration.
+     *
+     * <p>A configuration reload installs a new coordinator. Fills already running keep their own
+     * coordinator and still signal their waiters, so nothing hangs; a request that follows just after
+     * the swap starts a new fill on the new instance.</p>
+     *
+     * @param cacheConfig the plugin configuration
+     * @return the coordinator, disabled unless configured otherwise
+     */
+    private ResponseSingleFlight buildSingleFlight(final CacheConfig cacheConfig) {
+        if (!cacheConfig.isSingleFlightEnabled()) {
+            return ResponseSingleFlight.disabled();
+        }
+        return new ResponseSingleFlight(cacheConfig.getSingleFlightMaxKeys(), cacheConfig.getSingleFlightMaxWaiters(),
+                cacheConfig.getSingleFlightWaitTimeoutMillis(), cacheConfig.getSingleFlightFillTimeoutMillis(),
+                cacheConfig.getSingleFlightMaxResponseBytes());
+    }
+
+    /**
      * close the cache if you need.
      */
     private void closeCacheIfNeed() {
         ICache lastCache = CacheUtils.getCache();
         ApplicationConfigCache.getInstance().invalidateAll();
+        Singleton.INST.single(ResponseSingleFlight.class, ResponseSingleFlight.disabled());
         this.closeCache(lastCache);
     }
 

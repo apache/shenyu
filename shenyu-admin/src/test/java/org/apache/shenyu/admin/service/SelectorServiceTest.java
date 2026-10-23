@@ -332,7 +332,7 @@ public final class SelectorServiceTest {
         publishEvent();
 
         // Test the situation where the selector cannot be found based on the contextPath.
-        given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
+        given(pluginMapper.selectByNameForUpdate("test")).willReturn(buildPluginDO());
         assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
     }
 

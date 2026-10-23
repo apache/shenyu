@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import java.util.Set;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -39,6 +38,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -120,7 +120,7 @@ public class SandboxServiceImpl implements SandboxService {
                 response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
             }
 
-            IOUtils.copy(body.byteStream(), response.getOutputStream());
+            StreamUtils.copy(body.byteStream(), response.getOutputStream());
             response.flushBuffer();
         }
     }

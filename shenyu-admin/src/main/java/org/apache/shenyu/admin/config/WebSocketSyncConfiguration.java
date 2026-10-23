@@ -51,12 +51,13 @@ public class WebSocketSyncConfiguration {
     /**
      * Config event listener data changed listener.
      *
+     * @param properties WebSocket sync properties
      * @return the data changed listener
      */
     @Bean
     @ConditionalOnMissingBean(WebsocketDataChangedListener.class)
-    public DataChangedListener websocketDataChangedListener() {
-        return new WebsocketDataChangedListener();
+    public DataChangedListener websocketDataChangedListener(final WebsocketSyncProperties properties) {
+        return new WebsocketDataChangedListener(properties.isCompactDiscoveryPayload());
     }
 
     /**

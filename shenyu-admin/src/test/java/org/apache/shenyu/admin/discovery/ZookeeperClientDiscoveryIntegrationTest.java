@@ -53,6 +53,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.InputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -114,6 +116,8 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private final List<ShenyuInstanceRegisterRepository> clients = new CopyOnWriteArrayList<>();
 
+    private final List<ServerSocket> backends = new CopyOnWriteArrayList<>();
+
     private final List<DiscoverySyncData> snapshots = new CopyOnWriteArrayList<>();
 
     private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -121,11 +125,14 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
     private WebSocket websocket;
 
     @AfterEach
-    public void cleanup() {
+    public void cleanup() throws IOException {
         if (Objects.nonNull(websocket)) {
             websocket.abort();
         }
         clients.forEach(this::stopInstance);
+        for (ServerSocket backend : backends) {
+            backend.close();
+        }
         List<DiscoveryDO> discoveries = registeredDiscoveries();
         discoveries.forEach(discovery -> processorHolder.chooseProcessor(discovery.getDiscoveryType()).removeDiscovery(discovery));
         jdbcTemplate.update("DELETE FROM discovery_upstream WHERE discovery_handler_id IN "
@@ -329,6 +336,9 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
     }
 
     private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {
+        // The Admin health checker remains active while testing registry removal.
+        // Keep registered backends reachable so health eviction cannot replace that event.
+        backends.add(new ServerSocket(port));
         String appName = "zk-6525-" + app;
         Properties properties = new Properties();
         properties.setProperty("name", appName);

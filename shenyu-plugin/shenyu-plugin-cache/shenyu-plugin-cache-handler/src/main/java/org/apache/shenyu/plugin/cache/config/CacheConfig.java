@@ -35,6 +35,36 @@ public class CacheConfig {
     private String config;
 
     /**
+     * whether concurrent misses on one key share a single upstream fill, off by default.
+     */
+    private boolean singleFlightEnabled;
+
+    /**
+     * the maximum number of keys filling at once on this gateway.
+     */
+    private int singleFlightMaxKeys = 1024;
+
+    /**
+     * the maximum number of requests waiting on one filling key.
+     */
+    private int singleFlightMaxWaiters = 64;
+
+    /**
+     * how long a request waits for another request's fill, in milliseconds.
+     */
+    private long singleFlightWaitTimeoutMillis = 1000L;
+
+    /**
+     * how long a key stays owned when its leader never completes, in milliseconds.
+     */
+    private long singleFlightFillTimeoutMillis = 30000L;
+
+    /**
+     * the largest response shared with waiting requests, in bytes.
+     */
+    private long singleFlightMaxResponseBytes = 1048576L;
+
+    /**
      * Get cache type.
      * @return the cache type
      */
@@ -64,6 +94,114 @@ public class CacheConfig {
      */
     public void setConfig(final String config) {
         this.config = config;
+    }
+
+    /**
+     * Whether concurrent misses on one key share a single upstream fill.
+     *
+     * @return true when coalescing is enabled
+     */
+    public boolean isSingleFlightEnabled() {
+        return singleFlightEnabled;
+    }
+
+    /**
+     * Set whether concurrent misses on one key share a single upstream fill.
+     *
+     * @param singleFlightEnabled true to enable coalescing
+     */
+    public void setSingleFlightEnabled(final boolean singleFlightEnabled) {
+        this.singleFlightEnabled = singleFlightEnabled;
+    }
+
+    /**
+     * Get the maximum number of keys filling at once.
+     *
+     * @return the maximum number of filling keys
+     */
+    public int getSingleFlightMaxKeys() {
+        return singleFlightMaxKeys;
+    }
+
+    /**
+     * Set the maximum number of keys filling at once.
+     *
+     * @param singleFlightMaxKeys the maximum number of filling keys
+     */
+    public void setSingleFlightMaxKeys(final int singleFlightMaxKeys) {
+        this.singleFlightMaxKeys = singleFlightMaxKeys;
+    }
+
+    /**
+     * Get the maximum number of requests waiting on one filling key.
+     *
+     * @return the maximum number of waiters
+     */
+    public int getSingleFlightMaxWaiters() {
+        return singleFlightMaxWaiters;
+    }
+
+    /**
+     * Set the maximum number of requests waiting on one filling key.
+     *
+     * @param singleFlightMaxWaiters the maximum number of waiters
+     */
+    public void setSingleFlightMaxWaiters(final int singleFlightMaxWaiters) {
+        this.singleFlightMaxWaiters = singleFlightMaxWaiters;
+    }
+
+    /**
+     * Get how long a request waits for another request's fill.
+     *
+     * @return the wait timeout in milliseconds
+     */
+    public long getSingleFlightWaitTimeoutMillis() {
+        return singleFlightWaitTimeoutMillis;
+    }
+
+    /**
+     * Set how long a request waits for another request's fill.
+     *
+     * @param singleFlightWaitTimeoutMillis the wait timeout in milliseconds
+     */
+    public void setSingleFlightWaitTimeoutMillis(final long singleFlightWaitTimeoutMillis) {
+        this.singleFlightWaitTimeoutMillis = singleFlightWaitTimeoutMillis;
+    }
+
+    /**
+     * Get how long a key stays owned when its leader never completes.
+     *
+     * @return the fill timeout in milliseconds
+     */
+    public long getSingleFlightFillTimeoutMillis() {
+        return singleFlightFillTimeoutMillis;
+    }
+
+    /**
+     * Set how long a key stays owned when its leader never completes.
+     *
+     * @param singleFlightFillTimeoutMillis the fill timeout in milliseconds
+     */
+    public void setSingleFlightFillTimeoutMillis(final long singleFlightFillTimeoutMillis) {
+        this.singleFlightFillTimeoutMillis = singleFlightFillTimeoutMillis;
+    }
+
+    /**
+     * Get the largest response shared with waiting requests.
+     *
+     * @return the maximum shared response size in bytes
+     */
+    public long getSingleFlightMaxResponseBytes() {
+        return singleFlightMaxResponseBytes;
+    }
+
+    /**
+     * Set the largest response shared with waiting requests.
+     *
+     * @param singleFlightMaxResponseBytes the maximum shared response size in bytes
+     */
+    public void setSingleFlightMaxResponseBytes(final long singleFlightMaxResponseBytes) {
+        this.singleFlightMaxResponseBytes = singleFlightMaxResponseBytes;
     }
 
     @Override
