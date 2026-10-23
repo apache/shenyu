@@ -49,8 +49,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -64,6 +66,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -181,6 +184,37 @@ public final class DividePluginTest {
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+
+    /**
+     * requestMaxSize must also be enforced for chunked / unknown-length bodies.
+     */
+    @Test
+    public void doExecuteRejectsChunkedBodyExceedingRequestMaxSize() {
+        final DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setRequestMaxSize(1);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        final MockServerWebExchange chunked = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("Transfer-Encoding", "chunked")
+                .body("ab"));
+        chunked.getAttributes().put(Constants.CONTEXT, exchange.getAttribute(Constants.CONTEXT));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().then();
+        });
+
+        Mono<Void> result = dividePlugin.doExecute(chunked, chain, selectorData, ruleData);
+        StepVerifier.create(result)
+                .expectSubscription()
+                .verifyErrorSatisfies(error -> {
+                    assertInstanceOf(ResponseStatusException.class, error);
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ((ResponseStatusException) error).getStatusCode());
+                });
     }
 
     @Test
