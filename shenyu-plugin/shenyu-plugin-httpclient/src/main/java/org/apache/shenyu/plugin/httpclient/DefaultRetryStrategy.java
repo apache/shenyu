@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
@@ -150,10 +151,18 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         // in order not to affect the next retry call, newUri needs to be excluded
         exclude.add(newUri);
         final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-        return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
+        // Selecting the retry upstream above goes through the load balancer, which increments the P2C
+        // inflight counter of the newly picked upstream. Divide's completion callback only captures the
+        // initially selected upstream, so release this attempt's increment to keep P2C accounting paired
+        // across success, failure and cancellation of the failover. See #7975.
+        Mono<R> retryResponse = httpClientPlugin
                 .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
+                .doOnError(e -> LOG.error(e.getMessage(), e));
+        if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
+            retryResponse = retryResponse.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        }
+        return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey);
     }
 
     private boolean isSameUpstream(final URI first, final URI second) {
