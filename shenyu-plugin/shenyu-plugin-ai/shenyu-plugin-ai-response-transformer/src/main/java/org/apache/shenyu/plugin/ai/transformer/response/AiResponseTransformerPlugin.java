@@ -367,7 +367,9 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
-                String originalResponseBody = new String(bytes, StandardCharsets.UTF_8);
+                // the wire bytes are kept untouched, so a fallback can return exactly what the upstream sent
+                final byte[] originalWireBytes = bytes;
+                String promptResponseBody = new String(bytes, StandardCharsets.UTF_8);
 
                 String contentEncoding = exchange.getResponse().getHeaders().getFirst("Content-Encoding");
                 if ("gzip".equalsIgnoreCase(contentEncoding)) {
@@ -379,15 +381,16 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                         while ((len = gis.read(buffer)) > 0) {
                             bos.write(buffer, 0, len);
                         }
-                        originalResponseBody = bos.toString(StandardCharsets.UTF_8.name());
-                        LOG.debug("Decompressed response body: {}", originalResponseBody);
+                        promptResponseBody = bos.toString(StandardCharsets.UTF_8.name());
+                        LOG.debug("Decompressed response body: {}", promptResponseBody);
                     } catch (Exception e) {
                         LOG.error("Failed to decompress gzip response", e);
                     }
                 }
-                
-                final String finalResponseBody = originalResponseBody;
-                
+
+                // the decoded representation is only used to build the prompt, never as a response body
+                final String finalPromptResponseBody = promptResponseBody;
+
                 return aiResponseTransformerTemplate.assembleMessage(exchange)
                         .flatMap(message -> {
 
@@ -397,26 +400,25 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
 
                                 if (messageNode.has("response") && messageNode.get("response").isObject()) {
                                     ObjectNode responseNode = (ObjectNode) messageNode.get("response");
-                                    responseNode.put("body", finalResponseBody);
+                                    responseNode.put("body", finalPromptResponseBody);
                                 }
-                                
+
                                 messageWithResponseBody = MAPPER.writeValueAsString(messageNode);
                             } catch (Exception e) {
                                 LOG.error("Failed to update message with response body", e);
-                                messageWithResponseBody = message.replace("\"body\":\"\"", "\"body\":\"" + finalResponseBody.replace("\"", "\\\"") + "\"");
+                                messageWithResponseBody = message.replace("\"body\":\"\"", "\"body\":\"" + finalPromptResponseBody.replace("\"", "\\\"") + "\"");
                                 LOG.info("Fallback message with response body: {}", messageWithResponseBody);
                             }
-                            
+
                             final String finalMessage = messageWithResponseBody;
                             return chatClient.prompt().user(finalMessage).stream().content()
                                     .filter(Objects::nonNull)
                                     .collect(StringBuilder::new, StringBuilder::append)
                                     .map(StringBuilder::toString)
-                                    .flatMap(aiResponse -> applyTransformedResponse(aiResponse, finalResponseBody))
+                                    .flatMap(aiResponse -> applyTransformedResponse(aiResponse, originalWireBytes))
                                     .onErrorResume(throwable -> {
                                         LOG.error("response transformation failed", throwable);
-                                        LOG.info("Returning original response due to error: {}", finalResponseBody);
-                                        return WebFluxResultUtils.result(this.exchange, finalResponseBody.getBytes(StandardCharsets.UTF_8));
+                                        return writeOriginalResponse(originalWireBytes);
                                     });
                         });
             }).defaultIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())))
@@ -429,7 +431,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
             return writeWith(Flux.from(body).concatMap(Flux::from));
         }
 
-        private Mono<Void> applyTransformedResponse(final String aiResponse, final String originalResponseBody) {
+        private Mono<Void> applyTransformedResponse(final String aiResponse, final byte[] originalWireBytes) {
             HttpHeaders newHeaders = extractHeadersFromAiResponse(aiResponse);
             String newBody = extractBodyFromAiResponse(aiResponse);
             Integer newStatus = extractStatusFromAiResponse(aiResponse);
@@ -448,6 +450,8 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
             if (Objects.nonNull(newBody) && !newBody.isEmpty()) {
                 this.getHeaders().clear();
                 this.getHeaders().putAll(newHeaders);
+                // the body is always written as plain UTF-8, so an inherited encoding header would misdescribe it
+                this.getHeaders().remove(HttpHeaders.CONTENT_ENCODING);
                 if (Objects.nonNull(newStatus)) {
                     this.setStatusCode(HttpStatus.valueOf(newStatus));
                 }
@@ -455,8 +459,20 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
                 return WebFluxResultUtils.result(this.exchange, newBody.getBytes(StandardCharsets.UTF_8));
             }
             // the generated response has no usable body, so the original response (and its status) is kept
-            LOG.warn("response body is empty or null, returning original response: {}", originalResponseBody);
-            return WebFluxResultUtils.result(this.exchange, originalResponseBody.getBytes(StandardCharsets.UTF_8));
+            LOG.warn("response body is empty or null, returning original response");
+            return writeOriginalResponse(originalWireBytes);
+        }
+
+        /**
+         * Write the upstream response back unchanged, headers included.
+         * The bytes are the original wire representation, so the upstream {@code Content-Encoding}
+         * and {@code Content-Length} still describe them.
+         *
+         * @param originalWireBytes the bytes as received from the upstream
+         * @return the completion signal
+         */
+        private Mono<Void> writeOriginalResponse(final byte[] originalWireBytes) {
+            return super.writeWith(Mono.just(this.bufferFactory().wrap(originalWireBytes)));
         }
 
         private String extractBodyFromAiResponse(final String aiResponse) {
