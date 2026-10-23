@@ -32,7 +32,6 @@ public class ApiSourceEnumTest {
         assertEquals("annotation_generation", ApiSourceEnum.ANNOTATION_GENERATION.getName());
         assertEquals("create_manually", ApiSourceEnum.CREATE_MANUALLY.getName());
         assertEquals("import_swagger", ApiSourceEnum.IMPORT_SWAGGER.getName());
-        assertEquals("import_yapi", ApiSourceEnum.IMPORT_YAPI.getName());
     }
 
     @Test
@@ -41,6 +40,5 @@ public class ApiSourceEnumTest {
         assertEquals(1, ApiSourceEnum.ANNOTATION_GENERATION.getValue());
         assertEquals(2, ApiSourceEnum.CREATE_MANUALLY.getValue());
         assertEquals(3, ApiSourceEnum.IMPORT_SWAGGER.getValue());
-        assertEquals(4, ApiSourceEnum.IMPORT_YAPI.getValue());
     }
 }
