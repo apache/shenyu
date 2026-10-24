@@ -106,8 +106,10 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         // around the new endpoint; existing SSE sessions end and clients reconnect (#8044)
         final boolean endpointMoved = Objects.nonNull(previousServer) && !pathMoved
                 && !Objects.equals(previousServer.getMessageEndpoint(), shenyuMcpServer.getMessageEndpoint());
-        if ((pathMoved || endpointMoved) && StringUtils.isNotBlank(previousServer.getPath())
-                && shenyuMcpServerManager.hasMcpServer(previousServer.getPath())) {
+        // removal is idempotent, so it must not be gated on the manager still knowing
+        // the previous path: a server that escaped a previous teardown would otherwise
+        // keep advertising the stale endpoint (#8044)
+        if ((pathMoved || endpointMoved) && StringUtils.isNotBlank(previousServer.getPath())) {
             shenyuMcpServerManager.removeMcpServer(previousServer.getPath());
         }
         CACHED_SERVER.get().cachedHandle(
