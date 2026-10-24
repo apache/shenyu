@@ -29,6 +29,7 @@ import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
@@ -39,30 +40,37 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
  * Test case for {@link Subscribe}.
+ *
+ * <p>The channel and session repositories are real: mocking them hid the part of
+ * {@code subscribe()} that resolves the client id and updates the session, because
+ * a mock answers {@code null} for every lookup and the code then silently skipped
+ * the update. Only the repositories that are not under test here stay mocked.</p>
  */
 @ExtendWith(MockitoExtension.class)
 class SubscribeTest {
+
+    private static final String CLIENT_ID = "subscribe-client";
 
     @Mock
     private SubscribeRepository subscribeRepository;
 
     @Mock
-    private ChannelRepository channelRepository;
-
-    @Mock
-    private SessionRepository sessionRepository;
-
-    @Mock
     private TopicRepository topicRepository;
+
+    private final ChannelRepository channelRepository = new ChannelRepository();
+
+    private final SessionRepository sessionRepository = new SessionRepository();
 
     private final Subscribe subscribe = new Subscribe();
 
@@ -78,7 +86,7 @@ class SubscribeTest {
 
     @Test
     void testSubAckGrantsRequestedQoS() {
-        EmbeddedChannel channel = connectedChannel();
+        EmbeddedChannel channel = connectedChannel(CLIENT_ID);
         MqttSubscribeMessage msg = subscribeMessage(10,
                 new MqttTopicSubscription("topic/qos2", MqttQoS.EXACTLY_ONCE),
                 new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE),
@@ -93,7 +101,7 @@ class SubscribeTest {
 
     @Test
     void testSubAckExcludesFailureSubscriptions() {
-        EmbeddedChannel channel = connectedChannel();
+        EmbeddedChannel channel = connectedChannel(CLIENT_ID);
         MqttSubscribeMessage msg = subscribeMessage(20,
                 new MqttTopicSubscription("topic/qos1", MqttQoS.AT_LEAST_ONCE),
                 new MqttTopicSubscription("topic/failure", MqttQoS.FAILURE),
@@ -104,6 +112,19 @@ class SubscribeTest {
         MqttSubAckMessage subAck = channel.readOutbound();
         assertEquals(Arrays.asList(1, 0), subAck.payload().grantedQoSLevels());
         verify(topicRepository, never()).get("topic/failure");
+    }
+
+    @Test
+    void testSubscribeStoresSubscriptionsInSession() {
+        MqttSession session = new MqttSession(CLIENT_ID, false);
+        sessionRepository.add(CLIENT_ID, session);
+        EmbeddedChannel channel = connectedChannel(CLIENT_ID);
+
+        subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(40,
+                new MqttTopicSubscription("topic/session", MqttQoS.AT_LEAST_ONCE)));
+
+        assertNotNull(channel.readOutbound());
+        assertEquals(Collections.singleton("topic/session"), session.getTopics());
     }
 
     @Test
@@ -119,9 +140,17 @@ class SubscribeTest {
         assertNull(channel.readOutbound());
     }
 
-    private EmbeddedChannel connectedChannel() {
+    /**
+     * A connected channel that the channel repository knows, so subscribe() can
+     * resolve the client id and update the session.
+     *
+     * @param clientId the client id owning the channel
+     * @return the connected channel
+     */
+    private EmbeddedChannel connectedChannel(final String clientId) {
         EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
         new MessageType().setConnected(channel, true);
+        channelRepository.add(channel, clientId);
         return channel;
     }
 
