@@ -23,13 +23,14 @@ import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ShenyuClusterService implements ShenyuRunningModeService {
 
@@ -48,6 +49,8 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     private final InstanceCheckService instanceCheckService;
 
     private final ScaleLifecycleService scaleLifecycleService;
+
+    private final AtomicLong selectMasterErrorCount = new AtomicLong();
     
     public ShenyuClusterService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                 final UpstreamCheckService upstreamCheckService,
@@ -81,8 +84,10 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {
         // try getting lock
+        boolean selected = false;
         try {
-            boolean selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
+            selected = shenyuClusterSelectMasterService.selectMaster(host, port, contextPath);
+            selectMasterErrorCount.set(0);
             if (!selected) {
                 LOG.info("select master fail, wait for next period");
                 return;
@@ -104,27 +109,38 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
                 TimeUnit.SECONDS.sleep(clusterProperties.getSelectPeriod());
                 
                 renewed = shenyuClusterSelectMasterService.checkMasterStatus();
-                if (renewed) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("renew master success");
-                    }
+                if (renewed && LOG.isDebugEnabled()) {
+                    LOG.debug("renew master success");
                 }
             }
+        } catch (InterruptedException e) {
+            LOG.info("select master task interrupted");
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
-            LOG.error("select master error", e);
-            // close the upstream check service
-            upstreamCheckService.close();
-            instanceCheckService.close();
-            scaleLifecycleService.stop();
-            
-            String message = String.format("renew master fail, %s", e.getMessage());
-            throw new ShenyuException(message);
+            long count = selectMasterErrorCount.incrementAndGet();
+            LOG.error("select master error (consecutive failures: {})", count, e);
         } finally {
-            scaleLifecycleService.stop();
-            try {
-                shenyuClusterSelectMasterService.releaseMaster();
-            } catch (Exception e) {
-                LOG.error("release master error", e);
+            if (selected) {
+                try {
+                    upstreamCheckService.close();
+                } catch (Exception e) {
+                    LOG.error("close upstream check service error", e);
+                }
+                try {
+                    instanceCheckService.close();
+                } catch (Exception e) {
+                    LOG.error("close instance check service error", e);
+                }
+                try {
+                    scaleLifecycleService.stop();
+                } catch (Exception e) {
+                    LOG.error("stop scale lifecycle service error", e);
+                }
+                try {
+                    shenyuClusterSelectMasterService.releaseMaster();
+                } catch (Exception e) {
+                    LOG.error("release master error", e);
+                }
             }
         }
     }
@@ -136,14 +152,26 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     
     @Override
     public void shutdown() {
-        executorService.shutdownNow();
-        try {
-            if (!executorService.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
-                LOG.warn("master selector scheduler did not terminate within {}s", SHUTDOWN_WAIT_SECONDS);
+        if (Objects.nonNull(executorService)) {
+            executorService.shutdownNow();
+            try {
+                if (!executorService.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                    LOG.warn("master selector scheduler did not terminate within {}s", SHUTDOWN_WAIT_SECONDS);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("interrupted while waiting for the master selector scheduler to terminate");
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("interrupted while waiting for the master selector scheduler to terminate");
         }
+    }
+
+    /**
+     * get consecutive select master error count.
+     * visible for testing.
+     *
+     * @return error count
+     */
+    long getSelectMasterErrorCount() {
+        return selectMasterErrorCount.get();
     }
 }
