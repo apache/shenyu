@@ -196,7 +196,12 @@ jobs:
       - name: Verify integrated test image
         run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
       - name: Start docker compose
-        run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+        run: |
+          if ! docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d; then
+            docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml ps --all || true
+            docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --no-color --tail=200 || true
+            exit 1
+          fi
       - name: Wait for docker compose start up completely
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Disk space info

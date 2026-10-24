@@ -25,4 +25,7 @@
     </parent>
     <artifactId>shenyu-integrated-test-common</artifactId>
     <name>shenyu-integrated-test-common</name>
+
+    <dependencies>
+    </dependencies>
 </project>
