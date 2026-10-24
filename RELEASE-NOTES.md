@@ -44,6 +44,13 @@
   deployments with strict `headerMaxSize` limits may see requests near the boundary
   rejected; adjust `headerMaxSize` if needed. (#7818)
 
+- The MCP server plugin rebuilds the shared SSE transport whenever a selector
+  changes its message endpoint, not only its path. The transport advertises the
+  message endpoint from construction, so the previous behavior left clients
+  connecting to the stale endpoint. The rebuild tears down the existing SSE
+  sessions; clients reconnect and re-initialize against the new endpoint.
+  (#8044)
+
 - The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
   concurrent requests that miss the same response cache key share one upstream
   fill on that gateway instance instead of one per request, and the followers
