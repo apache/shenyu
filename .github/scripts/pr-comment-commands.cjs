@@ -252,7 +252,6 @@ async function retestPullRequest({context, github, core, pullRequest}) {
                 core.info(`Requested failed-job rerun: ${run.html_url}`);
             }
             requested++;
-            core.info(`Requested failed-job rerun: ${run.html_url}`);
         } catch (error) {
             errors.push(run.id);
             core.warning(`Could not rerun ${run.html_url}: ${error.message}`);
@@ -281,12 +280,13 @@ const COMMANDS = Object.freeze({
     retest: {parse: noArguments, execute: retestPullRequest, requiresOpen: true},
 });
 
-async function run({context, github, core}) {
+async function run({context, github, core, allowedCommands}) {
     const {issue, comment, action} = context.payload ?? {};
     if (action !== 'created' || !issue?.pull_request || !comment) {
         return;
     }
-    const commands = parseCommands(comment.body);
+    const commandFilter = allowedCommands && new Set(allowedCommands);
+    const commands = parseCommands(comment.body).filter(command => !commandFilter || commandFilter.has(command.name));
     if (!commands.length) {
         return;
     }
