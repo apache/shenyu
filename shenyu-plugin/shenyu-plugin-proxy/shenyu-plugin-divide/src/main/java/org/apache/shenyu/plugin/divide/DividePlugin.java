@@ -32,6 +32,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -63,6 +64,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Divide Plugin.
@@ -100,6 +102,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         // A re-entered exchange must not inherit a previous selector's partition.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
+        exchange.getAttributes().remove(Constants.SHENYU_CANARY_CONTEXT);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
@@ -124,12 +127,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
         List<Upstream> upstreamList = canaryRouting
                 ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
                 : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        if (canaryRouting && CollectionUtils.isNotEmpty(upstreamList)) {
+        if (canaryRouting) {
+            // Resolve the intent even for an empty snapshot so rejected requests can be attributed.
             upstreamList = selectPartition(exchange, selector.getId(), rule.getId(), ruleHandle.getCanary(), upstreamList);
         }
         if (CollectionUtils.isEmpty(upstreamList)) {
             if (canaryRouting) {
                 exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                reportCanary(exchange);
             }
             LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
@@ -141,6 +146,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
             if (canaryRouting) {
                 exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                rejectCanary(exchange);
             }
             LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
@@ -151,13 +157,21 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private List<Upstream> selectPartition(final ServerWebExchange exchange, final String selectorId, final String ruleId,
                                            final CanaryConfig config, final List<Upstream> upstreams) {
+        long start = System.nanoTime();
         CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
+        long decisionDuration = System.nanoTime() - start;
+        CanaryDecision actual = decision;
         Map<String, String> labels = decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
         List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
         if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
+            actual = CanaryDecision.STABLE;
             labels = config.getStableLabels();
             candidates = UpstreamLabelUtils.filter(upstreams, labels);
         }
+        String rejectReason = candidates.isEmpty()
+                ? (actual == CanaryDecision.CANARY ? CanaryContext.CANARY_POOL_EMPTY : CanaryContext.STABLE_POOL_EMPTY) : null;
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_CONTEXT, new CanaryContext(selectorId, ruleId, decision.getName(), null,
+                actual != decision && !candidates.isEmpty() ? CanaryContext.CANARY_POOL_EMPTY : null, rejectReason, decisionDuration));
         // Retry the resolved partition, including an initial fallback, without repeating the decision.
         exchange.getAttributes().put(UpstreamRoutingContext.ATTRIBUTE, new UpstreamRoutingContext(selectorId, labels));
         // Resolve the pool before circuit-breaker probes and load balancing; neither may escape it.
@@ -193,6 +207,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
         }
         if (Objects.isNull(upstream)) {
+            rejectCanary(exchange);
             LOG.error("divide has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
@@ -213,7 +228,39 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        if (Objects.nonNull(observation)) {
+            observation.setActualPartition(Objects.nonNull(observation.getFallbackReason()) ? CanaryDecision.STABLE.getName() : observation.getIntendedPartition());
+            reportCanary(exchange);
+        }
         return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream, candidates.isProbe());
+    }
+
+    private void rejectCanary(final ServerWebExchange exchange) {
+        CanaryContext context = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        if (Objects.nonNull(context)) {
+            context.setActualPartition(null);
+            context.setFallbackReason(null);
+            context.setRejectReason(CanaryContext.NO_UPSTREAM_SELECTED);
+            reportCanary(exchange);
+        }
+    }
+
+    private void reportCanary(final ServerWebExchange exchange) {
+        CanaryContext context = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        if (Objects.isNull(context)) {
+            return;
+        }
+        LOG.debug("canary routing selector={} rule={} intended={} actual={} fallback={} reject={}", context.getSelectorId(), context.getRuleId(),
+                context.getIntendedPartition(), context.getActualPartition(), context.getFallbackReason(), context.getRejectReason());
+        Consumer<CanaryContext> callback = exchange.getAttribute(Constants.METRICS_CANARY);
+        if (Objects.nonNull(callback)) {
+            try {
+                callback.accept(context);
+            } catch (RuntimeException ex) {
+                LOG.debug("Unable to report Canary routing observation", ex);
+            }
+        }
     }
 
     @Override
