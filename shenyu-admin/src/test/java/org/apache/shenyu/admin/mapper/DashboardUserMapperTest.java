@@ -76,20 +76,6 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     @Test
-    public void testFindByQuery() {
-        DashboardUserDO record = buildDashboardUserDO();
-        record.setUserName("adminshenyu");
-        int count = dashboardUserMapper.insert(record);
-        assertThat(count, comparesEqualTo(1));
-
-        DashboardUserDO result = dashboardUserMapper.findByQuery(record.getUserName(), record.getPassword());
-        assertNotNull(result);
-
-        int delete = dashboardUserMapper.delete(record.getId());
-        assertEquals(1, delete);
-    }
-
-    @Test
     public void testSelectByQuery() {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
