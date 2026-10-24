@@ -101,8 +101,9 @@ public class TagServiceImpl implements TagService {
             parentTagId = AdminConstants.TAG_ROOT_PARENT_ID;
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
+        // Empty parent IDs retain the existing parent.
         tagDO.setParentTagId(parentTagId);
-        // Empty parent IDs retain the existing parent; an explicit empty name/description clears that field.
+        // A null name/description retains the persisted value; an explicit empty string clears it.
         tagDO.setName(Objects.isNull(tagDTO.getTagName()) ? before.getTagName() : tagDTO.getTagName());
         tagDO.setTagDesc(Objects.isNull(tagDTO.getTagDesc()) ? before.getTagDesc() : tagDTO.getTagDesc());
         if (AdminConstants.TAG_ROOT_PARENT_ID.equals(parentTagId)) {
