@@ -64,10 +64,6 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.apache.shenyu</groupId>
-                    <artifactId>shenyu-registry-eureka</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.shenyu</groupId>
                     <artifactId>shenyu-registry-kubernetes</artifactId>
                 </exclusion>
             </exclusions>

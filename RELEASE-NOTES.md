@@ -2,6 +2,12 @@
 
 ### API Changes
 
+- Eureka instance registry support moves to the external `shenyu-registry-eureka`
+  and `shenyu-spring-boot-starter-registry-eureka` artifacts in the coordinated
+  cutover release (#7596). Keep the `eureka` type key; install the compatible
+  published external version before upgrading. This draft waits for publication
+  and release/rollback coordination. See [the migration guide](docs/plugin-store-eureka.md).
+
 - Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
   deprecated for transfer to plugin-store (#7599). All four remain available in
   the release carrying this notice. Removal requires dev-list consensus, a full
