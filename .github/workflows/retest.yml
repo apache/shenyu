@@ -91,6 +91,21 @@ jobs:
             // Retry failed jobs and their dependents, preserving successful jobs.
             // Cancelled runs and workflows awaiting approval are left alone.
             const isFailed = run => run.status === 'completed' && ['failure', 'timed_out'].includes(run.conclusion);
+            // e2e consumes the shenyu-images artifact uploaded by build-docker-images
+            // with a short retention. A failed-job rerun keeps that successful job as it
+            // is, so once the artifact is gone every retry fails on the download instead
+            // of on the tests. Those runs need a full rerun to rebuild the artifact.
+            const needsFullRerun = async run => {
+                if (!(run.path || '').endsWith('e2e-k8s.yml')) {
+                    return false;
+                }
+                const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                    ...repo,
+                    run_id: run.id,
+                    per_page: 100,
+                });
+                return !artifacts.some(artifact => artifact.name === 'shenyu-images' && !artifact.expired);
+            };
             for (const run of latest.values()) {
                 if (!isFailed(run)) {
                     continue;
@@ -108,9 +123,14 @@ jobs:
                         core.info(`Run ${run.id} has already changed; skipping it.`);
                         continue;
                     }
-                    await github.rest.actions.reRunWorkflowFailedJobs({...repo, run_id: run.id});
+                    if (await needsFullRerun(run)) {
+                        await github.rest.actions.reRunWorkflow({...repo, run_id: run.id});
+                        core.info(`Requested full rerun, the e2e image artifact is gone: ${run.html_url}`);
+                    } else {
+                        await github.rest.actions.reRunWorkflowFailedJobs({...repo, run_id: run.id});
+                        core.info(`Requested failed-job rerun: ${run.html_url}`);
+                    }
                     requested++;
-                    core.info(`Requested failed-job rerun: ${run.html_url}`);
                 } catch (error) {
                     // A rejected/expired run must not prevent retrying other workflows.
                     errors.push(run.id);
