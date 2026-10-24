@@ -48,13 +48,19 @@ import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.lang.NonNull;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -94,12 +100,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
+        final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
-            long headerSize = exchange.getRequest().getHeaders().values()
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .mapToLong(header -> header.getBytes(StandardCharsets.UTF_8).length)
-                    .sum();
+            long headerSize = calculateHeaderSize(effectiveExchange.getRequest().getHeaders());
             if (headerSize > ruleHandle.getHeaderMaxSize()) {
                 LOG.error("request header is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE);
@@ -107,14 +110,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         if (ruleHandle.getRequestMaxSize() > 0) {
-            if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+            if (effectiveExchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
                 LOG.error("request entity is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE);
                 return WebFluxResultUtils.result(exchange, error);
             }
         }
         boolean canaryRouting = Objects.nonNull(ruleHandle.getCanary())
-                && CollectionUtils.isEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
+                && CollectionUtils.isEmpty(effectiveExchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
         List<Upstream> upstreamList = canaryRouting
                 ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
                 : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
@@ -129,7 +132,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String requested = exchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
+        String requested = effectiveExchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
         final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
@@ -140,7 +143,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(exchange, chain, selector, ruleHandle, candidates)));
+        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(effectiveExchange, chain, selector, ruleHandle, candidates)));
     }
 
     private List<Upstream> selectPartition(final ServerWebExchange exchange, final String ruleId,
@@ -290,4 +293,63 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.getSucceeded().incrementAndGet();
     }
 
+    /**
+     * A positive requestMaxSize must also cover chunked / unknown-length bodies: the
+     * Content-Length header is absent (-1) there, so the limit is enforced on the actual
+     * bytes while the request body streams through.
+     */
+    private ServerWebExchange limitChunkedRequestBody(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle) {
+        if (ruleHandle.getRequestMaxSize() <= 0 || exchange.getRequest().getHeaders().getContentLength() >= 0) {
+            return exchange;
+        }
+        final long maxSize = ruleHandle.getRequestMaxSize();
+        return exchange.mutate().request(new ServerHttpRequestDecorator(exchange.getRequest()) {
+            private long forwarded;
+
+            @Override
+            @NonNull
+            public Flux<DataBuffer> getBody() {
+                return Flux.defer(() -> {
+                    forwarded = 0;
+                    return super.getBody().doOnNext(buffer -> {
+                        forwarded += buffer.readableByteCount();
+                        if (forwarded > maxSize) {
+                            LOG.error("request entity is too large");
+                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                        }
+                    });
+                });
+            }
+        }).build();
+    }
+
+    /**
+     * Calculate request header size in bytes.
+     * Header size includes field names, field values, and line delimiters (": " and CRLF) per header line,
+     * plus the terminating CRLF of the HTTP header section. If headers is null or empty, 0L is returned.
+     * Note: This measures the header field section; request line and HTTP/2 pseudo-headers are not included.
+     *
+     * @param headers the http headers
+     * @return total header size in bytes
+     */
+    long calculateHeaderSize(final HttpHeaders headers) {
+        if (Objects.isNull(headers) || headers.isEmpty()) {
+            return 0L;
+        }
+        long headerSize = 0L;
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            // Uses UTF-8 byte counting conservatively across HTTP/1.1 and HTTP/2 without protocol branching.
+            int nameSize = entry.getKey().getBytes(StandardCharsets.UTF_8).length;
+            List<String> values = entry.getValue();
+            if (CollectionUtils.isEmpty(values)) {
+                headerSize += nameSize + 4L;
+            } else {
+                for (String value : values) {
+                    int valueSize = Objects.isNull(value) ? 0 : value.getBytes(StandardCharsets.UTF_8).length;
+                    headerSize += nameSize + valueSize + 4L;
+                }
+            }
+        }
+        return headerSize + 2L;
+    }
 }
