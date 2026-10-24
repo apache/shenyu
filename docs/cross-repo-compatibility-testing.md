@@ -17,9 +17,18 @@ limitations under the License.
 
 # Cross-repository registration compatibility testing
 
-Proposal for #6367. This specifies test ownership, artifacts and promotion gates;
-it does not claim that independent-client deployment jobs already exist.
-The main repository and shenyu-client-java keep independent JDK baselines and releases.
+Strategy for #6367, aligned with [#7602](https://github.com/apache/shenyu/issues/7602)
+and the [migration guide](../shenyu-register-center/CLIENT_MIGRATION.md). The migration
+targets Java 17 / Spring Boot 3, with Java 21 verification following main's policy;
+releases remain independent. Historical Java 8 clients remain wire-compatibility
+fixtures, not the target SDK baseline. See the [implementation/evidence matrix](java-client-compatibility.md#migration-target-and-current-implementations).
+
+At the 2026-10-24 check, main prerequisites are merged in #7605. External
+[draft #16](https://github.com/apache/shenyu-client-java/pull/16), pinned at
+`a37668298ede`, configures client-owned source-runtime jobs and reports local
+HTTP/ZooKeeper/gRPC/MCP results. No checks are attached to that head and no
+released Admin/bootstrap matrix is certified. The remaining lanes below are
+promotion requirements, not claims that hosted deployment jobs have passed.
 
 ## Scenarios and observable outcomes
 
@@ -48,10 +57,10 @@ Never use an unpinned moving SNAPSHOT to certify a release.
 | Lane | Client | Admin/bootstrap | JDKs | Trigger / budget estimate |
 | --- | --- | --- | --- | --- |
 | Main PR contract | Serialized legacy and additive-field fixtures, no shared DTO dependency | Changed main code | Main baseline 17; Java 21 compatibility lane | Every registration/DTO/heartbeat/sync change; roughly 2-5 minutes warm |
-| Client PR contract | Candidate client plus serialized receiver fixtures | Pinned current stable Admin when the change touches wire semantics | Client baseline 8 and one 17/21 application lane; server 17 | Relevant client PRs; roughly 5-10 minutes warm |
-| Main PR deployed smoke | Pinned supported independent-client artifact | Candidate Admin/bootstrap | Application 8 or 17 according to starter; server 17 | Registration/identity/sync changes; roughly 5-10 minutes warm |
-| Nightly | Oldest supported and latest released client, plus candidate client | Latest stable and candidate main | Client 8/17/21; main 17/21 | Sparse representative combinations; roughly 15-30 minutes with parallel jobs |
-| Release | Every pair claimed supported in the matrix | Candidate and oldest supported receiver, including upgrade/rollback | Include 23/25 only where explicitly claimed; incompatible baselines excluded | Before release promotion; roughly 30-60 minutes with provider lanes |
+| Client PR contract | Java 17 / Boot 3 candidate plus fixtures from the published main protocol artifact | Pinned stable Admin when wire semantics change | Client/server 17; Java 21 verification under main's policy | Client-owned CI; roughly 5-10 minutes warm |
+| Main-change deployed smoke | Pinned independent-client artifact or explicit counterpart source candidate | Candidate Admin/bootstrap | Application 17 for the migration candidate; historical 8 only for an explicitly selected legacy fixture; server 17 | Client-owned or external workflow triggered for main changes, outside main's reactor; roughly 5-10 minutes warm |
+| Nightly | Oldest supported and latest released client, plus candidate client | Latest stable and candidate main | Client/main 17/21; separate historical Java 8 fixture when claimed | Client-owned or external workflow; roughly 15-30 minutes with parallel jobs |
+| Release | Every pair claimed supported in the matrix | Candidate and oldest supported receiver, including upgrade/rollback | Migration client 17/21; 23/25 or legacy 8 only with explicit support/evidence | Before release promotion; roughly 30-60 minutes with provider lanes |
 
 These are planning budgets, not measured results. Measure cold image/artifact downloads
 separately and update budgets after the first ten CI runs. Do not multiply every
@@ -61,24 +70,29 @@ deployment evidence distinct in [the matrix](java-client-compatibility.md).
 
 ## Harness and artifact selection
 
-Implement a versioned external-process harness owned jointly by registration and
-client maintainers. Each repository invokes the same scenario protocol with inputs:
+Keep cross-repository E2E in the client repository or an external workflow, reviewed
+by registration and client maintainers. Main's reactor uses raw JSON fixtures and
+main-owned APIs, never independent client artifacts. The harness takes:
 
 - client repository ref or published Maven coordinates, client application JDK;
 - main repository ref or published Admin/bootstrap image digests, server JDK;
 - database image/digest, sync channel, optional registry image/digest;
 - unique namespace, startup/route/heartbeat deadlines and output directory.
 
-For a main PR, build candidate Admin/bootstrap with the repository Maven wrapper.
-Build the fixture application using a pinned released split-client starter from the
-artifact repository; inspect its dependency tree to reject accidental in-tree
-client/register DTO dependencies. A one-time candidate-client lane can accept a
-counterpart ref explicitly, recording both commit IDs.
+For a main PR, an external/client-owned job can build candidate Admin/bootstrap
+with main's wrapper and a fixture application with a pinned released split-client
+starter. Keep their builds, dependency trees and classpaths separate. Reject client
+artifacts in main-owned server/test dependencies; the Java client may consume the
+released main protocol/register/registry foundations. An explicit counterpart-source
+lane must record both commits and remain distinct from released-pair verification.
 
 For a client PR, build/install only candidate client artifacts into an isolated Maven
 repository or publish an expiring CI artifact. Launch the fixture with those exact
-artifacts against pinned stable server images. Do not build server sources from the
-client checkout or silently substitute an in-tree client if artifact resolution fails.
+artifacts against pinned stable server images. Do not silently substitute an in-tree
+client if artifact resolution fails. Candidate #16's source-preparation lane can
+build pinned main foundations/Admin/bootstrap in a separate checkout with main's
+wrapper; this documented exception permits source review before publication, not
+SNAPSHOT release certification or a reverse dependency.
 
 The minimum environment is H2 Admin, bootstrap with WebSocket sync and one independent
 Spring MVC fixture process. Use Docker Compose for process/network isolation or
@@ -91,20 +105,21 @@ provider/image parity.
 Exercise one real registry in the first discovery lane (choose a provider supported
 by both selected artifacts). Add provider-specific Testcontainers/Compose services
 later. Registry mocks do not establish session expiry/watch compatibility. Separate
-MCP fixture dependencies from the small HTTP fixture so framework requirements do not
-raise the ordinary client's Java 8 baseline.
+MCP fixture dependencies from the small HTTP fixture so extra framework requirements
+do not change the declared client baseline. Any historical Java 8 fixture needs its
+own compatible dependency graph.
 
-## First implementation
+## Implemented prerequisites and remaining deployment gates
 
-1. Land this contract, [protocol inventory](registration-protocol-compatibility.md)
-   and version matrix. Keep existing RegistrationProtocolCompatibilityTest as a
-   fast receiver gate.
-2. Add one minimal external Spring MVC fixture and a harness command accepting
-   explicit client coordinates and server images. Prove authentication, persistence,
-   heartbeat and proxying, then stop the backend and require route eviction.
-3. Add a single main-PR deployed smoke lane for registration-related paths and a
-   client-PR lane against stable Admin. Gate promotion only after establishing a
-   reliable baseline; fail visibly on unresolved dependencies rather than skipping.
+1. Main #7605 already supplies the protocol artifact, eight fixtures, dependency
+   guards and receiver tests. The documentation landed in #7947; keep
+   RegistrationProtocolCompatibilityTest as a fast main-owned receiver gate.
+2. Review candidate #16's client-owned source harness and retain its separate
+   local/hosted evidence. It exercises registration, heartbeats, proxying and
+   shutdown/removal; publication and released-image verification remain pending.
+3. Add a client-owned/external main-change smoke lane and a client-PR lane against
+   stable released Admin/bootstrap. Pin published client coordinates and image
+   digests. Fail visibly on missing dependencies; do not add client imports to main.
 4. Add reverse skew, two Admins, independent discovery, MCP restart and database
    upgrade/rollback to nightly/release lanes. Expand advertised support only when
    corresponding evidence is retained.
@@ -128,7 +143,8 @@ A release checklist must link this evidence and the matching compatibility-matri
 row, identify reviewer ownership and document known exclusions. Block supported
 status when a required lane fails or was not run.
 
-This proposal adds no requirement for Java clients to upgrade JDK with the server.
+The #7602 target is Java 17 / Boot 3. Later server JDK proposals must independently
+review the client/foundation floor and preserve supported legacy wire behavior.
 Build/release maintainers own CI/image integrity, Admin/runtime owners review routing
 and liveness assertions, and client owners review framework/wire fixtures.
 

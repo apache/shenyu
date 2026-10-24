@@ -31,10 +31,12 @@ existing thread model. Keep virtual threads opt-in and assess them through the
 [virtual thread design](virtual-thread-design.md); they are not an upgrade gate
 for every plugin.
 
-The Java registration client has an independent Java 8 compatibility boundary.
-The pinned [split-client POM](https://github.com/apache/shenyu-client-java/blob/8b93088973bf9f8f50d614e708bb87f662b707d5/pom.xml)
-declares `java.version=1.8`. Server upgrades must not raise that repository's
-compiler target or require client applications to adopt a new JDK.
+The [#7602 client migration](../shenyu-register-center/CLIENT_MIGRATION.md) targets
+Java 17 / Spring Boot 3 with Java 21 verification. The historical
+[split-client POM](https://github.com/apache/shenyu-client-java/blob/8b93088973bf9f8f50d614e708bb87f662b707d5/pom.xml)
+declares Java 8; it is a legacy wire-compatibility fixture, not the new SDK target.
+This separate server Java 21 proposal must not silently raise the Java 17 output
+floor of foundations consumed by the migration client.
 Preserve the [registration v1 wire contract](../shenyu-register-center/shenyu-register-protocol/README.md)
 and test released clients against the candidate Admin. Sharing JSON fields and
 endpoint semantics does not require sharing server bytecode.
@@ -72,9 +74,9 @@ resolve, not a reason to retarget the server dependency graph to Java 8.
 | `shenyu-bootstrap`, `shenyu-web`, gateway starters and server plugins | Upgrade as a compatible server set | WebFlux routing/streaming, protocol plugins, extension loading, cancellation, TLS, and packaged launcher tests |
 | Sync, registry, infrastructure, Disruptor and load balancer modules | Follow the server set; retain ordering and lifecycle contracts | Actual registry transports, reconnect/failover, config updates, node recovery and shutdown |
 | `shenyu-common`, `shenyu-spi`, plugin APIs and `shenyu-register-protocol` | Keep Java 17 output during staging; inventory external consumers before raising their floor | No retained lower-JDK consumer may depend on Java 21 classes. Publish and review the public plugin/API compatibility change |
-| In-tree `shenyu-client`, registration senders, client starters | Complete the split or explicitly isolate a lower-baseline artifact graph before the root target changes | No hidden main-repo parent/dependency forces the split client's Java 8 build to consume server classes |
+| In-tree business `shenyu-client`, API/HTTP registration senders and business starters | Follow #7602's Java 17 / Boot 3 migration before changing their foundation floor; beat and its starter stay in main | No hidden parent or dependency forces the Java 17 migration client to consume Java 21 classes; do not preserve copied Java 8 infrastructure |
 | `shenyu-sdk` and SDK starters | Separate consumer-JDK decision; they are outside the registration-client split | Inventory applications and transitive dependencies. Preserve an explicit Java 17 build if promised; otherwise announce the Java 21 requirement |
-| Examples and integration/E2E engines | Upgrade server fixtures with the server; keep a separate released Java 8 client fixture | Standalone reactors compile, images start, and the old-client/new-server scenario runs |
+| Examples and integration/E2E engines | Upgrade server fixtures with the server; run migration-client and any supported historical-client fixtures in client-owned/external workflows | Separate reactors/classpaths compile and start; old-client/new-server verification never adds an external client dependency to main |
 
 A parent-property override cannot preserve a lower-JDK library if that library
 depends on Java 21 server classes. Split such dependencies, keep the necessary
@@ -198,8 +200,9 @@ rollback procedure is agreed.
 
 Build/release maintainers own compiler, CI, images and support announcements;
 Admin/runtime maintainers own server behavior; plugin and registry maintainers
-own their integration evidence; client maintainers own independent Java 8
-fixtures. Changes to shared DTO semantics or public plugin APIs require both
+own their integration evidence; client maintainers own Java 17 migration tests
+and any explicitly supported historical Java 8 fixtures. Changes to shared DTO
+semantics or public plugin APIs require both
 the receiving server area and the relevant client/plugin reviewers. Update the
 compatibility matrix and release checklist with verified versions when each
 phase is implemented.
