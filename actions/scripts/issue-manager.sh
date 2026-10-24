@@ -20,7 +20,7 @@
 # Minimal issue manager script to handle a subset of prow-style commands
 # Reads the GitHub issue_comment event JSON pointed to by GITHUB_EVENT_PATH
 # Requires GITHUB_TOKEN env and GITHUB_REPOSITORY env (owner/repo)
-# PR /assign, /close, and /lgtm commands are handled by dedicated workflows.
+# PR /assign, /close, /lgtm, /cc, and /hold commands are handled by dedicated workflows.
 #
 # Supported Commands:
 # -------------------
@@ -161,7 +161,7 @@ process_command() {
   # Do not replay PR commands owned by the dedicated created-comment workflows.
   if [ "$IS_PULL_REQUEST" = true ]; then
     case "$line" in
-      \/assign*|\/close|\/lgtm) return ;;
+      \/assign*|\/close|\/lgtm|\/cc*|\/hold) return ;;
     esac
   fi
   case "$line" in
