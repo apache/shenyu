@@ -28,6 +28,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,10 +58,16 @@ class SubscribeTest {
     @Mock
     private TopicRepository topicRepository;
 
+    private final ChannelRepository channelRepository = new ChannelRepository();
+
+    private final SessionRepository sessionRepository = new SessionRepository();
+
     private final Subscribe subscribe = new Subscribe();
 
     @BeforeEach
     void setUp() {
+        Singleton.INST.single(ChannelRepository.class, channelRepository);
+        Singleton.INST.single(SessionRepository.class, sessionRepository);
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
         Singleton.INST.single(TopicRepository.class, topicRepository);
     }
@@ -109,6 +117,7 @@ class SubscribeTest {
 
     private EmbeddedChannel connectedChannel() {
         EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        channelRepository.add(channel, "subscribe-test-client");
         new MessageType().setConnected(channel, true);
         return channel;
     }

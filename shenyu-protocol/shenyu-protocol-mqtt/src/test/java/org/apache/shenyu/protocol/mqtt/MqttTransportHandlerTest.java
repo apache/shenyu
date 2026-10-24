@@ -36,6 +36,7 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
@@ -110,6 +111,7 @@ public final class MqttTransportHandlerTest {
         Singleton.INST.single(WillRepository.class, willRepository);
         Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
         Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
         Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
