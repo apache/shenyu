@@ -128,7 +128,7 @@ class SubscribeTest {
 
         topicRepository.add("retained-hash/tennis/player1", "retained-1".getBytes(CharsetUtil.UTF_8));
         topicRepository.add("retained-hash/tennis/player2", "retained-2".getBytes(CharsetUtil.UTF_8));
-        topicRepository.add("retained-hash/weather/today", "retained-3".getBytes(CharsetUtil.UTF_8));
+        topicRepository.add("retained-other/weather/today", "retained-3".getBytes(CharsetUtil.UTF_8));
         awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-hash/tennis/player1"))
                 && Objects.nonNull(topicRepository.get("retained-hash/tennis/player2")));
 
@@ -148,7 +148,7 @@ class SubscribeTest {
         } finally {
             topicRepository.remove("retained-hash/tennis/player1");
             topicRepository.remove("retained-hash/tennis/player2");
-            topicRepository.remove("retained-hash/weather/today");
+            topicRepository.remove("retained-other/weather/today");
             channel.finishAndReleaseAll();
         }
     }
