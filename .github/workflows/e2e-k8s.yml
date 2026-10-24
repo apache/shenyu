@@ -65,6 +65,8 @@ jobs:
         run: bash .github/scripts/free-disk-space-test.sh
       - name: Test local HTTP upstream fixture and Compose wiring
         run: python3 -B shenyu-e2e/shenyu-e2e-case/compose/fixtures/test_httpbin.py
+      - name: Test E2E Maven input handoff
+        run: bash .github/scripts/prepare-e2e-maven-repository-test.sh
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -85,7 +87,9 @@ jobs:
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
-              - '!.github/**'
+              - '.github/workflows/e2e-k8s.yml'
+              - '.github/scripts/*e2e-maven-repository*'
+              - '.github/scripts/resolve-test-case-matrix*.sh'
               - '!.github/ISSUE_TEMPLATE/**'
               - '!.github/PULL_REQUEST_TEMPLATE'
       - name: Resolve E2E cases
@@ -164,6 +168,12 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
+      - name: Prepare selected example and E2E Maven inputs
+        env:
+          E2E_MATRIX: ${{ needs.changes.outputs.e2e_matrix }}
+          STORAGE_MATRIX: ${{ needs.changes.outputs.storage_matrix }}
+        run: bash .github/scripts/prepare-e2e-maven-repository.sh /tmp/shenyu-m2
+
       #      - name: Build shenyu-e2e-engine with Maven
       #        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
 
@@ -187,16 +197,13 @@ jobs:
           retention-days: 35
           if-no-files-found: error
 
-      - name: Stage ShenYu local Maven repository
-        run: |
-          mkdir -p /tmp/shenyu-m2/org/apache
-          cp -R "${HOME}/.m2/repository/org/apache/shenyu" /tmp/shenyu-m2/org/apache/shenyu
-
       - name: Upload ShenYu local Maven repository
         uses: actions/upload-artifact@v4
         with:
           name: shenyu-local-maven-repository
-          path: /tmp/shenyu-m2
+          path: |
+            /tmp/shenyu-m2/repository.tar.gz
+            /tmp/shenyu-m2/settings.xml
           retention-days: 35
           if-no-files-found: error
 
@@ -235,14 +242,6 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Restore ShenYu Maven Repos
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
@@ -259,6 +258,18 @@ jobs:
             echo "::error::A failed-job rerun cannot regenerate these files. Rerun all jobs; /retest does this automatically when a required artifact is missing or expired."
             exit 1
           fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+
+      - name: Restore E2E Maven inputs
+        run: |
+          python3 .github/scripts/e2e-maven-repository.py restore /tmp/shenyu-m2 /tmp/shenyu-e2e-maven
+          cp /tmp/shenyu-e2e-maven/wrapper/maven-wrapper.jar .mvn/wrapper/maven-wrapper.jar
+          echo 'MAVEN_CONFIG=-s /tmp/shenyu-e2e-maven/settings.xml' >> "$GITHUB_ENV"
+          echo 'MAVEN_USER_HOME=/tmp/shenyu-e2e-maven/maven-user-home' >> "$GITHUB_ENV"
 
       - name: Load ShenYu Docker Images
         run: |
@@ -318,34 +329,6 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Restore ShenYu Maven Repos
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Install mvnd
-        shell: bash
-        run: |
-          MVND_VERSION=1.0.6
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          else
-            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          fi
-
       - uses: actions/download-artifact@v4
         with:
           name: shenyu-images
@@ -368,25 +351,19 @@ jobs:
             exit 1
           fi
 
-      - name: Restore ShenYu local Maven repository
-        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Restore E2E Maven inputs
+        run: |
+          python3 .github/scripts/e2e-maven-repository.py restore /tmp/shenyu-m2 /tmp/shenyu-e2e-maven
+          cp /tmp/shenyu-e2e-maven/wrapper/maven-wrapper.jar .mvn/wrapper/maven-wrapper.jar
+          echo 'MAVEN_CONFIG=-s /tmp/shenyu-e2e-maven/settings.xml' >> "$GITHUB_ENV"
+          echo 'MAVEN_USER_HOME=/tmp/shenyu-e2e-maven/maven-user-home' >> "$GITHUB_ENV"
 
       - name: Build examples with Maven
         shell: bash
         env:
           EXAMPLE_PROJECTS: ${{ matrix.example_projects }}
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd to build ${EXAMPLE_PROJECTS}"
-            exec bash .github/scripts/maven-with-retry.sh mvnd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
-          else
-            echo "Falling back to maven wrapper to build ${EXAMPLE_PROJECTS}"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              exec bash .github/scripts/maven-with-retry.sh ./mvnw.cmd -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
-            else
-              exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
-            fi
-          fi
+          ./mvnw -B -ntp -o clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${EXAMPLE_PROJECTS}" -am -f ./shenyu-examples/pom.xml
 
       - name: Load ShenYu Docker Images
         run: |
