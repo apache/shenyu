@@ -28,6 +28,11 @@
     
     <dependencies>
         <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-e2e-client</artifactId>
             <version>${project.version}</version>
