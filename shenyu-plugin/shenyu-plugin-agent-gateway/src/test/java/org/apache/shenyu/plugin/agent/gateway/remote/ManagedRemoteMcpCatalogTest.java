@@ -107,6 +107,22 @@ class ManagedRemoteMcpCatalogTest {
         }
     }
 
+    @Test
+    void validConfigurationReplacesAdmissionLimitsAfterCredentialResolution() throws InterruptedException {
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(URI.create("https://192.0.2.10:443/mcp")), Set.of(), target ->
+                new RemoteServerBinding.Credential(target, "fixed-test-token"));
+        try {
+            assertEquals(128, catalog.admissionConfig().globalInFlight());
+            catalog.accept(event(true, configWithAdmission(16, 8, 4)));
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
+            assertEquals(16, catalog.admissionConfig().globalInFlight());
+            assertEquals(8, catalog.admissionConfig().remoteInFlight());
+            assertEquals(4, catalog.admissionConfig().remoteQueued());
+        } finally {
+            catalog.close();
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void withdrawnDuringSuccessfulCredentialResolutionDoesNotStartRemoteHandshake(final boolean emptyConfiguration) throws Exception {
@@ -284,6 +300,12 @@ class ManagedRemoteMcpCatalogTest {
     private static String config() {
         return "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\","
                 + "\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}]}}";
+    }
+
+    private static String configWithAdmission(final int global, final int remoteInFlight, final int remoteQueued) {
+        return "{\"aggregation\":{\"revision\":\"admission\",\"servers\":[]},\"admission\":{"
+                + "\"globalInFlight\":" + global + ",\"globalQueued\":32,\"localInFlight\":16,"
+                + "\"localQueued\":8,\"remoteInFlight\":" + remoteInFlight + ",\"remoteQueued\":" + remoteQueued + "}}";
     }
 
     private static void await(final BooleanSupplier condition) throws InterruptedException {

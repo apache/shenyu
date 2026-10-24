@@ -142,6 +142,12 @@ public final class AiProxyEngine {
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
+                         final Duration retryBackoff, final AiCallObserver observer) {
+        this(protocols, providers, routeResolver, transport, new AiProxyRetryProperties(3, 1, retryBackoff), observer);
+    }
+
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                          final AiProtocolConverterFactory converters, final AiProxyTransport transport,
                          final Duration retryBackoff, final AiCallObserver observer) {
         this(protocols, providers, converters, transport, new AiProxyRetryProperties(3, 1, retryBackoff), observer);
