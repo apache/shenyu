@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -137,8 +138,37 @@ public final class AgentToolRegistry {
      */
     public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
                                   final Supplier<AgentToolInvocation> input) {
+        return invoke(name, allowedTools, input, () -> { });
+    }
+
+    /**
+     * Invoke a tool, notifying the request observer only after pre-execution validation.
+     * @param name tool name
+     * @param allowedTools effective permissions
+     * @param input request-local invocation factory
+     * @param onAttempt nonblocking callback before provider execution
+     * @return request-local result
+     */
+    public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
+                                  final Supplier<AgentToolInvocation> input, final Runnable onAttempt) {
+        return invoke(name, allowedTools, input, onAttempt, execution -> execution);
+    }
+
+    /**
+     * Invoke a validated tool through an execution wrapper supplied by the trusted caller.
+     * @param name tool name
+     * @param allowedTools effective permissions
+     * @param input request-local invocation factory
+     * @param onAttempt nonblocking callback before provider execution
+     * @param executionWrapper admission or lifecycle boundary around one execution
+     * @return request-local result
+     */
+    public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
+                                  final Supplier<AgentToolInvocation> input, final Runnable onAttempt,
+                                  final Function<Mono<JsonObject>, Mono<JsonObject>> executionWrapper) {
         Set<String> permissions = Set.copyOf(allowedTools);
         Objects.requireNonNull(input, "input");
+        Objects.requireNonNull(executionWrapper, "executionWrapper");
         return Mono.defer(() -> {
             AgentToolProvider provider = providers.get(name);
             if (!permissions.contains(name) || Objects.isNull(provider)) {
@@ -154,7 +184,8 @@ public final class AgentToolRegistry {
             } catch (IllegalArgumentException error) {
                 throw new AgentToolArgumentException(error);
             }
-            return provider.invoke(invocation)
+            onAttempt.run();
+            return executionWrapper.apply(provider.invoke(invocation))
                     .switchIfEmpty(Mono.error(new IllegalStateException("Tool completed without a result")))
                     .map(JsonObject::deepCopy);
         });

@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
+
 import io.netty.channel.ChannelOption;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
@@ -41,6 +45,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProp
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -68,17 +73,20 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyConfigService the aiProxyConfigService
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
+     * @param observers optional application terminal sink
+     * @param auditors optional unified audit sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers,
+            final ObjectProvider<AgentInvocationAuditObserver> auditors) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler);
+                aiProxyPluginHandler, AgentInvocationAuditBridge.ai(observer(observers), auditors.getIfAvailable()));
     }
 
     /**
@@ -113,6 +121,7 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyProviderFactory provider factory
      * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
+     * @param observers optional application terminal sink
      * @param retryProperties        retry properties
      * @return the AI proxy engine
      */
@@ -121,9 +130,18 @@ public class AiProxyPluginConfiguration {
                                        final AiProxyProviderFactory aiProxyProviderFactory,
                                        final AiProtocolRouteResolver aiProtocolRouteResolver,
                                        final AiProxyTransport aiProxyTransport,
+                                       final ObjectProvider<AiCallObserver> observers,
                                        final AiProxyRetryProperties retryProperties) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, retryProperties);
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties, observer(observers));
+    }
+
+    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
+        List<AiCallObserver> candidates = provider.stream().toList();
+        if (candidates.size() > 1) {
+            throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
+        }
+        return candidates.isEmpty() ? null : candidates.get(0);
     }
 
     /**

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolArgumentException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolCapabilityException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolDefinition;
@@ -49,6 +50,8 @@ public final class AgentMcpDispatcher {
 
     private final AgentMcpRemoteCatalog remoteCatalog;
 
+    private final AgentMcpResourceAdmission admission;
+
     private final String serverName;
 
     private final String serverVersion;
@@ -60,8 +63,14 @@ public final class AgentMcpDispatcher {
     }
 
     public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion, final AgentMcpRemoteCatalog remoteCatalog) {
+        this(registry, serverName, serverVersion, remoteCatalog, AgentMcpResourceAdmission.NOOP);
+    }
+
+    public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion,
+                              final AgentMcpRemoteCatalog remoteCatalog, final AgentMcpResourceAdmission admission) {
         this.registry = Objects.requireNonNull(registry, "registry");
         this.remoteCatalog = remoteCatalog;
+        this.admission = Objects.requireNonNull(admission, "admission");
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
             throw new IllegalArgumentException("Server identity must not be blank");
         }
@@ -87,8 +96,9 @@ public final class AgentMcpDispatcher {
                         .map(tool -> (AgentToolProvider) new AgentHttpToolProvider(tool, context.getHttpInvoker())).toList());
                 AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
                         context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters(),
-                        context.getTenant().orElse(null));
-                return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog).dispatch(request, () -> bound);
+                        AgentGatewayHttpToolConfig.empty(), null, context.getTenant().orElse(null), context::notifyAttempt);
+                return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog,
+                        Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission()).dispatch(request, () -> bound);
             }
             if (Objects.nonNull(remoteCatalog)) {
                 return remoteCatalog.withSnapshot(snapshot -> routeWithRemote(request, context, snapshot))
@@ -116,6 +126,13 @@ public final class AgentMcpDispatcher {
             if (error instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
                 AgentMcpProtocolException failure = failure(request, AgentMcpRemoteCatalog.CatalogUnavailableException.HTTP_STATUS,
                         AgentMcpRemoteCatalog.CatalogUnavailableException.RPC_CODE, AgentMcpRemoteCatalog.CatalogUnavailableException.MESSAGE);
+                failure.initCause(error);
+                return failure;
+            }
+            if (error instanceof AgentResourceAdmission.AgentAdmissionException) {
+                AgentResourceAdmission.AgentAdmissionException rejected = (AgentResourceAdmission.AgentAdmissionException) error;
+                AgentMcpProtocolException failure = failure(request, rejected.isTimeout() ? 504 : 429, -32026,
+                        rejected.isTimeout() ? "Gateway admission deadline exceeded" : "Gateway resource limit exceeded");
                 failure.initCause(error);
                 return failure;
             }
@@ -165,7 +182,10 @@ public final class AgentMcpDispatcher {
                 final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, definitions.get(name).get("outputSchema"));
                 ObjectNode params = request.getParams();
                 JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
-                return snapshot.invoke(name, arguments, context)
+                return Mono.defer(() -> {
+                    return admission.withRemote(remoteServer(name), context.getDeadline(),
+                            Mono.fromRunnable(context::notifyAttempt).then(snapshot.invoke(name, arguments, context)));
+                })
                         .switchIfEmpty(Mono.error(new IllegalStateException("Remote tool completed without a result")))
                         .map(value -> {
                             ObjectNode result = value.deepCopy();
@@ -219,8 +239,10 @@ public final class AgentMcpDispatcher {
         final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, null);
         JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
         JsonObject capabilities = request.getClientCapabilities();
-        return registry.invoke(name, context.getAllowedTools(), () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
-                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities))
+        return registry.invoke(name, context.getAllowedTools(),
+                () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
+                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities), context::notifyAttempt,
+                execution -> admission.withLocal(context.getDeadline(), execution))
                 .map(value -> {
                     // Active field policies must not introduce an opaque metadata channel.
                     ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();
@@ -249,6 +271,11 @@ public final class AgentMcpDispatcher {
         result.putArray("content").addObject().put("type", "text").put("text", text);
         result.put("isError", true);
         return response(request, filterResult(request, filter, result));
+    }
+
+    private String remoteServer(final String exposedName) {
+        int separator = exposedName.indexOf('.');
+        return separator > 0 ? exposedName.substring(0, separator) : exposedName;
     }
 
     private AgentMcpResultFilter prepareResultFilter(final AgentMcpRequest request, final AgentMcpExecutionContext context,

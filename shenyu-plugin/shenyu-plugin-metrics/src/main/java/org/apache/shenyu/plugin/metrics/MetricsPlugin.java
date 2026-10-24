@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.metrics;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -58,6 +59,7 @@ public class MetricsPlugin implements ShenyuPlugin {
     }
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, MetricsReporter.agentRuntimeMetrics());
         // Metrics must run before Agent Gateway so its per-subscription observation can capture this callback.
         exchange.getAttributes().put(Constants.METRICS_AGENT_MCP_CALL, (AgentMcpCallObserver) (outcome, millis) -> {
             String[] labels = {outcome.name().toLowerCase(Locale.ROOT)};

@@ -387,7 +387,9 @@ public final class RemoteCatalogLifecycle {
     public Diagnostics diagnosticsState() {
         synchronized (lock) {
             return new Diagnostics(closed, Objects.nonNull(updatingGeneration), generations.size(), owners.size(),
-                    generations.stream().mapToInt(g -> g.references).sum(), Objects.isNull(current) ? 0L : current.version, cleanupFailures);
+                    generations.stream().mapToInt(g -> g.references).sum(),
+                    generations.stream().flatMap(g -> g.clients.stream()).mapToInt(RemoteMcpEndpoint::pending).sum(),
+                    Objects.isNull(current) ? 0L : current.version, cleanupFailures);
         }
     }
 
@@ -455,7 +457,7 @@ public final class RemoteCatalogLifecycle {
     }
 
     /** Immutable lifecycle diagnostics; map export is retained for existing management consumers. */
-    public record Diagnostics(boolean closed, boolean updating, int generations, int clients, int references,
+    public record Diagnostics(boolean closed, boolean updating, int generations, int clients, int references, int pending,
                               long currentVersion, List<String> cleanupFailures) {
         public Diagnostics {
             cleanupFailures = List.copyOf(cleanupFailures);
@@ -467,7 +469,7 @@ public final class RemoteCatalogLifecycle {
          */
         public Map<String, Object> toMap() {
             return Map.of("closed", closed, "updating", updating, "generations", generations, "clients", clients,
-                    "references", references, "currentVersion", currentVersion, "cleanupFailures", cleanupFailures);
+                    "references", references, "pending", pending, "currentVersion", currentVersion, "cleanupFailures", cleanupFailures);
         }
     }
 

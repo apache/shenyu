@@ -103,6 +103,8 @@ class AiProxyApiKeyServiceImplTest {
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertEquals(ConfigGroupEnum.AI_PROXY_API_KEY, captor.getValue().getGroupKey());
+        List<?> synchronizedKeys = (List<?>) captor.getValue().getSource();
+        assertEquals("1", ((org.apache.shenyu.common.dto.ProxyApiKeyData) synchronizedKeys.get(0)).getId());
     }
 
     @Test
