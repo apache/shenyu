@@ -62,7 +62,10 @@ public interface PiiTextSlot {
 
             @Override
             public String text() {
-                return element.getAsString();
+                // read through the parent, so a slot replaced by another scan of the
+                // same tree reports the replaced value instead of a stale capture
+                JsonElement current = parent.get(member);
+                return Objects.isNull(current) ? null : current.getAsString();
             }
 
             @Override
@@ -91,7 +94,9 @@ public interface PiiTextSlot {
 
             @Override
             public String text() {
-                return element.getAsString();
+                // read through the parent, see ofMember
+                JsonElement current = index < parent.size() ? parent.get(index) : null;
+                return Objects.isNull(current) ? null : current.getAsString();
             }
 
             @Override

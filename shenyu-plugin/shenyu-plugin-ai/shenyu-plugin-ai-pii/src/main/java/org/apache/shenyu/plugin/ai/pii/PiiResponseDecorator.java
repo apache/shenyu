@@ -83,6 +83,20 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
         if (skipScan()) {
             return super.writeWith(body);
         }
+        long declaredSize = getHeaders().getContentLength();
+        if (rule.isOversized(declaredSize)) {
+            if (rule.isFailClosed()) {
+                LOG.warn("pii detection: the response of {} bytes exceeds maxBodySize {}, failClosed is set,"
+                        + " the response is rejected", declaredSize, rule.getMaxBodySize());
+                return Mono.fromCallable(this::block)
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .flatMap(this::write);
+            }
+            // the body is never buffered on this path, it streams through unchanged
+            LOG.warn("pii detection: the response of {} bytes exceeds maxBodySize {}, the response is not scanned,"
+                    + " ruleId {}", declaredSize, rule.getMaxBodySize(), rule.getRuleId());
+            return super.writeWith(body);
+        }
         return DataBufferUtils.join(body)
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(buffer -> {
@@ -98,22 +112,47 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
     @Override
     @NonNull
     public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
-        if (skipScan() || !scannableContentType()) {
+        if (skipScan()) {
+            return super.writeAndFlushWith(body);
+        }
+        if (!scannableContentType()) {
+            // server sent events and bodies without a json content type are unsupported
+            // enforcement modes: a fail closed rule rejects them, a fail open rule
+            // streams them through unchanged instead of joining them
+            if (rule.isFailClosed()) {
+                LOG.warn("pii detection: the response content type {} cannot be scanned and failClosed is set,"
+                        + " the response is rejected", getHeaders().getContentType());
+                return Mono.fromCallable(this::block)
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .flatMap(this::write);
+            }
+            LOG.warn("pii detection: the response content type {} cannot be scanned, the response is passed"
+                    + " through unscanned, ruleId {}", getHeaders().getContentType(), rule.getRuleId());
             return super.writeAndFlushWith(body);
         }
         return writeWith(Flux.from(body).concatMap(Flux::from));
     }
 
     private byte[] scan(final byte[] bytes) {
+        if (rule.isOversized(bytes.length)) {
+            if (rule.isFailClosed()) {
+                LOG.warn("pii detection: the response of {} bytes exceeds maxBodySize {}, failClosed is set,"
+                        + " the response is rejected", bytes.length, rule.getMaxBodySize());
+                return block();
+            }
+            LOG.warn("pii detection: the response of {} bytes exceeds maxBodySize {}, the response is not scanned,"
+                    + " ruleId {}", bytes.length, rule.getMaxBodySize(), rule.getRuleId());
+            return bytes;
+        }
         MediaType contentType = getHeaders().getContentType();
         String encoding = getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
         if (Objects.nonNull(encoding) && !encoding.isEmpty() && !"identity".equalsIgnoreCase(encoding)) {
-            LOG.warn("pii detection: the response carries Content-Encoding {} and is passed through unscanned,"
-                    + " ruleId {}", encoding, rule.getRuleId());
-            return bytes;
+            return passThroughUnsupported(new String(bytes, StandardCharsets.UTF_8),
+                    "the response carries Content-Encoding " + encoding);
         }
         if (!scannableContentType()) {
-            return bytes;
+            return passThroughUnsupported(new String(bytes, StandardCharsets.UTF_8),
+                    "the response has no scannable json content type");
         }
         String body = new String(bytes, StandardCharsets.UTF_8);
         JsonObject root;
@@ -125,6 +164,10 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
         }
         if (Objects.isNull(root)) {
             return passThroughUnsupported(body, "the response body is not a JSON object");
+        }
+        if (root.has("error")) {
+            // an upstream error envelope is never rewritten, whatever the failure policy
+            return bytes;
         }
         PiiProtocolProfile profile = PiiProtocolProfiles.selectResponse(root);
         if (Objects.isNull(profile)) {

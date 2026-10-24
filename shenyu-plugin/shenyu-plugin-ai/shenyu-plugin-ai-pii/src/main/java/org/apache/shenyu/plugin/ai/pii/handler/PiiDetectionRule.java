@@ -83,7 +83,9 @@ public final class PiiDetectionRule {
     }
 
     /**
-     * Compile a rule handle.
+     * Compile a rule handle. A configuration mistake must never silently disable
+     * the plugin, so every unusable value is reported and falls back to the safe
+     * default instead of compiling into a rule that scans nothing.
      *
      * @param ruleId the rule the handle belongs to, reported by audit records
      * @param handle the parsed rule handle
@@ -91,21 +93,46 @@ public final class PiiDetectionRule {
      */
     public static PiiDetectionRule compile(final String ruleId, final PiiDetectionHandle handle) {
         PiiDetectionHandle effective = Objects.isNull(handle) ? PiiDetectionHandle.newDefaultInstance() : handle;
-        List<PiiDetector> detectors = compileDetectors(effective);
-        Map<String, PiiAction> actions = compileActions(effective);
+        final List<PiiDetector> detectors = compileDetectors(ruleId, effective);
+        final Map<String, PiiAction> actions = compileActions(effective);
         PiiAction compiledDefault = PiiAction.fromName(effective.getDefaultAction());
         if (Objects.isNull(compiledDefault)) {
             LOG.warn("pii detection rule {}: unknown defaultAction {}, falling back to {}", ruleId,
                     effective.getDefaultAction(), PiiDetectionHandle.DEFAULT_ACTION);
             compiledDefault = PiiAction.valueOf(PiiDetectionHandle.DEFAULT_ACTION);
         }
+        boolean scansRequest = effective.scansRequest();
+        boolean scansResponse = effective.scansResponse();
+        if (!scansRequest && !scansResponse && hasConfiguredScope(effective)) {
+            LOG.warn("pii detection rule {}: the configured scope {} names no direction, falling back to {}",
+                    ruleId, effective.getScope(), PiiDetectionHandle.DEFAULT_SCOPE);
+            scansRequest = true;
+        }
+        long timeoutMs = effective.getDetectorTimeoutMs();
+        if (timeoutMs <= 0L) {
+            LOG.warn("pii detection rule {}: detectorTimeoutMs {} is not positive, falling back to {}",
+                    ruleId, timeoutMs, PiiDetectionHandle.DEFAULT_DETECTOR_TIMEOUT_MS);
+            timeoutMs = PiiDetectionHandle.DEFAULT_DETECTOR_TIMEOUT_MS;
+        }
         return new PiiDetectionRule(ruleId, detectors, actions, compiledDefault,
-                effective.scansRequest(), effective.scansResponse(),
-                effective.getMaxBodySize(), effective.isFailClosed(), effective.getDetectorTimeoutMs());
+                scansRequest, scansResponse,
+                effective.getMaxBodySize(), effective.isFailClosed(), timeoutMs);
     }
 
-    private static List<PiiDetector> compileDetectors(final PiiDetectionHandle handle) {
-        Map<String, PiiDetector> compiled = new LinkedHashMap<>(BuiltinPiiDetectors.select(handle.parsedDetectors()));
+    private static boolean hasConfiguredScope(final PiiDetectionHandle handle) {
+        return Objects.nonNull(handle.getScope()) && !handle.getScope().trim().isEmpty();
+    }
+
+    private static List<PiiDetector> compileDetectors(final String ruleId, final PiiDetectionHandle handle) {
+        List<String> enabled = handle.parsedDetectors();
+        Map<String, PiiDetector> compiled = new LinkedHashMap<>(BuiltinPiiDetectors.select(enabled));
+        if (!enabled.isEmpty() && compiled.isEmpty()) {
+            // every configured type names no builtin detector: scanning nothing would
+            // silently disable the rule, so every builtin is enabled instead
+            LOG.warn("pii detection rule {}: the configured detectors {} name no builtin detector,"
+                    + " all builtin detectors are enabled", ruleId, enabled);
+            compiled.putAll(BuiltinPiiDetectors.all());
+        }
         for (Map.Entry<String, String> custom : handle.parsedCustomPatterns().entrySet()) {
             String type = custom.getKey();
             if (BuiltinPiiDetectors.all().containsKey(type)) {
@@ -214,7 +241,9 @@ public final class PiiDetectionRule {
     }
 
     /**
-     * The absolute deadline for one detector run over one text.
+     * The absolute deadline for the detector budget of one direction. The budget
+     * covers every slot and every detector of that direction together, so a
+     * payload with many messages cannot multiply it.
      *
      * @return the deadline in nanoseconds
      */

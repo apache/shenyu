@@ -27,7 +27,7 @@ import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.Objects;
-import java.util.Optional;
+
 import java.util.function.Supplier;
 
 /**
@@ -50,11 +50,18 @@ public class PiiDetectionPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(json -> {
-            PiiDetectionHandle handle = GsonUtils.getInstance().fromJson(json, PiiDetectionHandle.class);
-            PiiDetectionRule rule = PiiDetectionRule.compile(CacheKeyUtils.INST.getKey(ruleData), handle);
-            CACHED_RULES.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rule);
-        });
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        PiiDetectionHandle handle = null;
+        if (Objects.nonNull(ruleData.getHandle())) {
+            handle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), PiiDetectionHandle.class);
+        }
+        if (Objects.isNull(handle)) {
+            // a rule whose handle was cleared must not keep enforcing the previous
+            // policy, so the compiled rule is dropped instead of left behind
+            CACHED_RULES.get().removeHandle(key);
+            return;
+        }
+        CACHED_RULES.get().cachedHandle(key, PiiDetectionRule.compile(key, handle));
     }
 
     @Override

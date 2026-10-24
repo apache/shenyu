@@ -59,7 +59,9 @@ public final class PiiChecksum {
     }
 
     /**
-     * The Luhn checksum of a payment card number.
+     * The Luhn checksum of a payment card number. A number whose digits are all
+     * the same is rejected as well: such a string passes Luhn but no real card
+     * carries it.
      *
      * @param candidate the candidate digits
      * @return true when the checksum is valid
@@ -68,12 +70,16 @@ public final class PiiChecksum {
         if (Objects.isNull(candidate) || candidate.isEmpty()) {
             return false;
         }
+        boolean allSameDigit = true;
         int sum = 0;
         boolean doubleDigit = false;
         for (int i = candidate.length() - 1; i >= 0; i--) {
             char digit = candidate.charAt(i);
             if (digit < '0' || digit > '9') {
                 return false;
+            }
+            if (digit != candidate.charAt(0)) {
+                allSameDigit = false;
             }
             int value = digit - '0';
             if (doubleDigit) {
@@ -85,6 +91,6 @@ public final class PiiChecksum {
             sum += value;
             doubleDigit = !doubleDigit;
         }
-        return sum % 10 == 0;
+        return !allSameDigit && sum % 10 == 0;
     }
 }

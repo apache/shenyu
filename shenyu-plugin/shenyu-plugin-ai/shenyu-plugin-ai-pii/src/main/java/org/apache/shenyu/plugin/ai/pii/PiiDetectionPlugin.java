@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.ai.pii.audit.PiiAuditSink;
 import org.apache.shenyu.plugin.ai.pii.audit.LoggingPiiAuditSink;
+import org.apache.shenyu.plugin.ai.pii.detector.PiiDetectorTimeoutException;
 import org.apache.shenyu.plugin.ai.pii.handler.PiiDetectionPluginDataHandler;
 import org.apache.shenyu.plugin.ai.pii.handler.PiiDetectionRule;
 import org.apache.shenyu.plugin.ai.pii.profile.PiiProtocolProfile;
@@ -41,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,7 +58,13 @@ import java.util.Objects;
  * completions and responses protocols: a streaming request under a response
  * scope is rejected up front when the rule is fail closed, otherwise the
  * response scan is skipped with a warning, and the response decorator passes
- * server sent events and compressed bodies through unscanned.</p>
+ * server sent events and compressed bodies through with a warning, or rejects
+ * them when the rule is fail closed.</p>
+ *
+ * <p>Mutual exclusion: when the aiResponseTransformer plugin (order 66) is
+ * enabled on the same traffic, its decorator sits inside this one and replaces
+ * the whole response body with a generated one, so the redaction applied here
+ * is overwritten. Do not enable both plugins on the same selector.</p>
  */
 public class PiiDetectionPlugin extends AbstractShenyuPlugin {
 
@@ -128,41 +136,61 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
 
     private Mono<String> inspectRequest(final ServerWebExchange exchange,
                                         final String body, final PiiDetectionRule rule) {
+        // the json parse, the regex scan and the audit logging never run on the netty
+        // event loop, like the sensitive word plugin they hop to a bounded elastic worker
+        return Mono.fromCallable(() -> inspectBody(exchange, body, rule))
+                .subscribeOn(Schedulers.boundedElastic())
+                .onErrorResume(PiiDetectorTimeoutException.class, timeout -> unsupportedMode(exchange, body, rule,
+                        "the request scan exceeded its detector deadline"));
+    }
+
+    private String inspectBody(final ServerWebExchange exchange,
+                               final String body, final PiiDetectionRule rule) {
         if (rule.isOversized(body.length())) {
             if (rule.isFailClosed()) {
                 LOG.warn("pii detection: the body of {} characters exceeds maxBodySize and failClosed is set,"
                         + " the request is rejected", body.length());
-                return Mono.error(rejectError(exchange));
+                throw rejectError(exchange);
             }
             LOG.warn("pii detection: the body of {} characters exceeds maxBodySize, the body is not scanned",
                     body.length());
-            return Mono.just(body);
+            return body;
         }
         JsonObject root = parse(body);
         if (Objects.isNull(root)) {
-            return unsupportedMode(exchange, body, rule, "the request body is not a JSON object");
+            return unsupportedBody(exchange, body, rule, "the request body is not a JSON object");
         }
         if (rule.scansResponse() && isStreamingRequest(root)) {
             if (rule.isFailClosed()) {
                 LOG.warn("pii detection: a streaming request under a response scope cannot enforce the response,"
                         + " failClosed is set, the request is rejected");
-                return Mono.error(rejectError(exchange));
+                throw rejectError(exchange);
             }
             LOG.warn("pii detection: a streaming request under a response scope is not scanned on the response side");
             exchange.getAttributes().put(SKIP_RESPONSE_ATTRIBUTE, Boolean.TRUE);
         }
         PiiProtocolProfile profile = PiiProtocolProfiles.select(root);
         if (Objects.isNull(profile)) {
-            return unsupportedMode(exchange, body, rule, "no supported protocol profile matches the payload");
+            return unsupportedBody(exchange, body, rule, "no supported protocol profile matches the payload");
         }
         List<PiiTextSlot> slots = profile.requestSlots(root);
         PiiScanner.PiiOutcome outcome = new PiiScanner(rule, "request").scan(slots);
         outcome.getAudits().forEach(auditSink::record);
         if (outcome.isBlocked()) {
             LOG.warn("pii detection: the request was rejected, ruleId {}", rule.getRuleId());
-            return Mono.error(rejectError(exchange));
+            throw rejectError(exchange);
         }
-        return Mono.just(outcome.isChanged() ? root.toString() : body);
+        return outcome.isChanged() ? root.toString() : body;
+    }
+
+    private String unsupportedBody(final ServerWebExchange exchange, final String body,
+                                   final PiiDetectionRule rule, final String reason) {
+        if (rule.isFailClosed()) {
+            LOG.warn("pii detection: {} and failClosed is set, the request is rejected", reason);
+            throw rejectError(exchange);
+        }
+        LOG.warn("pii detection: {}, the request is passed through unscanned", reason);
+        return body;
     }
 
     private Mono<String> unsupportedMode(final ServerWebExchange exchange, final String body,

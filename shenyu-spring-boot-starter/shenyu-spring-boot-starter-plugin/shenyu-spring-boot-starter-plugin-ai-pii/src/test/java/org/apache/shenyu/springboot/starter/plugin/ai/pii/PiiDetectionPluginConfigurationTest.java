@@ -77,4 +77,17 @@ public class PiiDetectionPluginConfigurationTest {
                     assertThat(sink).isInstanceOf(LoggingPiiAuditSink.class);
                 });
     }
+
+    @Test
+    public void testAutoConfigurationImportsResourceListsTheConfiguration() throws Exception {
+        // a starter without this resource is silently never assembled in the
+        // bootstrap, the configuration class alone is not enough
+        String resource = "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports";
+        try (java.io.InputStream stream = getClass().getClassLoader().getResourceAsStream(resource)) {
+            assertNotNull(stream, resource + " is missing from the starter");
+            String content = new String(java.util.Objects.requireNonNull(stream).readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(content).contains(PiiDetectionPluginConfiguration.class.getName());
+        }
+    }
 }

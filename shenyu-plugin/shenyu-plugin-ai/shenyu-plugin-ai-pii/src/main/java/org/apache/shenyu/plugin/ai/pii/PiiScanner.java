@@ -60,6 +60,9 @@ final class PiiScanner {
      * @return the outcome of the scan
      */
     PiiOutcome scan(final List<PiiTextSlot> slots) {
+        // one deadline for the whole direction, a payload with many slots cannot
+        // multiply the budget
+        final long deadline = rule.detectorDeadlineNanos();
         boolean blocked = false;
         Map<String, Integer> auditCounts = new LinkedHashMap<>();
         boolean changed = false;
@@ -68,7 +71,7 @@ final class PiiScanner {
             if (Objects.isNull(text) || text.isEmpty()) {
                 continue;
             }
-            List<PiiMatch> matches = detect(text);
+            List<PiiMatch> matches = detect(text, deadline);
             if (matches.isEmpty()) {
                 continue;
             }
@@ -86,9 +89,8 @@ final class PiiScanner {
         return new PiiOutcome(blocked, changed, audits);
     }
 
-    private List<PiiMatch> detect(final String text) {
+    private List<PiiMatch> detect(final String text, final long deadline) {
         List<PiiMatch> matches = new ArrayList<>();
-        long deadline = rule.detectorDeadlineNanos();
         for (PiiDetector detector : rule.getDetectors()) {
             matches.addAll(detector.detect(text, deadline));
         }
