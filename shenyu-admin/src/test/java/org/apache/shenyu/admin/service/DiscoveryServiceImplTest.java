@@ -55,6 +55,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -329,6 +330,88 @@ public final class DiscoveryServiceImplTest {
         verify(discoveryMapper, never()).selectById("discovery-1");
     }
 
+
+    @Test
+    public void testUpdateReinitializesRuntimeRepositoryWhenConfigChanges() {
+        final DiscoveryDO stored = new DiscoveryDO();
+        stored.setId("discovery-1");
+        stored.setDiscoveryType("zookeeper");
+        stored.setServerList("old-host:2181");
+        stored.setProps("{}");
+        stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        // each select returns an independent snapshot, like a real database read
+        when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
+        // a real updateSelective writes the argument into the stored row
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenAnswer(invocation -> {
+            final DiscoveryDO arg = invocation.getArgument(0);
+            if (Objects.nonNull(arg.getServerList())) {
+                stored.setServerList(arg.getServerList());
+            }
+            if (Objects.nonNull(arg.getProps())) {
+                stored.setProps(arg.getProps());
+            }
+            if (Objects.nonNull(arg.getDiscoveryType())) {
+                stored.setDiscoveryType(arg.getDiscoveryType());
+            }
+            return 1;
+        });
+
+        final DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setName("d");
+        dto.setPluginName("divide");
+        dto.setType("zookeeper");
+        dto.setLevel("plugin");
+        dto.setServerList("new-host:2181");
+        dto.setProps("{}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        discoveryService.createOrUpdate(dto);
+
+        final org.mockito.InOrder order = org.mockito.Mockito.inOrder(discoveryProcessor);
+        order.verify(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
+        order.verify(discoveryProcessor).createDiscovery(any(DiscoveryDO.class));
+    }
+
+    @Test
+    public void testUpdateSkipsRuntimeRefreshWhenConfigUnchanged() {
+        final DiscoveryDO stored = new DiscoveryDO();
+        stored.setId("discovery-1");
+        stored.setDiscoveryType("zookeeper");
+        stored.setServerList("same-host:2181");
+        stored.setProps("{}");
+        stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenAnswer(invocation -> {
+            final DiscoveryDO arg = invocation.getArgument(0);
+            if (Objects.nonNull(arg.getServerList())) {
+                stored.setServerList(arg.getServerList());
+            }
+            if (Objects.nonNull(arg.getProps())) {
+                stored.setProps(arg.getProps());
+            }
+            if (Objects.nonNull(arg.getDiscoveryType())) {
+                stored.setDiscoveryType(arg.getDiscoveryType());
+            }
+            return 1;
+        });
+
+        final DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setName("d2");
+        dto.setPluginName("divide");
+        dto.setType("zookeeper");
+        dto.setLevel("plugin");
+        dto.setServerList("same-host:2181");
+        dto.setProps("{}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        discoveryService.createOrUpdate(dto);
+
+        verify(discoveryProcessor, never()).removeDiscovery(any(DiscoveryDO.class));
+        verify(discoveryProcessor, never()).createDiscovery(any(DiscoveryDO.class));
+    }
+
     @Test
     public void testTypeCreateUpdateAndDiscoveryLookup() {
         assertEquals(org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum.types(), discoveryService.typeEnums());
@@ -553,5 +636,16 @@ public final class DiscoveryServiceImplTest {
         assertEquals("import fail discovery: duplicate", result.getFailMessage());
         verify(discoveryMapper, never()).insert(any());
         verifyNoInteractions(discoveryHandlerMapper, discoveryRelMapper, discoveryProcessor);
+    }
+
+    private static DiscoveryDO copy(final DiscoveryDO source) {
+        final DiscoveryDO snapshot = new DiscoveryDO();
+        snapshot.setId(source.getId());
+        snapshot.setDiscoveryName(source.getDiscoveryName());
+        snapshot.setDiscoveryType(source.getDiscoveryType());
+        snapshot.setServerList(source.getServerList());
+        snapshot.setProps(source.getProps());
+        snapshot.setNamespaceId(source.getNamespaceId());
+        return snapshot;
     }
 }

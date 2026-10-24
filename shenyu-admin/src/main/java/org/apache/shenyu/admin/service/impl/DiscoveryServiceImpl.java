@@ -272,7 +272,46 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
+        // snapshot the pre-update row so the runtime refresh can compare before against
+        // after; updateSelective skips null DTO fields, so null means "leave unchanged"
+        final DiscoveryDO existing = discoveryMapper.selectById(discoveryDTO.getId());
+        if (discoveryMapper.updateSelective(discoveryDO) <= 0) {
+            return null;
+        }
+        refreshRuntimeRepository(existing, discoveryDO);
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+    }
+
+    /**
+     * The cached runtime repository is created once per discovery id and never re-read its
+     * configuration, so a persisted server-list/props/type change must replace it; a
+     * name-only change keeps the live repository untouched.
+     */
+    private void refreshRuntimeRepository(final DiscoveryDO before, final DiscoveryDO after) {
+        if (Objects.isNull(before)) {
+            return;
+        }
+        final boolean configChanged = !Objects.equals(before.getServerList(), effective(after.getServerList(), before.getServerList()))
+                || !Objects.equals(before.getProps(), effective(after.getProps(), before.getProps()))
+                || !Objects.equals(before.getDiscoveryType(), effective(after.getDiscoveryType(), before.getDiscoveryType()));
+        if (configChanged) {
+            discoveryProcessorHolder.chooseProcessor(before.getDiscoveryType()).removeDiscovery(before);
+            final DiscoveryDO effectiveAfter = DiscoveryDO.builder()
+                    .id(after.getId())
+                    .discoveryName(effective(after.getDiscoveryName(), before.getDiscoveryName()))
+                    .discoveryType(effective(after.getDiscoveryType(), before.getDiscoveryType()))
+                    .serverList(effective(after.getServerList(), before.getServerList()))
+                    .props(effective(after.getProps(), before.getProps()))
+                    .namespaceId(effective(after.getNamespaceId(), before.getNamespaceId()))
+                    .dateCreated(before.getDateCreated())
+                    .dateUpdated(after.getDateUpdated())
+                    .build();
+            discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType()).createDiscovery(effectiveAfter);
+        }
+    }
+
+    private static String effective(final String value, final String fallback) {
+        return Objects.isNull(value) ? fallback : value;
     }
 
     public void syncData(final List<DiscoveryDO> discoveryDOS) {
