@@ -56,6 +56,12 @@ class SubscribeTest {
     private SubscribeRepository subscribeRepository;
 
     @Mock
+    private ChannelRepository channelRepository;
+
+    @Mock
+    private SessionRepository sessionRepository;
+
+    @Mock
     private TopicRepository topicRepository;
 
     private final ChannelRepository channelRepository = new ChannelRepository();
@@ -68,8 +74,12 @@ class SubscribeTest {
     void setUp() {
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         Singleton.INST.single(SessionRepository.class, sessionRepository);
+        // register everything subscribe() touches: relying on repositories left
+        // behind by whichever test class ran before is order-dependent (#8021)
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
         Singleton.INST.single(TopicRepository.class, topicRepository);
+        Singleton.INST.single(ChannelRepository.class, channelRepository);
+        Singleton.INST.single(SessionRepository.class, sessionRepository);
     }
 
     @Test
