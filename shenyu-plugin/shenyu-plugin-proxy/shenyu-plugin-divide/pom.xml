@@ -26,6 +26,7 @@
     <artifactId>shenyu-plugin-divide</artifactId>
 
     <dependencies>
+        <!-- Canary failover regressions exercise the shared HTTP client's real retry strategy. -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-httpclient</artifactId>

@@ -93,6 +93,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        // A re-entered exchange must not inherit a previous selector's partition.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);

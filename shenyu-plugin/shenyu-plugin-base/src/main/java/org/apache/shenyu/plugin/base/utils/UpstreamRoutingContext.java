@@ -46,6 +46,7 @@ public final class UpstreamRoutingContext {
 
     /**
      * Apply the original partition to the current healthy snapshot without repeating the canary decision.
+     * Reject a different selector so its candidates cannot inherit this request's partition.
      *
      * @param currentSelectorId selector owning the latest snapshot
      * @param upstreams latest healthy upstreams
