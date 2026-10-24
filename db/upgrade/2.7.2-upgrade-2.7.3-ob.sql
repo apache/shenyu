@@ -42,3 +42,6 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers, including long Authorization values.
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE mock_request_record MODIFY COLUMN header TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header';
+
+-- Clarify existing instance states; stored numeric values are unchanged.
+ALTER TABLE `instance_info` MODIFY COLUMN `instance_state` tinyint(4) NOT NULL COMMENT '0-deleted 1-online 2-offline';

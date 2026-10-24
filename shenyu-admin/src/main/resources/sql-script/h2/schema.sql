@@ -1414,7 +1414,7 @@ CREATE TABLE IF NOT EXISTS instance_info
     `instance_port`    varchar(128)  NOT NULL COMMENT 'instance_port',
     `instance_type`  varchar(128)  NOT NULL COMMENT 'instance_type',
     `instance_info`  text  NOT NULL COMMENT 'instance_info',
-    `instance_state`  int  NOT NULL COMMENT  '0-unknown 1-online 2-offline',
+    `instance_state`  int  NOT NULL COMMENT  '0-deleted 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
     `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',

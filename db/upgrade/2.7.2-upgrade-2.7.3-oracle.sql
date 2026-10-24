@@ -49,3 +49,6 @@ ALTER TABLE mock_request_record DROP COLUMN header;
 ALTER TABLE mock_request_record RENAME COLUMN header_clob TO header;
 ALTER TABLE mock_request_record MODIFY header DEFAULT EMPTY_CLOB() NOT NULL;
 COMMENT ON COLUMN mock_request_record.header IS 'the request param in header';
+
+-- Clarify existing instance states; stored numeric values are unchanged.
+COMMENT ON COLUMN instance_info.instance_state IS '0-deleted 1-online 2-offline';

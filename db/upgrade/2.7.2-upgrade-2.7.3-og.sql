@@ -44,3 +44,6 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers, including long Authorization values.
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
+
+-- Clarify existing instance states; stored numeric values are unchanged.
+COMMENT ON COLUMN "public"."instance_info"."instance_state" IS '0-deleted 1-online 2-offline';

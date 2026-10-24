@@ -234,7 +234,7 @@ public final class InstanceCheckServiceTest {
         InstanceBeatInfoDTO dto2 = buildDTO("2.2.2.2", "8082", "grpc", "nsB");
         instanceCheckService.handleBeatInfo(dto1);
         instanceCheckService.handleBeatInfo(dto2);
-        // mark dto2 as OFFLINE by editing the cached VO
+        // mark dto2 as DELETED by editing the cached VO
         InstanceInfoVO cached2 = instanceCheckService.getInstanceHealthBeatInfo(dto2);
         cached2.setInstanceState(0);
 
@@ -256,6 +256,44 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.getInstanceHealthBeatInfo(dto).setInstanceState(null);
 
         assertDoesNotThrow(() -> instanceCheckService.getInstanceDataVisual(""));
+    }
+
+    @Test
+    void testChartsDistinguishDeletedAndUnrecognizedStates() {
+        InstanceBeatInfoDTO deleted = buildDTO("3.3.3.3", "8083", "grpc", "ns");
+        InstanceBeatInfoDTO unknown = buildDTO("4.4.4.4", "8084", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(deleted);
+        instanceCheckService.handleBeatInfo(unknown);
+        instanceCheckService.getInstanceHealthBeatInfo(deleted).setInstanceState(0);
+        instanceCheckService.getInstanceHealthBeatInfo(unknown).setInstanceState(99);
+
+        InstanceDataVisualVO charts = instanceCheckService.getInstanceDataVisual("ns");
+
+        assertEquals(1L, charts.getPieData().stream().filter(entry -> "DELETED".equals(entry.getName())).findFirst().orElseThrow().getValue());
+        assertEquals(1L, charts.getPieData().stream().filter(entry -> "UNKNOWN".equals(entry.getName())).findFirst().orElseThrow().getValue());
+        assertEquals(0, instanceCheckService.getInstanceHealthBeatInfo(deleted).getInstanceState());
+        assertEquals(99, instanceCheckService.getInstanceHealthBeatInfo(unknown).getInstanceState());
+    }
+
+    @Test
+    void testExpiryAndRecoveryKeepPersistedStateCodes() {
+        InstanceBeatInfoDTO heartbeat = buildDTO("5.5.5.5", "8085", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(heartbeat);
+        InstanceInfoVO instance = instanceCheckService.getInstanceHealthBeatInfo(heartbeat);
+        assertEquals(1, instance.getInstanceState());
+        ReflectionTestUtils.setField(instanceCheckService, "instanceHeartBeatTimeOut", 1000L);
+        ReflectionTestUtils.setField(instanceCheckService, "deleteTimeout", 10000L);
+        instance.setLastHeartBeatTime(System.currentTimeMillis() - 5000L);
+
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+        assertEquals(2, instance.getInstanceState());
+        instance.setLastHeartBeatTime(0L);
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+        assertEquals(0, instance.getInstanceState());
+
+        instanceCheckService.handleBeatInfo(heartbeat);
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "doCheck");
+        assertEquals(1, instance.getInstanceState());
     }
 
     @Test
