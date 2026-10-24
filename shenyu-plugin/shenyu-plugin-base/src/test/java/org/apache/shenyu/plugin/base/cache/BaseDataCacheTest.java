@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -133,6 +134,45 @@ public final class BaseDataCacheTest {
         BaseDataCache.getInstance().cleanPluginDataSelf(pluginDataList);
         assertNull(pluginMap.get(mockName1));
         assertNotNull(pluginMap.get(mockName2));
+    }
+
+    @Test
+    public void testPluginAndSelectorRefreshesPreserveOtherGroups() {
+        PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).pluginName(mockPluginName1).build();
+        RuleData ruleData = RuleData.builder().id(mockName1).selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        cache.cachePluginData(pluginData);
+        cache.cacheSelectData(selectorData);
+        cache.cacheRuleData(ruleData);
+
+        // PluginDataRefresh clears and reloads only the plugin group.
+        cache.cleanPluginData();
+        cache.cachePluginData(pluginData);
+
+        assertEquals(List.of(selectorData), cache.obtainSelectorData(mockPluginName1));
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
+
+        // SelectorDataRefresh clears and reloads only the selector group.
+        cache.cleanSelectorData();
+        cache.cacheSelectData(selectorData);
+
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
+    }
+
+    @Test
+    public void testCleanPluginDataSelfPreservesSelectorAndRuleGroups() {
+        PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).pluginName(mockPluginName1).build();
+        RuleData ruleData = RuleData.builder().id(mockName1).selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        cache.cachePluginData(pluginData);
+        cache.cacheSelectData(selectorData);
+        cache.cacheRuleData(ruleData);
+
+        cache.cleanPluginDataSelf(Lists.newArrayList(pluginData));
+
+        assertNull(cache.obtainPluginData(mockPluginName1));
+        assertEquals(List.of(selectorData), cache.obtainSelectorData(mockPluginName1));
+        assertEquals(List.of(ruleData), cache.obtainRuleData(mockSelectorId1));
     }
 
     @Test
@@ -422,6 +462,89 @@ public final class BaseDataCacheTest {
         cache.removeRuleData(rule("b", 2));
         assertEquals(List.of(selector("a", 1), selector("b", 2)), selectors);
         assertEquals(List.of(rule("a", 1), rule("b", 2)), rules);
+    }
+
+    @Test
+    public void pluginRefreshDoesNotUndoConcurrentDeletion() throws Exception {
+        PluginData removed = plugin("removed", 1);
+        cache.cachePluginData(removed);
+        assertConcurrentChange(() -> cache.refreshPluginData(pauseBeforeLast(List.of(plugin("added", 2)))),
+                () -> cache.removePluginData(removed), () -> assertNull(cache.obtainPluginData("removed")));
+    }
+
+    @Test
+    public void selectorRefreshDoesNotLoseConcurrentUpdate() throws Exception {
+        SelectorData updated = selector("existing", 3);
+        cache.cacheSelectData(selector("existing", 1));
+        assertConcurrentChange(() -> cache.refreshSelectorData(pauseBeforeLast(List.of(selector("added", 2)))),
+                () -> cache.cacheSelectData(updated), () -> assertEquals(List.of(selector("added", 2), updated), cache.obtainSelectorData("divide")));
+    }
+
+    @Test
+    public void ruleRefreshDoesNotUndoConcurrentDeletion() throws Exception {
+        RuleData removed = rule("removed", 1);
+        cache.cacheRuleData(removed);
+        assertConcurrentChange(() -> cache.refreshRuleData(pauseBeforeLast(List.of(rule("added", 2)))),
+                () -> cache.removeRuleData(removed), () -> assertEquals(List.of(rule("added", 2)), cache.obtainRuleData("selector")));
+    }
+
+    @Test
+    public void incrementalRuleMoveRemovesPreviousOwner() {
+        cache.cacheRuleData(rule("moved", 1));
+        RuleData moved = RuleData.builder().id("moved").selectorId("new-selector").pluginName("divide").sort(1).build();
+        cache.cacheRuleData(moved);
+        assertNull(cache.obtainRuleData("selector"));
+        assertEquals(List.of(moved), cache.obtainRuleData("new-selector"));
+    }
+
+    @Test
+    public void refreshedRuleMoveRemovesPreviousOwner() {
+        cache.cacheRuleData(rule("moved", 1));
+        RuleData moved = RuleData.builder().id("moved").selectorId("new-selector").pluginName("divide").sort(1).build();
+        cache.refreshRuleData(List.of(moved));
+        assertNull(cache.obtainRuleData("selector"));
+        assertEquals(List.of(moved), cache.obtainRuleData("new-selector"));
+    }
+
+    @Test
+    public void selectorMoveRemovesPreviousPlugin() {
+        cache.cacheSelectData(selector("moved", 1));
+        SelectorData moved = SelectorData.builder().id("moved").pluginName("jwt").sort(1).build();
+        cache.cacheSelectData(moved);
+        assertNull(cache.obtainSelectorData("divide"));
+        assertEquals(List.of(moved), cache.obtainSelectorData("jwt"));
+        cache.refreshSelectorData(List.of(selector("moved", 1)));
+        assertNull(cache.obtainSelectorData("jwt"));
+    }
+
+    @Test
+    public void ruleDeletionWithoutParentRemovesById() {
+        cache.cacheRuleData(rule("removed", 1));
+        cache.removeRuleData(RuleData.builder().id("removed").build());
+        assertNull(cache.obtainRuleData("selector"));
+    }
+
+    private void assertConcurrentChange(final Runnable refresh, final Runnable change, final Runnable verify) throws Exception {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        FutureTask<Void> delta = new FutureTask<>(change, null);
+        Thread writer = new Thread(delta, "cache-delta-writer");
+        try {
+            final Future<?> batch = executor.submit(refresh);
+            assertTrue(preparing.await(10, TimeUnit.SECONDS));
+            writer.start();
+            // Both the old unsynchronized writer and the fixed serialized writer reach a known state.
+            org.awaitility.Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> delta.isDone() || writer.getState() == Thread.State.BLOCKED);
+            publish.countDown();
+            batch.get(10, TimeUnit.SECONDS);
+            delta.get(10, TimeUnit.SECONDS);
+            verify.run();
+        } finally {
+            publish.countDown();
+            writer.join(10000);
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+        }
     }
 
     private <T> List<T> pauseBeforeLast(final List<T> data) {

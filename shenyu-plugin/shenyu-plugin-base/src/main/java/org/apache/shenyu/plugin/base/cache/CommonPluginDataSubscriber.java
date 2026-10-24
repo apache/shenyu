@@ -412,37 +412,58 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     private <T> void removeCacheData(@NonNull final T data) {
         if (data instanceof PluginData) {
             PluginData pluginData = (PluginData) data;
+            BaseDataCache.getInstance().getSelectorMap().values().stream().flatMap(List::stream)
+                    .filter(selector -> pluginData.getName().equals(selector.getPluginName()))
+                    .collect(Collectors.toList()).forEach(this::unSelectorSubscribe);
+            BaseDataCache.getInstance().getRuleMap().values().stream().flatMap(List::stream)
+                    .filter(rule -> pluginData.getName().equals(rule.getPluginName()))
+                    .collect(Collectors.toList()).forEach(this::unRuleSubscribe);
             BaseDataCache.getInstance().removePluginData(pluginData);
-            Optional.ofNullable(handlerMap.get(pluginData.getName()))
-                    .ifPresent(handler -> handler.removePlugin(pluginData));
-            eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData));
+            try {
+                Optional.ofNullable(handlerMap.get(pluginData.getName()))
+                        .ifPresent(handler -> handler.removePlugin(pluginData));
+                if (Objects.nonNull(eventPublisher)) {
+                    eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData));
+                }
+            } finally {
+                MatchDataCache.getInstance().removeSelectorData(pluginData.getName());
+                MatchDataCache.getInstance().removeRuleData(pluginData.getName());
+            }
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
+            Optional.ofNullable(BaseDataCache.getInstance().obtainRuleData(selectorData.getId()))
+                    .ifPresent(rules -> rules.forEach(this::unRuleSubscribe));
             BaseDataCache.getInstance().removeSelectData(selectorData);
             // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
-            if (StringUtils.isNotBlank(selectorData.getPluginName())) {
-                Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
-                        .ifPresent(handler -> handler.removeSelector(selectorData));
-            }
-            // remove match cache
-            if (selectorMatchConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
-                MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
-            }
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
-                MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
+            try {
+                if (StringUtils.isNotBlank(selectorData.getPluginName())) {
+                    Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                            .ifPresent(handler -> handler.removeSelector(selectorData));
+                }
+            } finally {
+                // remove match cache
+                if (selectorMatchConfig.getCache().getEnabled()) {
+                    MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
+                    MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
+                }
+                if (ruleMatchCacheConfig.getCache().getEnabled()) {
+                    MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
+                    MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
+                }
             }
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
-            if (StringUtils.isNotBlank(ruleData.getPluginName())) {
-                Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
-                        .ifPresent(handler -> handler.removeRule(ruleData));
-            }
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
-                MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
+            try {
+                if (StringUtils.isNotBlank(ruleData.getPluginName())) {
+                    Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                            .ifPresent(handler -> handler.removeRule(ruleData));
+                }
+            } finally {
+                if (ruleMatchCacheConfig.getCache().getEnabled()) {
+                    MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
+                    MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
+                }
             }
         }
     }
@@ -451,7 +472,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         // update enabled plugins
         PluginHandlerEventEnum state = Boolean.TRUE.equals(pluginData.getEnabled())
                 ? PluginHandlerEventEnum.ENABLED : PluginHandlerEventEnum.DISABLED;
-        eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
+        if (Objects.nonNull(eventPublisher)) {
+            eventPublisher.publishEvent(new PluginHandlerEvent(state, pluginData));
+        }
         // sorted plugin
         sortPluginIfOrderChange(oldPluginData, pluginData);
 
@@ -466,9 +489,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
 
     private void handleSelectorData(final SelectorData selectorData) {
-        Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
-                .ifPresent(handler -> handler.handlerSelector(selectorData));
-        invalidateSelectorMatchCache(selectorData);
+        try {
+            Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
+                    .ifPresent(handler -> handler.handlerSelector(selectorData));
+        } finally {
+            invalidateSelectorMatchCache(selectorData);
+        }
     }
 
     private void invalidateSelectorMatchCache(final SelectorData selectorData) {
@@ -484,9 +510,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
 
     private void handleRuleData(final RuleData ruleData) {
-        Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
-                .ifPresent(handler -> handler.handlerRule(ruleData));
-        invalidateRuleMatchCache(ruleData);
+        try {
+            Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
+                    .ifPresent(handler -> handler.handlerRule(ruleData));
+        } finally {
+            invalidateRuleMatchCache(ruleData);
+        }
     }
 
     private void invalidateRuleMatchCache(final RuleData ruleData) {
