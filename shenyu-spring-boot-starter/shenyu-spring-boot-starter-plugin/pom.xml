@@ -71,5 +71,6 @@
         <module>shenyu-spring-boot-starter-plugin-agent-gateway</module>
         <module>shenyu-spring-boot-starter-plugin-mcp-server</module>
         <module>shenyu-spring-boot-starter-plugin-ai-sensitive-word</module>
+        <module>shenyu-spring-boot-starter-plugin-ai-pii</module>
     </modules>
 </project>

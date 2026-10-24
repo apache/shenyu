@@ -304,6 +304,11 @@ public enum PluginEnum {
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
 
     /**
+     * Pii-detection plugin enum.
+     */
+    PII_DETECTION(196, 0, "piiDetection"),
+
+    /**
      * Sensitive-word plugin enum.
      */
     SENSITIVE_WORD(197, 0, "sensitiveWord"),
