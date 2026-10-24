@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +60,8 @@ public class InstanceCheckService {
 
     private ScheduledThreadPoolExecutor executor;
 
+    private ScheduledThreadPoolExecutor syncExecutor;
+
     private final int scheduledTime;
 
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
@@ -70,6 +73,8 @@ public class InstanceCheckService {
     private InstanceInfoService instanceInfoService;
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
+
+    private final ReentrantLock syncLock = new ReentrantLock();
 
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
@@ -84,10 +89,21 @@ public class InstanceCheckService {
      * Set up.
      */
     public void setup() {
+        closeExecutors();
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
+        syncExecutor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-db-sync-task", false));
+        syncExecutor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
+    }
+
+    private void closeExecutors() {
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
+        if (Objects.nonNull(syncExecutor)) {
+            syncExecutor.shutdown();
+        }
     }
 
     /**
@@ -126,7 +142,7 @@ public class InstanceCheckService {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
-                instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
+                instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             }
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
@@ -175,9 +191,58 @@ public class InstanceCheckService {
     }
 
     public void syncDB() {
-        instanceHealthBeatInfo.values().forEach(vo -> {
-            instanceInfoService.createOrUpdate(vo);
-        });
+        syncDB(0, TimeUnit.MILLISECONDS);
+    }
+
+    public boolean syncDB(final long timeout, final TimeUnit unit) {
+        boolean locked = false;
+        try {
+            locked = timeout > 0 ? syncLock.tryLock(timeout, unit) : syncLock.tryLock();
+            if (!locked) {
+                LOG.info("instance syncDB is already running, skip");
+                return false;
+            }
+            doSyncDB();
+            return true;
+        } catch (InterruptedException e) {
+            LOG.warn("syncDB lock acquisition interrupted", e);
+            Thread.currentThread().interrupt();
+            return false;
+        } finally {
+            if (locked) {
+                syncLock.unlock();
+            }
+        }
+    }
+
+    private void doSyncDB() {
+        try {
+            List<InstanceInfoVO> snapshot = new ArrayList<>(instanceHealthBeatInfo.values());
+            for (InstanceInfoVO vo : snapshot) {
+                try {
+                    instanceInfoService.createOrUpdate(copyInstanceInfoVO(vo));
+                } catch (Exception e) {
+                    LOG.error("sync instance db error, ip: {}, port: {}", vo.getInstanceIp(), vo.getInstancePort(), e);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("sync instance info to db error", e);
+        }
+    }
+
+    private InstanceInfoVO copyInstanceInfoVO(final InstanceInfoVO vo) {
+        InstanceInfoVO copy = new InstanceInfoVO();
+        copy.setId(vo.getId());
+        copy.setInstanceIp(vo.getInstanceIp());
+        copy.setInstancePort(vo.getInstancePort());
+        copy.setInstanceType(vo.getInstanceType());
+        copy.setInstanceInfo(vo.getInstanceInfo());
+        copy.setNamespaceId(vo.getNamespaceId());
+        copy.setInstanceState(vo.getInstanceState());
+        copy.setDateCreated(vo.getDateCreated());
+        copy.setDateUpdated(vo.getDateUpdated());
+        copy.setLastHeartBeatTime(vo.getLastHeartBeatTime());
+        return copy;
     }
 
     /**
@@ -185,10 +250,13 @@ public class InstanceCheckService {
      */
     @PreDestroy
     public void close() {
-        syncDB();
-        instanceHealthBeatInfo.clear();
-        if (Objects.nonNull(executor)) {
-            executor.shutdown();
+        try {
+            closeExecutors();
+            if (!syncDB(5, TimeUnit.SECONDS)) {
+                LOG.warn("timed out waiting for instance db sync lock during shutdown, skipping final sync");
+            }
+        } finally {
+            instanceHealthBeatInfo.clear();
         }
     }
 
