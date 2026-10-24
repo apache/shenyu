@@ -129,6 +129,13 @@ readonly ALL_K8S_INGRESS_MATRIX='{"include":[{"case":"shenyu-integrated-test-k8s
 readonly CLUSTER_E2E_MATRIX='{"include":[{"script":"e2e-cluster-jdbc-compose","case":"shenyu-e2e-case-cluster","example_projects":":shenyu-examples-http"},{"script":"e2e-cluster-zookeeper-compose","case":"shenyu-e2e-case-cluster","example_projects":":shenyu-examples-http"}]}'
 readonly ADMIN_REGISTER_E2E_MATRIX='{"include":[{"script":"e2e-http-sync-compose","case":"shenyu-e2e-case-http","example_projects":":shenyu-examples-http"},{"script":"e2e-springcloud-sync-compose","case":"shenyu-e2e-case-spring-cloud","example_projects":":shenyu-examples-eureka,:shenyu-examples-springcloud"},{"script":"e2e-apache-dubbo-sync-compose","case":"shenyu-e2e-case-apache-dubbo","example_projects":":shenyu-examples-apache-dubbo-service"},{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"},{"script":"e2e-websocket-sync-compose","case":"shenyu-e2e-case-websocket","example_projects":":shenyu-example-spring-native-websocket"}]}'
 readonly ALL_E2E_MATRIX="$(jq -c '.include += [{script:"e2e-logging-rocketmq-compose",case:"shenyu-e2e-case-logging-rocketmq",example_projects:":shenyu-examples-http"},{script:"e2e-cluster-jdbc-compose",case:"shenyu-e2e-case-cluster",example_projects:":shenyu-examples-http"},{script:"e2e-cluster-zookeeper-compose",case:"shenyu-e2e-case-cluster",example_projects:":shenyu-examples-http"}]' <<< "${ADMIN_REGISTER_E2E_MATRIX}")"
+for e2e_ci_file in .github/workflows/e2e-k8s.yml \
+  .github/scripts/resolve-test-case-matrix.sh .github/scripts/resolve-test-case-matrix-test.sh; do
+  assert_file_output "e2e" "${e2e_ci_file}" "run_storage" "true"
+  assert_file_output "e2e" "${e2e_ci_file}" "e2e_matrix" "${ALL_E2E_MATRIX}"
+done
+assert_file_output "e2e" ".github/workflows/retest.yml" "run_e2e" "false"
+assert_file_output "e2e" ".github/workflows/issue-label.yml" "run_e2e" "false"
 readonly CLUSTER_SERVICE_E2E_MATRIX="$(jq -cn --argjson cluster "${CLUSTER_E2E_MATRIX}" --argjson all "${ALL_E2E_MATRIX}" \
   '{include: ($cluster.include + ($all.include | map(select(.case != "shenyu-e2e-case-cluster"))))}')"
 readonly ADMIN_REGISTER_IT_MATRIX='{"include":[{"case":"shenyu-integrated-test-apache-dubbo"},{"case":"shenyu-integrated-test-grpc"},{"case":"shenyu-integrated-test-http"},{"case":"shenyu-integrated-test-https"},{"case":"shenyu-integrated-test-spring-cloud"},{"case":"shenyu-integrated-test-websocket"},{"case":"shenyu-integrated-test-sdk-apache-dubbo"},{"case":"shenyu-integrated-test-sdk-http"}]}'
@@ -223,5 +230,14 @@ assert_file_output "k8s-ingress" "${ADMIN_REGISTER}" "k8s_ingress_matrix" "${ALL
 assert_file_output "k8s-examples-http" "${ADMIN_REGISTER}" "run_k8s_examples" "true"
 assert_file_output "e2e" "${ADMIN_SERVICE}" "full_required" "true"
 assert_file_output "integration" "${ADMIN_SERVICE}" "full_required" "true"
+
+for infrastructure in \
+  .github/scripts/prepare-e2e-maven-repository.sh \
+  .github/scripts/e2e-maven-repository.py \
+  .github/scripts/prepare-e2e-maven-repository-test.sh; do
+  assert_file_output "e2e" "${infrastructure}" "full_required" "true"
+  assert_file_output "e2e" "${infrastructure}" "run_storage" "true"
+  assert_file_output "e2e" "${infrastructure}" "run_e2e_cases" "true"
+done
 
 echo "CI test routing tests passed"
