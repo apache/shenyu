@@ -68,7 +68,7 @@ public class Publish extends MessageType {
             if (payload.isReadable()) {
                 byte[] message = new byte[payload.readableBytes()];
                 payload.getBytes(payload.readerIndex(), message);
-                Singleton.INST.get(TopicRepository.class).add(topic, message);
+                Singleton.INST.get(TopicRepository.class).add(topic, message, mqttQoS);
             } else {
                 Singleton.INST.get(TopicRepository.class).remove(topic);
             }
@@ -187,11 +187,12 @@ public class Publish extends MessageType {
         if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
             return;
         }
+        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
         // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
         // and an empty retained will payload clears the stored value.
         if (will.isRetain()) {
             if (will.getMessage().length > 0) {
-                Singleton.INST.get(TopicRepository.class).add(will.getTopic(), will.getMessage());
+                Singleton.INST.get(TopicRepository.class).add(will.getTopic(), will.getMessage(), willQos);
             } else {
                 Singleton.INST.get(TopicRepository.class).remove(will.getTopic());
             }
@@ -199,7 +200,6 @@ public class Publish extends MessageType {
         // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
         // and an empty retained will payload clears the stored value.
         final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
-        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
         subscribers.entrySet().parallelStream().forEach(entry -> {
             Channel channel = entry.getKey();
             if (channel.isActive()) {

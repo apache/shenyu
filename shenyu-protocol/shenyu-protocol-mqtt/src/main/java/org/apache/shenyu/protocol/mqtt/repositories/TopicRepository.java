@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.protocol.mqtt.repositories;
 
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.apache.shenyu.protocol.mqtt.TopicMatcher;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,12 +31,22 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TopicRepository implements BaseRepository<String, byte[]> {
 
-    private static final Map<String, byte[]> TOPIC_FACTORY = new ConcurrentHashMap<>();
+    private static final Map<String, RetainedMessage> TOPIC_FACTORY = new ConcurrentHashMap<>();
 
     @Override
     public void add(final String topic, final byte[] message) {
-        //// todo MessageAgent.java. Carry out message processing and processing
-        CompletableFuture.runAsync(() -> TOPIC_FACTORY.put(topic, message));
+        add(topic, message, MqttQoS.AT_MOST_ONCE);
+    }
+
+    /**
+     * Store a retained message and the qos of the publish that produced it.
+     *
+     * @param topic the topic of the retained message
+     * @param message the retained payload
+     * @param qos the qos of the original publish
+     */
+    public void add(final String topic, final byte[] message, final MqttQoS qos) {
+        TOPIC_FACTORY.put(topic, new RetainedMessage(message, qos));
     }
 
     @Override
@@ -45,7 +56,8 @@ public class TopicRepository implements BaseRepository<String, byte[]> {
 
     @Override
     public byte[] get(final String topic) {
-        return TOPIC_FACTORY.getOrDefault(topic, null);
+        RetainedMessage message = TOPIC_FACTORY.get(topic);
+        return Objects.isNull(message) ? null : message.getPayload();
     }
 
     /**
@@ -55,8 +67,8 @@ public class TopicRepository implements BaseRepository<String, byte[]> {
      * @param topicFilter the subscription topic filter
      * @return the matching retained messages keyed by their concrete topic name
      */
-    public Map<String, byte[]> getMatchingTopics(final String topicFilter) {
-        Map<String, byte[]> matchingTopics = new ConcurrentHashMap<>();
+    public Map<String, RetainedMessage> getMatchingRetainedMessages(final String topicFilter) {
+        Map<String, RetainedMessage> matchingTopics = new ConcurrentHashMap<>();
         TOPIC_FACTORY.forEach((topic, message) -> {
             if (TopicMatcher.matches(topicFilter, topic)) {
                 matchingTopics.put(topic, message);

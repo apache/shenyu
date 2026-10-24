@@ -44,7 +44,7 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
         topics.forEach(topic ->
                 channelQos.forEach((channel, qos) -> TOPIC_CHANNEL_FACTORY
                         .computeIfAbsent(topic, key -> new ConcurrentHashMap<>())
-                        .merge(channel, qos, SubscribeRepository::maxQoS)));
+                        .put(channel, qos)));
     }
 
     /**
@@ -53,12 +53,14 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        // Complete registration before returning so a later disconnect cannot overtake it.
+        // MQTT-3.8.4-3: a new subscription for the same filter replaces the previous one,
+        // including its granted qos. Complete registration before returning so a later
+        // disconnect cannot overtake it.
         mqttTopicSubscription.stream()
                 .filter(s -> s.qualityOfService() != MqttQoS.FAILURE)
                 .forEach(s -> TOPIC_CHANNEL_FACTORY
                         .computeIfAbsent(s.topicName(), key -> new ConcurrentHashMap<>())
-                        .merge(channel, s.qualityOfService(), SubscribeRepository::maxQoS));
+                        .put(channel, s.qualityOfService()));
     }
 
     @Override
