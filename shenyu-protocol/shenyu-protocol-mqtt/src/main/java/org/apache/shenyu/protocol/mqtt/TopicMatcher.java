@@ -42,14 +42,26 @@ public final class TopicMatcher {
         if (Objects.isNull(filter) || Objects.isNull(topic)) {
             return false;
         }
+        return matches(filter.split("/", -1), topic.split("/", -1));
+    }
 
-        // $ topics must not be matched by wildcards at the first level
-        if (topic.startsWith("$") && filter.length() > 0 && (filter.charAt(0) == '+' || filter.charAt(0) == '#')) {
+    /**
+     * Check whether pre-split topic filter levels match pre-split topic levels.
+     *
+     * @param filterLevels the levels of the subscription topic filter
+     * @param topicLevels the levels of the published topic name
+     * @return true if the filter matches the topic
+     */
+    public static boolean matches(final String[] filterLevels, final String[] topicLevels) {
+        if (Objects.isNull(filterLevels) || Objects.isNull(topicLevels)) {
             return false;
         }
 
-        String[] filterLevels = filter.split("/", -1);
-        String[] topicLevels = topic.split("/", -1);
+        // $ topics must not be matched by wildcards at the first level
+        if (topicLevels.length > 0 && topicLevels[0].startsWith("$")
+                && filterLevels.length > 0 && ("+".equals(filterLevels[0]) || "#".equals(filterLevels[0]))) {
+            return false;
+        }
 
         int filterLen = filterLevels.length;
         int topicLen = topicLevels.length;

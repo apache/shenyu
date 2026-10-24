@@ -95,8 +95,13 @@ public final class PublishTest {
 
     private static final String TOPIC = "test/topic";
 
+    private static final String MULTI_LEVEL_WILDCARD_TOPIC = "test/#";
+
+    private static final String SINGLE_LEVEL_WILDCARD_TOPIC = "test/+";
+
     private static final List<String> ALL_TOPICS = Arrays.asList(
-            RETAINED_TOPIC, NON_RETAINED_TOPIC, CLEARED_TOPIC, UNCONNECTED_TOPIC, END_TO_END_TOPIC, TOPIC);
+            RETAINED_TOPIC, NON_RETAINED_TOPIC, CLEARED_TOPIC, UNCONNECTED_TOPIC, END_TO_END_TOPIC, TOPIC,
+            MULTI_LEVEL_WILDCARD_TOPIC, SINGLE_LEVEL_WILDCARD_TOPIC);
 
     private static final String CLIENT_ID = "test-client";
 
@@ -339,6 +344,41 @@ public final class PublishTest {
     }
 
     @Test
+    public void testPublishDeliversToMultiLevelWildcardSubscriber() {
+        addWildcardSubscriber(MULTI_LEVEL_WILDCARD_TOPIC, MqttQoS.AT_LEAST_ONCE);
+
+        publishToSubscribers(MqttQoS.AT_LEAST_ONCE);
+
+        MqttPublishMessage message = captureMessage(subscriberChannel);
+        assertEquals(TOPIC, message.variableHeader().topicName());
+        assertEquals(PAYLOAD, message.payload().toString(CharsetUtil.UTF_8));
+    }
+
+    @Test
+    public void testPublishDeliversToSingleLevelWildcardSubscriber() {
+        addWildcardSubscriber(SINGLE_LEVEL_WILDCARD_TOPIC, MqttQoS.AT_LEAST_ONCE);
+
+        publishToSubscribers(MqttQoS.AT_LEAST_ONCE);
+
+        MqttPublishMessage message = captureMessage(subscriberChannel);
+        assertEquals(TOPIC, message.variableHeader().topicName());
+        assertEquals(PAYLOAD, message.payload().toString(CharsetUtil.UTF_8));
+    }
+
+    @Test
+    public void testOverlappingWildcardSubscriptionsDeliverSingleCopyAtMaxGrantedQos() {
+        addWildcardSubscriber(MULTI_LEVEL_WILDCARD_TOPIC, MqttQoS.AT_MOST_ONCE);
+        addWildcardSubscriber(SINGLE_LEVEL_WILDCARD_TOPIC, MqttQoS.AT_LEAST_ONCE);
+
+        publishToSubscribers(MqttQoS.EXACTLY_ONCE);
+
+        // one delivery per client even though both filters match, at the max granted qos
+        MqttPublishMessage message = captureMessage(subscriberChannel);
+        assertEquals(MqttQoS.AT_LEAST_ONCE, message.fixedHeader().qosLevel());
+        assertEquals(TOPIC, message.variableHeader().topicName());
+    }
+
+    @Test
     public void testPublishQos2SendsPubRecToPublisher() {
         publishToSubscribers(MqttQoS.EXACTLY_ONCE);
 
@@ -488,6 +528,11 @@ public final class PublishTest {
     private void addSubscriber(final Channel channel, final MqttQoS qos) {
         SUBSCRIBE_REPOSITORY.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, qos)));
         awaitAssert(() -> assertEquals(qos, SUBSCRIBE_REPOSITORY.get(TOPIC).get(channel)));
+    }
+
+    private void addWildcardSubscriber(final String filter, final MqttQoS qos) {
+        SUBSCRIBE_REPOSITORY.add(subscriberChannel, Collections.singletonList(new MqttTopicSubscription(filter, qos)));
+        awaitAssert(() -> assertEquals(qos, SUBSCRIBE_REPOSITORY.get(filter).get(subscriberChannel)));
     }
 
     private void publishToSubscribers(final MqttQoS qos) {

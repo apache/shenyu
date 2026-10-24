@@ -18,6 +18,7 @@
 package org.apache.shenyu.protocol.mqtt.repositories;
 
 import io.netty.channel.Channel;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.shenyu.common.utils.Singleton;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for {@link SubscribeRepository}.
@@ -79,15 +80,19 @@ public final class SubscribeRepositoryTest {
 
     private SubscribeRepository repository;
 
-    private Channel channel;
+    private final List<EmbeddedChannel> subscribers = new ArrayList<>();
 
-    private Channel otherChannel;
+    private EmbeddedChannel channel;
+
+    private EmbeddedChannel otherChannel;
 
     @BeforeEach
     public void setUp() {
         repository = new SubscribeRepository();
-        channel = mock(Channel.class);
-        otherChannel = mock(Channel.class);
+        channel = new EmbeddedChannel();
+        otherChannel = new EmbeddedChannel();
+        subscribers.add(channel);
+        subscribers.add(otherChannel);
         Singleton.INST.single(SubscribeRepository.class, repository);
         clearAllTopics();
     }
@@ -95,6 +100,8 @@ public final class SubscribeRepositoryTest {
     @AfterEach
     public void tearDown() {
         clearAllTopics();
+        subscribers.forEach(EmbeddedChannel::finishAndReleaseAll);
+        subscribers.clear();
     }
 
     @Test
@@ -115,7 +122,7 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    public void testAddKeepsMaxQosForOverlappingSubscription() {
+    public void testAddReplacesQosForDuplicateSubscription() {
         repository.add(channel, Arrays.asList(
                 new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE),
                 new MqttTopicSubscription(TOPIC, MqttQoS.EXACTLY_ONCE)));
@@ -123,7 +130,7 @@ public final class SubscribeRepositoryTest {
 
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
         awaitRepositoryIdle();
-        assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(TOPIC).get(channel));
+        assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
     }
 
     @Test
@@ -204,6 +211,37 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
+    public void testWildcardIndexTracksOnlyWildcardFilters() throws ReflectiveOperationException {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+
+        assertTrue(sharedFilters().containsKey(TOPIC));
+        assertTrue(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(TOPIC));
+        assertTrue(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+
+        repository.remove(channel);
+
+        assertFalse(sharedFilters().containsKey(TOPIC));
+        assertFalse(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+    }
+
+    @Test
+    public void testRemoveLastSubscriberCleansFilterEntry() throws ReflectiveOperationException {
+        repository.add(channel, Collections.singletonList(
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+        assertTrue(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertTrue(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+
+        repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), channel);
+
+        assertFalse(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+    }
+
+    @Test
     public void testRemoveAbsentTopicDoesNotThrow() {
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
         awaitAssert(() -> assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel)));
@@ -246,11 +284,18 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    public void testGetChannelsByTopicMultipleSubscribers() {
-        repository.add(channel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        repository.add(otherChannel, Collections.singletonList(new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE)));
-        awaitAssert(() -> assertEquals(2, repository.getChannelsByTopic(EXACT_TOPIC).size()));
-        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).keySet().containsAll(Arrays.asList(channel, otherChannel)));
+    public void testGetChannelsByTopicMergesExactAndWildcardSubscription() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE)));
+        awaitAssert(() -> {
+            assertTrue(repository.get(EXACT_TOPIC).containsKey(channel));
+            assertTrue(repository.get(MULTI_LEVEL_FILTER).containsKey(channel));
+        });
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(channel));
     }
 
     /**
@@ -263,10 +308,11 @@ public final class SubscribeRepositoryTest {
     public void concurrentSubscribersOfTheSameNewTopicAreAllRegistered() throws InterruptedException {
         int subscriberCount = 8;
         CountDownLatch startGate = new CountDownLatch(1);
-        List<Channel> subscribers = new ArrayList<>();
+        List<EmbeddedChannel> concurrentSubscribers = new ArrayList<>();
         List<Thread> subscribingThreads = new ArrayList<>();
         for (int i = 0; i < subscriberCount; i++) {
-            Channel subscriber = mock(Channel.class);
+            EmbeddedChannel subscriber = new EmbeddedChannel();
+            concurrentSubscribers.add(subscriber);
             subscribers.add(subscriber);
             Thread thread = new Thread(() -> subscribeAfter(startGate, subscriber, CONCURRENT_TOPIC));
             thread.start();
@@ -282,7 +328,7 @@ public final class SubscribeRepositoryTest {
         awaitAssert(() -> assertEquals(subscriberCount, repository.get(CONCURRENT_TOPIC).size()));
         Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CONCURRENT_TOPIC);
         assertEquals(subscriberCount, matched.size());
-        assertTrue(matched.keySet().containsAll(subscribers));
+        assertTrue(matched.keySet().containsAll(concurrentSubscribers));
     }
 
     private void subscribeAfter(final CountDownLatch startGate, final Channel subscriber, final String topic) {
@@ -293,6 +339,59 @@ public final class SubscribeRepositoryTest {
             return;
         }
         repository.add(subscriber, Collections.singletonList(new MqttTopicSubscription(topic, MqttQoS.AT_MOST_ONCE)));
+    }
+
+    @Test
+    public void testGetChannelsByTopicSingleLevelWildcardMatch() {
+        EmbeddedChannel subscriber = subscribe(SINGLE_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CHILD_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
+    }
+
+    @Test
+    public void testGetChannelsByTopicMultiLevelWildcardMatch() {
+        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(CHILD_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(subscriber));
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).containsKey(subscriber));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMergesMaxQosForOverlappingFilters() {
+        EmbeddedChannel subscriber = subscribe(
+                new MqttTopicSubscription(MATCH_ALL_FILTER, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE));
+
+        // MQTT requires at most one delivery per publish per client, granted with the maximum qos
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(subscriber));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMultipleSubscribers() {
+        EmbeddedChannel first = subscribe(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE);
+        EmbeddedChannel second = subscribe(EXACT_TOPIC, MqttQoS.AT_LEAST_ONCE);
+
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        assertEquals(2, matched.size());
+        assertEquals(MqttQoS.AT_MOST_ONCE, matched.get(first));
+        assertEquals(MqttQoS.AT_LEAST_ONCE, matched.get(second));
+    }
+
+    @Test
+    public void testGetChannelsByTopicIgnoresUnsubscribedChannel() {
+        EmbeddedChannel subscriber = subscribe(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE);
+
+        repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), subscriber);
+        awaitAssert(() -> assertTrue(repository.get(MULTI_LEVEL_FILTER).isEmpty()));
+
+        assertTrue(repository.getChannelsByTopic(EXACT_TOPIC).isEmpty());
     }
 
     /**
@@ -306,8 +405,34 @@ public final class SubscribeRepositoryTest {
     }
 
     /**
-     * Waits until the repository finished all pending asynchronous mutations.
-     * Required to assert that a mutation did <em>not</em> change the shared state.
+     * Registers a fresh subscriber for the given topic filter and waits until the repository knows it.
+     *
+     * @param filter the topic filter the subscriber subscribes to
+     * @param qos    the granted qos of the subscription
+     * @return the subscribed channel
+     */
+    private EmbeddedChannel subscribe(final String filter, final MqttQoS qos) {
+        return subscribe(new MqttTopicSubscription(filter, qos));
+    }
+
+    /**
+     * Registers a fresh subscriber for the given subscriptions and waits until the repository knows them.
+     *
+     * @param subscriptions the subscriptions of the subscriber
+     * @return the subscribed channel
+     */
+    private EmbeddedChannel subscribe(final MqttTopicSubscription... subscriptions) {
+        EmbeddedChannel subscriber = new EmbeddedChannel();
+        subscribers.add(subscriber);
+        repository.add(subscriber, Arrays.asList(subscriptions));
+        awaitAssert(() -> Arrays.stream(subscriptions)
+                .forEach(subscription -> assertTrue(repository.get(subscription.topicName()).containsKey(subscriber))));
+        return subscriber;
+    }
+
+    /**
+     * Waits until the repository applied every pending asynchronous mutation. Needed before asserting that a
+     * mutation did <em>not</em> change the shared state.
      */
     private void awaitRepositoryIdle() {
         assertTrue(ForkJoinPool.commonPool().awaitQuiescence(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS));
@@ -320,5 +445,21 @@ public final class SubscribeRepositoryTest {
     private void clearAllTopics() {
         repository.remove(ALL_TOPICS);
         awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> sharedFilters() throws ReflectiveOperationException {
+        return (Map<String, ?>) staticField("TOPIC_CHANNEL_FACTORY").get(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> wildcardFilters() throws ReflectiveOperationException {
+        return (Map<String, ?>) staticField("WILDCARD_FILTERS").get(null);
+    }
+
+    private Field staticField(final String name) throws NoSuchFieldException {
+        Field field = SubscribeRepository.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return field;
     }
 }

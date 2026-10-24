@@ -28,14 +28,19 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
+import org.apache.shenyu.protocol.mqtt.repositories.RetainedMessage;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -58,46 +63,61 @@ public class Subscribe extends MessageType {
             return;
         }
         List<MqttTopicSubscription> mqttTopicSubscriptions = msg.payload().topicSubscriptions();
-        int packetId = msg.variableHeader().messageId();
+        final int packetId = msg.variableHeader().messageId();
 
-        //// todo Regular match
-        List<MqttTopicSubscription> ackSubscriptions = mqttTopicSubscriptions
+        // MQTT-4.7.1-1: invalid topic filters must be rejected with 0x80 and never stored.
+        List<MqttTopicSubscription> validSubscriptions = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
+                .filter(topicSub -> TopicMatcher.isValidFilter(topicSub.topicName()))
                 .collect(Collectors.toList());
 
-        List<String> ackTopics = ackSubscriptions.stream()
-                .map(MqttTopicSubscription::topicName)
-                .collect(Collectors.toList());
-
-        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
+        Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), validSubscriptions);
 
         String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
         MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
         if (Objects.nonNull(session)) {
-            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+            validSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
         }
 
-        for (String ackTopic : ackTopics) {
-            byte[] message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (Objects.nonNull(message)) {
-                sendSubMessage(ackTopic, message, packetId, channel);
-            }
-        }
+        // MQTT-3.3.1-6: a subscription must also receive the retained messages whose
+        // concrete topic name matches its filter, so wildcard filters are matched as well.
+        Map<String, MqttQoS> effectiveFilterQos = new HashMap<>();
+        validSubscriptions.forEach(subscription ->
+                effectiveFilterQos.put(subscription.topicName(), subscription.qualityOfService()));
 
-        sendSubAckMessage(packetId, ackSubscriptions, channel);
+        Map<String, RetainedMessage> retainedMessages = new HashMap<>();
+        Map<String, MqttQoS> grantedQos = new HashMap<>();
+        effectiveFilterQos.forEach((filter, filterQos) -> {
+            Singleton.INST.get(TopicRepository.class).getMatchingRetainedMessages(filter)
+                    .forEach((retainedTopic, retainedMessage) -> {
+                        retainedMessages.putIfAbsent(retainedTopic, retainedMessage);
+                        grantedQos.merge(retainedTopic, filterQos, Subscribe::maxQoS);
+                    });
+        });
+        retainedMessages.forEach((retainedTopic, retainedMessage) -> {
+            MqttQoS qos = minQoS(retainedMessage.getQos(),
+                    grantedQos.getOrDefault(retainedTopic, AT_MOST_ONCE));
+            sendSubMessage(retainedTopic, retainedMessage.getPayload(), qos, channel);
+        });
+
+        sendSubAckMessage(packetId, mqttTopicSubscriptions, channel);
     }
 
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param ackSubscriptions ackSubscriptions
+     * @param mqttTopicSubscriptions mqttTopicSubscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> ackSubscriptions, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> mqttTopicSubscriptions,
+                                   final Channel channel) {
 
-        List<Integer> qos = ackSubscriptions.stream()
-                .map(topicSub -> topicSub.qualityOfService().value())
+        List<Integer> qos = mqttTopicSubscriptions.stream()
+                .map(subscription -> TopicMatcher.isValidFilter(subscription.topicName())
+                        && subscription.qualityOfService() != FAILURE
+                        ? subscription.qualityOfService().value()
+                        : FAILURE.value())
                 .collect(Collectors.toList());
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,
@@ -111,13 +131,22 @@ public class Subscribe extends MessageType {
      * send subscribe message.
      * @param topic topic
      * @param message message
-     * @param packetId packetId
+     * @param qos qos
      * @param channel channel
      */
-    private void sendSubMessage(final String topic, final byte[] message, final int packetId, final Channel channel) {
-        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, AT_MOST_ONCE, true, 0);
+    private void sendSubMessage(final String topic, final byte[] message, final MqttQoS qos, final Channel channel) {
+        int packetId = AT_MOST_ONCE == qos ? 0 : MqttPacketIdGenerator.next(channel);
+        MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, true, 0);
         MqttPublishVariableHeader varHeader = new MqttPublishVariableHeader(topic, packetId);
         MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.wrappedBuffer(message));
         channel.writeAndFlush(mqttPublishMessage);
+    }
+
+    private static MqttQoS minQoS(final MqttQoS first, final MqttQoS second) {
+        return first.value() <= second.value() ? first : second;
+    }
+
+    private static MqttQoS maxQoS(final MqttQoS first, final MqttQoS second) {
+        return first.value() >= second.value() ? first : second;
     }
 }
