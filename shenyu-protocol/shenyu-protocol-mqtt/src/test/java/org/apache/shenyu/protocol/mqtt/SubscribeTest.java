@@ -33,26 +33,27 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.RetainedMessage;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test case for {@link Subscribe}.
@@ -66,6 +67,8 @@ class SubscribeTest {
     private TopicRepository topicRepository;
 
     private final Subscribe subscribe = new Subscribe();
+
+    private final List<EmbeddedChannel> channels = new ArrayList<>();
 
     /**
      * SUBSCRIBE resolves the client session through these repositories, so they must be
@@ -81,9 +84,19 @@ class SubscribeTest {
         Singleton.INST.single(TopicRepository.class, topicRepository);
     }
 
+    @AfterEach
+    void tearDown() {
+        SubscribeRepository repository = Singleton.INST.get(SubscribeRepository.class);
+        if (Objects.nonNull(repository)) {
+            channels.forEach(repository::remove);
+        }
+        channels.forEach(EmbeddedChannel::finishAndReleaseAll);
+        channels.clear();
+    }
+
     @Test
     void testSubscribeRejectsInvalidTopicFilter() throws InterruptedException {
-        EmbeddedChannel channel = new EmbeddedChannel();
+        EmbeddedChannel channel = track(new EmbeddedChannel());
         channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
 
         SubscribeRepository repository = new SubscribeRepository();
@@ -100,24 +113,19 @@ class SubscribeTest {
                 .build();
 
         new Subscribe().subscribe(ctx, msg);
-        awaitUntil(() -> repository.get("sport/#").containsKey(channel));
+        assertTrue(repository.get("sport/#").containsKey(channel));
         assertTrue(repository.get("bad#filter").isEmpty());
 
-        MqttSubAckMessage subAck = channel.readOutbound();
-        assertNotNull(subAck);
+        MqttSubAckMessage subAck = readSubAck(channel);
         List<Integer> granted = subAck.payload().grantedQoSLevels();
         assertEquals(2, granted.size());
         assertEquals(0, granted.get(0).intValue());
         assertEquals(0x80, granted.get(1).intValue());
-
-        repository.remove(Collections.singletonList("sport/#"), channel);
-        awaitUntil(() -> repository.get("sport/#").isEmpty());
-        channel.finishAndReleaseAll();
     }
 
     @Test
     void testMultiLevelWildcardReceivesRetainedMessages() throws InterruptedException {
-        EmbeddedChannel channel = new EmbeddedChannel();
+        EmbeddedChannel channel = track(new EmbeddedChannel());
         channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
 
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
@@ -129,8 +137,6 @@ class SubscribeTest {
         topicRepository.add("retained-hash/tennis/player1", "retained-1".getBytes(CharsetUtil.UTF_8));
         topicRepository.add("retained-hash/tennis/player2", "retained-2".getBytes(CharsetUtil.UTF_8));
         topicRepository.add("retained-other/weather/today", "retained-3".getBytes(CharsetUtil.UTF_8));
-        awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-hash/tennis/player1"))
-                && Objects.nonNull(topicRepository.get("retained-hash/tennis/player2")));
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -144,18 +150,17 @@ class SubscribeTest {
             Map<String, String> retained = readRetainedMessages(channel, 2);
             assertEquals("retained-1", retained.get("retained-hash/tennis/player1"));
             assertEquals("retained-2", retained.get("retained-hash/tennis/player2"));
-            assertNotNull(channel.readOutbound());
+            readSubAck(channel);
         } finally {
             topicRepository.remove("retained-hash/tennis/player1");
             topicRepository.remove("retained-hash/tennis/player2");
             topicRepository.remove("retained-other/weather/today");
-            channel.finishAndReleaseAll();
         }
     }
 
     @Test
     void testSingleLevelWildcardReceivesRetainedMessageOfOneLevel() throws InterruptedException {
-        EmbeddedChannel channel = new EmbeddedChannel();
+        EmbeddedChannel channel = track(new EmbeddedChannel());
         channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
 
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
@@ -166,7 +171,6 @@ class SubscribeTest {
 
         topicRepository.add("retained-plus/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
         topicRepository.add("retained-plus/tennis/player1", "retained-deeper".getBytes(CharsetUtil.UTF_8));
-        awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-plus/tennis")));
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -179,17 +183,16 @@ class SubscribeTest {
 
             Map<String, String> retained = readRetainedMessages(channel, 1);
             assertEquals("retained-level", retained.get("retained-plus/tennis"));
-            assertNotNull(channel.readOutbound());
+            readSubAck(channel);
         } finally {
             topicRepository.remove("retained-plus/tennis");
             topicRepository.remove("retained-plus/tennis/player1");
-            channel.finishAndReleaseAll();
         }
     }
 
     @Test
     void testOverlappingFiltersReceiveRetainedMessageOnce() throws InterruptedException {
-        EmbeddedChannel channel = new EmbeddedChannel();
+        EmbeddedChannel channel = track(new EmbeddedChannel());
         channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
 
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
@@ -199,7 +202,6 @@ class SubscribeTest {
         Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
         topicRepository.add("retained-once/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
-        awaitUntil(() -> Objects.nonNull(topicRepository.get("retained-once/tennis")));
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -213,12 +215,10 @@ class SubscribeTest {
 
             Map<String, String> retained = readRetainedMessages(channel, 1);
             assertEquals("retained-level", retained.get("retained-once/tennis"));
-            MqttSubAckMessage subAck = channel.readOutbound();
-            assertNotNull(subAck);
+            MqttSubAckMessage subAck = readSubAck(channel);
             assertEquals(2, subAck.payload().grantedQoSLevels().size());
         } finally {
             topicRepository.remove("retained-once/tennis");
-            channel.finishAndReleaseAll();
         }
     }
 
@@ -232,15 +232,13 @@ class SubscribeTest {
 
         subscribe.subscribe(channel.pipeline().lastContext(), msg);
 
-        MqttSubAckMessage subAck = channel.readOutbound();
+        MqttSubAckMessage subAck = readSubAck(channel);
         assertEquals(10, subAck.variableHeader().messageId());
         assertEquals(Arrays.asList(2, 0, 1), subAck.payload().grantedQoSLevels());
-
-        subscribeRepository.remove(Arrays.asList("topic/qos2", "topic/qos0", "topic/qos1"));
     }
 
     @Test
-    void testSubAckExcludesFailureSubscriptions() {
+    void testSubAckReturnsFailureCodeForFailureSubscription() {
         EmbeddedChannel channel = connectedChannel();
         MqttSubscribeMessage msg = subscribeMessage(20,
                 new MqttTopicSubscription("topic/qos1", MqttQoS.AT_LEAST_ONCE),
@@ -249,16 +247,14 @@ class SubscribeTest {
 
         subscribe.subscribe(channel.pipeline().lastContext(), msg);
 
-        MqttSubAckMessage subAck = channel.readOutbound();
-        assertEquals(Arrays.asList(1, 0), subAck.payload().grantedQoSLevels());
+        MqttSubAckMessage subAck = readSubAck(channel);
+        assertEquals(Arrays.asList(1, 0x80, 0), subAck.payload().grantedQoSLevels());
         assertTrue(subscribeRepository.get("topic/failure").isEmpty());
-
-        subscribeRepository.remove(Arrays.asList("topic/qos1", "topic/qos0"));
     }
 
     @Test
     void testSubscribeBeforeConnectClosesChannel() {
-        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        EmbeddedChannel channel = track(new EmbeddedChannel(new ChannelInboundHandlerAdapter()));
         MqttSubscribeMessage msg = subscribeMessage(30,
                 new MqttTopicSubscription("topic/qos0", MqttQoS.AT_MOST_ONCE));
 
@@ -269,8 +265,57 @@ class SubscribeTest {
         assertNull(channel.readOutbound());
     }
 
+    @Test
+    void testRetainedReplayUsesMinQosAndPacketId() {
+        EmbeddedChannel channel = connectedChannel();
+        TopicRepository retainedRepository = new TopicRepository();
+        Singleton.INST.single(TopicRepository.class, retainedRepository);
+        retainedRepository.add("retained-qos/one", "retained-qos".getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE);
+
+        subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(40,
+                new MqttTopicSubscription("retained-qos/+", MqttQoS.EXACTLY_ONCE)));
+
+        Object first = channel.readOutbound();
+        assertTrue(first instanceof MqttPublishMessage);
+        MqttPublishMessage publish = (MqttPublishMessage) first;
+        assertEquals(MqttQoS.AT_LEAST_ONCE, publish.fixedHeader().qosLevel());
+        assertTrue(publish.fixedHeader().isRetain());
+        assertTrue(publish.variableHeader().packetId() > 0);
+        publish.release();
+
+        MqttSubAckMessage subAck = readSubAck(channel);
+        assertEquals(Collections.singletonList(2), subAck.payload().grantedQoSLevels());
+        retainedRepository.remove("retained-qos/one");
+    }
+
+    @Test
+    void testRetainedReplayUsesQosZeroWithoutPacketId() {
+        EmbeddedChannel channel = connectedChannel();
+        TopicRepository retainedRepository = new TopicRepository();
+        Singleton.INST.single(TopicRepository.class, retainedRepository);
+        retainedRepository.add("retained-qos/zero", "retained-zero".getBytes(CharsetUtil.UTF_8), MqttQoS.EXACTLY_ONCE);
+
+        subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(41,
+                new MqttTopicSubscription("retained-qos/zero", MqttQoS.AT_MOST_ONCE)));
+
+        Object first = channel.readOutbound();
+        assertTrue(first instanceof MqttPublishMessage);
+        MqttPublishMessage publish = (MqttPublishMessage) first;
+        assertEquals(MqttQoS.AT_MOST_ONCE, publish.fixedHeader().qosLevel());
+        assertEquals(0, publish.variableHeader().packetId());
+        publish.release();
+
+        readSubAck(channel);
+        retainedRepository.remove("retained-qos/zero");
+    }
+
+    private EmbeddedChannel track(final EmbeddedChannel channel) {
+        channels.add(channel);
+        return channel;
+    }
+
     private EmbeddedChannel connectedChannel() {
-        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        EmbeddedChannel channel = track(new EmbeddedChannel(new ChannelInboundHandlerAdapter()));
         new MessageType().setConnected(channel, true);
         Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
         return channel;
@@ -294,20 +339,17 @@ class SubscribeTest {
         return messages;
     }
 
-    private void awaitUntil(final BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 5000;
-        while (!condition.getAsBoolean()) {
-            if (System.currentTimeMillis() >= deadline) {
-                fail("condition not met within timeout");
-            }
-            Thread.sleep(10);
-        }
+    private MqttSubAckMessage readSubAck(final EmbeddedChannel channel) {
+        Object message = channel.readOutbound();
+        assertTrue(message instanceof MqttSubAckMessage);
+        assertNull(channel.readOutbound());
+        return (MqttSubAckMessage) message;
     }
 
     private static final class EmptyTopicRepository extends TopicRepository {
 
         @Override
-        public Map<String, byte[]> getMatchingTopics(final String topicFilter) {
+        public Map<String, RetainedMessage> getMatchingRetainedMessages(final String topicFilter) {
             return Collections.emptyMap();
         }
     }

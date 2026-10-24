@@ -121,7 +121,7 @@ public final class SubscribeRepositoryTest {
     }
 
     @Test
-    public void testAddKeepsMaxQosForOverlappingSubscription() {
+    public void testAddReplacesQosForDuplicateSubscription() {
         repository.add(channel, Arrays.asList(
                 new MqttTopicSubscription(TOPIC, MqttQoS.AT_LEAST_ONCE),
                 new MqttTopicSubscription(TOPIC, MqttQoS.EXACTLY_ONCE)));
@@ -129,7 +129,7 @@ public final class SubscribeRepositoryTest {
 
         repository.add(channel, Collections.singletonList(new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE)));
         awaitRepositoryIdle();
-        assertEquals(MqttQoS.EXACTLY_ONCE, repository.get(TOPIC).get(channel));
+        assertEquals(MqttQoS.AT_MOST_ONCE, repository.get(TOPIC).get(channel));
     }
 
     @Test
@@ -246,6 +246,21 @@ public final class SubscribeRepositoryTest {
         });
 
         // MQTT requires at most one delivery per publish per client, at the maximum qos of the matching filters
+        Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
+        assertEquals(1, matched.size());
+        assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(channel));
+    }
+
+    @Test
+    public void testGetChannelsByTopicMergesExactAndWildcardSubscription() {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(EXACT_TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.EXACTLY_ONCE)));
+        awaitAssert(() -> {
+            assertTrue(repository.get(EXACT_TOPIC).containsKey(channel));
+            assertTrue(repository.get(MULTI_LEVEL_FILTER).containsKey(channel));
+        });
+
         Map<Channel, MqttQoS> matched = repository.getChannelsByTopic(EXACT_TOPIC);
         assertEquals(1, matched.size());
         assertEquals(MqttQoS.EXACTLY_ONCE, matched.get(channel));
