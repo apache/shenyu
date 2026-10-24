@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -207,6 +208,37 @@ public final class SubscribeRepositoryTest {
             assertTrue(repository.get(OTHER_TOPIC).isEmpty());
             assertEquals(MqttQoS.AT_LEAST_ONCE, repository.get(TOPIC).get(otherChannel));
         });
+    }
+
+    @Test
+    public void testWildcardIndexTracksOnlyWildcardFilters() throws ReflectiveOperationException {
+        repository.add(channel, Arrays.asList(
+                new MqttTopicSubscription(TOPIC, MqttQoS.AT_MOST_ONCE),
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+
+        assertTrue(sharedFilters().containsKey(TOPIC));
+        assertTrue(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(TOPIC));
+        assertTrue(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+
+        repository.remove(channel);
+
+        assertFalse(sharedFilters().containsKey(TOPIC));
+        assertFalse(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+    }
+
+    @Test
+    public void testRemoveLastSubscriberCleansFilterEntry() throws ReflectiveOperationException {
+        repository.add(channel, Collections.singletonList(
+                new MqttTopicSubscription(MULTI_LEVEL_FILTER, MqttQoS.AT_MOST_ONCE)));
+        assertTrue(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertTrue(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
+
+        repository.remove(Collections.singletonList(MULTI_LEVEL_FILTER), channel);
+
+        assertFalse(sharedFilters().containsKey(MULTI_LEVEL_FILTER));
+        assertFalse(wildcardFilters().containsKey(MULTI_LEVEL_FILTER));
     }
 
     @Test
@@ -413,5 +445,21 @@ public final class SubscribeRepositoryTest {
     private void clearAllTopics() {
         repository.remove(ALL_TOPICS);
         awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(repository.get(topic).isEmpty())));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> sharedFilters() throws ReflectiveOperationException {
+        return (Map<String, ?>) staticField("TOPIC_CHANNEL_FACTORY").get(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> wildcardFilters() throws ReflectiveOperationException {
+        return (Map<String, ?>) staticField("WILDCARD_FILTERS").get(null);
+    }
+
+    private Field staticField(final String name) throws NoSuchFieldException {
+        Field field = SubscribeRepository.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return field;
     }
 }

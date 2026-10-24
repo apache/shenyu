@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Topic and channel association.
@@ -39,12 +41,19 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
 
     private static final Map<String, Map<Channel, MqttQoS>> TOPIC_CHANNEL_FACTORY = new ConcurrentHashMap<>();
 
+    private static final Map<String, WildcardFilter> WILDCARD_FILTERS = new ConcurrentHashMap<>();
+
+    private static final ReadWriteLock FILTER_LOCK = new ReentrantReadWriteLock();
+
     @Override
     public void add(final List<String> topics, final Map<Channel, MqttQoS> channelQos) {
-        topics.forEach(topic ->
-                channelQos.forEach((channel, qos) -> TOPIC_CHANNEL_FACTORY
-                        .computeIfAbsent(topic, key -> new ConcurrentHashMap<>())
-                        .put(channel, qos)));
+        FILTER_LOCK.writeLock().lock();
+        try {
+            topics.forEach(topic ->
+                    channelQos.forEach((channel, qos) -> addSubscription(topic, channel, qos)));
+        } finally {
+            FILTER_LOCK.writeLock().unlock();
+        }
     }
 
     /**
@@ -53,19 +62,30 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param mqttTopicSubscription mqtt subscription info
      */
     public void add(final Channel channel, final List<MqttTopicSubscription> mqttTopicSubscription) {
-        // MQTT-3.8.4-3: a new subscription for the same filter replaces the previous one,
-        // including its granted qos. Complete registration before returning so a later
-        // disconnect cannot overtake it.
-        mqttTopicSubscription.stream()
-                .filter(s -> s.qualityOfService() != MqttQoS.FAILURE)
-                .forEach(s -> TOPIC_CHANNEL_FACTORY
-                        .computeIfAbsent(s.topicName(), key -> new ConcurrentHashMap<>())
-                        .put(channel, s.qualityOfService()));
+        FILTER_LOCK.writeLock().lock();
+        try {
+            // MQTT-3.8.4-3: a new subscription for the same filter replaces the previous one,
+            // including its granted qos. Complete registration before returning so a later
+            // disconnect cannot overtake it.
+            mqttTopicSubscription.stream()
+                    .filter(s -> s.qualityOfService() != MqttQoS.FAILURE)
+                    .forEach(s -> addSubscription(s.topicName(), channel, s.qualityOfService()));
+        } finally {
+            FILTER_LOCK.writeLock().unlock();
+        }
     }
 
     @Override
     public void remove(final List<String> topics) {
-        topics.forEach(TOPIC_CHANNEL_FACTORY::remove);
+        FILTER_LOCK.writeLock().lock();
+        try {
+            topics.forEach(topic -> {
+                TOPIC_CHANNEL_FACTORY.remove(topic);
+                WILDCARD_FILTERS.remove(topic);
+            });
+        } finally {
+            FILTER_LOCK.writeLock().unlock();
+        }
     }
 
     /**
@@ -74,12 +94,12 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param channel channel
      */
     public void remove(final List<String> topics, final Channel channel) {
-        topics.forEach(topic -> {
-            Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(topic);
-            if (Objects.nonNull(subscribers)) {
-                subscribers.remove(channel);
-            }
-        });
+        FILTER_LOCK.writeLock().lock();
+        try {
+            topics.forEach(topic -> removeChannel(topic, channel));
+        } finally {
+            FILTER_LOCK.writeLock().unlock();
+        }
     }
 
     /**
@@ -87,15 +107,31 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @param channel channel
      */
     public void remove(final Channel channel) {
-        TOPIC_CHANNEL_FACTORY.values().forEach(subscribers -> subscribers.remove(channel));
+        FILTER_LOCK.writeLock().lock();
+        try {
+            TOPIC_CHANNEL_FACTORY.forEach((filter, subscribers) -> {
+                subscribers.remove(channel);
+                if (subscribers.isEmpty()) {
+                    TOPIC_CHANNEL_FACTORY.remove(filter, subscribers);
+                    WILDCARD_FILTERS.remove(filter);
+                }
+            });
+        } finally {
+            FILTER_LOCK.writeLock().unlock();
+        }
     }
 
     @Override
     public Map<Channel, MqttQoS> get(final List<String> topics) {
-        Map<Channel, MqttQoS> subscribers = new ConcurrentHashMap<>();
-        topics.parallelStream().forEach(topic -> TOPIC_CHANNEL_FACTORY.getOrDefault(topic, Collections.emptyMap())
-                .forEach((channel, qos) -> subscribers.merge(channel, qos, SubscribeRepository::maxQoS)));
-        return subscribers;
+        FILTER_LOCK.readLock().lock();
+        try {
+            Map<Channel, MqttQoS> subscribers = new ConcurrentHashMap<>();
+            topics.forEach(topic -> TOPIC_CHANNEL_FACTORY.getOrDefault(topic, Collections.emptyMap())
+                    .forEach((channel, qos) -> subscribers.merge(channel, qos, SubscribeRepository::maxQoS)));
+            return subscribers;
+        } finally {
+            FILTER_LOCK.readLock().unlock();
+        }
     }
 
     /**
@@ -120,26 +156,64 @@ public class SubscribeRepository implements BaseRepository<List<String>, Map<Cha
      * @return matching channels with their maximum granted qos
      */
     public Map<Channel, MqttQoS> getChannelsByTopic(final String topic) {
-        // MQTT requires at most one delivery per publish per client, so merge the
-        // granted qos when overlapping filters (e.g. sport/# and #) both match.
-        Map<Channel, MqttQoS> result = new ConcurrentHashMap<>();
+        FILTER_LOCK.readLock().lock();
+        try {
+            // MQTT requires at most one delivery per publish per client, so merge the
+            // granted qos when overlapping filters (e.g. sport/# and #) both match.
+            Map<Channel, MqttQoS> result = new ConcurrentHashMap<>();
 
-        // fast path: exact subscription, no wildcard scan needed
-        Map<Channel, MqttQoS> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
-        if (Objects.nonNull(exactMatch)) {
-            result.putAll(exactMatch);
+            // fast path: exact subscription, no wildcard scan needed
+            Map<Channel, MqttQoS> exactMatch = TOPIC_CHANNEL_FACTORY.get(topic);
+            if (Objects.nonNull(exactMatch)) {
+                result.putAll(exactMatch);
+            }
+
+            String[] topicLevels = topic.split("/", -1);
+            WILDCARD_FILTERS.forEach((filter, wildcardFilter) -> {
+                if (wildcardFilter.matches(topicLevels)) {
+                    Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(filter);
+                    if (Objects.nonNull(subscribers)) {
+                        subscribers.forEach((channel, qos) -> result.merge(channel, qos, SubscribeRepository::maxQoS));
+                    }
+                }
+            });
+            return result;
+        } finally {
+            FILTER_LOCK.readLock().unlock();
+        }
+    }
+
+    private static void addSubscription(final String filter, final Channel channel, final MqttQoS qos) {
+        TOPIC_CHANNEL_FACTORY.computeIfAbsent(filter, key -> new ConcurrentHashMap<>()).put(channel, qos);
+        if (!WILDCARD_FILTERS.containsKey(filter)
+                && (filter.indexOf('+') >= 0 || filter.indexOf('#') >= 0)
+                && TopicMatcher.isValidFilter(filter)) {
+            WILDCARD_FILTERS.put(filter, new WildcardFilter(filter));
+        }
+    }
+
+    private static void removeChannel(final String topic, final Channel channel) {
+        Map<Channel, MqttQoS> subscribers = TOPIC_CHANNEL_FACTORY.get(topic);
+        if (Objects.nonNull(subscribers)) {
+            subscribers.remove(channel);
+            if (subscribers.isEmpty()) {
+                TOPIC_CHANNEL_FACTORY.remove(topic, subscribers);
+                WILDCARD_FILTERS.remove(topic);
+            }
+        }
+    }
+
+    private static final class WildcardFilter {
+
+        private final String[] levels;
+
+        private WildcardFilter(final String filter) {
+            this.levels = filter.split("/", -1);
         }
 
-        for (Map.Entry<String, Map<Channel, MqttQoS>> entry : TOPIC_CHANNEL_FACTORY.entrySet()) {
-            String filter = entry.getKey();
-            if (filter.equals(topic) || filter.indexOf('+') < 0 && filter.indexOf('#') < 0) {
-                continue;
-            }
-            if (TopicMatcher.matches(filter, topic)) {
-                entry.getValue().forEach((channel, qos) -> result.merge(channel, qos, SubscribeRepository::maxQoS));
-            }
+        private boolean matches(final String[] topicLevels) {
+            return TopicMatcher.matches(levels, topicLevels);
         }
-        return result;
     }
 
 }
