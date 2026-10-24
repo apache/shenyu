@@ -114,6 +114,17 @@ public final class AbstractShenyuWasmPluginTest {
         verify(shenyuPluginChain).execute(exchange);
     }
 
+    @Test
+    public void customAdapterPreservesEagerInvocationTest() {
+        setupCacheData();
+        final TestGoShenyuWasmPlugin plugin = new TestGoShenyuWasmPlugin("go result");
+        final int previousResults = WasmTestPlugin.GUEST_RESULTS.get();
+        Mono<Void> execution = plugin.execute(exchange, shenyuPluginChain);
+        assertEquals(previousResults + 1, WasmTestPlugin.GUEST_RESULTS.get());
+        verify(shenyuPluginChain).execute(exchange);
+        StepVerifier.create(execution).verifyComplete();
+    }
+
     /** Plugin not cached → should skip to next chain. */
     @Test
     public void executePluginNotCachedTest() {
@@ -207,6 +218,8 @@ public final class AbstractShenyuWasmPluginTest {
 
         static final Map<Long, String> RESULTS = new ConcurrentHashMap<>();
 
+        static final java.util.concurrent.atomic.AtomicInteger GUEST_RESULTS = new java.util.concurrent.atomic.AtomicInteger();
+
         private static final java.util.concurrent.atomic.AtomicLong ID = new java.util.concurrent.atomic.AtomicLong();
 
         private final String expectedResult;
@@ -240,6 +253,7 @@ public final class AbstractShenyuWasmPluginTest {
                         String result = new String(bytes, StandardCharsets.UTF_8);
                         assertEquals(expected, result);
                         RESULTS.put(argId, result);
+                        GUEST_RESULTS.incrementAndGet();
                         return new long[]{0};
                     }));
         }
