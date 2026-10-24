@@ -66,6 +66,10 @@ public class DiagnosticProperties {
     /**
      * Get the maximum total uncompressed bundle size in bytes.
      *
+     * <p>The bound covers every uncompressed archive entry, {@code manifest.json} included, not
+     * just the section payloads. Sections are trimmed to fit; a value too small to hold the
+     * manifest itself makes bundle export fail rather than produce an archive over the bound.</p>
+     *
      * @return the max total bytes
      */
     public int getMaxTotalBytes() {
