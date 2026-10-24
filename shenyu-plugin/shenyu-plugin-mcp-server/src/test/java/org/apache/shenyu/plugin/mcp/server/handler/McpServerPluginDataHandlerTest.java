@@ -248,6 +248,54 @@ class McpServerPluginDataHandlerTest {
         verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
     }
 
+    @Test
+    void testHandlerSelectorEndpointUpdateRebuildsServer() {
+        // first sync creates the server with the default endpoint, and a rule registers its tool
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/message");
+        dataHandler.handlerRule(endpointRule());
+        verify(shenyuMcpServerManager).addTool(eq("/endpoint"), eq("endpoint-tool"), any(), any(), anyString());
+
+        // handle-only update: same path, new endpoint — the server must be rebuilt
+        // around the new endpoint and the tools replayed onto it (#8044)
+        org.mockito.Mockito.reset(shenyuMcpServerManager);
+        when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(true, false);
+        dataHandler.handlerSelector(endpointSelector("/rpc"));
+        verify(shenyuMcpServerManager).removeMcpServer("/endpoint");
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/rpc");
+        verify(shenyuMcpServerManager).addTool(eq("/endpoint"), eq("endpoint-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void testHandlerSelectorUnchangedEndpointDoesNotRebuildServer() {
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/message");
+
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager, never()).removeMcpServer(anyString());
+        verify(shenyuMcpServerManager, never()).getOrCreateMcpServerTransport("/endpoint", "/rpc");
+    }
+
+    private SelectorData endpointSelector(final String messageEndpoint) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/endpoint/**");
+        SelectorData selector = new SelectorData();
+        selector.setId("endpoint-selector");
+        selector.setConditionList(Collections.singletonList(condition));
+        selector.setHandle("{\"messageEndpoint\":\"" + messageEndpoint + "\"}");
+        return selector;
+    }
+
+    private RuleData endpointRule() {
+        RuleData rule = new RuleData();
+        rule.setId("endpoint-rule");
+        rule.setSelectorId("endpoint-selector");
+        rule.setName("endpoint-tool");
+        rule.setHandle("{\"name\":\"endpoint-tool\",\"parameters\":[]}");
+        return rule;
+    }
+
     private RuleData restartRule() {
         RuleData rule = new RuleData();
         rule.setId("restart-rule");
