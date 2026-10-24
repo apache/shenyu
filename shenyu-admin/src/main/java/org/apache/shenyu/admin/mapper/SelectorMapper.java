@@ -52,6 +52,26 @@ public interface SelectorMapper extends ExistProvider {
     SelectorDO selectById(String id);
 
     /**
+     * Lock a selector for discovery registration.
+     *
+     * @param id selector id
+     * @return selector
+     */
+    SelectorDO selectByIdForUpdate(String id);
+
+    /**
+     * Lock a selector without locking other selectors of the same plugin.
+     *
+     * @param name selector name
+     * @param pluginName plugin name
+     * @param namespaceId namespace id
+     * @return selector
+     */
+    SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(@Param("name") String name,
+            @Param("pluginName") String pluginName, @Param("namespaceId") String namespaceId);
+
+
+    /**
      * Select selector by a list of ids.
      *
      * @param idSet a list of ids

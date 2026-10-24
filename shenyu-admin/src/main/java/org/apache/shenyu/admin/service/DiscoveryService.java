@@ -116,7 +116,7 @@ public interface DiscoveryService {
      * @param selectorId selectorId
      * @param pluginName pluginName
      * @param namespaceId namespaceId
-     * @return discoveryHandlerId
+     * @return the local discovery handler id, or null when a non-local discovery owns the selector
      */
     String registerDefaultDiscovery(String selectorId, String pluginName, String namespaceId);
 

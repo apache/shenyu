@@ -104,7 +104,7 @@
         </foreach>
     </select>
 
-    <select id="selectBySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+    <sql id="Selector_Handler_Query">
         SELECT
         dh.id,
         dh.date_created,
@@ -114,6 +114,15 @@
         dh.listener_node
         FROM discovery_handler dh inner join discovery_rel dr on dh.id = dr.discovery_handler_id
         WHERE dr.selector_id = #{selectorId, jdbcType=VARCHAR}
+        </sql>
+
+    <select id="selectBySelectorId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        <include refid="Selector_Handler_Query"/>
+    </select>
+
+    <select id="selectBySelectorIdForUpdate" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        <include refid="Selector_Handler_Query"/>
+        FOR UPDATE
     </select>
 
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
