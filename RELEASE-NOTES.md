@@ -28,6 +28,15 @@
 
 ### Behavior Changes
 
+- `AbstractShenyuWasmPlugin()` now selects the JSON request/configuration/result
+  bridge rather than no-op host functions. Results require versioned UTF-8 JSON
+  within 1 MiB; invalid results fail the request with HTTP 500. Subclasses that
+  require the former no-op callbacks can call `super((Consumer<Store>) null)`;
+  the Consumer constructor retains custom adapters and existing overrides.
+  The default Java continuation hook now delegates to the chain and argument
+  IDs are generated automatically. Register a bean destroy method or call
+  `close()` explicitly for shutdown cleanup; no starter wiring is added. (#7561)
+
 - In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
   field section: header names, field values, line framing (`: ` and CRLF),
   and section-terminating CRLF. Previously only header values were counted. Existing
