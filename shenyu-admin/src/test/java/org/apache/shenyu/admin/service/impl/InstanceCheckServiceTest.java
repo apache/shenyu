@@ -29,14 +29,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -49,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +72,20 @@ public final class InstanceCheckServiceTest {
     void setUp() {
         instanceCheckService = new InstanceCheckService(instanceInfoService);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
+    }
+
+    @Test
+    void testSpringCreatesServiceWithProductionClock() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(InstanceInfoService.class, () -> instanceInfoService);
+            context.register(InstanceCheckService.class);
+            context.refresh();
+
+            InstanceCheckService service = context.getBean(InstanceCheckService.class);
+            InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+            service.handleBeatInfo(dto);
+            assertNotNull(service.getInstanceHealthBeatInfo(dto));
+        }
     }
 
     @Test
@@ -151,21 +168,22 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
-    void testHandleBeatInfoNewAndExisting() throws InterruptedException {
+    void testHandleBeatInfoNewAndExisting() {
+        Clock clock = mock(Clock.class);
+        when(clock.millis()).thenReturn(1000L, 2000L);
+        InstanceCheckService controlledService = new InstanceCheckService(instanceInfoService, clock);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO first = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO first = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(first);
         long firstBeat = first.getLastHeartBeatTime();
-        assertThat(firstBeat, greaterThan(0L));
-
-        // Add a small delay to ensure different timestamps
-        Thread.sleep(1);
+        assertEquals(1000L, firstBeat);
         
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO second = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO second = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);
-        assertThat(second.getLastHeartBeatTime(), greaterThan(firstBeat));
+        assertEquals(2000L, second.getLastHeartBeatTime());
+        verify(clock, times(2)).millis();
     }
 
     @Test

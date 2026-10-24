@@ -30,10 +30,12 @@ import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Clock;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +63,8 @@ public class InstanceCheckService {
 
     private final int scheduledTime;
 
+    private final Clock clock;
+
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
 
     private long instanceHeartBeatTimeOut;
@@ -71,8 +75,15 @@ public class InstanceCheckService {
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
 
+    @Autowired
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
+        this(instanceInfoService, Clock.systemDefaultZone());
+    }
+
+    // Visible for tests that need a controlled clock.
+    InstanceCheckService(final InstanceInfoService instanceInfoService, final Clock clock) {
         this.scheduledTime = 10;
+        this.clock = clock;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
         this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
@@ -122,9 +133,10 @@ public class InstanceCheckService {
 
     public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
+        long currentTime = clock.millis();
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
+            instanceInfoVO.setLastHeartBeatTime(currentTime);
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
                 instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
             }
@@ -134,7 +146,7 @@ public class InstanceCheckService {
             instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
+            instanceInfoVO.setLastHeartBeatTime(currentTime);
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
@@ -150,8 +162,9 @@ public class InstanceCheckService {
     }
 
     private void doCheck() {
+        long currentTime = clock.millis();
         instanceHealthBeatInfo.values().forEach(instance -> {
-            if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
+            if (currentTime - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
                 if (Objects.equals(InstanceStatusEnum.ONLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
@@ -162,7 +175,7 @@ public class InstanceCheckService {
                         instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                 instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             }
-            if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
+            if (currentTime - instance.getLastHeartBeatTime() > deleteTimeout) {
                 if (Objects.equals(InstanceStatusEnum.OFFLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
