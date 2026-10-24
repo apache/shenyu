@@ -2,6 +2,11 @@
 
 ### API Changes
 
+- WASM loaders support opt-in startup execution deadlines and per-instance linear-memory
+  ceilings. Defaults remain disabled. Timed execution owns bounded workers, propagates
+  interruption and replaces interrupted instances after physical exit. See
+  [the limits contract](docs/wasm-execution-limits.md) for settings and host-function limits.
+
 - Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
   deprecated for transfer to plugin-store (#7599). All four remain available in
   the release carrying this notice. Removal requires dev-list consensus, a full
