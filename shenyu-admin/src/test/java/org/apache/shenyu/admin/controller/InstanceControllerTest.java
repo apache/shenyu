@@ -21,9 +21,11 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
+import org.apache.shenyu.admin.model.vo.InstanceDiagnosticsVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
+import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +67,9 @@ public final class InstanceControllerTest {
 
     @Mock
     private InstanceCheckService instanceCheckService;
+
+    @Mock
+    private InstanceDiagnosticsService instanceDiagnosticsService;
 
 
     private InstanceInfoVO vo;
@@ -153,6 +158,47 @@ public final class InstanceControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())))
                 .andExpect(jsonPath("$.data.id", is("instance-1")));
+    }
+
+    @Test
+    public void testInstanceDiagnostics() throws Exception {
+        InstanceDiagnosticsVO diagnosticsVO = new InstanceDiagnosticsVO();
+        diagnosticsVO.setInstanceId("123");
+        diagnosticsVO.setNamespaceId("ns");
+        diagnosticsVO.setLinks(List.of(new InstanceDiagnosticsVO.ObservabilityLink(
+                InstanceDiagnosticsVO.ObservabilityLink.TYPE_METRICS,
+                InstanceDiagnosticsVO.ObservabilityLink.STATE_NOT_CONFIGURED,
+                null)));
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("123", null, null)).willReturn(diagnosticsVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.instanceId", is("123")))
+                .andExpect(jsonPath("$.data.links[0].type", is("METRICS")))
+                .andExpect(jsonPath("$.data.links[0].state", is("NOT_CONFIGURED")));
+    }
+
+    @Test
+    public void testInstanceDiagnosticsWithTimeRange() throws Exception {
+        InstanceDiagnosticsVO diagnosticsVO = new InstanceDiagnosticsVO();
+        diagnosticsVO.setInstanceId("123");
+        diagnosticsVO.setStartTime(1000L);
+        diagnosticsVO.setEndTime(2000L);
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("123", 1000L, 2000L)).willReturn(diagnosticsVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "123")
+                        .param("startTime", "1000")
+                        .param("endTime", "2000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.startTime", is(1000)))
+                .andExpect(jsonPath("$.data.endTime", is(2000)));
+    }
+
+    @Test
+    public void testInstanceDiagnosticsNotFound() throws Exception {
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("404", null, null)).willReturn(null);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "404"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.NOT_FOUND_EXCEPTION)));
     }
 
     @Test

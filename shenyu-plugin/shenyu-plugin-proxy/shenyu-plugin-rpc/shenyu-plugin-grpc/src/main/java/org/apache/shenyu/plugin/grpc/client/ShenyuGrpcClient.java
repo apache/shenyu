@@ -24,13 +24,16 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.ClientCall;
+import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
@@ -44,7 +47,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
@@ -92,7 +99,8 @@ public class ShenyuGrpcClient implements Closeable {
                 jsonResponse);
         
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse);
+        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
+                resolveMaxAggregatedResultCount(), resolveMaxAggregatedResultBytes());
         
         ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
         callParams.setMethodDescriptor(jsonMarshallerMethodDescriptor);
@@ -136,22 +144,45 @@ public class ShenyuGrpcClient implements Closeable {
         StreamObserver<DynamicMessage> responseObserver = callParams.getResponseObserver();
         CompleteObserver<DynamicMessage> doneObserver = new CompleteObserver<>();
         StreamObserver<DynamicMessage> compositeObserver = CompositeStreamObserver.of(responseObserver, doneObserver);
-        
+
+        AtomicBoolean cancelled = new AtomicBoolean();
+        ClientCall<DynamicMessage, DynamicMessage> call = new ForwardingClientCall.SimpleForwardingClientCall<>(createCall(callParams)) {
+            @Override
+            public void cancel(final String message, final Throwable cause) {
+                // Downstream cancellation and aggregate overflow share one transport cleanup.
+                if (cancelled.compareAndSet(false, true)) {
+                    super.cancel(message, cause);
+                }
+            }
+        };
+        ListenableFuture<Void> completion = doneObserver.getCompletionFuture();
+        completion.addListener(() -> {
+            if (completion.isCancelled()) {
+                call.cancel("Gateway gRPC invocation cancelled", null);
+            }
+        }, MoreExecutors.directExecutor());
+        if (responseObserver instanceof MessageWriter) {
+            // allow the aggregator to cancel the RPC when a response budget is exhausted.
+            @SuppressWarnings("unchecked")
+            MessageWriter<DynamicMessage> writer = (MessageWriter<DynamicMessage>) responseObserver;
+            writer.bindCall(call);
+        }
+
         StreamObserver<DynamicMessage> requestObserver;
         switch (methodType) {
             case UNARY:
-                asyncUnaryCall(createCall(callParams), requestList.get(0), compositeObserver);
+                asyncUnaryCall(call, requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case SERVER_STREAMING:
-                asyncServerStreamingCall(createCall(callParams), requestList.get(0), compositeObserver);
+                asyncServerStreamingCall(call, requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case CLIENT_STREAMING:
-                requestObserver = asyncClientStreamingCall(createCall(callParams), compositeObserver);
+                requestObserver = asyncClientStreamingCall(call, compositeObserver);
                 requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
             case BIDI_STREAMING:
-                requestObserver = asyncBidiStreamingCall(createCall(callParams), compositeObserver);
+                requestObserver = asyncBidiStreamingCall(call, compositeObserver);
                 requestList.forEach(requestObserver::onNext);
                 requestObserver.onCompleted();
                 return doneObserver.getCompletionFuture();
@@ -159,6 +190,22 @@ public class ShenyuGrpcClient implements Closeable {
                 LOG.info("Unknown methodType:{}", methodType);
                 return null;
         }
+    }
+
+    private long resolveMaxAggregatedResultCount() {
+        return resolveBudget(config -> config.getMaxAggregatedResultCount());
+    }
+
+    private long resolveMaxAggregatedResultBytes() {
+        return resolveBudget(config -> config.getMaxAggregatedResultBytes());
+    }
+
+    private long resolveBudget(final Function<GrpcRegisterConfig, Long> getter) {
+        GrpcRegisterConfig config = Singleton.INST.get(GrpcRegisterConfig.class);
+        if (Objects.isNull(config)) {
+            return 0L;
+        }
+        return Optional.ofNullable(getter.apply(config)).orElse(0L);
     }
     
     @Override

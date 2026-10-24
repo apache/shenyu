@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -36,7 +35,6 @@ import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -97,20 +95,18 @@ public class Subscribe extends MessageType {
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param subscriptions subscriptions
+     * @param mqttTopicSubscriptions mqttTopicSubscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> subscriptions, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> mqttTopicSubscriptions,
+                                   final Channel channel) {
 
-        List<Integer> qos = new ArrayList<>();
-        for (MqttTopicSubscription subscription : subscriptions) {
-            // invalid topic filters are rejected with 0x80, otherwise default qos 0
-            if (TopicMatcher.isValidFilter(subscription.topicName())) {
-                qos.add(MqttQoS.AT_MOST_ONCE.value());
-            } else {
-                qos.add(MqttQoS.FAILURE.value());
-            }
-        }
+        List<Integer> qos = mqttTopicSubscriptions.stream()
+                .filter(subscription -> subscription.qualityOfService() != FAILURE)
+                .map(subscription -> TopicMatcher.isValidFilter(subscription.topicName())
+                        ? subscription.qualityOfService().value()
+                        : FAILURE.value())
+                .collect(Collectors.toList());
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,
                 false, 0);

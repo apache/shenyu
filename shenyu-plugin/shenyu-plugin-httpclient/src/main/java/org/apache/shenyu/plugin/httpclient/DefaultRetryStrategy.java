@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
@@ -150,10 +151,16 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         // in order not to affect the next retry call, newUri needs to be excluded
         exclude.add(newUri);
         final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-        return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
+        Mono<R> resend = httpClientPlugin
                 .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
+                .doOnError(e -> LOG.error(e.getMessage(), e));
+        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            // Least active compares outstanding requests, so this attempt stays reserved until it terminates.
+            upstream.getInflight().incrementAndGet();
+            resend = resend.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        }
+        return UpstreamCircuitBreaker.recordOutcome(resend, breakerKey);
     }
 
     private boolean isSameUpstream(final URI first, final URI second) {
