@@ -21,6 +21,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -193,6 +195,53 @@ public final class DiagnosticBundleWriterTest {
         assertTrue(ex.getMessage().contains("max-total-bytes=16"));
     }
 
+    /**
+     * A per-section cap that lands inside a 3-byte character must back off to the character start,
+     * never emit a half-encoded sequence, and report SKIPPED when no whole character fits.
+     *
+     * @param capBytes the configured maxSectionBytes
+     * @param expected the number of bytes the entry is expected to keep
+     * @param status   the expected status of the archived section
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "1, 0, SKIPPED",
+        "2, 0, SKIPPED",
+        "3, 3, TRUNCATED",
+        "4, 3, TRUNCATED",
+        "5, 3, TRUNCATED",
+        "6, 6, OK"
+    })
+    public void sectionCapNeverSplitsAMultibyteCharacter(final int capBytes, final int expected,
+                                                         final SectionStatus status) throws IOException {
+        DiagnosticProperties properties = new DiagnosticProperties();
+        properties.setMaxSectionBytes(capBytes);
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        Map<String, String> entries = read(writer.write(manifest(
+                DiagnosticSection.ok("runtime", 1L, 1L, "中文"))));
+        String content = entries.get("sections/runtime.json");
+        assertEquals(expected, content.getBytes(StandardCharsets.UTF_8).length);
+        assertEquals("中文".substring(0, expected / 3), content);
+        JsonObject summary = JsonParser.parseString(entries.get("manifest.json")).getAsJsonObject()
+                .getAsJsonArray("sections").get(0).getAsJsonObject();
+        assertEquals(status.name(), summary.get("status").getAsString());
+        assertEquals(expected, summary.get("sizeBytes").getAsInt());
+    }
+
+    /**
+     * The same boundary rule applies to the per-section cap the collector applies before archiving.
+     */
+    @Test
+    public void collectedSectionCapNeverSplitsAMultibyteCharacter() {
+        DiagnosticProperties properties = new DiagnosticProperties();
+        properties.setMaxSectionBytes(4);
+        DiagnosticBundleService service = new DiagnosticBundleService(
+                List.of(new FixedCollector("runtime", "中文")), properties, new DiagnosticBundleWriter(properties));
+        DiagnosticSection section = service.collect().getSections().get(0);
+        assertEquals(SectionStatus.TRUNCATED, section.getStatus());
+        assertEquals("中", new String(section.getContent(), StandardCharsets.UTF_8));
+    }
+
     private int uncompressedBytes(final Map<String, String> entries) {
         int total = 0;
         for (String content : entries.values()) {
@@ -239,5 +288,27 @@ public final class DiagnosticBundleWriterTest {
             }
         }
         return entries;
+    }
+
+    private static final class FixedCollector implements SectionCollector {
+
+        private final String name;
+
+        private final String content;
+
+        FixedCollector(final String name, final String content) {
+            this.name = name;
+            this.content = content;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public DiagnosticSection collect(final DiagnosticBudget budget) {
+            return DiagnosticSection.ok(name, System.currentTimeMillis(), 0L, content);
+        }
     }
 }

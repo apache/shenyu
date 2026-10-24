@@ -68,8 +68,6 @@ public final class DiagnosticBundleWriter {
 
     private static final byte[] NO_CONTENT = new byte[0];
 
-    private static final int MAX_UTF8_CONTINUATION_BYTES = 3;
-
     private final DiagnosticProperties properties;
 
     /**
@@ -137,9 +135,19 @@ public final class DiagnosticBundleWriter {
             DiagnosticSection section = originals.get(index);
             byte[] content = section.getContent();
             if (content.length > properties.getMaxSectionBytes()) {
-                content = Arrays.copyOf(content, properties.getMaxSectionBytes());
-                base[index] = DiagnosticSection.truncated(section.getName(), section.getObservedAtEpochMs(),
-                        section.getDurationMs(), content, SECTION_SIZE_CAP_REASON);
+                // The cap is a byte count but the content is text: cut on a character boundary so
+                // the entry still decodes. A cap below one whole character yields 0 bytes, and a
+                // section that can carry no content at all is SKIPPED, not an empty TRUNCATED one.
+                int limit = Utf8Boundary.limit(content, properties.getMaxSectionBytes());
+                if (limit == 0) {
+                    base[index] = DiagnosticSection.of(section.getName(), SectionStatus.SKIPPED,
+                            section.getObservedAtEpochMs(), section.getDurationMs(), SECTION_SIZE_CAP_REASON);
+                    content = NO_CONTENT;
+                } else {
+                    content = Arrays.copyOf(content, limit);
+                    base[index] = DiagnosticSection.truncated(section.getName(), section.getObservedAtEpochMs(),
+                            section.getDurationMs(), content, SECTION_SIZE_CAP_REASON);
+                }
             } else {
                 base[index] = section;
             }
@@ -148,9 +156,13 @@ public final class DiagnosticBundleWriter {
         }
         int budget = properties.getMaxTotalBytes();
         Plan plan = render(manifest, base, contents, allocation);
-        // Each round removes at least the current overflow from section content. A section can add
-        // to the manifest at most twice (OK to TRUNCATED, TRUNCATED to SKIPPED), so the fixed point
-        // is reached within two rounds per section plus the round that confirms it.
+        // A round does not strictly guarantee progress: a character-boundary cut can leave a byte
+        // or two of the requested reduction unachieved, and a section that becomes TRUNCATED or
+        // SKIPPED adds its reason text to the manifest, so the next plan can overflow by more than
+        // this one did. Termination therefore rests on the pass bound, not on monotone shrinkage.
+        // A section changes status at most twice (OK to TRUNCATED to SKIPPED), and each pass either
+        // shrinks the allocation or exhausts it, so 2 * count + 2 passes is enough to reach a
+        // stable plan or to prove that none fits; the all-zero pass below is the last resort.
         int maxPasses = 2 * count + 2;
         for (int pass = 0; pass < maxPasses && plan.getTotalBytes() > budget; pass++) {
             if (!trim(contents, allocation, plan.getTotalBytes() - budget)) {
@@ -159,14 +171,23 @@ public final class DiagnosticBundleWriter {
             plan = render(manifest, base, contents, allocation);
         }
         if (plan.getTotalBytes() > budget) {
-            Arrays.fill(allocation, 0);
-            plan = render(manifest, base, contents, allocation);
+            plan = renderEmptySections(manifest, base, contents);
         }
         if (plan.getTotalBytes() > budget) {
             throw new IllegalStateException("shenyu.diagnostics.max-total-bytes=" + budget
                     + " cannot hold the mandatory diagnostic manifest of " + plan.getTotalBytes() + " bytes");
         }
         return plan;
+    }
+
+    /**
+     * Render the plan that carries no section content at all, the smallest archive this manifest
+     * can produce. Used both to decide whether the budget is satisfiable and to size the error when
+     * it is not.
+     */
+    private Plan renderEmptySections(final DiagnosticManifest manifest, final DiagnosticSection[] base,
+                                     final byte[][] contents) {
+        return render(manifest, base, contents, new int[base.length]);
     }
 
     private Plan render(final DiagnosticManifest manifest, final DiagnosticSection[] base,
@@ -215,47 +236,12 @@ public final class DiagnosticBundleWriter {
             }
             int target = Math.max(0, current - remaining);
             if (target > 0) {
-                target = utf8Boundary(contents[index], target);
+                target = Utf8Boundary.limit(contents[index], target);
             }
             remaining -= current - target;
             allocation[index] = target;
         }
         return remaining <= 0;
-    }
-
-    /**
-     * Lower a byte limit so it never splits a UTF-8 sequence, keeping archived content decodable.
-     */
-    private static int utf8Boundary(final byte[] content, final int maxBytes) {
-        if (maxBytes >= content.length) {
-            return content.length;
-        }
-        int index = maxBytes;
-        int continuation = 0;
-        while (index > 0 && continuation < MAX_UTF8_CONTINUATION_BYTES && (content[index - 1] & 0xC0) == 0x80) {
-            index--;
-            continuation++;
-        }
-        if (index == 0) {
-            return 0;
-        }
-        // The cut lands on the start of the sequence whose lead byte is at index - 1, so keep it
-        // only when that whole sequence fits; otherwise the limit moves back before the lead byte.
-        int end = index - 1 + utf8SequenceLength(content[index - 1] & 0xFF);
-        return end <= maxBytes ? maxBytes : index - 1;
-    }
-
-    private static int utf8SequenceLength(final int lead) {
-        if ((lead & 0xE0) == 0xC0) {
-            return 2;
-        }
-        if ((lead & 0xF0) == 0xE0) {
-            return 3;
-        }
-        if ((lead & 0xF8) == 0xF0) {
-            return 4;
-        }
-        return 1;
     }
 
     private void putEntry(final ZipOutputStream zip, final Set<String> used, final String name, final byte[] content) throws IOException {
