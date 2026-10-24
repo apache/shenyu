@@ -95,7 +95,7 @@
         FROM instance_info
         WHERE namespace_id = #{namespaceId}
         <if test="instanceIp != null and instanceIp != ''">
-            AND instance_ip like CONCAT('%', #{instanceIp}, '%')
+            AND instance_ip like CONCAT(CONCAT('%', #{instanceIp}), '%')
         </if>
         <if test="instancePort != null and instancePort != ''">
             AND instance_port = #{instancePort}
