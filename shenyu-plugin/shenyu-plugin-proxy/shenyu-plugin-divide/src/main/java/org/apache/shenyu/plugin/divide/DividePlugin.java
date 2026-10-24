@@ -49,7 +49,12 @@ import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.lang.NonNull;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -94,8 +99,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
+        final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
-            long headerSize = exchange.getRequest().getHeaders().values()
+            long headerSize = effectiveExchange.getRequest().getHeaders().values()
                     .stream()
                     .flatMap(Collection::stream)
                     .mapToLong(header -> header.getBytes(StandardCharsets.UTF_8).length)
@@ -107,14 +113,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         if (ruleHandle.getRequestMaxSize() > 0) {
-            if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+            if (effectiveExchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
                 LOG.error("request entity is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE);
                 return WebFluxResultUtils.result(exchange, error);
             }
         }
         boolean canaryRouting = Objects.nonNull(ruleHandle.getCanary())
-                && CollectionUtils.isEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
+                && CollectionUtils.isEmpty(effectiveExchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
         List<Upstream> upstreamList = canaryRouting
                 ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
                 : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
@@ -129,7 +135,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String requested = exchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
+        String requested = effectiveExchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
         final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
@@ -140,7 +146,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(exchange, chain, selector, ruleHandle, candidates)));
+        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(effectiveExchange, chain, selector, ruleHandle, candidates)));
     }
 
     private List<Upstream> selectPartition(final ServerWebExchange exchange, final String ruleId,
@@ -290,4 +296,34 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.getSucceeded().incrementAndGet();
     }
 
+
+    /**
+     * A positive requestMaxSize must also cover chunked / unknown-length bodies: the
+     * Content-Length header is absent (-1) there, so the limit is enforced on the actual
+     * bytes while the request body streams through.
+     */
+    private ServerWebExchange limitChunkedRequestBody(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle) {
+        if (ruleHandle.getRequestMaxSize() <= 0 || exchange.getRequest().getHeaders().getContentLength() >= 0) {
+            return exchange;
+        }
+        final long maxSize = ruleHandle.getRequestMaxSize();
+        return exchange.mutate().request(new ServerHttpRequestDecorator(exchange.getRequest()) {
+            private long forwarded;
+
+            @Override
+            @NonNull
+            public Flux<DataBuffer> getBody() {
+                return Flux.defer(() -> {
+                    forwarded = 0;
+                    return super.getBody().doOnNext(buffer -> {
+                        forwarded += buffer.readableByteCount();
+                        if (forwarded > maxSize) {
+                            LOG.error("request entity is too large");
+                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                        }
+                    });
+                });
+            }
+        }).build();
+    }
 }
