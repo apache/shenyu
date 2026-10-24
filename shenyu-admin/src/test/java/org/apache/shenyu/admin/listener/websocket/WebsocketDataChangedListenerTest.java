@@ -36,6 +36,7 @@ import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +46,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -98,12 +98,12 @@ public final class WebsocketDataChangedListenerTest {
         String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\","
                 + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onPluginChanged(pluginDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                argThat(actualMsg -> jsonEquals(message, actualMsg)),
+                argThat(actualData -> dataEquals(message, actualData)),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -116,7 +116,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnPluginChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onPluginChanged(Collections.emptyList(), DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -126,12 +126,12 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnSelectorChanged() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -144,7 +144,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnSelectorChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onSelectorChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -154,12 +154,12 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnRuleChanged() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onRuleChanged(ruleDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -172,7 +172,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnRuleChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onRuleChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -186,12 +186,10 @@ public final class WebsocketDataChangedListenerTest {
                 + "\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}]"
                 + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE))
-                .thenAnswer((Answer<Void>) invocation -> null);
             websocketDataChangedListener.onAppAuthChanged(appAuthDataList, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                argThat(actualMsg -> jsonEquals(message, actualMsg)),
+                argThat(actualData -> dataEquals(message, actualData)),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -204,7 +202,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnAppAuthChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onAppAuthChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -240,12 +238,12 @@ public final class WebsocketDataChangedListenerTest {
                 + "\"path\":\"/test/execute\",\"rpcType\":\"http\",\"serviceName\":\"execute\",\"methodName\":"
                 + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onMetaDataChanged(metaDataList, DataEventTypeEnum.CREATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                argThat(actualMsg -> jsonEquals(message, actualMsg)),
+                argThat(actualData -> dataEquals(message, actualData)),
                 eq(DataEventTypeEnum.CREATE)
             ));
         }
@@ -258,7 +256,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnMetaDataChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onMetaDataChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -275,12 +273,12 @@ public final class WebsocketDataChangedListenerTest {
         List<ProxySelectorData> list = Collections.singletonList(data);
 
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onProxySelectorChanged(list, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -293,7 +291,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnProxySelectorChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onProxySelectorChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -310,12 +308,12 @@ public final class WebsocketDataChangedListenerTest {
         List<ProxyApiKeyData> list = Collections.singletonList(data);
 
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onAiProxyApiKeyChanged(list, DataEventTypeEnum.CREATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.CREATE)
             ));
         }
@@ -328,7 +326,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnAiProxyApiKeyChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onAiProxyApiKeyChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -345,12 +343,12 @@ public final class WebsocketDataChangedListenerTest {
         List<DiscoverySyncData> list = Collections.singletonList(data);
 
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onDiscoveryUpstreamChanged(list, DataEventTypeEnum.UPDATE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.UPDATE)
             ));
         }
@@ -494,7 +492,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnDiscoveryUpstreamChangedEmptyList() {
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             websocketDataChangedListener.onDiscoveryUpstreamChanged(Collections.emptyList(), DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(anyString(), anyString(), any()), never());
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()), never());
         }
     }
 
@@ -510,15 +508,19 @@ public final class WebsocketDataChangedListenerTest {
         List<PluginData> list = Collections.singletonList(data);
 
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                 .thenAnswer(invocation -> null);
             websocketDataChangedListener.onPluginChanged(list, DataEventTypeEnum.DELETE);
-            mockedStatic.verify(() -> WebsocketCollector.send(
+            mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
                 eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
-                anyString(),
+                any(),
                 eq(DataEventTypeEnum.DELETE)
             ));
         }
+    }
+
+    private boolean dataEquals(final String expected, final WebsocketData<?> actual) {
+        return jsonEquals(expected, GsonUtils.getInstance().toJson(actual));
     }
 
     private boolean jsonEquals(final String expected, final String actual) {
@@ -536,8 +538,8 @@ public final class WebsocketDataChangedListenerTest {
                                      final String groupType, final DataEventTypeEnum eventType) {
         String message = String.format(
                 "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[],\"fullSnapshot\":false}", groupType, eventType.name());
-        mockedStatic.verify(() -> WebsocketCollector.send(
-                eq(namespaceId), argThat(actualMsg -> jsonEquals(message, actualMsg)), eq(eventType)));
+        mockedStatic.verify(() -> WebsocketCollector.sendConfiguration(
+                eq(namespaceId), argThat(actualData -> dataEquals(message, actualData)), eq(eventType)));
     }
 
     private void initMetaDataList() {

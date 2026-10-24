@@ -34,7 +34,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +140,7 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         }
         WebsocketData<Object> websocketData =
                 new WebsocketData<>(group.name(), eventType.name(), Collections.emptyList());
-        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
+        WebsocketCollector.sendConfiguration(namespaceId, websocketData, eventType);
     }
 
     @Override
@@ -190,7 +189,7 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         for (Map.Entry<String, List<T>> entry : byNamespace.entrySet()) {
             List<T> groupData = entry.getValue();
             WebsocketData<T> websocketData = new WebsocketData<>(group.name(), eventType.name(), groupData);
-            WebsocketCollector.send(entry.getKey(), GsonUtils.getInstance().toJson(websocketData), eventType);
+            WebsocketCollector.sendConfiguration(entry.getKey(), websocketData, eventType);
             LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
                     group.name(), eventType.name(), entry.getKey(), groupData.size());
         }

@@ -34,7 +34,9 @@ import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.constant.RunningModeConstants;
+import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -81,6 +83,11 @@ public class WebsocketCollector {
     private static final Map<String, Set<Session>> NAMESPACE_SESSION_MAP = Maps.newConcurrentMap();
 
     private static final Map<Session, SessionSendQueue> SESSION_SEND_QUEUES = Maps.newConcurrentMap();
+
+    /**
+     * Sessions that announced support for {@link WebsocketSyncFrameV2}. Cleared with the session.
+     */
+    private static final Set<Session> STRUCTURED_SYNC_SESSIONS = new CopyOnWriteArraySet<>();
 
     private static final long DEFAULT_SEND_TIMEOUT_MILLIS = 30_000L;
 
@@ -187,8 +194,13 @@ public class WebsocketCollector {
      */
     @OnMessage
     public void onMessage(final String message, final Session session) {
+        if (WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY.equals(message)) {
+            STRUCTURED_SYNC_SESSIONS.add(session);
+            return;
+        }
         if (message.startsWith(WebsocketSyncFrame.REQUEST_PREFIX)) {
-            initialSync(message.substring(WebsocketSyncFrame.REQUEST_PREFIX.length()), session);
+            initialSync(message.substring(WebsocketSyncFrame.REQUEST_PREFIX.length()), session,
+                    STRUCTURED_SYNC_SESSIONS.contains(session));
             return;
         }
         if (!Objects.equals(message, DataEventTypeEnum.MYSELF.name())
@@ -387,7 +399,51 @@ public class WebsocketCollector {
         SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class).publish(instanceInfoRegisterDTO);
     }
 
-    private void initialSync(final String requestId, final Session session) {
+    /**
+     * Send a configuration message to a namespace. When the message belongs to an
+     * initial synchronization requested by a structured-capable gateway, it is embedded
+     * in the frame as a JSON value instead of being serialized to a string first.
+     *
+     * @param namespaceId the namespaceId
+     * @param data the configuration message
+     * @param type the type
+     */
+    public static void sendConfiguration(final String namespaceId, final WebsocketData<?> data,
+                                         final DataEventTypeEnum type) {
+        if (Objects.isNull(data)) {
+            return;
+        }
+        Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
+        if (isInitialSyncSnapshot(session)) {
+            if (StringUtils.isBlank(namespaceId)) {
+                throw new ShenyuException("namespaceId can not be null");
+            }
+            if (!session.isOpen()) {
+                removeSessionIndexes(session);
+                return;
+            }
+            LOG.info("websocket send structured message to namespaceId: {}, groupType: {}, eventType: {}",
+                    namespaceId, data.getGroupType(), data.getEventType());
+            sendMessageBySession(session, data);
+            return;
+        }
+        send(namespaceId, GsonUtils.getInstance().toJson(data), type);
+    }
+
+    /**
+     * Whether a message belongs to the initial snapshot of the session that requested it.
+     * Only an active attempt on the same session qualifies: a concurrent refresh on behalf
+     * of another connection keeps the legacy envelope and is not sequenced into this one.
+     *
+     * @param session the session the message would be sent to
+     * @return true when the message is part of the requesting session's initial snapshot
+     */
+    private static boolean isInitialSyncSnapshot(final Session session) {
+        InitialSync sync = INITIAL_SYNC.get();
+        return Objects.nonNull(sync) && sync.structured && Objects.equals(sync.session, session);
+    }
+
+    private void initialSync(final String requestId, final Session session, final boolean structured) {
         try {
             UUID.fromString(requestId);
         } catch (IllegalArgumentException ex) {
@@ -399,7 +455,7 @@ public class WebsocketCollector {
                 && !SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster()) {
             return;
         }
-        InitialSync sync = new InitialSync(session, requestId);
+        InitialSync sync = new InitialSync(session, requestId, structured);
         try {
             INITIAL_SYNC.set(sync);
             ThreadLocalUtils.put(SESSION_KEY, session);
@@ -408,12 +464,19 @@ public class WebsocketCollector {
             if (success && (!properties.isEnabled()
                     || SpringBeanUtils.getInstance().getBean(ClusterSelectMasterService.class).isMaster())) {
                 SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
-                        .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrame(requestId, sync.sequence, null)));
+                        .send(completionFrame(sync));
             }
         } finally {
             INITIAL_SYNC.remove();
             ThreadLocalUtils.clear();
         }
+    }
+
+    private static String completionFrame(final InitialSync sync) {
+        if (sync.structured) {
+            return GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2(sync.requestId, sync.sequence, null));
+        }
+        return GsonUtils.getInstance().toJson(new WebsocketSyncFrame(sync.requestId, sync.sequence, null));
     }
 
     private static void sendMessageBySession(final Session session, final String message) {
@@ -424,6 +487,17 @@ public class WebsocketCollector {
         } else {
             SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new).send(message);
         }
+    }
+
+    private static void sendMessageBySession(final Session session, final WebsocketData<?> data) {
+        if (isInitialSyncSnapshot(session)) {
+            InitialSync sync = INITIAL_SYNC.get();
+            SESSION_SEND_QUEUES.computeIfAbsent(session, SessionSendQueue::new)
+                    .send(GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2(
+                            sync.requestId, sync.sequence++, GsonUtils.getGson().toJsonTree(data))));
+            return;
+        }
+        sendMessageBySession(session, GsonUtils.getInstance().toJson(data));
     }
 
     private static void removeSessionSendQueue(final Session session) {
@@ -440,6 +514,7 @@ public class WebsocketCollector {
 
     private static void removeSessionIndexes(final Session session) {
         SESSION_SET.remove(session);
+        STRUCTURED_SYNC_SESSIONS.remove(session);
         removeSessionSendQueue(session);
         String namespaceId = SESSION_NAMESPACE_IDS.remove(session);
         if (StringUtils.isNotBlank(namespaceId)) {
@@ -520,11 +595,14 @@ public class WebsocketCollector {
 
         private final String requestId;
 
+        private final boolean structured;
+
         private int sequence;
 
-        private InitialSync(final Session session, final String requestId) {
+        private InitialSync(final Session session, final String requestId, final boolean structured) {
             this.session = session;
             this.requestId = requestId;
+            this.structured = structured;
         }
     }
 
