@@ -359,9 +359,43 @@ shenyu:
 #          # Maximum duration of the entire upstream response body stream.
 #          # New chunks do not reset this limit. Default: 10m.
 #          total-stream-duration: 10m
+#          # Maximum bytes allowed in one upstream request body.
+#          # Zero means unlimited. Default: 0.
+#          max-request-bytes: 0
 #          # Maximum cumulative bytes read from one upstream response.
 #          # Zero means unlimited. Default: 0.
 #          max-response-bytes: 0
+#          pool:
+#            # Set to false to create a new connection for every upstream request.
+#            enabled: true
+#            # Reactor Netty ConnectionProvider name, useful in metrics and diagnostics.
+#            name: shenyu-ai-proxy
+#            # Maximum number of active connections maintained by the shared pool.
+#            max-connections: 30
+#            # Maximum number of requests waiting for a connection. -1 means unlimited.
+#            pending-acquire-max-count: 60
+#            # Maximum time a request may wait for a pooled connection.
+#            pending-acquire-timeout: 3s
+#            # Evict a connection after it has remained idle for this duration.
+#            max-idle-time: 60s
+#            # Evict a connection after this total lifetime, even if it is still reusable.
+#            max-life-time: 30m
+#            # Interval for background eviction of idle and expired connections.
+#            eviction-interval: 30s
+#            # Grace period for pending acquires when the gateway shuts down.
+#            graceful-dispose-timeout: 30s
+#          tls:
+#            # Keep enabled in production. Disabling verification trusts any upstream certificate.
+#            verify: true
+#          proxy:
+#            # HTTP forward proxy used for outbound AI upstream requests, including HTTPS CONNECT.
+#            enabled: false
+#            host: 127.0.0.1
+#            port: 8080
+#            username:
+#            password:
+#            # Java regular expression; matching upstream hosts bypass the proxy.
+#            non-proxy-hosts-pattern: "localhost|127\\..*"
 #    rate-limiter.enabled: false
   local:
     enabled: false

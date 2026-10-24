@@ -49,6 +49,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
@@ -100,7 +101,10 @@ class AiProxyPluginConfigurationTest {
     void allowsACustomTransportAndHonorsTheEnableFlag() {
         AiProxyTransport custom = request -> Mono.empty();
         new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class).withBean(AiProxyTransport.class, () -> custom).run(context -> {
-            org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyTransport.class);
+            org.assertj.core.api.Assertions.assertThat(context)
+                    .hasNotFailed()
+                    .hasSingleBean(AiProxyTransport.class)
+                    .doesNotHaveBean(AiProxyHttpClientResources.class);
             assertSame(custom, context.getBean(AiProxyTransport.class));
         });
         new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class).withPropertyValues("shenyu.plugins.ai.proxy.enabled=false")
@@ -115,7 +119,15 @@ class AiProxyPluginConfigurationTest {
             assertEquals(Duration.ofSeconds(30), properties.getResponseHeaderTimeout());
             assertEquals(Duration.ofSeconds(60), properties.getStreamingIdleTimeout());
             assertEquals(Duration.ofMinutes(10), properties.getTotalStreamDuration());
+            assertEquals(0, properties.getMaxRequestBytes());
             assertEquals(0, properties.getMaxResponseBytes());
+            assertEquals(30, properties.getPool().getMaxConnections());
+            assertEquals(60, properties.getPool().getPendingAcquireMaxCount());
+            assertEquals(Duration.ofSeconds(3), properties.getPool().getPendingAcquireTimeout());
+            assertEquals(Duration.ofSeconds(60), properties.getPool().getMaxIdleTime());
+            assertEquals(Duration.ofMinutes(30), properties.getPool().getMaxLifeTime());
+            assertEquals(Duration.ofSeconds(30), properties.getPool().getEvictionInterval());
+            assertEquals(Duration.ofSeconds(30), properties.getPool().getGracefulDisposeTimeout());
         });
     }
 
@@ -127,14 +139,47 @@ class AiProxyPluginConfigurationTest {
                         "shenyu.plugins.ai.proxy.transport.response-header-timeout=7s",
                         "shenyu.plugins.ai.proxy.transport.streaming-idle-timeout=11s",
                         "shenyu.plugins.ai.proxy.transport.total-stream-duration=12m",
-                        "shenyu.plugins.ai.proxy.transport.max-response-bytes=1024")
+                        "shenyu.plugins.ai.proxy.transport.max-request-bytes=512",
+                        "shenyu.plugins.ai.proxy.transport.max-response-bytes=1024",
+                        "shenyu.plugins.ai.proxy.transport.pool.enabled=false",
+                        "shenyu.plugins.ai.proxy.transport.pool.name=test-ai-pool",
+                        "shenyu.plugins.ai.proxy.transport.pool.max-connections=17",
+                        "shenyu.plugins.ai.proxy.transport.pool.pending-acquire-max-count=23",
+                        "shenyu.plugins.ai.proxy.transport.pool.pending-acquire-timeout=2s",
+                        "shenyu.plugins.ai.proxy.transport.pool.max-idle-time=45s",
+                        "shenyu.plugins.ai.proxy.transport.pool.max-life-time=20m",
+                        "shenyu.plugins.ai.proxy.transport.pool.eviction-interval=15s",
+                        "shenyu.plugins.ai.proxy.transport.pool.graceful-dispose-timeout=9s",
+                        "shenyu.plugins.ai.proxy.transport.tls.verify=false",
+                        "shenyu.plugins.ai.proxy.transport.proxy.enabled=true",
+                        "shenyu.plugins.ai.proxy.transport.proxy.host=proxy.example.com",
+                        "shenyu.plugins.ai.proxy.transport.proxy.port=8080",
+                        "shenyu.plugins.ai.proxy.transport.proxy.username=user",
+                        "shenyu.plugins.ai.proxy.transport.proxy.password=secret",
+                        "shenyu.plugins.ai.proxy.transport.proxy.non-proxy-hosts-pattern=localhost|127\\..*")
                 .run(context -> {
                     AiProxyTransportProperties properties = context.getBean(AiProxyTransportProperties.class);
                     assertEquals(Duration.ofSeconds(5), properties.getConnectTimeout());
                     assertEquals(Duration.ofSeconds(7), properties.getResponseHeaderTimeout());
                     assertEquals(Duration.ofSeconds(11), properties.getStreamingIdleTimeout());
                     assertEquals(Duration.ofMinutes(12), properties.getTotalStreamDuration());
+                    assertEquals(512, properties.getMaxRequestBytes());
                     assertEquals(1024, properties.getMaxResponseBytes());
+                    assertFalse(properties.getPool().isEnabled());
+                    assertEquals("test-ai-pool", properties.getPool().getName());
+                    assertEquals(17, properties.getPool().getMaxConnections());
+                    assertEquals(23, properties.getPool().getPendingAcquireMaxCount());
+                    assertEquals(Duration.ofSeconds(2), properties.getPool().getPendingAcquireTimeout());
+                    assertEquals(Duration.ofSeconds(45), properties.getPool().getMaxIdleTime());
+                    assertEquals(Duration.ofMinutes(20), properties.getPool().getMaxLifeTime());
+                    assertEquals(Duration.ofSeconds(15), properties.getPool().getEvictionInterval());
+                    assertEquals(Duration.ofSeconds(9), properties.getPool().getGracefulDisposeTimeout());
+                    assertFalse(properties.getTls().isVerify());
+                    assertEquals("proxy.example.com", properties.getProxy().getHost());
+                    assertEquals(8080, properties.getProxy().getPort());
+                    assertEquals("user", properties.getProxy().getUsername());
+                    assertEquals("secret", properties.getProxy().getPassword());
+                    assertEquals("localhost|127\\..*", properties.getProxy().getNonProxyHostsPattern());
                 });
     }
 
@@ -178,17 +223,6 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
-    void shouldConvertConnectTimeoutToNettyMilliseconds() {
-        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
-        properties.setConnectTimeout(Duration.ofSeconds(5));
-
-        final int timeout = new AiProxyPluginConfiguration()
-                .connectTimeoutMillis(properties);
-
-        assertEquals(5000, timeout);
-    }
-
-    @Test
     void shouldRejectNonPositiveTransportTimeouts() {
         for (String property : List.of(
                 "connect-timeout",
@@ -202,10 +236,12 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
-    void shouldRejectNegativeMaximumResponseBytes() {
-        contextRunner
-                .withPropertyValues("shenyu.plugins.ai.proxy.transport.max-response-bytes=-1")
-                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    void shouldRejectNegativeMaximumBodyBytes() {
+        for (String property : List.of("max-request-bytes", "max-response-bytes")) {
+            contextRunner
+                    .withPropertyValues("shenyu.plugins.ai.proxy.transport." + property + "=-1")
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
     }
 
     @Test
@@ -222,5 +258,28 @@ class AiProxyPluginConfigurationTest {
             handler.removePlugin(plugin);
             org.junit.jupiter.api.Assertions.assertNull(context.getBean(AiProxyConfigService.class).resolvePrimaryConfig(null).getModel());
         });
+    }
+
+    @Test
+    void shouldRejectInvalidConnectionResourceProperties() {
+        for (String property : List.of(
+                "pool.max-connections=0",
+                "pool.pending-acquire-max-count=0",
+                "pool.pending-acquire-timeout=0s",
+                "pool.max-idle-time=0s",
+                "pool.max-life-time=0s",
+                "pool.eviction-interval=0s",
+                "pool.graceful-dispose-timeout=0s")) {
+            contextRunner
+                    .withPropertyValues("shenyu.plugins.ai.proxy.transport." + property)
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
+    }
+
+    @Test
+    void shouldRejectIncompleteProxyConfiguration() {
+        contextRunner
+                .withPropertyValues("shenyu.plugins.ai.proxy.transport.proxy.enabled=true")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
 }

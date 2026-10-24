@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.transport;
 
 import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.PrematureCloseException;
+import reactor.netty.internal.shaded.reactor.pool.PoolAcquireTimeoutException;
 import reactor.test.StepVerifier;
 
 import javax.net.ssl.SSLException;
@@ -42,7 +45,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,6 +104,40 @@ class WebClientAiProxyTransportTest {
     }
 
     @Test
+    void testRejectsOversizedRequestBeforeExchange() {
+        final AtomicBoolean exchanged = new AtomicBoolean();
+        final WebClient webClient = WebClient.builder()
+                .exchangeFunction(request -> {
+                    exchanged.set(true);
+                    return Mono.just(ClientResponse.create(HttpStatus.OK).build());
+                })
+                .build();
+        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
+        properties.setMaxRequestBytes(1);
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient, properties);
+
+        StepVerifier.create(transport.execute(createRequest()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.REQUEST_TOO_LARGE,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(false, exchanged.get());
+    }
+
+    @Test
+    void testAllowsRequestExactlyAtMaximumSize() {
+        final WebClient webClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.OK).build()))
+                .build();
+        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
+        properties.setMaxRequestBytes(2);
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient, properties);
+
+        StepVerifier.create(transport.execute(createRequest()))
+                .expectNextMatches(response -> response.getStatusCode() == HttpStatus.OK.value())
+                .verifyComplete();
+    }
+
+    @Test
     void testAllowsResponseExactlyAtMaximumSize() {
         final WebClient webClient = webClientWithBody(Flux.just(dataBuffer("ab"), dataBuffer("cde")));
         final AiProxyTransportProperties properties = new AiProxyTransportProperties();
@@ -146,7 +185,7 @@ class WebClientAiProxyTransportTest {
         properties.setMaxResponseBytes(5);
         final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient, properties);
 
-        StepVerifier.create(transport.execute(createRequest()).flatMapMany(AiUpstreamResponse::getBody))
+        StepVerifier.create(transport.execute(createRequest()))
                 .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_TOO_LARGE,
                         assertInstanceOf(AiTransportException.class, error).getKind()))
                 .verify();
@@ -191,9 +230,11 @@ class WebClientAiProxyTransportTest {
     @Test
     void testClassifiesExchangeFailures() {
         assertFailureKind(new ConnectTimeoutException(), AiTransportException.Kind.CONNECT_TIMEOUT);
+        assertFailureKind(ReadTimeoutException.INSTANCE, AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT);
         assertFailureKind(new UnknownHostException(), AiTransportException.Kind.DNS_FAILURE);
         assertFailureKind(new SSLException("handshake failed"), AiTransportException.Kind.TLS_FAILURE);
         assertFailureKind(PrematureCloseException.TEST_EXCEPTION, AiTransportException.Kind.CONNECTION_RESET);
+        assertFailureKind(new DecoderException("malformed upstream response"), AiTransportException.Kind.IO_FAILURE);
         assertFailureKind(new IOException("read failed"), AiTransportException.Kind.IO_FAILURE);
         assertFailureKind(new IllegalStateException("unexpected"), AiTransportException.Kind.UNKNOWN);
     }
@@ -214,18 +255,41 @@ class WebClientAiProxyTransportTest {
     }
 
     @Test
-    void testResponseHeaderTimeout() {
+    void testUpstreamTimeoutIsNotReclassifiedAsResponseHeaderTimeout() {
         final WebClient webClient = WebClient.builder()
-                .exchangeFunction(request -> Mono.delay(Duration.ofSeconds(10))
-                        .thenReturn(ClientResponse.create(HttpStatus.OK).build()))
+                .exchangeFunction(request -> Mono.error(new TimeoutException("connection pool acquire timed out")))
                 .build();
-        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(
-                webClient, properties(Duration.ofSeconds(5), Duration.ofSeconds(60), Duration.ofMinutes(10)));
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient);
 
-        StepVerifier.withVirtualTime(() -> transport.execute(createRequest()))
-                .thenAwait(Duration.ofSeconds(5))
-                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+        StepVerifier.create(transport.execute(createRequest()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.UNKNOWN,
                         assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+    }
+
+    @Test
+    void testClassifiesConnectionPoolAcquireTimeout() {
+        assertFailureKind(new PoolAcquireTimeoutException(Duration.ofMillis(10)),
+                AiTransportException.Kind.CONNECTION_POOL_TIMEOUT);
+    }
+
+    @Test
+    void testResponseBodyHonorsDownstreamBackpressure() {
+        final AtomicLong requested = new AtomicLong();
+        final Flux<DataBuffer> body = Flux.<DataBuffer>generate(sink -> sink.next(dataBuffer("chunk")))
+                .doOnRequest(requested::addAndGet);
+        final WebClient webClient = webClientWithBody(body);
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClient);
+
+        StepVerifier.create(transport.execute(createRequest()).flatMapMany(AiUpstreamResponse::getBody), 0)
+                .then(() -> assertEquals(0, requested.get()))
+                .thenRequest(1)
+                .expectNextMatches(bytes -> "chunk".equals(new String(bytes, StandardCharsets.UTF_8)))
+                .then(() -> assertEquals(1, requested.get()))
+                .thenRequest(1)
+                .expectNextMatches(bytes -> "chunk".equals(new String(bytes, StandardCharsets.UTF_8)))
+                .then(() -> assertEquals(2, requested.get()))
+                .thenCancel()
                 .verify();
     }
 
@@ -335,6 +399,7 @@ class WebClientAiProxyTransportTest {
         assertThrows(IllegalArgumentException.class, () -> properties.setResponseHeaderTimeout(Duration.ZERO));
         assertThrows(IllegalArgumentException.class, () -> properties.setStreamingIdleTimeout(Duration.ofSeconds(-1)));
         assertThrows(IllegalArgumentException.class, () -> properties.setTotalStreamDuration(Duration.ZERO));
+        assertThrows(IllegalArgumentException.class, () -> properties.setMaxRequestBytes(-1));
         assertThrows(IllegalArgumentException.class, () -> properties.setMaxResponseBytes(-1));
     }
 
