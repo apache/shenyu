@@ -50,6 +50,15 @@
         <module>shenyu-infra</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <id>minimal-http</id>
+            <modules>
+                <module>shenyu-bootstrap-http</module>
+            </modules>
+        </profile>
+    </profiles>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
