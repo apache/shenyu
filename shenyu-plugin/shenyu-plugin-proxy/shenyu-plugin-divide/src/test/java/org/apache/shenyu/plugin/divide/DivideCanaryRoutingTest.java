@@ -53,12 +53,14 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -131,8 +133,27 @@ class DivideCanaryRoutingTest {
 
     @Test
     void testEmptyCanaryPoolFallsBackToStable() {
+        ServerWebExchange exchange = exchange(null);
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("stable:8080", Map.of("release", "stable"))))) {
-            assertDomain(exchange(null), "http://stable:8080");
+            assertDomain(exchange, "http://stable:8080");
+        }
+        assertEquals("stable", exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+        assertEquals(config.getStableLabels(), exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
+    }
+
+    @Test
+    void testPartitionLabelsAreAnImmutableSnapshot() {
+        config.setCanaryLabels(new HashMap<>(Map.of("release", "canary")));
+        ServerWebExchange exchange = exchange(null);
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("canary:8080", Map.of("release", "canary"))))) {
+            StepVerifier.create(plugin.doExecute(exchange, current -> {
+                config.getCanaryLabels().put("release", "next-release");
+                Map<String, String> snapshot = current.getAttribute(Constants.SHENYU_CANARY_LABELS);
+                assertEquals(Map.of("release", "canary"), snapshot);
+                assertEquals("canary", current.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+                assertThrows(UnsupportedOperationException.class, () -> snapshot.put("release", "changed"));
+                return Mono.empty();
+            }, selector, rule)).verifyComplete();
         }
     }
 
@@ -163,10 +184,15 @@ class DivideCanaryRoutingTest {
     void testAbsentConfigurationKeepsLegacyGrayPool() {
         Upstream gray = upstream("gray:8080", Map.of());
         gray.setGray(true);
+        ServerWebExchange exchange = exchange(null);
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, "canary");
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, Map.of("release", "canary"));
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(gray, upstream("normal:8080", Map.of())))) {
             handle.setCanary(null);
-            assertDomain(exchange(null), "http://gray:8080");
+            assertDomain(exchange, "http://gray:8080");
         }
+        assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+        assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
         verifyNoInteractions(decisions);
     }
 
@@ -212,8 +238,13 @@ class DivideCanaryRoutingTest {
     void testSpecifyDomainBypassesCanaryWithoutMutatingSharedNode() {
         Upstream shared = upstream("original:8080", Map.of());
         Upstream specified = upstream("override:9090", Map.of());
+        ServerWebExchange exchange = exchange("override:9090");
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, "stable");
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, Map.of("release", "stable"));
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(shared, specified))) {
-            assertDomain(exchange("override:9090"), "http://override:9090");
+            assertDomain(exchange, "http://override:9090");
+            assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION));
+            assertNull(exchange.getAttribute(Constants.SHENYU_CANARY_LABELS));
             assertEquals("original:8080", shared.getUrl());
         }
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(shared))) {

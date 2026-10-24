@@ -141,18 +141,21 @@ public final class DividePluginDataHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"default", "fixed", "exponential"})
-    public void testCanaryFailoverDoesNotReplaceCachedRule(final String backoff) {
+    public void testCanaryFailoverCanReplaceCachedRule(final String backoff) {
         RuleData rule = new RuleData();
         rule.setId("failover-config-rule");
         rule.setSelectorId("failover-config-selector");
         rule.setHandle("{\"timeout\":5000}");
         dividePluginDataHandler.handlerRule(rule);
-        DivideRuleHandle previous = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         rule.setHandle("{\"retry\":2,\"retryStrategy\":\"failover\",\"retryBackOffSpec\":\"" + backoff + "\","
                 + "\"canary\":{\"enabled\":false,\"stableLabels\":{\"release\":\"stable\"},\"canaryLabels\":{\"release\":\"canary\"}}}");
         try {
-            assertThrows(IllegalArgumentException.class, () -> dividePluginDataHandler.handlerRule(rule));
-            assertSame(previous, DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+            dividePluginDataHandler.handlerRule(rule);
+            DivideRuleHandle cached = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+            assertEquals(2, cached.getRetry());
+            assertEquals("failover", cached.getRetryStrategy());
+            assertEquals(backoff, cached.getRetryBackOffSpec());
+            assertEquals("stable", cached.getCanary().getStableLabels().get("release"));
         } finally {
             dividePluginDataHandler.removeRule(rule);
         }

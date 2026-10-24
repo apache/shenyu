@@ -96,15 +96,15 @@ class CanaryConfigValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"default", "fixed", "exponential"})
-    void testCanaryFailoverRequiresPartitionAwareRetries(final String backoff) {
+    void testCanarySupportsCurrentAndFailoverRetries(final String backoff) {
         JsonObject root = JsonParser.parseString(handle("{}")).getAsJsonObject();
         root.addProperty("retry", 2);
         root.addProperty("retryStrategy", "failover");
         root.addProperty("retryBackOffSpec", backoff);
-        assertThrows(IllegalArgumentException.class, () -> CanaryConfigValidator.parseHandle(root.toString()));
+        assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(root.toString()));
         root.getAsJsonObject("canary").addProperty("enabled", true);
         root.getAsJsonObject("canary").addProperty("percentage", 100);
-        assertThrows(IllegalArgumentException.class, () -> CanaryConfigValidator.parseHandle(root.toString()));
+        assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(root.toString()));
         root.addProperty("retry", 0);
         assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(root.toString()));
         root.addProperty("retry", 2);

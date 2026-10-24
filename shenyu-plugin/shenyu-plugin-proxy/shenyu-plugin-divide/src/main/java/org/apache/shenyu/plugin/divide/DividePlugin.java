@@ -59,7 +59,9 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -96,6 +98,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        exchange.getAttributes().remove(Constants.SHENYU_CANARY_PARTITION);
+        exchange.getAttributes().remove(Constants.SHENYU_CANARY_LABELS);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
@@ -152,13 +156,21 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private List<Upstream> selectPartition(final ServerWebExchange exchange, final String ruleId,
                                            final CanaryConfig config, final List<Upstream> upstreams) {
         CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
-        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams,
-                decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels());
+        Map<String, String> labels = snapshotLabels(decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels());
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
         if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
-            candidates = UpstreamLabelUtils.filter(upstreams, config.getStableLabels());
+            decision = CanaryDecision.STABLE;
+            labels = snapshotLabels(config.getStableLabels());
+            candidates = UpstreamLabelUtils.filter(upstreams, labels);
         }
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_PARTITION, decision.getName());
+        exchange.getAttributes().put(Constants.SHENYU_CANARY_LABELS, labels);
         // Resolve the pool before circuit-breaker probes and load balancing; neither may escape it.
         return candidates;
+    }
+
+    private Map<String, String> snapshotLabels(final Map<String, String> labels) {
+        return Objects.isNull(labels) ? Collections.emptyMap() : Map.copyOf(labels);
     }
 
     private Mono<Void> forwardSelected(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,

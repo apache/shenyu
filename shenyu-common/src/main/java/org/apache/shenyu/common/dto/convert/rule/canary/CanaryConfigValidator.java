@@ -58,9 +58,10 @@ public final class CanaryConfigValidator {
                 validate(object(canary, "canary"));
             }
             DivideRuleHandle result = GsonUtils.getInstance().fromJson(root, DivideRuleHandle.class);
+            String retryStrategy = StringUtils.defaultIfEmpty(result.getRetryStrategy(), RetryEnum.CURRENT.getName());
             if (Objects.nonNull(result.getCanary()) && result.getRetry() > 0
-                    && !RetryEnum.CURRENT.getName().equals(StringUtils.defaultIfEmpty(result.getRetryStrategy(), RetryEnum.CURRENT.getName()))) {
-                throw new IllegalArgumentException("Canary routing currently supports only current-node retries; failover requires partition-aware retry support");
+                    && !RetryEnum.CURRENT.getName().equals(retryStrategy) && !RetryEnum.FAILOVER.getName().equals(retryStrategy)) {
+                throw new IllegalArgumentException("Canary retryStrategy must be current or failover");
             }
             return result;
         } catch (JsonParseException ex) {

@@ -681,11 +681,11 @@ public final class RuleServiceTest {
     }
 
     @Test
-    public void testCanaryFailoverNeverWritesOrPublishes() {
+    public void testUnknownCanaryRetryStrategyNeverWritesOrPublishes() {
         configureDivideSelector();
         JsonObject handle = JsonParser.parseString(canaryHandle("{}")).getAsJsonObject();
         handle.addProperty("retry", 2);
-        handle.addProperty("retryStrategy", "failover");
+        handle.addProperty("retryStrategy", "unknown");
         RuleDTO dto = buildRuleDTO("");
         dto.setHandle(handle.toString());
         assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
@@ -697,6 +697,32 @@ public final class RuleServiceTest {
         verify(ruleMapper, never()).insertSelective(any());
         verify(ruleMapper, never()).updateSelective(any());
         verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"default", "fixed", "exponential"})
+    public void testCanaryFailoverCanBeSavedAndImported(final String backoff) {
+        configureDivideSelector();
+        JsonObject handle = JsonParser.parseString(canaryHandle("{\"enabled\":true,\"percentage\":100}")).getAsJsonObject();
+        handle.addProperty("retry", 2);
+        handle.addProperty("retryStrategy", "failover");
+        handle.addProperty("retryBackOffSpec", backoff);
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(handle.toString());
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+            assertNotNull(ruleService.registerDefault(dto));
+            dto.setId("123");
+            given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+            given(ruleMapper.updateSelective(any())).willReturn(1);
+            assertEquals(1, ruleService.createOrUpdate(dto));
+            assertEquals(1, ruleService.importData(Collections.singletonList(dto)).getSuccessCount());
+            ConfigsImportContext context = new ConfigsImportContext();
+            context.getSelectorIdMapping().put("456", "456");
+            assertEquals(1, ruleService.importData(SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(dto), context).getSuccessCount());
+        }
     }
 
     private ShenyuDictDO dictionary(final String value, final boolean enabled) {

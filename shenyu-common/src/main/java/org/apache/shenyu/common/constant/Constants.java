@@ -145,6 +145,16 @@ public interface Constants {
     String DIVIDE_SELECTOR_ID = "divideSelectorId";
 
     /**
+     * Actual Canary routing partition selected for this request, including initial fallback.
+     */
+    String SHENYU_CANARY_PARTITION = "shenyu.canary.partition";
+
+    /**
+     * Immutable label constraints of the selected partition, retained across retries.
+     */
+    String SHENYU_CANARY_LABELS = "shenyu.canary.labels";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";

@@ -27,6 +27,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +44,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -102,14 +105,28 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
      */
     Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration,
                            final int retryTimes, final Duration backoff, final Predicate<Throwable> retryFilter) {
-        final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
-        Mono<R> result = clientResponse;
-        for (int i = 0; i < retryTimes; i++) {
-            result = result.onErrorResume(retryFilter, th -> backoff.isZero()
-                    ? resend(exchange, duration, exclude)
-                    : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
-        }
-        return result.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        Predicate<Throwable> filter = failure -> !(failure instanceof FailoverExhaustedException) && retryFilter.test(failure);
+        Retry retry = backoff.isZero()
+                ? Retry.max(retryTimes).filter(filter).onRetryExhaustedThrow((spec, signal) -> signal.failure())
+                : Retry.fixedDelay(retryTimes, backoff).filter(filter).onRetryExhaustedThrow((spec, signal) -> signal.failure());
+        return executeFailover(clientResponse, exchange, duration, retry);
+    }
+
+    /**
+     * Apply a retry schedule while selecting a fresh upstream for each subsequent attempt.
+     *
+     * @param clientResponse original request response
+     * @param exchange current exchange
+     * @param duration timeout per request
+     * @param retry retry timing and eligibility policy
+     * @return response after failover
+     */
+    Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration, final Retry retry) {
+        return Mono.defer(() -> {
+            Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
+            AtomicBoolean firstAttempt = new AtomicBoolean(true);
+            return Mono.defer(() -> firstAttempt.getAndSet(false) ? clientResponse : resend(exchange, duration, exclude)).retryWhen(retry);
+        }).onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
     }
@@ -120,9 +137,16 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
         final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
         //always query the latest available list
-        final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        String partition = exchange.getAttribute(Constants.SHENYU_CANARY_PARTITION);
+        UpstreamCacheManager cache = UpstreamCacheManager.getInstance();
+        List<Upstream> availableUpstreamList = Objects.isNull(partition)
+                ? cache.findUpstreamListBySelectorId(selectorId) : cache.findAllUpstreamListBySelectorId(selectorId);
+        if (Objects.nonNull(partition)) {
+            Map<String, String> labels = exchange.getAttribute(Constants.SHENYU_CANARY_LABELS);
+            availableUpstreamList = UpstreamLabelUtils.filter(availableUpstreamList, labels);
+        }
         if (Objects.isNull(availableUpstreamList)) {
-            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+            return Mono.error(new FailoverExhaustedException());
         }
         final List<Upstream> upstreamList = availableUpstreamList
                 .stream().filter(data -> {
@@ -140,12 +164,12 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 .collect(Collectors.toList());
         if (upstreamList.isEmpty()) {
             // no need to retry anymore
-            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+            return Mono.error(new FailoverExhaustedException());
         }
         final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
         if (Objects.isNull(upstream)) {
             // no need to retry anymore
-            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+            return Mono.error(new FailoverExhaustedException());
         }
         final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
         // in order not to affect the next retry call, newUri needs to be excluded
@@ -169,5 +193,14 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         return firstScheme.equals(secondScheme)
                 && first.getHost().equalsIgnoreCase(second.getHost())
                 && UriUtils.getActualPort(firstScheme, first.getPort()) == UriUtils.getActualPort(secondScheme, second.getPort());
+    }
+
+    private static final class FailoverExhaustedException extends ShenyuException {
+
+        private static final long serialVersionUID = 1L;
+
+        private FailoverExhaustedException() {
+            super("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER");
+        }
     }
 }

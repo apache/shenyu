@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RetryEnum;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -58,8 +61,12 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
      */
     public Mono<R> execute(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
         RetryBackoffSpec retrySpec = initDefaultBackoff(exchange, retryTimes);
+        boolean failover = RetryEnum.FAILOVER.getName().equals(exchange.getAttribute(Constants.RETRY_STRATEGY));
+        Mono<R> retriedResponse = failover
+                ? new DefaultRetryStrategy<>(httpClientPlugin).executeFailover(response, exchange, duration, retrySpec)
+                : response.retryWhen(retrySpec);
         Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(5));
-        return response.retryWhen(retrySpec)
+        return retriedResponse
                 .timeout(totalTimeout, Mono.error(() -> new java.util.concurrent.TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
@@ -67,7 +74,9 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
     private RetryBackoffSpec initDefaultBackoff(final ServerWebExchange exchange, final int retryTimes) {
         return Retry.backoff(retryTimes, Duration.ofMillis(500))
                 .maxBackoff(Duration.ofSeconds(5))
-                .filter(throwable -> HttpMethod.GET.equals(exchange.getRequest().getMethod()) && isTransientFailure(throwable))
+                .filter(throwable -> HttpMethod.GET.equals(exchange.getRequest().getMethod())
+                        && (isTransientFailure(throwable) || (RetryEnum.FAILOVER.getName().equals(exchange.getAttribute(Constants.RETRY_STRATEGY))
+                        && throwable instanceof ShenyuUpstreamStatusException)))
                 // Add 50% random jitter to the delay time of each retry
                 .jitter(0.5d)
                 .onRetryExhaustedThrow((retrySpec, retrySignal) -> retrySignal.failure());
