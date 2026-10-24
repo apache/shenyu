@@ -181,8 +181,8 @@ shenyu:
 #      daemon: true
   register:
     enabled: false
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: zookeeper #consul
+    serverLists: localhost:2181 #localhost:8848
     props:
   cross:
     enabled: true
@@ -241,8 +241,6 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-#    etcd:
-#      url: http://localhost:2379
 #    consul:
 #      url: http://localhost:8500
 #      waitTime: 1000
