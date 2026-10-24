@@ -409,6 +409,15 @@ map_domain_path() {
         add_unique integration_cases "shenyu-integrated-test-sdk-apache-dubbo"
       fi
       ;;
+    # A plugin that does not name a protocol still runs inside the http integration suite, which
+    # drives the whole plugin chain against a real gateway. A change there can break that suite
+    # without touching any http|divide|springmvc path, so fall back to the http case instead of
+    # selecting nothing.
+    shenyu-plugin/*)
+      if [[ "${mode}" == "integration" ]]; then
+        add_unique integration_cases "shenyu-integrated-test-http"
+      fi
+      ;;
   esac
 }
 
