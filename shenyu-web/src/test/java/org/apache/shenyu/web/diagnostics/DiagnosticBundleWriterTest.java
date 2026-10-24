@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.web.diagnostics;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -31,6 +34,7 @@ import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -99,6 +103,125 @@ public final class DiagnosticBundleWriterTest {
         Map<String, String> entries = read(writer.write(manifest));
         assertTrue(entries.containsKey("sections/dup.json"));
         assertEquals(3, entries.size());
+    }
+
+    @Test
+    public void manifestDescribesTheArchivedContentAfterTotalBudgetTruncation() throws IOException {
+        String payload = "x".repeat(400);
+        DiagnosticManifest manifest = manifest(
+                DiagnosticSection.ok("runtime", 1L, 1L, payload),
+                DiagnosticSection.ok("plugins", 1L, 1L, payload));
+        DiagnosticProperties properties = new DiagnosticProperties();
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        int completeBytes = uncompressedBytes(read(writer.write(manifest)));
+        properties.setMaxTotalBytes(completeBytes - 50);
+        Map<String, String> entries = read(writer.write(manifest));
+        assertTrue(uncompressedBytes(entries) <= properties.getMaxTotalBytes(),
+                "uncompressed entries including the manifest must stay within maxTotalBytes");
+        assertTrue(entries.get("manifest.json").contains("\"status\":\"TRUNCATED\""));
+        assertManifestMatchesEntries(entries.get("manifest.json"), entries, payload);
+    }
+
+    @Test
+    public void exhaustedTotalBudgetSkipsSectionsInsteadOfReportingOk() throws IOException {
+        DiagnosticSection[] sections = new DiagnosticSection[8];
+        for (int index = 0; index < sections.length; index++) {
+            sections[index] = DiagnosticSection.ok("section-" + index, 1L, 1L, "z".repeat(400));
+        }
+        DiagnosticManifest manifest = manifest(sections);
+        DiagnosticProperties properties = new DiagnosticProperties();
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        int completeBytes = uncompressedBytes(read(writer.write(manifest)));
+        // Half the complete bundle still leaves room for the manifest but not for every section.
+        properties.setMaxTotalBytes(completeBytes / 2);
+        Map<String, String> entries = read(writer.write(manifest));
+        String manifestJson = entries.get("manifest.json");
+        assertTrue(manifestJson.contains("\"status\":\"SKIPPED\""));
+        assertTrue(manifestJson.contains("total budget exhausted"));
+        assertTrue(uncompressedBytes(entries) <= properties.getMaxTotalBytes());
+        for (JsonElement element : JsonParser.parseString(manifestJson).getAsJsonObject().getAsJsonArray("sections")) {
+            JsonObject summary = element.getAsJsonObject();
+            if (SectionStatus.SKIPPED.name().equals(summary.get("status").getAsString())) {
+                assertEquals(0, summary.get("sizeBytes").getAsInt());
+                assertEquals("", entries.get("sections/" + summary.get("name").getAsString() + ".json"));
+            }
+        }
+        assertManifestMatchesEntries(manifestJson, entries, "z".repeat(400));
+    }
+
+    @Test
+    public void multibyteContentIsCutOnACharacterBoundary() throws IOException {
+        String payload = "中文字".repeat(50);
+        DiagnosticManifest manifest = manifest(
+                DiagnosticSection.ok("runtime", 1L, 1L, payload),
+                DiagnosticSection.ok("plugins", 1L, 1L, payload));
+        DiagnosticProperties properties = new DiagnosticProperties();
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        properties.setMaxTotalBytes(uncompressedBytes(read(writer.write(manifest))) - 1);
+        Map<String, String> entries = read(writer.write(manifest));
+        assertManifestMatchesEntries(entries.get("manifest.json"), entries, payload);
+        assertTrue(entries.get("manifest.json").contains("\"status\":\"TRUNCATED\""));
+        for (Map.Entry<String, String> entry : entries.entrySet()) {
+            if (entry.getKey().startsWith("sections/")) {
+                assertFalse(entry.getValue().contains("�"), "a cut must not split a UTF-8 sequence");
+                assertTrue(payload.startsWith(entry.getValue()));
+            }
+        }
+    }
+
+    @Test
+    public void completeBundlesAreUnaffectedByTheTotalBudget() throws IOException {
+        DiagnosticManifest manifest = manifest(
+                DiagnosticSection.ok("runtime", 1L, 1L, "{\"a\":1}"),
+                DiagnosticSection.ok("plugins", 1L, 1L, "[]"));
+        DiagnosticProperties properties = new DiagnosticProperties();
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        properties.setMaxTotalBytes(uncompressedBytes(read(writer.write(manifest))));
+        Map<String, String> entries = read(writer.write(manifest));
+        assertTrue(entries.get("manifest.json").contains("\"status\":\"OK\""));
+        assertEquals("{\"a\":1}", entries.get("sections/runtime.json"));
+        assertEquals("[]", entries.get("sections/plugins.json"));
+    }
+
+    @Test
+    public void budgetSmallerThanTheManifestFailsExplicitly() {
+        DiagnosticProperties properties = new DiagnosticProperties();
+        properties.setMaxTotalBytes(16);
+        DiagnosticBundleWriter writer = new DiagnosticBundleWriter(properties);
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> writer.write(manifest(DiagnosticSection.ok("runtime", 1L, 1L, "{}"))));
+        assertTrue(ex.getMessage().contains("max-total-bytes=16"));
+    }
+
+    private int uncompressedBytes(final Map<String, String> entries) {
+        int total = 0;
+        for (String content : entries.values()) {
+            total += content.getBytes(StandardCharsets.UTF_8).length;
+        }
+        return total;
+    }
+
+    /**
+     * Assert the manifest is an accurate index of the archive and never calls a shortened section OK.
+     */
+    private void assertManifestMatchesEntries(final String manifestJson, final Map<String, String> entries,
+                                              final String collectedPayload) {
+        JsonObject manifest = JsonParser.parseString(manifestJson).getAsJsonObject();
+        for (JsonElement element : manifest.getAsJsonArray("sections")) {
+            JsonObject summary = element.getAsJsonObject();
+            String name = summary.get("name").getAsString();
+            String content = entries.get("sections/" + name + ".json");
+            assertEquals(content.getBytes(StandardCharsets.UTF_8).length, summary.get("sizeBytes").getAsInt(),
+                    "sizeBytes must describe the archived entry for " + name);
+            SectionStatus status = SectionStatus.valueOf(summary.get("status").getAsString());
+            if (SectionStatus.OK == status) {
+                assertEquals(collectedPayload.length(), content.length(), "an OK section must be archived in full");
+            } else {
+                assertTrue(SectionStatus.TRUNCATED == status || SectionStatus.SKIPPED == status,
+                        "a section shortened by the total budget must not be reported as " + status);
+                assertTrue(Objects.nonNull(summary.get("reason")));
+            }
+        }
     }
 
     private DiagnosticManifest manifest(final DiagnosticSection... sections) {

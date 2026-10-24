@@ -22,6 +22,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,17 @@ import java.util.zip.ZipOutputStream;
  * absolute path, and both per-entry and total sizes are hard-capped so a bundle can never grow
  * without bound. The archive is built entirely in memory and returned as a byte array; no
  * temporary file touches the disk on this path.</p>
+ *
+ * <p>The total budget is the bound on every uncompressed entry, {@code manifest.json} included.
+ * Sections are therefore allocated only after the manifest that describes them has been sized:
+ * the writer plans each section's final content, renders the manifest from that plan, and trims
+ * the plan until the manifest plus the sections fit the budget. Trimming changes a section's own
+ * summary, so planning repeats until the plan and the manifest agree. A section cut below its
+ * collected size is archived as {@link SectionStatus#TRUNCATED}, a section that receives no
+ * allowance is {@link SectionStatus#SKIPPED} with an empty entry, and neither is ever reported as
+ * {@link SectionStatus#OK}. Every section keeps its deterministic entry name so the manifest stays
+ * a complete index of the archive. A budget too small to hold the mandatory manifest is rejected
+ * instead of silently producing an archive that exceeds the advertised bound.</p>
  */
 public final class DiagnosticBundleWriter {
 
@@ -47,6 +59,16 @@ public final class DiagnosticBundleWriter {
     private static final String SECTION_SUFFIX = ".json";
 
     private static final int MAX_NAME_LENGTH = 64;
+
+    private static final String SECTION_SIZE_CAP_REASON = "section size cap";
+
+    private static final String TOTAL_BUDGET_TRUNCATED_REASON = "total budget truncated";
+
+    private static final String TOTAL_BUDGET_EXHAUSTED_REASON = "total budget exhausted";
+
+    private static final byte[] NO_CONTENT = new byte[0];
+
+    private static final int MAX_UTF8_CONTINUATION_BYTES = 3;
 
     private final DiagnosticProperties properties;
 
@@ -64,22 +86,18 @@ public final class DiagnosticBundleWriter {
      *
      * @param manifest the manifest, which also carries the sections
      * @return the archive bytes
-     * @throws IOException if the in-memory archive cannot be produced
+     * @throws IOException           if the in-memory archive cannot be produced
+     * @throws IllegalStateException if the total budget cannot hold the mandatory manifest
      */
     public byte[] write(final DiagnosticManifest manifest) throws IOException {
+        Plan plan = plan(manifest);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         Set<String> used = new HashSet<>();
         try (ZipOutputStream zip = new ZipOutputStream(buffer, StandardCharsets.UTF_8)) {
-            putEntry(zip, used, MANIFEST_ENTRY, GsonUtils.getGson().toJson(manifest.toMap()).getBytes(StandardCharsets.UTF_8));
-            List<DiagnosticSection> sections = manifest.getSections();
-            int remaining = properties.getMaxTotalBytes();
-            for (DiagnosticSection section : sections) {
-                byte[] content = cap(section.getContent(), properties.getMaxSectionBytes());
-                if (content.length > remaining) {
-                    content = Arrays.copyOf(content, Math.max(0, remaining));
-                }
-                remaining -= content.length;
-                putEntry(zip, used, SECTION_PREFIX + safeEntryName(section.getName()) + SECTION_SUFFIX, content);
+            putEntry(zip, used, MANIFEST_ENTRY, plan.getManifestBytes());
+            for (PlannedSection section : plan.getSections()) {
+                String entry = SECTION_PREFIX + safeEntryName(section.getSection().getName()) + SECTION_SUFFIX;
+                putEntry(zip, used, entry, section.getContent());
             }
         }
         return buffer.toByteArray();
@@ -109,6 +127,137 @@ public final class DiagnosticBundleWriter {
         return cleaned;
     }
 
+    private Plan plan(final DiagnosticManifest manifest) {
+        List<DiagnosticSection> originals = manifest.getSections();
+        int count = originals.size();
+        DiagnosticSection[] base = new DiagnosticSection[count];
+        byte[][] contents = new byte[count][];
+        int[] allocation = new int[count];
+        for (int index = 0; index < count; index++) {
+            DiagnosticSection section = originals.get(index);
+            byte[] content = section.getContent();
+            if (content.length > properties.getMaxSectionBytes()) {
+                content = Arrays.copyOf(content, properties.getMaxSectionBytes());
+                base[index] = DiagnosticSection.truncated(section.getName(), section.getObservedAtEpochMs(),
+                        section.getDurationMs(), content, SECTION_SIZE_CAP_REASON);
+            } else {
+                base[index] = section;
+            }
+            contents[index] = content;
+            allocation[index] = content.length;
+        }
+        int budget = properties.getMaxTotalBytes();
+        Plan plan = render(manifest, base, contents, allocation);
+        // Each round removes at least the current overflow from section content. A section can add
+        // to the manifest at most twice (OK to TRUNCATED, TRUNCATED to SKIPPED), so the fixed point
+        // is reached within two rounds per section plus the round that confirms it.
+        int maxPasses = 2 * count + 2;
+        for (int pass = 0; pass < maxPasses && plan.getTotalBytes() > budget; pass++) {
+            if (!trim(contents, allocation, plan.getTotalBytes() - budget)) {
+                break;
+            }
+            plan = render(manifest, base, contents, allocation);
+        }
+        if (plan.getTotalBytes() > budget) {
+            Arrays.fill(allocation, 0);
+            plan = render(manifest, base, contents, allocation);
+        }
+        if (plan.getTotalBytes() > budget) {
+            throw new IllegalStateException("shenyu.diagnostics.max-total-bytes=" + budget
+                    + " cannot hold the mandatory diagnostic manifest of " + plan.getTotalBytes() + " bytes");
+        }
+        return plan;
+    }
+
+    private Plan render(final DiagnosticManifest manifest, final DiagnosticSection[] base,
+                        final byte[][] contents, final int[] allocation) {
+        List<PlannedSection> planned = new ArrayList<>(allocation.length);
+        List<DiagnosticSection> sections = new ArrayList<>(allocation.length);
+        int sectionBytes = 0;
+        for (int index = 0; index < allocation.length; index++) {
+            PlannedSection section = plannedSection(base[index], contents[index], allocation[index]);
+            planned.add(section);
+            sections.add(section.getSection());
+            sectionBytes += section.getContent().length;
+        }
+        byte[] manifestBytes = GsonUtils.getGson()
+                .toJson(manifest.withSections(sections).toMap())
+                .getBytes(StandardCharsets.UTF_8);
+        return new Plan(planned, manifestBytes, sectionBytes + manifestBytes.length);
+    }
+
+    private PlannedSection plannedSection(final DiagnosticSection base, final byte[] content, final int allocation) {
+        if (allocation >= content.length) {
+            return new PlannedSection(base, content);
+        }
+        if (allocation == 0) {
+            DiagnosticSection skipped = DiagnosticSection.of(base.getName(), SectionStatus.SKIPPED,
+                    base.getObservedAtEpochMs(), base.getDurationMs(), TOTAL_BUDGET_EXHAUSTED_REASON);
+            return new PlannedSection(skipped, NO_CONTENT);
+        }
+        byte[] cut = Arrays.copyOf(content, allocation);
+        // A section already cut by maxSectionBytes keeps that fact; the total budget cut on top of
+        // it would otherwise hide why the content was short in the first place.
+        String reason = SectionStatus.TRUNCATED == base.getStatus()
+                ? SECTION_SIZE_CAP_REASON + "; " + TOTAL_BUDGET_TRUNCATED_REASON
+                : TOTAL_BUDGET_TRUNCATED_REASON;
+        DiagnosticSection truncated = DiagnosticSection.truncated(base.getName(), base.getObservedAtEpochMs(),
+                base.getDurationMs(), cut, reason);
+        return new PlannedSection(truncated, cut);
+    }
+
+    private boolean trim(final byte[][] contents, final int[] allocation, final int overflow) {
+        int remaining = overflow;
+        for (int index = allocation.length - 1; index >= 0 && remaining > 0; index--) {
+            int current = allocation[index];
+            if (current == 0) {
+                continue;
+            }
+            int target = Math.max(0, current - remaining);
+            if (target > 0) {
+                target = utf8Boundary(contents[index], target);
+            }
+            remaining -= current - target;
+            allocation[index] = target;
+        }
+        return remaining <= 0;
+    }
+
+    /**
+     * Lower a byte limit so it never splits a UTF-8 sequence, keeping archived content decodable.
+     */
+    private static int utf8Boundary(final byte[] content, final int maxBytes) {
+        if (maxBytes >= content.length) {
+            return content.length;
+        }
+        int index = maxBytes;
+        int continuation = 0;
+        while (index > 0 && continuation < MAX_UTF8_CONTINUATION_BYTES && (content[index - 1] & 0xC0) == 0x80) {
+            index--;
+            continuation++;
+        }
+        if (index == 0) {
+            return 0;
+        }
+        // The cut lands on the start of the sequence whose lead byte is at index - 1, so keep it
+        // only when that whole sequence fits; otherwise the limit moves back before the lead byte.
+        int end = index - 1 + utf8SequenceLength(content[index - 1] & 0xFF);
+        return end <= maxBytes ? maxBytes : index - 1;
+    }
+
+    private static int utf8SequenceLength(final int lead) {
+        if ((lead & 0xE0) == 0xC0) {
+            return 2;
+        }
+        if ((lead & 0xF0) == 0xE0) {
+            return 3;
+        }
+        if ((lead & 0xF8) == 0xF0) {
+            return 4;
+        }
+        return 1;
+    }
+
     private void putEntry(final ZipOutputStream zip, final Set<String> used, final String name, final byte[] content) throws IOException {
         String unique = name;
         int suffix = 1;
@@ -120,10 +269,57 @@ public final class DiagnosticBundleWriter {
         zip.closeEntry();
     }
 
-    private byte[] cap(final byte[] content, final int maxBytes) {
-        if (content.length <= maxBytes) {
+    /**
+     * A section as it will be archived, together with the exact bytes written for it.
+     */
+    private static final class PlannedSection {
+
+        private final DiagnosticSection section;
+
+        private final byte[] content;
+
+        private PlannedSection(final DiagnosticSection section, final byte[] content) {
+            this.section = section;
+            this.content = content;
+        }
+
+        private DiagnosticSection getSection() {
+            return section;
+        }
+
+        private byte[] getContent() {
             return content;
         }
-        return Arrays.copyOf(content, maxBytes);
+    }
+
+    /**
+     * A complete archive plan: the sections to write, the manifest describing them and the total
+     * uncompressed size the two add up to.
+     */
+    private static final class Plan {
+
+        private final List<PlannedSection> sections;
+
+        private final byte[] manifestBytes;
+
+        private final int totalBytes;
+
+        private Plan(final List<PlannedSection> sections, final byte[] manifestBytes, final int totalBytes) {
+            this.sections = sections;
+            this.manifestBytes = manifestBytes;
+            this.totalBytes = totalBytes;
+        }
+
+        private List<PlannedSection> getSections() {
+            return sections;
+        }
+
+        private byte[] getManifestBytes() {
+            return manifestBytes;
+        }
+
+        private int getTotalBytes() {
+            return totalBytes;
+        }
     }
 }
