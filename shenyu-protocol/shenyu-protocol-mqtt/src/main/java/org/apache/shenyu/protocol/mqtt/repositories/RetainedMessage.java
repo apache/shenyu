@@ -57,4 +57,3 @@ public final class RetainedMessage {
         return qos;
     }
 }
-

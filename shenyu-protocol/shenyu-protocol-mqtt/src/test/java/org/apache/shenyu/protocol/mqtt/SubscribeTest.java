@@ -37,6 +37,7 @@ import org.apache.shenyu.protocol.mqtt.repositories.RetainedMessage;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,8 @@ class SubscribeTest {
 
     private final List<EmbeddedChannel> channels = new ArrayList<>();
 
+    private final List<String> retainedTopics = new ArrayList<>();
+
     /**
      * SUBSCRIBE resolves the client session through these repositories, so they must be
      * present even when a test only exercises topic routing.
@@ -90,8 +93,14 @@ class SubscribeTest {
         if (Objects.nonNull(repository)) {
             channels.forEach(repository::remove);
         }
+        TopicRepository retainedRepository = Singleton.INST.get(TopicRepository.class);
+        if (Objects.nonNull(retainedRepository)) {
+            retainedTopics.forEach(retainedRepository::remove);
+        }
+        channels.forEach(MqttPacketIdGenerator::remove);
         channels.forEach(EmbeddedChannel::finishAndReleaseAll);
         channels.clear();
+        retainedTopics.clear();
     }
 
     @Test
@@ -134,9 +143,9 @@ class SubscribeTest {
         new MessageType().setConnected(channel, true);
         Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-hash/tennis/player1", "retained-1".getBytes(CharsetUtil.UTF_8));
-        topicRepository.add("retained-hash/tennis/player2", "retained-2".getBytes(CharsetUtil.UTF_8));
-        topicRepository.add("retained-other/weather/today", "retained-3".getBytes(CharsetUtil.UTF_8));
+        addRetained(topicRepository, "retained-hash/tennis/player1", "retained-1");
+        addRetained(topicRepository, "retained-hash/tennis/player2", "retained-2");
+        addRetained(topicRepository, "retained-other/weather/today", "retained-3");
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -169,8 +178,8 @@ class SubscribeTest {
         new MessageType().setConnected(channel, true);
         Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-plus/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
-        topicRepository.add("retained-plus/tennis/player1", "retained-deeper".getBytes(CharsetUtil.UTF_8));
+        addRetained(topicRepository, "retained-plus/tennis", "retained-level");
+        addRetained(topicRepository, "retained-plus/tennis/player1", "retained-deeper");
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -201,7 +210,7 @@ class SubscribeTest {
         new MessageType().setConnected(channel, true);
         Singleton.INST.get(ChannelRepository.class).add(channel, CLIENT_ID);
 
-        topicRepository.add("retained-once/tennis", "retained-level".getBytes(CharsetUtil.UTF_8));
+        addRetained(topicRepository, "retained-once/tennis", "retained-level");
 
         try {
             ChannelHandlerContext ctx = channel.pipeline().firstContext();
@@ -270,7 +279,7 @@ class SubscribeTest {
         EmbeddedChannel channel = connectedChannel();
         TopicRepository retainedRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, retainedRepository);
-        retainedRepository.add("retained-qos/one", "retained-qos".getBytes(CharsetUtil.UTF_8), MqttQoS.AT_LEAST_ONCE);
+        addRetained(retainedRepository, "retained-qos/one", "retained-qos", MqttQoS.AT_LEAST_ONCE);
 
         subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(40,
                 new MqttTopicSubscription("retained-qos/+", MqttQoS.EXACTLY_ONCE)));
@@ -280,7 +289,7 @@ class SubscribeTest {
         MqttPublishMessage publish = (MqttPublishMessage) first;
         assertEquals(MqttQoS.AT_LEAST_ONCE, publish.fixedHeader().qosLevel());
         assertTrue(publish.fixedHeader().isRetain());
-        assertTrue(publish.variableHeader().packetId() > 0);
+        assertEquals(1, publish.variableHeader().packetId());
         publish.release();
 
         MqttSubAckMessage subAck = readSubAck(channel);
@@ -293,7 +302,7 @@ class SubscribeTest {
         EmbeddedChannel channel = connectedChannel();
         TopicRepository retainedRepository = new TopicRepository();
         Singleton.INST.single(TopicRepository.class, retainedRepository);
-        retainedRepository.add("retained-qos/zero", "retained-zero".getBytes(CharsetUtil.UTF_8), MqttQoS.EXACTLY_ONCE);
+        addRetained(retainedRepository, "retained-qos/zero", "retained-zero", MqttQoS.EXACTLY_ONCE);
 
         subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(41,
                 new MqttTopicSubscription("retained-qos/zero", MqttQoS.AT_MOST_ONCE)));
@@ -307,6 +316,40 @@ class SubscribeTest {
 
         readSubAck(channel);
         retainedRepository.remove("retained-qos/zero");
+    }
+
+    @Test
+    void testRetainedReplayUsesLastQosForDuplicateFilter() {
+        EmbeddedChannel channel = connectedChannel();
+        TopicRepository retainedRepository = new TopicRepository();
+        Singleton.INST.single(TopicRepository.class, retainedRepository);
+        addRetained(retainedRepository, "retained-dup/topic", "retained-dup", MqttQoS.AT_LEAST_ONCE);
+
+        subscribe.subscribe(channel.pipeline().lastContext(), subscribeMessage(42,
+                new MqttTopicSubscription("retained-dup/#", MqttQoS.EXACTLY_ONCE),
+                new MqttTopicSubscription("retained-dup/#", MqttQoS.AT_MOST_ONCE)));
+
+        Object first = channel.readOutbound();
+        assertTrue(first instanceof MqttPublishMessage);
+        MqttPublishMessage publish = (MqttPublishMessage) first;
+        assertEquals(MqttQoS.AT_MOST_ONCE, publish.fixedHeader().qosLevel());
+        assertEquals(0, publish.variableHeader().packetId());
+        publish.release();
+
+        MqttSubAckMessage subAck = readSubAck(channel);
+        assertEquals(Arrays.asList(2, 0), subAck.payload().grantedQoSLevels());
+        retainedRepository.remove("retained-dup/topic");
+    }
+
+    private void addRetained(final TopicRepository repository, final String topic, final String payload) {
+        repository.add(topic, payload.getBytes(CharsetUtil.UTF_8));
+        retainedTopics.add(topic);
+    }
+
+    private void addRetained(final TopicRepository repository, final String topic, final String payload,
+                             final MqttQoS qos) {
+        repository.add(topic, payload.getBytes(CharsetUtil.UTF_8), qos);
+        retainedTopics.add(topic);
     }
 
     private EmbeddedChannel track(final EmbeddedChannel channel) {

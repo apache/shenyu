@@ -82,15 +82,19 @@ public class Subscribe extends MessageType {
 
         // MQTT-3.3.1-6: a subscription must also receive the retained messages whose
         // concrete topic name matches its filter, so wildcard filters are matched as well.
+        Map<String, MqttQoS> effectiveFilterQos = new HashMap<>();
+        validSubscriptions.forEach(subscription ->
+                effectiveFilterQos.put(subscription.topicName(), subscription.qualityOfService()));
+
         Map<String, RetainedMessage> retainedMessages = new HashMap<>();
         Map<String, MqttQoS> grantedQos = new HashMap<>();
-        for (MqttTopicSubscription subscription : validSubscriptions) {
-            Singleton.INST.get(TopicRepository.class).getMatchingRetainedMessages(subscription.topicName())
+        effectiveFilterQos.forEach((filter, filterQos) -> {
+            Singleton.INST.get(TopicRepository.class).getMatchingRetainedMessages(filter)
                     .forEach((retainedTopic, retainedMessage) -> {
                         retainedMessages.putIfAbsent(retainedTopic, retainedMessage);
-                        grantedQos.merge(retainedTopic, subscription.qualityOfService(), Subscribe::maxQoS);
+                        grantedQos.merge(retainedTopic, filterQos, Subscribe::maxQoS);
                     });
-        }
+        });
         retainedMessages.forEach((retainedTopic, retainedMessage) -> {
             MqttQoS qos = minQoS(retainedMessage.getQos(),
                     grantedQos.getOrDefault(retainedTopic, AT_MOST_ONCE));
