@@ -42,6 +42,7 @@ import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
 import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
@@ -97,6 +98,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        // A re-entered exchange must not inherit a previous selector's partition.
+        exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
@@ -122,7 +125,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
                 : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (canaryRouting && CollectionUtils.isNotEmpty(upstreamList)) {
-            upstreamList = selectPartition(exchange, rule.getId(), ruleHandle.getCanary(), upstreamList);
+            upstreamList = selectPartition(exchange, selector.getId(), rule.getId(), ruleHandle.getCanary(), upstreamList);
         }
         if (CollectionUtils.isEmpty(upstreamList)) {
             if (canaryRouting) {
@@ -146,14 +149,17 @@ public class DividePlugin extends AbstractShenyuPlugin {
         return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(effectiveExchange, chain, selector, ruleHandle, candidates)));
     }
 
-    private List<Upstream> selectPartition(final ServerWebExchange exchange, final String ruleId,
+    private List<Upstream> selectPartition(final ServerWebExchange exchange, final String selectorId, final String ruleId,
                                            final CanaryConfig config, final List<Upstream> upstreams) {
         CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
-        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams,
-                decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels());
+        Map<String, String> labels = decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
         if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
-            candidates = UpstreamLabelUtils.filter(upstreams, config.getStableLabels());
+            labels = config.getStableLabels();
+            candidates = UpstreamLabelUtils.filter(upstreams, labels);
         }
+        // Retry the resolved partition, including an initial fallback, without repeating the decision.
+        exchange.getAttributes().put(UpstreamRoutingContext.ATTRIBUTE, new UpstreamRoutingContext(selectorId, labels));
         // Resolve the pool before circuit-breaker probes and load balancing; neither may escape it.
         return candidates;
     }
