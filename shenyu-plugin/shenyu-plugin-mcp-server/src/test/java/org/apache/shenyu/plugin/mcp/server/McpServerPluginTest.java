@@ -26,7 +26,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
 import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
+import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,9 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -49,9 +54,15 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -230,7 +241,67 @@ class McpServerPluginTest {
      * acknowledged with HTTP 202 and an empty body, not a serialized null
      * response body.
      */
+    /**
+     * #8045: with a custom message endpoint, the SSE connect and the subsequent
+     * JSON-RPC POST must share the same server/session, and no extra shared
+     * server may be created for the endpoint path.
+     */
     @Test
+    void testCustomMessageEndpointKeepsSseSessionOnTheSameServer() {
+        final ShenyuMcpServerManager manager = new ShenyuMcpServerManager();
+        final McpServerPlugin plugin = new McpServerPlugin(manager,
+                HandlerStrategies.withDefaults().messageReaders());
+        final ShenyuMcpServer server = new ShenyuMcpServer();
+        server.setPath("/mcp");
+        server.setMessageEndpoint("/rpc");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector-1", server);
+        when(selector.getId()).thenReturn("selector-1");
+
+        // SSE connect on the canonical server path: the transport advertises /rpc?sessionId=...
+        final ShenyuSseServerTransportProvider transport = manager.getOrCreateMcpServerTransport("/mcp", "/rpc");
+        final ServerWebExchange sseExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("/mcp").build());
+        final AtomicReference<String> sessionId = new AtomicReference<>();
+        final Disposable sseConnection = transport.createSseFlux(
+                        ServerRequest.create(sseExchange, HandlerStrategies.withDefaults().messageReaders()))
+                .subscribe(event -> {
+                    if (Objects.isNull(sessionId.get())) {
+                        final Matcher matcher = Pattern.compile("sessionId=([A-Za-z0-9-]+)")
+                                .matcher(String.valueOf(event.data()));
+                        if (matcher.find()) {
+                            sessionId.set(matcher.group(1));
+                        }
+                    }
+                });
+        try {
+            org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(5))
+                    .until(() -> Objects.nonNull(sessionId.get()));
+
+            // the JSON-RPC POST on the custom endpoint reaches the same session
+            final MockServerWebExchange messageExchange = MockServerWebExchange.from(MockServerHttpRequest
+                    .post("/mcp/rpc?sessionId=" + sessionId)
+                    .header("Content-Type", "application/json")
+                    .body("{\"jsonrpc\":\"2.0\",\"id\":\"init-1\",\"method\":\"initialize\","
+                            + "\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},"
+                            + "\"clientInfo\":{\"name\":\"test-client\",\"version\":\"1.0.0\"}}}"));
+            messageExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+
+            StepVerifier.create(plugin.doExecute(messageExchange, chain, selector, rule))
+                    .verifyComplete();
+
+            // the session's handle() answers over the SSE stream and completes empty,
+            // so the POST response carries no status; what must NOT happen is the
+            // old behavior: a fresh transport without that session answering 404
+            assertFalse(manager.hasMcpServer("/mcp/rpc"),
+                    "no extra shared server may be created under the message endpoint path");
+            assertNotEquals(HttpStatus.NOT_FOUND, messageExchange.getResponse().getStatusCode(),
+                    "the message POST must reach the SSE session's server, not a sessionless one");
+        } finally {
+            sseConnection.dispose();
+            McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        }
+    }
+
     void testStreamableHttpNotificationReturnsEmptyBodyViaPluginPath() {
         final ShenyuMcpServerManager manager = new ShenyuMcpServerManager();
         manager.getOrCreateStreamableHttpTransport("/mcp/streamablehttp");
