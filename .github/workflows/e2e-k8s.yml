@@ -185,6 +185,7 @@ jobs:
           name: shenyu-images
           path: /tmp/apache-shenyu-*.tar
           retention-days: 1
+          if-no-files-found: error
 
       - name: Stage ShenYu local Maven repository
         run: |
@@ -197,6 +198,7 @@ jobs:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
           retention-days: 1
+          if-no-files-found: error
 
   e2e-storage:
     runs-on: ubuntu-latest
@@ -206,6 +208,7 @@ jobs:
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_storage == 'true'
     #    if: (github.repository == 'apache/shenyu')
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.changes.outputs.storage_matrix || '{"include":[]}') }}
     steps:
       - uses: actions/checkout@v2
@@ -253,7 +256,7 @@ jobs:
           done
           if [[ ${#missing[@]} -gt 0 ]]; then
             echo "::error::shenyu-images does not contain ${missing[*]}."
-            echo "::error::A failed-job rerun never re-executes build-docker-images, so /retest cannot recover this run once the artifact has expired. Rerun all jobs of this workflow, or push a new commit."
+            echo "::error::A failed-job rerun cannot regenerate these files. Rerun all jobs; /retest does this automatically when a required artifact is missing or expired."
             exit 1
           fi
 
@@ -287,6 +290,7 @@ jobs:
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_e2e_cases == 'true'
     #    if: (github.repository == 'apache/shenyu')
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.changes.outputs.e2e_matrix || '{"include":[]}') }}
 
     steps:
@@ -360,7 +364,7 @@ jobs:
           done
           if [[ ${#missing[@]} -gt 0 ]]; then
             echo "::error::shenyu-images does not contain ${missing[*]}."
-            echo "::error::A failed-job rerun never re-executes build-docker-images, so /retest cannot recover this run once the artifact has expired. Rerun all jobs of this workflow, or push a new commit."
+            echo "::error::A failed-job rerun cannot regenerate these files. Rerun all jobs; /retest does this automatically when a required artifact is missing or expired."
             exit 1
           fi
 
@@ -424,13 +428,27 @@ jobs:
     steps:
       - name: checking job status
         run: |
-          [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
-          if [[ "${{ needs.changes.outputs.run_e2e }}" == "true" ]]; then
-            [[ "${{ needs.build-docker-images.result }}" == "success" ]] || exit 1
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo '::error::E2E prerequisite failed: case selection (${{ needs.changes.result }}).'
+            exit 1
           fi
+          if [[ "${{ needs.changes.outputs.run_e2e }}" == "true" ]]; then
+            if [[ "${{ needs.build-docker-images.result }}" != "success" ]]; then
+              echo '::error::E2E prerequisite failed: image and Maven input preparation (${{ needs.build-docker-images.result }}).'
+              exit 1
+            fi
+          fi
+          failed=0
           if [[ "${{ needs.changes.outputs.run_storage }}" == "true" ]]; then
-            [[ "${{ needs.e2e-storage.result }}" == "success" ]] || exit -1
+            if [[ "${{ needs.e2e-storage.result }}" != "success" ]]; then
+              echo '::error::E2E storage matrix failed (${{ needs.e2e-storage.result }}).'
+              failed=1
+            fi
           fi
           if [[ "${{ needs.changes.outputs.run_e2e_cases }}" == "true" ]]; then
-            [[ "${{ needs.e2e-case.result }}" == "success" ]] || exit -1
+            if [[ "${{ needs.e2e-case.result }}" != "success" ]]; then
+              echo '::error::E2E case matrix failed (${{ needs.e2e-case.result }}).'
+              failed=1
+            fi
           fi
+          exit "$failed"
