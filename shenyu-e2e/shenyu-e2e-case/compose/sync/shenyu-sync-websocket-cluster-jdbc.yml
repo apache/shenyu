@@ -17,6 +17,10 @@
 version: '3.9'
 
 services:
+  httpbin:
+    extends:
+      file: ../fixtures/httpbin.yml
+      service: httpbin
   shenyu-mysql:
     image: mysql:8.0
     container_name: shenyu-mysql
@@ -133,6 +137,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
+      httpbin:
+        condition: service_healthy
       shenyu-admin-1:
         condition: service_healthy
       shenyu-admin-2:

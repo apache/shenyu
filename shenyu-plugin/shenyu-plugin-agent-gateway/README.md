@@ -53,6 +53,78 @@ The Admin plugin is initialized disabled. Enable `agentGateway` in Admin only
 after the starter is loaded. Disabling the Admin plugin stops new context
 creation while leaving the existing AI Proxy and MCP plugins unchanged.
 
+## Optional authenticated JWT identity bridge
+
+The Agent Gateway starter can adapt an existing Spring Security Resource Server
+authentication. It does **not** authenticate raw JWTs, create a decoder/filter chain,
+or turn the legacy JWT plugin's forwarded headers into trusted identity.
+The application must include its Resource Server dependencies and configure its
+reactive security chain to verify signatures, permitted algorithms, issuer,
+audience and token lifetime before requests reach Agent Gateway.
+Reuse the application's authentication; do not register a second authentication
+service merely for MCP.
+
+This bridge is disabled by default. Application configuration, not Admin rule
+JSON or client metadata, selects its authority:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          jwt:
+            enabled: true
+            issuer: https://idp.example.com/issuer
+            audience: shenyu-agent-mcp
+            # Choose exactly one tenant policy:
+            tenant-claim-required: true
+            # Or configure a tenant used only when tenant_id is absent:
+            # tenant-claim-required: false
+            # default-tenant: explicitly-assigned-tenant
+```
+
+Only an authenticated `JwtAuthenticationToken` installed on the exchange principal
+is accepted. The bridge additionally requires the exact configured `iss` and
+an `aud` string or collection containing the configured audience; its principal name must
+equal the nonblank `sub` claim. It reads these dedicated, verified claims:
+
+| Claim | Contract |
+| --- | --- |
+| `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. Startup requires exactly one of `tenant-claim-required: true` or `default-tenant`, so missing-tenant behavior is an explicit deployment policy. |
+| `tool_grants` | Optional array of exact tool names; absence grants nothing. Generic OAuth scopes/roles are not implicitly MCP permissions. |
+| `tool_denies` | Optional array of exact tool names; deny takes precedence over grant. |
+
+For example, signed claims `"tool_grants":["orders.lookup","inventory.lookup"]`
+and `"tool_denies":["inventory.lookup"]` grant only `orders.lookup`, still
+intersected with the rule's `allowedTools`. Listing and execution share that
+same effective set. Denied tools are not disclosed by the list and cannot be
+called directly. Remote names retain their `server.tool` prefix.
+
+Claims are copied into an immutable identity. Identity strings are bounded at
+256 characters; each permission collection at 1,024 entries; tool names at 128
+ASCII letters, digits, underscores, dots or hyphens. Wildcards and malformed
+collections are rejected, not partially accepted. Invalid or absent identities
+produce the existing generic HTTP 401 before consuming the MCP body; transport
+preflight checks still precede identity resolution. Missing permission produces
+the existing authorization result, not an anonymous identity.
+
+Exactly one `AgentMcpSecurityResolver` may be registered. Enabling this bridge
+together with another resolver is a startup error, even with `@Primary`;
+disable the bridge when installing a different explicit authority. Optional
+JWT APIs are not required when it is disabled; enabling without them fails
+startup. Legacy custom adapters remain compatible: their two-argument
+`AgentMcpIdentity` has no tenant, not an implicit default. Tenant-aware governance
+must handle that absence explicitly. This change does not infer OAuth login or
+API-key identity from arbitrary principals.
+
+The tenant is available to a provider through the request-local Reactor
+`AgentMcpExecutionContext.getTenant()`; no identity header is added to remote
+MCP calls. The bridge neither logs credentials/claims nor owns SDK/key lifecycles.
+Cross-request context/event unification and additional authentication adapters
+remain separate work.
+
 ## Rule handle
 
 The LLM rule handle uses these fields:
@@ -429,6 +501,75 @@ per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per c
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
 
+## Configured HTTP tools
+
+The matched MCP rule can expose existing gateway HTTP routes without one Java
+Provider per tool. Plans use the MCP Server plugin's `requestTemplate` /
+`argsPosition` vocabulary, but not its session holder or blocking callback.
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["order_http"],
+    "httpTools": {
+      "order_http": {
+        "description": "Look up an order through the existing HTTP route",
+        "inputSchema": {
+          "type": "object",
+          "properties": {"orderId": {"type": "string"}},
+          "required": ["orderId"]
+        },
+        "requestConfig": {
+          "requestTemplate": {"method": "GET", "url": "/orders/status"},
+          "argsPosition": {"orderId": "query"}
+        }
+      }
+    }
+  }
+}
+```
+
+Operators must separately configure the ordinary gateway route and its upstream.
+The fixed URL is a relative gateway path, not an upstream address or client
+template: only letters, digits, underscores, hyphens and single slashes are
+supported initially. No query, fragment, percent escapes, dot segments, absolute
+URLs or path substitutions are accepted. Upstream network controls remain the
+responsibility of existing routing plugins and deployment policy.
+
+The bounded first contract supports GET/query and POST/query or flat JSON-body
+mapping. Each scalar property must have an exact query/body mapping, with string,
+boolean, number or integer types; no implicit coercion, nested body paths, header
+templates or arbitrary JSON Schema assertions. At most 16 tools and 16 properties
+per tool; names/parameters at most 64 characters, descriptions 2048, paths 512,
+argument representations 2048. Unknown fields and unallowed names fail validation
+in Admin and the gateway. Plans are immutable and follow the existing rule sync;
+new requests see updates without restarting, while in-flight calls keep their plan.
+
+Authorization and namespace collision checks precede HTTP execution. Each
+subscription forks the existing web-handler plugin snapshot with a new cursor,
+fresh attributes, a newly constructed HTTP body and a bounded private response.
+Internal markers skip both MCP entries, not the other gateway plugins. Parent
+headers/cookies/principal/web session are not delegated. Business authentication
+must be provided by the configured HTTP route; this does not bypass downstream
+security plugins or provide per-record business authorization.
+
+Successful JSON responses become `structuredContent: {httpStatus, body}` and the
+matching JSON text copy, then pass through the merged field-filter/metrics path.
+No upstream response headers or cookies reach the MCP client. Non-2xx, session
+cookies, missing route completion or unsupported content are refused without tool
+retry; body size and request construction share the configured byte budgets.
+The captured HTTP deadline propagates cancellation; its classified failure is
+HTTP 504 / JSON-RPC -32025 before the outer handler deadline. The outer handler's
+existing deadline response remains unchanged. No rollback of remote side effects
+or guarantees about detached backend work are made.
+
+The default remains no HTTP plans. Startup Java Providers and remote MCP tools
+remain available with exact-name collision rejection. Custom plugin chains must
+explicitly implement `fork()`; unsupported chains fail closed for HTTP invocation
+without changing ordinary traffic. Dynamic Java/JAR loading, OTel, Token accounting,
+field mapping, prompts/resources and model fallback are outside this feature.
+
 ## Optional structuredContent field deletion
 
 Configure explicit plans in the matched MCP rule, keyed by complete exposed tool
@@ -508,3 +649,49 @@ It is not arbitrary free-text redaction or prompt-injection prevention. Operator
 must enumerate the fields to remove and use compatible tools; unsupported results
 fail closed rather than being described as safely redacted. The original schema
 is never rewritten or weakened to make a deletion pass.
+
+## Optional OpenTelemetry call spans
+
+The Agent Gateway starter can trace logical MCP tool calls when
+`shenyu.plugins.agent.gateway.tracing.enabled=true`. Tracing is disabled by
+default. Add the OpenTelemetry API/SDK to the gateway application and supply an
+unambiguous `OpenTelemetry` Spring bean. The starter uses only the API; it does
+not create, register globally, configure or close an SDK/exporter. Explicitly
+enabling tracing without a usable bridge fails startup. A custom
+`AgentMcpCallTracer` bean is an explicit alternative instrumentation opt-in.
+
+Each authenticated, parsed `tools/call` creates one INTERNAL span named
+`shenyu.agent_gateway.tools.call`. It ends once after response writing completes,
+fails or is cancelled, not when the provider merely computes a result. Discovery,
+listing, invalid requests and rejection before parsing do not create logical
+call spans. Existing Metrics observations remain independent.
+
+The only span attribute added by this bridge is `shenyu.mcp.outcome`, with the
+existing bounded values `success`, `tool_error`, `rejected`, `server_error`,
+`timeout` and `cancelled`. Business/server errors and timeouts set ERROR status;
+other outcomes retain UNSET. No exception event, message or stack trace is
+recorded. It does not collect tool names, RPC/request ids, identities, parameters,
+results, credential headers or endpoint URLs. Application SDK resource attributes,
+processors, sampling and other instrumentations remain the operator's responsibility.
+
+To link a call to a trusted application tracing parent, explicitly provide an
+`io.opentelemetry.context.Context` in Reactor Context keyed by that class:
+
+```java
+return chain.filter(exchange).contextWrite(context ->
+        context.put(io.opentelemetry.context.Context.class, trustedParent));
+```
+
+The bridge copies only the parent span identity, not baggage or arbitrary context
+data. It puts the child span context under the same key for tool execution, so
+`Mono.deferContextual` can access it across scheduler changes. It never reads a
+thread-local/global parent, installs a long-lived Scope, extracts caller tracing
+headers or injects outbound HTTP headers. Without an explicit Reactor parent,
+the call gets a root span; automatic Java-agent/Micrometer parent integration is
+not implied. No SDK-wide Reactor hooks are installed.
+
+For OTLP export, configure the application-owned SDK's exporter/processor, trusted
+collector endpoint, TLS, credentials and shutdown/flush policy in the application.
+Merely setting the gateway tracing flag or supplying a no-op API does not export
+telemetry. There is no separate gateway retry, Token accounting or new metrics
+exporter in this feature. Errors in the observation bridge do not fail tool calls.

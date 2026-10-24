@@ -49,7 +49,7 @@ class DiscoveryNamespaceQueryTest {
         try {
             new ResourceDatabasePopulator(new ClassPathResource("sql-script/h2/schema.sql")).execute(dataSource);
             for (String namespace : new String[]{"a", "b"}) {
-                jdbc.update("INSERT INTO selector (id, plugin_id, selector_name, match_mode, selector_type, sort_code, enabled, loged, continued, match_restful, namespace_id) "
+                jdbc.update("INSERT INTO selector (id, plugin_id, selector_name, match_mode, selector_type, sort_code, enabled, logged, continued, match_restful, namespace_id) "
                         + "VALUES (?, 'p', 'selector', 0, 0, 0, 1, 0, 0, 0, ?)", "s-" + namespace, namespace);
                 jdbc.update("INSERT INTO discovery_handler (id, discovery_id, handler) VALUES (?, 'discovery', '{}')", "h-" + namespace);
                 jdbc.update("INSERT INTO discovery_rel (id, plugin_name, discovery_handler_id, selector_id) VALUES (?, 'divide', ?, ?)",

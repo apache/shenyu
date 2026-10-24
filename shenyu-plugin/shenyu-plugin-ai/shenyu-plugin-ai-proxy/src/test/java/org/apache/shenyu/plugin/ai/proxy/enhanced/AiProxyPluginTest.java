@@ -27,7 +27,6 @@ import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
@@ -38,7 +37,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,8 +61,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 /**
  * Compatibility tests through AiProxyEngine instead of Spring AI clients.
@@ -148,11 +147,11 @@ class AiProxyPluginTest {
     @Test
     void testExecuteWithAdminFallback() {
         handle.setFallbackConfig(fallback("admin"));
-        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(400, "bad") : response(202, "admin")));
+        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(500, "bad") : response(202, "admin")));
         StepVerifier.create(execute(plugin)).verifyComplete();
-        assertEquals(2, requests.size());
-        assertEquals("admin.example", requests.get(1).getUri().getHost());
-        assertEquals(List.of("Bearer admin-key"), requests.get(1).getHeaders().get("Authorization"));
+        assertEquals(5, requests.size());
+        assertEquals("admin.example", requests.get(4).getUri().getHost());
+        assertEquals(List.of("Bearer admin-key"), requests.get(4).getHeaders().get("Authorization"));
         assertEquals(HttpStatus.ACCEPTED, exchange.getResponse().getStatusCode());
     }
 
@@ -247,7 +246,7 @@ class AiProxyPluginTest {
         }).then());
         AiProxyPlugin plugin = plugin(request -> Mono.just(new AiUpstreamResponse(200, Map.of(),
                 Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(failure())))));
-        StepVerifier.create(execute(plugin)).expectError(AiProxyException.class).verify();
+        StepVerifier.create(execute(plugin)).expectError(AiTransportException.class).verify();
         assertEquals(1, requests.size());
         assertEquals(List.of("data: {\"first\":true}\n\n"), received);
         assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
@@ -281,15 +280,15 @@ class AiProxyPluginTest {
     private AiProxyPlugin plugin(final AiProxyTransport transport) {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), request -> {
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolRouteResolver(), request -> {
                     requests.add(request);
                     return transport.execute(request);
                 }, Duration.ZERO);
-        return new AiProxyPlugin(new AiProxyConfigService(), engine, handler);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 
     private Mono<Void> execute(final AiProxyPlugin plugin) {
-        return plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector, rule);
+        return plugin.doExecute(exchange, current -> Mono.empty(), selector, rule);
     }
 
     private AiUpstreamResponse response(final int status, final String body) {
@@ -309,7 +308,7 @@ class AiProxyPluginTest {
         return config;
     }
 
-    private AiProxyException failure() {
-        return new AiProxyException(AiProxyException.Kind.TRANSPORT, "fixture failure", null);
+    private AiTransportException failure() {
+        return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "fixture failure", null);
     }
 }

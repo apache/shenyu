@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import com.google.gson.JsonElement;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
@@ -85,11 +86,16 @@ public enum DiscoveryTransfer {
             try {
                 CommonUpstream commonUpstream = new CommonUpstream(data.getProtocol(),
                         CommonUpstreamUtils.parseHostPort(url)[0], url, false, data.getDateCreated().getTime());
-                Properties properties = Optional.ofNullable(data.getProps())
-                        .map(props -> GsonUtils.getInstance().fromJson(props, Properties.class))
-                        .orElse(new Properties());
-                commonUpstream
-                        .setHealthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")));
+                // Other properties, such as labels, may contain nested JSON objects.
+                boolean healthCheckEnabled = Optional.ofNullable(data.getProps())
+                        .map(props -> GsonUtils.getInstance().fromJson(props, JsonElement.class))
+                        .filter(props -> !props.isJsonNull())
+                        .map(JsonElement::getAsJsonObject)
+                        .map(props -> props.get("healthCheckEnabled"))
+                        .filter(value -> !value.isJsonNull())
+                        .map(value -> Boolean.parseBoolean(value.getAsString()))
+                        .orElse(true);
+                commonUpstream.setHealthCheckEnabled(healthCheckEnabled);
                 return commonUpstream;
             } catch (IllegalArgumentException e) {
                 LOG.warn("Skip malformed upstream URL: {}", url, e);

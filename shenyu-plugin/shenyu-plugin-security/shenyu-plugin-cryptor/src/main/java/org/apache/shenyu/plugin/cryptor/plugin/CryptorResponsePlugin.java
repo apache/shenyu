@@ -53,7 +53,8 @@ public class CryptorResponsePlugin extends AbstractCryptorPlugin {
 
     @Override
     protected String fieldErrorParse(final String originalBody, final ServerWebExchange exchange) {
-        return originalBody;
+        ShenyuResultEnum resultEnum = checkErrorEnum();
+        throw new ResponsiveException(resultEnum.getCode(), resultEnum.getMsg() + "[fieldNames]", exchange);
     }
 
     @Override

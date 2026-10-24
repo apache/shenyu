@@ -57,9 +57,9 @@ public final class RuleDO extends BaseDO {
     private Boolean enabled;
 
     /**
-     * whether loged.
+     * whether logged.
      */
-    private Boolean loged;
+    private Boolean logged;
 
     /**
      * sort code.
@@ -88,7 +88,7 @@ public final class RuleDO extends BaseDO {
                   final Integer matchMode,
                   final String ruleName,
                   final Boolean enabled,
-                  final Boolean loged,
+                  final Boolean logged,
                   final Integer sortCode,
                   final String handle,
                   final Boolean matchRestful,
@@ -97,7 +97,7 @@ public final class RuleDO extends BaseDO {
         this.matchMode = matchMode;
         this.ruleName = ruleName;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.sortCode = sortCode;
         this.handle = handle;
         this.matchRestful = matchRestful;
@@ -177,21 +177,21 @@ public final class RuleDO extends BaseDO {
     }
 
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
 
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
 
     /**
@@ -289,7 +289,7 @@ public final class RuleDO extends BaseDO {
                     .matchMode(item.getMatchMode())
                     .ruleName(item.getName())
                     .enabled(item.getEnabled())
-                    .loged(item.getLoged())
+                    .logged(item.getLogged())
                     .sortCode(item.getSort())
                     .handle(item.getHandle())
                     .matchRestful(item.getMatchRestful())
@@ -324,7 +324,7 @@ public final class RuleDO extends BaseDO {
                 .matchMode(ruleDO.getMatchMode())
                 .sort(ruleDO.getSortCode())
                 .enabled(ruleDO.getEnabled())
-                .loged(ruleDO.getLoged())
+                .logged(ruleDO.getLogged())
                 .handle(ruleDO.getHandle())
                 .matchRestful(ruleDO.getMatchRestful())
                 .conditionDataList(conditionDataList)
@@ -362,7 +362,7 @@ public final class RuleDO extends BaseDO {
                 && Objects.equals(matchMode, ruleDO.matchMode)
                 && Objects.equals(ruleName, ruleDO.ruleName)
                 && Objects.equals(enabled, ruleDO.enabled)
-                && Objects.equals(loged, ruleDO.loged)
+                && Objects.equals(logged, ruleDO.logged)
                 && Objects.equals(sortCode, ruleDO.sortCode)
                 && Objects.equals(handle, ruleDO.handle)
                 && Objects.equals(matchRestful, ruleDO.matchRestful)
@@ -371,7 +371,7 @@ public final class RuleDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), selectorId, matchMode, ruleName, enabled, loged, sortCode, handle, matchRestful,
+        return Objects.hash(super.hashCode(), selectorId, matchMode, ruleName, enabled, logged, sortCode, handle, matchRestful,
                 namespaceId);
     }
 
@@ -391,7 +391,7 @@ public final class RuleDO extends BaseDO {
 
         private Boolean enabled;
 
-        private Boolean loged;
+        private Boolean logged;
 
         private Integer sortCode;
 
@@ -482,13 +482,13 @@ public final class RuleDO extends BaseDO {
         }
 
         /**
-         * loged.
+         * logged.
          *
-         * @param loged the loged.
+         * @param logged the logged.
          * @return RuleDOBuilder.
          */
-        public RuleDOBuilder loged(final Boolean loged) {
-            this.loged = loged;
+        public RuleDOBuilder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
 
@@ -550,7 +550,7 @@ public final class RuleDO extends BaseDO {
             ruleDO.setMatchMode(matchMode);
             ruleDO.setRuleName(ruleName);
             ruleDO.setEnabled(enabled);
-            ruleDO.setLoged(loged);
+            ruleDO.setLogged(logged);
             ruleDO.setSortCode(sortCode);
             ruleDO.setHandle(handle);
             ruleDO.setMatchRestful(matchRestful);

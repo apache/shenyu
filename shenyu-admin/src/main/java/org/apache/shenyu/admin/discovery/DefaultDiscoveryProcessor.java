@@ -56,9 +56,6 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
             throw new ShenyuAdminException(String.format("before start ProxySelector you need init DiscoveryId=%s", discoveryHandlerDTO.getDiscoveryId()));
         }
 
-        if (!shenyuInstanceRegisterRepository.serviceExists(key)) {
-            throw new ShenyuAdminException(String.format("shenyu discovery start watcher need you has this key %s in Discovery", key));
-        }
         Set<String> cacheKey = getCacheKey(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
             LOG.info("shenyu discovery has watcher key = {}", key);
@@ -66,6 +63,7 @@ public class DefaultDiscoveryProcessor extends AbstractDiscoveryProcessor {
             return;
         }
         final DataChangedEventListener discoveryDataChangedEventListener = getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO);
+        // Subscribe even when no instance is currently available so an offline service can recover.
         shenyuInstanceRegisterRepository.watchInstances(key, (selectKey, selectValue, event) -> {
             if (event.equals(ChangedEventListener.Event.ADDED)) {
                 discoveryDataChangedEventListener.onChange(new DiscoveryDataChangedEvent(selectKey, selectValue, DiscoveryDataChangedEvent.Event.ADDED));

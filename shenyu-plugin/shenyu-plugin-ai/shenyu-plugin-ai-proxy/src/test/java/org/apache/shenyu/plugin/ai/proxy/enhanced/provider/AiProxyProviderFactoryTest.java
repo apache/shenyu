@@ -18,9 +18,16 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,5 +51,26 @@ class AiProxyProviderFactoryTest {
         final AiProxyProviderFactory factory = new AiProxyProviderFactory(List.of(new OpenAi()));
         assertThrows(ShenyuException.class, () -> factory.getProvider("unknown"));
         assertThrows(ShenyuException.class, () -> factory.getProvider(null));
+    }
+
+    @Test
+    void testExistingProviderReceivesIdentityResponseAdapter() {
+        final AiUpstreamRequest upstreamRequest = new AiUpstreamRequest();
+        final AiProxyProvider provider = new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "legacy";
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return upstreamRequest;
+            }
+        };
+        final PreparedAiRequest prepared = provider.prepareRequest(new ShenyuAiRequest(), new AiCommonConfig());
+        final AiUpstreamResponse response = new AiUpstreamResponse(200, Map.of(), Flux.empty());
+
+        assertSame(upstreamRequest, prepared.request());
+        assertSame(response, prepared.responseAdapter().adapt(response));
     }
 }

@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHand
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolExecutor;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -78,7 +79,9 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
                 registerResponseRequestId(exchange, context.getRequestId());
             }
             return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
-                    ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration()) : chain.execute(exchange))
+                    ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration(),
+                            new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes()))
+                    : chain.execute(exchange))
                     .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context))
                     .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
         });
@@ -121,6 +124,11 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
         return WebFluxResultUtils.result(exchange, error);
+    }
+
+    @Override
+    public boolean skip(final ServerWebExchange exchange) {
+        return Boolean.TRUE.equals(exchange.getAttribute(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE));
     }
 
     @Override

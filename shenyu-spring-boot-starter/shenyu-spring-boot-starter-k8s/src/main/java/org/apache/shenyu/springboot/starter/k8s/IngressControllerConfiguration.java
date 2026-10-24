@@ -50,25 +50,29 @@ import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.netty.tcp.TcpSslContextSpec;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * The type shenyu ingress controller configuration.
  */
 @Configuration
 @ConditionalOnProperty(name = "shenyu.k8s.mode", havingValue = "ingress", matchIfMissing = true)
+@EnableConfigurationProperties(ShenyuKubernetesControllerProperties.class)
 public class IngressControllerConfiguration {
 
     /**
@@ -83,9 +87,33 @@ public class IngressControllerConfiguration {
     public ControllerManager controllerManager(final SharedInformerFactory sharedInformerFactory,
                                                @Qualifier("ingress-controller") final Controller ingressController,
                                                @Qualifier("endpoints-controller") final Controller endpointsController) {
-        ControllerManager controllerManager = new ControllerManager(sharedInformerFactory, ingressController, endpointsController);
-        Executors.newSingleThreadExecutor().submit(controllerManager);
-        return controllerManager;
+        return new ControllerManager(sharedInformerFactory, ingressController, endpointsController);
+    }
+
+    /**
+     * Controller executor service.
+     *
+     * @return controller executor service
+     */
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService ingressControllerExecutorService() {
+        return Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "shenyu-k8s-ingress-controller");
+            return thread;
+        });
+    }
+
+    /**
+     * Controller lifecycle.
+     *
+     * @param controllerManager controller manager
+     * @param executorService controller executor service
+     * @return controller lifecycle
+     */
+    @Bean
+    public SmartLifecycle ingressControllerLifecycle(@Qualifier("controller-manager") final ControllerManager controllerManager,
+                                                      @Qualifier("ingressControllerExecutorService") final ExecutorService executorService) {
+        return new ControllerManagerLifecycle(Collections.singletonList(controllerManager), executorService);
     }
 
     /**
@@ -93,16 +121,17 @@ public class IngressControllerConfiguration {
      *
      * @param sharedInformerFactory sharedInformerFactory
      * @param ingressReconciler ingressReconciler
+     * @param properties controller properties
      * @return Ingress Controller
      */
     @Bean("ingress-controller")
-    public Controller ingressController(final SharedInformerFactory sharedInformerFactory, final IngressReconciler ingressReconciler) {
+    public Controller ingressController(final SharedInformerFactory sharedInformerFactory, final IngressReconciler ingressReconciler,
+                                        final ShenyuKubernetesControllerProperties properties) {
         DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
         builder = builder.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Ingress.class, q)
-                                .withResyncPeriod(Duration.ofMinutes(1))
+                                .withResyncPeriod(properties.getResyncPeriod())
                                 .build());
-        // TODO support config in application.yaml
-        builder.withWorkerCount(2);
+        builder.withWorkerCount(properties.getWorkerCount());
         return builder.withReconciler(ingressReconciler).withName("ingressController").build();
     }
 
@@ -133,16 +162,18 @@ public class IngressControllerConfiguration {
      *
      * @param sharedInformerFactory sharedInformerFactory
      * @param endpointsReconciler endpointsReconciler
+     * @param properties controller properties
      * @return Endpoints Controller
      */
     @Bean("endpoints-controller")
-    public Controller endpointsController(final SharedInformerFactory sharedInformerFactory, final EndpointsReconciler endpointsReconciler) {
+    public Controller endpointsController(final SharedInformerFactory sharedInformerFactory, final EndpointsReconciler endpointsReconciler,
+                                          final ShenyuKubernetesControllerProperties properties) {
         DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
         builder = builder.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Endpoints.class, q)
-                .withResyncPeriod(Duration.ofMinutes(1))
+                .withResyncPeriod(properties.getResyncPeriod())
                 .build());
-        builder.withWorkerCount(2);
-        return builder.withReconciler(endpointsReconciler).withName("ingressController").build();
+        builder.withWorkerCount(properties.getWorkerCount());
+        return builder.withReconciler(endpointsReconciler).withName("endpointsController").build();
     }
 
     /**

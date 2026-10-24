@@ -54,6 +54,8 @@ public final class RemoteCatalogLifecycle {
 
     private final int maxGenerations;
 
+    private final int refreshConcurrency;
+
     private Generation current;
 
     private Generation updatingGeneration;
@@ -67,10 +69,23 @@ public final class RemoteCatalogLifecycle {
      * @param maxGenerations trusted maxGenerations value
      */
     public RemoteCatalogLifecycle(final int maxGenerations) {
+        this(maxGenerations, 1);
+    }
+
+    /**
+     * Remote Catalog Lifecycle.
+     * @param maxGenerations trusted maxGenerations value
+     * @param refreshConcurrency bounded parallel target refresh; 1 retains the historical serialized discovery
+     */
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
+        if (refreshConcurrency < 1 || refreshConcurrency > 8) {
+            throw new IllegalArgumentException("Refresh concurrency budget");
+        }
         this.maxGenerations = maxGenerations;
+        this.refreshConcurrency = refreshConcurrency;
     }
 
     /**
@@ -168,7 +183,10 @@ public final class RemoteCatalogLifecycle {
     private Mono<RemoteToolDirectory> build(final Generation candidate, final List<Config> configs) {
         Objects.requireNonNull(candidate, "A reserved generation is required to build a directory");
         return Flux.fromIterable(configs)
-            .concatMap(config ->
+            // Bounded, order-preserving overlap of handshakes; refreshConcurrency 1 subscribes one config at a time
+            // and is exactly the historical serialized concatMap. Allocation and ownership stay atomic under the lock,
+            // so a cancelled or failed refresh still closes every client already added to the candidate generation.
+            .flatMapSequential(config ->
                 Mono.defer(() -> {
                     RemoteMcpEndpoint client;
                     synchronized (lock) {
@@ -191,10 +209,11 @@ public final class RemoteCatalogLifecycle {
                         .initialize()
                         .switchIfEmpty(Mono.error(new IllegalStateException("Empty handshake")))
                         .map(ignored -> new RemoteToolDirectory.Target(config.name(), client::listTools, client::callTool, client::callRaw));
-                })
+                }),
+                refreshConcurrency
             )
             .collectList()
-            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16));
+            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16, refreshConcurrency));
     }
 
     private Mono<Void> finishUpdate(final Generation candidate) {
