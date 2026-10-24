@@ -615,6 +615,7 @@ public final class DiscoveryUpstreamServiceTest {
     @Test
     public void testNativeUpdateReplacesSubmittedProps() {
         DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("123");
+        dto.setUrl("localhost:8080");
         dto.setProps("{\"warmup\":20}");
         discoveryUpstreamService.nativeCreateOrUpdate(dto);
         ArgumentCaptor<DiscoveryUpstreamDO> saved = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
@@ -672,11 +673,13 @@ public final class DiscoveryUpstreamServiceTest {
 
     private void testNativeUpdate() {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("123");
+        discoveryUpstreamDTO.setUrl("192.168.1.1:8080");
         discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
     }
 
     private void testNativeCreate() {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("");
+        discoveryUpstreamDTO.setUrl("192.168.1.1:8080");
         discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
     }
 
