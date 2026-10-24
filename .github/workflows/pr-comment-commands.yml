@@ -24,7 +24,7 @@ on:
 permissions: {}
 
 jobs:
-  execute:
+  commands:
     if: >-
       github.event.issue.pull_request &&
       (contains(github.event.comment.body, '/assign') ||
@@ -36,12 +36,10 @@ jobs:
       contains(github.event.comment.body, '/hold') ||
       contains(github.event.comment.body, '/unhold') ||
       contains(github.event.comment.body, '/close') ||
-      contains(github.event.comment.body, '/reopen') ||
-      contains(github.event.comment.body, '/retest'))
+      contains(github.event.comment.body, '/reopen'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      actions: write
       contents: read
       issues: write
       pull-requests: write
@@ -59,4 +57,32 @@ jobs:
         with:
           script: |
             const {run} = require('./.github/scripts/pr-comment-commands.cjs');
-            await run({context, github, core});
+            await run({
+              context,
+              github,
+              core,
+              allowedCommands: ['assign', 'unassign', 'cc', 'uncc', 'lgtm', 'unlgtm', 'hold', 'unhold', 'close', 'reopen'],
+            });
+  retest:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/retest')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: pr-comment-commands-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Check out the default branch command handler
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Execute retest command
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {run} = require('./.github/scripts/pr-comment-commands.cjs');
+            await run({context, github, core, allowedCommands: ['retest']});

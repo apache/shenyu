@@ -92,7 +92,7 @@ function fixture(body, options = {}) {
         calls,
         failures,
         context,
-        run: () => run({context, github, core}),
+        run: allowedCommands => run({context, github, core, allowedCommands}),
     };
 }
 
@@ -139,6 +139,12 @@ test('processes the retest and hold combination from one comment', async () => {
     await f.run();
     assert.deepEqual(f.calls.map(call => call.name), ['get', 'list-runs', 'reaction', 'hold', 'reaction']);
     assert.equal(f.failures.length, 0);
+});
+
+test('filters commands when jobs have separate permission scopes', async () => {
+    const f = fixture('/retest\n/hold');
+    await f.run(['hold']);
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'hold', 'reaction']);
 });
 
 test('supports the reverse commands for labels, assignments, and approvals', async () => {
