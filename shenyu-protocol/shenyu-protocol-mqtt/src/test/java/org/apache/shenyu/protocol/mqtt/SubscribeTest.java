@@ -28,6 +28,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,14 +56,24 @@ class SubscribeTest {
     private SubscribeRepository subscribeRepository;
 
     @Mock
+    private ChannelRepository channelRepository;
+
+    @Mock
+    private SessionRepository sessionRepository;
+
+    @Mock
     private TopicRepository topicRepository;
 
     private final Subscribe subscribe = new Subscribe();
 
     @BeforeEach
     void setUp() {
+        // register everything subscribe() touches: relying on repositories left
+        // behind by whichever test class ran before is order-dependent (#8021)
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
         Singleton.INST.single(TopicRepository.class, topicRepository);
+        Singleton.INST.single(ChannelRepository.class, channelRepository);
+        Singleton.INST.single(SessionRepository.class, sessionRepository);
     }
 
     @Test

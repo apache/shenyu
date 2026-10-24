@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -40,15 +41,27 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
+import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.lang.NonNull;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -64,6 +77,16 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
+    private final CanaryDecisionService canaryDecisionService;
+
+    public DividePlugin() {
+        this(new DefaultCanaryDecisionService());
+    }
+
+    public DividePlugin(final CanaryDecisionService canaryDecisionService) {
+        this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
+    }
+
     @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
@@ -75,15 +98,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        // A re-entered exchange must not inherit a previous selector's partition.
+        exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
+        final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
-            long headerSize = exchange.getRequest().getHeaders().values()
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .mapToLong(header -> header.getBytes(StandardCharsets.UTF_8).length)
-                    .sum();
+            long headerSize = calculateHeaderSize(effectiveExchange.getRequest().getHeaders());
             if (headerSize > ruleHandle.getHeaderMaxSize()) {
                 LOG.error("request header is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE);
@@ -91,27 +113,55 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         if (ruleHandle.getRequestMaxSize() > 0) {
-            if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+            if (effectiveExchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
                 LOG.error("request entity is too large");
                 Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE);
                 return WebFluxResultUtils.result(exchange, error);
             }
         }
-        List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        boolean canaryRouting = Objects.nonNull(ruleHandle.getCanary())
+                && CollectionUtils.isEmpty(effectiveExchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
+        List<Upstream> upstreamList = canaryRouting
+                ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
+                : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        if (canaryRouting && CollectionUtils.isNotEmpty(upstreamList)) {
+            upstreamList = selectPartition(exchange, selector.getId(), rule.getId(), ruleHandle.getCanary(), upstreamList);
+        }
         if (CollectionUtils.isEmpty(upstreamList)) {
+            if (canaryRouting) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            }
             LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String requested = exchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
+        String requested = effectiveExchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
         final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
+            if (canaryRouting) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            }
             LOG.warn("all upstreams of selector {} are blocked by the circuit breaker, fail fast", selector.getId());
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(exchange, chain, selector, ruleHandle, candidates)));
+        return candidates.recordProbeOutcome(Mono.defer(() -> forwardSelected(effectiveExchange, chain, selector, ruleHandle, candidates)));
+    }
+
+    private List<Upstream> selectPartition(final ServerWebExchange exchange, final String selectorId, final String ruleId,
+                                           final CanaryConfig config, final List<Upstream> upstreams) {
+        CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
+        Map<String, String> labels = decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
+        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
+            labels = config.getStableLabels();
+            candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        }
+        // Retry the resolved partition, including an initial fallback, without repeating the decision.
+        exchange.getAttributes().put(UpstreamRoutingContext.ATTRIBUTE, new UpstreamRoutingContext(selectorId, labels));
+        // Resolve the pool before circuit-breaker probes and load balancing; neither may escape it.
+        return candidates;
     }
 
     private Mono<Void> forwardSelected(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
@@ -249,4 +299,63 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.getSucceeded().incrementAndGet();
     }
 
+    /**
+     * A positive requestMaxSize must also cover chunked / unknown-length bodies: the
+     * Content-Length header is absent (-1) there, so the limit is enforced on the actual
+     * bytes while the request body streams through.
+     */
+    private ServerWebExchange limitChunkedRequestBody(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle) {
+        if (ruleHandle.getRequestMaxSize() <= 0 || exchange.getRequest().getHeaders().getContentLength() >= 0) {
+            return exchange;
+        }
+        final long maxSize = ruleHandle.getRequestMaxSize();
+        return exchange.mutate().request(new ServerHttpRequestDecorator(exchange.getRequest()) {
+            private long forwarded;
+
+            @Override
+            @NonNull
+            public Flux<DataBuffer> getBody() {
+                return Flux.defer(() -> {
+                    forwarded = 0;
+                    return super.getBody().doOnNext(buffer -> {
+                        forwarded += buffer.readableByteCount();
+                        if (forwarded > maxSize) {
+                            LOG.error("request entity is too large");
+                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                        }
+                    });
+                });
+            }
+        }).build();
+    }
+
+    /**
+     * Calculate request header size in bytes.
+     * Header size includes field names, field values, and line delimiters (": " and CRLF) per header line,
+     * plus the terminating CRLF of the HTTP header section. If headers is null or empty, 0L is returned.
+     * Note: This measures the header field section; request line and HTTP/2 pseudo-headers are not included.
+     *
+     * @param headers the http headers
+     * @return total header size in bytes
+     */
+    long calculateHeaderSize(final HttpHeaders headers) {
+        if (Objects.isNull(headers) || headers.isEmpty()) {
+            return 0L;
+        }
+        long headerSize = 0L;
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            // Uses UTF-8 byte counting conservatively across HTTP/1.1 and HTTP/2 without protocol branching.
+            int nameSize = entry.getKey().getBytes(StandardCharsets.UTF_8).length;
+            List<String> values = entry.getValue();
+            if (CollectionUtils.isEmpty(values)) {
+                headerSize += nameSize + 4L;
+            } else {
+                for (String value : values) {
+                    int valueSize = Objects.isNull(value) ? 0 : value.getBytes(StandardCharsets.UTF_8).length;
+                    headerSize += nameSize + valueSize + 4L;
+                }
+            }
+        }
+        return headerSize + 2L;
+    }
 }

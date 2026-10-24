@@ -70,6 +70,8 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      # Opt in only after checking built-in and external gateway consumers. See shenyu-admin/README.md.
+      compact-discovery-payload: false
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
       # Reconciles gateway sessions connected to this admin node with the shared
@@ -154,6 +156,10 @@ shenyu:
       - /rule/batch
       - /rule
       - /rule/**
+      - /scale/policy
+      - /scale/policy/**
+      - /scale/rule
+      - /scale/rule/**
       - /plugin
       - /plugin/**
       - /plugin/createPluginResource/**
