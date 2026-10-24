@@ -2484,3 +2484,32 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE `app_auth_request`  (
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `caller_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'immutable caller identity key',
+  `namespace_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
+  `request_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'caller generated idempotency request id',
+  `request_hash` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'canonical request digest (SHA-256)',
+  `auth_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'associated app_auth id once created',
+  `state` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'CREATED / REVOKED',
+  `revoked_reason` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'revocation reason',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic COMMENT 'app auth lifecycle idempotency records';
+CREATE UNIQUE INDEX uk_app_auth_request ON `app_auth_request` (caller_key, namespace_id, request_id);
+CREATE INDEX idx_app_auth_request_auth ON `app_auth_request` (auth_id);
+
+-- app auth lifecycle button resources
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT INTO `permission` VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');

@@ -1596,3 +1596,32 @@ CREATE INDEX idx_resource_parent ON `resource` (parent_id);
 -- Plugin snapshot and permission query indexes.
 CREATE INDEX IF NOT EXISTS `idx_selector_plugin_id` ON `selector` (`plugin_id`);
 CREATE INDEX IF NOT EXISTS `idx_permission_resource_id` ON `permission` (`resource_id`);
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE IF NOT EXISTS `app_auth_request`  (
+  `id` varchar(128) NOT NULL,
+  `caller_key` varchar(128) NOT NULL,
+  `namespace_id` varchar(64) NOT NULL,
+  `request_id` varchar(64) NOT NULL,
+  `request_hash` varchar(64) NULL DEFAULT NULL,
+  `auth_id` varchar(255) NULL DEFAULT NULL,
+  `state` varchar(16) NOT NULL,
+  `revoked_reason` varchar(500) NULL DEFAULT NULL,
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`)
+);
+CREATE UNIQUE INDEX uk_app_auth_request ON `app_auth_request` (`caller_key`, `namespace_id`, `request_id`);
+CREATE INDEX idx_app_auth_request_auth ON `app_auth_request` (`auth_id`);
+
+-- app auth lifecycle button resources
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT INTO `permission` VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
