@@ -289,6 +289,19 @@ class NativeSqlMatrixTest(unittest.TestCase):
                             with self.assertRaises(RuntimeError if mode == "unrelated-error" else AssertionError):
                                 engine.check_instance_identity(indexes, mapper)
 
+    def test_mock_header_checks_reject_truncation_and_legacy_value_loss(self):
+        for dialect in matrix.DIALECTS:
+            for preserved, length in ((True, "6000"), (False, "6000"), (True, "1024")):
+                with self.subTest(dialect=dialect, preserved=preserved, length=length), tempfile.TemporaryDirectory() as directory:
+                    engine = matrix.Engine(dialect, "upgrade", Path(directory))
+                    values = ['{"Authorization":"legacy-token"}|legacy-body' if preserved else "changed", "", length]
+                    with patch.object(engine, "sql", side_effect=values):
+                        if preserved and length == "6000":
+                            engine.check_mock_headers(upgrade=True)
+                        else:
+                            with self.assertRaises(AssertionError):
+                                engine.check_mock_headers(upgrade=True)
+
     def test_actual_mapper_projects_metadata_and_preserves_detail_jar(self):
         listing, detail = matrix.fragment_columns(ROOT / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
         self.assertNotIn("plugin_jar", listing)

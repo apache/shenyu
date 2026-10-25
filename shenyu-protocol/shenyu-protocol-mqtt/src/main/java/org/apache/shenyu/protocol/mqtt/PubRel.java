@@ -22,6 +22,11 @@ import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
+
+import java.util.Objects;
 
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBCOMP;
 
@@ -34,6 +39,10 @@ public class PubRel extends MessageType {
     @Override
     public void pubRel(final ChannelHandlerContext ctx, final MqttMessage msg) {
         MqttMessageIdVariableHeader variableHeader = (MqttMessageIdVariableHeader) msg.variableHeader();
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
+        if (Objects.nonNull(clientId)) {
+            Singleton.INST.get(InflightRepository.class).release(clientId, variableHeader.messageId());
+        }
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttMessage mqttPubCompMessage = new MqttMessage(mqttFixedHeader, variableHeader);
         ctx.writeAndFlush(mqttPubCompMessage);

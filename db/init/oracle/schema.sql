@@ -317,7 +317,7 @@ create table mock_request_record
     url VARCHAR2(1024) not null,
     path_variable VARCHAR2(255) default '' not null,
     query VARCHAR2(1024) default '' not null,
-    header VARCHAR2(1024) default '' not null,
+    header CLOB default EMPTY_CLOB() not null,
     body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null

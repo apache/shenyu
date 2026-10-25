@@ -145,6 +145,11 @@ public interface Constants {
     String DIVIDE_SELECTOR_ID = "divideSelectorId";
 
     /**
+     * Request-scoped Canary routing observation, independent of retry state.
+     */
+    String SHENYU_CANARY_CONTEXT = "shenyu.canary.context";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
@@ -909,6 +914,11 @@ public interface Constants {
     String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
 
     /**
+     * Optional callback for the initial Canary routing observation.
+     */
+    String METRICS_CANARY = "metricsCanary";
+
+    /**
      * The constant shenyu namespace id.
      */
     String SHENYU_NAMESPACE_ID = "namespaceId";
@@ -1057,6 +1067,11 @@ public interface Constants {
     String COMPLETION_TOKENS = "completion_tokens";
 
     /**
+     * The output tokens reported by the OpenAI Responses protocol, the counterpart of COMPLETION_TOKENS.
+     */
+    String OUTPUT_TOKENS = "output_tokens";
+
+    /**
      * The constant AI_MODEL.
      */
     String AI_MODEL = "ai_model";
@@ -1085,6 +1100,12 @@ public interface Constants {
      * The constant GB.
      */
     String GB = "GB";
+
+    /**
+     * The constant bootTime, JVM start time in epoch millis, used as the boot identity
+     * to correlate instance status reports with metrics, logs and traces.
+     */
+    String BOOT_TIME = "bootTime";
 
     /**
      * String q.

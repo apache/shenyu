@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConversion;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -191,7 +194,9 @@ class OpenAiProviderOptionsTest {
     void compatibleTokenFieldChoiceRunsInConnectAfterResponsesConversion() throws Exception {
         OpenAiCompatible provider = new OpenAiCompatible("legacy", OpenAiProviderOptions.generic(null).withMaxTokensField("max_tokens"));
         config.setMaxTokens(17);
-        AiUpstreamRequest upstream = provider.buildRequest(responses("{\"model\":\"m\",\"input\":\"hi\",\"max_output_tokens\":7}"), config);
+        AiProtocolConversion conversion = new ConnectResponsesToChatConverter().convert(
+                responses("{\"model\":\"m\",\"input\":\"hi\",\"max_output_tokens\":7}"), false);
+        AiUpstreamRequest upstream = provider.buildRequest(conversion.request(), config);
         JsonNode payload = MAPPER.readTree(upstream.getBody());
         assertEquals(17, payload.get("max_tokens").asInt());
         assertFalse(payload.has("max_completion_tokens"));
@@ -237,8 +242,12 @@ class OpenAiProviderOptionsTest {
         AiUpstreamResponse response = new AiUpstreamResponse(200, Map.of("Content-Type", List.of("application/json")), Flux.just(bytes(reply)));
         PreparedAiRequest chat = provider.prepareRequest(chat(CHAT), config);
         assertEquals(reply, text(chat.responseAdapter().adapt(response).getBody().single().block(Duration.ofSeconds(3))));
-        PreparedAiRequest responses = provider.prepareRequest(responses("{\"model\":\"deepseek-flash\",\"input\":\"hi\"}"), config);
-        JsonNode converted = MAPPER.readTree(responses.responseAdapter().adapt(response).getBody().single().block(Duration.ofSeconds(3)));
+        AiProtocolConversion conversion = new ConnectResponsesToChatConverter().convert(
+                responses("{\"model\":\"deepseek-flash\",\"input\":\"hi\"}"), false);
+        PreparedAiRequest prepared = provider.prepareRequest(conversion.request(), config);
+        AiUpstreamResponse providerAdapted = prepared.responseAdapter().adapt(response);
+        JsonNode converted = MAPPER.readTree(conversion.responseAdapter().adapt(providerAdapted)
+                .getBody().single().block(Duration.ofSeconds(3)));
         assertEquals("response", converted.get("object").asText());
         assertTrue(converted.toString().contains("think"));
         assertTrue(converted.toString().contains("answer"));
@@ -248,12 +257,13 @@ class OpenAiProviderOptionsTest {
     @Test
     void unsupportedOperationsFailBeforeTransportWithoutEngineChanges() {
         AiProviderCapabilities all = AiProviderCapabilities.chat();
-        AiProviderCapabilities restricted = new AiProviderCapabilities(all.protocols(), Set.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), all.features());
+        AiProviderCapabilities restricted = new AiProviderCapabilities(
+                all.protocols(), Set.of(ShenyuAiRequest.Operation.RESPONSE), all.features());
         OpenAiCompatible custom = new OpenAiCompatible("restricted", options("/generate", OpenAiProviderOptions.Authentication.NONE, "", "",
                 Map.of(), Map.of(), Map.of(), MAPPER.createObjectNode(), restricted, ""));
         AtomicInteger calls = new AtomicInteger();
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(custom)), request -> {
+                new AiProxyProviderFactory(List.of(custom)), protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.empty();
                 });

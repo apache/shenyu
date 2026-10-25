@@ -141,6 +141,7 @@ public class FormDataOperatorTest {
     @ParameterizedTest
     @CsvSource({
         "flag,flag&injected=yes",
+        "flag&name=x,flag&name=x&injected=yes",
         "flag=,flag=&injected=yes",
         "flag&flag=&flag=value,flag&flag=&flag=value&injected=yes",
         "encoded%20key&name=hello+world,encoded+key&name=hello+world&injected=yes"

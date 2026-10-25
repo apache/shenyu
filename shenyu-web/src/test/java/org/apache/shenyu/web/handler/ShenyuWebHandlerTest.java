@@ -108,7 +108,7 @@ public final class ShenyuWebHandlerTest {
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
         // the chain only runs once it is subscribed, the tracing span is created at that point, so
         // the chain timing is not read while the chain is assembled.
-        assertNotNull(exchange.getAttributes().get(Constants.CHAIN_START_TIME));
+        assertNull(exchange.getAttributes().get(Constants.CHAIN_START_TIME));
         StepVerifier.create(handle).expectSubscription().verifyComplete();
         assertNull(exchange.getAttributes().get(Constants.CHAIN_START_TIME));
     }
@@ -147,7 +147,7 @@ public final class ShenyuWebHandlerTest {
     }
 
     @Test
-    public void handleIsIdempotentWhenTheRequestIsSubscribedTwice() {
+    public void handleReportsEachSubscription() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
@@ -170,7 +170,7 @@ public final class ShenyuWebHandlerTest {
                 .map(ILoggingEvent::getFormattedMessage)
                 .filter(message -> message.startsWith("shenyu chain handle"))
                 .count();
-        assertEquals(1, reported, "a request which is subscribed again must not be reported again");
+        assertEquals(2, reported, "each subscription must have its own chain timing");
     }
 
     @Test
