@@ -50,5 +50,10 @@ public enum EventType {
     /**
      * heartbeat event type.
      */
-    HEARTBEAT
+    HEARTBEAT,
+
+    /**
+     * draining event type: the instance is alive but must stop receiving new work.
+     */
+    DRAINING
 }

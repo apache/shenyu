@@ -70,6 +70,7 @@ public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHand
                     .warmup(props.getWarmup())
                     .gray(props.isGray())
                     .healthCheckEnabled(props.isHealthCheckEnabled())
+                    .draining(props.isDraining())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();

@@ -522,6 +522,58 @@ public class UpstreamCacheManagerTest {
         }
     }
 
+    @Test
+    public void testSubmitExcludesDrainingUpstreamFromSelections() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DRAINING_EXCLUSION_TEST";
+        final Upstream sibling = Upstream.builder().protocol("http://").url("sibling:8080")
+                .status(true).healthCheckEnabled(false).build();
+        final Upstream draining = Upstream.builder().protocol("http://").url("draining:8080")
+                .status(true).draining(true).healthCheckEnabled(false).build();
+        final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            manager.submit(selectorId, Arrays.asList(sibling, draining));
+            // the draining instance is alive but must not receive new work; the sibling keeps serving
+            List<Upstream> selectable = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertEquals(1, selectable.size());
+            Assertions.assertSame(sibling, selectable.get(0));
+            // a draining instance sits in neither pool, so no probe can restore it
+            Assertions.assertFalse(poolContainsUrl(task.getHealthyUpstream().get(selectorId), "draining:8080"));
+            Assertions.assertFalse(poolContainsUrl(task.getUnhealthyUpstream().get(selectorId), "draining:8080"));
+
+            // a later sync without the draining marker re-admits the instance
+            manager.submit(selectorId, Arrays.asList(sibling,
+                    Upstream.builder().protocol("http://").url("draining:8080")
+                            .status(true).healthCheckEnabled(false).build()));
+            List<Upstream> readmitted = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertEquals(2, readmitted.size());
+            Assertions.assertTrue(readmitted.stream().anyMatch(upstream -> "draining:8080".equals(upstream.getUrl())));
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    public void testSubmitAllDrainingLeavesNoSelectableUpstream() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DRAINING_ALL_TEST";
+        try {
+            manager.submit(selectorId, Collections.singletonList(
+                    Upstream.builder().protocol("http://").url("only:8080")
+                            .status(true).draining(true).healthCheckEnabled(false).build()));
+            List<Upstream> selectable = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertTrue(Objects.isNull(selectable) || selectable.isEmpty(),
+                    "when every instance is draining the selector must have no selectable upstream");
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    private boolean poolContainsUrl(final List<Upstream> pool, final String url) {
+        return Objects.nonNull(pool) && pool.stream().anyMatch(upstream -> url.equals(upstream.getUrl()));
+    }
+
     /**
      * Helper method to get the UpstreamCheckTask using reflection.
      */
