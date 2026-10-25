@@ -52,6 +52,13 @@ public class PiiDetectionHandle {
      */
     public static final long DEFAULT_DETECTOR_TIMEOUT_MS = 500L;
 
+    /**
+     * The default body size bound in bytes, one megabyte: this first release
+     * covers bounded text modes only, an unlimited default would contradict
+     * that. A rule can still lift the bound explicitly with {@code 0}.
+     */
+    public static final long DEFAULT_MAX_BODY_SIZE = 1024L * 1024L;
+
     private String detectors = "";
 
     private String customPatterns = "";
@@ -62,7 +69,7 @@ public class PiiDetectionHandle {
 
     private String scope = DEFAULT_SCOPE;
 
-    private long maxBodySize;
+    private long maxBodySize = DEFAULT_MAX_BODY_SIZE;
 
     private boolean failClosed;
 

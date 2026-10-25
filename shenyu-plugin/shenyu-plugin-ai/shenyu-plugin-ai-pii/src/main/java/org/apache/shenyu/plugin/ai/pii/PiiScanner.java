@@ -36,11 +36,10 @@ import java.util.Objects;
  * and every redaction or audit level observation is reported as an audit
  * record without the detected value.
  *
- * <p>Overlapping detections on the same slot are resolved by position and
- * strictness: ranges are replaced from the end of the text backwards, and a
- * range that overlaps an already replaced range is skipped unless its action
- * is stricter, in which case the stricter replacement wins because the sort
- * places it first.</p>
+ * <p>Overlapping detections on the same slot are resolved on the coordinates of
+ * the original text: the redaction ranges are merged before anything is
+ * replaced and a merged range takes the placeholder of the match that starts
+ * first, see {@link #redact(PiiTextSlot, String, List, Map)}.</p>
  */
 final class PiiScanner {
 
@@ -106,30 +105,54 @@ final class PiiScanner {
         return false;
     }
 
+    /**
+     * Redact the redaction level matches of one slot. Overlapping or adjacent
+     * ranges are merged on the coordinates of the original text before anything
+     * is replaced, and the merged range takes the placeholder of the match that
+     * starts first, so a narrower detection inside a wider one never leaves a
+     * partially redacted island behind: {@code alice@example.com} matched by an
+     * EMAIL detector over the whole address and by a custom DOMAIN detector over
+     * the domain alone becomes one {@code <EMAIL>} placeholder covering both.
+     *
+     * @param slot the slot to redact
+     * @param text the current text of the slot
+     * @param matches the detections of the slot
+     * @param auditCounts the audit counters, every detection counts
+     * @return true when the slot changed
+     */
     private boolean redact(final PiiTextSlot slot, final String text,
                            final List<PiiMatch> matches, final Map<String, Integer> auditCounts) {
-        List<PiiMatch> ordered = new ArrayList<>(matches);
-        ordered.sort(Comparator.comparingInt(PiiMatch::getStart).reversed()
-                .thenComparing(match -> rule.actionFor(match.getType()).ordinal()));
-        StringBuilder builder = new StringBuilder(text);
-        int replacedStart = Integer.MAX_VALUE;
-        boolean changed = false;
-        for (PiiMatch match : ordered) {
+        for (PiiMatch match : matches) {
             auditCounts.merge(match.getType(), 1, Integer::sum);
-            if (rule.actionFor(match.getType()) != PiiAction.REDACT) {
-                continue;
-            }
-            if (match.getEnd() > replacedStart) {
-                continue;
-            }
-            builder.replace(match.getStart(), match.getEnd(), placeholder(match.getType()));
-            replacedStart = match.getStart();
-            changed = true;
         }
-        if (changed) {
-            slot.replace(builder.toString());
+        List<PiiMatch> redactions = new ArrayList<>();
+        for (PiiMatch match : matches) {
+            if (rule.actionFor(match.getType()) == PiiAction.REDACT) {
+                redactions.add(match);
+            }
         }
-        return changed;
+        if (redactions.isEmpty()) {
+            return false;
+        }
+        redactions.sort(Comparator.comparingInt(PiiMatch::getStart)
+                .thenComparing(Comparator.comparingInt(PiiMatch::getEnd).reversed()));
+        List<int[]> merged = new ArrayList<>();
+        List<String> mergedTypes = new ArrayList<>();
+        for (PiiMatch match : redactions) {
+            int last = merged.size() - 1;
+            if (last >= 0 && match.getStart() <= merged.get(last)[1]) {
+                merged.get(last)[1] = Math.max(merged.get(last)[1], match.getEnd());
+            } else {
+                merged.add(new int[]{match.getStart(), match.getEnd()});
+                mergedTypes.add(match.getType());
+            }
+        }
+        StringBuilder builder = new StringBuilder(text);
+        for (int i = merged.size() - 1; i >= 0; i--) {
+            builder.replace(merged.get(i)[0], merged.get(i)[1], placeholder(mergedTypes.get(i)));
+        }
+        slot.replace(builder.toString());
+        return true;
     }
 
     private String placeholder(final String type) {

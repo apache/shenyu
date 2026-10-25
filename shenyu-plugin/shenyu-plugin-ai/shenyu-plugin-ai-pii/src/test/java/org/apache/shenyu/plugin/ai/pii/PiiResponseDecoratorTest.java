@@ -105,6 +105,105 @@ public final class PiiResponseDecoratorTest {
         assertTrue(exchange.getResponse().getBodyAsString().block().contains("13800138000"));
     }
 
+    @Test
+    public void testErrorNullResponsesCompletionIsStillScanned() {
+        // a successful openai responses completion carries "error": null, it must
+        // not take the error-envelope bypass
+        String upstream = "{\"object\":\"response\",\"status\":\"completed\",\"error\":null,"
+                + "\"output\":[{\"type\":\"message\",\"role\":\"assistant\",\"content\":"
+                + "[{\"type\":\"output_text\",\"text\":\"reach me at alice@example.com\"}]}]}";
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", new PiiDetectionHandle());
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        write(rule, exchange, upstream);
+
+        String body = exchange.getResponse().getBodyAsString().block();
+        assertTrue(body.contains("<EMAIL>"));
+        assertFalse(body.contains("alice@example.com"));
+    }
+
+    @Test
+    public void testRealErrorEnvelopeIsNotRewritten() {
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", new PiiDetectionHandle());
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        write(rule, exchange, "{\"error\":{\"message\":\"provider quota exceeded\",\"code\":429}}");
+
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("provider quota exceeded"));
+    }
+
+    @Test
+    public void testRealGzipBytesSurviveThePassThrough() throws Exception {
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", new PiiDetectionHandle());
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        String text = "{\"choices\":[{\"message\":{\"content\":\"dial 13800138000\"}}]}";
+        java.io.ByteArrayOutputStream gzipped = new java.io.ByteArrayOutputStream();
+        try (java.util.zip.GZIPOutputStream gzip = new java.util.zip.GZIPOutputStream(gzipped)) {
+            gzip.write(text.getBytes(StandardCharsets.UTF_8));
+        }
+        byte[] wire = gzipped.toByteArray();
+
+        decorator(rule, exchange)
+                .writeWith(Flux.just(DefaultDataBufferFactory.sharedInstance.wrap(wire))).block();
+
+        byte[] written = exchange.getResponse().getBody()
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    org.springframework.core.io.buffer.DataBufferUtils.release(dataBuffer);
+                    return bytes;
+                })
+                .collect(java.io.ByteArrayOutputStream::new, (out, bytes) -> out.write(bytes, 0, bytes.length))
+                .map(java.io.ByteArrayOutputStream::toByteArray)
+                .block();
+        // byte level identity: a compressed body is never decoded and re encoded
+        org.junit.jupiter.api.Assertions.assertArrayEquals(wire, written);
+        java.io.ByteArrayOutputStream inflated = new java.io.ByteArrayOutputStream();
+        try (java.util.zip.GZIPInputStream in = new java.util.zip.GZIPInputStream(
+                new java.io.ByteArrayInputStream(written))) {
+            byte[] chunk = new byte[1024];
+            int read;
+            while ((read = in.read(chunk)) > 0) {
+                inflated.write(chunk, 0, read);
+            }
+        }
+        assertEquals(text, new String(inflated.toByteArray(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testChunkedBodyOverTheBoundIsRejectedWhenFailClosed() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setMaxBodySize(10L);
+        handle.setFailClosed(true);
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", handle);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        PiiResponseDecorator decorator = decorator(rule, exchange);
+
+        decorator.writeWith(Flux.just(buffer("{\"choices\":[{\"message\":"),
+                buffer("{\"content\":\"way over ten bytes\"}}]}"))).block();
+
+        assertEquals(HttpStatus.FORBIDDEN, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void testChunkedBodyOverTheBoundPassesThroughCompleteWhenFailOpen() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setMaxBodySize(10L);
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", handle);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        PiiResponseDecorator decorator = decorator(rule, exchange);
+        String complete = "{\"choices\":[{\"message\":"
+                + "{\"content\":\"dial 13800138000\"}}]}";
+
+        decorator.writeWith(Flux.just(buffer("{\"choices\":[{\"message\":"),
+                buffer("{\"content\":\"dial 13800138000\"}}]}"))).block();
+
+        // fail open reads to the end and writes the complete body back, a truncated
+        // pass through would corrupt the response
+        assertEquals(complete, exchange.getResponse().getBodyAsString().block());
+    }
+
     private void write(final PiiDetectionRule rule, final MockServerWebExchange exchange, final String body) {
         decorator(rule, exchange).writeWith(Flux.just(buffer(body))).block();
     }

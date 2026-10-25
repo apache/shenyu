@@ -44,6 +44,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -110,6 +111,15 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
         }
         final ServerWebExchange effective = mutated;
         if (!piiRule.scansRequest()) {
+            if (piiRule.scansResponse() && piiRule.isFailClosed()) {
+                // a strict response scope still prechecks the enforcement mode of the
+                // request: a streaming request under failClosed is rejected before it
+                // reaches the model, even when the request text itself is not scanned
+                return ServerWebExchangeUtils.rewriteRequestBody(effective, readers,
+                                body -> precheckStreamingRequest(effective, body, piiRule))
+                        .flatMap(chain::execute)
+                        .onErrorResume(this::resume);
+            }
             return chain.execute(effective).onErrorResume(this::resume);
         }
         long declaredSize = effective.getRequest().getHeaders().getContentLength();
@@ -144,16 +154,38 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
                         "the request scan exceeded its detector deadline"));
     }
 
-    private String inspectBody(final ServerWebExchange exchange,
-                               final String body, final PiiDetectionRule rule) {
-        if (rule.isOversized(body.length())) {
-            if (rule.isFailClosed()) {
-                LOG.warn("pii detection: the body of {} characters exceeds maxBodySize and failClosed is set,"
-                        + " the request is rejected", body.length());
+    /**
+     * The enforcement mode precheck of a strict response scope that does not scan
+     * the request text. Only the streaming flag is looked at, a request that is
+     * not streaming is forwarded unchanged, a streaming one is rejected before
+     * the model is reached.
+     */
+    private Mono<String> precheckStreamingRequest(final ServerWebExchange exchange,
+                                                  final String body, final PiiDetectionRule rule) {
+        return Mono.fromCallable(() -> {
+            JsonObject root = parse(body);
+            if (Objects.nonNull(root) && isStreamingRequest(root)) {
+                LOG.warn("pii detection: a streaming request under a strict response scope cannot enforce the"
+                        + " response, the request is rejected before it reaches the model");
                 throw rejectError(exchange);
             }
-            LOG.warn("pii detection: the body of {} characters exceeds maxBodySize, the body is not scanned",
-                    body.length());
+            return body;
+        }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private String inspectBody(final ServerWebExchange exchange,
+                               final String body, final PiiDetectionRule rule) {
+        // the bound is expressed in bytes, so the length is measured in utf 8
+        // bytes and not in characters
+        int byteLength = body.getBytes(StandardCharsets.UTF_8).length;
+        if (rule.isOversized(byteLength)) {
+            if (rule.isFailClosed()) {
+                LOG.warn("pii detection: the body of {} bytes exceeds maxBodySize and failClosed is set,"
+                        + " the request is rejected", byteLength);
+                throw rejectError(exchange);
+            }
+            LOG.warn("pii detection: the body of {} bytes exceeds maxBodySize, the body is not scanned",
+                    byteLength);
             return body;
         }
         JsonObject root = parse(body);
