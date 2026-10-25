@@ -113,6 +113,9 @@ public class ApiServiceImpl implements ApiService {
      */
     private String update(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
+        // Source records creation provenance, including historical retired sources.
+        // The selective update must retain it even when the client supplies another value.
+        apiDO.setApiSource(null);
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (updateRows > 0) {
             if (Objects.nonNull(apiDTO.getTagIds())) {

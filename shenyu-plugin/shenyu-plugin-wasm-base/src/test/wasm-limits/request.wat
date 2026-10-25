@@ -21,4 +21,3 @@ limitations under the License.
   (func (export "doExecute") (param i64)
     (call $entered)
     (loop $forever (br $forever))))
-

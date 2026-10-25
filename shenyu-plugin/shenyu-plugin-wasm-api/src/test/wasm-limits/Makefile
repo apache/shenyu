@@ -22,4 +22,3 @@ build:
 	$(WAT2WASM) initialize.wat -o '$(RESOURCES)/org.apache.shenyu.plugin.wasm.api.WasmExecutionLimitsTest$$InitializationGuest.wasm'
 	$(WAT2WASM) large-memory.wat -o '$(RESOURCES)/org.apache.shenyu.plugin.wasm.api.WasmExecutionLimitsTest$$LargeGuest.wasm'
 	$(WAT2WASM) memory-free.wat -o '$(RESOURCES)/org.apache.shenyu.plugin.wasm.api.WasmExecutionLimitsTest$$MemoryFreeGuest.wasm'
-

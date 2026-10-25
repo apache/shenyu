@@ -25,4 +25,3 @@ limitations under the License.
   (func (export "value") (param i64) (result i64) (local.get 0))
   (func (export "read") (result i32) (i32.load (i32.const 0)))
   (func (export "grow") (param i32) (result i32) (memory.grow (local.get 0))))
-

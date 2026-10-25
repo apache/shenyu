@@ -129,7 +129,7 @@ class CacheResponseReplayTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"cookie-header", "cookie-api", "vary", "private", "no-store", "no-cache", "late-private", "late-cookie", "partial", "not-modified"})
+    @ValueSource(strings = {"cookie-header", "cookie-api", "vary-all", "private", "no-store", "no-cache", "late-private", "late-cookie", "partial", "not-modified"})
     void testResponsesThatCannotBeSharedAreNotStored(final String policy) {
         AtomicInteger calls = new AtomicInteger();
         ShenyuPluginChain chain = exchange -> {
@@ -139,8 +139,8 @@ class CacheResponseReplayTest {
                 exchange.getResponse().getHeaders().add(HttpHeaders.SET_COOKIE, "session=private");
             } else if ("cookie-api".equals(policy)) {
                 exchange.getResponse().addCookie(ResponseCookie.from("session", "private").build());
-            } else if ("vary".equals(policy)) {
-                exchange.getResponse().getHeaders().setVary(List.of("Accept"));
+            } else if ("vary-all".equals(policy)) {
+                exchange.getResponse().getHeaders().setVary(List.of("*"));
             } else if ("private".equals(policy)) {
                 exchange.getResponse().getHeaders().setCacheControl("max-age=60, PRIVATE=\"X-User\"");
             } else if ("no-store".equals(policy)) {
@@ -332,6 +332,48 @@ class CacheResponseReplayTest {
         assertEquals("body", hit.getResponse().getBodyAsString().block());
     }
 
+    @Test
+    void testResponseVaryingOnRequestHeaderIsReusedOnlyForTheSameVariant() {
+        AtomicInteger calls = new AtomicInteger();
+        ShenyuPluginChain chain = exchange -> {
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            exchange.getResponse().getHeaders().setVary(List.of(HttpHeaders.ORIGIN));
+            return write(exchange, "response-" + calls.incrementAndGet());
+        };
+        StepVerifier.create(execute(cors("https://a.example"), chain)).verifyComplete();
+        MockServerWebExchange sameOrigin = cors("https://a.example");
+        StepVerifier.create(execute(sameOrigin, chain)).verifyComplete();
+        MockServerWebExchange otherOrigin = cors("https://b.example");
+        StepVerifier.create(execute(otherOrigin, chain)).verifyComplete();
+
+        assertEquals(2, calls.get());
+        assertEquals("response-1", sameOrigin.getResponse().getBodyAsString().block());
+        assertEquals("response-2", otherOrigin.getResponse().getBodyAsString().block());
+        assertEquals(List.of(HttpHeaders.ORIGIN), otherOrigin.getResponse().getHeaders().getVary());
+    }
+
+    @Test
+    void testVaryHeaderAddedBeforeCommitStillAllowsCaching() {
+        AtomicInteger calls = new AtomicInteger();
+        ShenyuPluginChain chain = exchange -> {
+            exchange.getResponse().beforeCommit(() -> {
+                exchange.getResponse().getHeaders().add(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+                return Mono.empty();
+            });
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return write(exchange, "response-" + calls.incrementAndGet());
+        };
+        StepVerifier.create(execute(cors("https://a.example"), chain)).verifyComplete();
+        MockServerWebExchange hit = cors("https://a.example");
+        StepVerifier.create(execute(hit, chain)).verifyComplete();
+        MockServerWebExchange other = cors("https://b.example");
+        StepVerifier.create(execute(other, chain)).verifyComplete();
+
+        assertEquals(2, calls.get());
+        assertEquals("response-1", hit.getResponse().getBodyAsString().block());
+        assertEquals("response-2", other.getResponse().getBodyAsString().block());
+    }
+
     private Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return plugin.doExecute(exchange, chain, selector, rule);
     }
@@ -342,5 +384,10 @@ class CacheResponseReplayTest {
 
     private static MockServerWebExchange request() {
         return MockServerWebExchange.from(MockServerHttpRequest.get("http://gateway.example/cache-metadata").build());
+    }
+
+    private static MockServerWebExchange cors(final String origin) {
+        return MockServerWebExchange.from(MockServerHttpRequest.get("http://gateway.example/cache-metadata")
+                .header(HttpHeaders.ORIGIN, origin).build());
     }
 }

@@ -110,8 +110,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
-            //get last
-            RuleData rule = rules.get(rules.size() - 1);
+            RuleData rule = lastEnabledRule(rules);
+            if (Objects.isNull(rule)) {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
@@ -130,6 +132,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);
+    }
+
+    private static RuleData lastEnabledRule(final List<RuleData> rules) {
+        for (int i = rules.size() - 1; i >= 0; i--) {
+            RuleData rule = rules.get(i);
+            if (Boolean.TRUE.equals(rule.getEnabled())) {
+                return rule;
+            }
+        }
+        return null;
     }
     
     protected String getRawPath(final ServerWebExchange exchange) {

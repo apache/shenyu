@@ -19,4 +19,3 @@ RESOURCES := ../resources
 .PHONY: build
 build:
 	$(WAT2WASM) request.wat -o '$(RESOURCES)/org.apache.shenyu.plugin.wasm.base.WasmRequestLimitsTest$$Plugin.wasm'
-

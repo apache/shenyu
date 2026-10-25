@@ -18,4 +18,3 @@ limitations under the License.
 (module
   (memory (export "memory") 1)
   (func (export "_initialize") (loop $forever (br $forever))))
-

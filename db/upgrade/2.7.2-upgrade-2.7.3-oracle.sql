@@ -40,3 +40,12 @@ WHERE EXISTS (
             AND retained_instance.id > duplicate_instance.id))
 );
 CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, instance_ip, instance_port, instance_type);
+
+-- Preserve complete API-debug request headers, including long Authorization values.
+-- Stop Admin writers and back up mock_request_record before the one-time migration.
+ALTER TABLE mock_request_record ADD header_clob CLOB;
+UPDATE mock_request_record SET header_clob = COALESCE(TO_CLOB(header), EMPTY_CLOB());
+ALTER TABLE mock_request_record DROP COLUMN header;
+ALTER TABLE mock_request_record RENAME COLUMN header_clob TO header;
+ALTER TABLE mock_request_record MODIFY header DEFAULT EMPTY_CLOB() NOT NULL;
+COMMENT ON COLUMN mock_request_record.header IS 'the request param in header';

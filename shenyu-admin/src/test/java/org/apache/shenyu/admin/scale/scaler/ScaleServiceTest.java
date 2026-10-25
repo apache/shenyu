@@ -35,6 +35,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -77,6 +78,45 @@ public final class ScaleServiceTest {
         service = new ScaleService(
                 mock(MetricsMonitor.class), schedulerManager,
                 policyCache, properties, kubernetesScaler, clock);
+        service.start();
+        clearInvocations(schedulerManager, kubernetesScaler);
+    }
+
+    @Test
+    public void testInactiveExecuteScalingDoesNothing() {
+        service.stop();
+        clearInvocations(schedulerManager, kubernetesScaler);
+
+        service.executeScaling();
+
+        verifyNoInteractions(schedulerManager, kubernetesScaler);
+    }
+
+    @Test
+    public void testStartActivatesAndReconciles() {
+        service.stop();
+        final ScalePolicyDO fixedPolicy = policy("1", 1, 1);
+        fixedPolicy.setNum(3);
+        policyCache.initialize(List.of(fixedPolicy));
+        clearInvocations(schedulerManager, kubernetesScaler);
+
+        service.start();
+
+        verify(kubernetesScaler).scaleByNum(3);
+    }
+
+    @Test
+    public void testStopCancelsAllTasksAndIsIdempotent() {
+        service.stop();
+        service.stop();
+
+        verify(schedulerManager, times(2)).cancelMonitorTask("DynamicScalingTask");
+        verifyWindowTaskCancellations(2);
+        verifyNoMoreInteractions(schedulerManager);
+
+        service.executeScaling();
+        verifyNoMoreInteractions(schedulerManager);
+        verifyNoInteractions(kubernetesScaler);
     }
 
     @Test

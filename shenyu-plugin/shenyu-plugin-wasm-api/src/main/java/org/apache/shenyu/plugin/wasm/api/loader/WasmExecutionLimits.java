@@ -96,4 +96,3 @@ public final class WasmExecutionLimits {
         return maxMemoryPages;
     }
 }
-
