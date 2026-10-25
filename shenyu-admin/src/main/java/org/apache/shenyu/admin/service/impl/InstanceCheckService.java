@@ -116,7 +116,9 @@ public class InstanceCheckService {
                 instanceInfoVO.setInstanceState(InstanceStatusEnum.DELETED.getCode());
             }
             String instanceKey = getInstanceKey(instanceInfoVO);
-            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
+            // a persisted observation is older than any heartbeat already accepted in the live map
+            // (heartbeat time is not persisted), so only fill identities that have no live entry
+            instanceHealthBeatInfo.putIfAbsent(instanceKey, instanceInfoVO);
         });
     }
 
