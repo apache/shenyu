@@ -32,6 +32,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,6 +53,7 @@ import java.util.List;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -127,8 +131,9 @@ public final class ApiControllerTest {
                 .andReturn();
     }
 
-    @Test
-    public void testCreateApi() throws Exception {
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3})
+    public void testCreateApi(final int apiSource) throws Exception {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setContextPath("string");
         apiDTO.setApiPath("string");
@@ -140,7 +145,7 @@ public final class ApiControllerTest {
         apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
-        apiDTO.setApiSource(0);
+        apiDTO.setApiSource(apiSource);
         apiDTO.setDocument("document");
         apiDTO.setExt("ext");
         given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
@@ -150,6 +155,20 @@ public final class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
+    }
+
+    @Test
+    public void testCreateApiRejectsUnsupportedSource() throws Exception {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setHttpMethod(0);
+        apiDTO.setState(0);
+        apiDTO.setApiSource(4);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Request error! invalid argument [apiSource: apiSource max 3]")));
+        verifyNoInteractions(apiService);
     }
 
     @Test
@@ -200,8 +219,9 @@ public final class ApiControllerTest {
                 .andReturn();
     }
 
-    @Test
-    public void testUpdateApi() throws Exception {
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3})
+    public void testUpdateApi(final int apiSource) throws Exception {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setContextPath("string");
         apiDTO.setApiPath("string");
@@ -213,7 +233,7 @@ public final class ApiControllerTest {
         apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
-        apiDTO.setApiSource(0);
+        apiDTO.setApiSource(apiSource);
         apiDTO.setDocument("document");
         apiDTO.setExt("ext");
         apiDTO.setId("123");
@@ -227,6 +247,25 @@ public final class ApiControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
 
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(ints = {4})
+    public void testUpdateApiAcceptsHistoricalOrOmittedSource(final Integer apiSource) throws Exception {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setId("123");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setState(0);
+        apiDTO.setApiSource(apiSource);
+        when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
+        when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(apiDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)));
     }
 
     @Test

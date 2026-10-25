@@ -30,6 +30,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
@@ -86,6 +87,8 @@ public final class ClientIdTakeoverTest {
         Singleton.INST.single(SessionRepository.class, sessionRepository);
         Singleton.INST.single(WillRepository.class, willRepository);
         Singleton.INST.single(SubscribeRepository.class, subscribeRepository);
+        // Connect reaches this repository on a new session, and Singleton.get does not create one
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
         MqttContext mqttContext = new MqttContext();
         mqttContext.setUserName(USER_NAME);
         mqttContext.setPassword(PASSWORD);

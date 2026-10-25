@@ -39,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -434,5 +435,59 @@ class ShenyuToolCallbackTest {
         ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
         assertNotNull(callback);
         assertEquals(toolDefinition, callback.getToolDefinition());
+    }
+
+    @Test
+    void testDecoratedExchangeEncodesFormBody() {
+        final ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
+        final MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+        final String config = "{\"requestTemplate\":{\"url\":\"/submit\",\"method\":\"POST\","
+                + "\"headers\":[{\"key\":\"Content-Type\",\"value\":\"application/x-www-form-urlencoded\"}],"
+                + "\"argsToJsonBody\":true},\"argsPosition\":{\"name\":\"body\"}}";
+
+        final ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(
+                callback, "buildDecoratedExchange", originExchange,
+                new CompletableFuture<String>(), "session123", config,
+                "{\"name\":\"Ada & Bob\"}");
+
+        assertNotNull(decoratedExchange);
+        final DataBuffer buffer = DataBufferUtils.join(
+                decoratedExchange.getRequest().getBody()).block();
+        assertNotNull(buffer);
+        try {
+            assertEquals("name=Ada+%26+Bob", buffer.toString(StandardCharsets.UTF_8));
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
+
+        assertTrue(MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(
+                decoratedExchange.getRequest().getHeaders().getContentType()));
+    }
+
+    @Test
+    void testDecoratedExchangeDefaultsToJsonWithoutTemplateContentType() {
+        final ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
+        final MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("http://gateway.example:9195/mcp")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED).build());
+        final String config = "{\"requestTemplate\":{\"url\":\"/submit\",\"method\":\"POST\","
+                + "\"argsToJsonBody\":true},\"argsPosition\":{\"name\":\"body\"}}";
+
+        final ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(
+                callback, "buildDecoratedExchange", originExchange,
+                new CompletableFuture<String>(), "session123", config,
+                "{\"name\":\"Ada & Bob\"}");
+
+        assertNotNull(decoratedExchange);
+        assertEquals(MediaType.APPLICATION_JSON, decoratedExchange.getRequest().getHeaders().getContentType());
+        final DataBuffer buffer = DataBufferUtils.join(decoratedExchange.getRequest().getBody()).block();
+        assertNotNull(buffer);
+        try {
+            final JsonObject body = JsonParser.parseString(buffer.toString(StandardCharsets.UTF_8)).getAsJsonObject();
+            assertEquals("Ada & Bob", body.get("name").getAsString());
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
     }
 }
