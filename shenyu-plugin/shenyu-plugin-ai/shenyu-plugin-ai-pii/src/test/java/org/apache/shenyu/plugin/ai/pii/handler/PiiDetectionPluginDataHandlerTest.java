@@ -134,7 +134,7 @@ public final class PiiDetectionPluginDataHandlerTest {
     public void testOversizedConfigurationRetainsPreviousRuleAndPropagatesSanitizedException() {
         ruleData.setHandle("{\"detectors\":\"EMAIL\",\"maxBodySize\":10}");
         handler.handlerRule(ruleData);
-        PiiDetectionRule previous = PiiDetectionPluginDataHandler.obtainRule(ruleData);
+        final PiiDetectionRule previous = PiiDetectionPluginDataHandler.obtainRule(ruleData);
         PiiDetectionHandle replacement = new PiiDetectionHandle();
         replacement.setCustomPatterns("SECRET_TYPE=secret-regex\n".repeat(PiiDetectionRule.MAX_CUSTOM_PATTERN_COUNT + 1));
         replacement.setMaxBodySize(0L);
