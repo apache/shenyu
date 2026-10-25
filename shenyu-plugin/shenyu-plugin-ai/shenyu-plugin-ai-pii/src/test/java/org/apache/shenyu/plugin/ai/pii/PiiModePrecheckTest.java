@@ -107,6 +107,32 @@ public final class PiiModePrecheckTest {
                 "a response only scope must not scan or rewrite the request text");
     }
 
+    @Test
+    public void testUndeclaredOverLimitChunkedRequestIsRejectedByActualLength() {
+        // no Content-Length, the body is above the rule bound (128 bytes) but below
+        // the codec limit: the precheck must measure the actual utf-8 length, the
+        // bound cannot depend on how the request is transported
+        PiiDetectionHandle handle = responseOnlyFailClosed();
+        handle.setMaxBodySize(128L);
+        cacheHandle(handle);
+        StringBuilder payload = new StringBuilder("{\"x\":\"");
+        for (int i = 0; i < 1024; i++) {
+            payload.append('a');
+        }
+        payload.append("\"}");
+        RecordingChain chain = new RecordingChain();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(reactor.core.publisher.Flux.just(
+                        org.springframework.core.io.buffer.DefaultDataBufferFactory.sharedInstance
+                                .wrap(payload.toString().getBytes(StandardCharsets.UTF_8)))));
+
+        plugin().doExecute(exchange, chain, null, ruleData).block();
+
+        assertEquals(0, chain.executed.size());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("sensitive content detected"));
+    }
+
     private PiiDetectionPlugin plugin() {
         return new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), record -> {
         });

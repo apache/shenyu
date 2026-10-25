@@ -183,13 +183,21 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
 
     /**
      * The enforcement mode precheck of a strict response scope that does not scan
-     * the request text. Only the streaming flag is looked at, a request that is
-     * not streaming is forwarded unchanged, a streaming one is rejected before
-     * the model is reached.
+     * the request text. The actual byte length is checked as well: a chunked
+     * request has no declared length, so without this check the bound would
+     * depend on how the request is transported. A request that stays under the
+     * bound and is not streaming is forwarded unchanged, a streaming one is
+     * rejected before the model is reached.
      */
     private Mono<String> precheckStreamingRequest(final ServerWebExchange exchange,
                                                   final String body, final PiiDetectionRule rule) {
         return Mono.fromCallable(() -> {
+            int byteLength = body.getBytes(StandardCharsets.UTF_8).length;
+            if (rule.isOversized(byteLength)) {
+                LOG.warn("pii detection: the chunked body of {} bytes exceeds maxBodySize {}, the request"
+                        + " is rejected", byteLength, rule.getMaxBodySize());
+                throw rejectError(exchange);
+            }
             JsonObject root = parse(body);
             if (Objects.nonNull(root) && isStreamingRequest(root)) {
                 LOG.warn("pii detection: a streaming request under a strict response scope cannot enforce the"

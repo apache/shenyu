@@ -113,6 +113,15 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
      * Wrap the body into the stream that is written downstream, applying the
      * size bound while the body flows through it.
      *
+     * <p>Buffer ownership: an upstream buffer is released by this plugin as
+     * soon as its content has been copied into the bounded prefix or, from the
+     * fail open switch point on, exactly when it is handed downstream. The
+     * prefix is replayed and the overflowing chunk is re emitted as buffers
+     * allocated from a byte array, they carry no pooled memory, so a
+     * cancellation between two emitted chunks cannot leak direct memory. The
+     * {@code doOnDiscard} hook covers a chunk that was taken from the upstream
+     * but never emitted because the downstream cancelled.</p>
+     *
      * <ul>
      * <li>while the body stays under the bound, every chunk is copied into a
      * bounded prefix buffer and nothing is written; when the body completes,
@@ -139,6 +148,7 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
         return Flux.from(body)
                 .concatMap(buffer -> {
                     if (streaming.get()) {
+                        // the ownership moves to the downstream with the buffer
                         return Mono.just(buffer);
                     }
                     final int size = buffer.readableByteCount();
@@ -150,7 +160,15 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
                         streaming.set(true);
                         LOG.warn("pii detection: the response exceeds maxBodySize {}, the scan stopped and the"
                                 + " remaining body streams through unscanned, ruleId {}", limit, rule.getRuleId());
-                        return Flux.concat(Mono.just(bufferFactory().wrap(prefix.toByteArray())), Mono.just(buffer));
+                        // the overflowing chunk is copied out and its upstream buffer is
+                        // released here: what the switch emits is a plain array backed
+                        // buffer, a cancellation between the prefix and the chunk cannot
+                        // leak pooled memory
+                        final byte[] overflow = new byte[size];
+                        buffer.read(overflow);
+                        DataBufferUtils.release(buffer);
+                        return Flux.just(bufferFactory().wrap(prefix.toByteArray()),
+                                bufferFactory().wrap(overflow));
                     }
                     final byte[] chunk = new byte[size];
                     buffer.read(chunk);
@@ -158,6 +176,7 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
                     prefix.write(chunk, 0, size);
                     return Mono.<DataBuffer>empty();
                 })
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .concatWith(Mono.defer(() -> streaming.get()
                         ? Mono.empty()
                         : Mono.fromCallable(() -> scan(prefix.toByteArray()))

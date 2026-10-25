@@ -217,13 +217,15 @@ public final class PiiResponseDecoratorTest {
                 reactor.core.publisher.Sinks.many().unicast().onBackpressureBuffer();
 
         decorator.writeWith(upstream.asFlux()).subscribe();
-        upstream.tryEmitNext(buffer("prefix-data"));
+        // the first chunk stays under the bound and is buffered, the second one
+        // crosses it: the buffered prefix must be replayed in full
+        upstream.tryEmitNext(buffer("prefix"));
         upstream.tryEmitNext(buffer("-overflow"));
 
         // the upstream is still open: the buffered prefix and the overflowing chunk
         // must already be readable downstream without waiting for the completion
         String received = exchange.getResponse().getBody()
-                .take(3)
+                .take(2)
                 .map(dataBuffer -> {
                     byte[] bytes = new byte[dataBuffer.readableByteCount()];
                     dataBuffer.read(bytes);
@@ -234,8 +236,55 @@ public final class PiiResponseDecoratorTest {
                 .map(StringBuilder::toString)
                 .block(java.time.Duration.ofSeconds(10));
 
-        assertEquals("prefix-data-overflow", received);
+        assertEquals("prefix-overflow", received);
         upstream.tryEmitComplete();
+    }
+
+    @Test
+    public void testFailOpenSwitchReleasesPooledBuffersOfBothPrefixAndOverflowChunks() {
+        // a real netty pooled buffer proves the ownership: every upstream buffer is
+        // released by the plugin as soon as its content was copied, the buffers the
+        // switch point emits are array backed and carry no pooled memory, so a
+        // cancellation between them cannot leak direct memory
+        io.netty.buffer.ByteBufAllocator allocator = io.netty.buffer.ByteBufAllocator.DEFAULT;
+        final org.springframework.core.io.buffer.NettyDataBufferFactory nettyFactory =
+                new org.springframework.core.io.buffer.NettyDataBufferFactory(allocator);
+        io.netty.buffer.ByteBuf first = allocator.buffer();
+        first.writeBytes("prefix".getBytes(StandardCharsets.UTF_8));
+        io.netty.buffer.ByteBuf second = allocator.buffer();
+        second.writeBytes("-overflow".getBytes(StandardCharsets.UTF_8));
+
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setMaxBodySize(10L);
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", handle);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        PiiResponseDecorator decorator = decorator(rule, exchange);
+        reactor.core.publisher.Sinks.Many<org.springframework.core.io.buffer.DataBuffer> upstream =
+                reactor.core.publisher.Sinks.many().unicast().onBackpressureBuffer();
+
+        decorator.writeWith(upstream.asFlux()).subscribe();
+        upstream.tryEmitNext(nettyFactory.wrap(first));
+        upstream.tryEmitNext(nettyFactory.wrap(second));
+
+        // read only the replayed prefix, then cancel: the overflow buffer was never
+        // delivered downstream, the plugin must still have released it
+        String replayed = exchange.getResponse().getBody()
+                .take(1)
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    org.springframework.core.io.buffer.DataBufferUtils.release(dataBuffer);
+                    return new String(bytes, StandardCharsets.UTF_8);
+                })
+                .next()
+                .block(java.time.Duration.ofSeconds(10));
+        assertEquals("prefix", replayed);
+
+        org.junit.jupiter.api.Assertions.assertEquals(0, first.refCnt(),
+                "the prefix chunk must be released once its content was copied");
+        org.junit.jupiter.api.Assertions.assertEquals(0, second.refCnt(),
+                "the overflow chunk must be released even though the downstream cancelled");
     }
 
     private void write(final PiiDetectionRule rule, final MockServerWebExchange exchange, final String body) {
