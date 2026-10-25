@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>The count is increased when the RPC starts, not when the invoker is selected: Dubbo's cluster
  * layer may pick an invoker and then discard the pick (it was already tried, it is unavailable, or a
  * reselect replaced it), and a selection-time reservation would leak those counts forever. The count
- * is released exactly once, either when the returned result completes or when the invocation throws
- * before producing one.
+ * is released exactly once per invocation, either when the returned result completes or when the
+ * invocation throws before producing one.
  *
  * <p>Every method other than {@link #invoke(Invocation)} is delegated, and {@link #equals(Object)} and
  * {@link #hashCode()} delegate to the wrapped invoker as well. Dubbo's cluster keeps the selected
@@ -47,8 +47,6 @@ final class InflightInvoker<T> implements Invoker<T> {
     private final Invoker<T> delegate;
 
     private final Upstream upstream;
-
-    private final AtomicBoolean released = new AtomicBoolean();
 
     InflightInvoker(final Invoker<T> delegate, final Upstream upstream) {
         this.delegate = delegate;
@@ -63,19 +61,22 @@ final class InflightInvoker<T> implements Invoker<T> {
     @Override
     public Result invoke(final Invocation invocation) throws RpcException {
         upstream.getInflight().incrementAndGet();
+        // The guard belongs to this call, not to the invoker: an Invoker may be invoked many times, and a
+        // shared flag would let the second call's count go unreleased.
+        AtomicBoolean released = new AtomicBoolean();
         Result result;
         try {
             result = delegate.invoke(invocation);
         } catch (RuntimeException e) {
             // RpcException is a RuntimeException; anything thrown before a result exists still releases.
-            release();
+            release(released);
             throw e;
         }
         if (Objects.isNull(result)) {
-            release();
+            release(released);
             return null;
         }
-        return result.whenCompleteWithContext((response, throwable) -> release());
+        return result.whenCompleteWithContext((response, throwable) -> release(released));
     }
 
     @Override
@@ -93,10 +94,15 @@ final class InflightInvoker<T> implements Invoker<T> {
         delegate.destroy();
     }
 
-    private void release() {
+    private void release(final AtomicBoolean released) {
         if (released.compareAndSet(false, true)) {
             upstream.getInflight().decrementAndGet();
         }
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 
     @Override

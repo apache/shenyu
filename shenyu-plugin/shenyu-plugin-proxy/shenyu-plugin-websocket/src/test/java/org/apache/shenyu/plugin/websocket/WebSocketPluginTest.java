@@ -42,6 +42,8 @@ import org.mockito.MockedStatic;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
@@ -55,6 +57,7 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,6 +95,8 @@ public class WebSocketPluginTest {
 
     private WebSocketService webSocketService;
 
+    private WebSocketClient webSocketClient;
+
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
 
     @BeforeEach
@@ -111,7 +116,7 @@ public class WebSocketPluginTest {
                 .header(CONNECTION, "upgrade")
                 .header(com.google.common.net.HttpHeaders.SEC_WEBSOCKET_KEY, "websocket")
                 .build());
-        WebSocketClient webSocketClient = mock(WebSocketClient.class);
+        this.webSocketClient = mock(WebSocketClient.class);
         this.webSocketService = mock(WebSocketService.class);
         this.webSocketPlugin = new WebSocketPlugin(webSocketClient, webSocketService);
 
@@ -139,33 +144,50 @@ public class WebSocketPluginTest {
     }
 
     /**
-     * Least active counts the proxied session while it runs and releases it when it terminates.
+     * The count follows the session, not the handshake: the Mono the plugin returns completes as soon as the
+     * upgrade is done, so a count attached to it would be released while the session is still running.
      */
     @Test
-    public void leastActiveShouldCountTheProxiedSession() {
+    public void leastActiveShouldCountTheSessionAndNotTheHandshake() {
         initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
         Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
-        long initial = upstream.getInflight().get();
-        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.never());
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            // The real service completes here, when the upgrade handshake is done.
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
 
-        Disposable subscription = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        long initial = upstream.getInflight().get();
+        // The handshake is over, but the session it started is still running.
+        assertEquals(initial, upstream.getInflight().get());
+
+        Disposable session = handler.get().handle(mock(WebSocketSession.class)).subscribe();
         assertEquals(initial + 1, upstream.getInflight().get());
 
-        subscription.dispose();
+        session.dispose();
         assertEquals(initial, upstream.getInflight().get());
     }
 
     /**
-     * A proxied session that completes normally is released as well.
+     * A session that completes normally is released as well.
      */
     @Test
-    public void leastActiveShouldReleaseOnCompletion() {
+    public void leastActiveShouldReleaseOnSessionCompletion() {
         initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
         Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
-        long initial = upstream.getInflight().get();
-        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.empty());
-
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.empty());
         StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        long initial = upstream.getInflight().get();
+        StepVerifier.create(handler.get().handle(mock(WebSocketSession.class))).verifyComplete();
 
         assertEquals(initial, upstream.getInflight().get());
     }
@@ -177,13 +199,19 @@ public class WebSocketPluginTest {
     public void otherAlgorithmsShouldNotCountTheProxiedSession() {
         initMockInfo(LoadBalanceEnum.RANDOM.getName());
         Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
-        long initial = upstream.getInflight().get();
-        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.never());
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
 
-        Disposable subscription = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        long initial = upstream.getInflight().get();
+        Disposable session = handler.get().handle(mock(WebSocketSession.class)).subscribe();
         assertEquals(initial, upstream.getInflight().get());
 
-        subscription.dispose();
+        session.dispose();
         assertEquals(initial, upstream.getInflight().get());
     }
 

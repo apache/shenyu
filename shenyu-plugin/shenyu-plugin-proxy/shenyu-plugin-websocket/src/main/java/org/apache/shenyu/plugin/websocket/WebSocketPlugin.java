@@ -106,18 +106,15 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
         LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        Mono<Void> proxySession = this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
-                wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
-        if (!LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance())) {
-            return proxySession;
+        // The Mono returned by the WebSocket service completes when the upgrade handshake finishes; the
+        // proxied session then runs on its own subscription. The count therefore has to be attached to the
+        // handler, which is where the session actually lives, not to the handshake.
+        WebSocketHandler handler = new ShenyuWebSocketHandler(wsRequestUrl, this.webSocketClient,
+                filterHeaders(headers), buildWsProtocols(headers));
+        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance())) {
+            handler = new InflightWebSocketHandler(handler, upstream);
         }
-        // Least active compares outstanding requests, so the chosen upstream stays reserved for as long as
-        // the proxied session runs and is released when it terminates, whatever its outcome. The reservation
-        // happens on subscription, so a session that is never subscribed does not leak the count.
-        return Mono.defer(() -> {
-            upstream.getInflight().incrementAndGet();
-            return proxySession.doFinally(signalType -> upstream.getInflight().decrementAndGet());
-        });
+        return this.webSocketService.handleRequest(exchange, handler);
     }
 
     private WebSocketRuleHandle buildRuleHandle(final RuleData rule) {
@@ -222,6 +219,52 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.WEB_SOCKET.getCode();
+    }
+
+    /**
+     * Counts a proxied session against its upstream for least active selection.
+     *
+     * <p>The count is increased when the session starts and released when the handler's Mono terminates, which
+     * is when the session ends. It has to be attached here rather than to the Mono the plugin returns: that
+     * one completes as soon as the upgrade handshake is done.
+     */
+    private static final class InflightWebSocketHandler implements WebSocketHandler {
+
+        private final WebSocketHandler delegate;
+
+        private final Upstream upstream;
+
+        InflightWebSocketHandler(final WebSocketHandler delegate, final Upstream upstream) {
+            this.delegate = delegate;
+            this.upstream = upstream;
+        }
+
+        @NonNull
+        @Override
+        public Mono<Void> handle(@NonNull final WebSocketSession session) {
+            return Mono.defer(() -> {
+                upstream.getInflight().incrementAndGet();
+                Mono<Void> proxied;
+                try {
+                    proxied = delegate.handle(session);
+                } catch (RuntimeException e) {
+                    // A failure before the session starts must not leave the upstream reserved forever.
+                    upstream.getInflight().decrementAndGet();
+                    throw e;
+                }
+                if (Objects.isNull(proxied)) {
+                    upstream.getInflight().decrementAndGet();
+                    return Mono.empty();
+                }
+                return proxied.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+            });
+        }
+
+        @NonNull
+        @Override
+        public List<String> getSubProtocols() {
+            return delegate.getSubProtocols();
+        }
     }
 
     private static class ShenyuWebSocketHandler implements WebSocketHandler {

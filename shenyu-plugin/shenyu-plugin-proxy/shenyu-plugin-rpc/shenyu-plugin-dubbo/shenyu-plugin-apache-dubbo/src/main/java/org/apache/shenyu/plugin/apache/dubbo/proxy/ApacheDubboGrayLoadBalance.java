@@ -83,6 +83,8 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
                 return true;
             }).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(invokerGrays)) {
+                // The gray pick matched no provider, so it is discarded and this call serves from the full
+                // list. The upstream it named is not carrying the request, so it is not counted against it.
                 return dubboSelect(invokers, url, invocation);
             }
             return withInflight(dubboSelect(invokerGrays, url, invocation), upstream, dubboRuleHandle.getLoadBalance());

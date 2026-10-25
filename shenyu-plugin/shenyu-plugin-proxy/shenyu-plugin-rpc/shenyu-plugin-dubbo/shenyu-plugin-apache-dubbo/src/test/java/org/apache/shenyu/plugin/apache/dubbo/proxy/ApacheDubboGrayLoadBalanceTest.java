@@ -148,6 +148,29 @@ public class ApacheDubboGrayLoadBalanceTest {
         assertEquals(initial, upstream.getInflight().get());
     }
 
+    /**
+     * An Invoker is a reusable object, so the same wrapper may serve several calls; each one releases its own
+     * count rather than sharing a single guard.
+     */
+    @Test
+    public void leastActiveShouldReleaseEveryInvocationOnAReusedWrapper() {
+        RpcInvocation firstCall = grayInvocation();
+        RpcInvocation secondCall = grayInvocation();
+        when(dubboRuleHandle.getLoadBalance()).thenReturn("leastActive");
+        when(upstream.getUrl()).thenReturn("localhost");
+        Invoker<Object> rpcInvoker = mock(Invoker.class);
+        when(rpcInvoker.getUrl()).thenReturn(mockInvoker.getUrl());
+        when(rpcInvoker.invoke(firstCall)).thenReturn(AsyncRpcResult.newDefaultAsyncResult("first", firstCall));
+        when(rpcInvoker.invoke(secondCall)).thenReturn(AsyncRpcResult.newDefaultAsyncResult("second", secondCall));
+
+        long initial = upstream.getInflight().get();
+        Invoker<Object> selected = apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, firstCall);
+        selected.invoke(firstCall);
+        selected.invoke(secondCall);
+
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
     @Test
     public void otherAlgorithmsShouldReturnTheSelectedInvokerUnchanged() {
         when(upstream.getUrl()).thenReturn("localhost");
