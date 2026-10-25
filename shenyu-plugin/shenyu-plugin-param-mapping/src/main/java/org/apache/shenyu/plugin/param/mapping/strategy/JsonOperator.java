@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
@@ -60,26 +61,28 @@ public class JsonOperator implements Operator {
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain,
                             final ParamMappingRuleHandle paramMappingRuleHandle) {
         ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-        Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.just(""))
+        return serverRequest.bodyToMono(String.class).defaultIfEmpty("")
                 .flatMap(originalBody -> {
+                    if (originalBody.isEmpty() && CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys())) {
+                        return shenyuPluginChain.execute(exchange);
+                    }
                     LOG.info("get body data success data:{}", originalBody);
                     // process entity
-                    String modify = operation(originalBody, paramMappingRuleHandle);
-                    return Mono.just(modify);
+                    String modify = operation(originalBody.isEmpty() ? "{}" : originalBody, paramMappingRuleHandle);
+                    BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(Mono.just(modify),
+                            String.class);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.putAll(exchange.getRequest().getHeaders());
+                    headers.remove(HttpHeaders.CONTENT_LENGTH);
+                    CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
+                    return bodyInserter.insert(outputMessage, new BodyInserterContext())
+                            .then(Mono.defer(() -> {
+                                ServerHttpRequestDecorator decorator = new ModifyServerHttpRequestDecorator(headers,
+                                        exchange.getRequest(), outputMessage);
+                                return Mono.just(exchange.mutate().request(decorator).build());
+                            })).flatMap(shenyuPluginChain::execute)
+                            .onErrorResume(throwable -> release(outputMessage, throwable));
                 });
-        BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono,
-                String.class);
-        HttpHeaders headers = new HttpHeaders();
-        headers.putAll(exchange.getRequest().getHeaders());
-        headers.remove(HttpHeaders.CONTENT_LENGTH);
-        CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
-        return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                .then(Mono.defer(() -> {
-                    ServerHttpRequestDecorator decorator = new ModifyServerHttpRequestDecorator(headers,
-                            exchange.getRequest(), outputMessage);
-                    return Mono.just(exchange.mutate().request(decorator).build());
-                })).flatMap(shenyuPluginChain::execute)
-                .onErrorResume(throwable -> release(outputMessage, throwable));
     }
     
     static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {

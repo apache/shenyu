@@ -104,6 +104,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(source.getParameterTypes())
                         .rpcExt(source.getRpcExt())
                         .enabled(source.getEnabled())
+                        .namespaceId(source.getNamespaceId())
                         .build())
                 .orElse(null);
     }
@@ -127,6 +128,7 @@ public enum MetaDataTransfer {
                         .parameterTypes(v.getParameterTypes())
                         .rpcExt(v.getRpcExt())
                         .enabled(v.getEnabled())
+                        .namespaceId(v.getNamespaceId())
                         .build())
                 .orElse(null);
     }
@@ -186,6 +188,7 @@ public enum MetaDataTransfer {
                     metaDataVO.setRpcExt(metaDataDO.getRpcExt());
                     metaDataVO.setId(metaDataDO.getId());
                     metaDataVO.setEnabled(metaDataDO.getEnabled());
+                    metaDataVO.setNamespaceId(metaDataDO.getNamespaceId());
                     metaDataVO.setDateCreated(Optional.ofNullable(metaDataDO.getDateCreated())
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime())).orElse(null));
                     metaDataVO.setDateUpdated(Optional.ofNullable(metaDataDO.getDateUpdated())

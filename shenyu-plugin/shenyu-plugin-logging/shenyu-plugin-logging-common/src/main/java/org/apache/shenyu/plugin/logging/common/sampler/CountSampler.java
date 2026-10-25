@@ -101,16 +101,16 @@ public class CountSampler implements Sampler {
         if (StringUtils.isBlank(probability)) {
             return ALWAYS_SAMPLE;
         }
-        if ("0".equals(probability)) {
-            return NEVER_SAMPLE;
-        }
         if ("1".equals(probability) || "1.0".equals(probability) || "1.0.0".equals(probability)) {
             return ALWAYS_SAMPLE;
         }
         float parseProbability = NumberUtils.toFloat(probability, 1);
-        if (parseProbability < 0.01f || parseProbability > 1) {
+        if (parseProbability == 0) {
+            return NEVER_SAMPLE;
+        }
+        if (!Float.isFinite(parseProbability) || parseProbability < 0.01f || parseProbability > 1) {
             throw new IllegalArgumentException(
-                    "probability should be between 0.01 and 1: was " + probability);
+                    "probability should be 0 or between 0.01 and 1: was " + probability);
         }
         return new CountSampler(parseProbability);
     }

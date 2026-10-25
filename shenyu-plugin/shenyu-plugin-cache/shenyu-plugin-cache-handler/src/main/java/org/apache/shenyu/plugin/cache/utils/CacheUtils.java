@@ -18,16 +18,22 @@
 package org.apache.shenyu.plugin.cache.utils;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.cache.ICache;
+import org.apache.shenyu.plugin.cache.cache.ResponseSingleFlight;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * CacheUtils.
  */
 public final class CacheUtils {
+
+    private static final String DATA_KEY_VERSION = "v2";
 
     private static final String CONTENT_TYPEKEY_SUFFIX = "contentType";
 
@@ -37,15 +43,14 @@ public final class CacheUtils {
     }
 
     /**
-     * the cache data key.
+     * The cache data key, including the method and complete raw request URI.
      *
      * @param exchange the exchange.
      * @return data key
      */
     public static String dataKey(final ServerWebExchange exchange) {
-        //// todo 2022/3/16 current use the request path, maybe use the key from admin config.
         URI uri = exchange.getRequest().getURI();
-        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, uri.getQuery(), uri.getRawPath()));
+        return DigestUtils.md5Hex(String.join(KEY_JOIN_RULE, DATA_KEY_VERSION, exchange.getRequest().getMethod().name(), uri.toASCIIString()));
     }
 
     /**
@@ -59,11 +64,34 @@ public final class CacheUtils {
     }
 
     /**
+     * The versioned key for a complete cached HTTP response.
+     *
+     * @param exchange the exchange
+     * @param selectorId the matched selector
+     * @param ruleId the matched rule
+     * @return response key
+     */
+    public static String responseKey(final ServerWebExchange exchange, final String selectorId, final String ruleId) {
+        String identity = GsonUtils.getInstance().toJson(Arrays.asList(dataKey(exchange), selectorId, ruleId));
+        return String.join(KEY_JOIN_RULE, DigestUtils.md5Hex(identity), "response-v1");
+    }
+
+    /**
      * get the cache.
      *
      * @return cache
      */
     public static ICache getCache() {
         return Singleton.INST.get(ICache.class);
+    }
+
+    /**
+     * get the miss coordinator of this gateway.
+     *
+     * @return the coordinator, never null
+     */
+    public static ResponseSingleFlight getSingleFlight() {
+        ResponseSingleFlight singleFlight = Singleton.INST.get(ResponseSingleFlight.class);
+        return Objects.isNull(singleFlight) ? ResponseSingleFlight.disabled() : singleFlight;
     }
 }

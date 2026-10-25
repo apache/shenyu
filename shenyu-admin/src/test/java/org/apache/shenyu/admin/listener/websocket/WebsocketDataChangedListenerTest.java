@@ -18,13 +18,18 @@
 package org.apache.shenyu.admin.listener.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.shenyu.admin.config.WebSocketSyncConfiguration;
+import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
@@ -32,17 +37,24 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -84,7 +96,7 @@ public final class WebsocketDataChangedListenerTest {
     @Test
     public void testOnPluginChanged() {
         String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"config\":\"{\\\\\\\"model\\\\\\\":\\\\\\\"black\\\\\\\"}\","
-                + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"role\":\"1\",\"id\":\"2\",\"name\":\"waf\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
                 .thenAnswer(invocation -> null);
@@ -172,7 +184,7 @@ public final class WebsocketDataChangedListenerTest {
         String message = "{\"groupType\":\"APP_AUTH\",\"eventType\":\"UPDATE\",\"data\":[{\"appKey\":"
                 + "\"D9FD95F496C9495DB5604778A13C3D08\",\"appSecret\":\"02D25048AA1E466F8920E68B08E668DE\","
                 + "\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}]"
-                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + ",\"pathDataList\":[{\"appName\":\"alibaba\",\"path\":\"/1\",\"enabled\":true}],\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.UPDATE))
                 .thenAnswer((Answer<Void>) invocation -> null);
@@ -197,13 +209,36 @@ public final class WebsocketDataChangedListenerTest {
     }
 
     /**
+     * test empty namespace snapshots.
+     */
+    @Test
+    public void testEmptyNamespaceSnapshots() {
+        String namespaceId = "namespace-id";
+        try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
+            websocketDataChangedListener.onPluginChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onSelectorChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onRuleChanged(
+                    Collections.emptyList(), DataEventTypeEnum.MYSELF, namespaceId);
+            websocketDataChangedListener.onAppAuthChanged(
+                    Collections.emptyList(), DataEventTypeEnum.REFRESH, namespaceId);
+
+            verifyEmptySnapshot(mockedStatic, namespaceId, "PLUGIN", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "SELECTOR", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "RULE", DataEventTypeEnum.MYSELF);
+            verifyEmptySnapshot(mockedStatic, namespaceId, "APP_AUTH", DataEventTypeEnum.REFRESH);
+        }
+    }
+
+    /**
      * test MetaData.
      */
     @Test
     public void testOnMetaDataChanged() {
         String message = "{\"groupType\":\"META_DATA\",\"eventType\":\"CREATE\",\"data\":[{\"appName\":\"axiba\","
                 + "\"path\":\"/test/execute\",\"rpcType\":\"http\",\"serviceName\":\"execute\",\"methodName\":"
-                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}]}";
+                + "\"execute\",\"parameterTypes\":\"int\",\"rpcExt\":\"{}\",\"enabled\":true,\"namespaceId\":\"649330b6-c2d7-4edc-be8e-8a54df9eb385\"}],\"fullSnapshot\":false}";
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
             mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
                 .thenAnswer(invocation -> null);
@@ -321,6 +356,137 @@ public final class WebsocketDataChangedListenerTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(value = DataEventTypeEnum.class, names = {"UPDATE", "CREATE", "DELETE", "MYSELF", "REFRESH"})
+    public void testCompactDiscoveryPreservesRuntimeData(final DataEventTypeEnum eventType) {
+        DiscoverySyncData data = discoveryData();
+        final String original = GsonUtils.getInstance().toJson(data);
+        final String legacy = discoveryMessage(new WebsocketDataChangedListener(), data, eventType);
+        WebsocketSyncProperties properties = new WebsocketSyncProperties();
+        properties.setCompactDiscoveryPayload(true);
+        WebsocketDataChangedListener configured = (WebsocketDataChangedListener) new WebSocketSyncConfiguration().websocketDataChangedListener(properties);
+        String compact = discoveryMessage(configured, data, eventType);
+        JsonObject compactFrame = JsonParser.parseString(compact).getAsJsonObject();
+        JsonObject compactData = compactFrame.getAsJsonArray("data").get(0).getAsJsonObject();
+        JsonObject compactUpstream = compactData.getAsJsonArray("upstreamDataList").get(0).getAsJsonObject();
+        assertEquals(eventType.name(), compactFrame.get("eventType").getAsString());
+        assertEquals("DISCOVER_UPSTREAM", compactFrame.get("groupType").getAsString());
+        assertFalse(compactData.has("discoveryHandlerId"));
+        for (String field : List.of("id", "dateUpdated", "discoveryHandlerId", "namespaceId")) {
+            assertFalse(compactUpstream.has(field), field);
+        }
+        DiscoverySyncData decoded = GsonUtils.getInstance().fromJson(compactData.toString(), DiscoverySyncData.class);
+        assertEquals(data.getSelectorId(), decoded.getSelectorId());
+        assertEquals(data.getSelectorName(), decoded.getSelectorName());
+        assertEquals(data.getPluginName(), decoded.getPluginName());
+        assertEquals(data.getNamespaceId(), decoded.getNamespaceId());
+        DiscoveryUpstreamData expected = data.getUpstreamDataList().get(0);
+        DiscoveryUpstreamData actual = decoded.getUpstreamDataList().get(0);
+        assertEquals(expected.getDateCreated(), actual.getDateCreated());
+        assertEquals(expected.getProtocol(), actual.getProtocol());
+        assertEquals(expected.getUrl(), actual.getUrl());
+        assertEquals(expected.getStatus(), actual.getStatus());
+        assertEquals(expected.getWeight(), actual.getWeight());
+        assertEquals(expected.getProps(), actual.getProps());
+        assertEquals(original, GsonUtils.getInstance().toJson(data));
+        assertTrue(legacy.contains("dateUpdated"));
+        assertTrue(compact.length() < legacy.length());
+    }
+
+    @Test
+    public void testCompactDiscoveryRetainsEmptyUpstreamList() {
+        DiscoverySyncData data = discoveryData();
+        data.setUpstreamDataList(Collections.emptyList());
+        String message = discoveryMessage(new WebsocketDataChangedListener(true), data, DataEventTypeEnum.UPDATE);
+        JsonObject decoded = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+        assertTrue(decoded.getAsJsonArray("upstreamDataList").isEmpty());
+    }
+
+    @Test
+    public void testCompactDiscoverySeparatesNamespacesAndSkipsNullRows() {
+        DiscoverySyncData first = discoveryData();
+        DiscoverySyncData second = discoveryData();
+        second.setNamespaceId("other-namespace");
+        second.setSelectorId("other-selector");
+        List<DiscoverySyncData> data = new ArrayList<>();
+        data.add(first);
+        data.add(null);
+        data.add(second);
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(data, DataEventTypeEnum.UPDATE);
+            for (DiscoverySyncData item : List.of(first, second)) {
+                collector.verify(() -> WebsocketCollector.send(eq(item.getNamespaceId()), argThat(message -> {
+                    JsonObject frame = JsonParser.parseString(message).getAsJsonObject();
+                    return frame.getAsJsonArray("data").size() == 1
+                            && item.getSelectorId().equals(frame.getAsJsonArray("data").get(0).getAsJsonObject().get("selectorId").getAsString());
+                }), eq(DataEventTypeEnum.UPDATE)));
+            }
+        }
+    }
+
+    @Test
+    public void testCompactDiscoveryPreservesMissingListAndDefaultNamespace() {
+        DiscoverySyncData data = discoveryData();
+        data.setNamespaceId(null);
+        data.setUpstreamDataList(null);
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(Collections.singletonList(data), DataEventTypeEnum.DELETE);
+            collector.verify(() -> WebsocketCollector.send(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), argThat(message -> {
+                JsonObject item = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+                return !item.has("upstreamDataList") && "selector-id".equals(item.get("selectorId").getAsString());
+            }), eq(DataEventTypeEnum.DELETE)));
+        }
+    }
+
+    @Test
+    public void testCompactDiscoveryPreservesNullUpstreamEntries() {
+        DiscoverySyncData data = discoveryData();
+        List<DiscoveryUpstreamData> upstreams = new ArrayList<>(data.getUpstreamDataList());
+        upstreams.add(null);
+        data.setUpstreamDataList(upstreams);
+        String message = discoveryMessage(new WebsocketDataChangedListener(true), data, DataEventTypeEnum.UPDATE);
+        JsonObject item = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+        assertEquals(2, item.getAsJsonArray("upstreamDataList").size());
+        assertTrue(item.getAsJsonArray("upstreamDataList").get(1).isJsonNull());
+    }
+
+    private String discoveryMessage(final WebsocketDataChangedListener listener, final DiscoverySyncData data,
+                                    final DataEventTypeEnum eventType) {
+        List<String> messages = new ArrayList<>();
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            collector.when(() -> WebsocketCollector.send(eq(data.getNamespaceId()), anyString(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(invocation.getArgument(1));
+                        return null;
+                    });
+            listener.onDiscoveryUpstreamChanged(Collections.singletonList(data), eventType);
+        }
+        assertEquals(1, messages.size());
+        return messages.get(0);
+    }
+
+    private DiscoverySyncData discoveryData() {
+        DiscoveryUpstreamData upstream = new DiscoveryUpstreamData();
+        upstream.setId("row-id");
+        upstream.setDateCreated(new Timestamp(1700000000000L));
+        upstream.setDateUpdated(new Timestamp(1700000001000L));
+        upstream.setDiscoveryHandlerId("handler-id");
+        upstream.setProtocol("http://");
+        upstream.setUrl("127.0.0.1:8080");
+        upstream.setStatus(0);
+        upstream.setWeight(100);
+        upstream.setProps("{\"warmup\":600000,\"healthCheckEnabled\":false}");
+        upstream.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        DiscoverySyncData data = new DiscoverySyncData();
+        data.setSelectorId("selector-id");
+        data.setSelectorName("tcp-route");
+        data.setPluginName("divide");
+        data.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        data.setDiscoveryHandlerId("handler-id");
+        data.setUpstreamDataList(Collections.singletonList(upstream));
+        return data;
+    }
+
     /**
      * test DiscoverySyncData with empty list — no send.
      */
@@ -366,6 +532,14 @@ public final class WebsocketDataChangedListenerTest {
         }
     }
 
+    private void verifyEmptySnapshot(final MockedStatic<WebsocketCollector> mockedStatic, final String namespaceId,
+                                     final String groupType, final DataEventTypeEnum eventType) {
+        String message = String.format(
+                "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[],\"fullSnapshot\":false}", groupType, eventType.name());
+        mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(namespaceId), argThat(actualMsg -> jsonEquals(message, actualMsg)), eq(eventType)));
+    }
+
     private void initMetaDataList() {
         MetaData metaData = new MetaData();
         metaData.setAppName("axiba");
@@ -407,7 +581,7 @@ public final class WebsocketDataChangedListenerTest {
         ruleData.setEnabled(true);
         ruleData.setHandle("{\\\"permission\\\":\\\"reject\\\",\\\"statusCode\\\":\\\"503\\\"}");
         ruleData.setId("1336350040008105984");
-        ruleData.setLoged(true);
+        ruleData.setLogged(true);
         ruleData.setMatchMode(1);
         ruleData.setName("test");
         ruleData.setPluginName("waf");

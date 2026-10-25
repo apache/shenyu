@@ -168,7 +168,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
     private void compareInstances(final Set<Instance> previousInstances, final Set<Instance> currentInstances, final ChangedEventListener listener) {
         Set<Instance> addedInstances = currentInstances.stream()
-                .filter(item -> !previousInstances.contains(item))
+                .filter(item -> previousInstances.stream().noneMatch(previous -> isSameInstance(item, previous)))
                 .collect(Collectors.toSet());
         if (!addedInstances.isEmpty()) {
             for (Instance instance: addedInstances) {
@@ -177,7 +177,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         }
 
         Set<Instance> deletedInstances = previousInstances.stream()
-                .filter(item -> !currentInstances.contains(item))
+                .filter(item -> currentInstances.stream().noneMatch(current -> isSameInstance(item, current)))
                 .collect(Collectors.toSet());
         if (!deletedInstances.isEmpty()) {
             for (Instance instance: deletedInstances) {
@@ -188,10 +188,8 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
         Set<Instance> updatedInstances = currentInstances.stream()
             .filter(
-                currentInstance -> Objects.nonNull(currentInstance.getInstanceId())
-                    && previousInstances.stream().anyMatch(
-                        previousInstance -> StringUtils.isNotBlank(previousInstance.getInstanceId())
-                        && currentInstance.getInstanceId().equals(previousInstance.getInstanceId())
+                currentInstance -> previousInstances.stream().anyMatch(
+                    previousInstance -> isSameInstance(currentInstance, previousInstance)
                         && !currentInstance.equals(previousInstance)))
             .collect(Collectors.toSet());
 
@@ -200,6 +198,15 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
                 listener.onEvent(instance.getServiceName(), buildUpstreamJsonFromInstance(instance), ChangedEventListener.Event.UPDATED);
             }
         }
+    }
+
+    private boolean isSameInstance(final Instance current, final Instance previous) {
+        if (StringUtils.isNotBlank(current.getInstanceId()) && StringUtils.isNotBlank(previous.getInstanceId())) {
+            return current.getInstanceId().equals(previous.getInstanceId());
+        }
+        return Objects.equals(current.getIp(), previous.getIp())
+                && current.getPort() == previous.getPort()
+                && Objects.equals(current.getClusterName(), previous.getClusterName());
     }
 
     private String buildUpstreamJsonFromInstance(final Instance instance) {

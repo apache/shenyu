@@ -60,6 +60,14 @@
         <include refid="Base_Column_List"/>
         from alert_receiver
     </select>
+    <select id="selectByNamespaceId" resultType="org.apache.shenyu.alert.model.AlertReceiverDTO">
+        select
+        <include refid="Base_Column_List"/>
+        from alert_receiver
+        where namespace_id = #{namespaceId,jdbcType=VARCHAR}
+           or namespace_id is null
+           or namespace_id = ''
+    </select>
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
         <!--@mbg.generated-->
         insert into alert_receiver (id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url,
@@ -159,7 +167,11 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
     <select id="existed" resultType="java.lang.Boolean">
-        select true from alert_receiver where id = #{id} limit 1
+        SELECT 1 from alert_receiver where id = #{id} limit 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1 from alert_receiver where id = #{id} AND ROWNUM = 1
     </select>
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM alert_receiver WHERE id IN

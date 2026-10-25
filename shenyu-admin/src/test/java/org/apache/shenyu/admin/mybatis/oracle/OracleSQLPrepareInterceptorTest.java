@@ -20,10 +20,13 @@ package org.apache.shenyu.admin.mybatis.oracle;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
+import java.util.Collections;
+import java.util.Locale;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,6 +52,30 @@ public class OracleSQLPrepareInterceptorTest {
         Assertions.assertDoesNotThrow(() -> oracleSQLPrepareInterceptor.intercept(invocation));
         when(boundSql.getSql()).thenReturn("INSERT INTO `resource` VALUES ('1529402613204172899', '34')('1529402613204172899', '34')('1529402613204172899', '34'); ");
         Assertions.assertDoesNotThrow(() -> oracleSQLPrepareInterceptor.intercept(invocation));
+    }
+
+    @Test
+    public void testSingleInsertWithClobExpressionsIsNotRewrittenAsABatch() {
+        String sql = "INSERT INTO mock_request_record (id, header) VALUES (?, COALESCE(?, EMPTY_CLOB()))";
+        BoundSql boundSql = prepare(sql);
+        Assertions.assertEquals(sql.toLowerCase(Locale.ROOT), boundSql.getSql());
+    }
+
+    @Test
+    public void testMultiRowInsertStillUsesOracleSelectSyntax() {
+        BoundSql boundSql = prepare("INSERT INTO example (id, value) VALUES (?, ?), (?, ?)");
+        Assertions.assertTrue(boundSql.getSql().contains("UNION ALL"));
+        Assertions.assertTrue(boundSql.getSql().contains("FROM dual"));
+    }
+
+    private BoundSql prepare(final String sql) {
+        BoundSql boundSql = new BoundSql(new Configuration(), sql, Collections.emptyList(), null);
+        Invocation invocation = mock(Invocation.class);
+        StatementHandler handler = mock(StatementHandler.class);
+        when(invocation.getTarget()).thenReturn(handler);
+        when(handler.getBoundSql()).thenReturn(boundSql);
+        Assertions.assertDoesNotThrow(() -> new OracleSQLPrepareInterceptor().intercept(invocation));
+        return boundSql;
     }
 
     @Test

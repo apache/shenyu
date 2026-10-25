@@ -22,8 +22,10 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,10 +35,13 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +58,214 @@ class McpServerPluginDataHandlerTest {
 
     @BeforeEach
     void setUp() {
+        McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
         dataHandler = new McpServerPluginDataHandler(shenyuMcpServerManager);
+    }
+
+    @AfterEach
+    void tearDown() {
+        McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
+    }
+
+    @Test
+    void rulesArrivingBeforeSelectorsAreReplayedWithoutToggling() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        verify(shenyuMcpServerManager, never()).addTool(any(), any(), any(), any(), any());
+        assertEquals("restart-tool", McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)).getName());
+
+        dataHandler.handlerSelector(restartSelector());
+
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+        assertEquals("restart-tool", McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)).getName());
+    }
+
+    @Test
+    void deletedRulesAreNotReplayedWhenSelectorsArrive() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        dataHandler.removeRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager, never()).addTool(any(), any(), any(), any(), any());
+        assertNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+    }
+
+    @Test
+    void disabledRulesAreNotReplayedWhenSelectorsArrive() {
+        RuleData rule = restartRule();
+        rule.setEnabled(false);
+        dataHandler.handlerRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager, never()).addTool(any(), any(), any(), any(), any());
+        assertNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+    }
+
+    @Test
+    void disablingAnActiveRuleRevokesTheRegisteredTool() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+
+        RuleData disabled = restartRule();
+        disabled.setEnabled(false);
+        dataHandler.handlerRule(disabled);
+
+        verify(shenyuMcpServerManager).removeTool("/restart", "restart-tool");
+        assertNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+    }
+
+    @Test
+    void reEnablingARuleRegistersTheToolExactlyOnce() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+
+        RuleData disabled = restartRule();
+        disabled.setEnabled(false);
+        dataHandler.handlerRule(disabled);
+        // duplicate updates for an already disabled rule must not revoke twice
+        dataHandler.handlerRule(disabled);
+        verify(shenyuMcpServerManager, times(1)).removeTool("/restart", "restart-tool");
+
+        RuleData reEnabled = restartRule();
+        reEnabled.setEnabled(true);
+        dataHandler.handlerRule(reEnabled);
+        verify(shenyuMcpServerManager, times(2)).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+        assertEquals("restart-tool", McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(reEnabled)).getName());
+    }
+
+    @Test
+    void disablingARenamedRuleRevokesTheRenamedTool() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+
+        RuleData renamed = restartRule();
+        renamed.setHandle("{\"name\":\"renamed-tool\",\"parameters\":[]}");
+        dataHandler.handlerRule(renamed);
+
+        RuleData disabled = restartRule();
+        disabled.setHandle("{\"name\":\"renamed-tool\",\"parameters\":[]}");
+        disabled.setEnabled(false);
+        dataHandler.handlerRule(disabled);
+
+        verify(shenyuMcpServerManager).removeTool("/restart", "renamed-tool");
+        verify(shenyuMcpServerManager, times(1)).removeTool("/restart", "restart-tool");
+    }
+
+    @Test
+    void renamingACustomToolNameReplacesTheRegistration() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+
+        RuleData renamed = restartRule();
+        renamed.setHandle("{\"name\":\"renamed-tool\",\"parameters\":[]}");
+        dataHandler.handlerRule(renamed);
+
+        verify(shenyuMcpServerManager).removeTool("/restart", "restart-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("renamed-tool"), any(), any(), anyString());
+
+        dataHandler.removeRule(renamed);
+        verify(shenyuMcpServerManager).removeTool("/restart", "renamed-tool");
+        verify(shenyuMcpServerManager, times(1)).removeTool("/restart", "restart-tool");
+    }
+
+    @Test
+    void renamingThroughTheRuleNameReplacesTheRegistration() {
+        RuleData rule = restartRule();
+        rule.setHandle("{\"parameters\":[]}");
+        dataHandler.handlerRule(rule);
+        dataHandler.handlerSelector(restartSelector());
+
+        RuleData renamed = restartRule();
+        renamed.setName("renamed-tool");
+        renamed.setHandle("{\"parameters\":[]}");
+        dataHandler.handlerRule(renamed);
+
+        verify(shenyuMcpServerManager).removeTool("/restart", "restart-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("renamed-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void sameNameUpdateReplacesWithoutRevocation() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+
+        RuleData updated = restartRule();
+        updated.setHandle("{\"name\":\"restart-tool\",\"description\":\"updated\",\"parameters\":[]}");
+        dataHandler.handlerRule(updated);
+
+        verify(shenyuMcpServerManager, never()).removeTool(anyString(), anyString());
+        verify(shenyuMcpServerManager, times(2)).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void movingASelectorRevokesTheToolFromThePreviousServer() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+        when(shenyuMcpServerManager.hasMcpServer("/restart")).thenReturn(true);
+        when(shenyuMcpServerManager.hasMcpServer("/moved")).thenReturn(true);
+        SelectorData moved = restartSelector();
+        moved.getConditionList().get(0).setParamValue("/moved/**");
+
+        dataHandler.handlerSelector(moved);
+
+        verify(shenyuMcpServerManager).removeTool("/restart", "restart-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/moved"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void unchangedSelectorDoesNotRegisterToolsAgain() {
+        when(shenyuMcpServerManager.hasMcpServer("/restart")).thenReturn(false, true);
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void movedSelectorReplaysRulesToAnExistingServer() {
+        dataHandler.handlerRule(restartRule());
+        dataHandler.handlerSelector(restartSelector());
+        when(shenyuMcpServerManager.hasMcpServer("/restart")).thenReturn(true);
+        when(shenyuMcpServerManager.hasMcpServer("/moved")).thenReturn(true);
+        SelectorData moved = restartSelector();
+        moved.getConditionList().get(0).setParamValue("/moved/**");
+        dataHandler.handlerSelector(moved);
+        verify(shenyuMcpServerManager).removeMcpServer("/restart");
+        verify(shenyuMcpServerManager).addTool(eq("/moved"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void replayUsesSnapshotOfTheReceivedRule() {
+        RuleData rule = restartRule();
+        dataHandler.handlerRule(rule);
+        rule.setEnabled(false);
+        rule.setSelectorId("another-selector");
+        rule.setHandle(null);
+        dataHandler.handlerSelector(restartSelector());
+        verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    private RuleData restartRule() {
+        RuleData rule = new RuleData();
+        rule.setId("restart-rule");
+        rule.setSelectorId("restart-selector");
+        rule.setName("restart-tool");
+        rule.setHandle("{\"name\":\"restart-tool\",\"parameters\":[]}");
+        return rule;
+    }
+
+    private SelectorData restartSelector() {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/restart/**");
+        SelectorData selector = new SelectorData();
+        selector.setId("restart-selector");
+        selector.setConditionList(Collections.singletonList(condition));
+        selector.setHandle("{\"messageEndpoint\":\"/message\"}");
+        return selector;
     }
 
     @Test
@@ -158,6 +370,28 @@ class McpServerPluginDataHandlerTest {
     }
 
     @Test
+    void testHandlerSelectorPathUpdateRemovesPreviousServer() {
+        org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer previousServer =
+                new org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer();
+        previousServer.setPath("/mcp/old");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector1", previousServer);
+        when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(false);
+        when(shenyuMcpServerManager.hasMcpServer("/mcp/old")).thenReturn(true);
+
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/mcp/new/**");
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("selector1");
+        selectorData.setConditionList(Arrays.asList(condition));
+        selectorData.setHandle("{\"messageEndpoint\":\"/message\"}");
+
+        dataHandler.handlerSelector(selectorData);
+
+        verify(shenyuMcpServerManager).removeMcpServer("/mcp/old");
+    }
+
+    @Test
     void testHandlerRuleWithValidData() {
         RuleData ruleData = new RuleData();
         ruleData.setId("rule1");
@@ -230,9 +464,31 @@ class McpServerPluginDataHandlerTest {
         RuleData ruleData = new RuleData();
         ruleData.setId("rule1");
         ruleData.setHandle(null);
-        
+
         dataHandler.removeRule(ruleData);
-        
+
         verify(shenyuMcpServerManager, never()).removeTool(anyString(), anyString());
+    }
+
+    @Test
+    void testRemoveRuleRemovesToolByConfiguredName() {
+        RuleData ruleData = new RuleData();
+        ruleData.setId("rule1");
+        ruleData.setSelectorId("selector1");
+        ruleData.setName("testTool");
+        ruleData.setHandle("{\"name\":\"customTool\",\"description\":\"A test tool\",\"requestConfig\":\"{\\\"url\\\":\\\"/test\\\",\\\"method\\\":\\\"GET\\\"}\",\"parameters\":[]}");
+
+        org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer server = new org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer();
+        server.setPath("/mcp/test");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector1", server);
+
+        dataHandler.handlerRule(ruleData);
+        verify(shenyuMcpServerManager).addTool(eq("/mcp/test"), eq("customTool"), anyString(), anyString(), anyString());
+
+        doNothing().when(shenyuMcpServerManager).removeTool(anyString(), anyString());
+        dataHandler.removeRule(ruleData);
+
+        verify(shenyuMcpServerManager).removeTool(eq("/mcp/test"), eq("customTool"));
+        verify(shenyuMcpServerManager, never()).removeTool(eq("/mcp/test"), eq("testTool"));
     }
 }

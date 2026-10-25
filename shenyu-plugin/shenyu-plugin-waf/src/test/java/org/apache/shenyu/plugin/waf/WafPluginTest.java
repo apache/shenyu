@@ -134,6 +134,32 @@ public final class WafPluginTest {
     }
 
     @Test
+    public void testWafPluginRejectWithMalformedStatusCodeFallsBackToForbidden() {
+        // stub distinct ids: setId on the mock is a no-op, and the shared "null_null" cache key
+        // would leak this handle into the other tests that run against the same key
+        when(ruleData.getSelectorId()).thenReturn("waf");
+        when(ruleData.getId()).thenReturn("waf-bad-status");
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"forbidden\"}", WafHandle.class);
+        WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        assertEquals(403, exchange.getResponse().getRawStatusCode());
+    }
+
+    @Test
+    public void testWafPluginRejectWithoutStatusCodeFallsBackToForbidden() {
+        // stub distinct ids: setId on the mock is a no-op, and the shared "null_null" cache key
+        // would leak this handle into the other tests that run against the same key
+        when(ruleData.getSelectorId()).thenReturn("waf");
+        when(ruleData.getId()).thenReturn("waf-no-status");
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\"}", WafHandle.class);
+        WafPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        assertEquals(403, exchange.getResponse().getRawStatusCode());
+    }
+
+    @Test
     public void testWafPluginAllow() {
         ruleData.setId("waf");
         ruleData.setSelectorId("waf");

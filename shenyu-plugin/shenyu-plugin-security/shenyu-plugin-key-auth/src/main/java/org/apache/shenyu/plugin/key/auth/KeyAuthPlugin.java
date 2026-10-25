@@ -39,6 +39,11 @@ import java.util.Objects;
 public class KeyAuthPlugin extends AbstractShenyuPlugin {
 
     @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return Mono.defer(() -> super.execute(exchange, chain)).contextWrite(KeyAuthAuthentication::clear);
+    }
+
+    @Override
     public int getOrder() {
         return PluginEnum.KEY_AUTH.getCode();
     }
@@ -60,7 +65,7 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         if (checkKey(exchange, keyAuthRuleHandle.getKeyName(), keyAuthRuleHandle.getKey())) {
-            return chain.execute(exchange);
+            return KeyAuthAuthentication.execute(exchange, chain, rule);
         }
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_KEY);
         return WebFluxResultUtils.result(exchange, error);

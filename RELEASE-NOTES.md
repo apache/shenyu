@@ -1,3 +1,186 @@
+## Unreleased
+
+### API Changes
+
+- Apollo's in-tree registry, sync adapter, Admin listener and sync starter are
+  deprecated for transfer to plugin-store (#7599). All four remain available in
+  the release carrying this notice. Removal requires dev-list consensus, a full
+  released deprecation cycle, compatible external artifact publication and an
+  announced rollback window; no removal release is scheduled. See the
+  [migration guide](docs/plugin-store-apollo.md). Existing `apollo` type names,
+  keys and `ApolloPathConstants` remain compatibility contracts.
+
+- `MemorySafeLRUMap` is deprecated since 2.7.2. The class, public constructors,
+  serialization identifier and existing behavior are retained for downstream
+  source and binary compatibility. No removal release is scheduled; a future
+  removal requires a public API compatibility review and advance release notice.
+  For caches accessed through the `Map` API, consider the existing
+  `WindowTinyLFUMap` with an explicit maximum entry count, for example
+  `new WindowTinyLFUMap<>(maximumEntries)`. Choose that count for the application's
+  working set: the old `maxFreeMemory` argument is a free-memory threshold in
+  bytes, not an entry count. Review the different eviction policy, non-null
+  key/value requirements and absence of `LRUMap`-specific operations. Code that
+  relies on memory-pressure eviction should retain `MemorySafeLRUMap` until an
+  equivalent policy is chosen; `WindowTinyLFUMap` does not implement that
+  threshold. (#7444)
+
+- `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
+
+### Observability
+
+- Divide Canary routing exports `shenyu_canary_requests_total` by configured
+  selector/rule, partition and terminal outcome, `shenyu_canary_fallback_total`
+  for successful initial Canary-to-Stable fallback, and
+  `shenyu_canary_decision_duration_seconds` for the initial decision only.
+  Internal retries do not add logical requests. These metrics use the existing
+  Metrics plugin and Prometheus endpoint; `shenyu_execute_latency_millis`
+  retains its existing labels, unit and recording behavior.
+
+### Behavior Changes
+
+- In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
+  field section: header names, field values, line framing (`: ` and CRLF),
+  and section-terminating CRLF. Previously only header values were counted. Existing
+  deployments with strict `headerMaxSize` limits may see requests near the boundary
+  rejected; adjust `headerMaxSize` if needed. (#7818)
+
+- The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
+  concurrent requests that miss the same response cache key share one upstream
+  fill on that gateway instance instead of one per request, and the followers
+  replay the captured bytes as a cache hit would. A response that the cache would
+  not have stored, a fill that errors, a follower that waits longer than
+  `singleFlightWaitTimeoutMillis`, a full waiter set and a response above
+  `singleFlightMaxResponseBytes` all fall back to forwarding that request, so
+  coalescing never widens cache eligibility or merges responses kept apart by
+  cookie, `Vary` or cache-control rules. Bounds are set by
+  `singleFlightMaxKeys`, `singleFlightMaxWaiters`, `singleFlightWaitTimeoutMillis`,
+  `singleFlightFillTimeoutMillis` and `singleFlightMaxResponseBytes`. The feature
+  is disabled by default and absent configuration preserves the previous
+  one-forward-per-request behavior. Coordination is per gateway instance: replicas
+  still fill the same key independently and no distributed lock is taken. Set
+  `singleFlightWaitTimeoutMillis` to at least the upstream p99, otherwise slow
+  upstreams finish after followers have already given up and the burst is not
+  collapsed. (#7932)
+
+- Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
+  HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
+  request-local plugin cursors, attributes and captured responses; upstream
+  configuration remains owned by existing routing plugins. Caller credentials,
+  cookies and web sessions are not delegated. Results pass through existing MCP
+  authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
+  restart is required for rule updates; absent plans preserve previous behavior.
+
+- `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
+  upstream connections and reducing connection setup overhead. It previously
+  defaulted to `false` as a workaround for stale pooled connections being reset
+  by the peer (Reactor Netty issue #388).
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream or load balancer idle timeout
+  when using a fixed connection pool. If connection resets persist, restore
+  the previous behavior with `shenyu.httpclient.keepAlive=false`.
+  For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
+  size the connection limit for the deployment; the default follows Reactor Netty.
+- CORS origin patterns are compiled when the gateway starts. An invalid
+  `shenyu.cross.allowed-origin.origin-regex` now fails startup with
+  `PatternSyntaxException`, rather than failing the first matching request.
+  Validate the expression before deploying a configuration change.
+
+- The misspelled `loged` column of the `selector` and `rule` tables is renamed
+  to `logged`, together with the matching fields of the Admin REST DTOs/VOs
+  (`SelectorDTO`, `RuleDTO`, `SelectorVO`, `RuleVO`) and the gateway-side
+  `RuleData`. Existing deployments must run the `2.7.2-upgrade-2.7.3-*.sql`
+  script for their database dialect (MySQL, PostgreSQL, Oracle, openGauss,
+  OceanBase) before upgrading. Upgrade order matters: the field is part of the
+  admin-to-bootstrap sync contract, so upgrade all bootstrap instances before,
+  or together with, admin — a new admin emitting `logged` is not understood by
+  old bootstraps, and that direction cannot be tolerated in code. For one release the Admin REST layer keeps
+  accepting the old `loged` request field via a JSON alias, but responses
+  always use `logged`; stored rate-limiter handle JSON keeps parsing the old
+  `loged` key via a Gson alternate. REST API clients that read `loged` from
+  responses must switch to `logged`. (#7589)
+
+- HTTP client registration now treats non-success Admin responses as failures,
+  using the same bounded failback policy as transport errors (18 retry attempts
+  per pending task). The text response contract does not reliably distinguish
+  transient failures from permanent validation errors, so both consume that
+  budget. Heartbeat failures are reported to the caller. Unregistration retains
+  its existing policy: any successful Admin response is sufficient, and failure
+  at every Admin is reported without adding a registration retry. (#7440)
+
+- Agent Gateway supports opt-in per-tool `mcp.structuredContentRemovals` field
+  deletion with strict result-copy handling. Complete JSON text copies are rebuilt
+  from filtered structuredContent. Opaque text/media, nonempty metadata and unknown
+  extensions are refused when a plan is active; disabled plans retain prior behavior.
+  This is declared-field filtering, not arbitrary sensitive-value detection or
+  global log redaction. Advertised outputSchema
+  remains unchanged and filtered results must satisfy the supported bounded
+  Draft 2020-12 contract. Filtering/schema failures return HTTP 502 / JSON-RPC
+  `-32024` without an unfiltered fallback; external schema resource loading is denied.
+
+- Agent Gateway remote tools aggregation is opt-in. Its plugin configuration now
+  accepts only the `aggregation` field; blank config and `{}` remain valid.
+  Previously stored arbitrary fields must be removed or migrated before the next
+  save/import, even when only toggling another plugin property. Other plugins are
+  unaffected. An unavailable enabled remote catalog fails the whole MCP entry,
+  including local tools, with HTTP 503 / JSON-RPC `-32023`; no local-only fallback
+  is implicit. Outbound calls use fixed service credentials without Agent identity
+  headers; request context and identity remain inside the gateway.
+
+- Agent Gateway adds opt-in tools-only MCP rules with `trafficType: "mcp"`.
+  Enabling the plugin does not grant MCP access: deployments must supply a trusted
+  `AgentMcpSecurityResolver` and explicitly register and authorize tools. Without
+  a trusted identity adapter, MCP requests are denied with HTTP 401. Existing LLM
+  forwarding and independently configured legacy MCP endpoints remain unchanged.
+- Custom registration retry tasks should call `FailbackRegistryRepository.retry(key)`.
+  The legacy `accept(key)` followed by `remove(key)` remains available for compatibility,
+  but can discard a newer registration failure arriving between those calls.
+- HTTP retry strategies budget the entire sequence separately from each attempt:
+  `(retryTimes + 1) * attemptTimeout + retryTimes * maximumBackoff`.
+  With a 3-second attempt timeout and 3 retries, the `current` strategy has a
+  conservative 72-second ceiling (20-second maximum backoff), fixed delay has
+  an 18-second ceiling (2-second delay), and exponential backoff has a 27-second
+  ceiling (5-second maximum backoff). Actual retry delays may be shorter.
+  Include this envelope when configuring caller and ingress deadlines.
+- For the `current` strategy, exceeding the aggregate budget returns HTTP 504
+  with `Retry sequence took longer than timeout: ...`. Exhausting the retry
+  count returns HTTP 408. The aggregate ceiling now also bounds a source that
+  never completes; it does not replace the per-attempt response timeout.
+- The HTTP client now defaults to a fixed connection pool. Connection acquisition waits up to 3 seconds, and Reactor Netty bounds pending acquisitions to twice the configured maximum connection count. Set `shenyu.httpclient.pool.type=ELASTIC` to retain the previous unbounded behavior.
+- `shenyu.httpclient.responseTimeout` now configures Reactor Netty's response-read
+  deadline (default 3000 ms). It limits gaps between reads throughout the response
+  body, not just the wait for headers. Slow SSE, long-polling and token streams
+  can therefore time out after headers have arrived.
+- A non-positive responseTimeout disables that deadline only. Independently
+  configured read-timeout handlers still apply; use `shenyu.httpclient.readTimeout=0`
+  to disable their deadline as well, and review route, retry and caller deadlines.
+  The client factory now retains its connection-handler configuration, so configured
+  read, write and idle handlers are installed on new connections.
+- Remove the unused `MemorySafeWindowTinyLFUMap` cache implementation.
+- `shenyu-registry-core` no longer transitively provides registry implementations;
+  it depends only on `shenyu-registry-api` and `shenyu-spi`. Applications that
+  depend on `shenyu-registry-core`, or on `shenyu-sdk-core` / `shenyu-sdk-feign`
+  which now sit on `shenyu-registry-api`, must declare the provider matching their
+  configured `registerType` explicitly, for example:
+
+  ```xml
+  <dependency>
+      <groupId>org.apache.shenyu</groupId>
+      <artifactId>shenyu-registry-zookeeper</artifactId>
+      <version>${shenyu.version}</version>
+      <scope>runtime</scope>
+  </dependency>
+  ```
+
+  Without the provider on the classpath, `ShenyuInstanceRegisterRepositoryFactory`
+  fails with an `IllegalArgumentException` naming the missing `shenyu-registry-<type>`
+  artifact and listing the available SPI types, replacing the previous
+  `ExtensionLoader.getJoin` failure that did not identify the missing artifact.
+  `loadRepository(String)` is public API, and `AbstractDiscoveryProcessor#createDiscovery`
+  resolves its repository through it. `shenyu-admin` and
+  `shenyu-spring-boot-starter-registry` re-declare all five providers, so existing
+  users of the compatibility starter are unaffected; Apollo was never part of that
+  aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
+  provider table and migration steps. (#7578)
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features

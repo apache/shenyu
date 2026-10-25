@@ -116,4 +116,98 @@ public interface PluginDataSubscriber {
      */
     default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
     }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onPluginRefresh(List<PluginData> dataList) {
+        refreshPluginDataSelf(dataList);
+        dataList.forEach(this::onSubscribe);
+    }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onSelectorRefresh(List<SelectorData> dataList) {
+        refreshSelectorDataSelf(dataList);
+        dataList.forEach(this::onSelectorSubscribe);
+    }
+
+    /**
+     * Refresh a batch, retaining the legacy behavior for custom subscribers.
+     *
+     * @param dataList the received data
+     */
+    default void onRuleRefresh(List<RuleData> dataList) {
+        refreshRuleDataSelf(dataList);
+        dataList.forEach(this::onRuleSubscribe);
+    }
+
+    /**
+     * Remove cached plugin rows belonging to one namespace before applying a snapshot.
+     * Custom subscribers must implement this operation before enabling reconciliation.
+     *
+     * @param namespaceId namespace to replace
+     */
+    default void refreshPluginDataNamespace(final String namespaceId) {
+        throw new UnsupportedOperationException("Namespace-scoped plugin snapshots are not supported");
+    }
+
+    /**
+     * Remove cached selector rows belonging to one namespace before applying a snapshot.
+     * Custom subscribers must implement this operation before enabling reconciliation.
+     *
+     * @param namespaceId namespace to replace
+     */
+    default void refreshSelectorDataNamespace(final String namespaceId) {
+        throw new UnsupportedOperationException("Namespace-scoped selector snapshots are not supported");
+    }
+
+    /**
+     * Remove cached rule rows belonging to one namespace before applying a snapshot.
+     * Custom subscribers must implement this operation before enabling reconciliation.
+     *
+     * @param namespaceId namespace to replace
+     */
+    default void refreshRuleDataNamespace(final String namespaceId) {
+        throw new UnsupportedOperationException("Namespace-scoped rule snapshots are not supported");
+    }
+
+    /**
+     * Apply an authoritative plugin snapshot while retaining cached rows present in the snapshot.
+     *
+     * @param namespaceId namespace to reconcile
+     * @param dataList complete plugin snapshot for the namespace
+     */
+    default void applyPluginDataSnapshot(final String namespaceId, final List<PluginData> dataList) {
+        refreshPluginDataNamespace(namespaceId);
+        dataList.forEach(this::onSubscribe);
+    }
+
+    /**
+     * Apply an authoritative selector snapshot while retaining cached rows present in the snapshot.
+     *
+     * @param namespaceId namespace to reconcile
+     * @param dataList complete selector snapshot for the namespace
+     */
+    default void applySelectorDataSnapshot(final String namespaceId, final List<SelectorData> dataList) {
+        refreshSelectorDataNamespace(namespaceId);
+        dataList.forEach(this::onSelectorSubscribe);
+    }
+
+    /**
+     * Apply an authoritative rule snapshot while retaining cached rows present in the snapshot.
+     *
+     * @param namespaceId namespace to reconcile
+     * @param dataList complete rule snapshot for the namespace
+     */
+    default void applyRuleDataSnapshot(final String namespaceId, final List<RuleData> dataList) {
+        refreshRuleDataNamespace(namespaceId);
+        dataList.forEach(this::onRuleSubscribe);
+    }
+
 }

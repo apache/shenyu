@@ -113,6 +113,10 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+        Duration responseTimeout = properties.getResponseTimeout();
+        if (!responseTimeout.isZero() && !responseTimeout.isNegative()) {
+            httpClient = httpClient.responseTimeout(responseTimeout);
+        }
         if (serverProperties.getHttp2().isEnabled()) {
             httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
         }
@@ -120,13 +124,15 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (StringUtils.isNotEmpty(proxy.getHost())) {
             httpClient = setHttpClientProxy(httpClient, proxy);
         }
-        httpClient.doOnConnected(connection -> {
+        httpClient = httpClient.doOnConnected(connection -> {
             connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
             connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
-            connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+            if (properties.getReadTimeout() > 0) {
+                connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+            }
         });
         if (Objects.nonNull(loopResources)) {
-            httpClient.runOn(loopResources);
+            httpClient = httpClient.runOn(loopResources);
         }
         HttpClientProperties.Ssl ssl = properties.getSsl();
         if (StringUtils.isNotEmpty(ssl.getKeyStorePath())
@@ -137,8 +143,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-        // set to false, fix java.io.IOException: Connection reset by peer
-        // see https://github.com/reactor/reactor-netty/issues/388
+        // Reuse connections by default. Tune the fixed pool's maxIdleTime below the upstream idle limit;
+        // keepAlive=false remains an escape hatch for stale-connection resets (reactor-netty#388).
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 
@@ -155,7 +161,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 // please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
                 // reactor remove elastic pool by elastic method from 0.9.4
                 // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
-                this.buildElasticConnectionPool(builder);
+                this.buildElasticConnectionPool(pool, builder);
             }
             Optional.ofNullable(pool.getMaxIdleTime()).map(Duration::ofMillis).ifPresent(builder::maxIdleTime);
             Optional.ofNullable(pool.getMaxLifeTime()).map(Duration::ofMillis).ifPresent(builder::maxLifeTime);
@@ -180,8 +186,9 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             throw new IllegalArgumentException("Acquire Timeout value must be positive");
         }
         builder.maxConnections(pool.getMaxConnections())
-                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
-                .pendingAcquireMaxCount(-1);
+                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
+        // when maxPendingAcquires is not configured, Reactor Netty defaults to 2 * maxConnections
+        validateAndApplyMaxPendingAcquires(pool, builder);
     }
 
     /**
@@ -196,4 +203,26 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 .pendingAcquireMaxCount(-1);
     }
 
+    /**
+     * build elastic connection provider pool.
+     *
+     * @param pool    connection pool params
+     * @param builder connection provider builder
+     */
+    public void buildElasticConnectionPool(final Pool pool,
+                                           final Builder builder) {
+        // default to unbounded (-1), but allow explicit acquisition bounds if configured
+        this.buildElasticConnectionPool(builder);
+        validateAndApplyMaxPendingAcquires(pool, builder);
+    }
+
+    private void validateAndApplyMaxPendingAcquires(final Pool pool,
+                                                    final Builder builder) {
+        if (Objects.nonNull(pool.getMaxPendingAcquires())) {
+            if (pool.getMaxPendingAcquires() <= 0 && pool.getMaxPendingAcquires() != -1) {
+                throw new IllegalArgumentException("Max Pending Acquires value must be strictly positive or -1");
+            }
+            builder.pendingAcquireMaxCount(pool.getMaxPendingAcquires());
+        }
+    }
 }

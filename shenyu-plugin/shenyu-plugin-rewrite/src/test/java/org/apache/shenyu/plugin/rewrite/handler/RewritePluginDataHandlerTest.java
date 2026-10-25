@@ -22,6 +22,9 @@ import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.function.Supplier;
 
@@ -60,5 +63,100 @@ public final class RewritePluginDataHandlerTest {
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(rewritePluginDataHandler.pluginNamed(), "rewrite");
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testBlankHandleClearsCachedRule(final String handle) {
+        ruleData.setSelectorId("clear-selector");
+        ruleData.setId("clear-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+
+        ruleData.setHandle(handle);
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("clear-selector_clear-rule"));
+    }
+
+    @Test
+    public void testNullHandleRetainsCachedRule() {
+        ruleData.setSelectorId("null-selector");
+        ruleData.setId("null-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        RewriteHandle cached = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("null-selector_null-rule");
+
+        ruleData.setHandle(null);
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertSame(cached, RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("null-selector_null-rule"));
+    }
+
+    @Test
+    public void testEmptyObjectReplacesCachedRule() {
+        ruleData.setSelectorId("empty-selector");
+        ruleData.setId("empty-rule");
+        ruleData.setHandle("{\"regex\":\"/old\",\"replace\":\"/new\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        ruleData.setHandle("{}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        RewriteHandle cached = RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("empty-selector_empty-rule");
+        Assertions.assertNotNull(cached);
+        Assertions.assertNull(cached.getRegex());
+        Assertions.assertNull(cached.getReplace());
+    }
+
+    @Test
+    public void testInvalidRegexIsNotCached() {
+        ruleData.setSelectorId("invalid-regex-selector");
+        ruleData.setId("invalid-regex-rule");
+        ruleData.setHandle("{\"regex\":\"[a\",\"replace\":\"/new\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("invalid-regex-selector_invalid-regex-rule"));
+    }
+
+    @Test
+    public void testInvalidReplacementIsNotCached() {
+        ruleData.setSelectorId("invalid-replace-selector");
+        ruleData.setId("invalid-replace-rule");
+        ruleData.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("invalid-replace-selector_invalid-replace-rule"));
+    }
+
+    @Test
+    public void testInvalidHandleEvictsPreviouslyCachedRule() {
+        ruleData.setSelectorId("stale-selector");
+        ruleData.setId("stale-rule");
+        ruleData.setHandle("{\"regex\":\"(test)\",\"replace\":\"/new/$1\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("stale-selector_stale-rule"));
+
+        ruleData.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("stale-selector_stale-rule"));
+    }
+
+    @Test
+    public void testPlaceholderHandleIsCached() {
+        ruleData.setSelectorId("placeholder-selector");
+        ruleData.setId("placeholder-rule");
+        ruleData.setHandle("{\"regex\":\"/shenyu/{id}\",\"replace\":\"/target/{id}\"}");
+
+        rewritePluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNotNull(RewritePluginDataHandler.CACHED_HANDLE.get().obtainHandle("placeholder-selector_placeholder-rule"));
     }
 }

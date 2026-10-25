@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.TraceIdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -135,6 +136,10 @@ public interface ShenyuPlugin {
     /**
      * Plugin before operation.
      *
+     * <p>The gateway invokes this immediately before calling {@link #execute}, during chain
+     * subscription. Together with {@link #after}, it brackets construction of the plugin's
+     * publisher, not its asynchronous completion.</p>
+     *
      * @param exchange context
      */
     default void before(ServerWebExchange exchange) {
@@ -144,12 +149,17 @@ public interface ShenyuPlugin {
     /**
      * Plugin after operation.
      *
+     * <p>The gateway invokes this when {@link #execute} returns or throws, before subscribing
+     * to the returned publisher. These construction-time semantics are retained for compatibility
+     * with plugin overrides, including WASM callbacks. The gateway chain timing separately measures
+     * the entire subscription through its terminal signal.</p>
+     *
      * @param exchange context
      */
     default void after(ServerWebExchange exchange) {
         long currentTimeMillis = System.currentTimeMillis();
         long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
-        LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", exchange.getLogPrefix(), named(), currentTimeMillis - startTime);
+        LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", TraceIdUtils.traceId(exchange), named(), currentTimeMillis - startTime);
         exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
     }
 }
