@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -371,9 +372,14 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         // Handle MCP SSE/message requests by delegating to the transport provider
         // directly
         String messageEndpoint = server.getMessageEndpoint();
+        // server identity comes from the selector's canonical path: a custom message
+        // endpoint (e.g. /rpc) is not stripped by normalizeServerPath, so looking the
+        // transport up by the full request URI would create a second server whose
+        // session map cannot know the SSE session (#8045)
+        String serverPath = StringUtils.isNotBlank(server.getPath()) ? server.getPath() : uri;
 
         ShenyuSseServerTransportProvider transportProvider
-                = shenyuMcpServerManager.getOrCreateMcpServerTransport(uri, messageEndpoint);
+                = shenyuMcpServerManager.getOrCreateMcpServerTransport(serverPath, messageEndpoint);
 
         if (uri.endsWith(messageEndpoint)) {
             setupSessionContext(exchange, chain);

@@ -145,6 +145,11 @@ public interface Constants {
     String DIVIDE_SELECTOR_ID = "divideSelectorId";
 
     /**
+     * Request-scoped Canary routing observation, independent of retry state.
+     */
+    String SHENYU_CANARY_CONTEXT = "shenyu.canary.context";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
@@ -907,6 +912,11 @@ public interface Constants {
      * Optional server-installed MCP terminal observation callback.
      */
     String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
+
+    /**
+     * Optional callback for the initial Canary routing observation.
+     */
+    String METRICS_CANARY = "metricsCanary";
 
     /**
      * The constant shenyu namespace id.

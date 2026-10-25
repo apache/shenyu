@@ -15,31 +15,18 @@
 
 // Run with: node --test .github/scripts/pr-comment-commands-test.mjs
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
-import {dirname, join, resolve} from 'node:path';
+import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
 import {test} from 'node:test';
-import {fileURLToPath} from 'node:url';
-import {runInNewContext} from 'node:vm';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const require = createRequire(import.meta.url);
+const root = resolve(new URL('../..', import.meta.url).pathname);
+const {parseCommands, run} = require('./pr-comment-commands.cjs');
 const repo = {owner: 'apache', repo: 'shenyu'};
-const scripts = Object.fromEntries(['assign', 'close', 'lgtm', 'cc', 'hold'].map(command => {
-    const path = join(root, '.github/workflows', `${command}.yml`);
-    const workflow = readFileSync(path, 'utf8');
-    // Each workflow ends with one inline github-script block; execute that exact code.
-    const [header, script] = workflow.split('          script: |\n');
-    assert.ok(script, `Missing inline script in ${path}`);
-    // Preserve workflow line numbers for stack traces and V8 coverage reports.
-    const preamble = header.trimEnd().split('\n').map(line => `// ${line}`).join('\n');
-    return [command, {path, script: `${preamble}\n(async () => {\n${script}\n})()`}];
-}));
 
-function commandBody(command) {
-    return command === 'cc' ? '/cc @reviewer' : `/${command}`;
-}
-
-function fixture(command, options = {}) {
+function fixture(body, options = {}) {
     const calls = [];
     const failures = [];
     const context = {
@@ -47,7 +34,7 @@ function fixture(command, options = {}) {
         payload: {
             action: options.action ?? 'created',
             issue: {number: 42, ...(options.issue ? {} : {pull_request: {}})},
-            comment: {id: 123, body: options.body ?? commandBody(command), user: {login: options.user ?? 'contributor'}},
+            comment: {id: 123, body, user: {login: options.user ?? 'contributor'}},
         },
     };
     const endpoint = (name, result) => async args => {
@@ -60,248 +47,173 @@ function fixture(command, options = {}) {
     const github = {rest: {
         pulls: {
             get: endpoint('get', {
+                number: 42,
                 state: options.state ?? 'open',
                 user: {login: options.author ?? 'author'},
-                head: {sha: options.headSha ?? '0123456789abcdef0123456789abcdef01234567'},
+                head: {sha: options.headSha ?? '0123456789abcdef0123456789abcdef01234567',
+                    ref: 'feature', repo: {id: 99}},
             }),
-            update: endpoint('close', {}),
+            update: endpoint('update', {}),
             createReview: endpoint('lgtm', {state: 'APPROVED'}),
+            dismissReview: endpoint('unlgtm', {}),
+            listReviews: () => {},
         },
         issues: {
             createComment: endpoint('cc', {}),
             addLabels: endpoint('hold', []),
+            removeLabel: endpoint('unhold', {}),
             addAssignees: endpoint('assign', args => ({
                 assignees: (options.assigned ?? args.assignees).map(login => ({login})),
             })),
+            removeAssignees: endpoint('unassign', {}),
         },
         repos: {getCollaboratorPermissionLevel: endpoint('permission', {permission: options.permission ?? 'read'})},
         reactions: {createForIssueComment: endpoint('reaction', {})},
+        actions: {
+            listWorkflowRunsForRepo: () => {},
+            getWorkflowRun: endpoint('get-run', {}),
+            reRunWorkflowFailedJobs: endpoint('retest', {}),
+        },
     }};
-    const core = {info: () => {}, setFailed: message => failures.push(message)};
-    const {script, path} = scripts[command];
+    github.paginate = async (method, args) => {
+        calls.push({name: method === github.rest.pulls.listReviews ? 'list-reviews' : 'list-runs', args});
+        if (options.fail === 'paginate') {
+            throw new Error('API unavailable');
+        }
+        return options.reviews ?? [];
+    };
+    const core = {
+        info: () => {},
+        warning: () => {},
+        error: () => {},
+        setFailed: message => failures.push(message),
+    };
     return {
         calls,
         failures,
         context,
-        run: () => runInNewContext(script, {context, github, core}, {filename: path}),
+        run: allowedCommands => run({context, github, core, allowedCommands}),
     };
 }
 
-for (const command of Object.keys(scripts)) {
-    test(`${command}: ignores edits, ordinary issues, and non-command comments`, async () => {
-        for (const options of [
-            {action: 'edited'}, {action: 'deleted'}, {issue: true},
-            {body: ''}, {body: `Please /${command}`}, {body: `> /${command}`},
-            {body: `\`/${command}\``}, {body: `/${command}ment`},
-            {body: `/${command}\n/lgtm`}, {body: `/${command}\nSome explanation`},
-        ]) {
-            const f = fixture(command, options);
-            await f.run();
-            assert.deepEqual(f.calls, [], JSON.stringify(options));
-        }
-        for (const key of ['comment', 'issue']) {
-            const f = fixture(command);
-            delete f.context.payload[key];
-            await f.run();
-            assert.deepEqual(f.calls, []);
-        }
+test('parses valid commands from prose and multiple lines', () => {
+    assert.deepEqual(parseCommands([
+        'Please take a look.',
+        '/retest',
+        '',
+        '/hold',
+        '/cc @Alice Bob @alice',
+        '```',
+        '/unhold',
+        '```',
+    ].join('\r\n')), [
+        {name: 'retest'},
+        {name: 'hold'},
+        {name: 'cc', users: ['alice', 'bob']},
+    ]);
+});
+
+test('ignores invalid, embedded, and argument-bearing commands', async () => {
+    const f = fixture([
+        'Please /hold',
+        '/cc',
+        '/lgtm please',
+        '/hold\textra',
+        '/unknown',
+    ].join('\n'));
+    await f.run();
+    assert.deepEqual(f.calls, []);
+});
+
+test('executes multiple commands in source order and acknowledges each success', async () => {
+    const f = fixture('/cc @Alice Bob\n/lgtm\n/hold\n/unhold');
+    await f.run();
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'cc', 'reaction', 'lgtm', 'reaction', 'hold', 'reaction',
+        'unhold', 'reaction']);
+    assert.equal(f.calls[1].args.body, 'cc: @alice @bob');
+    assert.equal(f.failures.length, 0);
+});
+
+test('processes the retest and hold combination from one comment', async () => {
+    const f = fixture('Please check the failures.\n\n/retest\n/hold');
+    await f.run();
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'list-runs', 'reaction', 'hold', 'reaction']);
+    assert.equal(f.failures.length, 0);
+});
+
+test('filters commands when jobs have separate permission scopes', async () => {
+    const f = fixture('/retest\n/hold');
+    await f.run(['hold']);
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'hold', 'reaction']);
+});
+
+test('supports the reverse commands for labels, assignments, and approvals', async () => {
+    const f = fixture('/assign @Alice\n/unassign @Alice\n/lgtm\n/unlgtm', {
+        reviews: [{id: 456, state: 'APPROVED', body: 'Approved via /lgtm by @contributor.'}],
     });
-
-    test(`${command}: accepts surrounding whitespace and acknowledges only after success`, async () => {
-        const f = fixture(command, {body: ` \n${commandBody(command)}\r\n `, user: 'author'});
-        await f.run();
-        assert.deepEqual(f.calls.map(call => call.name), ['get', command, 'reaction']);
-        assert.deepEqual(f.calls[0].args, {...repo, pull_number: 42});
-        assert.deepEqual(f.calls.at(-1).args, {...repo, comment_id: 123, content: 'rocket'});
-        assert.deepEqual(f.failures, []);
-    });
-
-    test(`${command}: skips closed or merged pull requests`, async () => {
-        const f = fixture(command, {state: 'closed'});
-        await f.run();
-        assert.deepEqual(f.calls.map(call => call.name), ['get']);
-    });
-
-    test(`${command}: propagates API failures without a success reaction`, async () => {
-        for (const fail of ['get', command, 'reaction']) {
-            const f = fixture(command, {user: 'author', fail});
-            await assert.rejects(f.run(), /API unavailable/);
-            assert.equal(f.calls.at(-1).name, fail);
-        }
-    });
-}
-
-test('assign: defaults to the commenter', async () => {
-    const f = fixture('assign');
     await f.run();
-    assert.deepEqual(f.calls[1].args, {...repo, issue_number: 42, assignees: ['contributor']});
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'assign', 'reaction', 'unassign', 'reaction', 'lgtm',
+        'reaction', 'list-reviews', 'unlgtm', 'reaction']);
+    assert.equal(f.calls.at(-2).args.review_id, 456);
 });
 
-test('assign: supports multiple names, optional mentions, and case-insensitive deduplication', async () => {
-    const f = fixture('assign', {body: '/assign @Alice\tBob @alice user-3'});
+test('skips commands that do not match the pull request state', async () => {
+    const closed = fixture('/hold\n/reopen', {state: 'closed', user: 'author'});
+    await closed.run();
+    assert.deepEqual(closed.calls.map(call => call.name), ['get', 'update', 'reaction']);
+
+    const open = fixture('/reopen\n/hold');
+    await open.run();
+    assert.deepEqual(open.calls.map(call => call.name), ['get', 'hold', 'reaction']);
+});
+
+test('updates state between commands in the same comment', async () => {
+    const f = fixture('/close\n/reopen', {user: 'author'});
     await f.run();
-    assert.deepEqual(f.calls[1].args.assignees, ['alice', 'bob', 'user-3']);
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'update', 'reaction', 'update', 'reaction']);
+    assert.equal(f.calls[1].args.state, 'closed');
+    assert.equal(f.calls[3].args.state, 'open');
 });
 
-test('assign: rejects invalid arguments and embedded commands', async () => {
-    for (const body of ['/assign @', '/assign @a, @b', '/assign @a /close', '/assign\n@a', '/assign $(id)']) {
-        const f = fixture('assign', {body});
-        await f.run();
-        assert.deepEqual(f.calls, [], body);
-    }
-});
-
-test('assign: allows ten distinct users and rejects eleven', async () => {
-    for (const count of [10, 11]) {
-        const f = fixture('assign', {body: `/assign ${Array.from({length: count}, (_, i) => `@user-${i}`).join(' ')}`});
-        await f.run();
-        assert.equal(f.calls.length, count === 10 ? 3 : 1);
-        assert.equal(f.failures.length, count === 10 ? 0 : 1);
-    }
-});
-
-test('assign: detects silently ignored users without acknowledging success', async () => {
-    const f = fixture('assign', {body: '/assign @Alice @Bob', assigned: ['ALICE']});
+test('continues processing other lines after a command failure', async () => {
+    const f = fixture('/hold\n/unhold', {fail: 'hold'});
     await f.run();
-    assert.deepEqual(f.calls.map(call => call.name), ['get', 'assign']);
-    assert.deepEqual(f.failures, ['Could not assign: bob.']);
+    assert.deepEqual(f.calls.map(call => call.name), ['get', 'hold', 'unhold', 'reaction']);
+    assert.match(f.failures[0], /\/hold: API unavailable/);
 });
 
-test('assign: repeated assignments remain successful', async () => {
-    const f = fixture('assign', {assigned: ['CONTRIBUTOR']});
-    await f.run();
-    await f.run();
-    assert.deepEqual(f.failures, []);
-    assert.equal(f.calls.filter(call => call.name === 'reaction').length, 2);
-});
-
-test('close: lets the author close without requesting collaborator permissions', async () => {
-    const f = fixture('close', {user: 'AUTHOR'});
-    await f.run();
-    assert.deepEqual(f.calls.map(call => call.name), ['get', 'close', 'reaction']);
-    assert.deepEqual(f.calls[1].args, {...repo, pull_number: 42, state: 'closed'});
-});
-
-test('close: allows write, maintain, and admin permissions', async () => {
-    for (const permission of ['write', 'maintain', 'admin']) {
-        const f = fixture('close', {permission});
-        await f.run();
-        assert.deepEqual(f.calls.map(call => call.name), ['get', 'permission', 'close', 'reaction']);
-        assert.deepEqual(f.calls[1].args, {...repo, username: 'contributor'});
-    }
-});
-
-test('close: rejects read, triage, none, and unknown permissions', async () => {
-    for (const permission of ['read', 'triage', 'none', 'unknown']) {
-        const f = fixture('close', {permission});
-        await f.run();
-        assert.deepEqual(f.calls.map(call => call.name), ['get', 'permission']);
-    }
-});
-
-test('close: fails closed if permission lookup fails', async () => {
-    const f = fixture('close', {fail: 'permission'});
-    await assert.rejects(f.run(), /API unavailable/);
-    assert.deepEqual(f.calls.map(call => call.name), ['get', 'permission']);
-});
-
-test('close, lgtm, and hold: reject arguments', async () => {
-    for (const command of ['close', 'lgtm', 'hold']) {
-        const f = fixture(command, {body: `/${command} please`});
+test('ignores edits and ordinary issues', async () => {
+    for (const options of [{action: 'edited'}, {issue: true}]) {
+        const f = fixture('/hold\n/lgtm', options);
         await f.run();
         assert.deepEqual(f.calls, []);
     }
 });
 
-test('lgtm: submits an approving review for the current head and records the commenter', async () => {
-    const f = fixture('lgtm');
-    await f.run();
-    assert.deepEqual(f.calls[1].args, {
-        ...repo,
-        pull_number: 42,
-        commit_id: '0123456789abcdef0123456789abcdef01234567',
-        event: 'APPROVE',
-        body: 'Approved via /lgtm by @contributor.',
-    });
-    assert.deepEqual(f.calls.map(call => call.name), ['get', 'lgtm', 'reaction']);
-});
-
-test('lgtm: binds a new request to the fetched head commit', async () => {
-    const headSha = 'abcdef0123456789abcdef0123456789abcdef01';
-    const f = fixture('lgtm', {headSha});
-    await f.run();
-    assert.equal(f.calls[1].args.commit_id, headSha);
-});
-
-test('cc: posts mentions on the pull request', async () => {
-    const f = fixture('cc');
-    await f.run();
-    assert.deepEqual(f.calls[1].args, {...repo, issue_number: 42, body: 'cc: @reviewer'});
-});
-
-test('cc: supports multiple names, optional mentions, and case-insensitive deduplication', async () => {
-    const f = fixture('cc', {body: '/cc @Alice\tBob @alice user-3'});
-    await f.run();
-    assert.equal(f.calls[1].args.body, 'cc: @alice @bob @user-3');
-});
-
-test('cc: rejects missing users, invalid arguments, and embedded commands', async () => {
-    for (const body of [
-        '/cc', '/cc @', '/cc @a, @b', '/cc @a /close', '/cc\n@a', '/cc $(id)',
-        '/cc @org/team', '/cc @a\n/hold', 'Please /cc @a', '> /cc @a', '`/cc @a`',
-    ]) {
-        const f = fixture('cc', {body});
-        await f.run();
-        assert.deepEqual(f.calls, [], body);
-    }
-});
-
-test('hold: adds the hold label without replacing other labels', async () => {
-    const f = fixture('hold');
-    await f.run();
-    assert.deepEqual(f.calls[1].args, {...repo, issue_number: 42, labels: ['hold']});
-});
-
-test('hold: repeated requests remain successful', async () => {
-    const f = fixture('hold');
-    await f.run();
-    await f.run();
-    assert.deepEqual(f.failures, []);
-    assert.equal(f.calls.filter(call => call.name === 'hold').length, 2);
-    assert.equal(f.calls.filter(call => call.name === 'reaction').length, 2);
-});
-
-test('legacy manager: delegates PR commands, preserves issue commands and other PR commands', t => {
+test('legacy issue manager handles reverse labels and delegates every PR command', t => {
     const directory = mkdtempSync(join(root, '.pr-comment-test-'));
     t.after(() => rmSync(directory, {recursive: true, force: true}));
     const eventPath = join(directory, 'event.json');
-    // Override curl in a child shell so the legacy integration test cannot call GitHub.
     const harness = 'curl() { printf "%s\\n" "$*"; }; export -f curl; bash -x actions/scripts/issue-manager.sh';
     for (const isPr of [true, false]) {
-        for (const action of ['created', 'edited']) {
-            writeFileSync(eventPath, JSON.stringify({
-                action,
-                issue: {number: 42, ...(isPr ? {pull_request: {}} : {})},
-                comment: {body: '/assign @alice\n/close\n/lgtm\n/cc @bob\n/hold\n/unhold', user: {login: 'contributor'}},
-            }));
-            const result = spawnSync('bash', ['-c', harness], {
-                cwd: root,
-                encoding: 'utf8',
-                env: {...process.env, GITHUB_TOKEN: 'test-token', GITHUB_EVENT_PATH: eventPath, GITHUB_REPOSITORY: 'apache/shenyu'},
-            });
-            assert.equal(result.status, 0, result.stderr);
-            const requests = result.stderr.split('\n').filter(line => /^\++ curl /.test(line));
-            assert.equal(requests.length, isPr ? 1 : 6, result.stderr);
-            assert.ok(requests.at(-1).includes('-X DELETE'));
-            assert.ok(requests.at(-1).includes('/labels/hold'));
-            if (!isPr) {
-                assert.ok(requests[0].includes('/assignees'));
-                assert.ok(requests[1].includes('closed'));
-                assert.ok(requests[2].includes('lgtm'));
-                assert.ok(requests[3].includes('/comments'));
-                assert.match(requests[3], /cc:\s+@bob/);
-                assert.ok(requests[4].includes('hold'));
-            }
+        writeFileSync(eventPath, JSON.stringify({
+            action: 'created',
+            issue: {number: 42, ...(isPr ? {pull_request: {}} : {})},
+            comment: {body: '/assign @alice\n/close\n/lgtm\n/cc @bob\n/hold\n/unhold\n/unlgtm', user: {login: 'contributor'}},
+        }));
+        const result = spawnSync('bash', ['-c', harness], {
+            cwd: root,
+            encoding: 'utf8',
+            env: {...process.env, GITHUB_TOKEN: 'test-token', GITHUB_EVENT_PATH: eventPath, GITHUB_REPOSITORY: 'apache/shenyu'},
+        });
+        assert.equal(result.status, 0, result.stderr);
+        const requests = result.stderr.split('\n').filter(line => /^\++ curl /.test(line));
+        assert.equal(requests.length, isPr ? 0 : 7, result.stderr);
+        if (!isPr) {
+            assert.ok(requests.some(request => request.includes('/labels/lgtm')));
+            assert.ok(requests.some(request => request.includes('/labels/hold')));
+            assert.ok(requests.some(request => request.includes('-X DELETE') && request.includes('/labels/hold')));
+            assert.ok(requests.some(request => request.includes('-X DELETE') && request.includes('/labels/lgtm')));
         }
     }
 });

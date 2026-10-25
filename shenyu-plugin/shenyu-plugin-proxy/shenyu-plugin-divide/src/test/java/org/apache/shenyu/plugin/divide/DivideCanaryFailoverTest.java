@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -119,6 +121,11 @@ class DivideCanaryFailoverTest {
         // A fallback starts with no canary nodes. In stable mode a legacy gray canary must not win a retry.
         refresh("fallback".equals(mode) ? List.of(first) : List.of(first, instance("opposite:8080", stable ? "canary" : "stable", stable)));
         ServerWebExchange exchange = exchange();
+        AtomicInteger observations = new AtomicInteger();
+        exchange.getAttributes().put(Constants.METRICS_CANARY, (Consumer<CanaryContext>) observation -> {
+            assertEquals(stable ? "stable" : "canary", observation.getActualPartition());
+            observations.incrementAndGet();
+        });
         StepVerifier.create(new DividePlugin().doExecute(exchange, current -> {
             assertEquals("http://first:8080", current.getAttribute(Constants.HTTP_DOMAIN));
             current.getAttributes().put(Constants.HTTP_URI, RequestUrlUtils.buildRequestUri(current, current.getAttribute(Constants.HTTP_DOMAIN)));
@@ -130,6 +137,7 @@ class DivideCanaryFailoverTest {
             return retry(strategy).execute(Mono.error(new TimeoutException("first failed")), current, Duration.ofSeconds(5), 1).then();
         }, selector, rule)).verifyComplete();
         assertEquals(List.of(URI.create("http://second:8080/test")), http.attempts);
+        assertEquals(1, observations.get());
     }
 
     @ParameterizedTest

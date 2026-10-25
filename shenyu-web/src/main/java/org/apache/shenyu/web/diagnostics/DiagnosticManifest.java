@@ -82,6 +82,19 @@ public final class DiagnosticManifest {
     }
 
     /**
+     * Render a manifest identical to this one except for the section list.
+     *
+     * <p>The archive writer uses this to describe the sections as they will actually be archived
+     * after the total size budget is applied, without mutating the collected manifest.</p>
+     *
+     * @param plannedSections the sections as they will be archived
+     * @return a manifest carrying the planned sections
+     */
+    public DiagnosticManifest withSections(final List<DiagnosticSection> plannedSections) {
+        return new DiagnosticManifest(generatedAtEpochMs, instance, softwareVersions, plannedSections);
+    }
+
+    /**
      * Get the collected sections.
      *
      * @return the sections
