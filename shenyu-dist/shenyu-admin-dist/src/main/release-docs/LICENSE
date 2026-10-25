@@ -252,7 +252,7 @@ The text of each license is the standard Apache 2.0 license.
     grpc-protobuf-lite 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-stub 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-util 1.65.1: https://github.com/grpc/grpc, Apache 2.0
-    gson 2.9.0: https://github.com/google/gson, Apache 2.0
+    gson 2.13.2: https://github.com/google/gson, Apache 2.0
     gson-fire 1.8.5: https://mvnrepository.com/artifact/io.gsonfire/gson-fire, Apache 2.0
     guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     hessian 4.0.38: http://github.com/alipay/sofa-hessian, Apache 2.0
@@ -300,31 +300,31 @@ The text of each license is the standard Apache 2.0 license.
     nacos-client 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
     nacos-auth-plugin 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
     nacos-encryption-plugin 2.2.4: https://github.com/alibaba/nacos, Apache 2.0
-    netty-buffer 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-codec 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-codec-dns 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http2 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-codec-http 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-codec-socks 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-common 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-handler 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-handler-proxy 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-resolver 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-transport 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-transport-classes-epoll 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-transport-native-unix-common 4.1.111.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-classes-macos 4.1.100.Final: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-native-macos 4.1.111.Final-osx-x86_64 https://github.com/netty, Apache 2.0
-    netty-transport-native-epoll 4.1.111.Final-linux-x86_64 https://github.com/netty, Apache 2.0
-    netty-tcnative-classes 2.0.65.Final: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final-linux-x86_64: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final-linux-aarch_64: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final-osx-x86_64: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
-    netty-tcnative-boringssl-static 2.0.65.Final-windows-x86_64: https://github.com/netty, Apache 2.0
-    netty-resolver-dns-classes-macos 4.1.111.Final: https://github.com/netty, Apache 2.0
+    netty-buffer 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-codec 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-codec-dns 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http2 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-codec-http 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-codec-socks 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-common 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-handler 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-handler-proxy 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-resolver 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-transport 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-transport-classes-epoll 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-transport-native-unix-common 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-classes-macos 4.1.139.Final: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-native-macos 4.1.139.Final-osx-x86_64 https://github.com/netty, Apache 2.0
+    netty-transport-native-epoll 4.1.139.Final-linux-x86_64 https://github.com/netty, Apache 2.0
+    netty-tcnative-classes 2.0.84.Final: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final-linux-x86_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final-linux-aarch_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final-osx-x86_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final-osx-aarch_64: https://github.com/netty, Apache 2.0
+    netty-tcnative-boringssl-static 2.0.84.Final-windows-x86_64: https://github.com/netty, Apache 2.0
+    netty-resolver-dns-classes-macos 4.1.139.Final: https://github.com/netty, Apache 2.0
     objenesis 3.3: http://objenesis.org, Apache 2.0
     okhttp 4.12.0: https://github.com/square/okhttp, Apache 2.0
     okio 3.6.0: https://github.com/square/okio, Apache 2.0
@@ -364,10 +364,10 @@ The text of each license is the standard Apache 2.0 license.
     simpleclient 0.15.0: http://github.com/prometheus/client_java/simpleclient, Apache 2.0
     snakeyaml 2.2: http://www.snakeyaml.org, Apache 2.0
     spring-retry 2.0.6: https://mvnrepository.com/artifact/org.springframework.retry/spring-retry/2.0.6, Apache 2.0
-    spring-ai-retry 1.0.0: https://mvnrepository.com/artifact/org.springframework.ai/spring-ai-retry, Apache 2.0
     spring-integration-core 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-core, Apache 2.0
     spring-integration-jdbc 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-jdbc, Apache 2.0
     spring-integration-zookeeper 6.3.1: https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-zookeeper, Apache 2.0
+    spring-security-crypto 6.3.1: https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto, Apache 2.0
     spring-aop 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-aop, Apache 2.0
     spring-beans 6.1.10: https://mvnrepository.com/artifact/org.springframework/spring-beans, Apache 2.0
     spring-boot 3.3.1: https://spring.io, Apache 2.0
@@ -570,10 +570,10 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
-    jcl-over-slf4j 2.0.13: https://www.slf4j.org, MIT
-    jul-to-slf4j 2.0.13: http://www.slf4j.org, MIT
+    jcl-over-slf4j 2.0.17: https://www.slf4j.org, MIT
+    jul-to-slf4j 2.0.17: http://www.slf4j.org, MIT
     pagehelper 5.3.3: https://github.com/pagehelper/Mybatis-PageHelper, MIT
-    slf4j-api 2.0.13: https://www.slf4j.org, MIT
+    slf4j-api 2.0.17: https://www.slf4j.org, MIT
     checker-qual 3.12.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
     dexx-collections 0.2: https://github.com/andrewoma/dexx, MIT
     checker-qual 3.33.0: https://checkerframework.org/, MIT
