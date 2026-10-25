@@ -277,10 +277,6 @@ The text of each license is the standard Apache 2.0 license.
     jakarta.validation-api 3.0.2: http://beanvalidation.org, Apache 2.0
     javassist 3.30.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
     jboss-logging 3.5.3.Final: http://www.jboss.org, Apache 2.0
-    jetcd-api 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-common 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-core 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
-    jetcd-grpc 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     json-path 2.7.0: https://github.com/jayway/JsonPath, Apache 2.0
     json-smart 2.4.11: https://www.minidev.net/, Apache 2.0
     jsqlparser 4.5: https://github.com/JSQLParser/JSqlParser, Apache 2.0
