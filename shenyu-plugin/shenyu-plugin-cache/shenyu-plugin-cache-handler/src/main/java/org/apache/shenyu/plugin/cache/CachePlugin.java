@@ -103,12 +103,10 @@ public class CachePlugin extends AbstractShenyuPlugin {
             return cache.getData(responseKey)
                     .map(CachedResponse::decode)
                     .defaultIfEmpty(Optional.empty())
-                    .flatMap(dataFlg -> {
-                        if (dataFlg.isPresent()) {
-                            return dataFlg.get().writeTo(exchange.getResponse());
-                        }
-                        return fillCache(exchange, chain, cacheRuleHandle, selector.getId(), responseKey);
-                    });
+                    .flatMap(dataFlg -> dataFlg
+                            .filter(cached -> cached.matches(exchange.getRequest()))
+                            .map(cached -> cached.writeTo(exchange.getResponse()))
+                            .orElseGet(() -> fillCache(exchange, chain, cacheRuleHandle, selector.getId(), responseKey)));
         }
         return fillCache(exchange, chain, cacheRuleHandle, selector.getId(), responseKey);
     }
@@ -132,6 +130,7 @@ public class CachePlugin extends AbstractShenyuPlugin {
             if (followed.isPresent()) {
                 return followed.get().flatMap(packet -> packet
                         .flatMap(CachedResponse::decode)
+                        .filter(response -> response.matches(exchange.getRequest()))
                         .map(response -> response.writeTo(exchange.getResponse()))
                         .orElseGet(() -> forward(exchange, chain, cacheRuleHandle, selectorId, responseKey)));
             }
@@ -192,6 +191,8 @@ public class CachePlugin extends AbstractShenyuPlugin {
 
     static class CacheHttpResponse extends ServerHttpResponseDecorator {
 
+        private final ServerWebExchange exchange;
+
         private final String selectorId;
 
         private final String responseKey;
@@ -210,6 +211,7 @@ public class CachePlugin extends AbstractShenyuPlugin {
                           final CacheRuleHandle cacheRuleHandle,
                           final String selectorId, final String responseKey, final ResponseSingleFlight.Fill fill) {
             super(exchange.getResponse());
+            this.exchange = exchange;
             this.responseKey = responseKey;
             this.cacheRuleHandle = cacheRuleHandle;
             this.selectorId = selectorId;
@@ -252,7 +254,7 @@ public class CachePlugin extends AbstractShenyuPlugin {
                 AtomicReference<Optional<CachedResponse>> captured = new AtomicReference<>(Optional.empty());
                 getDelegate().beforeCommit(() -> {
                     try {
-                        captured.set(CachedResponse.capture(getDelegate(), body));
+                        captured.set(CachedResponse.capture(exchange.getRequest(), getDelegate(), body));
                     } catch (RuntimeException ex) {
                         LOG.warn("Failed to capture response cache metadata", ex);
                     }

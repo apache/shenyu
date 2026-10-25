@@ -153,7 +153,15 @@ public final class DiagnosticBundleService {
         }
         byte[] content = section.getContent();
         if (content.length > properties.getMaxSectionBytes()) {
-            byte[] capped = Arrays.copyOf(content, properties.getMaxSectionBytes());
+            // Cut on a character boundary: the cap is a byte count but the content is text, and a
+            // half-encoded character would make the archived entry undecodable. A cap below one
+            // whole character leaves no usable content, which is SKIPPED rather than empty OK.
+            int limit = Utf8Boundary.limit(content, properties.getMaxSectionBytes());
+            if (limit == 0) {
+                return DiagnosticSection.of(section.getName(), SectionStatus.SKIPPED,
+                        section.getObservedAtEpochMs(), durationMs, "section size cap");
+            }
+            byte[] capped = Arrays.copyOf(content, limit);
             return DiagnosticSection.truncated(section.getName(), section.getObservedAtEpochMs(), durationMs, capped, "section size cap");
         }
         return section;

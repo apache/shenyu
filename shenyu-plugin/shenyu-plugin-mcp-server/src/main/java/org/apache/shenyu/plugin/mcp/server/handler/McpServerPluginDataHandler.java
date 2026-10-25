@@ -69,6 +69,8 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
 
     private final ConcurrentMap<String, RuleData> rules = new ConcurrentHashMap<>();
 
+    private final ConcurrentMap<String, ToolRegistration> registrations = new ConcurrentHashMap<>();
+
     public McpServerPluginDataHandler(
             final ShenyuMcpServerManager shenyuMcpServerManager) {
         this.shenyuMcpServerManager = shenyuMcpServerManager;
@@ -138,6 +140,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
                 .collect(Collectors.toList());
         removedRules.forEach(rule -> {
             rules.remove(rule.getId());
+            registrations.remove(rule.getId());
             CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(rule));
         });
 
@@ -156,13 +159,24 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             return;
         }
         if (Objects.nonNull(ruleData.getId())) {
+            RuleData previous = rules.get(ruleData.getId());
             RuleData snapshot = RuleData.builder().id(ruleData.getId()).selectorId(ruleData.getSelectorId())
                     .name(ruleData.getName()).enabled(ruleData.getEnabled()).handle(ruleData.getHandle()).build();
             rules.put(snapshot.getId(), snapshot);
+            // an enabled -> disabled update arrives here, not through removeRule, so the tool
+            // registered while the rule was enabled has to be revoked explicitly
+            if (isRegistered(previous) && Boolean.FALSE.equals(snapshot.getEnabled())) {
+                unregisterTool(previous);
+                MetaDataCache.getInstance().clean();
+            }
             registerTool(snapshot);
             return;
         }
         registerTool(ruleData);
+    }
+
+    private boolean isRegistered(final RuleData ruleData) {
+        return Objects.nonNull(ruleData) && !Boolean.FALSE.equals(ruleData.getEnabled());
     }
 
     private void registerTool(final RuleData ruleData) {
@@ -182,12 +196,75 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
             String inputSchema = JsonSchemaUtil.createParameterSchema(parameters);
             ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
             if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
-                shenyuMcpServerManager.addTool(server.getPath(),
-                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName()
-                                : mcpServerTool.getName(),
+                String toolName = effectiveToolName(ruleData, mcpServerTool);
+                revokeRenamedRegistration(ruleData.getId(), server.getPath(), toolName);
+                shenyuMcpServerManager.addTool(server.getPath(), toolName,
                         mcpServerTool.getDescription(),
                         mcpServerTool.getRequestConfig(),
                         inputSchema);
+                trackRegistration(ruleData, server.getPath(), toolName);
+            }
+        });
+    }
+
+    /**
+     * Revoke the registration applied for this rule when its effective server path or tool name
+     * changed, so a rename or a move does not leave the previous name registered next to the new
+     * one. The applied identity is tracked separately from the newest desired rule definition.
+     *
+     * @param ruleId     the rule id
+     * @param serverPath the server path the rule resolves to now
+     * @param toolName   the effective tool name now
+     */
+    private void revokeRenamedRegistration(final String ruleId, final String serverPath, final String toolName) {
+        if (Objects.isNull(ruleId)) {
+            return;
+        }
+        ToolRegistration applied = registrations.get(ruleId);
+        if (Objects.nonNull(applied) && !applied.hasIdentity(serverPath, toolName)) {
+            shenyuMcpServerManager.removeTool(applied.getServerPath(), applied.getToolName());
+        }
+    }
+
+    private void trackRegistration(final RuleData ruleData, final String serverPath, final String toolName) {
+        if (Objects.nonNull(ruleData.getId()) && StringUtils.isNotBlank(toolName)) {
+            registrations.put(ruleData.getId(), new ToolRegistration(ruleData.getSelectorId(), serverPath, toolName));
+        }
+    }
+
+    private boolean removeTrackedRegistration(final String ruleId) {
+        ToolRegistration applied = Objects.isNull(ruleId) ? null : registrations.remove(ruleId);
+        if (Objects.isNull(applied)) {
+            return false;
+        }
+        CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(applied.getSelectorId(), ruleId));
+        if (StringUtils.isNotBlank(applied.getToolName())) {
+            shenyuMcpServerManager.removeTool(applied.getServerPath(), applied.getToolName());
+        }
+        return true;
+    }
+
+    private String effectiveToolName(final RuleData ruleData, final ShenyuMcpServerTool tool) {
+        return StringUtils.isBlank(tool.getName()) ? ruleData.getName() : tool.getName();
+    }
+
+    /**
+     * Revoke whatever this rule has registered. The applied identity is authoritative because a
+     * renamed or moved rule no longer matches what an incoming handle describes; the passed rule
+     * data is only a fallback for rules that were never registered against a server.
+     *
+     * @param ruleData the rule to revoke
+     */
+    private void unregisterTool(final RuleData ruleData) {
+        if (removeTrackedRegistration(ruleData.getId())) {
+            return;
+        }
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
+            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
+            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
+                shenyuMcpServerManager.removeTool(server.getPath(), effectiveToolName(ruleData, mcpServerTool));
             }
         });
     }
@@ -200,15 +277,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         if (Objects.nonNull(ruleData.getId())) {
             rules.remove(ruleData.getId());
         }
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CACHED_TOOL.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
-            ShenyuMcpServerTool mcpServerTool = GsonUtils.getInstance().fromJson(s, ShenyuMcpServerTool.class);
-            ShenyuMcpServer server = CACHED_SERVER.get().obtainHandle(ruleData.getSelectorId());
-            if (Objects.nonNull(server) && StringUtils.isNotBlank(server.getPath())) {
-                shenyuMcpServerManager.removeTool(server.getPath(),
-                        StringUtils.isBlank(mcpServerTool.getName()) ? ruleData.getName() : mcpServerTool.getName());
-            }
-        });
+        unregisterTool(ruleData);
         MetaDataCache.getInstance().clean();
     }
 
@@ -235,6 +304,42 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         String path = StringUtils.removeEnd(selectorUri, STAR);
         path = StringUtils.removeEnd(path, SLASH);
         return StringUtils.defaultIfBlank(path, SLASH);
+    }
+
+    /**
+     * The registration this handler actually applied for one rule: the server path and tool name
+     * present in the SDK server, kept apart from the newest desired rule definition so a later
+     * update or deletion can tell what still has to be revoked.
+     */
+    private static final class ToolRegistration {
+
+        private final String selectorId;
+
+        private final String serverPath;
+
+        private final String toolName;
+
+        ToolRegistration(final String selectorId, final String serverPath, final String toolName) {
+            this.selectorId = selectorId;
+            this.serverPath = serverPath;
+            this.toolName = toolName;
+        }
+
+        private String getSelectorId() {
+            return selectorId;
+        }
+
+        private String getServerPath() {
+            return serverPath;
+        }
+
+        private String getToolName() {
+            return toolName;
+        }
+
+        private boolean hasIdentity(final String candidateServerPath, final String candidateToolName) {
+            return Objects.equals(serverPath, candidateServerPath) && Objects.equals(toolName, candidateToolName);
+        }
     }
 
 }

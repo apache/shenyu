@@ -43,7 +43,7 @@ a library codec alone does not define its endpoint or authentication contract.
 
 1. ShenYu resolves global/selector configuration, proxy credentials and fallback.
 2. The protocol decoder validates the envelope and retains the original payload.
-3. The provider applies gateway overrides, then `ConnectProtocolAdapter` converts
+3. The provider applies gateway overrides, then `ConnectResponsesToChatConverter` converts
    to Chat using a request-scoped `ConversionContext`. The configured upstream
    model is authoritative. The provider profile runs once after conversion.
 4. ShenYu constructs the HTTP endpoint and authorization headers and sends the

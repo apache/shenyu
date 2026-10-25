@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
-import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.metrics.config.Metric;
+import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -64,6 +66,13 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu resilience4j circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu hystrix circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
+        for (CanaryMetric metric : CanaryMetric.values()) {
+            if (Objects.isNull(metric.getBuckets())) {
+                registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
+            } else {
+                registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
+            }
+        }
         MetricsReporter.registerCounter(LabelNames.AGENT_REQUESTS_TOTAL, new String[]{"traffic", "outcome", "reason"}, "Terminal Agent request subscriptions including pre-dispatch rejection");
         MetricsReporter.registerHistogram(LabelNames.AGENT_REQUEST_LATENCY, new String[]{"traffic", "outcome"}, "Agent request terminal latency millis");
         MetricsReporter.registerGauge(LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, "Active Agent logical request subscriptions, not sessions");
@@ -148,6 +157,18 @@ public final class MetricsReporter {
      */
     public static void registerHistogram(final String name, final String[] labelNames, final String document) {
         Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerHistogram(name, labelNames, document));
+    }
+
+    /**
+     * Register a histogram with explicit bucket boundaries.
+     *
+     * @param name metric name
+     * @param labelNames label names
+     * @param document metric description
+     * @param buckets bucket boundaries in the observation's unit
+     */
+    public static void registerHistogram(final String name, final String[] labelNames, final String document, final double[] buckets) {
+        Optional.ofNullable(metricsRegister).ifPresent(register -> register.registerHistogram(name, labelNames, document, buckets));
     }
 
     /**
@@ -247,6 +268,17 @@ public final class MetricsReporter {
      */
     public static void recordTime(final String name, final long duration) {
         recordTime(name, null, duration);
+    }
+
+    /**
+     * Record a fractional histogram observation without converting its unit.
+     *
+     * @param name metric name
+     * @param labelValues label values
+     * @param value fractional observation
+     */
+    public static void observe(final String name, final String[] labelValues, final double value) {
+        Optional.ofNullable(metricsRegister).ifPresent(register -> register.observe(name, labelValues, value));
     }
 
     /**

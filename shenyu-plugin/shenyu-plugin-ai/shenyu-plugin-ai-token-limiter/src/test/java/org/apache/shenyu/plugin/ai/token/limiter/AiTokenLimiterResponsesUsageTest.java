@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConversion;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.ConnectProtocolAdapter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -45,6 +49,8 @@ class AiTokenLimiterResponsesUsageTest {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private static final String CHAT_COMPLETION = "{\"id\":\"chatcmpl-1\",\"object\":\"chat.completion\",\"model\":\"model\","
             + "\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"hello\"},\"finish_reason\":\"stop\"}],"
             + "\"usage\":{\"prompt_tokens\":3,\"completion_tokens\":12,\"total_tokens\":15}}";
@@ -56,7 +62,7 @@ class AiTokenLimiterResponsesUsageTest {
             + "data: [DONE]\n\n";
 
     @Test
-    void recordsTheSameUsageForChatAndConvertedResponsesBodies() {
+    void recordsTheSameUsageForChatAndConvertedResponsesBodies() throws Exception {
         // Issue #7911: the Responses body is produced by the real adapter, not a hand-written fixture.
         byte[] responses = converted(false);
         assertEquals(12L, recordedUsage(false, CHAT_COMPLETION.getBytes(StandardCharsets.UTF_8)));
@@ -64,26 +70,29 @@ class AiTokenLimiterResponsesUsageTest {
     }
 
     @Test
-    void recordsTheSameUsageForChatAndConvertedResponsesStreams() {
+    void recordsTheSameUsageForChatAndConvertedResponsesStreams() throws Exception {
         byte[] responses = converted(true);
         assertEquals(12L, recordedUsage(true, CHAT_STREAM.getBytes(StandardCharsets.UTF_8)));
         assertEquals(12L, recordedUsage(true, responses));
     }
 
     @Test
-    void forwardsTheConvertedBytesUnchanged() {
+    void forwardsTheConvertedBytesUnchanged() throws Exception {
         for (boolean stream : new boolean[] {false, true}) {
             byte[] responses = converted(stream);
             assertArrayEquals(responses, forwarded(stream, responses));
         }
     }
 
-    private byte[] converted(final boolean stream) {
-        ConnectProtocolAdapter adapter = new ConnectProtocolAdapter(OpenAiResponses.NAME, null, null);
+    private byte[] converted(final boolean stream) throws Exception {
+        ObjectNode payload = (ObjectNode) MAPPER.readTree("{\"model\":\"model\",\"input\":\"hello\""
+                + (stream ? ",\"stream\":true" : "") + "}");
+        ShenyuAiRequest request = new OpenAiResponses().decodeRequest(payload.toString(), payload);
+        AiProtocolConversion conversion = new ConnectResponsesToChatConverter().convert(request, stream);
         AiUpstreamResponse upstream = new AiUpstreamResponse(200,
                 Map.of("Content-Type", List.of(stream ? MediaType.TEXT_EVENT_STREAM_VALUE : MediaType.APPLICATION_JSON_VALUE)),
                 Flux.just((stream ? CHAT_STREAM : CHAT_COMPLETION).getBytes(StandardCharsets.UTF_8)));
-        return adapter.convertResponse(upstream, stream).getBody()
+        return conversion.responseAdapter().adapt(upstream).getBody()
                 .reduce(new ByteArrayOutputStream(), (buffer, bytes) -> {
                     buffer.writeBytes(bytes);
                     return buffer;
