@@ -38,6 +38,7 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
@@ -110,6 +111,12 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
                     .build();
         }
         final ServerWebExchange effective = mutated;
+        // the declared size bound applies to every path that reads the request
+        // body, including the mode precheck of a response only scope
+        long declaredSize = effective.getRequest().getHeaders().getContentLength();
+        if (piiRule.isOversized(declaredSize)) {
+            return oversized(exchange, chain, effective, piiRule, declaredSize);
+        }
         if (!piiRule.scansRequest()) {
             if (piiRule.scansResponse() && piiRule.isFailClosed()) {
                 // a strict response scope still prechecks the enforcement mode of the
@@ -118,18 +125,38 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
                 return ServerWebExchangeUtils.rewriteRequestBody(effective, readers,
                                 body -> precheckStreamingRequest(effective, body, piiRule))
                         .flatMap(chain::execute)
-                        .onErrorResume(this::resume);
+                        .onErrorResume(error -> resume(exchange, error));
             }
-            return chain.execute(effective).onErrorResume(this::resume);
-        }
-        long declaredSize = effective.getRequest().getHeaders().getContentLength();
-        if (piiRule.isOversized(declaredSize)) {
-            return oversized(exchange, chain, effective, piiRule, declaredSize);
+            return chain.execute(effective).onErrorResume(error -> resume(exchange, error));
         }
         return ServerWebExchangeUtils.rewriteRequestBody(effective, readers,
                         body -> inspectRequest(effective, body, piiRule))
                 .flatMap(chain::execute)
-                .onErrorResume(this::resume);
+                .onErrorResume(error -> resume(exchange, error));
+    }
+
+    /**
+     * The failures of a path that reads the request body. A rejection carries
+     * the shenyu result to the caller; the body aggregation of the codec is
+     * bounded by its own {@code maxInMemorySize}, independent of the
+     * {@code maxBodySize} of the rule, and once that codec bound is hit the
+     * body has been consumed and cannot be forwarded unchanged anymore: the
+     * request is rejected with a clear reason instead of an internal error.
+     *
+     * @param exchange the current exchange
+     * @param error the failure of the body path
+     * @return the recovery
+     */
+    private Mono<Void> resume(final ServerWebExchange exchange, final Throwable error) {
+        if (error instanceof ResponsiveException) {
+            return WebFluxResultUtils.failedResult((ResponsiveException) error);
+        }
+        if (error instanceof DataBufferLimitException) {
+            LOG.warn("pii detection: the request body exceeds the codec in memory limit and cannot be scanned,"
+                    + " the request is rejected");
+            return reject(exchange);
+        }
+        return Mono.error(error);
     }
 
     private Mono<Void> oversized(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -241,13 +268,6 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
 
     private ResponsiveException rejectError(final ServerWebExchange exchange) {
         return new ResponsiveException(BLOCK_CODE, BLOCK_MESSAGE, exchange);
-    }
-
-    private Mono<Void> resume(final Throwable error) {
-        if (error instanceof ResponsiveException) {
-            return WebFluxResultUtils.failedResult((ResponsiveException) error);
-        }
-        return Mono.error(error);
     }
 
     private JsonObject parse(final String body) {

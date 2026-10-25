@@ -53,10 +53,17 @@ extraction and configurable actions.
 - A real upstream error envelope (a non null `error` object) is never rewritten. A
   `"error": null` member is not an error: successful `openai-responses` completions carry
   it and are scanned normally.
-- `maxBodySize` (default 1 MiB) bounds both directions. On the response side a fail
-  closed rule stops reading as soon as the bound is exceeded; a fail open rule reads the
-  body to the end — a truncated pass through would corrupt the response — and writes it
-  back unscanned.
+- `maxBodySize` (default 1 MiB) bounds both directions. On the response side the bound
+  is applied while the body flows through: a body that stays under the bound is scanned
+  once complete; a fail closed rule whose bound is exceeded stops reading, cancels the
+  upstream and answers 403 before any byte was sent; a fail open rule switches to
+  unscanned streaming at that point — the buffered prefix is written, followed by the
+  overflowing chunk and every later chunk as they arrive, so the memory stays bounded
+  and the client receives the prefix without waiting for the body to complete.
+- The request side is additionally bounded by the codec in memory limit
+  (`spring.codec.max-in-memory-size`, independent of `maxBodySize`): a request that
+  exceeds the codec limit can no longer be forwarded unchanged and is rejected with a
+  clear reason.
 - Fail open means *not detected*, never *checked and clean*: every skipped mode logs a
   warning.
 - Reversible tokenization and non OpenAI protocols are out of scope of this release, and

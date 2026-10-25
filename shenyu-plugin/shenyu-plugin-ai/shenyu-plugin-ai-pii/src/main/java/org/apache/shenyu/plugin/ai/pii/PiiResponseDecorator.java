@@ -45,6 +45,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The response side of the pii detection plugin.
@@ -70,12 +71,6 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
     private final PiiDetectionRule rule;
 
     private final PiiAuditSink auditSink;
-
-    /**
-     * Whether the aggregated body exceeded the bound of the rule. The decorator
-     * instance serves a single response, so the flag needs no synchronization.
-     */
-    private boolean aggregatedOverLimit;
 
     PiiResponseDecorator(final ServerWebExchange exchange, final PiiDetectionRule rule, final PiiAuditSink auditSink) {
         super(exchange.getResponse());
@@ -104,54 +99,75 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
                     + " ruleId {}", declaredSize, rule.getMaxBodySize(), rule.getRuleId());
             return super.writeWith(body);
         }
-        return aggregate(body)
-                .publishOn(Schedulers.boundedElastic())
-                .map(bytes -> aggregatedOverLimit ? passThroughUnscanned(bytes) : scan(bytes))
+        return super.writeWith(boundedScanStream(body))
                 .onErrorResume(ResponseTooLargeException.class, tooLarge -> {
                     LOG.warn("pii detection: the response exceeds maxBodySize {} and failClosed is set,"
                             + " the reading stopped and the response is rejected", rule.getMaxBodySize());
-                    return Mono.just(block());
-                })
-                .flatMap(this::write)
-                .switchIfEmpty(Mono.defer(() -> super.writeWith(Flux.empty())));
+                    return Mono.fromCallable(this::block)
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .flatMap(this::write);
+                });
     }
 
     /**
-     * Aggregate the body under the size bound of the rule. A fail closed rule
-     * stops reading as soon as the bound is exceeded, the upstream is cancelled
-     * and the buffers read so far are released. A fail open rule keeps reading
-     * to the end, because passing a truncated body through would corrupt the
-     * response: the complete body is returned with {@link #aggregatedOverLimit}
-     * set and the caller writes it back unscanned.
+     * Wrap the body into the stream that is written downstream, applying the
+     * size bound while the body flows through it.
+     *
+     * <ul>
+     * <li>while the body stays under the bound, every chunk is copied into a
+     * bounded prefix buffer and nothing is written; when the body completes,
+     * the whole prefix is scanned on a bounded elastic worker and the result is
+     * the single chunk written downstream;</li>
+     * <li>a fail closed rule whose bound is exceeded errors before any byte was
+     * written, the upstream is cancelled and the caller answers with the
+     * rejection body;</li>
+     * <li>a fail open rule whose bound is exceeded switches to unscanned
+     * streaming: the buffered prefix is emitted, followed by the overflowing
+     * chunk and every later chunk as they arrive. The memory stays bounded at
+     * the prefix size, the client receives the prefix without waiting for the
+     * body to complete, and nothing is lost, duplicated or re-requested: the
+     * upstream is subscribed exactly once.</li>
+     * </ul>
      *
      * @param body the body publisher
-     * @return the aggregated bytes
+     * @return the stream written to the delegate response
      */
-    private Mono<byte[]> aggregate(final Publisher<? extends DataBuffer> body) {
+    private Flux<DataBuffer> boundedScanStream(final Publisher<? extends DataBuffer> body) {
         final long limit = rule.getMaxBodySize();
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream prefix = new ByteArrayOutputStream();
+        final AtomicBoolean streaming = new AtomicBoolean(false);
         return Flux.from(body)
-                .doOnNext(buffer -> copyInto(buffer, out, limit))
-                .then(Mono.fromCallable(out::toByteArray));
-    }
-
-    private void copyInto(final DataBuffer buffer, final ByteArrayOutputStream out, final long limit) {
-        final int size = buffer.readableByteCount();
-        try {
-            if (limit > 0L && !aggregatedOverLimit && out.size() + size > limit) {
-                if (rule.isFailClosed()) {
-                    throw new ResponseTooLargeException();
-                }
-                aggregatedOverLimit = true;
-                LOG.warn("pii detection: the response exceeds maxBodySize {}, the reading continues and the"
-                        + " response is returned unscanned, ruleId {}", limit, rule.getRuleId());
-            }
-            byte[] chunk = new byte[size];
-            buffer.read(chunk);
-            out.write(chunk, 0, size);
-        } finally {
-            DataBufferUtils.release(buffer);
-        }
+                .concatMap(buffer -> {
+                    if (streaming.get()) {
+                        return Mono.just(buffer);
+                    }
+                    final int size = buffer.readableByteCount();
+                    if (limit > 0L && prefix.size() + size > limit) {
+                        if (rule.isFailClosed()) {
+                            DataBufferUtils.release(buffer);
+                            return Mono.error(new ResponseTooLargeException());
+                        }
+                        streaming.set(true);
+                        LOG.warn("pii detection: the response exceeds maxBodySize {}, the scan stopped and the"
+                                + " remaining body streams through unscanned, ruleId {}", limit, rule.getRuleId());
+                        return Flux.concat(Mono.just(bufferFactory().wrap(prefix.toByteArray())), Mono.just(buffer));
+                    }
+                    final byte[] chunk = new byte[size];
+                    buffer.read(chunk);
+                    DataBufferUtils.release(buffer);
+                    prefix.write(chunk, 0, size);
+                    return Mono.<DataBuffer>empty();
+                })
+                .concatWith(Mono.defer(() -> streaming.get()
+                        ? Mono.empty()
+                        : Mono.fromCallable(() -> scan(prefix.toByteArray()))
+                                .subscribeOn(Schedulers.boundedElastic())
+                                .map(bytes -> {
+                                    // the scan may change the length, the header must
+                                    // describe the written bytes
+                                    getHeaders().setContentLength(bytes.length);
+                                    return bufferFactory().wrap(bytes);
+                                })));
     }
 
     @Override
@@ -249,17 +265,6 @@ final class PiiResponseDecorator extends ServerHttpResponseDecorator {
             return block();
         }
         LOG.warn("pii detection: {}, the response is passed through unscanned", reason);
-        return bytes;
-    }
-
-    /**
-     * A body that was aggregated past the bound of a fail open rule. The scan
-     * is skipped, the complete body is written back unchanged.
-     *
-     * @param bytes the complete aggregated bytes
-     * @return the same bytes
-     */
-    private byte[] passThroughUnscanned(final byte[] bytes) {
         return bytes;
     }
 

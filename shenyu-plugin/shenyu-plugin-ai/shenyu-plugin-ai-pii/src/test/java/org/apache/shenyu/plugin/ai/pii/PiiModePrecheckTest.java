@@ -112,6 +112,48 @@ public final class PiiModePrecheckTest {
         });
     }
 
+    @Test
+    public void testDeclaredOverLimitRequestIsRejectedBeforeThePrecheck() {
+        // the declared size bound applies to the precheck path too, a request that
+        // announces more than maxBodySize is rejected without reading the body
+        PiiDetectionHandle handle = responseOnlyFailClosed();
+        handle.setMaxBodySize(10L);
+        cacheHandle(handle);
+        RecordingChain chain = new RecordingChain();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(org.springframework.http.HttpHeaders.CONTENT_LENGTH, "100")
+                .body(CHAT_BODY));
+
+        plugin().doExecute(exchange, chain, null, ruleData).block();
+
+        assertEquals(0, chain.executed.size());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("sensitive content detected"));
+    }
+
+    @Test
+    public void testCodecLimitRequestIsRejectedNotAnInternalError() {
+        // a body over the codec in memory limit (256 KiB with the default readers)
+        // has been consumed by the aggregation and cannot be forwarded unchanged,
+        // the gateway rejects it with a clear reason instead of an internal error
+        StringBuilder big = new StringBuilder("{\"x\":\"");
+        for (int i = 0; i < 300 * 1024; i++) {
+            big.append('a');
+        }
+        big.append("\"}");
+        RecordingChain chain = new RecordingChain();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(reactor.core.publisher.Flux.just(
+                        org.springframework.core.io.buffer.DefaultDataBufferFactory.sharedInstance
+                                .wrap(big.toString().getBytes(StandardCharsets.UTF_8)))));
+
+        plugin().doExecute(exchange, chain, null, ruleData).block();
+
+        assertEquals(0, chain.executed.size());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("sensitive content detected"));
+    }
+
     private PiiDetectionHandle responseOnlyFailClosed() {
         PiiDetectionHandle handle = new PiiDetectionHandle();
         handle.setScope("response");

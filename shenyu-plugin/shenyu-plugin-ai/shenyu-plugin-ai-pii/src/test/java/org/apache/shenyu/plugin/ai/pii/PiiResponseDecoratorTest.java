@@ -199,9 +199,43 @@ public final class PiiResponseDecoratorTest {
         decorator.writeWith(Flux.just(buffer("{\"choices\":[{\"message\":"),
                 buffer("{\"content\":\"dial 13800138000\"}}]}"))).block();
 
-        // fail open reads to the end and writes the complete body back, a truncated
-        // pass through would corrupt the response
+        // fail open switches to unscanned streaming at the bound: the prefix is
+        // written back, the overflowing chunk and every later chunk follow as they
+        // arrive, nothing is lost or duplicated
         assertEquals(complete, exchange.getResponse().getBodyAsString().block());
+    }
+
+    @Test
+    public void testFailOpenStreamsThePrefixBeforeTheUpstreamCompletes() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setMaxBodySize(10L);
+        PiiDetectionRule rule = PiiDetectionRule.compile("rule-1", handle);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        PiiResponseDecorator decorator = decorator(rule, exchange);
+        reactor.core.publisher.Sinks.Many<org.springframework.core.io.buffer.DataBuffer> upstream =
+                reactor.core.publisher.Sinks.many().unicast().onBackpressureBuffer();
+
+        decorator.writeWith(upstream.asFlux()).subscribe();
+        upstream.tryEmitNext(buffer("prefix-data"));
+        upstream.tryEmitNext(buffer("-overflow"));
+
+        // the upstream is still open: the buffered prefix and the overflowing chunk
+        // must already be readable downstream without waiting for the completion
+        String received = exchange.getResponse().getBody()
+                .take(3)
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    org.springframework.core.io.buffer.DataBufferUtils.release(dataBuffer);
+                    return new String(bytes, StandardCharsets.UTF_8);
+                })
+                .collect(StringBuilder::new, StringBuilder::append)
+                .map(StringBuilder::toString)
+                .block(java.time.Duration.ofSeconds(10));
+
+        assertEquals("prefix-data-overflow", received);
+        upstream.tryEmitComplete();
     }
 
     private void write(final PiiDetectionRule rule, final MockServerWebExchange exchange, final String body) {
