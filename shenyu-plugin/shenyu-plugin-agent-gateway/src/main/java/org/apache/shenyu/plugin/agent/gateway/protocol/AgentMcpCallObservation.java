@@ -101,8 +101,10 @@ final class AgentMcpCallObservation {
         outcome = response.path("result").path("isError").asBoolean(false) ? Outcome.TOOL_ERROR : Outcome.SUCCESS;
     }
 
+    /** HTTP 504 is intentionally folded into {@link Outcome#TIMEOUT}, not a server error. */
     void failure(final Throwable error) {
-        if (error instanceof TimeoutException) {
+        if (error instanceof TimeoutException
+                || error instanceof AgentMcpProtocolException && ((AgentMcpProtocolException) error).getHttpStatus() == 504) {
             outcome = Outcome.TIMEOUT;
         } else if (error instanceof AgentMcpProtocolException && ((AgentMcpProtocolException) error).getHttpStatus() < 500) {
             outcome = Outcome.REJECTED;

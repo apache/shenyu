@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `sort_code` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `rule_name` varchar(128) NOT NULL COMMENT 'rule name',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(4) NOT NULL COMMENT 'sort',
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `mock_request_record`  (
   `url` varchar(1024) NOT NULL COMMENT 'the request url',
   `path_variable` varchar(255) NOT NULL DEFAULT '' COMMENT 'the request param in url',
   `query` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param after url',
-  `header` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param in header',
+  `header` clob NOT NULL DEFAULT '' COMMENT 'the request param in header',
   `body` text COMMENT 'the request body',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
@@ -1417,7 +1417,9 @@ CREATE TABLE IF NOT EXISTS instance_info
     `instance_state`  int  NOT NULL COMMENT  '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382720', '1346358560427216896', '1346778036402483300', '2023-08-31 06:59:01', '2023-08-31 06:59:01');

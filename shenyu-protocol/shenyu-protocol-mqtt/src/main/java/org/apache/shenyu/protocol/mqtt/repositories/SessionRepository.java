@@ -22,24 +22,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Session repository, keyed by clientId.
+ *
+ * <p>The session index is per instance, like every other repository in this
+ * package. It used to be a static map, so state was shared by every instance:
+ * a repository created for one connection, or for one test, could observe and
+ * evict sessions owned by another, which is what made the MQTT tests depend on
+ * execution order (#8021).</p>
  */
 public class SessionRepository implements BaseRepository<String, MqttSession> {
 
-    private static final Map<String, MqttSession> SESSION_FACTORY = new ConcurrentHashMap<>();
+    private final Map<String, MqttSession> sessionFactory = new ConcurrentHashMap<>();
 
     @Override
     public void add(final String clientId, final MqttSession session) {
-        SESSION_FACTORY.put(clientId, session);
+        sessionFactory.put(clientId, session);
     }
 
     @Override
     public void remove(final String clientId) {
-        SESSION_FACTORY.remove(clientId);
+        sessionFactory.remove(clientId);
     }
 
     @Override
     public MqttSession get(final String clientId) {
-        return SESSION_FACTORY.get(clientId);
+        return sessionFactory.get(clientId);
     }
 
 }

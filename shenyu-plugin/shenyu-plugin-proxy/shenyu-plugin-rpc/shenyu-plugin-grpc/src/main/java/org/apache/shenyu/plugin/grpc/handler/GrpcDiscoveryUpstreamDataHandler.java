@@ -21,12 +21,11 @@ import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
+import org.apache.shenyu.plugin.base.handler.AbstractDiscoveryUpstreamDataHandler;
+import org.apache.shenyu.plugin.base.utils.UpstreamProps;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
-import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
@@ -36,60 +35,63 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
  *  GrpcDiscoveryUpstreamDataHandler.
  */
-public class GrpcDiscoveryUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
-    
+public class GrpcDiscoveryUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHandler<GrpcUpstream> {
+
     private static final Logger LOG = LoggerFactory.getLogger(GrpcDiscoveryUpstreamDataHandler.class);
 
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
-        if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
-            return;
+        if (Objects.nonNull(discoverySyncData) && Objects.nonNull(discoverySyncData.getSelectorId())) {
+            LOG.info("discovery grpc upstream data:{}", JsonUtils.toJson(discoverySyncData));
         }
-        LOG.info("discovery grpc upstream data:{}", JsonUtils.toJson(discoverySyncData));
-        final String selectorId = discoverySyncData.getSelectorId();
-        final List<GrpcUpstream> upstreams = convertUpstreamList(discoverySyncData.getUpstreamDataList());
-        final List<GrpcUpstream> grayUpstreamList = upstreams.stream().filter(GrpcUpstream::isGray).toList();
-        if (!grayUpstreamList.isEmpty()) {
-            ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), grayUpstreamList);
-        } else {
-            ApplicationConfigCache.getInstance().handlerUpstream(discoverySyncData.getSelectorId(), upstreams);
-        }
-        GrpcClientCache.initGrpcClient(selectorId);
+        super.handlerDiscoveryUpstreamData(discoverySyncData);
     }
 
     @Override
-    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
-        if (Objects.isNull(key) || Objects.isNull(key.selectorId())) {
-            return;
-        }
-        ApplicationConfigCache.getInstance().invalidate(key.selectorId());
+    public String pluginName() {
+        return PluginEnum.GRPC.getName();
     }
 
-    private List<GrpcUpstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
+    @Override
+    protected List<GrpcUpstream> convertUpstreamList(final List<DiscoveryUpstreamData> upstreamList) {
         if (ObjectUtils.isEmpty(upstreamList)) {
             return Collections.emptyList();
         }
         return upstreamList.stream().map(u -> {
-            Properties properties = Optional.ofNullable(u.getProps()).map(ps -> GsonUtils.getInstance().fromJson(ps, Properties.class)).orElse(new Properties());
+            UpstreamProps props = UpstreamProps.parse(u.getProps());
             return GrpcUpstream.builder()
                     .protocol(u.getProtocol())
                     .upstreamUrl(u.getUrl())
                     .weight(u.getWeight())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
-                    .healthCheckEnabled(Boolean.parseBoolean(properties.getProperty("healthCheckEnabled", "true")))
+                    .healthCheckEnabled(props.isHealthCheckEnabled())
                     .build();
         }).collect(Collectors.toList());
     }
 
     @Override
-    public String pluginName() {
-        return PluginEnum.GRPC.getName();
+    protected boolean isGray(final GrpcUpstream upstream) {
+        return upstream.isGray();
+    }
+
+    @Override
+    protected void submitUpstreamData(final String selectorId, final List<GrpcUpstream> upstreamList) {
+        ApplicationConfigCache.getInstance().handlerUpstream(selectorId, upstreamList);
+    }
+
+    @Override
+    protected void afterSubmitUpstreamData(final String selectorId) {
+        GrpcClientCache.initGrpcClient(selectorId);
+    }
+
+    @Override
+    protected void removeUpstreamData(final String selectorId) {
+        ApplicationConfigCache.getInstance().invalidate(selectorId);
     }
 }

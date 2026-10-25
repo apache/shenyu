@@ -75,7 +75,9 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
 
     @Override
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
-        if (clusterProperties.isEnabled() && TransactionSynchronizationManager.isActualTransactionActive()
+        // dispatch must never overtake the publishing transaction, so an active
+        // transaction defers delivery to afterCommit in every deployment mode
+        if (TransactionSynchronizationManager.isActualTransactionActive()
                 && TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -94,53 +96,78 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
         if (!master) {
             forwardEventToMaster(event);
         }
-        for (DataChangedListener listener : listeners) {
-            if (!master && !(listener instanceof AbstractDataChangedListener)) {
-                // push listeners run on the master only; the event was handed over above
-                continue;
+        boolean loadDoc = false;
+        Throwable listenerFailure = null;
+        try {
+            for (DataChangedListener listener : listeners) {
+                if (!master && !(listener instanceof AbstractDataChangedListener)) {
+                    // push listeners run on the master only; the event was handed over above
+                    continue;
+                }
+                final int size = event.getSource() instanceof java.util.Collection
+                        ? ((java.util.Collection<?>) event.getSource()).size() : 1;
+                LOG.info("received DataChangedEvent, group={}, size={}, type={}",
+                        event.getGroupKey(), size, event.getEventType());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
+                }
+                switch (event.getGroupKey()) {
+                    case APP_AUTH:
+                        listener.onAppAuthChanged((List<AppAuthData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case PLUGIN:
+                        listener.onPluginChanged((List<PluginData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case RULE:
+                        listener.onRuleChanged((List<RuleData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case SELECTOR:
+                        listener.onSelectorChanged((List<SelectorData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case META_DATA:
+                        listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
+                        break;
+                    case PROXY_SELECTOR:
+                        listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
+                        break;
+                    case AI_PROXY_API_KEY:
+                        listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
+                        break;
+                    case DISCOVER_UPSTREAM:
+                        listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),
+                                event.getEventType());
+                        loadDoc = true;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
+                }
             }
-            final int size = event.getSource() instanceof java.util.Collection
-                    ? ((java.util.Collection<?>) event.getSource()).size() : 1;
-            LOG.info("received DataChangedEvent, group={}, size={}, type={}",
-                    event.getGroupKey(), size, event.getEventType());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
+        } catch (Throwable ex) {
+            listenerFailure = ex;
+            throw ex;
+        } finally {
+            // load once per event, even if a later listener failed after the upstream change was applied
+            if (loadDoc) {
+                loadDocOnUpstreamChanged(event, listenerFailure);
             }
-            switch (event.getGroupKey()) {
-                case APP_AUTH:
-                    listener.onAppAuthChanged((List<AppAuthData>) event.getSource(),
-                            event.getEventType(), event.getNamespaceId());
-                    break;
-                case PLUGIN:
-                    listener.onPluginChanged((List<PluginData>) event.getSource(),
-                            event.getEventType(), event.getNamespaceId());
-                    break;
-                case RULE:
-                    listener.onRuleChanged((List<RuleData>) event.getSource(),
-                            event.getEventType(), event.getNamespaceId());
-                    break;
-                case SELECTOR:
-                    listener.onSelectorChanged((List<SelectorData>) event.getSource(),
-                            event.getEventType(), event.getNamespaceId());
-                    break;
-                case META_DATA:
-                    listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
-                    break;
-                case PROXY_SELECTOR:
-                    listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
-                    break;
-                case AI_PROXY_API_KEY:
-                    listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
-                    break;
-                case DISCOVER_UPSTREAM:
-                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),
-                            event.getEventType());
-                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged(
-                            (List<DiscoverySyncData>) event.getSource(), event.getEventType());
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadDocOnUpstreamChanged(final DataChangedEvent event, final Throwable listenerFailure) {
+        try {
+            applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged(
+                    (List<DiscoverySyncData>) event.getSource(), event.getEventType());
+        } catch (Throwable ex) {
+            if (Objects.isNull(listenerFailure)) {
+                throw ex;
             }
+            // keep the listener failure as the thrown exception
+            listenerFailure.addSuppressed(ex);
         }
     }
     

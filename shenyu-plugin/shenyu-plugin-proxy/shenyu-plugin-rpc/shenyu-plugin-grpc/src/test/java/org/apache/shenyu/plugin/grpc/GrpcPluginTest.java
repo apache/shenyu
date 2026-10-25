@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc;
 
+import io.grpc.CallOptions;
 import io.grpc.MethodDescriptor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -29,7 +30,9 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.plugin.grpc.cache.GrpcExtInfo;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
@@ -58,6 +61,8 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -150,6 +155,9 @@ public class GrpcPluginTest {
                 .thenAnswer(invocation -> {
                     assertEquals(expectedRemoteAddress, GrpcConstants.GRPC_REMOTE_ADDRESS.get());
                     assertEquals(expectedMethodType, invocation.getArgument(3));
+                    CallOptions callOptions = invocation.getArgument(1);
+                    assertNotNull(callOptions);
+                    assertNotNull(callOptions.getDeadline());
                     return CompletableFuture.completedFuture(response);
                 });
         clientCacheMap.put("grpcId", mockClient);
@@ -157,6 +165,22 @@ public class GrpcPluginTest {
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         StepVerifier.create(grpcPlugin.doExecute(exchange, chain, selector, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testDoExecuteReusesParsedRpcExt()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange1 = getServerWebExchange();
+        MetaData metaData = getMetaData();
+        executeRequest(exchange1, "", metaData, MethodDescriptor.MethodType.SERVER_STREAMING);
+
+        GrpcExtInfo cached = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
+
+        ServerWebExchange exchange2 = getServerWebExchange();
+        executeRequest(exchange2, "", metaData, MethodDescriptor.MethodType.SERVER_STREAMING);
+
+        GrpcExtInfo second = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
+        assertSame(cached, second);
     }
 
     @Test

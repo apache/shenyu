@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.ConnectProtocolAdapter;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -99,6 +99,11 @@ public final class OpenAi implements AiProxyProvider {
 
     @Override
     public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+        return prepareRequest(request, config).request();
+    }
+
+    @Override
+    public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         validateConfig(config);
         if (!supports(request.getProtocol())) {
             throw new IllegalArgumentException("Unsupported OpenAI protocol: " + request.getProtocol());
@@ -125,21 +130,17 @@ public final class OpenAi implements AiProxyProvider {
             if (config.getMaxTokens() <= 0) {
                 throw new IllegalArgumentException("AI maxTokens must be positive");
             }
-            if (OpenAiResponses.NAME.equals(request.getProtocol())) {
-                payload.put("max_output_tokens", config.getMaxTokens());
-            } else {
-                String field = options.maxTokensField().isEmpty()
-                        ? (payload.hasNonNull("max_completion_tokens") ? "max_completion_tokens" : "max_tokens") : options.maxTokensField();
-                payload.remove("max_tokens");
-                payload.remove("max_completion_tokens");
-                payload.put(field, config.getMaxTokens());
-            }
+            String field = options.maxTokensField().isEmpty()
+                    ? (payload.hasNonNull("max_completion_tokens") ? "max_completion_tokens" : "max_tokens") : options.maxTokensField();
+            payload.remove("max_tokens");
+            payload.remove("max_completion_tokens");
+            payload.put(field, config.getMaxTokens());
         }
         if (!request.hasStream() && Objects.nonNull(config.getStream())) {
             payload.put("stream", stream);
         }
-        ConnectProtocolAdapter adapter = new ConnectProtocolAdapter(request.getProtocol(), mappedModel, options.connectProfile());
-        ObjectNode converted = adapter.convertRequest(payload);
+        ConnectProviderDialectAdapter adapter = new ConnectProviderDialectAdapter(mappedModel, options.connectProfile());
+        ObjectNode converted = adapter.adapt(payload);
         JsonNode convertedStream = converted.get("stream");
         if (Objects.nonNull(convertedStream) && !convertedStream.isNull() && !convertedStream.isBoolean()
                 || converted.path("stream").asBoolean() != stream) {
@@ -155,8 +156,7 @@ public final class OpenAi implements AiProxyProvider {
         upstream.setHeaders(headers(config, stream));
         String body = request.getRawPayload().equals(converted) ? request.getRawBody() : converted.toString();
         upstream.setBody(body.getBytes(StandardCharsets.UTF_8));
-        upstream.setResponseAdapter(response -> adapter.convertResponse(response, stream));
-        return upstream;
+        return new PreparedAiRequest(upstream, AiResponseAdapter.identity());
     }
 
     private Map<String, List<String>> headers(final AiCommonConfig config, final boolean stream) {

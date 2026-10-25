@@ -25,12 +25,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.ServerSocket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -302,5 +309,200 @@ public class UpstreamCheckTaskTest {
 
         // Clean up
         healthCheckTask.triggerRemoveAll(selectorId);
+    }
+
+    @Test
+    @Timeout(10)
+    public void testConfigurationUpdateWaitsForHealthCheck() throws Exception {
+        UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        ExecutorService checks = Executors.newSingleThreadExecutor();
+        ExecutorService updates = Executors.newFixedThreadPool(2);
+        CountDownLatch releaseCheck = new CountDownLatch(1);
+        CountDownLatch updateStarted = new CountDownLatch(1);
+        Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+        executor.setAccessible(true);
+        executor.set(task, checks);
+        Upstream removed = Upstream.builder().protocol("http://").url("removed:8080").healthCheckEnabled(false).build();
+        task.putToMap(task.getUnhealthyUpstream(), "selector", removed);
+        try {
+            // Hold the worker so healthCheck waits for its result while owning the lock.
+            checks.submit(() -> {
+                releaseCheck.await();
+                return null;
+            });
+            final Future<?> healthCheck = updates.submit(task);
+            Awaitility.await().atMost(3, TimeUnit.SECONDS).untilTrue(task.getCheckStarted());
+            Future<?> configurationUpdate = updates.submit(() -> {
+                updateStarted.countDown();
+                task.withLock(() -> {
+                    task.getHealthyUpstream().remove("selector");
+                    task.getUnhealthyUpstream().remove("selector");
+                });
+            });
+            assertTrue(updateStarted.await(3, TimeUnit.SECONDS));
+            assertThrows(TimeoutException.class, () -> configurationUpdate.get(100, TimeUnit.MILLISECONDS));
+
+            releaseCheck.countDown();
+            healthCheck.get(3, TimeUnit.SECONDS);
+            configurationUpdate.get(3, TimeUnit.SECONDS);
+            assertFalse(task.getHealthyUpstream().containsKey("selector"));
+            assertFalse(task.getUnhealthyUpstream().containsKey("selector"));
+        } finally {
+            releaseCheck.countDown();
+            updates.shutdownNow();
+            checks.shutdownNow();
+        }
+    }
+
+    /**
+     * The observability counters added for #7647 must be populated after a synchronous round
+     * completes, so operators can compare round duration, submitted probes and pending probes
+     * against the configured checkInterval without adding a profiler to the runtime.
+     */
+    @Test
+    @Timeout(30000)
+    public void roundMetricsAreRecordedAfterRunCompletes() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(2);
+        task.setCheckTimeout(500);
+        task.schedule();
+
+        final String selectorId = "metrics-round";
+        for (int i = 0; i < 4; i++) {
+            final Upstream upstream = Upstream.builder()
+                    .url("127.0.0.1:" + (65000 + i))
+                    .build();
+            upstream.setHealthy(true);
+            upstream.setLastHealthTimestamp(System.currentTimeMillis());
+            task.triggerAddOne(selectorId, upstream);
+        }
+
+        final long before = task.getTotalRounds();
+        task.run();
+
+        assertTrue(task.getTotalRounds() > before, "totalRounds must advance after run()");
+        assertTrue(task.getLastRoundDurationMillis() >= 0L, "duration must be non-negative");
+        assertTrue(task.getLastRoundSubmittedChecks() >= 4,
+                "submitted probes must cover every registered upstream, got " + task.getLastRoundSubmittedChecks());
+        assertTrue(task.getLastRoundPendingChecks() >= 0, "pending probes must be non-negative");
+        assertTrue(task.getLastRoundCompletedAtMillis() > 0L, "completion timestamp must be set");
+        assertTrue(task.getTotalSubmittedChecks() >= task.getLastRoundSubmittedChecks(),
+                "cumulative submitted must include the last round");
+        assertTrue(task.getLastRoundOldestHealthStateMillis() >= 0L,
+                "oldest health-state age must be non-negative");
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * An empty population still completes a round and updates the round counter, so operators
+     * can distinguish "task not running" from "task running with nothing to check".
+     */
+    @Test
+    @Timeout(10000)
+    public void emptyPopulationStillRecordsRoundCompletion() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(1);
+        task.schedule();
+
+        final long before = task.getTotalRounds();
+        task.run();
+
+        assertTrue(task.getTotalRounds() > before, "round counter must advance even with no upstreams");
+        assertTrue(task.getLastRoundDurationMillis() >= 0L, "duration must be non-negative");
+        assertTrue(task.getLastRoundSubmittedChecks() == 0, "no probes should be submitted for an empty population");
+        assertTrue(task.getLastRoundPendingChecks() == 0, "no probes should be pending for an empty population");
+        assertTrue(task.getLastRoundMaxEndpointLatencyMillis() == 0L,
+                "endpoint latency must stay zero when no probe ran");
+    }
+
+    /**
+     * Upstreams registered with a stale {@code lastHealthTimestamp} must surface through
+     * {@code lastRoundOldestHealthStateMillis}, so the metric actually reflects health-state age
+     * instead of collapsing to zero.
+     */
+    @Test
+    @Timeout(10000)
+    public void oldestHealthStateAgeReflectsStaleTimestamp() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(1);
+        task.schedule();
+
+        final String selectorId = "metrics-stale";
+        // Use a blank URL so checkUrl() returns false without any network I/O. A fixed port such as
+        // 127.0.0.1:65100 would let an unrelated listener flip the probe to pass and refresh the
+        // timestamp, making the stale-age assertion flaky.
+        final Upstream stale = Upstream.builder().url("").build();
+        stale.setHealthy(true);
+        // Pretend the last successful probe happened 5 seconds ago.
+        stale.setLastHealthTimestamp(System.currentTimeMillis() - 5_000L);
+        task.triggerAddOne(selectorId, stale);
+
+        task.run();
+
+        assertTrue(task.getLastRoundOldestHealthStateMillis() >= 4_000L,
+                "oldest health-state age must reflect the stale timestamp, got "
+                        + task.getLastRoundOldestHealthStateMillis());
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * A health-check-disabled upstream that is already healthy never gets its {@code lastHealthTimestamp}
+     * written, so it stays at the primitive default {@code 0}. Without a guard the oldest-health-state
+     * metric would report {@code now - 0}, an epoch-sized (~56 years) age that hides every real
+     * observation. The metric must skip such never-measured entries and report a small age instead.
+     */
+    @Test
+    @Timeout(10000)
+    public void oldestHealthStateAgeSkipsNeverMeasuredUpstream() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(1);
+        task.schedule();
+
+        final String selectorId = "metrics-disabled";
+        final Upstream disabled = Upstream.builder().url("").healthCheckEnabled(false).build();
+        // Healthy + disabled short-circuits the probe in check() without ever writing a timestamp.
+        disabled.setHealthy(true);
+        task.triggerAddOne(selectorId, disabled);
+
+        task.run();
+
+        final long age = task.getLastRoundOldestHealthStateMillis();
+        assertTrue(age < TimeUnit.MINUTES.toMillis(1),
+                "never-measured upstream must be skipped, not reported as an epoch-sized age, got " + age);
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * Rounds must be re-entrant safe: a second {@code run()} invocation resets the per-round
+     * scratch counters so the exposed metrics never leak values from the previous round.
+     */
+    @Test
+    @Timeout(30000)
+    public void perRoundCountersAreResetBetweenRounds() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(2);
+        task.setCheckTimeout(500);
+        task.schedule();
+
+        final String selectorId = "metrics-reset";
+        final Upstream upstream = Upstream.builder().url("127.0.0.1:65200").build();
+        upstream.setHealthy(true);
+        upstream.setLastHealthTimestamp(System.currentTimeMillis());
+        task.triggerAddOne(selectorId, upstream);
+
+        task.run();
+        final int firstSubmitted = task.getLastRoundSubmittedChecks();
+        final long firstRounds = task.getTotalRounds();
+        assertTrue(firstSubmitted >= 1, "first round must submit at least one probe");
+
+        task.triggerRemoveAll(selectorId);
+        task.run();
+
+        assertTrue(task.getTotalRounds() > firstRounds, "round counter must advance across runs");
+        assertTrue(task.getLastRoundSubmittedChecks() == 0,
+                "second round must not carry over submitted count from the first round");
     }
 }

@@ -23,6 +23,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -66,5 +69,43 @@ public class ParamMappingPluginDataTest {
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(this.paramMappingPluginDataHandler.pluginNamed(), "paramMapping");
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testBlankHandleClearsCachedRule(final String handle) {
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        Assertions.assertNotNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        ruleData.setHandle(handle);
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testNullHandleRetainsCachedRule() {
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        Object cached = ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key);
+
+        ruleData.setHandle(null);
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertSame(cached, ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testEmptyObjectReplacesCachedRule() {
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+        ruleData.setHandle("{}");
+
+        paramMappingPluginDataHandler.handlerRule(ruleData);
+
+        Assertions.assertNull(ParamMappingPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getAddParameterKeys());
     }
 }

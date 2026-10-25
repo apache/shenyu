@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -146,11 +147,11 @@ class AiProxyPluginTest {
     @Test
     void testExecuteWithAdminFallback() {
         handle.setFallbackConfig(fallback("admin"));
-        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(400, "bad") : response(202, "admin")));
+        AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(500, "bad") : response(202, "admin")));
         StepVerifier.create(execute(plugin)).verifyComplete();
-        assertEquals(2, requests.size());
-        assertEquals("admin.example", requests.get(1).getUri().getHost());
-        assertEquals(List.of("Bearer admin-key"), requests.get(1).getHeaders().get("Authorization"));
+        assertEquals(5, requests.size());
+        assertEquals("admin.example", requests.get(4).getUri().getHost());
+        assertEquals(List.of("Bearer admin-key"), requests.get(4).getHeaders().get("Authorization"));
         assertEquals(HttpStatus.ACCEPTED, exchange.getResponse().getStatusCode());
     }
 
@@ -279,11 +280,11 @@ class AiProxyPluginTest {
     private AiProxyPlugin plugin(final AiProxyTransport transport) {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), request -> {
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolRouteResolver(), request -> {
                     requests.add(request);
                     return transport.execute(request);
                 }, Duration.ZERO);
-        return new AiProxyPlugin(new AiProxyConfigService(), engine, handler);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 
     private Mono<Void> execute(final AiProxyPlugin plugin) {
@@ -308,6 +309,6 @@ class AiProxyPluginTest {
     }
 
     private AiTransportException failure() {
-        return new AiTransportException(AiTransportException.Kind.UNKNOWN, "fixture failure", null);
+        return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "fixture failure", null);
     }
 }

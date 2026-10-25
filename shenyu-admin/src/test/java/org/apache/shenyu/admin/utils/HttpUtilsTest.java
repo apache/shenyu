@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -127,9 +128,8 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public void fileUtilsToBytesByFileExistsTest() {
-        String path = HttpUtilsTest.class.getClassLoader().getResource("./").getPath();
-        File file = new File(path + "application.yml");
+    public void fileUtilsToBytesByFileExistsTest() throws URISyntaxException {
+        File file = new File(HttpUtilsTest.class.getClassLoader().getResource("application.yml").toURI());
         Assertions.assertDoesNotThrow(() -> HttpUtils.FileUtils.toBytes(file));
     }
 

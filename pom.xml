@@ -93,6 +93,7 @@
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
@@ -113,6 +114,8 @@
         <mysql.version>8.3.0</mysql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
+        <checker-qual.version>3.33.0</checker-qual.version>
+        <error-prone-annotations.version>2.41.0</error-prone-annotations.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
@@ -164,7 +167,6 @@
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
         <spring-cloud.version>4.1.2</spring-cloud.version>
-        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
@@ -183,6 +185,7 @@
         <swagger-models.version>2.2.34</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
+        <slf4j.version>2.0.17</slf4j.version>
         <!-- dependency version end -->
     </properties>
 
@@ -193,6 +196,15 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
                 <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Keep the API and bridges aligned with OSHI's SLF4J requirement before Spring Boot's BOM. -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -333,6 +345,18 @@
             </dependency>
 
             <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>${checker-qual.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>${error-prone-annotations.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons-collections4.version}</version>
@@ -364,12 +388,6 @@
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>log4j</artifactId>
-                        <groupId>log4j</groupId>
-                    </exclusion>
-                </exclusions>
                 <version>${zookeeper.version}</version>
             </dependency>
 
@@ -665,6 +683,30 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-build-requirements</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>[3.6.3,)</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>[${java.version},)</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-remote-resources-plugin</artifactId>

@@ -36,12 +36,17 @@ import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -52,6 +57,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -134,6 +140,24 @@ public class RequestPluginTest {
         Mockito.verify(chain).execute(captor.capture());
         assertEquals("value", captor.getValue().getRequest().getQueryParams().getFirst("partial"));
         assertEquals("oldValue", captor.getValue().getRequest().getHeaders().getFirst("addKey"));
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testClearedRuleStopsRequestTransformations(final String handle) {
+        ruleData.setHandle(handle);
+        new RequestPluginHandler().handlerRule(ruleData);
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(exchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest request = captor.getValue().getRequest();
+        assertEquals(exchange.getRequest().getHeaders(), request.getHeaders());
+        assertEquals(exchange.getRequest().getQueryParams(), request.getQueryParams());
+        assertEquals(exchange.getRequest().getCookies(), request.getCookies());
     }
 
     @Test
@@ -234,6 +258,174 @@ public class RequestPluginTest {
                     current.addAll(added);
                     return current;
                 })));
+    }
+
+    @Test
+    public void testHeaderOnlyRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"header\":{\"setHeaders\":{\"X-Demo\":\"1\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        assertEquals("/files/a%2Fb", captor.getValue().getRequest().getURI().getRawPath());
+        assertEquals("x=hello%20world", captor.getValue().getRequest().getURI().getRawQuery());
+        assertEquals("1", captor.getValue().getRequest().getHeaders().getFirst("X-Demo"));
+    }
+
+    @Test
+    public void testParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"addParameters\":{\"added\":\"a b\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("x=hello%20world&added=a%20b", requestUri.getRawQuery());
+    }
+
+    @Test
+    public void testParameterRulePreservesLiteralPlus() {
+        ruleData.setHandle("{\"parameter\":{\"addParameters\":{\"added\":\"c+d\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files?q=a%2Bb&s=a+b"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest result = captor.getValue().getRequest();
+        assertEquals("q=a%2Bb&s=a%20b&added=c%2Bd", result.getURI().getRawQuery());
+        assertEquals("a+b", result.getQueryParams().getFirst("q"));
+        assertEquals("a b", result.getQueryParams().getFirst("s"));
+        assertEquals("c+d", result.getQueryParams().getFirst("added"));
+    }
+
+    @Test
+    public void testRemoveParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"removeParameterKeys\":[\"x\"]}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?x=hello%20world&keep=1"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("keep=1", requestUri.getRawQuery());
+    }
+
+    @Test
+    public void testReplaceParameterRulePreservesEncodedPath() {
+        ruleData.setHandle("{\"parameter\":{\"replaceParameterKeys\":{\"old\":\"new\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?old=1"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI requestUri = captor.getValue().getRequest().getURI();
+        assertEquals("/files/a%2Fb", requestUri.getRawPath());
+        assertEquals("new=1", requestUri.getRawQuery());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"X-Id,X-Id", "X-Id,x-id", "x-id,X-ID"})
+    public void testHeaderRenamePreservesValuesForSameName(final String source, final String target) {
+        ruleData.setHandle("{\"header\":{\"replaceHeaderKeys\":{\"" + source + "\":\"" + target + "\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange requestExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test")
+                .header("X-Id", "first", "second").build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(requestExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        assertEquals(Arrays.asList("first", "second"), captor.getValue().getRequest().getHeaders().get(target));
+        assertEquals(Arrays.asList("first", "second"), requestExchange.getRequest().getHeaders().get("X-Id"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"token=first&token=second", "token&token=&token=second"})
+    public void testParameterIdentityRenamePreservesValuesAndOrder(final String query) {
+        ruleData.setHandle("{\"parameter\":{\"replaceParameterKeys\":{\"token\":\"token\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange requestExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files/a%2Fb?" + query + "&keep=1")).build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(requestExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        URI result = captor.getValue().getRequest().getURI();
+        assertEquals(query + "&keep=1", result.getRawQuery());
+        assertEquals("/files/a%2Fb", result.getRawPath());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"header,Old,New", "parameter,old,new", "parameter,Token,token"})
+    public void testRenameStillMergesIntoExistingTarget(final String type, final String source, final String target) {
+        String property = "header".equals(type) ? "replaceHeaderKeys" : "replaceParameterKeys";
+        ruleData.setHandle("{\"" + type + "\":{\"" + property + "\":{\"" + source + "\":\"" + target + "\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange requestExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/test?" + source + "=first&" + source + "=second&" + target + "=existing"))
+                .header(source, "first", "second").header(target, "existing").build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(requestExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest result = captor.getValue().getRequest();
+        MultiValueMap<String, String> values = "header".equals(type) ? result.getHeaders() : result.getQueryParams();
+        assertEquals(Arrays.asList("existing", "first", "second"), values.get(target));
+        assertFalse(values.containsKey(source));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"header", "parameter"})
+    public void testMissingRenameSourcePreservesTarget(final String type) {
+        String property = "header".equals(type) ? "replaceHeaderKeys" : "replaceParameterKeys";
+        ruleData.setHandle("{\"" + type + "\":{\"" + property + "\":{\"missing\":\"target\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange requestExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/test?target=kept"))
+                .header("target", "kept").build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(requestExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest result = captor.getValue().getRequest();
+        assertEquals("kept", result.getHeaders().getFirst("target"));
+        assertEquals("kept", result.getQueryParams().getFirst("target"));
     }
 
     @Test

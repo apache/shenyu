@@ -107,6 +107,37 @@ public class PathVariableParameterProcessorTest {
         assertTrue(request.getUrl().equals("/url/a/b/id/idValue") || request.getUrl().contains("nameValue") || request.getUrl().contains("typeValue"), "path value resolve error");
     }
 
+    @ParameterizedTest
+    @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
+    public void processArgumentStringWithRegexReplacementSyntaxTest(final RequestTemplate template) {
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("id");
+
+        // "$1" and backslashes in a replacement string are regex syntax unless quoted
+        processor.processArgument(request, path, "$1");
+        assertTrue(request.getUrl().contains("/$1"), "dollar sign value must be treated literally");
+
+        final RequestTemplate backslashTemplate = RequestTemplate.from(template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, backslashTemplate.getUrl() + backslashTemplate.getPath(), Maps.newHashMap(), "", "test", backslashTemplate);
+        processor.processArgument(request, path, "a\\b");
+        assertTrue(request.getUrl().contains("/a\\b"), "backslash value must not be swallowed");
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
+    public void processArgumentMapWithRegexReplacementSyntaxTest(final RequestTemplate template) {
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        Map<String, String> pathParam = Maps.newHashMap();
+        pathParam.put("id", "$1");
+
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("");
+        processor.processArgument(request, path, pathParam);
+
+        assertTrue(request.getUrl().contains("/$1"), "dollar sign map value must be treated literally");
+    }
+
     /**
      * template argument source.
      * @return Stream&lt;RequestTemplate&gt;

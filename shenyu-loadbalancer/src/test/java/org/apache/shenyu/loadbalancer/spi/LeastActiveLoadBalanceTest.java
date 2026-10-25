@@ -22,10 +22,9 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The type least activity load balance test.
@@ -50,98 +49,138 @@ public class LeastActiveLoadBalanceTest {
     }
 
     @Test
-    public void testResponseTimeBalancer() throws Exception {
+    public void testResponseTimeBalancer() {
         buildUpstreamList();
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
-        Upstream upstream = leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")
-                || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
+        List<Upstream> selected = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            selected.add(leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData()));
+        }
+        // Every upstream is idle, so both share the traffic.
+        Assertions.assertTrue(selected.contains(onlyOneList.get(0)));
+        Assertions.assertTrue(selected.contains(onlyOneList.get(1)));
     }
 
     @Test
-    public void testRemoveStaleCountMapEntries() throws Exception {
+    public void testSameAddressVariantsKeepIndependentCounts() {
+        Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("blue").version("v1").build();
+        Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880").group("green").version("v2").build();
+        List<Upstream> upstreamList = List.of(first, second);
+        LeastActiveLoadBalance loadBalance = new LeastActiveLoadBalance();
+
+        // The two variants share an address but keep separate active counts.
+        first.getInflight().set(5);
+        for (int i = 0; i < 20; i++) {
+            Assertions.assertSame(second, loadBalance.doSelect(upstreamList, new LoadBalanceData()));
+        }
+        first.getInflight().set(1);
+        second.getInflight().set(5);
+        for (int i = 0; i < 20; i++) {
+            Assertions.assertSame(first, loadBalance.doSelect(upstreamList, new LoadBalanceData()));
+        }
+    }
+
+    /**
+     * A completed request must stop competing with outstanding work: while the slow upstream holds one
+     * request, every selection goes to the idle upstream instead of alternating with the busy one.
+     */
+    @Test
+    public void testSlowOutstandingRequestReceivesNoFurtherTraffic() {
         buildUpstreamList();
+        Upstream busy = onlyOneList.get(0);
+        Upstream idle = onlyOneList.get(1);
+        busy.getInflight().set(2);
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
-        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Assertions.assertEquals(2, getCountMap(leastActiveLoadBalance).size());
-        onlyOneList.remove(1);
-        // The periodic cleanup is time-driven, simulate the elapsed time so that the entry of the
-        // removed upstream becomes stale and is evicted by the next cleanup.
-        long old = System.currentTimeMillis() - 60_001;
-        setLastUpdate(leastActiveLoadBalance, "https://pro.jd.com", old);
-        setLastRecycle(leastActiveLoadBalance, old);
-        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
-        Assertions.assertEquals(1, countMap.size());
-        Assertions.assertTrue(countMap.containsKey("https://baidu.com"));
-        Assertions.assertFalse(countMap.containsKey("https://pro.jd.com"));
+
+        for (int i = 0; i < 50; i++) {
+            Assertions.assertSame(idle, leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData()));
+        }
+        // Releasing the outstanding request lets the upstream compete again.
+        busy.getInflight().set(1);
+        List<Upstream> selected = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            selected.add(leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData()));
+        }
+        Assertions.assertTrue(selected.contains(busy));
+    }
+
+    /**
+     * The selections that preceded a long-running request are completed work. They must not make the busy
+     * upstream look idle, whatever the gateway did before that request started.
+     */
+    @Test
+    public void testCumulativeSelectionsDoNotMaskOutstandingWork() {
+        buildUpstreamList();
+        Upstream busy = onlyOneList.get(0);
+        Upstream idle = onlyOneList.get(1);
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+        for (int i = 0; i < 100; i++) {
+            leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
+        }
+        busy.getInflight().set(2);
+        for (int i = 0; i < 20; i++) {
+            Assertions.assertSame(idle, leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData()));
+        }
+    }
+
+    /**
+     * A newly added upstream starts idle, as do the existing ones. Weight, warmup included, decides between
+     * the upstreams that share the lowest active count, so the new node is not sent every request.
+     */
+    @Test
+    public void testNewlyAddedUpstreamIsNotFlooded() {
+        Upstream a = Upstream.builder().protocol("http://").url("a:80").weight(100).status(true).build();
+        Upstream b = Upstream.builder().protocol("http://").url("b:80").weight(100).status(true).build();
+        Upstream c = Upstream.builder().protocol("http://").url("c:80").weight(100).status(true).build();
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+
+        for (int i = 0; i < 100; i++) {
+            leastActiveLoadBalance.doSelect(List.of(a, b), new LoadBalanceData());
+        }
+        int newNodeHits = 0;
+        for (int i = 0; i < 50; i++) {
+            if (leastActiveLoadBalance.doSelect(List.of(a, b, c), new LoadBalanceData()) == c) {
+                newNodeHits++;
+            }
+        }
+        // Equal weights and equal active counts: the new node takes its third of the traffic, not all of it.
+        Assertions.assertTrue(newNodeHits < 50, "the new upstream was selected " + newNodeHits + " out of 50 times");
+        Assertions.assertTrue(newNodeHits > 0, "the new upstream was never selected");
+    }
+
+    /**
+     * Upstreams that share the lowest count are picked by weight, so an upstream whose warmup is still
+     * ramping up receives proportionally less traffic than a fully warm one.
+     */
+    @Test
+    public void testWeightBreaksTiesAmongLeastActiveUpstreams() {
+        Upstream warm = Upstream.builder().protocol("http://").url("warm:80").weight(100).status(true)
+                .timestamp(System.currentTimeMillis() - 60_000).warmup(60_000).build();
+        // One tenth of its warmup elapsed, so its effective weight is 10 against the fully warm 100.
+        Upstream ramping = Upstream.builder().protocol("http://").url("ramping:80").weight(100).status(true)
+                .timestamp(System.currentTimeMillis() - 60_000).warmup(600_000).build();
+        List<Upstream> upstreamList = List.of(warm, ramping);
+        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
+
+        int rampingHits = 0;
+        for (int i = 0; i < 400; i++) {
+            if (leastActiveLoadBalance.doSelect(upstreamList, new LoadBalanceData()) == ramping) {
+                rampingHits++;
+            }
+        }
+        Assertions.assertTrue(rampingHits > 0, "the ramping upstream was never selected");
+        Assertions.assertTrue(rampingHits < 100, "the ramping upstream was selected " + rampingHits + " out of 400 times");
     }
 
     @Test
-    public void testCountMapNotAffectOtherSelector() throws Exception {
+    public void testInflightCountIsReadNotReserved() {
         buildUpstreamList();
-        final List<Upstream> anotherList = new ArrayList<>();
-        anotherList.add(Upstream.builder().url("jd.com").protocol("https://").build());
+        onlyOneList.get(0).setInflight(new AtomicLong(3));
+        onlyOneList.get(1).setInflight(new AtomicLong(1));
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
         leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        leastActiveLoadBalance.doSelect(anotherList, new LoadBalanceData());
-        Assertions.assertEquals(3, getCountMap(leastActiveLoadBalance).size());
-        // Selector 1 removes pro.jd.com, and the cleanup must not evict the live entry jd.com
-        // which only belongs to selector 2.
-        onlyOneList.remove(1);
-        long old = System.currentTimeMillis() - 60_001;
-        setLastUpdate(leastActiveLoadBalance, "https://pro.jd.com", old);
-        setLastRecycle(leastActiveLoadBalance, old);
-        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
-        Assertions.assertEquals(2, countMap.size());
-        Assertions.assertTrue(countMap.containsKey("https://baidu.com"));
-        Assertions.assertTrue(countMap.containsKey("https://jd.com"));
-        Assertions.assertFalse(countMap.containsKey("https://pro.jd.com"));
-    }
-
-    @Test
-    public void testCountMapNotAffectOtherSelectorWhenFirstRemoved() throws Exception {
-        buildUpstreamList();
-        final List<Upstream> anotherList = new ArrayList<>();
-        anotherList.add(Upstream.builder().url("jd.com").protocol("https://").build());
-        final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
-        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        leastActiveLoadBalance.doSelect(anotherList, new LoadBalanceData());
-        Assertions.assertEquals(3, getCountMap(leastActiveLoadBalance).size());
-        // Symmetric case: selector 1 removes the first upstream baidu.com. The cleanup must evict
-        // baidu.com but keep pro.jd.com (still served by selector 1) and jd.com (served by selector 2).
-        onlyOneList.remove(0);
-        long old = System.currentTimeMillis() - 60_001;
-        setLastUpdate(leastActiveLoadBalance, "https://baidu.com", old);
-        setLastRecycle(leastActiveLoadBalance, old);
-        leastActiveLoadBalance.doSelect(onlyOneList, new LoadBalanceData());
-        Map<String, LeastActiveLoadBalance.ActiveCount> countMap = getCountMap(leastActiveLoadBalance);
-        Assertions.assertEquals(2, countMap.size());
-        Assertions.assertTrue(countMap.containsKey("https://pro.jd.com"));
-        Assertions.assertTrue(countMap.containsKey("https://jd.com"));
-        Assertions.assertFalse(countMap.containsKey("https://baidu.com"));
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, LeastActiveLoadBalance.ActiveCount> getCountMap(final LeastActiveLoadBalance loadBalance) throws Exception {
-        Field field = LeastActiveLoadBalance.class.getDeclaredField("countMap");
-        field.setAccessible(true);
-        return (Map<String, LeastActiveLoadBalance.ActiveCount>) field.get(loadBalance);
-    }
-
-    private void setLastUpdate(final LeastActiveLoadBalance loadBalance, final String domain, final long lastUpdate) throws Exception {
-        LeastActiveLoadBalance.ActiveCount activeCount = getCountMap(loadBalance).get(domain);
-        Assertions.assertNotNull(activeCount);
-        Field field = LeastActiveLoadBalance.ActiveCount.class.getDeclaredField("lastUpdate");
-        field.setAccessible(true);
-        field.set(activeCount, lastUpdate);
-    }
-
-    private void setLastRecycle(final LeastActiveLoadBalance loadBalance, final long lastRecycle) throws Exception {
-        Field field = LeastActiveLoadBalance.class.getDeclaredField("lastRecycle");
-        field.setAccessible(true);
-        field.set(loadBalance, lastRecycle);
+        // Selection leaves the accounting to the request lifecycle.
+        Assertions.assertEquals(3, onlyOneList.get(0).getInflight().get());
+        Assertions.assertEquals(1, onlyOneList.get(1).getInflight().get());
     }
 }

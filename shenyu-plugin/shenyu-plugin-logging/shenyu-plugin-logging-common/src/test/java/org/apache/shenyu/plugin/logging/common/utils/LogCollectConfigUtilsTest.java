@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.logging.common.utils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For LogCollectConfigUtils.
@@ -64,5 +68,47 @@ public class LogCollectConfigUtilsTest {
         Field field = LogCollectConfigUtils.class.getDeclaredField("globalSampler");
         field.setAccessible(true);
         assertEquals(field.get("const"), Sampler.ALWAYS_SAMPLE);
+    }
+
+    @Test
+    public void testGetGlobalConfigUsesPluginId() {
+        String pluginId = "config-utils-body-limit-test";
+        GenericGlobalConfig pluginConfig = new GenericGlobalConfig();
+        pluginConfig.setMaxRequestBody(8);
+        pluginConfig.setMaxResponseBody(16);
+        AbstractLogPluginDataHandler.getPluginGlobalConfigMap().put(pluginId, pluginConfig);
+        try {
+            assertSame(pluginConfig, LogCollectConfigUtils.getGlobalConfig(pluginId));
+        } finally {
+            AbstractLogPluginDataHandler.getPluginGlobalConfigMap().remove(pluginId);
+        }
+    }
+
+    @Test
+    public void testMissingConfigDoesNotShareMutableDefaults() {
+        String pluginId = "missing-body-limit-test";
+        GenericGlobalConfig missing = LogCollectConfigUtils.getGlobalConfig(pluginId);
+        assertEquals(524288, missing.getMaxRequestBody());
+        assertEquals(524288, missing.getMaxResponseBody());
+        missing.setMaxRequestBody(1);
+        missing.setMaxResponseBody(1);
+        GenericGlobalConfig next = LogCollectConfigUtils.getGlobalConfig(pluginId);
+        assertEquals(524288, next.getMaxRequestBody());
+        assertEquals(524288, next.getMaxResponseBody());
+    }
+
+    @Test
+    public void testNullPluginIdUsesDefaults() {
+        GenericGlobalConfig missing = LogCollectConfigUtils.getGlobalConfig(null);
+        assertEquals(524288, missing.getMaxRequestBody());
+        assertEquals(524288, missing.getMaxResponseBody());
+    }
+
+    @Test
+    public void testLegacySizeChecksUseDefaultLimits() {
+        assertFalse(LogCollectConfigUtils.isRequestBodyTooLarge(524288));
+        assertTrue(LogCollectConfigUtils.isRequestBodyTooLarge(524289));
+        assertFalse(LogCollectConfigUtils.isResponseBodyTooLarge(524288));
+        assertTrue(LogCollectConfigUtils.isResponseBodyTooLarge(524289));
     }
 }

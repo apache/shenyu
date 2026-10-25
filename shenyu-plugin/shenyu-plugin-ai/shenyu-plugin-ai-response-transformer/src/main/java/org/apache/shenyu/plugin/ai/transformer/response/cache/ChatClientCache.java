@@ -17,18 +17,21 @@
 
 package org.apache.shenyu.plugin.ai.transformer.response.cache;
 
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * this is chatClient cache for ai response transformer.
  */
 public class ChatClientCache {
 
-    private static final Map<String, ChatClient> CHAT_CLIENT_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, CachedClient> CHAT_CLIENT_MAP = new ConcurrentHashMap<>();
 
     /**
      * Init.
@@ -39,8 +42,26 @@ public class ChatClientCache {
      */
     public ChatClient init(final String ruleId, final ChatModel chatModel) {
         ChatClient chatClient = ChatClient.builder(chatModel).build();
-        CHAT_CLIENT_MAP.put(ruleId, chatClient);
+        CHAT_CLIENT_MAP.put(ruleId, new CachedClient(null, chatClient));
         return chatClient;
+    }
+
+    /**
+     * Resolve a client against the effective connection settings, including inherited defaults.
+     *
+     * @param key cache key
+     * @param config effective connection settings
+     * @param modelFactory model factory for a new or changed configuration
+     * @return matching client
+     */
+    public ChatClient getOrCreate(final String key, final AiCommonConfig config, final Supplier<ChatModel> modelFactory) {
+        ClientConfiguration configuration = new ClientConfiguration(config.getProvider(), config.getBaseUrl(), config.getApiKey(), config.getModel());
+        return CHAT_CLIENT_MAP.compute(key, (unused, cached) -> {
+            if (Objects.nonNull(cached) && configuration.equals(cached.configuration())) {
+                return cached;
+            }
+            return new CachedClient(configuration, ChatClient.builder(modelFactory.get()).build());
+        }).client();
     }
 
     /**
@@ -59,7 +80,8 @@ public class ChatClientCache {
      * @return the instance
      */
     public ChatClient getClient(final String key) {
-        return CHAT_CLIENT_MAP.get(key);
+        CachedClient cached = CHAT_CLIENT_MAP.get(key);
+        return Objects.isNull(cached) ? null : cached.client();
     }
 
     /**
@@ -69,6 +91,12 @@ public class ChatClientCache {
      */
     public void destroyClient(final String key) {
         CHAT_CLIENT_MAP.remove(key);
+    }
+
+    private record ClientConfiguration(String provider, String baseUrl, String apiKey, String model) {
+    }
+
+    private record CachedClient(ClientConfiguration configuration, ChatClient client) {
     }
 
     /**
