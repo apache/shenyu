@@ -20,7 +20,7 @@
 # Minimal issue manager script to handle a subset of prow-style commands
 # Reads the GitHub issue_comment event JSON pointed to by GITHUB_EVENT_PATH
 # Requires GITHUB_TOKEN env and GITHUB_REPOSITORY env (owner/repo)
-# PR /assign, /close, /lgtm, /cc, and /hold commands are handled by dedicated workflows.
+# Pull request commands are handled by the dedicated pull request command workflow.
 #
 # Supported Commands:
 # -------------------
@@ -29,6 +29,7 @@
 # /assign         | Assign issue to users       | /assign or /assign @user     | Normal
 # /unassign       | Unassign users              | /unassign or /unassign @user | Normal
 # /lgtm           | Add lgtm label              | /lgtm                        | Normal
+# /unlgtm         | Remove lgtm label           | /unlgtm                      | Normal
 # /approve        | Add approved label          | /approve                     | Normal
 # /area           | Add area label              | /area plugin                 | Normal
 # /priority       | Add priority label          | /priority high               | Normal
@@ -161,7 +162,7 @@ process_command() {
   # Do not replay PR commands owned by the dedicated created-comment workflows.
   if [ "$IS_PULL_REQUEST" = true ]; then
     case "$line" in
-      \/assign*|\/close|\/lgtm|\/cc*|\/hold) return ;;
+      \/assign*|\/unassign*|\/close|\/reopen|\/lgtm|\/unlgtm|\/cc*|\/uncc*|\/hold|\/unhold|\/retest) return ;;
     esac
   fi
   case "$line" in
@@ -195,6 +196,9 @@ process_command() {
       ;;
     \/lgtm)
       add_label "lgtm"
+      ;;
+    \/unlgtm)
+      remove_label "lgtm"
       ;;
     \/approve)
       add_label "approved"
