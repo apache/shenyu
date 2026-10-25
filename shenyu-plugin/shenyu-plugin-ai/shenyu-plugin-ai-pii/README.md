@@ -18,14 +18,22 @@ extraction and configurable actions.
 - Detectors are deterministic: `EMAIL`, `PHONE_CN` (digit anchored), `NATIONAL_ID_CN`
   (mod 11-2 checksum validated) and `CREDIT_CARD` (Luhn validated, repeated-digit strings
   rejected). An admin can add bounded custom regexes, one `TYPE=REGEX` per line; a custom
-  type may not shadow a builtin one. Every detector runs under a per-direction deadline
-  enforced by a deadline-aware `CharSequence`, so a pathological pattern cannot pin a
-  worker thread.
+  type may not shadow a builtin one. Custom patterns are limited to 32 nonblank entries,
+  2,048 characters per regex, and 32,768 characters for the complete configuration
+  (Java UTF-16 character counts). Blank lines are ignored for the entry count; duplicate
+  and malformed nonblank entries still count. The limits are checked before splitting
+  or compiling patterns. Exceeding a limit rejects the configuration rather than
+  truncating it or installing a partial custom policy. Every detector runs under a
+  per-direction deadline enforced by a deadline-aware `CharSequence`; the deadline
+  bounds matching work, not regex compilation.
 - Protocol profiles extract only the message text fields, so a redaction never touches
   tool definitions, function arguments or other members: `openai-chat`
   (`messages[].content` / `choices[].message.content`) and `openai-responses` (`input` /
-  `output[].content[].text`). A payload whose shape matches no profile is an unsupported
-  enforcement mode, see the failure policy below.
+  `output[].content[].text`). The extraction containers and text member types are
+  validated before scanning. Unknown or malformed shapes are unsupported enforcement
+  modes: fail-closed rules reject them and fail-open rules warn and pass them through.
+  Validation is limited to extraction shape, not the complete provider schema. Valid
+  textless messages, such as tool calls or image-only content, remain supported.
 - Redaction happens on the parsed JSON tree and only inside the extracted fields, so the
   JSON structure and the escaping of everything else are preserved. Overlapping detections
   are merged on the original coordinates before anything is replaced, the merged range
@@ -48,8 +56,12 @@ extraction and configurable actions.
 - Server sent events and compressed responses (`Content-Encoding` other than `identity`)
   cannot be scanned. With a fail closed rule they are rejected, otherwise they are passed
   through **unchanged** (a compressed body is never decoded and re encoded).
-- Streaming requests (`stream: true`) under a response scope: rejected up front when the
-  rule is fail closed, otherwise the response scan is skipped with a warning.
+- Streaming requests (`stream: true`) under a response scope are rejected up front
+  when the rule is fail closed. In fail-open mode, if request scanning is also enabled,
+  the request scan observes the flag and skips response inspection with a warning.
+  With `scope=response` alone, fail-open rules do not read the request body to inspect
+  the flag: unsupported SSE responses pass through based on their response content
+  type, while supported non-streaming JSON responses are still scanned.
 - A real upstream error envelope (a non null `error` object) is never rewritten. A
   `"error": null` member is not an error: successful `openai-responses` completions carry
   it and are scanned normally.
@@ -87,7 +99,7 @@ delimited string so the generic form can edit it):
 | `actions` | string | empty | per type overrides, `TYPE=ACTION` separated by commas |
 | `defaultAction` | string | `REDACT` | action for a type without override |
 | `scope` | string | `request` | `request`, `response` or `request,response` |
-| `maxBodySize` | long | `1048576` | largest scanned body in bytes, `0` means unlimited |
+| `maxBodySize` | long | `1048576` | largest scanned body in bytes, `0` explicitly means unlimited; negative values warn and fall back to 1 MiB |
 | `failClosed` | boolean | `false` | reject unsupported modes instead of passing them through |
 | `detectorTimeoutMs` | long | `500` | detector budget per direction in milliseconds |
 
@@ -108,5 +120,9 @@ open):
 ```
 
 A wrong configuration never silently disables the rule: unknown detector types, an
-unusable `scope` or a non positive `detectorTimeoutMs` are logged and fall back to the
-safe default, and a rule whose handle is cleared drops its compiled policy.
+unusable `scope`, a negative `maxBodySize` or a non positive `detectorTimeoutMs` are
+logged and fall back to the safe default. A custom-pattern size or count violation
+rejects rule compilation; an existing compiled policy is retained rather than
+partially replaced. A configured rule without a compiled policy rejects traffic
+instead of silently bypassing inspection. Clearing the handle drops its compiled
+policy and disables inspection for that rule.

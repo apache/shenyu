@@ -18,7 +18,9 @@
 package org.apache.shenyu.plugin.ai.pii.handler;
 
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.PiiDetectionHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.ai.pii.PiiAction;
 import org.apache.shenyu.plugin.ai.pii.detector.BuiltinPiiDetectors;
 import org.junit.jupiter.api.AfterEach;
@@ -26,8 +28,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -103,6 +108,53 @@ public final class PiiDetectionPluginDataHandlerTest {
         handler.handlerRule(ruleData);
         PiiDetectionRule rule = PiiDetectionPluginDataHandler.obtainRule(ruleData);
         assertEquals(BuiltinPiiDetectors.all().size(), rule.getDetectors().size());
+    }
+
+    @Test
+    public void testBodySizeConfigurationSemantics() {
+        ruleData.setHandle("{\"maxBodySize\":-1}");
+        handler.handlerRule(ruleData);
+        PiiDetectionRule rule = PiiDetectionPluginDataHandler.obtainRule(ruleData);
+        assertEquals(PiiDetectionHandle.DEFAULT_MAX_BODY_SIZE, rule.getMaxBodySize());
+        assertTrue(rule.isOversized(PiiDetectionHandle.DEFAULT_MAX_BODY_SIZE + 1L));
+        ruleData.setHandle("{\"maxBodySize\":0}");
+        handler.handlerRule(ruleData);
+        rule = PiiDetectionPluginDataHandler.obtainRule(ruleData);
+        assertEquals(0L, rule.getMaxBodySize());
+        assertFalse(rule.isOversized(Long.MAX_VALUE));
+        ruleData.setHandle("{\"maxBodySize\":10}");
+        handler.handlerRule(ruleData);
+        rule = PiiDetectionPluginDataHandler.obtainRule(ruleData);
+        assertEquals(10L, rule.getMaxBodySize());
+        assertFalse(rule.isOversized(10L));
+        assertTrue(rule.isOversized(11L));
+    }
+
+    @Test
+    public void testOversizedConfigurationRetainsPreviousRuleAndPropagatesSanitizedException() {
+        ruleData.setHandle("{\"detectors\":\"EMAIL\",\"maxBodySize\":10}");
+        handler.handlerRule(ruleData);
+        PiiDetectionRule previous = PiiDetectionPluginDataHandler.obtainRule(ruleData);
+        PiiDetectionHandle replacement = new PiiDetectionHandle();
+        replacement.setCustomPatterns("SECRET_TYPE=secret-regex\n".repeat(PiiDetectionRule.MAX_CUSTOM_PATTERN_COUNT + 1));
+        replacement.setMaxBodySize(0L);
+        ruleData.setHandle(GsonUtils.getInstance().toJson(replacement));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> handler.handlerRule(ruleData));
+        assertEquals("Custom pattern configuration exceeds the entry count limit", exception.getMessage());
+        assertNull(exception.getCause());
+        assertSame(previous, PiiDetectionPluginDataHandler.obtainRule(ruleData));
+        assertEquals(10L, previous.getMaxBodySize());
+        assertEquals(1, previous.getDetectors().size());
+    }
+
+    @Test
+    public void testOversizedNewRuleDoesNotCachePartialConfiguration() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setCustomPatterns("CUSTOM=x\nSECRET_TYPE=" + "x".repeat(PiiDetectionRule.MAX_CUSTOM_REGEX_LENGTH + 1));
+        ruleData.setHandle(GsonUtils.getInstance().toJson(handle));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> handler.handlerRule(ruleData));
+        assertEquals("Custom pattern configuration exceeds the regex length limit", exception.getMessage());
+        assertNull(PiiDetectionPluginDataHandler.obtainRule(ruleData));
     }
 
     @Test

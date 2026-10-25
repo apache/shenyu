@@ -287,6 +287,36 @@ public final class PiiResponseDecoratorTest {
                 "the overflow chunk must be released even though the downstream cancelled");
     }
 
+    @Test
+    public void testMalformedResponseIsRejectedWhenFailClosed() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setFailClosed(true);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        write(PiiDetectionRule.compile("rule-1", handle), exchange,
+                "{\"choices\":{},\"unscannable\":\"13800138000\"}");
+        assertEquals(HttpStatus.FORBIDDEN, exchange.getResponse().getStatusCode());
+        assertFalse(exchange.getResponse().getBodyAsString().block().contains("13800138000"));
+    }
+
+    @Test
+    public void testMalformedResponsePassesThroughWhenFailOpen() {
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        String body = "{\"choices\":{},\"unscannable\":\"13800138000\"}";
+        write(PiiDetectionRule.compile("rule-1", new PiiDetectionHandle()), exchange, body);
+        assertEquals(body, exchange.getResponse().getBodyAsString().block());
+    }
+
+    @Test
+    public void testStrictToolCallOnlyResponseRemainsUnchanged() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setFailClosed(true);
+        MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
+        String body = "{\"choices\":[{\"message\":{\"content\":null,\"tool_calls\":[{\"type\":\"function\","
+                + "\"function\":{\"name\":\"lookup\",\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}}]}";
+        write(PiiDetectionRule.compile("rule-1", handle), exchange, body);
+        assertEquals(body, exchange.getResponse().getBodyAsString().block());
+    }
+
     private void write(final PiiDetectionRule rule, final MockServerWebExchange exchange, final String body) {
         decorator(rule, exchange).writeWith(Flux.just(buffer(body))).block();
     }

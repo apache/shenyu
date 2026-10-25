@@ -43,9 +43,25 @@ import java.util.regex.PatternSyntaxException;
  * <p>Compilation is lenient by design: an invalid custom pattern or an unknown
  * action name is skipped with a warning instead of failing the whole rule, and
  * a custom pattern may not shadow a builtin detector type, because that would
- * silently drop the checksum validation of the builtin.</p>
+ * silently drop the checksum validation of the builtin. Custom pattern size
+ * limits are checked first and reject the whole configuration when exceeded.</p>
  */
 public final class PiiDetectionRule {
+
+    /**
+     * Maximum number of nonblank custom pattern entries, including duplicates and invalid entries.
+     */
+    public static final int MAX_CUSTOM_PATTERN_COUNT = 32;
+
+    /**
+     * Maximum length of one custom regex in UTF-16 characters, excluding its line-ending carriage return.
+     */
+    public static final int MAX_CUSTOM_REGEX_LENGTH = 2048;
+
+    /**
+     * Maximum length of the raw customPatterns configuration in UTF-16 characters.
+     */
+    public static final int MAX_CUSTOM_PATTERNS_LENGTH = 32768;
 
     private static final Logger LOG = LoggerFactory.getLogger(PiiDetectionRule.class);
 
@@ -85,14 +101,17 @@ public final class PiiDetectionRule {
     /**
      * Compile a rule handle. A configuration mistake must never silently disable
      * the plugin, so every unusable value is reported and falls back to the safe
-     * default instead of compiling into a rule that scans nothing.
+     * default instead of compiling into a rule that scans nothing. Oversized
+     * custom pattern configurations are rejected before parsing or compiling any pattern.
      *
      * @param ruleId the rule the handle belongs to, reported by audit records
      * @param handle the parsed rule handle
      * @return the compiled rule
+     * @throws IllegalArgumentException when the custom pattern configuration exceeds a limit
      */
     public static PiiDetectionRule compile(final String ruleId, final PiiDetectionHandle handle) {
         PiiDetectionHandle effective = Objects.isNull(handle) ? PiiDetectionHandle.newDefaultInstance() : handle;
+        validateCustomPatterns(effective.getCustomPatterns());
         final List<PiiDetector> detectors = compileDetectors(ruleId, effective);
         final Map<String, PiiAction> actions = compileActions(effective);
         PiiAction compiledDefault = PiiAction.fromName(effective.getDefaultAction());
@@ -114,9 +133,47 @@ public final class PiiDetectionRule {
                     ruleId, timeoutMs, PiiDetectionHandle.DEFAULT_DETECTOR_TIMEOUT_MS);
             timeoutMs = PiiDetectionHandle.DEFAULT_DETECTOR_TIMEOUT_MS;
         }
+        long maxBodySize = effective.getMaxBodySize();
+        if (maxBodySize < 0L) {
+            LOG.warn("pii detection rule {}: maxBodySize {} is negative, falling back to {}",
+                    ruleId, maxBodySize, PiiDetectionHandle.DEFAULT_MAX_BODY_SIZE);
+            maxBodySize = PiiDetectionHandle.DEFAULT_MAX_BODY_SIZE;
+        }
         return new PiiDetectionRule(ruleId, detectors, actions, compiledDefault,
-                scansRequest, scansResponse,
-                effective.getMaxBodySize(), effective.isFailClosed(), timeoutMs);
+                scansRequest, scansResponse, maxBodySize, effective.isFailClosed(), timeoutMs);
+    }
+
+    private static void validateCustomPatterns(final String customPatterns) {
+        if (Objects.isNull(customPatterns)) {
+            return;
+        }
+        if (customPatterns.length() > MAX_CUSTOM_PATTERNS_LENGTH) {
+            throw new IllegalArgumentException("Custom pattern configuration exceeds the total length limit");
+        }
+        int count = 0;
+        int start = 0;
+        while (start < customPatterns.length()) {
+            int newline = customPatterns.indexOf('\n', start);
+            int end = newline < 0 ? customPatterns.length() : newline;
+            if (end > start && customPatterns.charAt(end - 1) == '\r') {
+                end--;
+            }
+            int contentStart = start;
+            while (contentStart < end && customPatterns.charAt(contentStart) <= ' ') {
+                contentStart++;
+            }
+            if (contentStart < end) {
+                count++;
+                if (count > MAX_CUSTOM_PATTERN_COUNT) {
+                    throw new IllegalArgumentException("Custom pattern configuration exceeds the entry count limit");
+                }
+                int delimiter = customPatterns.indexOf('=', start);
+                if (delimiter >= start && delimiter < end && end - delimiter - 1 > MAX_CUSTOM_REGEX_LENGTH) {
+                    throw new IllegalArgumentException("Custom pattern configuration exceeds the regex length limit");
+                }
+            }
+            start = newline < 0 ? customPatterns.length() : newline + 1;
+        }
     }
 
     private static boolean hasConfiguredScope(final PiiDetectionHandle handle) {

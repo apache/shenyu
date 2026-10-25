@@ -102,6 +102,11 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
                                    final RuleData rule) {
         PiiDetectionRule piiRule = PiiDetectionPluginDataHandler.obtainRule(rule);
         if (Objects.isNull(piiRule)) {
+            String handle = rule.getHandle();
+            if (Objects.nonNull(handle) && !handle.trim().isEmpty() && !"null".equals(handle.trim())) {
+                LOG.warn("pii detection: no compiled policy is available for a configured rule, the request is rejected");
+                return reject(exchange);
+            }
             return chain.execute(exchange);
         }
         ServerWebExchange mutated = exchange;

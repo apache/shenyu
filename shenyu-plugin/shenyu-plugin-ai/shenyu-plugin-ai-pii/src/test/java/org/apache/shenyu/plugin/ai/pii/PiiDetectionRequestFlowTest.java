@@ -180,6 +180,49 @@ public final class PiiDetectionRequestFlowTest {
         verify(chain, never()).execute(any(ServerWebExchange.class));
     }
 
+    @Test
+    public void testMalformedProtocolIsRejectedWhenFailClosed() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setFailClosed(true);
+        cacheHandle(handle);
+        ShenyuPluginChain chain = chain();
+        MockServerWebExchange exchange = jsonRequest("{\"messages\":\"13800138000\"}");
+        new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add)
+                .doExecute(exchange, chain, null, ruleData).block();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        assertFalse(exchange.getResponse().getBodyAsString().block().contains("13800138000"));
+    }
+
+    @Test
+    public void testMalformedProtocolPassesThroughWhenFailOpen() {
+        StepProbe probe = new StepProbe();
+        String body = "{\"messages\":\"13800138000\"}";
+        new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add)
+                .doExecute(jsonRequest(body), chain(probe), null, ruleData).block();
+        assertEquals(body, probe.body);
+        assertTrue(audits.isEmpty());
+    }
+
+    @Test
+    public void testConfiguredRuleWithoutCompiledPolicyIsRejected() {
+        PiiDetectionPluginDataHandler.CACHED_RULES.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleData.setHandle("{\"customPatterns\":\"configured but not compiled\"}");
+        ShenyuPluginChain chain = chain();
+        new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add)
+                .doExecute(jsonRequest(CHAT_BODY), chain, null, ruleData).block();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testClearedRuleWithoutCompiledPolicyPassesThrough() {
+        PiiDetectionPluginDataHandler.CACHED_RULES.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleData.setHandle("null");
+        ShenyuPluginChain chain = chain();
+        new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add)
+                .doExecute(jsonRequest(CHAT_BODY), chain, null, ruleData).block();
+        verify(chain, atLeastOnce()).execute(any(ServerWebExchange.class));
+    }
+
     private ShenyuPluginChain chain() {
         ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());

@@ -120,6 +120,52 @@ public final class PiiProtocolProfilesTest {
         assertTrue(slots.get(0).text().contains("\n"));
     }
 
+    @Test
+    public void testMalformedRequestExtractionShapesAreUnsupported() {
+        String[] payloads = {
+                "{\"messages\":\"bad\"}", "{\"messages\":null}", "{\"messages\":[42]}",
+                "{\"messages\":[{}]}", "{\"messages\":[{\"content\":123}]}",
+                "{\"messages\":[{\"content\":[\"bad\"]}]}",
+                "{\"messages\":[{\"content\":[{\"type\":\"text\"}]}]}",
+                "{\"messages\":[{\"content\":[{\"text\":false}]}]}",
+                "{\"input\":123}", "{\"input\":null}", "{\"input\":[{}]}",
+                "{\"input\":[{\"type\":\"message\",\"content\":{}}]}",
+        };
+        for (String payload : payloads) {
+            assertNull(PiiProtocolProfiles.select(parse(payload)), payload);
+        }
+    }
+
+    @Test
+    public void testMalformedResponseExtractionShapesAreUnsupported() {
+        String[] payloads = {
+                "{\"choices\":{}}", "{\"choices\":null}", "{\"choices\":[{}]}",
+                "{\"choices\":[{\"message\":\"bad\"}]}",
+                "{\"choices\":[{\"message\":{\"content\":{}}}]}",
+                "{\"output\":\"bad\"}", "{\"output\":[false]}",
+                "{\"output\":[{\"type\":\"message\",\"content\":[{\"text\":23}]}]}",
+        };
+        for (String payload : payloads) {
+            assertNull(PiiProtocolProfiles.selectResponse(parse(payload)), payload);
+        }
+    }
+
+    @Test
+    public void testValidTextlessToolCallsRemainSupported() {
+        JsonObject chat = parse("{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":null,"
+                + "\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\","
+                + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}}]}");
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.selectResponse(chat).id());
+        assertTrue(new OpenAiChatProfile().responseSlots(chat).isEmpty());
+        JsonObject responses = parse("{\"output\":[{\"type\":\"function_call\",\"name\":\"lookup\","
+                + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}]}");
+        assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(responses).id());
+        assertTrue(new OpenAiResponsesProfile().responseSlots(responses).isEmpty());
+        assertEquals(OpenAiResponsesProfile.ID,
+                PiiProtocolProfiles.select(parse("{\"input\":[{\"type\":\"function_call_output\",\"output\":\"ok\"}]}")).id());
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(parse("{\"messages\":[{\"content\":[]}]}")).id());
+    }
+
     private JsonObject parse(final String json) {
         return JsonParser.parseString(json).getAsJsonObject();
     }
