@@ -26,7 +26,23 @@
 
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
+### Observability
+
+- Divide Canary routing exports `shenyu_canary_requests_total` by configured
+  selector/rule, partition and terminal outcome, `shenyu_canary_fallback_total`
+  for successful initial Canary-to-Stable fallback, and
+  `shenyu_canary_decision_duration_seconds` for the initial decision only.
+  Internal retries do not add logical requests. These metrics use the existing
+  Metrics plugin and Prometheus endpoint; `shenyu_execute_latency_millis`
+  retains its existing labels, unit and recording behavior.
+
 ### Behavior Changes
+
+- In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
+  field section: header names, field values, line framing (`: ` and CRLF),
+  and section-terminating CRLF. Previously only header values were counted. Existing
+  deployments with strict `headerMaxSize` limits may see requests near the boundary
+  rejected; adjust `headerMaxSize` if needed. (#7818)
 
 - The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
   concurrent requests that miss the same response cache key share one upstream

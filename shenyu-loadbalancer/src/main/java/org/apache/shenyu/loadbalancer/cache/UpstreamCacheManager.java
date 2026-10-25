@@ -166,9 +166,11 @@ public final class UpstreamCacheManager {
      * @param key the key
      */
     public void removeByKey(final String key) {
-        UPSTREAM_MAP.remove(key);
-        LEGACY_GRAY_SELECTORS.remove(key);
-        task.triggerRemoveAll(key);
+        task.withLock(() -> {
+            UPSTREAM_MAP.remove(key);
+            LEGACY_GRAY_SELECTORS.remove(key);
+            task.triggerRemoveAll(key);
+        });
     }
 
     /**
@@ -178,6 +180,10 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
+        task.withLock(() -> doSubmit(selectorId, upstreamList));
+    }
+
+    private void doSubmit(final String selectorId, final List<Upstream> upstreamList) {
         List<Upstream> actualUpstreamList = Objects.isNull(upstreamList) ? Lists.newArrayList() : upstreamList;
 
         // Check if the list is empty first to avoid unnecessary processing
@@ -191,16 +197,46 @@ public final class UpstreamCacheManager {
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
                 .collect(Collectors.partitioningBy(Upstream::isStatus));
-        List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
-        List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
+        final List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
+        final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
+        removeStaleUpstreams(selectorId, actualUpstreamList, existUpstreamList);
         updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
+    }
+
+    private void removeStaleUpstreams(final String selectorId, final List<Upstream> actualUpstreamList,
+                                      final List<Upstream> existUpstreamList) {
+        Set<UpstreamIdentity> actualIdentities = actualUpstreamList.stream()
+                .map(Upstream::identity)
+                .collect(Collectors.toSet());
+        for (Upstream existUp : Lists.newArrayList(existUpstreamList)) {
+            if (!actualIdentities.contains(existUp.identity())) {
+                task.triggerRemoveOne(selectorId, existUp);
+                existUpstreamList.remove(existUp);
+            }
+        }
+        List<Upstream> healthyList = task.getHealthyUpstream().get(selectorId);
+        if (Objects.nonNull(healthyList)) {
+            for (Upstream healthyUp : Lists.newArrayList(healthyList)) {
+                if (!actualIdentities.contains(healthyUp.identity())) {
+                    task.removeFromMap(task.getHealthyUpstream(), selectorId, healthyUp);
+                }
+            }
+        }
+        List<Upstream> unhealthyList = task.getUnhealthyUpstream().get(selectorId);
+        if (Objects.nonNull(unhealthyList)) {
+            for (Upstream unhealthyUp : Lists.newArrayList(unhealthyList)) {
+                if (!actualIdentities.contains(unhealthyUp.identity())) {
+                    task.removeFromMap(task.getUnhealthyUpstream(), selectorId, unhealthyUp);
+                }
+            }
+        }
     }
 
     private void updateUpstreamMetadata(final String selectorId, final List<Upstream> upstreams, final List<Upstream> existingHealthy) {
