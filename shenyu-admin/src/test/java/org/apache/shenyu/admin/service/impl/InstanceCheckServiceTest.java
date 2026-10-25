@@ -238,8 +238,8 @@ public final class InstanceCheckServiceTest {
             return null;
         }).when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
 
-        assertDoesNotThrow(instanceCheckService::syncDB);
-        assertDoesNotThrow(instanceCheckService::syncDB);
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
 
         verify(instanceInfoService, times(4)).createOrUpdate(any(InstanceInfoVO.class));
         assertEquals(2, failedInstanceAttempts.get());
