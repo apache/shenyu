@@ -168,6 +168,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return SelectorDO
      */
+    // Requires a caller-owned transaction to retain the per-plugin registration lock.
     SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(String name, String pluginName, String namespaceId);
 
     /**

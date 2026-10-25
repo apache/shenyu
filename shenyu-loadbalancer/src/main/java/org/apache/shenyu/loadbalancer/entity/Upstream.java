@@ -19,6 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,14 +118,16 @@ public final class Upstream {
     /**
      * this is gray.
      */
-    private boolean gray;
+    private volatile boolean gray;
 
     /**
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
     
-    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    private volatile Map<String, String> labels = Collections.emptyMap();
+
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
     /**
@@ -150,6 +153,24 @@ public final class Upstream {
         this.healthCheckEnabled = builder.healthCheckEnabled;
     }
     
+    /**
+     * Gets upstream labels independently of scalar metadata.
+     *
+     * @return immutable upstream labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    /**
+     * Sets an immutable snapshot of upstream labels.
+     *
+     * @param labels upstream labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = Map.copyOf(labels);
+    }
+
     /**
      * Gets protocol.
      *

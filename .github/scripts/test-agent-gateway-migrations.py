@@ -84,7 +84,9 @@ class MigrationConsistencyTest(unittest.TestCase):
         self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("NULL", "null")))
 
     def test_quoted_null_is_not_a_null_literal(self):
-        changed = self.migration.replace("'68', NULL, 198", "'68', 'NULL', 198")
+        original = "'68', NULL,"
+        self.assertEqual(1, self.migration.count(original))
+        changed = self.migration.replace(original, "'68', 'NULL',", 1)
         with self.assertRaisesRegex(ValueError, "mismatch"):
             CHECK.check_pair(self.schema, changed)
 

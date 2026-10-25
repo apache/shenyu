@@ -20,6 +20,9 @@ package org.apache.shenyu.web.filter;
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -32,6 +35,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.mockito.Mockito.mock;
@@ -231,9 +235,125 @@ public final class CrossFilterTest {
         assertOrigin(filter, "https://other.example", false);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "http://gateway.example, https://frontend.example, https://frontend.example",
+        "https://gateway.example, http://frontend.example, http://frontend.example",
+        "http://gateway.example, http://frontend.example, http://frontend.example",
+        "https://gateway.example, frontend.example:8443, https://frontend.example:8443"
+    })
+    void testAllowedOriginsPreserveTheirOwnScheme(final String gateway, final String configuredOrigin, final String origin) {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.getAllowedOrigin().setOrigins(Set.of("  " + configuredOrigin + "  "));
+        config.setAllowCredentials(true);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(gateway).header(HttpHeaders.ORIGIN, origin));
+        WebFilterChain chain = mock(WebFilterChain.class);
+        when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+        filterAndComplete(new CrossFilter(config), exchange, chain);
+
+        verify(chain).filter(exchange);
+        Assertions.assertEquals(origin, exchange.getResponse().getHeaders().getAccessControlAllowOrigin());
+        Assertions.assertTrue(exchange.getResponse().getHeaders().getAccessControlAllowCredentials());
+        Assertions.assertTrue(exchange.getResponse().getHeaders().getVary().contains(HttpHeaders.ORIGIN));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://frontend.example", "https://frontend.example:8443", "https://other.example", "https://frontend.example.evil", "null"})
+    void testAllowListDoesNotReflectDisallowedOrigins(final String origin) {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.getAllowedOrigin().setOrigins(Set.of("https://frontend.example"));
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.options("http://gateway.example").header(HttpHeaders.ORIGIN, origin));
+        WebFilterChain chain = mock(WebFilterChain.class);
+        when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+        filterAndComplete(new CrossFilter(config), exchange, chain);
+
+        verify(chain).filter(exchange);
+        Assertions.assertNull(exchange.getResponse().getHeaders().getAccessControlAllowOrigin());
+        Assertions.assertNull(exchange.getResponse().getHeaders().getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+        Assertions.assertNull(exchange.getResponse().getStatusCode());
+        Assertions.assertTrue(exchange.getResponse().getHeaders().getVary().contains(HttpHeaders.ORIGIN));
+    }
+
+    @Test
+    void testAllowedCrossSchemePreflightReturnsConfiguredHeaders() {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.getAllowedOrigin().setOrigins(Set.of("https://frontend.example"));
+        config.setAllowedMethods("GET,POST,OPTIONS");
+        config.setAllowedHeaders("Content-Type,Authorization");
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.options("http://gateway.example")
+                .header(HttpHeaders.ORIGIN, "https://frontend.example")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization")
+                .build());
+        WebFilterChain chain = mock(WebFilterChain.class);
+        when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+        filterAndComplete(new CrossFilter(config), exchange, chain);
+
+        verify(chain, never()).filter(exchange);
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        Assertions.assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals("https://frontend.example", headers.getAccessControlAllowOrigin());
+        Assertions.assertEquals(Set.of("GET", "POST", "OPTIONS"),
+                Set.of(headers.getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS).split(",")));
+        Assertions.assertTrue(headers.getAccessControlAllowHeaders().containsAll(Set.of("Content-Type", "Authorization")));
+        Assertions.assertTrue(headers.getVary().contains(HttpHeaders.ORIGIN));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Accept-Encoding", "Accept-Encoding, Origin", "Accept-Encoding, origin", "*"})
+    void testVaryPreservesExistingTokensWithoutDuplicatingOrigin(final String vary) {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.setAllowedAnyOrigin(true);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://gateway.example")
+                .header(HttpHeaders.ORIGIN, "https://frontend.example"));
+
+        filterAndComplete(new CrossFilter(config), exchange,
+                ignored -> Mono.fromRunnable(() -> exchange.getResponse().getHeaders().set(HttpHeaders.VARY, vary)));
+
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        Assertions.assertEquals("https://frontend.example", headers.getAccessControlAllowOrigin());
+        Assertions.assertEquals("*".equals(vary) ? 0L : 1L, headers.getVary().stream().filter(HttpHeaders.ORIGIN::equalsIgnoreCase).count());
+        Assertions.assertTrue(headers.getVary().contains("*".equals(vary) ? "*" : "Accept-Encoding"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testWildcardModesReflectConcreteOriginsButNotNull(final boolean anyOrigin) {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.setAllowedAnyOrigin(anyOrigin);
+        config.setAllowCredentials(true);
+        config.getAllowedOrigin().setOrigins(Set.of("*"));
+        CrossFilter filter = new CrossFilter(config);
+        assertOrigin(filter, "https://frontend.example", true);
+        assertOrigin(filter, "null", false);
+    }
+
+    @Test
+    void testResponseWithoutOriginAlsoVariesByOrigin() {
+        CrossFilterConfig config = new CrossFilterConfig();
+        config.setAllowedAnyOrigin(true);
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://gateway.example"));
+        WebFilterChain chain = mock(WebFilterChain.class);
+        when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+        filterAndComplete(new CrossFilter(config), exchange, chain);
+
+        verify(chain).filter(exchange);
+        Assertions.assertNull(exchange.getResponse().getHeaders().getAccessControlAllowOrigin());
+        Assertions.assertNull(exchange.getResponse().getHeaders().getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+        Assertions.assertTrue(exchange.getResponse().getHeaders().getVary().contains(HttpHeaders.ORIGIN));
+    }
+
     private void assertOrigin(final CrossFilter filter, final String origin, final boolean allowed) {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost").header(HttpHeaders.ORIGIN, origin));
-        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+        filterAndComplete(filter, exchange, ignored -> Mono.empty());
         Assertions.assertEquals(allowed ? origin : null, exchange.getResponse().getHeaders().getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    }
+
+    private void filterAndComplete(final CrossFilter filter, final ServerWebExchange exchange, final WebFilterChain chain) {
+        StepVerifier.create(filter.filter(exchange, chain).then(Mono.defer(exchange.getResponse()::setComplete))).verifyComplete();
     }
 }

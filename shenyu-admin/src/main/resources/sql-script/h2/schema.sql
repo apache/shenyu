@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `mock_request_record`  (
   `url` varchar(1024) NOT NULL COMMENT 'the request url',
   `path_variable` varchar(255) NOT NULL DEFAULT '' COMMENT 'the request param in url',
   `query` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param after url',
-  `header` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param in header',
+  `header` clob NOT NULL DEFAULT '' COMMENT 'the request param in header',
   `body` text COMMENT 'the request body',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
@@ -1417,7 +1417,9 @@ CREATE TABLE IF NOT EXISTS instance_info
     `instance_state`  int  NOT NULL COMMENT  '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382720', '1346358560427216896', '1346778036402483300', '2023-08-31 06:59:01', '2023-08-31 06:59:01');

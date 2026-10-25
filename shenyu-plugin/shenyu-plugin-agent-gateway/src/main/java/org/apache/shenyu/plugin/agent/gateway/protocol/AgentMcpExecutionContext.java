@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig;
+import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -49,6 +51,10 @@ public final class AgentMcpExecutionContext {
 
     private final AgentGatewayResultFilterConfig resultFilters;
 
+    private final AgentGatewayHttpToolConfig httpTools;
+
+    private final AgentHttpToolInvoker httpInvoker;
+
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants) {
         this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, Instant.MAX);
@@ -62,14 +68,32 @@ public final class AgentMcpExecutionContext {
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters) {
-        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, null);
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                AgentGatewayHttpToolConfig.empty(), null, null);
     }
 
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
                                     final AgentGatewayResultFilterConfig resultFilters, final String tenant) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                AgentGatewayHttpToolConfig.empty(), null, tenant);
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final AgentGatewayHttpToolConfig httpTools,
+                                    final AgentHttpToolInvoker httpInvoker) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters, httpTools, httpInvoker, null);
+    }
+
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final AgentGatewayHttpToolConfig httpTools,
+                                    final AgentHttpToolInvoker httpInvoker, final String tenant) {
         this.tenant = Objects.isNull(tenant) ? null : requireText(tenant, "tenant");
         this.deadline = Objects.requireNonNull(deadline, "deadline");
+        this.httpTools = Objects.requireNonNull(httpTools, "httpTools");
+        this.httpInvoker = httpInvoker;
         this.resultFilters = Objects.requireNonNull(resultFilters, "resultFilters");
         this.requestId = requireText(requestId, "requestId");
         this.subject = requireText(subject, "subject");
@@ -118,6 +142,14 @@ public final class AgentMcpExecutionContext {
 
     public AgentGatewayResultFilterConfig getResultFilters() {
         return resultFilters;
+    }
+
+    public AgentGatewayHttpToolConfig getHttpTools() {
+        return httpTools;
+    }
+
+    public AgentHttpToolInvoker getHttpInvoker() {
+        return httpInvoker;
     }
 
     private String requireText(final String value, final String name) {
