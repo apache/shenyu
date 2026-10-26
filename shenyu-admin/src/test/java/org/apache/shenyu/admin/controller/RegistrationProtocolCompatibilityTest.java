@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.config.RegistrationProtocolInterceptor;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
+import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -78,6 +79,9 @@ class RegistrationProtocolCompatibilityTest {
     @InjectMocks
     private InstanceCheckService instanceCheckService;
 
+    @Mock
+    private InstanceDiagnosticsService instanceDiagnosticsService;
+
     @InjectMocks
     private ShenyuClientHttpRegistryController controller;
 
@@ -85,7 +89,7 @@ class RegistrationProtocolCompatibilityTest {
 
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(controller, new InstanceController(instanceInfoService, instanceCheckService))
+        mvc = MockMvcBuilders.standaloneSetup(controller, new InstanceController(instanceInfoService, instanceCheckService, instanceDiagnosticsService))
                 .addInterceptors(new RegistrationProtocolInterceptor()).build();
     }
 

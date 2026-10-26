@@ -55,6 +55,7 @@ public class WebSocketUpstreamDataHandler extends AbstractDiscoveryUpstreamDataH
                     .weight(u.getWeight())
                     .warmup(props.getWarmup())
                     .healthCheckEnabled(props.isHealthCheckEnabled())
+                    .draining(props.isDraining())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();

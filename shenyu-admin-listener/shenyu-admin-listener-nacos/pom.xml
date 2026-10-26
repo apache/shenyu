@@ -21,12 +21,18 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-admin-listener</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>shenyu-admin-listener-nacos</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-api</artifactId>

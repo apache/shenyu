@@ -245,6 +245,12 @@
         WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
     </update>
 
+    <update id="updatePropsByUrl">
+        UPDATE discovery_upstream
+        SET props = #{props}
+        WHERE discovery_handler_id = #{discoveryHandlerId} and upstream_url = #{upstreamUrl}
+    </update>
+
     <select id="selectByDiscoveryHandlerIds" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM discovery_upstream

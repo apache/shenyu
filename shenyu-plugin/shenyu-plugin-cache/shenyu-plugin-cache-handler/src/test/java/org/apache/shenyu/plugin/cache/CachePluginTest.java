@@ -137,7 +137,7 @@ public class CachePluginTest {
         StepVerifier.create(result2).expectSubscription().verifyComplete();
 
         memoryCache.cacheData(CacheUtils.responseKey(exchange, ruleData.getSelectorId(), ruleData.getId()),
-                CachedResponse.capture(exchange.getResponse(), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode(),
+                CachedResponse.capture(exchange.getRequest(), exchange.getResponse(), MediaType.APPLICATION_JSON_VALUE.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode(),
                 60L).subscribeOn(Schedulers.boundedElastic()).subscribe();
         final Mono<Void> result3 = cachePlugin.doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         StepVerifier.create(result3).expectSubscription().verifyComplete();

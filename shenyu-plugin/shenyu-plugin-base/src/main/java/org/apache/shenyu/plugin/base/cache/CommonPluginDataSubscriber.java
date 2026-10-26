@@ -28,7 +28,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -56,6 +55,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     private final Map<String, PluginDataHandler> handlerMap;
 
+    private final Set<String> builtInHandlerNames;
+
     private ApplicationEventPublisher eventPublisher;
     
     private final SelectorMatchCache selectorMatchConfig;
@@ -73,6 +74,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = Set.copyOf(handlerMap.keySet());
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
@@ -82,21 +84,22 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher        eventPublisher is used to publish sort plugin event
-     * @param selectorMatchConfig   shenyu trie config
-     * @param ruleMatchCacheConfig  shenyu trie config
+     * @param selectorMatchConfig   selector match cache config
+     * @param ruleMatchCacheConfig  rule match cache config
      */
     public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList,
                                       final ApplicationEventPublisher eventPublisher,
                                       final SelectorMatchCache selectorMatchConfig,
                                       final RuleMatchCache ruleMatchCacheConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
+        this.builtInHandlerNames = Set.copyOf(handlerMap.keySet());
         this.eventPublisher = eventPublisher;
         this.selectorMatchConfig = selectorMatchConfig;
         this.ruleMatchCacheConfig = ruleMatchCacheConfig;
     }
     
     /**
-     * Put extend plugin data handler.
+     * Add or replace extension handlers without overriding built-in handlers.
      *
      * @param handlers the handlers
      */
@@ -106,10 +109,23 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            MapUtils.computeIfAbsent(handlerMap, pluginNamed, name -> {
-                LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
-                return handler;
-            });
+            if (!builtInHandlerNames.contains(pluginNamed)) {
+                handlerMap.put(pluginNamed, handler);
+                LOG.info("shenyu auto add or replace extends plugin data handler name is :{}", pluginNamed);
+            }
+        }
+    }
+
+    /**
+     * Remove handlers belonging to unloaded extension plugins.
+     *
+     * @param pluginNames extension plugin names
+     */
+    public void removeExtendPluginDataHandlers(final Set<String> pluginNames) {
+        for (String pluginName : pluginNames) {
+            if (!builtInHandlerNames.contains(pluginName)) {
+                handlerMap.remove(pluginName);
+            }
         }
     }
     
@@ -440,7 +456,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         sortPluginIfOrderChange(oldPluginData, pluginData);
 
         final String pluginName = pluginData.getName();
-        // if update plugin, remove selector and rule match cache/trie cache
+        // if update plugin, remove selector and rule match cache
         if (selectorMatchConfig.getCache().getEnabled()) {
             MatchDataCache.getInstance().removeSelectorData(pluginName);
         }

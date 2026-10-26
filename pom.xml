@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.2-SNAPSHOT</version>
+    <version>2.7.3-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -114,6 +114,8 @@
         <mysql.version>8.3.0</mysql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>32.0.0-jre</guava.version>
+        <checker-qual.version>3.33.0</checker-qual.version>
+        <error-prone-annotations.version>2.41.0</error-prone-annotations.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
@@ -340,6 +342,24 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.re2j</groupId>
+                        <artifactId>re2j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>${checker-qual.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>${error-prone-annotations.version}</version>
             </dependency>
 
             <dependency>
@@ -613,16 +633,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.re2j</groupId>
-                    <artifactId>re2j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -826,6 +836,7 @@
                         <exclude>shenyu-examples/**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.sha256</exclude>
                         <!-- IDE files -->
                         <exclude>**/*.iml</exclude>
                         <exclude>**/.idea/**</exclude>
