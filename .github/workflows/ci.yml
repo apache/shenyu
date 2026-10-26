@@ -92,6 +92,8 @@ jobs:
               - 'shenyu-common/**'
               - 'shenyu-admin/src/main/resources/sql-script/h2/schema.sql'
               - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/mapper/AiTokenReservationConfigurationTest.java'
+              - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/mapper/InstanceInfoUpsertTest.java'
+              - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/mapper/MockRequestHeaderMigrationTest.java'
               - 'shenyu-admin/src/main/java/org/apache/shenyu/admin/validation/validator/AiTokenLimiterRuleHandleValidator.java'
               - 'shenyu-admin/src/test/java/org/apache/shenyu/admin/validation/validator/AiTokenLimiterRuleHandleValidatorTest.java'
               - 'shenyu-admin/src/main/java/org/apache/shenyu/admin/service/impl/RuleServiceImpl.java'
@@ -167,7 +169,7 @@ jobs:
         run: >-
           ./mvnw -B -ntp
           -pl shenyu-plugin/shenyu-plugin-ai/shenyu-plugin-ai-token-limiter,shenyu-plugin/shenyu-plugin-metrics,shenyu-admin -am test
-          '-Dtest=AiTokenLimiterHandleTest,TokenBudget*Test,RedisTokenBudgetStore*Test,AiTokenLimiterPlugin*Test,AiTokenLimiterRuleHandlerTest,AiTokenLimiterReservation*Test,AiTokenBudgetMetricsTest,AiTokenReservationConfigurationTest,AiTokenLimiterRuleHandleValidatorTest,RuleServiceTest,MetricsPluginTest,MetricsReporterTest,PrometheusMetricsRegisterTest,PrometheusMetricsServiceTest,MetricTest'
+          '-Dtest=AiTokenLimiterHandleTest,TokenBudget*Test,RedisTokenBudgetStore*Test,AiTokenLimiterPlugin*Test,AiTokenLimiterRuleHandlerTest,AiTokenLimiterReservation*Test,AiTokenBudgetMetricsTest,AiTokenReservationConfigurationTest,InstanceInfoUpsertTest,MockRequestHeaderMigrationTest,AiTokenLimiterRuleHandleValidatorTest,RuleServiceTest,MetricsPluginTest,MetricsReporterTest,PrometheusMetricsRegisterTest,PrometheusMetricsServiceTest,MetricTest'
           -Dsurefire.failIfNoSpecifiedTests=false -DskipTests=false -Dshenyu.test.redis.port=16379
           -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true
       - uses: actions/upload-artifact@v4
