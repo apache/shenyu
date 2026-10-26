@@ -414,7 +414,7 @@ public final class ClusterDataChangedEventForwarderTest {
                 .matchMode(0)
                 .sort(1)
                 .enabled(true)
-                .loged(false)
+                .logged(false)
                 .handle("{\"loadBalance\":\"roundRobin\"}")
                 .conditionDataList(Collections.singletonList(condition))
                 .matchRestful(false)

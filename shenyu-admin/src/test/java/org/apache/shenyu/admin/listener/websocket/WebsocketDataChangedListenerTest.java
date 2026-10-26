@@ -462,6 +462,13 @@ public final class WebsocketDataChangedListenerTest {
                         messages.add(invocation.<java.util.function.Supplier<String>>getArgument(2).get());
                         return null;
                     });
+            // the non-compact path routes through sendConfiguration, which serializes the
+            // message itself; capture what it would have handed to send()
+            collector.when(() -> WebsocketCollector.sendConfiguration(eq(data.getNamespaceId()), any(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(GsonUtils.getInstance().toJson(invocation.getArgument(1)));
+                        return null;
+                    });
             listener.onDiscoveryUpstreamChanged(Collections.singletonList(data), eventType);
         }
         assertEquals(1, messages.size());
