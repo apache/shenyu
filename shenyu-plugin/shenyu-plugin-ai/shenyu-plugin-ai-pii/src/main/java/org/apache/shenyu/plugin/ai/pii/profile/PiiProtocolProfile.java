@@ -22,9 +22,11 @@ import com.google.gson.JsonObject;
 import java.util.List;
 
 /**
- * The text fields of one AI protocol payload. A profile only reports the
- * message text fields of the protocol, so a redaction never touches tool
- * definitions, function arguments or other nontext members of the document.
+ * The text fields of one AI protocol payload. A profile reports the message
+ * text of the protocol, including the nested text of {@code document} and
+ * {@code file} content parts and the arguments of a tool call, so identifiers
+ * embedded in them are scanned too. Tool definitions and other nontext members
+ * of the document are never reported, so a redaction leaves them untouched.
  */
 public interface PiiProtocolProfile {
 

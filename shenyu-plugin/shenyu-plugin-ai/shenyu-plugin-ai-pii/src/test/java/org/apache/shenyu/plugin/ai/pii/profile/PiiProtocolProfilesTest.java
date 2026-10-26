@@ -22,6 +22,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -152,18 +154,106 @@ public final class PiiProtocolProfilesTest {
 
     @Test
     public void testValidTextlessToolCallsRemainSupported() {
+        // a tool call without arguments carries no text and stays a supported, textless message
         JsonObject chat = parse("{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":null,"
-                + "\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\","
-                + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}}]}");
+                + "\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\"}}]}}]}");
         assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.selectResponse(chat).id());
         assertTrue(new OpenAiChatProfile().responseSlots(chat).isEmpty());
-        JsonObject responses = parse("{\"output\":[{\"type\":\"function_call\",\"name\":\"lookup\","
-                + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}]}");
-        assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(responses).id());
-        assertTrue(new OpenAiResponsesProfile().responseSlots(responses).isEmpty());
         assertEquals(OpenAiResponsesProfile.ID,
                 PiiProtocolProfiles.select(parse("{\"input\":[{\"type\":\"function_call_output\",\"output\":\"ok\"}]}")).id());
         assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(parse("{\"messages\":[{\"content\":[]}]}")).id());
+    }
+
+    @Test
+    public void testChatToolCallArgumentsAreScanned() {
+        JsonObject root = parse("{\"messages\":[{\"role\":\"assistant\",\"content\":null,"
+                + "\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\","
+                + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}]}");
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(root).id());
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals("{\"phone\":\"13800138000\"}", slots.get(0).text());
+        slots.get(0).replace("{\"phone\":\"<PHONE_CN>\"}");
+        assertEquals("{\"phone\":\"<PHONE_CN>\"}",
+                root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
+                        .get("tool_calls").getAsJsonArray().get(0).getAsJsonObject()
+                        .get("function").getAsJsonObject().get("arguments").getAsString());
+    }
+
+    @Test
+    public void testChatDocumentSourceTextIsScanned() {
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"document\",\"source\":{\"type\":\"text\",\"media_type\":\"text/plain\","
+                + "\"data\":\"My SSN is 13800138000\"}}]}]}");
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(root).id());
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals("My SSN is 13800138000", slots.get(0).text());
+        slots.get(0).replace("My SSN is <PHONE_CN>");
+        assertEquals("My SSN is <PHONE_CN>",
+                root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
+                        .get("content").getAsJsonArray().get(0).getAsJsonObject()
+                        .get("source").getAsJsonObject().get("data").getAsString());
+    }
+
+    @Test
+    public void testBinaryDocumentSourceIsOutOfScope() {
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"document\",\"source\":{\"type\":\"base64\",\"media_type\":\"application/pdf\","
+                + "\"data\":\"JVBERi0xLjQK\"}}]}]}");
+        assertTrue(new OpenAiChatProfile().requestSlots(root).isEmpty());
+    }
+
+    @Test
+    public void testChatFileTextualDataIsScannedAndReencoded() {
+        String text = "reach me at 13800138000";
+        String encoded = Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"file\",\"file\":{\"filename\":\"note.txt\","
+                + "\"file_data\":\"data:text/plain;base64," + encoded + "\"}}]}]}");
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals(text, slots.get(0).text());
+        slots.get(0).replace("reach me at <PHONE_CN>");
+        String updated = root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
+                .get("content").getAsJsonArray().get(0).getAsJsonObject()
+                .get("file").getAsJsonObject().get("file_data").getAsString();
+        assertTrue(updated.startsWith("data:text/plain;base64,"));
+        assertEquals("reach me at <PHONE_CN>", new String(
+                Base64.getDecoder().decode(updated.substring(updated.indexOf(',') + 1)), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testBinaryFileDataIsOutOfScope() {
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"file\",\"file\":{\"filename\":\"a.png\","
+                + "\"file_data\":\"data:image/png;base64,iVBORw0KGgo=\"}}]}]}");
+        assertTrue(new OpenAiChatProfile().requestSlots(root).isEmpty());
+    }
+
+    @Test
+    public void testResponsesFunctionCallArgumentsAreScanned() {
+        JsonObject root = parse("{\"output\":[{\"type\":\"function_call\",\"name\":\"lookup\","
+                + "\"arguments\":\"{\\\"email\\\":\\\"a@b.com\\\"}\"}]}");
+        assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(root).id());
+        List<PiiTextSlot> slots = new OpenAiResponsesProfile().responseSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals("{\"email\":\"a@b.com\"}", slots.get(0).text());
+    }
+
+    @Test
+    public void testResponsesDocumentAndFilePartsAreScanned() {
+        String encoded = Base64.getEncoder().encodeToString("card 4111111111111111".getBytes(StandardCharsets.UTF_8));
+        JsonObject root = parse("{\"input\":[{\"type\":\"message\",\"role\":\"user\",\"content\":["
+                + "{\"type\":\"input_text\",\"text\":\"hi 13800138000\"},"
+                + "{\"type\":\"document\",\"source\":{\"type\":\"text\",\"data\":\"doc a@b.com\"}},"
+                + "{\"type\":\"file\",\"file\":{\"file_data\":\"data:text/plain;base64," + encoded + "\"}}"
+                + "]}]}");
+        List<PiiTextSlot> slots = new OpenAiResponsesProfile().requestSlots(root);
+        assertEquals(3, slots.size());
+        assertEquals("hi 13800138000", slots.get(0).text());
+        assertEquals("doc a@b.com", slots.get(1).text());
+        assertEquals("card 4111111111111111", slots.get(2).text());
     }
 
     private JsonObject parse(final String json) {

@@ -26,14 +26,21 @@ extraction and configurable actions.
   truncating it or installing a partial custom policy. Every detector runs under a
   per-direction deadline enforced by a deadline-aware `CharSequence`; the deadline
   bounds matching work, not regex compilation.
-- Protocol profiles extract only the message text fields, so a redaction never touches
-  tool definitions, function arguments or other members: `openai-chat`
+- Protocol profiles extract the message text of the payload: `openai-chat`
   (`messages[].content` / `choices[].message.content`) and `openai-responses` (`input` /
-  `output[].content[].text`). The extraction containers and text member types are
+  `output[].content[].text`). Within a `content` part array, besides the plain `text` of a
+  part, the nested text of a `document` part (`source.data` of a `text` source) and of a
+  `file` part (a textual `file_data`, base64 decoded for scanning and re encoded after a
+  redaction) is extracted too, and so are the `arguments` of a tool call
+  (`tool_calls[].function.arguments`, the legacy `function_call.arguments`, and the
+  `arguments` of a responses `function_call` item). Binary content — an `image_url`,
+  `input_audio`, a base64 `document` source and a non textual `file_data` — is left out of
+  scope, since it cannot be meaningfully regex scanned; tool definitions and other nontext
+  members are never reported. The extraction containers and text member types are
   validated before scanning. Unknown or malformed shapes are unsupported enforcement
   modes: fail-closed rules reject them and fail-open rules warn and pass them through.
   Validation is limited to extraction shape, not the complete provider schema. Valid
-  textless messages, such as tool calls or image-only content, remain supported.
+  textless messages, such as image-only content, remain supported.
 - Redaction happens on the parsed JSON tree and only inside the extracted fields, so the
   JSON structure and the escaping of everything else are preserved. Overlapping detections
   are merged on the original coordinates before anything is replaced, the merged range

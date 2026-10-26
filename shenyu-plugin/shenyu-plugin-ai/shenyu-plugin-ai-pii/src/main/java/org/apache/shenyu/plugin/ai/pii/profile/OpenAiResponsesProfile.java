@@ -27,9 +27,11 @@ import java.util.Objects;
 /**
  * The OpenAI responses profile. A request carries {@code input}, either a
  * string or an array of items whose message text lives in {@code content},
- * itself a string, an array of typed parts with a {@code text} member, or a
- * plain {@code text} member. A non streaming response carries the message
- * text below {@code output[].content[].text}.
+ * itself a string, an array of typed parts, or a plain {@code text} member. A
+ * non streaming response carries the message text below
+ * {@code output[].content[].text}. Besides the plain {@code text} of a part,
+ * the nested text of {@code document} and {@code file} parts and the
+ * {@code arguments} of a {@code function_call} item are extracted too.
  */
 public class OpenAiResponsesProfile implements PiiProtocolProfile {
 
@@ -95,20 +97,17 @@ public class OpenAiResponsesProfile implements PiiProtocolProfile {
                     slots.add(slot);
                 }
             } else if (content.isJsonArray()) {
-                for (JsonElement part : content.getAsJsonArray()) {
-                    if (!part.isJsonObject()) {
-                        continue;
-                    }
-                    PiiTextSlot slot = PiiTextSlot.ofMember(part.getAsJsonObject(), "text");
-                    if (Objects.nonNull(slot)) {
-                        slots.add(slot);
-                    }
-                }
+                PiiContentParts.collectPartSlots(content.getAsJsonArray(), slots);
             }
         }
         PiiTextSlot text = PiiTextSlot.ofMember(object, "text");
         if (Objects.nonNull(text)) {
             slots.add(text);
+        }
+        // a function_call item embeds its identifiers in the arguments JSON string
+        PiiTextSlot arguments = PiiTextSlot.ofMember(object, "arguments");
+        if (Objects.nonNull(arguments)) {
+            slots.add(arguments);
         }
     }
 }
