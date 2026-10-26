@@ -33,6 +33,8 @@ import org.mockito.quality.Strictness;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 
 import java.lang.reflect.Field;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.concurrent.locks.Lock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,6 +105,14 @@ public final class ClusterSelectMasterServiceJdbcImplTest {
         
     }
     
+    @Test
+    void testGetMasterUrlShouldNotThrowWhenMasterRowIsAbsent() {
+        // before the first successful selectMaster persists row 1, a slave node reads no master row
+        given(clusterMasterMapper.selectById(any())).willReturn(null);
+
+        assertEquals(StringUtils.EMPTY, clusterSelectMasterServiceJdbc.getMasterUrl());
+    }
+
     private ClusterMasterDO buildClusterMasterDO() {
         ClusterMasterDO clusterMasterDO = new ClusterMasterDO();
         clusterMasterDO.setId("1");

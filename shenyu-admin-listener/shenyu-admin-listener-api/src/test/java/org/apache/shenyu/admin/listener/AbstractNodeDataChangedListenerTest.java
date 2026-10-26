@@ -25,12 +25,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,6 +87,23 @@ public final class AbstractNodeDataChangedListenerTest {
         assertNull(listener.config(configKeyPrefix + "B"));
         assertTrue(listener.wasDeleted(configKeyPrefix + "A"));
         assertTrue(listener.wasDeleted(configKeyPrefix + "B"));
+    }
+
+    @Test
+    public void testOnSelectorChangedWithNullNamespaceUsesDefaultNamespace() {
+        TestNodeDataChangedListener listener = new TestNodeDataChangedListener();
+        SelectorData selectorData = SelectorData.builder()
+                .pluginName(FIRST_PLUGIN)
+                .id(ADDED_ID)
+                .build();
+
+        listener.onSelectorChanged(Collections.singletonList(selectorData), DataEventTypeEnum.UPDATE);
+
+        final String configKeyPrefix = SYS_DEFAULT_NAMESPACE_ID + DefaultNodeConstants.JOIN_POINT + "selector" + DefaultNodeConstants.JOIN_POINT;
+        assertEquals(Collections.singletonList(ADDED_ID),
+                listener.config(configKeyPrefix + FIRST_PLUGIN + DefaultNodeConstants.POINT_LIST));
+        assertEquals(selectorData,
+                listener.config(configKeyPrefix + FIRST_PLUGIN + DefaultNodeConstants.JOIN_POINT + ADDED_ID));
     }
 
     private static PluginData pluginData(final String name) {

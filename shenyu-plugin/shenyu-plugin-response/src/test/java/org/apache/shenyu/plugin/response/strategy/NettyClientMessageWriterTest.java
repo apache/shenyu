@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.response.strategy;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -25,6 +26,8 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
@@ -36,13 +39,20 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.ByteBufFlux;
 import reactor.netty.Connection;
 import reactor.netty.NettyInbound;
 import reactor.test.StepVerifier;
 
+import org.reactivestreams.Publisher;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,5 +102,45 @@ public class NettyClientMessageWriterTest {
         when(exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR)).thenReturn(connection);
 
         StepVerifier.create(nettyClientMessageWriter.writeWith(exchange, chain)).expectSubscription().verifyError();
+    }
+
+    @Test
+    public void testWriteErrorReleasesBuffersAndDisposesConnection() {
+        RuntimeException expected = new RuntimeException("write failed");
+        AtomicInteger subscriptions = new AtomicInteger();
+        NettyDataBufferFactory factory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        NettyDataBuffer consumed = factory.allocateBuffer(1);
+        NettyDataBuffer discarded = factory.allocateBuffer(1);
+        Flux<NettyDataBuffer> body = Flux.defer(() -> {
+            subscriptions.incrementAndGet();
+            return Flux.just(consumed, discarded).publishOn(Schedulers.immediate(), 2);
+        });
+        ServerWebExchange exchange = mock(ServerWebExchange.class);
+        ServerHttpResponse response = mock(ServerHttpResponse.class);
+        Connection connection = mock(Connection.class);
+        NettyInbound inbound = mock(NettyInbound.class);
+        ByteBufFlux received = mock(ByteBufFlux.class);
+        ByteBufFlux retained = mock(ByteBufFlux.class);
+        when(exchange.getResponse()).thenReturn(response);
+        when(response.getHeaders()).thenReturn(new HttpHeaders());
+        when(response.bufferFactory()).thenReturn(factory);
+        when(exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR)).thenReturn(connection);
+        when(connection.inbound()).thenReturn(inbound);
+        when(inbound.receive()).thenReturn(received);
+        when(received.retain()).thenReturn(retained);
+        when(retained.<NettyDataBuffer>map(any())).thenReturn(body);
+        when(response.writeWith(any())).thenAnswer(invocation -> Flux.from((Publisher<DataBuffer>) invocation.getArgument(0))
+                .take(1)
+                .doOnNext(DataBufferUtils::release)
+                .then(Mono.error(expected)));
+
+        StepVerifier.create(nettyClientMessageWriter.writeWith(exchange, chain))
+                .expectErrorMatches(error -> error == expected)
+                .verify();
+
+        assertEquals(1, subscriptions.get());
+        assertEquals(0, consumed.getNativeBuffer().refCnt());
+        assertEquals(0, discarded.getNativeBuffer().refCnt());
+        verify(connection).dispose();
     }
 }

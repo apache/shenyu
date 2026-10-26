@@ -123,7 +123,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureMetaDataRegister(final T t) {
         if (t instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO dto = (MetaDataRegisterDTO) t;
-            String fullPath = dto.getRpcType() + "://" + dto.getHost() + ":" + dto.getPort() + dto.getPath();
+            String fullPath = metaDataIdentity(dto);
             addToFail(new Holder(t, fullPath, Constants.META_TYPE));
         }
     }
@@ -137,7 +137,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureUriDataRegister(final T t) {
         if (t instanceof URIRegisterDTO) {
             URIRegisterDTO dto = (URIRegisterDTO) t;
-            String address = String.join(":", dto.getHost(), String.valueOf(dto.getPort()), dto.getRpcType());
+            String address = String.join(":", value(dto.getNamespaceId()), value(dto.getProtocol()), value(dto.getAppName()),
+                    value(dto.getContextPath()), value(dto.getRpcType()), value(dto.getHost()), value(dto.getPort()));
             addToFail(new Holder(t, address, Constants.URI));
         }
     }
@@ -151,7 +152,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureApiDocRegister(final T t) {
         if (t instanceof ApiDocRegisterDTO) {
             ApiDocRegisterDTO dto = (ApiDocRegisterDTO) t;
-            String address = String.join(":", dto.getContextPath(), dto.getApiPath(), dto.getHttpMethod().toString(), dto.getRpcType());
+            String address = String.join(":", value(dto.getContextPath()), value(dto.getApiPath()), value(dto.getHttpMethod()),
+                    value(dto.getRpcType()), value(dto.getVersion()));
             addToFail(new Holder(t, address, Constants.API_DOC_TYPE));
         }
     }
@@ -166,25 +168,43 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (t instanceof McpToolsRegisterDTO) {
             McpToolsRegisterDTO dto = (McpToolsRegisterDTO) t;
             MetaDataRegisterDTO metaDataRegisterDTO = dto.getMetaDataRegisterDTO();
-            String address = metaDataRegisterDTO.getRpcType() + "://"
-                    + metaDataRegisterDTO.getHost() + ":" + metaDataRegisterDTO.getPort() + metaDataRegisterDTO.getPath();
+            String address = String.join(":", value(dto.getNamespaceId()), metaDataIdentity(metaDataRegisterDTO));
             addToFail(new Holder(dto, address, Constants.MCP_TOOLS_TYPE));
         }
     }
 
-    private <T> void addToFail(final Holder t) {
-        Holder oldObj = concurrentHashMap.get(t.getKey());
+    private static String metaDataIdentity(final MetaDataRegisterDTO dto) {
+        return String.join(":", value(dto.getNamespaceId()), value(dto.getRpcType()), value(dto.getAppName()),
+                value(dto.getContextPath()), value(dto.getServiceName()), value(dto.getMethodName()),
+                value(dto.getParameterTypes()), value(dto.getRuleName()), value(dto.getHost()), value(dto.getPort()), value(dto.getPath()));
+    }
+
+    private static String value(final Object value) {
+        return Objects.toString(value, "");
+    }
+
+    private void addToFail(final Holder t) {
+        FailureRegistryTask registryTask = FailureRegistryTask.createOwned(t.getKey(), this);
+        Holder newHolder = new Holder(t.getObj(), t.getPath(), t.getType(), registryTask);
+        Holder oldObj = concurrentHashMap.put(t.getKey(), newHolder);
         if (Objects.nonNull(oldObj)) {
-            return;
+            if (Objects.nonNull(oldObj.getRetryTask())) {
+                oldObj.getRetryTask().cancel();
+            }
+            logger.debug("Updated failback registration payload, {}", t.getPath());
         }
-        FailureRegistryTask registryTask = new FailureRegistryTask(t.getKey(), this);
-        concurrentHashMap.put(t.getKey(), t);
         timer.add(registryTask);
-        logger.warn("Add to failback and wait for execution, {}", t.getPath());
+        if (concurrentHashMap.get(t.getKey()) != newHolder) {
+            registryTask.cancel();
+        }
+        if (Objects.isNull(oldObj)) {
+            logger.warn("Add to failback and wait for execution, {}", t.getPath());
+        }
     }
 
     /**
-     * Remove.
+     * Unconditionally remove a pending registration, retained for compatibility with custom retry tasks.
+     * Do not pair this with {@link #accept(String)}: use {@link #retry(String)} to preserve concurrent failures.
      *
      * @param key the key
      */
@@ -193,7 +213,21 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     /**
-     * Accpet.
+     * Remove a pending registration only when the task still owns its holder.
+     *
+     * @param key the registration key
+     * @param retryTask the retry task
+     */
+    public void remove(final String key, final FailureRegistryTask retryTask) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.nonNull(holder) && holder.getRetryTask() == retryTask) {
+            concurrentHashMap.remove(key, holder);
+        }
+    }
+
+    /**
+     * Attempt a pending registration without claiming it, retained for compatibility with custom retry tasks.
+     * New retry tasks should use {@link #retry(String)} instead of an accept/remove pair.
      *
      * @param key the key
      */
@@ -202,6 +236,43 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder)) {
             return;
         }
+        persist(holder);
+    }
+
+    /**
+     * Retry a pending registration without removing failures queued during the attempt.
+     *
+     * @param key the registration key
+     */
+    public void retry(final String key) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.nonNull(holder)) {
+            retry(key, holder.getRetryTask());
+        }
+    }
+
+    /**
+     * Retry a pending registration only when the task still owns its holder.
+     *
+     * @param key the registration key
+     * @param retryTask the retry task
+     */
+    public void retry(final String key, final FailureRegistryTask retryTask) {
+        Holder holder = concurrentHashMap.get(key);
+        if (Objects.isNull(holder) || holder.getRetryTask() != retryTask || !concurrentHashMap.remove(key, holder)) {
+            return;
+        }
+        try {
+            persist(holder);
+        } catch (RuntimeException ex) {
+            // A newer failure has its own timer task; otherwise retain this task's retry.
+            if (Objects.isNull(concurrentHashMap.putIfAbsent(key, holder))) {
+                throw ex;
+            }
+        }
+    }
+
+    private void persist(final Holder holder) {
         String type = holder.getType();
         switch (type) {
             case Constants.URI:
@@ -250,6 +321,8 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
 
         private final String type;
 
+        private final FailureRegistryTask retryTask;
+
         /**
          * Instantiates a new Holder.
          *
@@ -258,9 +331,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
          * @param type the type
          */
         Holder(final Object obj, final String path, final String type) {
+            this(obj, path, type, null);
+        }
+
+        /**
+         * Instantiates a new Holder.
+         *
+         * @param obj the registration object
+         * @param path the registration path
+         * @param type the registration type
+         * @param retryTask the retry task
+         */
+        Holder(final Object obj, final String path, final String type, final FailureRegistryTask retryTask) {
             this.obj = obj;
             this.path = path;
             this.type = type;
+            this.retryTask = retryTask;
         }
 
         /**
@@ -288,6 +374,10 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
          */
         public String getType() {
             return type;
+        }
+
+        public FailureRegistryTask getRetryTask() {
+            return retryTask;
         }
 
         private String getKey() {

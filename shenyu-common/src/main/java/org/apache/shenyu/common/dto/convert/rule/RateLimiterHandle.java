@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Objects;
 
 /**
@@ -45,9 +47,10 @@ public class RateLimiterHandle {
     private double requestCount = 1.0;
 
     /**
-     * loged.
+     * logged.
      */
-    private boolean loged;
+    @SerializedName(value = "logged", alternate = "loged")
+    private boolean logged;
 
     /**
      * key resolver name.
@@ -65,7 +68,7 @@ public class RateLimiterHandle {
         rateLimiterHandle.setReplenishRate(1.0);
         rateLimiterHandle.setBurstCapacity(100.0);
         rateLimiterHandle.setRequestCount(1.0);
-        rateLimiterHandle.setLoged(false);
+        rateLimiterHandle.setLogged(false);
         return rateLimiterHandle;
     }
     
@@ -142,21 +145,21 @@ public class RateLimiterHandle {
     }
     
     /**
-     * get loged.
+     * get logged.
      *
-     * @return loged boolean
+     * @return logged boolean
      */
-    public boolean isLoged() {
-        return loged;
+    public boolean isLogged() {
+        return logged;
     }
     
     /**
-     * set loged.
+     * set logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final boolean loged) {
-        this.loged = loged;
+    public void setLogged(final boolean logged) {
+        this.logged = logged;
     }
     
     /**
@@ -187,13 +190,13 @@ public class RateLimiterHandle {
         }
         RateLimiterHandle that = (RateLimiterHandle) o;
         return Double.compare(that.replenishRate, replenishRate) == 0 && Double.compare(that.burstCapacity, burstCapacity) == 0
-                && Double.compare(that.requestCount, requestCount) == 0 && loged == that.loged
+                && Double.compare(that.requestCount, requestCount) == 0 && logged == that.logged
                 && Objects.equals(algorithmName, that.algorithmName) && Objects.equals(keyResolverName, that.keyResolverName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, loged, keyResolverName);
+        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, logged, keyResolverName);
     }
 
     @Override
@@ -208,8 +211,8 @@ public class RateLimiterHandle {
                 + burstCapacity
                 + ", requestCount="
                 + requestCount
-                + ", loged="
-                + loged
+                + ", logged="
+                + logged
                 + ", keyResolverName='"
                 + keyResolverName
                 + '\''

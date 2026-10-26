@@ -1,0 +1,10 @@
+{
+  "protocol": "http://",
+  "appName": "protocol-v1",
+  "contextPath": "/protocol-v1",
+  "rpcType": "http",
+  "host": "127.0.0.1",
+  "port": 18080,
+  "eventType": "HEARTBEAT",
+  "instanceInfo": "{\"arch\":\"test\",\"availableProcessors\":1}"
+}

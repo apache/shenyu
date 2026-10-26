@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +54,8 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -104,6 +107,7 @@ public class DefaultDiscoveryProcessorTest {
         MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);
         ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
         mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(extensionLoader);
+        when(extensionLoader.getExtensionClasses1()).thenReturn(Collections.singletonMap(type, ShenyuInstanceRegisterRepository.class));
         when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
         doNothing().when(shenyuDiscoveryService).init(any(RegisterConfig.class));
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
@@ -136,15 +140,49 @@ public class DefaultDiscoveryProcessorTest {
     }
 
     @Test
+    public void testCreateSeparateDiscoveriesOfSameType() throws Exception {
+        ShenyuInstanceRegisterRepository first = mock(ShenyuInstanceRegisterRepository.class);
+        ShenyuInstanceRegisterRepository second = mock(ShenyuInstanceRegisterRepository.class);
+        try (MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class)) {
+            ExtensionLoader<ShenyuInstanceRegisterRepository> loader = mock(ExtensionLoader.class);
+            mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(loader);
+            when(loader.getExtensionClasses1()).thenReturn(Collections.singletonMap("zookeeper", ShenyuInstanceRegisterRepository.class));
+            when(loader.getJoin("zookeeper")).thenReturn(first, second);
+            DiscoveryDO firstDiscovery = new DiscoveryDO();
+            firstDiscovery.setId("first-discovery");
+            firstDiscovery.setDiscoveryType("zookeeper");
+            firstDiscovery.setProps("{}");
+            firstDiscovery.setServerList("first:2181");
+            DiscoveryDO secondDiscovery = new DiscoveryDO();
+            secondDiscovery.setId("second-discovery");
+            secondDiscovery.setDiscoveryType("zookeeper");
+            secondDiscovery.setProps("{}");
+            secondDiscovery.setServerList("second:2181");
+            defaultDiscoveryProcessor.createDiscovery(firstDiscovery);
+            defaultDiscoveryProcessor.createDiscovery(secondDiscovery);
+            verify(first).init(new RegisterConfig("zookeeper", "first:2181", new Properties()));
+            verify(second).init(new RegisterConfig("zookeeper", "second:2181", new Properties()));
+            defaultDiscoveryProcessor.removeDiscovery(firstDiscovery);
+            verify(first).close();
+            defaultDiscoveryProcessor.removeDiscovery(secondDiscovery);
+            verify(second).close();
+        }
+    }
+
+    @Test
     public void testCreateProxySelector() {
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
         Assertions.assertThrows(NullPointerException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
-        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setDiscoveryId("missing-discovery");
 
         Assertions.assertThrows(ShenyuAdminException.class, () -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
+        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setHandler("{}");
         doNothing().when(shenyuDiscoveryService).watchInstances(anyString(), any(ChangedEventListener.class));
         doNothing().when(eventPublisher).publishEvent(any(Object.class));
+        Assertions.assertDoesNotThrow(() -> defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO));
+        verify(shenyuDiscoveryService).watchInstances(anyString(), any(ChangedEventListener.class));
     }
 
     @Test
@@ -197,6 +235,33 @@ public class DefaultDiscoveryProcessorTest {
         defaultDiscoveryProcessor.removeDiscovery(discoveryDO);
         verify(shenyuDiscoveryService).close();
 
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRemoveProxySelectorAfterDiscoveryRemoved() throws NoSuchFieldException, IllegalAccessException {
+        defaultDiscoveryProcessor.setApplicationEventPublisher(eventPublisher);
+        // simulate removeDiscovery: it drops only the discoveryServiceCache entry and leaves the
+        // listener-cache key registered by createProxySelector behind
+        final Field serviceCacheField = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField("discoveryServiceCache");
+        serviceCacheField.setAccessible(true);
+        Map<String, ShenyuInstanceRegisterRepository> serviceCache = (Map<String, ShenyuInstanceRegisterRepository>) serviceCacheField.get(defaultDiscoveryProcessor);
+        serviceCache.remove("id");
+        final Field listenerCacheField = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField("dataChangedEventListenerCache");
+        listenerCacheField.setAccessible(true);
+        Map<String, Set<String>> listenerCache = (Map<String, Set<String>>) listenerCacheField.get(defaultDiscoveryProcessor);
+        listenerCache.put("id", new HashSet<>(Collections.singleton("/shenyu/discovery")));
+
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setDiscoveryId("id");
+        discoveryHandlerDTO.setListenerNode("/shenyu/discovery");
+        defaultDiscoveryProcessor.removeProxySelector(discoveryHandlerDTO, new ProxySelectorDTO());
+        verify(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        // the emptied set must not linger as a tombstone entry
+        assertTrue(listenerCache.isEmpty());
+        // and re-registering the selector must get a usable set again instead of an NPE
+        assertFalse(defaultDiscoveryProcessor.getCacheKey("id").contains("/shenyu/discovery"));
     }
 
 }

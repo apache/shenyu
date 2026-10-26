@@ -46,16 +46,12 @@ public abstract class AbstractProxyTest {
 
     protected static final Field REQUEST_TEMPLATE;
 
-    protected static final Field PROXY_CACHE;
-
     static {
         try {
             METHOD_HANDLER_MAP = ShenyuClientInvocationHandler.class.getDeclaredField("methodHandlerMap");
             METHOD_HANDLER_MAP.setAccessible(true);
             REQUEST_TEMPLATE = ShenyuClientMethodHandler.class.getDeclaredField("requestTemplate");
             REQUEST_TEMPLATE.setAccessible(true);
-            PROXY_CACHE = ShenyuClientProxyFactory.class.getDeclaredField("PROXY_CACHE");
-            PROXY_CACHE.setAccessible(true);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }

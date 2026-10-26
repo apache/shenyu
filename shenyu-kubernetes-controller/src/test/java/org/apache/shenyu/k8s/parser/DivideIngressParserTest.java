@@ -25,9 +25,12 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPathBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
 import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1IngressRuleBuilder;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.k8s.common.IngressConstants;
@@ -149,5 +152,34 @@ public class DivideIngressParserTest {
         annotations.put(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "");
         List<DivideUpstream> upstreams = assertDoesNotThrow(() -> parseAndGetUpstreams(annotations));
         assertNotNull(upstreams);
+        upstreams.forEach(upstream -> assertEquals("http://", upstream.getProtocol()));
+    }
+
+    @Test
+    public void testDefaultBackendProtocolAnnotation() {
+        V1Endpoints endpoints = new V1EndpointsBuilder()
+                .withNewMetadata().withNamespace("test").withName("testService").endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder()
+                        .withAddresses(new V1EndpointAddress().ip("10.0.0.1"))
+                        .build())
+                .build();
+        when(endpointsIndexer.getByKey("test/testService")).thenReturn(endpoints);
+
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(IngressConstants.UPSTREAMS_PROTOCOL_ANNOTATION_KEY, "https://");
+        V1IngressBackend backend = new V1IngressBackend().service(new V1IngressServiceBackend()
+                .name("testService")
+                .port(new V1ServiceBackendPort().number(8443)));
+        V1Ingress ingress = new V1IngressBuilder()
+                .withNewMetadata().withName("testIngress").withNamespace("test").withAnnotations(annotations).endMetadata()
+                .withNewSpec().withDefaultBackend(backend).endSpec()
+                .build();
+
+        ShenyuMemoryConfig result = new DivideIngressParser(serviceLister, endpointsLister).parse(ingress, null);
+        String handle = result.getGlobalDefaultBackend().getRight().getSelectorData().getHandle();
+        List<DivideUpstream> upstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+
+        assertEquals(1, upstreams.size());
+        assertEquals("https://", upstreams.get(0).getProtocol());
     }
 }

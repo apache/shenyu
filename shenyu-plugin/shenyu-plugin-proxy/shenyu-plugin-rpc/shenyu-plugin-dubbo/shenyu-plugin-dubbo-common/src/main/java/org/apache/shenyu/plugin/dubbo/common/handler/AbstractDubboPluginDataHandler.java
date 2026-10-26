@@ -80,22 +80,32 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
         if (!selectorData.getContinued()) {
             RULE_CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), DubboRuleHandle.newInstance());
         }
-        List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
-        if (CollectionUtils.isEmpty(dubboUpstreams)) {
+        final String selectorId = selectorData.getId();
+        if (StringUtils.isBlank(selectorId)) {
+            // a selector without an identity has no gray routing caches to reconcile
             return;
         }
+        List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
         List<DubboUpstream> graySelectorHandle = new ArrayList<>();
-        for (DubboUpstream each : dubboUpstreams) {
-            if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && Boolean.TRUE.equals(each.isGray())) {
-                graySelectorHandle.add(each);
+        if (CollectionUtils.isNotEmpty(dubboUpstreams)) {
+            for (DubboUpstream each : dubboUpstreams) {
+                if (StringUtils.isNotBlank(each.getUpstreamUrl()) && Objects.nonNull(each.isGray()) && Boolean.TRUE.equals(each.isGray())) {
+                    graySelectorHandle.add(each);
+                }
             }
         }
         if (CollectionUtils.isNotEmpty(graySelectorHandle)) {
-            SELECTOR_CACHED_HANDLE.get().cachedHandle(selectorData.getId(), graySelectorHandle);
-            UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(graySelectorHandle));
+            // A full selector-handle update must reconcile the gray routing candidates with the latest gray
+            // targets. Clear the selector's stale upstream state first so that omitted targets are removed from
+            // both the routing and health-check caches, instead of being merged and retained by submit.
+            UpstreamCacheManager.getInstance().removeByKey(selectorId);
+            SELECTOR_CACHED_HANDLE.get().cachedHandle(selectorId, graySelectorHandle);
+            UpstreamCacheManager.getInstance().submit(selectorId, convertUpstreamList(graySelectorHandle));
         } else {
-            // if update gray selector is empty, remove cache
-            removeSelector(selectorData);
+            // An empty or non-gray handle is a valid configuration replacement: clear the gray routing caches so
+            // the removed targets stop being candidates, without touching unrelated rule configuration.
+            SELECTOR_CACHED_HANDLE.get().removeHandle(selectorId);
+            UpstreamCacheManager.getInstance().removeByKey(selectorId);
         }
     }
 

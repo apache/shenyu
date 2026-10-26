@@ -225,4 +225,24 @@ public final class KubernetesInstanceRegisterRepositoryTest {
         instance.setNamespace(namespace);
         return instance;
     }
+
+    @Test
+    public void initShouldNotThrowWhenNamespacesPropertyIsAbsent() throws Exception {
+        RegisterConfig config = new RegisterConfig();
+        config.setServerLists(serverUrl);
+        config.setEnabled(true);
+        config.setProps(new Properties());
+        final KubernetesInstanceRegisterRepository repo = new KubernetesInstanceRegisterRepository();
+        repo.init(config);
+
+        Field clientField = KubernetesInstanceRegisterRepository.class.getDeclaredField("kubernetesClient");
+        clientField.setAccessible(true);
+        KubernetesClient client = (KubernetesClient) clientField.get(repo);
+        Field configField = KubernetesClient.class.getDeclaredField("kubernetesConfig");
+        configField.setAccessible(true);
+        KubernetesConfig kubernetesConfig = (KubernetesConfig) configField.get(client);
+        assertNotNull(kubernetesConfig);
+        assertTrue(kubernetesConfig.getNamespaces().isEmpty());
+    }
+
 }

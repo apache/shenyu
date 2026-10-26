@@ -27,6 +27,7 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.Assert;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import static org.mockito.Mockito.mock;
@@ -48,10 +49,25 @@ public class PathVariableParameterProcessorTest {
         this.processor = new PathVariableParameterProcessor();
     }
 
+    @Test
+    public void processArgumentNameOnlyTest() {
+        RequestTemplate template = new RequestTemplate();
+        template.setUrl("/url/a/b");
+        template.setPath("/id/{id}");
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("");
+        when(path.name()).thenReturn("id");
+
+        processor.processArgument(request, path, "one");
+
+        assertTrue(request.getUrl().contains("/one"), "path name alias resolve fail");
+    }
+
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentNullTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("");
 
@@ -65,7 +81,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentStringTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         final PathVariable path = spy(PathVariable.class);
         when(path.value()).thenReturn("id");
 
@@ -77,7 +93,7 @@ public class PathVariableParameterProcessorTest {
     @ParameterizedTest
     @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
     public void processArgumentMapTest(final RequestTemplate template) {
-        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, "", Maps.newHashMap(), "", "test", template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
         Map<String, String> pathParam = Maps.newHashMap();
         pathParam.put("id", "idValue");
         pathParam.put("name", "nameValue");
@@ -89,6 +105,37 @@ public class PathVariableParameterProcessorTest {
 
         assertTrue(request.getUrl().contains("/idValue"), "path value resolve fail");
         assertTrue(request.getUrl().equals("/url/a/b/id/idValue") || request.getUrl().contains("nameValue") || request.getUrl().contains("typeValue"), "path value resolve error");
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
+    public void processArgumentStringWithRegexReplacementSyntaxTest(final RequestTemplate template) {
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("id");
+
+        // "$1" and backslashes in a replacement string are regex syntax unless quoted
+        processor.processArgument(request, path, "$1");
+        assertTrue(request.getUrl().contains("/$1"), "dollar sign value must be treated literally");
+
+        final RequestTemplate backslashTemplate = RequestTemplate.from(template);
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, backslashTemplate.getUrl() + backslashTemplate.getPath(), Maps.newHashMap(), "", "test", backslashTemplate);
+        processor.processArgument(request, path, "a\\b");
+        assertTrue(request.getUrl().contains("/a\\b"), "backslash value must not be swallowed");
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessorTest#templateStream")
+    public void processArgumentMapWithRegexReplacementSyntaxTest(final RequestTemplate template) {
+        this.request = ShenyuRequest.create(ShenyuRequest.HttpMethod.POST, template.getUrl() + template.getPath(), Maps.newHashMap(), "", "test", template);
+        Map<String, String> pathParam = Maps.newHashMap();
+        pathParam.put("id", "$1");
+
+        final PathVariable path = spy(PathVariable.class);
+        when(path.value()).thenReturn("");
+        processor.processArgument(request, path, pathParam);
+
+        assertTrue(request.getUrl().contains("/$1"), "dollar sign map value must be treated literally");
     }
 
     /**

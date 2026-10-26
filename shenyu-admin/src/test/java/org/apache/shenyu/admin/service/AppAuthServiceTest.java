@@ -19,7 +19,9 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
@@ -42,35 +44,48 @@ import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Test cases for AppAuthService.
@@ -93,6 +108,9 @@ public final class AppAuthServiceTest {
     @Mock
     private AuthPathMapper authPathMapper;
 
+    @Mock
+    private AppAuthRequestMapper appAuthRequestMapper;
+
     private final AppAuthDO appAuthDO = buildAppAuthDO();
 
     @Test
@@ -109,12 +127,55 @@ public final class AppAuthServiceTest {
     }
 
     @Test
+    public void testCreateOrUpdatePropagatesNamespace() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(appAuthMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, appAuthService.createOrUpdate(dto));
+        verify(appAuthMapper).updateSelective(argThat(auth -> SYS_DEFAULT_NAMESPACE_ID.equals(auth.getNamespaceId())));
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    public void testRejectedNamespaceUpdateDoesNotPublish() {
+        AppAuthDTO dto = buildAppAuthDTO("auth-id");
+        dto.setNamespaceId("other-namespace");
+        given(appAuthMapper.updateSelective(any())).willReturn(0);
+        assertEquals(0, appAuthService.createOrUpdate(dto));
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    public void testApplyUpdatePreservesOpenWhenOmitted() {
+        final AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        authApplyDTO.setOpen(null);
+        authApplyDTO.setPathList(null);
+        appAuthDO.setOpen(true);
+        given(appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
+        given(authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName()))
+                .willReturn(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
+        given(authPathMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+        given(authParamMapper.findByAuthId(appAuthDO.getId())).willReturn(Collections.emptyList());
+
+        ShenyuAdminResult result = appAuthService.applyUpdate(authApplyDTO);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, result.getMessage());
+        verify(appAuthMapper).updateSelective(argThat(updated -> Boolean.TRUE.equals(updated.getOpen())));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);
+        assertEquals(Boolean.TRUE, publishedData.getOpen());
+    }
+
+    @Test
     public void testUpdateDetail() {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamList(authParamDTOList);
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+        verify(appAuthMapper).updateSelective(any(AppAuthDO.class));
+        verify(appAuthMapper, never()).update(any(AppAuthDO.class));
     }
 
     @Test
@@ -142,10 +203,103 @@ public final class AppAuthServiceTest {
         assertThat(this.appAuthService.createOrUpdate(updateAppAuthDTO), greaterThan(0));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"ns-A", SYS_DEFAULT_NAMESPACE_ID})
+    public void testDeletePreservesNamespace(final String namespaceId) {
+        appAuthDO.setNamespaceId(namespaceId);
+        List<String> ids = Collections.singletonList(appAuthDO.getId());
+        given(appAuthMapper.selectByIds(ids)).willReturn(Collections.singletonList(appAuthDO));
+        given(appAuthMapper.deleteByIds(ids)).willReturn(1);
+
+        assertEquals(1, appAuthService.delete(ids));
+
+        verify(authParamMapper).deleteByAuthIds(ids);
+        verify(authPathMapper).deleteByAuthIds(ids);
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertDeleteEvent(eventCaptor.getValue(), namespaceId, appAuthDO.getAppKey());
+    }
+
     @Test
-    public void testDelete() {
-        int count = appAuthService.delete(Collections.singletonList(appAuthDO.getId()));
-        assertThat(count, greaterThanOrEqualTo(0));
+    public void testDeletePublishesOneEventPerNamespace() {
+        AppAuthDO first = buildAppAuthDO("auth-A1", "ns-A");
+        AppAuthDO second = buildAppAuthDO("auth-B", "ns-B");
+        AppAuthDO third = buildAppAuthDO("auth-A2", "ns-A");
+        AppAuthDO defaultAuth = buildAppAuthDO("auth-default", SYS_DEFAULT_NAMESPACE_ID);
+        List<AppAuthDO> authList = List.of(first, second, third, defaultAuth);
+        List<String> ids = authList.stream().map(AppAuthDO::getId).collect(Collectors.toList());
+        given(appAuthMapper.selectByIds(ids)).willReturn(authList);
+        given(appAuthMapper.deleteByIds(ids)).willReturn(authList.size());
+
+        assertEquals(authList.size(), appAuthService.delete(ids));
+
+        verify(authParamMapper).deleteByAuthIds(ids);
+        verify(authPathMapper).deleteByAuthIds(ids);
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(3)).publishEvent(eventCaptor.capture());
+        Map<String, DataChangedEvent> events = eventCaptor.getAllValues().stream()
+                .collect(Collectors.toMap(DataChangedEvent::getNamespaceId, event -> event));
+        assertEquals(Set.of("ns-A", "ns-B", SYS_DEFAULT_NAMESPACE_ID), events.keySet());
+        assertDeleteEvent(events.get("ns-A"), "ns-A", first.getAppKey(), third.getAppKey());
+        assertDeleteEvent(events.get("ns-B"), "ns-B", second.getAppKey());
+        assertDeleteEvent(events.get(SYS_DEFAULT_NAMESPACE_ID), SYS_DEFAULT_NAMESPACE_ID, defaultAuth.getAppKey());
+    }
+
+    @Test
+    public void testDeleteFallsBackToDefaultNamespaceWhenMissing() {
+        AppAuthDO legacyAuth = buildAppAuthDO("auth-legacy", null);
+        AppAuthDO defaultAuth = buildAppAuthDO("auth-default", SYS_DEFAULT_NAMESPACE_ID);
+        List<AppAuthDO> authList = List.of(legacyAuth, defaultAuth);
+        List<String> ids = authList.stream().map(AppAuthDO::getId).collect(Collectors.toList());
+        given(appAuthMapper.selectByIds(ids)).willReturn(authList);
+        given(appAuthMapper.deleteByIds(ids)).willReturn(authList.size());
+
+        assertEquals(authList.size(), appAuthService.delete(ids));
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertDeleteEvent(eventCaptor.getValue(), SYS_DEFAULT_NAMESPACE_ID, legacyAuth.getAppKey(), defaultAuth.getAppKey());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    public void testDeleteWithoutIdsDoesNotPublish(final List<String> ids) {
+        assertEquals(0, appAuthService.delete(ids));
+
+        verifyNoInteractions(appAuthMapper, authParamMapper, authPathMapper, eventPublisher);
+    }
+
+    @Test
+    public void testDeleteMissingRecordsDoesNotPublish() {
+        List<String> ids = Collections.singletonList(appAuthDO.getId());
+        given(appAuthMapper.selectByIds(ids)).willReturn(Collections.emptyList());
+
+        assertEquals(0, appAuthService.delete(ids));
+
+        verify(appAuthMapper, never()).deleteByIds(any());
+        verifyNoInteractions(authParamMapper, authPathMapper, eventPublisher);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    public void testDeleteWithoutAffectedRowsDoesNotPublish(final int affectCount) {
+        List<String> ids = Collections.singletonList(appAuthDO.getId());
+        given(appAuthMapper.selectByIds(ids)).willReturn(Collections.singletonList(appAuthDO));
+        given(appAuthMapper.deleteByIds(ids)).willReturn(affectCount);
+
+        assertEquals(affectCount, appAuthService.delete(ids));
+
+        verifyNoInteractions(authParamMapper, authPathMapper, eventPublisher);
+    }
+
+    private void assertDeleteEvent(final DataChangedEvent event, final String namespaceId, final String... appKeys) {
+        assertEquals(ConfigGroupEnum.APP_AUTH, event.getGroupKey());
+        assertEquals(DataEventTypeEnum.DELETE, ReflectionTestUtils.invokeMethod(event, "getEventType"));
+        assertEquals(namespaceId, event.getNamespaceId());
+        assertEquals(appKeys.length, event.getSource().size());
+        List<AppAuthData> authData = event.getSource().stream().map(AppAuthData.class::cast).collect(Collectors.toList());
+        authData.forEach(data -> assertEquals(namespaceId, data.getNamespaceId()));
+        assertEquals(Set.of(appKeys), authData.stream().map(AppAuthData::getAppKey).collect(Collectors.toSet()));
     }
 
     @Test
@@ -272,6 +426,21 @@ public final class AppAuthServiceTest {
         verify(eventPublisher, times(1)).publishEvent(any());
     }
 
+    @Test
+    public void testSyncEmptyDataByNamespaceId() {
+        String namespaceId = "namespace-id";
+        when(appAuthMapper.selectAllByNamespaceId(namespaceId)).thenReturn(Collections.emptyList());
+
+        appAuthService.syncDataByNamespaceId(namespaceId);
+
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        DataChangedEvent event = eventCaptor.getValue();
+        assertEquals(ConfigGroupEnum.APP_AUTH, event.getGroupKey());
+        assertEquals(namespaceId, event.getNamespaceId());
+        assertEquals(Collections.emptyList(), event.getSource());
+    }
+
     private void testApplyCreateParameterError() {
         testApplyCreateAppNameBlank();
         testApplyCreateMissingPathsWhenOpen();
@@ -328,7 +497,8 @@ public final class AppAuthServiceTest {
     }
 
     private void testApplyUpdateSuccess() {
-        AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        final AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        appAuthDO.setOpen(false);
         AuthPathDO authPathDO = new AuthPathDO();
         String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
         String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
@@ -343,8 +513,18 @@ public final class AppAuthServiceTest {
         given(this.appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
         given(authPathMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
         given(authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
-        ShenyuAdminResult successResult = this.appAuthService.applyUpdate(buildAuthApplyDTO());
+        ShenyuAdminResult successResult = this.appAuthService.applyUpdate(authApplyDTO);
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, successResult.getMessage());
+        verify(appAuthMapper).updateSelective(argThat(updated -> authApplyDTO.getUserId().equals(updated.getUserId())
+                && authApplyDTO.getPhone().equals(updated.getPhone())
+                && authApplyDTO.getExtInfo().equals(updated.getExtInfo())
+                && Boolean.TRUE.equals(updated.getOpen())));
+        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 1
+                && authApplyDTO.getPathList().get(0).equals(paths.get(0).getPath())));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        AppAuthData publishedData = (AppAuthData) eventCaptor.getValue().getSource().get(0);
+        assertEquals(Boolean.TRUE, publishedData.getOpen());
     }
 
     private AuthApplyDTO buildAuthApplyDTO() {
@@ -383,6 +563,14 @@ public final class AppAuthServiceTest {
         appAuthDO.setDateCreated(now);
         appAuthDO.setDateUpdated(now);
         return appAuthDO;
+    }
+
+    private AppAuthDO buildAppAuthDO(final String id, final String namespaceId) {
+        AppAuthDO auth = buildAppAuthDO();
+        auth.setId(id);
+        auth.setAppKey(id + "-key");
+        auth.setNamespaceId(namespaceId);
+        return auth;
     }
 
     private AuthParamDTO buildAuthParamDTO() {

@@ -74,6 +74,27 @@ public class ClusterProperties {
     private Long lockTtl = 30L;
     
     /**
+     * Dedicated node credential; configure the same high-entropy value on every node.
+     */
+    private String eventSecret;
+
+    /**
+     * Get the event forwarding credential.
+     * @return node credential
+     */
+    public String getEventSecret() {
+        return eventSecret;
+    }
+
+    /**
+     * Set the event forwarding credential.
+     * @param eventSecret node credential
+     */
+    public void setEventSecret(final String eventSecret) {
+        this.eventSecret = eventSecret;
+    }
+
+    /**
      * Gets the value of enabled.
      *
      * @return the value of enabled

@@ -20,14 +20,16 @@ local key = KEYS[1]
 local capacity = tonumber(ARGV[2])
 local timestamp = tonumber(ARGV[3])
 local id = KEYS[2]
+local stale_after_seconds = 86400
 
+redis.call("zremrangebyscore", key, 0, timestamp - stale_after_seconds)
 local count = redis.call("zcard", key)
 local allowed = 0
 
 if count < capacity then
   redis.call("zadd", key, timestamp, id)
+  redis.call("expire", key, stale_after_seconds)
   allowed = 1
   count = count + 1
 end
--- redis.call("setex", key, timestamp)
 return { allowed, count }

@@ -31,9 +31,9 @@ public interface DiscoveryUpstreamDataSubscriber {
     /**
      * Un subscribe.
      *
-     * @param upstreamDataList the upstreamData data
+     * @param key the discovery upstream selector to remove
      */
-    void unSubscribe(DiscoverySyncData upstreamDataList);
+    void unSubscribe(DiscoveryUpstreamKey key);
 
     /**
      * Refresh.

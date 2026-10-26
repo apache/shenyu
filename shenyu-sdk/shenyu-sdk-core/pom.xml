@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-sdk</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sdk-core</artifactId>
@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-core</artifactId>
+            <artifactId>shenyu-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
