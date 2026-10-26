@@ -17,6 +17,7 @@
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
@@ -84,7 +85,17 @@ class MigrationConsistencyTest(unittest.TestCase):
         self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("NULL", "null")))
 
     def test_quoted_null_is_not_a_null_literal(self):
-        changed = self.migration.replace("'68', NULL, 198", "'68', 'NULL', 198")
+        changed, replacements = re.subn(
+            r"('68', )NULL(, \d+)",
+            r"\1'NULL'\2",
+            self.migration,
+            count=1,
+        )
+        self.assertEqual(
+            1,
+            replacements,
+            "fixture drifted: no '68', NULL, <sort> row found",
+        )
         with self.assertRaisesRegex(ValueError, "mismatch"):
             CHECK.check_pair(self.schema, changed)
 

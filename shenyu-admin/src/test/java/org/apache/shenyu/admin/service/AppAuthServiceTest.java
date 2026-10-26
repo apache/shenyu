@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
@@ -106,6 +107,9 @@ public final class AppAuthServiceTest {
 
     @Mock
     private AuthPathMapper authPathMapper;
+
+    @Mock
+    private AppAuthRequestMapper appAuthRequestMapper;
 
     private final AppAuthDO appAuthDO = buildAppAuthDO();
 

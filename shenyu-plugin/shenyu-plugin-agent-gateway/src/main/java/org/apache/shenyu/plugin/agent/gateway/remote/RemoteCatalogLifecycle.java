@@ -54,6 +54,8 @@ public final class RemoteCatalogLifecycle {
 
     private final int maxGenerations;
 
+    private final boolean resourcesEnabled;
+
     private final int refreshConcurrency;
 
     private Generation current;
@@ -69,7 +71,16 @@ public final class RemoteCatalogLifecycle {
      * @param maxGenerations trusted maxGenerations value
      */
     public RemoteCatalogLifecycle(final int maxGenerations) {
-        this(maxGenerations, 1);
+        this(maxGenerations, 1, false);
+    }
+
+    /**
+     * Remote Catalog Lifecycle with serialized refresh.
+     * @param maxGenerations trusted generation budget
+     * @param resourcesEnabled opt in to resource discovery
+     */
+    public RemoteCatalogLifecycle(final int maxGenerations, final boolean resourcesEnabled) {
+        this(maxGenerations, 1, resourcesEnabled);
     }
 
     /**
@@ -78,6 +89,16 @@ public final class RemoteCatalogLifecycle {
      * @param refreshConcurrency bounded parallel target refresh; 1 retains the historical serialized discovery
      */
     public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency) {
+        this(maxGenerations, refreshConcurrency, false);
+    }
+
+    /**
+     * Remote Catalog Lifecycle with independent refresh and resource discovery settings.
+     * @param maxGenerations trusted generation budget
+     * @param refreshConcurrency bounded parallel target refresh, from 1 to 8
+     * @param resourcesEnabled opt in to resource discovery
+     */
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
@@ -85,6 +106,7 @@ public final class RemoteCatalogLifecycle {
             throw new IllegalArgumentException("Refresh concurrency budget");
         }
         this.maxGenerations = maxGenerations;
+        this.resourcesEnabled = resourcesEnabled;
         this.refreshConcurrency = refreshConcurrency;
     }
 
@@ -208,7 +230,13 @@ public final class RemoteCatalogLifecycle {
                     return client
                         .initialize()
                         .switchIfEmpty(Mono.error(new IllegalStateException("Empty handshake")))
-                        .map(ignored -> new RemoteToolDirectory.Target(config.name(), client::listTools, client::callTool, client::callRaw));
+                        .map(handshake -> {
+                            RemoteResourceDirectory.Target resources = resourcesEnabled && Objects.nonNull(handshake.capabilities().resources())
+                                    ? new RemoteResourceDirectory.Target(config.name(), client::listResources, client::listResourceTemplates, client::readResource) : null;
+                            Function<String, Mono<McpSchema.ListToolsResult>> tools = Objects.nonNull(handshake.capabilities().tools())
+                                    ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
+                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
+                        });
                 }),
                 refreshConcurrency
             )

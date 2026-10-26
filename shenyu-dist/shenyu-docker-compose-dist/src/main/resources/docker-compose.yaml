@@ -31,7 +31,7 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-bootstrap:9195/actuator/health" ]
+      test: [ "CMD", "wget", "-q", "-O", "/dev/null", "http://shenyu-bootstrap:9195/actuator/health" ]
       timeout: 2s
       retries: 30
   shenyu-admin:
