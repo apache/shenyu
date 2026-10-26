@@ -139,7 +139,7 @@ public class SelectorUtilTest {
         Assert.assertEquals(Long.valueOf(SelectorTypeEnum.CUSTOM_FLOW.getCode()), Long.valueOf(result.getType()));
         Assert.assertEquals(Long.valueOf(MatchModeEnum.AND.getCode()), Long.valueOf(result.getMatchMode()));
         Assert.assertTrue(result.getEnabled());
-        Assert.assertTrue(result.getLoged());
+        Assert.assertTrue(result.getLogged());
         Assert.assertTrue(result.getContinued());
         Assert.assertFalse(result.getMatchRestful());
         Assert.assertEquals(Long.valueOf(1), Long.valueOf(result.getSort()));
@@ -190,7 +190,7 @@ public class SelectorUtilTest {
         Assert.assertEquals(Long.valueOf(SelectorTypeEnum.CUSTOM_FLOW.getCode()), Long.valueOf(result.getType()));
         Assert.assertEquals(Long.valueOf(MatchModeEnum.AND.getCode()), Long.valueOf(result.getMatchMode()));
         Assert.assertTrue(result.getEnabled());
-        Assert.assertTrue(result.getLoged());
+        Assert.assertTrue(result.getLogged());
         Assert.assertTrue(result.getContinued());
         Assert.assertFalse(result.getMatchRestful());
         Assert.assertEquals(Long.valueOf(1), Long.valueOf(result.getSort()));
@@ -206,7 +206,7 @@ public class SelectorUtilTest {
         Assert.assertEquals(Long.valueOf(SelectorTypeEnum.CUSTOM_FLOW.getCode()), Long.valueOf(result.getType()));
         Assert.assertEquals(Long.valueOf(MatchModeEnum.AND.getCode()), Long.valueOf(result.getMatchMode()));
         Assert.assertTrue(result.getEnabled());
-        Assert.assertTrue(result.getLoged());
+        Assert.assertTrue(result.getLogged());
         Assert.assertTrue(result.getContinued());
         Assert.assertFalse(result.getMatchRestful());
         Assert.assertEquals(Long.valueOf(1), Long.valueOf(result.getSort()));
@@ -222,7 +222,7 @@ public class SelectorUtilTest {
         Assert.assertEquals(Long.valueOf(SelectorTypeEnum.CUSTOM_FLOW.getCode()), Long.valueOf(result.getType()));
         Assert.assertEquals(Long.valueOf(MatchModeEnum.AND.getCode()), Long.valueOf(result.getMatchMode()));
         Assert.assertTrue(result.getEnabled());
-        Assert.assertTrue(result.getLoged());
+        Assert.assertTrue(result.getLogged());
         Assert.assertTrue(result.getContinued());
         Assert.assertFalse(result.getMatchRestful());
         Assert.assertEquals(Long.valueOf(1), Long.valueOf(result.getSort()));

@@ -41,6 +41,34 @@ public class WebsocketConfig {
     private boolean initialSyncReadiness;
 
     /**
+     * Accept the compact-v1 Discovery wire projection on this gateway connection.
+     */
+    private boolean compactDiscoveryPayload;
+
+    /**
+     * Master check interval in seconds.
+     */
+    private int masterCheckInterval = 60;
+
+    /**
+     * Whether this gateway accepts compact Discovery payloads.
+     *
+     * @return whether compact payloads are accepted
+     */
+    public boolean isCompactDiscoveryPayload() {
+        return compactDiscoveryPayload;
+    }
+
+    /**
+     * Advertise support after auditing this gateway's Discovery subscribers.
+     *
+     * @param compactDiscoveryPayload whether compact payloads are accepted
+     */
+    public void setCompactDiscoveryPayload(final boolean compactDiscoveryPayload) {
+        this.compactDiscoveryPayload = compactDiscoveryPayload;
+    }
+
+    /**
      * Whether the opt-in initial synchronization protocol is required.
      * @return enabled
      */
@@ -105,6 +133,24 @@ public class WebsocketConfig {
     public void setToken(final String token) {
         this.token = token;
     }
+
+    /**
+     * get master check interval in seconds.
+     *
+     * @return master check interval
+     */
+    public int getMasterCheckInterval() {
+        return masterCheckInterval;
+    }
+
+    /**
+     * set master check interval in seconds.
+     *
+     * @param masterCheckInterval master check interval
+     */
+    public void setMasterCheckInterval(final int masterCheckInterval) {
+        this.masterCheckInterval = masterCheckInterval;
+    }
     
     @Override
     public boolean equals(final Object o) {
@@ -118,12 +164,14 @@ public class WebsocketConfig {
         return Objects.equals(urls, that.urls)
                 && Objects.equals(allowOrigin, that.allowOrigin)
                 && Objects.equals(token, that.token)
-                && initialSyncReadiness == that.initialSyncReadiness;
+                && initialSyncReadiness == that.initialSyncReadiness
+                && compactDiscoveryPayload == that.compactDiscoveryPayload
+                && masterCheckInterval == that.masterCheckInterval;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, compactDiscoveryPayload, masterCheckInterval);
     }
 
     @Override
@@ -136,6 +184,8 @@ public class WebsocketConfig {
                 + allowOrigin
                 + '\''
                 + ", token='******'"
+                + ", masterCheckInterval="
+                + masterCheckInterval
                 + '}';
     }
 }

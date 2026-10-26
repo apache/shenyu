@@ -122,7 +122,7 @@ create table selector
     sort_code    NUMBER(10) not null,
     handle       VARCHAR2(1024),
     enabled      NUMBER(3) not null,
-    loged        NUMBER(3) not null,
+    logged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id VARCHAR2(50) not null,
@@ -148,7 +148,7 @@ comment on column SELECTOR.handle
   is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
 comment on column SELECTOR.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column SELECTOR.loged
+comment on column SELECTOR.logged
   is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
@@ -198,7 +198,7 @@ create table rule
     match_mode    NUMBER(10) not null,
     rule_name     VARCHAR2(128) not null,
     enabled       NUMBER(3) not null,
-    loged         NUMBER(3) not null,
+    logged         NUMBER(3) not null,
     match_restful NUMBER(3) not null,
     namespace_id  VARCHAR2(50) not null,
     sort_code     NUMBER(10) not null,
@@ -217,7 +217,7 @@ comment on column RULE.rule_name
   is 'rule name';
 comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
-comment on column RULE.loged
+comment on column RULE.logged
   is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.match_restful
   is 'whether to match restful(0 cache, 1 not cache)';
@@ -317,7 +317,7 @@ create table mock_request_record
     url VARCHAR2(1024) not null,
     path_variable VARCHAR2(255) default '' not null,
     query VARCHAR2(1024) default '' not null,
-    header VARCHAR2(1024) default '' not null,
+    header CLOB default EMPTY_CLOB() not null,
     body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
@@ -418,6 +418,10 @@ comment on column OPERATION_RECORD_LOG.operation_time
   is 'operation time';
 comment on column OPERATION_RECORD_LOG.operation_type
   is 'operation type：create/update/delete/register...';
+
+create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
+create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
 
 create sequence operation_record_log_seq
     increment by 1
@@ -818,6 +822,7 @@ create table data_permission
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
 -- Add comments to the table
 comment on table DATA_PERMISSION
   is 'data permission table';
@@ -2946,7 +2951,9 @@ CREATE TABLE instance_info (
     instance_state number          NOT NULL,
     date_created  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
     date_updated  timestamp(3)   DEFAULT SYSTIMESTAMP NOT NULL,
-    CONSTRAINT instance_info_pk PRIMARY KEY (id)
+    last_heart_beat_time number     DEFAULT 0 NOT NULL,
+    CONSTRAINT instance_info_pk PRIMARY KEY (id),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 COMMENT ON TABLE instance_info IS 'Instance information table';
@@ -2959,6 +2966,7 @@ COMMENT ON COLUMN instance_info.instance_info IS 'instance_info';
 COMMENT ON COLUMN instance_info.instance_state IS 'instance_state';
 COMMENT ON COLUMN instance_info.date_created IS 'create time';
 COMMENT ON COLUMN instance_info.date_updated IS 'update time';
+COMMENT ON COLUMN instance_info.last_heart_beat_time IS 'last heart beat time';
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) 
 VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2023-08-31 06:59:01', 'YYYY-MM-DD HH24:MI:SS'));
@@ -3443,6 +3451,26 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 
 -- insert data for the sensitive word plugin
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated) VALUES ('67', 'sensitiveWord', NULL, 'Ai', 197, 0, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated) VALUES ('69', 'piiDetection', NULL, 'Ai', 196, 0, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1960000000000001041', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '69', NULL, 196, 0, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001042', '69', 'detectors', 'detectors', 2, 2, 0, '{"required":"0","placeholder":"builtin detector types separated by commas, empty enables all of them","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001043', '69', 'customPatterns', 'customPatterns', 2, 2, 1, '{"required":"0","placeholder":"one TYPE=REGEX entry per line","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001044', '69', 'actions', 'actions', 2, 2, 2, '{"required":"0","placeholder":"type overrides as TYPE=ACTION separated by commas","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001045', '69', 'defaultAction', 'defaultAction', 2, 2, 3, '{"required":"0","defaultValue":"REDACT","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001046', '69', 'scope', 'scope', 2, 2, 4, '{"required":"0","defaultValue":"request","placeholder":"request, response or request,response","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001047', '69', 'maxBodySize', 'maxBodySize', 1, 2, 5, '{"required":"0","defaultValue":"1048576","placeholder":"the largest body that is scanned, in bytes, 0 means unlimited","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001048', '69', 'failClosed', 'failClosed', 3, 2, 6, '{"required":"0","defaultValue":"false","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1960000000000001049', '69', 'detectorTimeoutMs', 'detectorTimeoutMs', 1, 2, 7, '{"required":"0","defaultValue":"500","rule":""}', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001031', '1346775491550474240', 'piiDetection', 'piiDetection', '/plug/piiDetection', 'piiDetection', 1, 0, 'pic-center', 0, 0, '', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001032', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001033', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001034', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001035', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001036', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:add', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001037', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:query', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001038', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:edit', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001039', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:delete', 1, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1960000000000001040', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetection:modify', 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{"required":"0","rule":""}', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{"required":"0","rule":""}', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(id)) */ INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1942847622591684611', '67', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', sysdate, sysdate);
@@ -3470,6 +3498,16 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, pare
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated) VALUES ('1679002911061737584', 'failClosed', 'FAIL_CLOSED', 'open', 'true', '', 1, 1, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, type, dict_code, dict_name, dict_value, "desc", sort, enabled, date_created, date_updated) VALUES ('1679002911061737585', 'failClosed', 'FAIL_CLOSED', 'close', 'false', '', 2, 1, sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303965', '1346358560427216896', '1953048313980116905', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001051', '1346358560427216896', '1960000000000001031', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001052', '1346358560427216896', '1960000000000001032', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001053', '1346358560427216896', '1960000000000001033', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001054', '1346358560427216896', '1960000000000001034', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001055', '1346358560427216896', '1960000000000001035', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001056', '1346358560427216896', '1960000000000001036', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001057', '1346358560427216896', '1960000000000001037', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001058', '1346358560427216896', '1960000000000001038', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001059', '1346358560427216896', '1960000000000001039', sysdate, sysdate);
+INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000001060', '1346358560427216896', '1960000000000001040', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303966', '1346358560427216896', '1953048313980116906', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303967', '1346358560427216896', '1953048313980116907', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303968', '1346358560427216896', '1953048313980116908', sysdate, sysdate);
@@ -3480,3 +3518,33 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE app_auth_request
+(
+    id             VARCHAR2(128) not null,
+    caller_key     VARCHAR2(128) not null,
+    namespace_id   VARCHAR2(64) not null,
+    request_id     VARCHAR2(64) not null,
+    request_hash   VARCHAR2(64),
+    auth_id        VARCHAR2(255),
+    state          VARCHAR2(16) not null,
+    revoked_reason VARCHAR2(500),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_app_auth_request PRIMARY KEY (id),
+    CONSTRAINT uk_app_auth_request UNIQUE (caller_key, namespace_id, request_id)
+);
+CREATE INDEX idx_app_auth_request_auth ON app_auth_request (auth_id);
+
+-- app auth lifecycle button resources
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);

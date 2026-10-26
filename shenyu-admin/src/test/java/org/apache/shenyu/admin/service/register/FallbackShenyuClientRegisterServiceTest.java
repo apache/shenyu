@@ -23,13 +23,16 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -45,6 +48,23 @@ class FallbackShenyuClientRegisterServiceTest {
 
         MockFallbackShenyuClientRegisterServiceException mockFallbackShenyuClientRegisterServiceException = new MockFallbackShenyuClientRegisterServiceException();
         assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name", new ArrayList<>(), SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+
+    @Test
+    public void fallbackRetryIsNamespaced() throws Exception {
+        final NamespacedFailService service = new NamespacedFailService();
+        // namespace A fails and queues a pending retry
+        service.registerURI("orders", new ArrayList<>(), "ns-a");
+        // namespace B registers the same selector name successfully
+        service.registerURI("orders", new ArrayList<>(), "ns-b");
+
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> falls = (Map<String, Object>) ReflectionTestUtils.getField(service, "fallsRegisters");
+        assertTrue(falls.keySet().stream().anyMatch(key -> key.endsWith(":ns-a")),
+                "namespace A's pending retry must survive namespace B's registration of the same selector name");
+        assertTrue(falls.keySet().stream().noneMatch(key -> key.endsWith(":ns-b")),
+                "namespace B's successful registration must not leave a pending retry");
     }
 
     @Test
@@ -85,6 +105,47 @@ class FallbackShenyuClientRegisterServiceTest {
         mockService.checkNamespacePluginRel("namespace", "plugin");
     }
 
+
+    static class NamespacedFailService extends FallbackShenyuClientRegisterService {
+
+        @Override
+        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            if ("ns-a".equals(namespaceId)) {
+                throw new RuntimeException("namespace A registration backend down");
+            }
+            return "ok";
+        }
+
+        @Override
+        String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
+        public String rpcType() {
+            return "grpc";
+        }
+
+        @Override
+        public String register(final MetaDataRegisterDTO metaDataRegisterDTO) {
+            return null;
+        }
+
+        @Override
+        public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+            return null;
+        }
+
+        @Override
+        public void checkNamespacePluginRel(final String namespaceId, final String pluginName) {
+        }
+    }
+
     static class MockFallbackShenyuClientRegisterService extends FallbackShenyuClientRegisterService {
 
         @Override
@@ -95,6 +156,11 @@ class FallbackShenyuClientRegisterServiceTest {
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             return "doHeartbeat";
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "doDraining";
         }
         
         @Override
@@ -127,6 +193,11 @@ class FallbackShenyuClientRegisterServiceTest {
         
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         

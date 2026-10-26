@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -119,8 +120,12 @@ public class ShenyuLoaderService {
             return;
         }
         List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
-        webHandler.putExtPlugins(shenyuExtendPlugins);
         List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+        Set<String> handlerNames = handlers.stream().map(PluginDataHandler::pluginNamed).collect(Collectors.toSet());
+        Set<String> pluginsWithoutHandlers = shenyuExtendPlugins.stream().map(ShenyuPlugin::named)
+                .filter(name -> !handlerNames.contains(name)).collect(Collectors.toSet());
+        webHandler.putExtPlugins(shenyuExtendPlugins);
+        subscriber.removeExtendPluginDataHandlers(pluginsWithoutHandlers);
         subscriber.putExtendPluginDataHandler(handlers);
     }
 

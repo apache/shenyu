@@ -23,6 +23,8 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.metrics.LoggingQueueMetrics;
+import org.apache.shenyu.common.metrics.LoggingQueueMetrics.Mode;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
@@ -44,6 +46,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForBody;
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForSingleWord;
@@ -68,6 +71,16 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     private long lastPushTime;
 
     private final AtomicBoolean started = new AtomicBoolean(false);
+
+    private final AtomicLong multiBufferCapacity = new AtomicLong();
+
+    private final LoggingQueueMetrics singleClientMetrics = new LoggingQueueMetrics(getClass(), Mode.SINGLE,
+            () -> started.get() ? bufferQueue.size() : 0,
+            () -> isActiveMode(false) ? bufferSize : 0);
+
+    private final LoggingQueueMetrics multiClientMetrics = new LoggingQueueMetrics(getClass(), Mode.MULTI,
+            () -> started.get() ? bufferQueueS.values().stream().mapToLong(BlockingQueue::size).sum() : 0,
+            () -> isActiveMode(true) ? multiBufferCapacity.get() : 0);
 
     private ShenyuThreadPoolExecutor executor;
 
@@ -95,6 +108,12 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             threadExecutor.shutdownNow();
             throw e;
         }
+        singleClientMetrics.register();
+        multiClientMetrics.register();
+    }
+
+    private boolean isActiveMode(final boolean multiClient) {
+        return started.get() && getMultiClient() == multiClient;
     }
 
     private void refreshBufferSize() {
@@ -113,15 +132,15 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         if (getMultiClient()) {
             String selectorId = log.getSelectorId();
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
-            bufferQueue.offer(log);
+            multiClientMetrics.recordAdmission(bufferQueue.offer(log));
         } else {
             BlockingQueue<L> queue = bufferQueue;
+            boolean admitted;
             synchronized (queue) {
                 // On shrink, retain the backlog but reject new logs until it falls below the new limit.
-                if (queue.size() < bufferSize) {
-                    queue.offer(log);
-                }
+                admitted = queue.size() < bufferSize && queue.offer(log);
             }
+            singleClientMetrics.recordAdmission(admitted);
         }
     }
 
@@ -165,8 +184,10 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {
-        BlockingQueue<L> queue = new LinkedBlockingDeque<>(getLogCollectConfig().getBufferQueueSize());
+        int capacity = getLogCollectConfig().getBufferQueueSize();
+        BlockingQueue<L> queue = new LinkedBlockingDeque<>(capacity);
         lastPushTimeS.put(selectorId, System.currentTimeMillis());
+        multiBufferCapacity.addAndGet(capacity);
         return queue;
     }
 
@@ -320,6 +341,8 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         try {
             flushBufferQueues();
         } finally {
+            singleClientMetrics.unregister();
+            multiClientMetrics.unregister();
             if (Objects.nonNull(logCollectClient)) {
                 logCollectClient.close();
             }

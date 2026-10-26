@@ -72,6 +72,43 @@ public class RequestHandleTest {
     }
     
     @Test
+    public void testMissingSectionsAreEmpty() {
+        RequestHandle handle = new RequestHandle();
+        assertThat(handle.isEmptyConfig(), is(true));
+        handle.setHeader(handle.new ShenyuRequestHeader());
+        assertThat(handle.isEmptyConfig(), is(true));
+        handle.setParameter(handle.new ShenyuRequestParameter());
+        assertThat(handle.isEmptyConfig(), is(true));
+    }
+
+    @Test
+    public void testParameterOnlyConfig() {
+        RequestHandle handle = new RequestHandle();
+        RequestHandle.ShenyuRequestParameter parameter = handle.new ShenyuRequestParameter();
+        parameter.setAddParameters(ImmutableMap.of("key", "value"));
+        handle.setParameter(parameter);
+        assertThat(handle.isEmptyConfig(), is(false));
+    }
+
+    @Test
+    public void testCookieOnlyConfig() {
+        RequestHandle handle = new RequestHandle();
+        RequestHandle.ShenyuCookie cookie = handle.new ShenyuCookie();
+        cookie.setAddCookies(ImmutableMap.of("key", "value"));
+        handle.setCookie(cookie);
+        assertThat(handle.isEmptyConfig(), is(false));
+    }
+
+    @Test
+    public void testHeaderOnlyConfig() {
+        RequestHandle handle = new RequestHandle();
+        RequestHandle.ShenyuRequestHeader header = handle.new ShenyuRequestHeader();
+        header.setAddHeaders(ImmutableMap.of("key", "value"));
+        handle.setHeader(header);
+        assertThat(handle.isEmptyConfig(), is(false));
+    }
+
+    @Test
     public void testShenyuRequestHeader() {
         RequestHandle handle = new RequestHandle();
         RequestHandle.ShenyuRequestHeader header = handle.new ShenyuRequestHeader(

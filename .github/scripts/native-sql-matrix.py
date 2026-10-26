@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Execute fresh schemas and the complete released-2.7.1 upgrade on native engines."""
+"""Execute fresh schemas and the upgrade chain from released-2.7.1 on native engines."""
 
 import argparse
 import json
@@ -25,6 +25,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BASELINE = "218c5634ebffb1f0ce7e8ea921b85cd5a633cde7"  # v2.7.1, peeled commit
+# Upgrade scripts applied in order on top of the BASELINE schema, newest last.
+# Adding a released migration here keeps every ALTER/DROP gated on real engines.
+MIGRATIONS_FROM_BASELINE = ("2.7.1-upgrade-2.7.2", "2.7.2-upgrade-2.7.3")
 PASSWORD = "SqlMatrix@2026"
 SENTINEL = "sql-matrix-plugin"
 JAR_HEX = "0001027fff"
@@ -32,7 +35,7 @@ DIALECTS = {
     "mysql": ("mysql:8.0@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b", "db/init/mysql/schema.sql"),
     "ob": ("oceanbase/oceanbase-ce:4.3.5-lts@sha256:31086a6900c21c479c2bcd942b6a28c53b17a51f4e9b9eb8eafcc596adfcd2e3", "db/init/mysql/schema.sql"),
     "pg": ("postgres:15@sha256:724292da1f2e50bdccfc3302ce75bbba7f4a6076701b588cc795fcac65683550", "db/init/pg/create-table.sql"),
-    "og": ("enmotech/opengauss-lite:5.0.1@sha256:b0e9d4e7452007cb0a216e39f1927c889178dac695176af7ab0eec43ce077af3", "db/init/og/create-table.sql"),
+    "og": ("enmotech/opengauss-lite:5.0.1@sha256:b0e9d4e7452007cb0a216e39f1927c889178dac695176af7ab0eec43ce077af3", "db/init/pg/create-table.sql"),
     "oracle": ("gvenzl/oracle-free:23.26.3-slim@sha256:6d61d267a3b978c24c5ac1790e62e927416a0aec446bd86e4b3a1527562757bd", "db/init/oracle/schema.sql"),
 }
 TABLES = ("plugin", "selector", "rule", "resource", "permission", "user_role", "namespace_plugin_rel")
@@ -44,6 +47,8 @@ def schema_source(dialect, flow):
     # Only fresh installations share the current MySQL initialization source.
     if dialect == "ob" and flow == "upgrade":
         return "db/init/ob/schema.sql"
+    if dialect == "og" and flow == "upgrade":
+        return "db/init/og/create-table.sql"
     return DIALECTS[dialect][1]
 
 
@@ -97,7 +102,7 @@ def verify_index_rows(rows, postgres=False):
                               r'(?:\s+tablespace\s+(?:"[^"]+"|[a-z_]\w*))?\s*$', value)
             if not match:
                 continue  # expression indexes are not usable for these column lookups
-            indexes[(table, name)] = [column.strip().strip('"') for column in match[1].split(",")]
+            indexes[(table, name)] = [column.strip().split()[0].strip('"') for column in match[1].split(",")]
         else:
             column, position = value.split("|")
             indexes.setdefault((table, name), []).append((int(position), column))
@@ -292,6 +297,240 @@ class Engine:
                 raise AssertionError("loggingKafka must seed bootstrapServer")
 
 
+    def check_fresh_postgres_schema(self, schema, indexes):
+        """Validate the canonical PostgreSQL/openGauss schema and fresh seeds."""
+        declarations = re.findall(r'CREATE TABLE (?:IF NOT EXISTS )?"public"\."(\w+)"\s*\((.*?)\)\s*;', schema, re.S)
+        expected_columns = set()
+        expected_primary = set()
+        for table, definition in declarations:
+            for column, rest in re.findall(r'^\s*"(\w+)"\s+([^\n]+)', definition, re.M):
+                nullable = "NO" if "NOT NULL" in rest or "PRIMARY KEY" in rest else "YES"
+                expected_columns.add(f"{table}|{column}|{nullable}")
+            primary = re.search(r'PRIMARY KEY\s*\(([^)]+)\)', definition)
+            if primary:
+                expected_primary.add(table + "|" + re.sub(r'["\s]', '', primary[1]))
+            else:
+                inline = re.search(r'^\s*"(\w+)"[^\n]*PRIMARY KEY', definition, re.M)
+                if inline:
+                    expected_primary.add(table + "|" + inline[1])
+        for table, columns in re.findall(r'ALTER TABLE "public"\."(\w+)" ADD CONSTRAINT "\w+" PRIMARY KEY\s*\(([^)]+)\)', schema):
+            expected_primary.add(table + "|" + re.sub(r'["\s]', '', columns))
+        actual_columns = set(self.sql("SELECT table_name||'|'||column_name||'|'||is_nullable FROM information_schema.columns "
+                                     "WHERE table_schema='public';").splitlines())
+        if actual_columns != expected_columns:
+            raise AssertionError(f"Fresh columns differ: missing={expected_columns - actual_columns}, "
+                                 f"extra={actual_columns - expected_columns}")
+        actual_primary = set(self.sql("SELECT t.relname||'|'||replace(replace(pg_get_constraintdef(c.oid), "
+                                     "'PRIMARY KEY (',''),')','') FROM pg_constraint c JOIN pg_class t ON t.oid=c.conrelid "
+                                     "JOIN pg_namespace n ON n.oid=t.relnamespace WHERE n.nspname='public' AND c.contype='p';")
+                             .replace(' ', '').replace('"', '').splitlines())
+        if actual_primary != expected_primary:
+            raise AssertionError("Fresh primary keys differ")
+        unique = set(self.sql("SELECT tablename||'|'||indexname FROM pg_indexes WHERE schemaname='public' "
+                              "AND indexdef LIKE 'CREATE UNIQUE INDEX%';").lower().splitlines())
+        for is_unique, name, table, columns in re.findall(
+                r'CREATE (UNIQUE )?INDEX "?(\w+)"? ON "public"\."(\w+)" USING btree\s*\(([^)]+)\)', schema):
+            key = (table, name.lower())
+            expected = [column.strip().split()[0].strip('"') for column in columns.split(',')]
+            if indexes.get(key) != expected:
+                raise AssertionError("Missing shared index: " + name)
+            if is_unique and '|'.join(key) not in unique:
+                raise AssertionError("Missing shared unique index: " + name)
+        self.check_fresh_postgres_seeds()
+        self.check_discovery_upstream_uniqueness()
+
+    def check_fresh_postgres_seeds(self):
+        checks = []
+        for table, column, parent, parent_column in (
+                ("plugin_handle", "plugin_id", "plugin", "id"),
+                ("permission", "resource_id", "resource", "id"),
+                ("permission", "object_id", "role", "id"),
+                ("user_role", "user_id", "dashboard_user", "id"),
+                ("user_role", "role_id", "role", "id"),
+                ("namespace_plugin_rel", "plugin_id", "plugin", "id"),
+                ("namespace_plugin_rel", "namespace_id", "namespace", "namespace_id"),
+                ("namespace_user_rel", "namespace_id", "namespace", "namespace_id"),
+                ("namespace_user_rel", "user_id", "dashboard_user", "id"),
+                ("selector", "plugin_id", "plugin", "id"),
+                ("selector", "namespace_id", "namespace", "namespace_id"),
+                ("rule", "selector_id", "selector", "id"),
+                ("rule", "namespace_id", "namespace", "namespace_id")):
+            checks.append((f"{table}.{column} orphan", f"SELECT child.id FROM {table} child LEFT JOIN {parent} parent "
+                           f"ON child.{column}=parent.{parent_column} WHERE parent.{parent_column} IS NULL"))
+        checks.append(("resource.parent_id orphan", "SELECT child.id FROM resource child LEFT JOIN resource parent "
+                       "ON child.parent_id=parent.id WHERE child.parent_id NOT IN ('', '0') AND parent.id IS NULL"))
+        for table, columns in (("plugin_handle", "plugin_id,lower(field),type"),
+                               ("permission", "object_id,resource_id"),
+                               ("namespace_plugin_rel", "namespace_id,plugin_id")):
+            checks.append((table + " duplicate natural key",
+                           f"SELECT {columns} FROM {table} GROUP BY {columns} HAVING COUNT(*)>1"))
+        checks.append(("missing admin resource permission", "SELECT r.id FROM resource r LEFT JOIN permission p "
+                       "ON p.resource_id=r.id AND p.object_id='1346358560427216896' WHERE p.id IS NULL"))
+        checks.append(("missing default namespace plugin", "SELECT p.id FROM plugin p LEFT JOIN namespace_plugin_rel r "
+                       "ON r.plugin_id=p.id AND r.namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385' "
+                       f"WHERE p.id<>'{SENTINEL}' AND r.id IS NULL"))
+        for label, query in checks:
+            if scalar(self.sql("SELECT COUNT(*) FROM (" + query + ") violations;")) != "0":
+                raise AssertionError("Invalid fresh seed: " + label)
+        if scalar(self.sql("SELECT COUNT(*) FROM namespace WHERE namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385' "
+                           "AND name='default';")) != "1":
+            raise AssertionError("Missing default namespace")
+        for table, column in (("plugin", "config"), ("namespace_plugin_rel", "config"), ("plugin_handle", "ext_obj")):
+            for value in self.sql(f"SELECT {column} FROM {table} WHERE {column} IS NOT NULL;").splitlines():
+                json.loads(value)  # Validate escaped basicAuth JSON on both native engines too.
+        for plugin_id in ("22", "23", "33", "44", "50"):
+            config = json.loads(scalar(self.sql(f"SELECT config FROM plugin WHERE id='{plugin_id}';")))
+            namespace_config = json.loads(scalar(self.sql("SELECT config FROM namespace_plugin_rel "
+                                                        f"WHERE plugin_id='{plugin_id}' AND "
+                                                        "namespace_id='649330b6-c2d7-4edc-be8e-8a54df9eb385';")))
+            if config != namespace_config:
+                raise AssertionError("Default namespace config differs for plugin " + plugin_id)
+            if plugin_id == "33" and config.get("bootstrapServer") != "localhost:9092":
+                raise AssertionError("loggingKafka must seed bootstrapServer")
+
+    def check_discovery_upstream_uniqueness(self):
+        # A failed client disconnect rolls back this disposable transaction.
+        insert = ("INSERT INTO discovery_upstream (id,discovery_handler_id,namespace_id,protocol,upstream_url,upstream_status,weight) "
+                  "VALUES ('{}','sql-matrix-handler','sql-matrix-namespace','http','127.0.0.1:8080',0,100);")
+        try:
+            self.sql("BEGIN;" + insert.format("sql-matrix-upstream-1") + insert.format("sql-matrix-upstream-2") + "ROLLBACK;")
+        except RuntimeError as error:
+            if "discovery_upstream_discovery_handler_id_idx" not in str(error).lower():
+                raise
+        else:
+            raise AssertionError("Duplicate discovery upstream was accepted")
+
+    def insert_legacy_mock_header(self):
+        self.sql("INSERT INTO mock_request_record (id,api_id,host,port,url,path_variable,query,header,body) "
+                 "VALUES ('sql-header-legacy','sql-header-api','localhost',9195,'http://localhost/test','path','query',"
+                 "'{\"Authorization\":\"legacy-token\"}','legacy-body');")
+
+    def check_mock_headers(self, upgrade=False):
+        if upgrade:
+            combined = "header||'|'||body" if self.dialect in ("pg", "og", "oracle") else "CONCAT(header,'|',body)"
+            if scalar(self.sql("SELECT " + combined + " FROM mock_request_record WHERE id='sql-header-legacy';")) != (
+                    '{"Authorization":"legacy-token"}|legacy-body'):
+                raise AssertionError("Header migration changed the existing header/body or row identity")
+        if self.dialect == "oracle":
+            value = "TO_CLOB(RPAD('t',3000,'t'))||TO_CLOB(RPAD('t',3000,'t'))"
+        else:
+            value = "REPEAT('t',6000)"
+        self.sql("INSERT INTO mock_request_record (id,api_id,host,port,url,path_variable,query,header) "
+                 "VALUES ('sql-header-long','sql-header-api','localhost',9195,'http://localhost/test','path','query'," + value + ");")
+        if scalar(self.sql("SELECT LENGTH(header) FROM mock_request_record WHERE id='sql-header-long';")) != "6000":
+            raise AssertionError("Long request header was truncated")
+
+    def insert_data_permissions(self, duplicates=False):
+        grants = [("1", "sql-matrix-user", "sql-matrix-data", 0),
+                  ("4", "sql-matrix-user-other", "sql-matrix-data", 0),
+                  ("5", "sql-matrix-user", "sql-matrix-data-other", 0),
+                  ("6", "sql-matrix-user", "sql-matrix-data", 1)]
+        if duplicates:
+            grants += [("2", "sql-matrix-user", "sql-matrix-data", 0),
+                       ("3", "sql-matrix-user", "sql-matrix-data", 0)]
+        self.sql("\n".join("INSERT INTO data_permission (id,user_id,data_id,data_type,date_created,date_updated) "
+                           f"VALUES ('sql-matrix-grant-{identifier}','{user}','{data}',{kind},"
+                           "TIMESTAMP '2026-01-01 00:00:00',TIMESTAMP '2026-01-02 00:00:00');"
+                           for identifier, user, data, kind in grants))
+
+    def check_data_permission_uniqueness(self, indexes):
+        index = "idx_data_permission_user_type"
+        if indexes.get(("data_permission", index)) != ["user_id", "data_type", "data_id"]:
+            raise AssertionError("Wrong data permission unique index columns")
+        if self.dialect in ("mysql", "ob"):
+            query = ("SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='shenyu' "
+                     f"AND table_name='data_permission' AND index_name='{index}' AND non_unique=0;")
+            expected = "3"
+        elif self.dialect in ("pg", "og"):
+            query = ("SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public' AND tablename='data_permission' "
+                     f"AND indexname='{index}' AND indexdef LIKE 'CREATE UNIQUE INDEX%';")
+            expected = "1"
+        else:
+            query = ("SELECT COUNT(*) FROM user_indexes WHERE table_name='DATA_PERMISSION' "
+                     f"AND index_name='{index.upper()}' AND uniqueness='UNIQUE';")
+            expected = "1"
+        if scalar(self.sql(query)) != expected:
+            raise AssertionError("Data permission index is not unique")
+        identifiers = set(self.sql("SELECT id FROM data_permission "
+                                   "WHERE user_id IN ('sql-matrix-user','sql-matrix-user-other');").split())
+        if identifiers != {f"sql-matrix-grant-{number}" for number in (1, 4, 5, 6)}:
+            raise AssertionError("Data permission migration lost distinct grants or retained duplicate rows")
+        if scalar(self.sql("SELECT COUNT(*) FROM data_permission WHERE id='sql-matrix-grant-1' "
+                           "AND date_created=TIMESTAMP '2026-01-01 00:00:00' "
+                           "AND date_updated=TIMESTAMP '2026-01-02 00:00:00';")) != "1":
+            raise AssertionError("Retained data permission timestamps changed")
+        try:
+            self.sql("INSERT INTO data_permission (id,user_id,data_id,data_type) "
+                     "VALUES ('sql-matrix-grant-conflict','sql-matrix-user','sql-matrix-data',0);")
+        except RuntimeError as error:
+            if index not in str(error).lower():
+                raise
+        else:
+            raise AssertionError("Duplicate data permission was accepted")
+
+
+    def insert_instance_observations(self, duplicates=False):
+        # Exercise every winner tie-break and every identity component independently.
+        rows = [
+            ("heartbeat", "ns", "ip", "port", "type", 200, 2, 1),
+            ("updated", "ns-updated", "ip", "port", "type", 0, 2, 1),
+            ("created", "ns-created", "ip", "port", "type", 0, 2, 2),
+            ("tie-z", "ns-tie", "ip", "port", "type", 0, 2, 1),
+            ("namespace", "ns-other", "ip", "port", "type", 50, 2, 1),
+            ("ip", "ns", "ip-other", "port", "type", 50, 2, 1),
+            ("port", "ns", "ip", "port-other", "type", 50, 2, 1),
+            ("type", "ns", "ip", "port", "type-other", 50, 2, 1),
+            ("max", "n" * 50, "i" * 128, "p" * 128, "t" * 128, 50, 2, 1),
+        ]
+        if duplicates:
+            rows += [
+                ("old-heartbeat", "ns", "ip", "port", "type", 100, 3, 1),
+                ("old-updated", "ns-updated", "ip", "port", "type", 0, 1, 1),
+                ("old-created", "ns-created", "ip", "port", "type", 0, 2, 1),
+                ("tie-a", "ns-tie", "ip", "port", "type", 0, 2, 1),
+            ]
+        self.sql("\n".join(
+            "INSERT INTO instance_info (id,namespace_id,instance_ip,instance_port,instance_type,"
+            "instance_info,instance_state,last_heart_beat_time,date_updated,date_created) "
+            f"VALUES ('sql-instance-{identifier}','{namespace}','{ip}','{port}','{kind}','{identifier}',1,{heartbeat},"
+            f"TIMESTAMP '2026-01-0{updated} 00:00:00',TIMESTAMP '2026-01-0{created} 00:00:00');"
+            for identifier, namespace, ip, port, kind, heartbeat, updated, created in rows))
+
+    def check_instance_identity(self, indexes, mapper):
+        index = "uk_instance_info_identity"
+        if indexes.get(("instance_info", index)) != ["namespace_id", "instance_ip", "instance_port", "instance_type"]:
+            raise AssertionError("Wrong instance identity index columns")
+        identifiers = set(self.sql("SELECT id FROM instance_info WHERE id LIKE 'sql-instance-%';").split())
+        expected = {"heartbeat", "updated", "created", "tie-z", "namespace", "ip", "port", "type", "max"}
+        if identifiers != {"sql-instance-" + name for name in expected}:
+            raise AssertionError("Instance migration lost distinct identities or retained the wrong observation")
+        try:
+            self.sql("INSERT INTO instance_info (id,namespace_id,instance_ip,instance_port,instance_type,instance_info,instance_state) "
+                     "VALUES ('sql-instance-conflict','ns','ip','port','type','conflict',2);")
+        except RuntimeError as error:
+            if index not in str(error).lower():
+                raise
+        else:
+            raise AssertionError("Duplicate instance identity was accepted")
+        document = ET.parse(mapper).getroot()
+        statement = "".join(document.find("update[@id='updateById']").itertext())
+        values = {"id": "'sql-instance-heartbeat'", "dateUpdated": "TIMESTAMP '2026-02-01 00:00:00'",
+                  "instanceIp": "'ip'", "instancePort": "'port'", "instanceType": "'type'",
+                  "instanceInfo": "'updated-info'", "instanceState": "2"}
+        for heartbeat, expected_heartbeat in ((100, 200), (0, 200), (300, 300), (300, 300)):
+            values["lastHeartBeatTime"] = str(heartbeat)
+            sql = re.sub(r"#\{(\w+)[^}]*}", lambda match: values[match[1]], statement)
+            self.sql(sql + ";")
+            if scalar(self.sql("SELECT last_heart_beat_time FROM instance_info WHERE id='sql-instance-heartbeat';")) != str(expected_heartbeat):
+                raise AssertionError("Instance update overwrote a newer heartbeat or lost a newer report")
+            state = "1" if heartbeat < 200 else "2"
+            if scalar(self.sql("SELECT instance_state FROM instance_info WHERE id='sql-instance-heartbeat';")) != state:
+                raise AssertionError("Instance state does not match the retained heartbeat")
+        if scalar(self.sql("SELECT COUNT(*) FROM instance_info WHERE id='sql-instance-heartbeat' "
+                           "AND date_created=TIMESTAMP '2026-01-01 00:00:00';")) != "1":
+            raise AssertionError("Instance update changed the canonical row creation time")
+
+
 def execute_matrix(dialect, root, output):
     output.mkdir(parents=True, exist_ok=True)
     listing, detail = fragment_columns(root / "shenyu-admin/src/main/resources/mappers/plugin-sqlmap.xml")
@@ -311,8 +550,16 @@ def execute_matrix(dialect, root, output):
             original_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             before = {table: set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split()) for table in TABLES}
             if flow == "upgrade":
-                migration = root / f"db/upgrade/2.7.1-upgrade-2.7.2-{dialect}.sql"
-                engine.sql(migration.read_text(encoding="utf-8"))
+                engine.insert_data_permissions(duplicates=True)
+                engine.insert_legacy_mock_header()
+                for step in MIGRATIONS_FROM_BASELINE:
+                    if step == "2.7.2-upgrade-2.7.3":
+                        engine.insert_instance_observations(duplicates=True)
+                    migration = root / f"db/upgrade/{step}-{dialect}.sql"
+                    engine.sql(migration.read_text(encoding="utf-8"))
+            else:
+                engine.insert_data_permissions()
+                engine.insert_instance_observations()
             engine.check_data(listing, detail)
             current_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             if current_listing != original_listing:
@@ -322,8 +569,14 @@ def execute_matrix(dialect, root, output):
                 if not identifiers.issubset(after):
                     raise AssertionError(f"Migration removed rows from {table}: {sorted(identifiers - after)}")
             indexes = engine.indexes()
+            engine.check_data_permission_uniqueness(indexes)
+            engine.check_instance_identity(indexes, root / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml")
+
+            engine.check_mock_headers(upgrade=flow == "upgrade")
             if flow == "fresh" and dialect in ("mysql", "ob"):
                 engine.check_fresh_mysql_schema(schema, indexes)
+            if flow == "fresh" and dialect in ("pg", "og"):
+                engine.check_fresh_postgres_schema(schema, indexes)
             report["status"] = "success"
             print(f"{dialect}: {flow} SQL, projections, JAR preservation and index metadata passed", flush=True)
         except Exception as error:

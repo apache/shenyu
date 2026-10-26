@@ -132,9 +132,11 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String delete(final List<String> ids) {
-        // select namespace plugin by ns plugin rel Ids.
-        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids);
+    public String delete(final List<String> ids, final String namespaceId) {
+        // select namespace plugin by ns plugin rel Ids, scoped to the request namespace.
+        List<NamespacePluginVO> namespacePluginVOS = this.namespacePluginRelMapper.selectByIds(ids).stream()
+                .filter(vo -> Objects.equals(vo.getNamespaceId(), namespaceId))
+                .toList();
         if (CollectionUtils.isEmpty(namespacePluginVOS)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
@@ -183,13 +185,16 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
     }
     
     @Override
-    public String enabled(final List<String> ids, final Boolean enabled) {
-        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectByIds(ids);
+    public String enabled(final List<String> ids, final Boolean enabled, final String namespaceId) {
+        // select namespace plugin by ns plugin rel Ids, scoped to the request namespace.
+        List<NamespacePluginVO> namespacePluginVOList = namespacePluginRelMapper.selectByIds(ids).stream()
+                .filter(vo -> Objects.equals(vo.getNamespaceId(), namespaceId))
+                .toList();
         if (CollectionUtils.isEmpty(namespacePluginVOList)) {
             return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
         }
         namespacePluginVOList.forEach(pluginNsRelDO -> pluginNsRelDO.setEnabled(enabled));
-        namespacePluginRelMapper.updateEnableByIdList(ids, enabled);
+        namespacePluginRelMapper.updateEnableByIdList(ListUtil.map(namespacePluginVOList, NamespacePluginVO::getId), enabled);
         // publish change event.
         if (CollectionUtils.isNotEmpty(namespacePluginVOList)) {
             namespacePluginEventPublisher.onEnabled(namespacePluginVOList);

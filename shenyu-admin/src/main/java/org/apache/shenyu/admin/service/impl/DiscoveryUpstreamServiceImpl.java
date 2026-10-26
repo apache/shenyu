@@ -42,10 +42,12 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -54,19 +56,28 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryUpstreamServiceImpl.class);
+
+    // Keep IN lists below Oracle's 1000-expression limit and bound query payloads on all databases.
+    private static final int BATCH_SIZE = 500;
+
+    // free-form props key carrying the draining admission marker (#8042)
+    private static final String DRAINING_PROP_KEY = "draining";
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -122,6 +133,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (CollectionUtils.isEmpty(upstreams)) {
             return;
         }
+        upstreams.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         Set<String> handlerIds = new LinkedHashSet<>();
         for (DiscoveryUpstreamDTO upstream : upstreams) {
             DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
@@ -138,6 +150,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional
     public int updateBatch(final String discoveryHandlerId, final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
+        // Validate the complete replacement before deleting anything or emitting a sync event.
+        discoveryUpstreamDTOList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
             discoveryUpstreamDTO.setId(null);
@@ -145,6 +159,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             discoveryUpstreamDO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         }
+        fetchAfterCommit(discoveryHandlerId);
+        return 0;
+    }
+
+    private void fetchAfterCommit(final String discoveryHandlerId) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -155,11 +174,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         } else {
             this.fetchAll(discoveryHandlerId);
         }
-        return 0;
     }
 
     @Override
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
@@ -179,8 +198,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      */
     @Override
     public String delete(final List<String> ids) {
-
+        // resolve the owning handlers before the rows disappear, so the gateways can be
+        // notified with the remaining upstream snapshot (including an empty one)
+        final List<DiscoveryUpstreamDO> deleted = discoveryUpstreamMapper.selectByIds(ids);
         discoveryUpstreamMapper.deleteByIds(ids);
+        deleted.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).distinct().forEach(this::fetchAll);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 
@@ -194,41 +216,59 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         return buildSyncData(discoveryHandlerMapper.selectAllByNamespaceId(namespaceId));
     }
 
-    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> discoveryHandlerDOS) {
-        return discoveryHandlerDOS.stream().map(d -> {
-            DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByDiscoveryHandlerId(d.getId());
-            if (Objects.isNull(discoveryRelDO)) {
-                LOG.warn("Skipping discovery handler {} without a relation", d.getId());
-                return null;
-            }
-            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
-            discoverySyncData.setPluginName(discoveryRelDO.getPluginName());
-            if (StringUtils.hasLength(discoveryRelDO.getSelectorId())) {
-                String selectorId = discoveryRelDO.getSelectorId();
-                discoverySyncData.setSelectorId(selectorId);
-                SelectorDO selectorDO = selectorMapper.selectById(selectorId);
-                if (Objects.isNull(selectorDO)) {
-                    LOG.warn("Skipping discovery handler {} with missing selector {}", d.getId(), selectorId);
-                    return null;
+    private List<DiscoverySyncData> buildSyncData(final List<DiscoveryHandlerDO> handlers) {
+        List<DiscoverySyncData> result = new ArrayList<>();
+        for (List<DiscoveryHandlerDO> batch : Lists.partition(handlers, BATCH_SIZE)) {
+            List<String> handlerIds = batch.stream().map(DiscoveryHandlerDO::getId).collect(Collectors.toList());
+            List<DiscoveryRelDO> relations = discoveryRelMapper.selectByDiscoveryHandlerIds(handlerIds);
+            Set<String> selectorIds = relations.stream().map(DiscoveryRelDO::getSelectorId).filter(StringUtils::hasLength).collect(Collectors.toSet());
+            List<String> proxyIds = relations.stream().filter(rel -> !StringUtils.hasLength(rel.getSelectorId()))
+                    .map(DiscoveryRelDO::getProxySelectorId).filter(StringUtils::hasLength).distinct().collect(Collectors.toList());
+            Map<String, SelectorDO> selectors = selectorIds.isEmpty() ? Collections.emptyMap()
+                    : selectorMapper.selectByIdSet(selectorIds).stream().collect(Collectors.toMap(SelectorDO::getId, Function.identity()));
+            Map<String, ProxySelectorDO> proxies = proxyIds.isEmpty() ? Collections.emptyMap()
+                    : proxySelectorMapper.selectByIds(proxyIds).stream().collect(Collectors.toMap(ProxySelectorDO::getId, Function.identity()));
+            Map<String, List<DiscoveryUpstreamData>> upstreams = discoveryUpstreamMapper.selectByDiscoveryHandlerIds(handlerIds).stream()
+                    .collect(Collectors.groupingBy(DiscoveryUpstreamDO::getDiscoveryHandlerId,
+                            Collectors.mapping(DiscoveryTransfer.INSTANCE::mapToData, Collectors.toList())));
+            Map<String, DiscoveryRelDO> relationByHandler = relations.stream()
+                    .collect(Collectors.toMap(DiscoveryRelDO::getDiscoveryHandlerId, Function.identity(), (existing, duplicate) -> {
+                        LOG.warn("Duplicate discovery relations for handler {}, retaining relation {} and ignoring {}",
+                                existing.getDiscoveryHandlerId(), existing.getId(), duplicate.getId());
+                        return existing;
+                    }));
+            for (DiscoveryHandlerDO handler : batch) {
+                DiscoveryRelDO relation = relationByHandler.get(handler.getId());
+                if (Objects.isNull(relation)) {
+                    LOG.warn("Skipping discovery handler {}: relation is missing", handler.getId());
+                    continue;
                 }
-                discoverySyncData.setSelectorName(selectorDO.getSelectorName());
-                discoverySyncData.setNamespaceId(selectorDO.getNamespaceId());
-            } else {
-                String proxySelectorId = discoveryRelDO.getProxySelectorId();
-                discoverySyncData.setSelectorId(proxySelectorId);
-                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
-                if (Objects.isNull(proxySelectorDO)) {
-                    LOG.warn("Skipping discovery handler {} with missing proxy selector {}", d.getId(), proxySelectorId);
-                    return null;
+                DiscoverySyncData data = new DiscoverySyncData();
+                data.setPluginName(relation.getPluginName());
+                if (StringUtils.hasLength(relation.getSelectorId())) {
+                    SelectorDO selector = selectors.get(relation.getSelectorId());
+                    if (Objects.isNull(selector)) {
+                        LOG.warn("Skipping discovery handler {}: selector {} is missing", handler.getId(), relation.getSelectorId());
+                        continue;
+                    }
+                    data.setSelectorId(selector.getId());
+                    data.setSelectorName(selector.getSelectorName());
+                    data.setNamespaceId(selector.getNamespaceId());
+                } else {
+                    ProxySelectorDO proxy = proxies.get(relation.getProxySelectorId());
+                    if (Objects.isNull(proxy)) {
+                        LOG.warn("Skipping discovery handler {}: proxy selector {} is missing", handler.getId(), relation.getProxySelectorId());
+                        continue;
+                    }
+                    data.setSelectorId(proxy.getId());
+                    data.setSelectorName(proxy.getName());
+                    data.setNamespaceId(proxy.getNamespaceId());
                 }
-                discoverySyncData.setSelectorName(proxySelectorDO.getName());
-                discoverySyncData.setNamespaceId(proxySelectorDO.getNamespaceId());
+                data.setUpstreamDataList(upstreams.getOrDefault(handler.getId(), Collections.emptyList()));
+                result.add(data);
             }
-            List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(d.getId()).stream()
-                    .map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
-            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
-            return discoverySyncData;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        }
+        return result;
     }
 
     @Override
@@ -264,6 +304,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String create(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -277,6 +318,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -291,6 +333,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
         return discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasDiscoveryHandler(final String selectorId) {
+        return Objects.nonNull(discoveryHandlerMapper.selectBySelectorId(selectorId));
     }
 
     @Override
@@ -313,10 +360,28 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void markDrainingBySelectorIdAndUrl(final String selectorId, final String url, final boolean draining) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
+        DiscoveryUpstreamDO upstream = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerDO.getId(), url);
+        if (Objects.isNull(upstream)) {
+            return;
+        }
+        Map<String, Object> props = !StringUtils.hasLength(upstream.getProps())
+                ? new LinkedHashMap<>() : GsonUtils.getInstance().convertToMap(upstream.getProps());
+        props.put(DRAINING_PROP_KEY, draining);
+        discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, GsonUtils.getInstance().toJson(props));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<DiscoveryUpstreamDTO> discoveryUpstreamList) {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
         }
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -326,6 +391,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
+            if (!StringUtils.hasText(discoveryHandlerId)) {
+                errorMsgBuilder
+                        .append(url)
+                        .append(',');
+                continue;
+            }
             Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap
                     .getOrDefault(discoveryHandlerId, Lists.newArrayList())
                     .stream()
@@ -357,6 +428,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             return ConfigImportResult.success();
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, Set<String>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -367,17 +439,17 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamList) {
             String discoveryHandlerId = discoveryUpstreamDTO.getDiscoveryHandlerId();
             String url = discoveryUpstreamDTO.getUrl();
-            String newDiscoveryHandlerId = discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId);
-            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap.computeIfAbsent(newDiscoveryHandlerId, key -> new HashSet<>());
-            if (existsUpstreamUrlSet.contains(url)) {
+            String targetHandlerId = discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId);
+            Set<String> existsUpstreamUrlSet = discoveryHandlerUpstreamMap.computeIfAbsent(targetHandlerId, key -> new HashSet<>());
+            if (existsUpstreamUrlSet.contains(url) || !StringUtils.hasText(targetHandlerId)) {
                 errorMsgBuilder
                         .append(url)
-                        .append(",");
+                        .append(',');
                 continue;
             }
             discoveryUpstreamDTO.setNamespaceId(namespace);
             discoveryUpstreamDTO.setId(null);
-            discoveryUpstreamDTO.setDiscoveryHandlerId(newDiscoveryHandlerId);
+            discoveryUpstreamDTO.setDiscoveryHandlerId(targetHandlerId);
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
             if (discoveryUpstreamMapper.insert(discoveryUpstreamDO) > 0) {
                 existsUpstreamUrlSet.add(url);

@@ -30,6 +30,21 @@ public class GrpcRegisterConfig implements Serializable {
     private String threadpool;
 
     /**
+     * Maximum number of aggregated response items retained by a single gRPC call
+     * (including SERVER_STREAMING / BIDI_STREAMING). A value that is {@code null}
+     * or not positive means unlimited, which preserves the historical behavior.
+     */
+    private Long maxAggregatedResultCount;
+
+    /**
+     * Maximum accumulated payload bytes (UTF-8) of the aggregated response items retained
+     * by a single gRPC call. This bounds the serialized payload bytes, not the exact JVM heap
+     * footprint. A value that is {@code null} or not positive means unlimited, which preserves
+     * the historical behavior.
+     */
+    private Long maxAggregatedResultBytes;
+
+    /**
      * get threadpool.
      *
      * @return threadpool
@@ -47,6 +62,42 @@ public class GrpcRegisterConfig implements Serializable {
         this.threadpool = threadpool;
     }
 
+    /**
+     * get maxAggregatedResultCount.
+     *
+     * @return maxAggregatedResultCount
+     */
+    public Long getMaxAggregatedResultCount() {
+        return maxAggregatedResultCount;
+    }
+
+    /**
+     * set maxAggregatedResultCount.
+     *
+     * @param maxAggregatedResultCount maxAggregatedResultCount
+     */
+    public void setMaxAggregatedResultCount(final Long maxAggregatedResultCount) {
+        this.maxAggregatedResultCount = maxAggregatedResultCount;
+    }
+
+    /**
+     * get maxAggregatedResultBytes.
+     *
+     * @return maxAggregatedResultBytes
+     */
+    public Long getMaxAggregatedResultBytes() {
+        return maxAggregatedResultBytes;
+    }
+
+    /**
+     * set maxAggregatedResultBytes.
+     *
+     * @param maxAggregatedResultBytes maxAggregatedResultBytes
+     */
+    public void setMaxAggregatedResultBytes(final Long maxAggregatedResultBytes) {
+        this.maxAggregatedResultBytes = maxAggregatedResultBytes;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -56,12 +107,14 @@ public class GrpcRegisterConfig implements Serializable {
             return false;
         }
         GrpcRegisterConfig that = (GrpcRegisterConfig) o;
-        return Objects.equals(threadpool, that.threadpool);
+        return Objects.equals(threadpool, that.threadpool)
+                && Objects.equals(maxAggregatedResultCount, that.maxAggregatedResultCount)
+                && Objects.equals(maxAggregatedResultBytes, that.maxAggregatedResultBytes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(threadpool);
+        return Objects.hash(threadpool, maxAggregatedResultCount, maxAggregatedResultBytes);
     }
 
     @Override
@@ -70,6 +123,10 @@ public class GrpcRegisterConfig implements Serializable {
                 + "threadpool='"
                 + threadpool
                 + '\''
+                + ", maxAggregatedResultCount="
+                + maxAggregatedResultCount
+                + ", maxAggregatedResultBytes="
+                + maxAggregatedResultBytes
                 + '}';
     }
 }
