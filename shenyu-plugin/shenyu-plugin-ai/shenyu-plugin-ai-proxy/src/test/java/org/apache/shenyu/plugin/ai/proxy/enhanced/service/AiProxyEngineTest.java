@@ -35,7 +35,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderProtocolBinding;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderRequestRewriter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderRequestTransformer;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
@@ -130,6 +130,40 @@ class AiProxyEngineTest {
         assertTrue(payload.get("unknown").booleanValue());
         assertTrue(payload.get("stream_options").get("include_usage").booleanValue());
         assertEquals("text/event-stream", request.getHeaders().get("Accept").get(0));
+    }
+
+    @Test
+    void testRequestBodyOverrideDeepMergesAfterProviderTransformation() throws Exception {
+        config.setMaxTokens(256);
+        config.setRequestBodyOverrides(Map.of(OpenAiChat.NAME, Map.of(
+                "max_completion_tokens", 512,
+                "temperature", 0.1,
+                "reasoning", Map.of("effort", "high"))));
+        String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],"
+                + "\"temperature\":0.7,\"reasoning\":{\"summary\":\"auto\"}}";
+
+        JsonNode payload = OBJECT_MAPPER.readTree(engine.buildRequest(body, config).getBody());
+
+        assertEquals(256, payload.path("max_completion_tokens").asInt());
+        assertEquals(0.7, payload.path("temperature").asDouble());
+        assertEquals("auto", payload.at("/reasoning/summary").asText());
+        assertEquals("high", payload.at("/reasoning/effort").asText());
+    }
+
+    @Test
+    void testForcedRequestBodyOverrideReplacesExistingValuesAndIsProtocolScoped() throws Exception {
+        config.setRequestBodyOverrides(Map.of(
+                OpenAiChat.NAME, Map.of("temperature", 0.1, "modalities", List.of("audio")),
+                OpenAiResponses.NAME, Map.of("temperature", 0.2)));
+        config.setRequestBodyForceOverride(true);
+        String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],"
+                + "\"temperature\":0.7,\"modalities\":[\"text\"]}";
+
+        JsonNode payload = OBJECT_MAPPER.readTree(engine.buildRequest(body, config).getBody());
+
+        assertEquals(0.1, payload.path("temperature").asDouble());
+        assertEquals(1, payload.path("modalities").size());
+        assertEquals("audio", payload.at("/modalities/0").asText());
     }
 
     @Test
@@ -325,7 +359,7 @@ class AiProxyEngineTest {
         final AiProxyProvider primary = recordingProvider(
                 "primary", AiProviderCapabilities.chat(), preparedProtocols);
         final AiProviderCapabilities responses = new AiProviderCapabilities(Map.of(
-                OpenAiResponses.NAME, new AiProviderProtocolBinding("/v1/responses", AiProviderRequestRewriter.identity())),
+                OpenAiResponses.NAME, new AiProviderProtocolBinding("/v1/responses", AiProviderRequestTransformer.identity())),
                 Set.of(ShenyuAiRequest.Operation.RESPONSE), Set.of());
         final AiProxyProvider fallback = recordingProvider("fallback", responses, preparedProtocols);
         final AtomicInteger transports = new AtomicInteger();

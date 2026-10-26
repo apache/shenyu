@@ -19,27 +19,40 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.util.Objects;
+
 /**
- * Rewrites a standard target-protocol payload into a provider dialect.
+ * Transforms a standard target-protocol payload into a provider dialect.
  */
 @FunctionalInterface
-public interface AiProviderRequestRewriter {
+public interface AiProviderRequestTransformer {
 
     /**
-     * Rewrite a provider-bound request body.
+     * Transform a provider-bound request body.
      *
      * @param payload target-protocol payload
-     * @param upstreamModel authoritative mapped model, or null
+     * @param context provider and request context
      * @return provider-bound payload
      */
-    ObjectNode rewrite(ObjectNode payload, String upstreamModel);
+    ObjectNode transform(ObjectNode payload, AiProviderRequestContext context);
+
+    /**
+     * Compose this transformer with another transformer.
+     *
+     * @param next transformer applied to this transformer's result
+     * @return composed transformer
+     */
+    default AiProviderRequestTransformer andThen(final AiProviderRequestTransformer next) {
+        Objects.requireNonNull(next, "next AI provider request transformer is required");
+        return (payload, context) -> next.transform(transform(payload, context), context);
+    }
 
     /**
      * Return the payload unchanged.
      *
-     * @return identity rewriter
+     * @return identity transformer
      */
-    static AiProviderRequestRewriter identity() {
-        return (payload, upstreamModel) -> payload;
+    static AiProviderRequestTransformer identity() {
+        return (payload, context) -> payload;
     }
 }

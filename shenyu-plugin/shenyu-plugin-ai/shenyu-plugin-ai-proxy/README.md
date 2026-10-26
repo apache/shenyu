@@ -38,7 +38,7 @@ It does not add native Claude or Gemini upstream transports.
 
 Native request preparation belongs to the target protocol. Connect owns
 cross-protocol conversion and explicitly selected provider dialects. A provider
-declares each native protocol's endpoint and optional request-body rewriter; a
+declares each native protocol's endpoint and composable request transformer; a
 library codec alone does not define endpoint or authentication contracts.
 
 ## Exchange lifecycle
@@ -48,7 +48,8 @@ library codec alone does not define endpoint or authentication contracts.
 3. ShenYu prefers a provider-native target protocol and otherwise selects a
    converter. The target protocol prepares its outgoing payload after routing.
 4. The provider applies gateway overrides and its target-protocol binding. A
-   selected Connect provider profile runs once after protocol conversion.
+   selected Connect provider profile runs once after protocol conversion, then
+   ShenYu applies the configured request-body patch for the native target protocol.
 5. ShenYu constructs the HTTP endpoint and authorization headers and sends the
    request through its existing reactive transport.
 6. For cross-protocol routes, the request-bound response adapter uses the same
@@ -127,6 +128,53 @@ configured token field at its Chat endpoint. An explicit client `stream` setting
 takes precedence over the configured default. Existing `maxTokens` and
 `temperature` gateway overrides apply to the selected target protocol.
 
+### Per-protocol request-body overrides
+
+Stable, cross-provider options should continue to use typed fields such as
+`maxTokens`, `temperature` and `stream`. Provider-specific or experimental fields
+can be added through `requestBodyOverrides`, keyed by the native target protocol:
+
+```json
+{
+  "provider": "OpenAI",
+  "protocol": "openai-chat",
+  "requestBodyOverrides": {
+    "openai-chat": {
+      "reasoning_effort": "high",
+      "parallel_tool_calls": true,
+      "metadata": {
+        "tenant": "example"
+      }
+    },
+    "openai-responses": {
+      "reasoning": {
+        "effort": "medium",
+        "summary": "auto"
+      }
+    }
+  },
+  "requestBodyForceOverride": false
+}
+```
+
+The key is the final provider-native protocol, not necessarily the client
+protocol. For example, a Responses client routed to the Chat-only DeepSeek
+provider uses the `openai-chat` patch after Responses-to-Chat conversion.
+
+Patches run after typed protocol overrides and provider transformation. Plain
+JSON objects merge recursively. Arrays, scalars and type mismatches are treated
+as a single value. With `requestBodyForceOverride` unset or `false`, existing
+request or typed-option values win and the patch only fills missing fields. With
+it set to `true`, patch values replace existing values. Therefore a forced patch
+can intentionally replace the provider field generated from `maxTokens`; use
+typed options for ordinary configuration and reserve forced patches for advanced
+provider-specific behavior.
+
+Final capability and streaming-consistency validation runs after the patch. A
+patch cannot silently enable an unsupported feature or change the streaming mode
+already selected by routing and retry policy. Request-body values are not printed
+by configuration `toString()` methods; only configured protocol names are shown.
+
 The existing `DeepSeek` provider identifier selects Connect's DeepSeek Chat
 profile. Other compatible identifiers (`ALiYun`, `OpenAPI`, `Moonshot`) remain
 generic; neither URLs nor model names are used to guess a dialect. DeepSeek's
@@ -145,7 +193,11 @@ compatible and DeepSeek providers remain Chat-only unless explicitly configured
 with another native protocol binding.
 
 `AiProviderCapabilities` maps each native protocol to an `AiProviderProtocolBinding`,
-which owns that protocol's endpoint path and provider request rewriter. Its binding keys
+which owns that protocol's endpoint path and provider request transformer. The transformer
+receives an `AiProviderRequestContext` containing the provider, target protocol, mapped
+model, normalized request and resolved configuration. Transformers can be composed, so
+field renames, nested provider structures and model-specific behavior stay in the binding
+instead of adding one option field per difference. Its binding keys
 are the single source for `protocols()` and the default `supports()` implementation; a
 provider does not maintain a second protocol-name set. Capabilities also declare streaming,
 function/custom tools, JSON mode, JSON schema output, stream usage and audio output.
@@ -164,8 +216,9 @@ OpenAI now emits one Chat token-limit field, `max_completion_tokens`. When both 
 fields are supplied, the modern field takes precedence; gateway `maxTokens` overrides
 it. This follows the [OpenAI Chat API](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
 Generic compatible profiles preserve the client's field choice unless configured
-otherwise. `withMaxTokensField("max_tokens")` selects a legacy upstream dialect through
-Connect's provider adaptation phase, after Responses-to-Chat conversion. DeepSeek uses
+otherwise. A custom binding can append a transformer with
+`withRequestTransformer(...)`; it runs after any selected Connect dialect and after
+Responses-to-Chat conversion. DeepSeek uses
 its existing Connect profile, including token and thinking mappings. Its Chat capability
 profile accepts function tools and JSON mode and rejects JSON-schema output, custom
 tools and audio output, following the [DeepSeek Chat API](https://api-docs.deepseek.com/api/create-chat-completion/).
@@ -191,7 +244,14 @@ public AiProxyProvider tenantProvider() {
             "/generate", OpenAiProviderOptions.Authentication.HEADER, "api-key", "",
             Map.of("X-Tenant", "tenant-a"), Map.of("api-version", "2026-01"),
             Map.of("client-alias", "upstream-model"), defaults,
-            AiProviderCapabilities.chat(), null, "max_tokens");
+            AiProviderCapabilities.chat(), null)
+            .withRequestTransformer(OpenAiChat.NAME, (payload, context) -> {
+                JsonNode tokens = payload.remove("max_completion_tokens");
+                if (Objects.nonNull(tokens)) {
+                    payload.set("max_tokens", tokens);
+                }
+                return payload;
+            });
     return new OpenAiCompatible("tenant-provider", options);
 }
 ```

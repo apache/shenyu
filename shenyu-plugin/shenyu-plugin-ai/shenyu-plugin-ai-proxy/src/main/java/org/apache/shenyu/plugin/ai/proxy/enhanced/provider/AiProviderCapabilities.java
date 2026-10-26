@@ -89,7 +89,7 @@ public record AiProviderCapabilities(Map<String, AiProviderProtocolBinding> prot
      */
     public static AiProviderCapabilities chat() {
         return new AiProviderCapabilities(Map.of(OpenAiChat.NAME,
-                new AiProviderProtocolBinding("/v1/chat/completions", AiProviderRequestRewriter.identity())),
+                new AiProviderProtocolBinding("/v1/chat/completions", AiProviderRequestTransformer.identity())),
                 EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION),
                 EnumSet.of(Feature.STREAMING, Feature.TOOL_CALLING, Feature.CUSTOM_TOOLS, Feature.JSON_MODE,
                         Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT));

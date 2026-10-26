@@ -122,7 +122,9 @@ public final class OpenAi implements AiProxyProvider {
         if (Objects.nonNull(mappedModel)) {
             payload.put("model", mappedModel);
         }
-        ObjectNode converted = protocolBinding.requestRewriter().rewrite(payload, mappedModel);
+        AiProviderRequestContext context = new AiProviderRequestContext(
+                name(), request.getProtocol(), mappedModel, request, config);
+        ObjectNode converted = protocolBinding.transform(payload, context);
         JsonNode convertedStream = converted.get("stream");
         if (Objects.nonNull(convertedStream) && !convertedStream.isNull() && !convertedStream.isBoolean()
                 || converted.path("stream").asBoolean() != stream) {
