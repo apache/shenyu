@@ -26,18 +26,15 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -64,6 +61,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
             "te", "trailer", "transfer-encoding", "upgrade");
+
+    private static final AiProxyFailureMapper FAILURE_MAPPER = new AiProxyFailureMapper();
 
     private final AiProxyConfigService aiProxyConfigService;
 
@@ -135,18 +134,10 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         if (response.isCommitted()) {
             return Mono.error(error);
         }
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        if (error instanceof DataBufferLimitException) {
-            status = HttpStatus.PAYLOAD_TOO_LARGE;
-        } else if (error instanceof ShenyuException) {
-            status = HttpStatus.BAD_REQUEST;
-        } else if (error instanceof AiTransportException) {
-            status = HttpStatus.BAD_GATEWAY;
-        } else if (error instanceof AiProxyException) {
-            status = ((AiProxyException) error).getKind() == AiProxyException.Kind.REQUEST ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_GATEWAY;
-        }
+        AiProxyFailureResponse failureResponse = FAILURE_MAPPER.map(error);
         LOG.warn("AI proxy failed before response commitment: {}", error.getClass().getSimpleName());
-        response.setStatusCode(status);
+        response.setStatusCode(failureResponse.getStatus());
+        failureResponse.getHeaders().forEach((name, values) -> response.getHeaders().put(name, values));
         return response.setComplete();
     }
 
