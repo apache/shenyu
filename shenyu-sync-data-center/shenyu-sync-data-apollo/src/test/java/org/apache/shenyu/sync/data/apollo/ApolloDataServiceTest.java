@@ -24,9 +24,11 @@ import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -35,6 +37,8 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -178,6 +182,27 @@ class ApolloDataServiceTest {
         assertEquals("test-plugin", captor.getValue().getName());
     }
 
+    @ParameterizedTest
+    @EnumSource(PropertyChangeType.class)
+    void testPluginDataKeyEndingWithList(final PropertyChangeType changeType) {
+        createApolloDataService();
+
+        final ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".blacklist",
+                PropertyChangeType.DELETED.equals(changeType) ? null : "{\"name\":\"blacklist\"}",
+                changeType
+        );
+
+        capturedListener.onChange(event);
+        final ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
+        if (PropertyChangeType.DELETED.equals(changeType)) {
+            verify(pluginDataSubscriber).unSubscribe(captor.capture());
+        } else {
+            verify(pluginDataSubscriber).onSubscribe(captor.capture());
+        }
+        assertEquals("blacklist", captor.getValue().getName());
+    }
+
     @Test
     void testSelectorDataChange() {
         ApolloDataService apolloDataService = createApolloDataService();
@@ -190,6 +215,28 @@ class ApolloDataServiceTest {
 
         capturedListener.onChange(event);
         verify(pluginDataSubscriber, times(1)).onSelectorSubscribe(any());
+    }
+
+    @ParameterizedTest
+    @EnumSource(PropertyChangeType.class)
+    void testSelectorDataKeyEndingWithList(final PropertyChangeType changeType) {
+        createApolloDataService();
+
+        final ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.SELECTOR_DATA_ID + ".test-plugin.selector-whitelist",
+                PropertyChangeType.DELETED.equals(changeType) ? null : "{\"id\":\"selector-whitelist\",\"pluginName\":\"test-plugin\"}",
+                changeType
+        );
+
+        capturedListener.onChange(event);
+        final ArgumentCaptor<SelectorData> captor = ArgumentCaptor.forClass(SelectorData.class);
+        if (PropertyChangeType.DELETED.equals(changeType)) {
+            verify(pluginDataSubscriber).unSelectorSubscribe(captor.capture());
+        } else {
+            verify(pluginDataSubscriber).onSelectorSubscribe(captor.capture());
+        }
+        assertEquals("selector-whitelist", captor.getValue().getId());
+        assertEquals("test-plugin", captor.getValue().getPluginName());
     }
 
     @Test
@@ -238,6 +285,27 @@ class ApolloDataServiceTest {
         verify(authDataSubscriber, times(1)).onSubscribe(any());
     }
 
+    @ParameterizedTest
+    @EnumSource(PropertyChangeType.class)
+    void testAuthDataKeyEndingWithList(final PropertyChangeType changeType) {
+        createApolloDataService();
+
+        final ConfigChangeEvent event = mockConfigChangeEvent(
+                NAMESPACE + "." + ApolloPathConstants.AUTH_DATA_ID + ".whitelist",
+                PropertyChangeType.DELETED.equals(changeType) ? null : "{\"appKey\":\"whitelist\"}",
+                changeType
+        );
+
+        capturedListener.onChange(event);
+        final ArgumentCaptor<AppAuthData> captor = ArgumentCaptor.forClass(AppAuthData.class);
+        if (PropertyChangeType.DELETED.equals(changeType)) {
+            verify(authDataSubscriber).unSubscribe(captor.capture());
+        } else {
+            verify(authDataSubscriber).onSubscribe(captor.capture());
+        }
+        assertEquals("whitelist", captor.getValue().getAppKey());
+    }
+
     @Test
     void testMetaDataChange() {
         ApolloDataService apolloDataService = createApolloDataService();
@@ -271,7 +339,7 @@ class ApolloDataServiceTest {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
-                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.test-proxy",
+                NAMESPACE + "." + ApolloPathConstants.PROXY_SELECTOR_DATA_ID + ".test-plugin.selector-id",
                 null,
                 PropertyChangeType.DELETED
         );
@@ -280,7 +348,7 @@ class ApolloDataServiceTest {
         ArgumentCaptor<ProxySelectorData> captor = ArgumentCaptor.forClass(ProxySelectorData.class);
         verify(proxySelectorDataSubscriber, times(1)).unSubscribe(captor.capture());
         assertEquals("test-plugin", captor.getValue().getPluginName());
-        assertEquals("test-proxy", captor.getValue().getName());
+        assertEquals("selector-id", captor.getValue().getId());
     }
 
     @Test
@@ -297,14 +365,15 @@ class ApolloDataServiceTest {
         verify(discoveryUpstreamDataSubscriber, times(1)).onSubscribe(any());
     }
 
-    @Test
-    void testListKeySkipped() {
+    @ParameterizedTest
+    @EnumSource(PropertyChangeType.class)
+    void testListKeySkipped(final PropertyChangeType changeType) {
         ApolloDataService apolloDataService = createApolloDataService();
 
         ConfigChangeEvent event = mockConfigChangeEvent(
                 NAMESPACE + "." + ApolloPathConstants.PLUGIN_DATA_ID + ".list",
                 "[\"test-plugin\"]",
-                PropertyChangeType.MODIFIED
+                changeType
         );
 
         capturedListener.onChange(event);

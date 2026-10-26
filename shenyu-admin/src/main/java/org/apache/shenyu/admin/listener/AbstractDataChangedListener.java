@@ -18,10 +18,14 @@
 package org.apache.shenyu.admin.listener;
 
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -148,9 +152,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateAppAuthCache(namespaceId);
-        this.afterAppAuthChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, AppAuthData::getNamespaceId, ConfigGroupEnum.APP_AUTH).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.APP_AUTH, namespaceId, () -> this.updateAppAuthCache(namespaceId));
+            this.afterAppAuthChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -167,9 +172,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateMetaDataCache(namespaceId);
-        this.afterMetaDataChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, MetaData::getNamespaceId, ConfigGroupEnum.META_DATA).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.META_DATA, namespaceId, () -> this.updateMetaDataCache(namespaceId));
+            this.afterMetaDataChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -186,9 +192,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updatePluginCache(namespaceId);
-        this.afterPluginChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, PluginData::getNamespaceId, ConfigGroupEnum.PLUGIN).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.PLUGIN, namespaceId, () -> this.updatePluginCache(namespaceId));
+            this.afterPluginChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -215,9 +222,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateRuleCache(namespaceId);
-        this.afterRuleChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, RuleData::getNamespaceId, ConfigGroupEnum.RULE).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.RULE, namespaceId, () -> this.updateRuleCache(namespaceId));
+            this.afterRuleChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -234,9 +242,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateSelectorCache(namespaceId);
-        this.afterSelectorChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, SelectorData::getNamespaceId, ConfigGroupEnum.SELECTOR).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.SELECTOR, namespaceId, () -> this.updateSelectorCache(namespaceId));
+            this.afterSelectorChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -250,9 +259,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateProxySelectorDataCache(namespaceId);
-        this.afterProxySelectorChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, ProxySelectorData::getNamespaceId, ConfigGroupEnum.PROXY_SELECTOR).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.PROXY_SELECTOR, namespaceId, () -> this.updateProxySelectorDataCache(namespaceId));
+            this.afterProxySelectorChanged(namespaceChanged, eventType, namespaceId);
+        });
     }
 
     /**
@@ -275,9 +285,23 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
-        String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        this.updateDiscoveryUpstreamDataCache(namespaceId);
-        this.afterDiscoveryUpstreamDataChanged(changed, eventType, namespaceId);
+        groupByNamespace(changed, DiscoverySyncData::getNamespaceId, ConfigGroupEnum.DISCOVER_UPSTREAM).forEach((namespaceId, namespaceChanged) -> {
+            this.refreshCache(ConfigGroupEnum.DISCOVER_UPSTREAM, namespaceId, () -> this.updateDiscoveryUpstreamDataCache(namespaceId));
+            this.afterDiscoveryUpstreamDataChanged(namespaceChanged, eventType, namespaceId);
+        });
+    }
+
+    private <T> Map<String, List<T>> groupByNamespace(final List<T> changed, final Function<T, String> namespaceIdGetter, final ConfigGroupEnum group) {
+        Map<String, List<T>> changedByNamespace = new LinkedHashMap<>();
+        for (T data : changed) {
+            if (Objects.isNull(data)) {
+                LOG.warn("skip null {} change while grouping namespaces", group);
+                continue;
+            }
+            String namespaceId = StringUtils.defaultString(namespaceIdGetter.apply(data), SYS_DEFAULT_NAMESPACE_ID);
+            changedByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        }
+        return changedByNamespace;
     }
 
     /**
@@ -305,6 +329,18 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     protected abstract void afterInitialize();
+
+    /**
+     * Refresh a group for a committed change. Transport implementations may coalesce snapshot work;
+     * event callbacks are still invoked once for every event and namespace.
+     *
+     * @param group configuration group
+     * @param namespaceId namespace id
+     * @param rebuild authoritative cache rebuild, without event payloads
+     */
+    protected void refreshCache(final ConfigGroupEnum group, final String namespaceId, final Runnable rebuild) {
+        rebuild.run();
+    }
 
     /**
      * if md5 is not the same as the original, then update local cache.
@@ -335,30 +371,38 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     protected void refreshLocalCache() {
         List<NamespaceVO> namespaceList = namespaceService.listAll();
         for (NamespaceVO namespace : namespaceList) {
-            String namespaceId = namespace.getNamespaceId();
-            this.updatePluginCache(namespaceId);
-            this.updateAppAuthCache(namespaceId);
-            this.updateRuleCache(namespaceId);
-            this.updateSelectorCache(namespaceId);
-            this.updateMetaDataCache(namespaceId);
-            this.updateProxySelectorDataCache(namespaceId);
-            this.updateDiscoveryUpstreamDataCache(namespaceId);
-            this.updateAiProxyApiKeyCache(namespaceId);
+            this.refreshLocalCache(namespace.getNamespaceId());
         }
+    }
+
+    /**
+     * Refresh local cache for one namespace.
+     *
+     * @param namespaceId namespace id
+     */
+    protected void refreshLocalCache(final String namespaceId) {
+        this.updatePluginCache(namespaceId);
+        this.updateAppAuthCache(namespaceId);
+        this.updateRuleCache(namespaceId);
+        this.updateSelectorCache(namespaceId);
+        this.updateMetaDataCache(namespaceId);
+        this.updateProxySelectorDataCache(namespaceId);
+        this.updateDiscoveryUpstreamDataCache(namespaceId);
+        this.updateAiProxyApiKeyCache(namespaceId);
     }
 
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
      * Update rule cache.
      */
     protected void updateRuleCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
@@ -372,26 +416,26 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * Update app auth cache.
      */
     protected void updateAppAuthCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateProxySelectorDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateDiscoveryUpstreamDataCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.DISCOVER_UPSTREAM, discoveryUpstreamService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     protected void updateAiProxyApiKeyCache(final String namespaceId) {
-        this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAll(), namespaceId);
+        this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAllByNamespaceId(namespaceId), namespaceId);
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {

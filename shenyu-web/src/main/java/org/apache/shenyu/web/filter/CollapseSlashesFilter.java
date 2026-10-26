@@ -21,21 +21,28 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.regex.Pattern;
 
 /**
  * The type Collapse slashes filter.
  */
 public class CollapseSlashesFilter implements WebFilter {
+
+    private static final Pattern REPEATED_SLASHES = Pattern.compile("/{2,}");
     
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String newPath = request.getURI().getRawPath().replaceAll("/{2,}", "/");
+        String newPath = REPEATED_SLASHES.matcher(request.getURI().getRawPath()).replaceAll("/");
         if (!request.getURI().getRawPath().equals(newPath)) {
-            URI newUri = request.getURI().resolve(newPath);
+            URI newUri = UriComponentsBuilder.fromUri(request.getURI())
+                    .replacePath(newPath)
+                    .build(true)
+                    .toUri();
             ServerHttpRequest newRequest = request.mutate().uri(newUri).build();
             return chain.filter(exchange.mutate().request(newRequest).build());
         }

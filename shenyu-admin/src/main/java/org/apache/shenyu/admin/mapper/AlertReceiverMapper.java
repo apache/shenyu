@@ -42,6 +42,15 @@ public interface AlertReceiverMapper extends ExistProvider {
     List<AlertReceiverDTO> selectAll();
     
     /**
+     * select receivers scoped to a namespace, including receivers without a namespace
+     * that match every namespace.
+     *
+     * @param namespaceId the namespace id
+     * @return receiver list
+     */
+    List<AlertReceiverDTO> selectByNamespaceId(@Param("namespaceId") String namespaceId);
+    
+    /**
      * insert record to table.
      *
      * @param record the record

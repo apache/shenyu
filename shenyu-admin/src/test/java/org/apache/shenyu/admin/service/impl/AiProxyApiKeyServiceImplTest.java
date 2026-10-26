@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -91,7 +92,7 @@ class AiProxyApiKeyServiceImplTest {
 
     @Test
     void testEnabledPublishesEvent() {
-        when(mapper.updateEnableBatch(any(), any())).thenReturn(1);
+        when(mapper.updateEnableBatch(any(), any(), any())).thenReturn(1);
         ProxyApiKeyDO e = new ProxyApiKeyDO();
         e.setId("1");
         e.setProxyApiKey("p");
@@ -178,4 +179,38 @@ class AiProxyApiKeyServiceImplTest {
         service.delete(Collections.singletonList("1"));
         verify(publisher, never()).publishEvent(any());
     }
-} 
+
+    @Test
+    void testCreateSetsTimestamps() {
+        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        dto.setNamespaceId("default");
+        when(mapper.insert(any())).thenReturn(1);
+        service.create(dto, "sel-1");
+        ArgumentCaptor<ProxyApiKeyDO> captor = ArgumentCaptor.forClass(ProxyApiKeyDO.class);
+        verify(mapper).insert(captor.capture());
+        assertNotNull(captor.getValue().getDateCreated());
+        assertNotNull(captor.getValue().getDateUpdated());
+    }
+
+    @Test
+    void testUpdateSetsUpdatedTimestamp() {
+        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        dto.setId("id-1");
+        dto.setNamespaceId("default");
+        when(mapper.updateSelective(any())).thenReturn(1);
+        service.update(dto);
+        ArgumentCaptor<ProxyApiKeyDO> captor = ArgumentCaptor.forClass(ProxyApiKeyDO.class);
+        verify(mapper).updateSelective(captor.capture());
+        assertNotNull(captor.getValue().getDateUpdated());
+    }
+
+    @Test
+    void testEnabledPassesUpdatedTimestamp() {
+        when(mapper.updateEnableBatch(any(), any(), any())).thenReturn(1);
+        when(mapper.selectByIds(any())).thenReturn(Collections.emptyList());
+        service.enabled(Collections.singletonList("1"), Boolean.TRUE);
+        ArgumentCaptor<Timestamp> captor = ArgumentCaptor.forClass(Timestamp.class);
+        verify(mapper).updateEnableBatch(any(), any(), captor.capture());
+        assertNotNull(captor.getValue());
+    }
+}

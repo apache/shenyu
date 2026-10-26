@@ -39,8 +39,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +70,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getStrategy(), requestHandle.getRequestHeaderUniqueStrategy());
             exchange.getAttributes().put(UniqueHeaderEnum.REQ_UNIQUE_HEADER.getName(), requestHandle.getRequestUniqueHeaders());
         }
-        if (Objects.nonNull(requestHandle.getRequestHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
+        if (Objects.nonNull(requestHandle.getRespHeaderUniqueStrategy()) && StringUtils.isNotEmpty(requestHandle.getRespUniqueHeaders())) {
             exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), requestHandle.getRespHeaderUniqueStrategy());
             exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), requestHandle.getRespUniqueHeaders());
         }
@@ -77,15 +80,13 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         }
         ServerHttpRequest request = exchange.getRequest();
         ServerWebExchange modifiedExchange = exchange.mutate()
-                .request(originalRequest -> originalRequest.uri(
-                        UriComponentsBuilder.fromUri(exchange.getRequest()
-                                .getURI())
-                                .replaceQueryParams(getQueryParams(request, requestHandle))
-                                .build()
-                                .encode()
-                                .toUri()
-                        ).headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle))
-                ).build();
+                .request(originalRequest -> {
+                    originalRequest.headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle));
+                    if (Objects.nonNull(requestHandle.getParameter()) && requestHandle.getParameter().isNotEmptyConfig()) {
+                        originalRequest.uri(buildRequestUri(request, requestHandle));
+                    }
+                })
+                .build();
         return chain.execute(modifiedExchange);
     }
 
@@ -103,7 +104,40 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExceptHttpLike(exchange);
     }
-    
+
+    /**
+     * Build the request uri while preserving the already encoded path.
+     * Query parameter names and values are encoded exactly once before the uri is rebuilt.
+     *
+     * @param request serverHttpRequest
+     * @param requestHandle requestHandle
+     * @return the rebuilt request uri
+     */
+    private URI buildRequestUri(final ServerHttpRequest request, final RequestHandle requestHandle) {
+        MultiValueMap<String, String> queryParams = getQueryParams(request, requestHandle);
+        MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(queryParams.size());
+        queryParams.forEach((key, values) -> values.forEach(value -> encodedQueryParams.add(
+                encodeQueryComponent(key), encodeQueryComponent(value))));
+        return UriComponentsBuilder.fromUri(request.getURI())
+                .replaceQueryParams(encodedQueryParams)
+                .build(true)
+                .toUri();
+    }
+
+    /**
+     * Encode a decoded query component. {@link UriUtils#encodeQueryParam} keeps '+' as is,
+     * which upstream servers decode as a space, so a literal '+' is escaped explicitly.
+     *
+     * @param component the decoded query name or value, null for a parameter without value
+     * @return the encoded query component
+     */
+    private static String encodeQueryComponent(final String component) {
+        if (Objects.isNull(component)) {
+            return null;
+        }
+        return UriUtils.encodeQueryParam(component, StandardCharsets.UTF_8).replace("+", "%2B");
+    }
+
     /**
      * getHeaders.
      *
@@ -196,7 +230,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void replaceParameterKey(final Map.Entry<String, String> shenyuParam, final MultiValueMap<String, String> queryParams) {
         List<String> values = queryParams.get(shenyuParam.getKey());
-        if (Objects.nonNull(values)) {
+        if (Objects.nonNull(values) && !Objects.equals(shenyuParam.getKey(), shenyuParam.getValue())) {
             queryParams.addAll(shenyuParam.getValue(), values);
             queryParams.remove(shenyuParam.getKey());
         }
@@ -229,9 +263,9 @@ public class RequestPlugin extends AbstractShenyuPlugin {
 
     private void replaceHeaderKey(final Map.Entry<String, String> shenyuHeader, final HttpHeaders headers) {
         List<String> values = headers.get(shenyuHeader.getKey());
-        if (Objects.nonNull(values)) {
-            headers.addAll(shenyuHeader.getValue(), values);
+        if (Objects.nonNull(values) && !Objects.equals(shenyuHeader.getKey(), shenyuHeader.getValue())) {
             headers.remove(shenyuHeader.getKey());
+            headers.addAll(shenyuHeader.getValue(), values);
         }
     }
 

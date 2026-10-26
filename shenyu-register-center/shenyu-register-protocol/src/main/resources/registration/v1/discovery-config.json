@@ -1,0 +1,12 @@
+{
+  "selectorName": "/protocol-v1",
+  "name": "default_zookeeper",
+  "discoveryType": "zookeeper",
+  "serverList": "127.0.0.1:2181",
+  "listenerNode": "/shenyu/register/instance/protocol-v1",
+  "handler": "{}",
+  "pluginName": "divide",
+  "props": {
+    "name": "protocol-v1"
+  }
+}

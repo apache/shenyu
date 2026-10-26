@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -59,18 +60,26 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     @Override
     public ShenyuContext build(final ServerWebExchange exchange) {
         Pair<String, MetaData> buildData = buildData(exchange);
-        return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
+        ShenyuContextDecorator decorator = decoratorMap.get(buildData.getLeft());
+        if (Objects.isNull(decorator)) {
+            decorator = decoratorMap.get(RpcTypeEnum.HTTP.getName());
+        }
+        if (Objects.isNull(decorator)) {
+            throw new ShenyuException("No ShenyuContextDecorator available for rpc type: " + buildData.getLeft());
+        }
+        return decorator.decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
     }
     
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         HttpHeaders headers = request.getHeaders();
         String rpcType = headers.getFirst(RPC_TYPE);
-        if (StringUtils.isNotEmpty(rpcType)) {
+        if (StringUtils.isNotEmpty(rpcType) && decoratorMap.containsKey(rpcType)) {
             return Pair.of(rpcType, new MetaData());
         }
         String upgrade = headers.getFirst(UPGRADE);
-        if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
+        // RFC 6455: the Upgrade header value is case-insensitive
+        if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equalsIgnoreCase(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
         MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getRawPath());

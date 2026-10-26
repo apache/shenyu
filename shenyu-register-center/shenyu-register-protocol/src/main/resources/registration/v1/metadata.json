@@ -1,0 +1,21 @@
+{
+  "appName": "protocol-v1",
+  "contextPath": "/protocol-v1",
+  "path": "/protocol-v1/orders",
+  "pathDesc": "Orders",
+  "rpcType": "http",
+  "serviceName": "org.example.OrderService",
+  "methodName": "orders",
+  "ruleName": "orders",
+  "parameterTypes": "",
+  "rpcExt": "{}",
+  "enabled": true,
+  "host": "127.0.0.1",
+  "port": 18080,
+  "pluginNames": [
+    "divide"
+  ],
+  "registerMetaData": true,
+  "timeMillis": 1700000000000,
+  "addPrefixed": false
+}

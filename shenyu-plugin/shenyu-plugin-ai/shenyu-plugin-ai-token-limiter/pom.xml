@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin-ai</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -31,6 +31,13 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-infra-redis</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <!-- The observer is covered against the bytes the AI proxy actually produces. -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-ai-proxy</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
