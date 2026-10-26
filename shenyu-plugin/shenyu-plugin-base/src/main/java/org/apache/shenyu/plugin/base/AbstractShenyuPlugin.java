@@ -304,7 +304,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
             // cache selector data
-            if (matchSelectorPair.getLeft()) {
+            if (matchSelectorPair.getLeft() && selectors.stream().filter(SelectorData::getEnabled)
+                    .allMatch(selector -> !Boolean.TRUE.equals(selector.getMatchRestful()) && pathOnlyConditions(selector.getConditionList()))) {
                 cacheSelectorData(path, selectorData);
             }
             return selectorData;
@@ -323,7 +324,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
             // cache rule data
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
+                    .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
@@ -337,6 +339,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
+    private boolean pathOnlyConditions(final List<ConditionData> conditions) {
+        // A path cache hit skips the entire candidate set, including candidates that did not
+        // match the warming request but could win for different request attributes.
+        return CollectionUtils.isNotEmpty(conditions) && conditions.stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+    }
+
     /**
      * print selector log.
      * please don't delete this method or refactor {@linkplain org.apache.shenyu.plugin.base.AbstractShenyuPlugin#printLog}
