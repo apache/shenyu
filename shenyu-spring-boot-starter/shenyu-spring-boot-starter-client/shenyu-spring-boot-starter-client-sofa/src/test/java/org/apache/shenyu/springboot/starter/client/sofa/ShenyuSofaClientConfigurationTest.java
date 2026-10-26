@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.sofa;
 
 import org.apache.shenyu.client.sofa.SofaServiceEventListener;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

@@ -54,6 +54,18 @@ public class PathMatchUtils {
     public static boolean match(final String matchUrls, final String realPath) {
         return MATCHER.match(matchUrls, realPath);
     }
+
+    /**
+     * Compare two path patterns for a concrete path.
+     *
+     * @param left the left path pattern
+     * @param right the right path pattern
+     * @param realPath the concrete path
+     * @return a negative value when left is more specific
+     */
+    public static int compare(final String left, final String right, final String realPath) {
+        return MATCHER.getPatternComparator(realPath).compare(left, right);
+    }
     
     /**
      * Path pattern boolean.

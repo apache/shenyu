@@ -50,19 +50,32 @@ public class CrossFilter implements WebFilter {
 
     private final CrossFilterConfig filterConfig;
 
+    private volatile Pattern originPattern;
+
     public CrossFilter(final CrossFilterConfig filterConfig) {
         this.filterConfig = filterConfig;
+        if (Objects.nonNull(filterConfig.getAllowedOrigin()) && StringUtils.isNotBlank(filterConfig.getAllowedOrigin().getOriginRegex())) {
+            originPattern = Pattern.compile(filterConfig.getAllowedOrigin().getOriginRegex().trim());
+        }
     }
 
     @Override
     @NonNull
     public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
+        // Vary also covers absent or denied origins, and must survive upstream response headers.
+        exchange.getResponse().beforeCommit(() -> {
+            HttpHeaders headers = exchange.getResponse().getHeaders();
+            if (headers.getVary().stream().noneMatch(value -> ALL.equals(value) || HttpHeaders.ORIGIN.equalsIgnoreCase(value))) {
+                headers.add(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+            }
+            return Mono.empty();
+        });
         ServerHttpRequest request = exchange.getRequest();
-        if (CorsUtils.isCorsRequest(request)) {
+        final String origin = request.getHeaders().getOrigin();
+        if (!"null".equals(origin) && CorsUtils.isCorsRequest(request)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // finger allow origins
-            final String origin = request.getHeaders().getOrigin();
             boolean allowCors = this.filterConfig.isAllowedAnyOrigin();
             if (!allowCors && Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
@@ -80,18 +93,19 @@ public class CrossFilter implements WebFilter {
                 allowedOrigin.addAll(Optional.ofNullable(allowedOriginConfig.getOrigins()).orElse(Collections.emptySet())
                         .stream()
                         .filter(StringUtils::isNoneBlank)
+                        .map(String::trim)
                         .map(oneOrigin -> {
-                            if (ALL.equals(oneOrigin) || oneOrigin.startsWith(String.format("%s://", scheme))) {
-                                return oneOrigin.trim();
+                            if (ALL.equals(oneOrigin) || oneOrigin.contains("://")) {
+                                return oneOrigin;
                             }
-                            return String.format("%s://%s", scheme, oneOrigin.trim());
+                            return String.format("%s://%s", scheme, oneOrigin);
                         })
                         .collect(Collectors.toSet()));
                 allowCors = allowedOrigin.contains(origin) || allowedOrigin.contains(ALL);
                 // if the origin is not allow check match origin again
                 String originRegex;
                 if (!allowCors && StringUtils.isNotBlank(originRegex = this.filterConfig.getAllowedOrigin().getOriginRegex())) {
-                    allowCors = Pattern.matches(originRegex.trim(), origin);
+                    allowCors = getOriginPattern(originRegex.trim()).matcher(origin).matches();
                 }
             }
             if (allowCors) {
@@ -119,6 +133,15 @@ public class CrossFilter implements WebFilter {
             }
         }
         return chain.filter(exchange);
+    }
+
+    private Pattern getOriginPattern(final String regex) {
+        Pattern pattern = originPattern;
+        if (Objects.isNull(pattern) || !pattern.pattern().equals(regex)) {
+            pattern = Pattern.compile(regex);
+            originPattern = pattern;
+        }
+        return pattern;
     }
 
     /**

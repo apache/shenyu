@@ -21,7 +21,7 @@
     <parent>
         <artifactId>shenyu-examples-sdk-grpc</artifactId>
         <groupId>org.apache.shenyu</groupId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -68,17 +68,6 @@
             <artifactId>shenyu-sdk-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-eureka</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>

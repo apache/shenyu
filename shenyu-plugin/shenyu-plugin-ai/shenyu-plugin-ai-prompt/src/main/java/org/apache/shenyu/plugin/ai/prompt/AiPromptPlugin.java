@@ -69,6 +69,7 @@ public class AiPromptPlugin extends AbstractShenyuPlugin {
         
         // Create final config with selector handle taking precedence
         if (Objects.nonNull(aiPromptHandle)) {
+            aiPromptConfig = new AiPromptConfig();
             aiPromptConfig.setPreRole(aiPromptHandle.getPreRole());
             aiPromptConfig.setPrepend(aiPromptHandle.getPrepend());
             aiPromptConfig.setPostRole(aiPromptHandle.getPostRole());

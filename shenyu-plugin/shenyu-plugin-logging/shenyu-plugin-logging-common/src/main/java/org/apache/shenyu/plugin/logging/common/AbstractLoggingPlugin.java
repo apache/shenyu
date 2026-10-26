@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.common;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -29,6 +28,7 @@ import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHand
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -45,7 +46,6 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 
 /**
@@ -54,6 +54,8 @@ import java.util.Set;
 public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
+
+    private static final KeyWordMatch EMPTY_KEY_WORD_MATCH = new KeyWordMatch(Collections.emptySet());
 
     /**
      * LogCollector.
@@ -84,13 +86,13 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
                                 final SelectorData selector, final RuleData rule) {
         CommonLoggingRuleHandle commonLoggingRuleHandle = AbstractLogPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         boolean desensitized = Boolean.FALSE;
-        Set<String> keywordSets = Sets.newHashSet();
+        KeyWordMatch keyWordMatch = EMPTY_KEY_WORD_MATCH;
         String dataDesensitizeAlg = DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg();
         if (Objects.nonNull(commonLoggingRuleHandle)) {
             String keywords = commonLoggingRuleHandle.getKeyword();
             desensitized = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
             if (desensitized) {
-                Collections.addAll(keywordSets, keywords.split(";"));
+                keyWordMatch = commonLoggingRuleHandle.getKeyWordMatch();
                 dataDesensitizeAlg = Optional.ofNullable(commonLoggingRuleHandle.getMaskType()).orElse(DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
                 LOG.info("current plugin:{}, keyword:{}, dataDesensitizeAlg:{}", pluginEnum().getName(), keywords, dataDesensitizeAlg);
             }
@@ -105,7 +107,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethod().name());
         requestInfo.setRequestMethod(request.getMethod().name());
-        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
+        requestInfo.setRequestHeader(() -> LogCollectUtils.getHeaders(request.getHeaders()));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
@@ -114,9 +116,10 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setSelectorId(selector.getId());
         requestInfo.setRuleId(rule.getId());
         requestInfo.setNamespaceId(rule.getNamespaceId());
-        LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
+        GenericGlobalConfig globalConfig = LogCollectConfigUtils.getGlobalConfig(selector.getPluginId());
+        LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo, globalConfig.getMaxRequestBody());
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
-                requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);
+                requestInfo, this.logCollector(), desensitized, keyWordMatch, dataDesensitizeAlg, globalConfig.getMaxResponseBody());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);

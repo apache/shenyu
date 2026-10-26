@@ -103,11 +103,11 @@ public class ApiDTO implements Serializable {
     private String apiDesc;
 
     /**
-     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
+     * 0-swagger,1-annotation generation,2-create manually,3-import swagger.
      */
-    @NotNull(message = "apiSource not null")
-    @Min(value = 0, message = "state min 0")
-    @Max(value = 4, message = "state max 4")
+    @NotNull(message = "apiSource not null", groups = Create.class)
+    @Min(value = 0, message = "apiSource min 0", groups = Create.class)
+    @Max(value = 3, message = "apiSource max 3", groups = Create.class)
     private Integer apiSource;
 
     /**
@@ -479,6 +479,12 @@ public class ApiDTO implements Serializable {
     public int hashCode() {
         return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version,
                 rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated, tagIds);
+    }
+
+    /**
+     * Creation validates provenance in addition to the common API fields.
+     */
+    public interface Create extends jakarta.validation.groups.Default {
     }
 
 }

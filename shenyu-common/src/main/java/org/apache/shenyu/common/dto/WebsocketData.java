@@ -49,6 +49,10 @@ public class WebsocketData<T> {
      */
     private List<T> data;
 
+    private String namespaceId;
+
+    private boolean fullSnapshot;
+
     /**
      * no args constructor.
      */
@@ -66,6 +70,38 @@ public class WebsocketData<T> {
         this.groupType = groupType;
         this.eventType = eventType;
         this.data = data;
+    }
+
+    /**
+     * Get the namespace of an authoritative snapshot.
+     * @return namespace id
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Set the snapshot namespace.
+     * @param namespaceId namespace id
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
+
+    /**
+     * Whether this message replaces the entire group in the namespace.
+     * @return whether the snapshot is complete
+     */
+    public boolean isFullSnapshot() {
+        return fullSnapshot;
+    }
+
+    /**
+     * Mark a complete namespace snapshot.
+     * @param fullSnapshot whether the snapshot is complete
+     */
+    public void setFullSnapshot(final boolean fullSnapshot) {
+        this.fullSnapshot = fullSnapshot;
     }
 
     /**
@@ -137,12 +173,13 @@ public class WebsocketData<T> {
             return false;
         }
         WebsocketData<?> that = (WebsocketData<?>) o;
-        return Objects.equals(groupType, that.groupType) && Objects.equals(eventType, that.eventType) && Objects.equals(data, that.data);
+        return Objects.equals(groupType, that.groupType) && Objects.equals(eventType, that.eventType) && Objects.equals(data, that.data)
+                && Objects.equals(namespaceId, that.namespaceId) && fullSnapshot == that.fullSnapshot;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(groupType, eventType, data);
+        return Objects.hash(groupType, eventType, data, namespaceId, fullSnapshot);
     }
 
     @Override

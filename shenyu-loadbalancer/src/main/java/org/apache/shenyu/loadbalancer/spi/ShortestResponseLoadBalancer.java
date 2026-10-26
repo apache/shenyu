@@ -27,6 +27,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * shortestResponse algorithm impl.
+ *
+ * <p>The estimate is the outstanding request count multiplied by the average elapsed time of successful
+ * requests. Only the divide plugin records both halves of that product; on every other path the average
+ * elapsed time stays zero, so all upstreams compare equal and the choice falls back to weight.
  */
 @Join
 public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {

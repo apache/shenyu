@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jayway.jsonpath.DocumentContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
@@ -41,13 +41,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -58,13 +52,17 @@ public class FormDataOperator implements Operator {
 
     private static final Logger LOG = LoggerFactory.getLogger(FormDataOperator.class);
 
+    // GsonUtils normalizes null strings to empty strings; form values must retain that distinction.
+    private static final Gson FORM_DATA_GSON = new Gson();
+
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain,
             final ParamMappingRuleHandle paramMappingRuleHandle) {
         return exchange.getFormData()
                 .switchIfEmpty(Mono.just(new LinkedMultiValueMap<>()))
                 .flatMap(multiValueMap -> {
-                    if (Objects.isNull(multiValueMap) || multiValueMap.isEmpty()) {
+                    if (Objects.isNull(multiValueMap)
+                            || (multiValueMap.isEmpty() && CollectionUtils.isEmpty(paramMappingRuleHandle.getAddParameterKeys()))) {
                         return shenyuPluginChain.execute(exchange);
                     }
                     String original = GsonUtils.getInstance().toJson(multiValueMap);
@@ -75,18 +73,11 @@ public class FormDataOperator implements Operator {
                     }
                     HttpHeaders headers = exchange.getRequest().getHeaders();
                     HttpHeaders httpHeaders = new HttpHeaders();
-                    Charset charset = Objects.requireNonNull(headers.getContentType()).getCharset();
-                    charset = Objects.isNull(charset) ? StandardCharsets.UTF_8 : charset;
                     LinkedMultiValueMap<String, String> modifyMap = toLinkedMultiValueMap(modify);
-                    List<String> list = prepareParams(modifyMap, charset.name());
-                    String content = String.join("&", list);
-                    byte[] bodyBytes = content.getBytes(charset);
-                    int contentLength = bodyBytes.length;
                     final BodyInserter<LinkedMultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters
                             .fromValue(modifyMap);
                     httpHeaders.putAll(headers);
                     httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
-                    httpHeaders.setContentLength(contentLength);
                     CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange,
                             httpHeaders);
                     return bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext())
@@ -108,18 +99,6 @@ public class FormDataOperator implements Operator {
         }
     }
 
-    private List<String> prepareParams(final LinkedMultiValueMap<String, String> modifyMap, final String charset) {
-        List<String> paramList = new ArrayList<>();
-        modifyMap.forEach((K, V) -> V.forEach(value -> {
-            try {
-                paramList.add(String.join("=", K, URLEncoder.encode(value, charset)));
-            } catch (UnsupportedEncodingException e) {
-                throw new ShenyuException(e);
-            }
-        }));
-        return paramList;
-    }
-
     /**
      * To linked multiValue map.
      *
@@ -127,7 +106,7 @@ public class FormDataOperator implements Operator {
      * @return the linked multiValue map
      */
     public LinkedMultiValueMap<String, String> toLinkedMultiValueMap(final String json) {
-        return GsonUtils.getGson().fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
+        return FORM_DATA_GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
         }.getType());
     }
 

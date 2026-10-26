@@ -108,4 +108,40 @@ public final class ForwardedRemoteAddressResolverTest {
         instance.resolve(headerEmptyExchange);
     }
 
+    @Test
+    public void testResolveCommaSeparatedValuesWithoutWhitespace() {
+        final ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(1);
+        final InetSocketAddress remoteAddress = new InetSocketAddress("192.0.2.10", 8080);
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("X-Forwarded-For", "127.0.0.1,127.0.0.2")
+                .remoteAddress(remoteAddress)
+                .build());
+
+        assertEquals("127.0.0.1", instance.resolve(exchange).getAddress().getHostAddress());
+    }
+
+    @Test
+    public void testResolveTrimsWhitespaceAroundValues() {
+        final ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(1);
+        final InetSocketAddress remoteAddress = new InetSocketAddress("192.0.2.10", 8080);
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("X-Forwarded-For", " 127.0.0.1 , 127.0.0.2 ")
+                .remoteAddress(remoteAddress)
+                .build());
+
+        assertEquals("127.0.0.1", instance.resolve(exchange).getAddress().getHostAddress());
+    }
+
+    @Test
+    public void testResolveIgnoresEmptyForwardedEntries() {
+        final ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(2);
+        final InetSocketAddress remoteAddress = new InetSocketAddress("192.0.2.10", 8080);
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("X-Forwarded-For", "127.0.0.1,,127.0.0.2")
+                .remoteAddress(remoteAddress)
+                .build());
+
+        assertEquals("127.0.0.2", instance.resolve(exchange).getAddress().getHostAddress());
+    }
+
 }

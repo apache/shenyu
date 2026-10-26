@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 
 public interface DiscoveryUpstreamDataHandler {
 
@@ -27,6 +28,14 @@ public interface DiscoveryUpstreamDataHandler {
      * @param discoverySyncData discoverySyncData
      */
     void handlerDiscoveryUpstreamData(DiscoverySyncData discoverySyncData);
+
+    /**
+     * Remove discovery upstream data.
+     *
+     * @param key discovery upstream selector identity
+     */
+    default void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+    }
 
     /**
      * pluginName.
