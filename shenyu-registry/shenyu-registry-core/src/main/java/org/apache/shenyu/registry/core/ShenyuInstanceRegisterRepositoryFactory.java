@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ShenyuInstanceRegisterRepositoryFactory {
     
+    // Production uses one default loader and caches by type. Test loader overloads share this cache and must clear it between fixtures.
     private static final Map<String, ShenyuInstanceRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
     
     /**
