@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.transform;
 
+import com.google.gson.JsonParser;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -28,12 +29,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.net.URI;
 
 import static org.mockito.Mockito.mock;
 
@@ -42,6 +46,9 @@ import static org.mockito.Mockito.mock;
  */
 @ExtendWith(MockitoExtension.class)
 public final class RpcParamTransformPluginTest {
+
+    private static final String ENCODED_PARAMS = "value=a%26b%3Dc&plus=a%2Bb&space=a+b&encoded=%2526"
+            + "&empty=&repeat=first&repeat=second";
     
     private ShenyuPluginChain chain;
     
@@ -95,13 +102,34 @@ public final class RpcParamTransformPluginTest {
     @Test
     public void testFormatBody() {
         final ServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_FORM_URLENCODED).body("test=test"));
+                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_FORM_URLENCODED).body(ENCODED_PARAMS));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+        Assertions.assertEquals(JsonParser.parseString("{\"value\":\"a&b=c\",\"plus\":\"a+b\",\"space\":\"a b\","
+                        + "\"encoded\":\"%26\",\"empty\":\"\",\"repeat\":\"first\"}"),
+                JsonParser.parseString(exchange.getAttribute(Constants.PARAM_TRANSFORM)));
+    }
+
+    /**
+     * Test query parameters.
+     */
+    @Test
+    public void testQueryParams() {
+        ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.method(HttpMethod.GET, URI.create("http://localhost/?" + ENCODED_PARAMS)).build());
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        ShenyuContext context = new ShenyuContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        Mono<Void> result = rpcParamTransformPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+        Assertions.assertEquals(JsonParser.parseString("{\"value\":\"a&b=c\",\"plus\":\"a+b\",\"space\":\"a b\","
+                        + "\"encoded\":\"%26\",\"empty\":\"\",\"repeat\":\"second\"}"),
+                JsonParser.parseString(exchange.getAttribute(Constants.PARAM_TRANSFORM)));
     }
     
     /**

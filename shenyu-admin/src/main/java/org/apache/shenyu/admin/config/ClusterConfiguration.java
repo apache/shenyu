@@ -19,10 +19,12 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
+import org.apache.shenyu.admin.listener.ClusterDataChangedEventForwarder;
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.cluster.filter.ClusterForwardFilter;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.mode.cluster.service.ShenyuClusterService;
+import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.slf4j.Logger;
@@ -51,6 +53,7 @@ public class ClusterConfiguration {
      * @param shenyuClusterSelectMasterService shenyu cluster select master service
      * @param upstreamCheckService upstream check service
      * @param instanceCheckService instance check service
+     * @param scaleLifecycleService scaling lifecycle service
      * @param clusterProperties cluster properties
      * @return Shenyu cluster service
      */
@@ -59,11 +62,13 @@ public class ClusterConfiguration {
     public ShenyuRunningModeService shenyuRunningModeService(final ClusterSelectMasterService shenyuClusterSelectMasterService,
                                                              final UpstreamCheckService upstreamCheckService,
                                                              final InstanceCheckService instanceCheckService,
+                                                             final ScaleLifecycleService scaleLifecycleService,
                                                              final ClusterProperties clusterProperties) {
         LOGGER.info("starting in cluster mode ...");
         return new ShenyuClusterService(shenyuClusterSelectMasterService,
                 upstreamCheckService,
                 instanceCheckService,
+                scaleLifecycleService,
                 clusterProperties
         );
     }
@@ -81,5 +86,21 @@ public class ClusterConfiguration {
         factory.setReadTimeout(clusterProperties.getReadTimeout());
         return new ClusterForwardFilter(new RestTemplate(factory));
     }
-    
+
+    /**
+     * Shenyu cluster data changed event forwarder.
+     *
+     * @param clusterProperties          cluster properties
+     * @param clusterSelectMasterService the cluster select master service
+     * @return the Shenyu cluster data changed event forwarder
+     */
+    @Bean
+    public ClusterDataChangedEventForwarder clusterDataChangedEventForwarder(final ClusterProperties clusterProperties,
+                                                                             final ClusterSelectMasterService clusterSelectMasterService) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(clusterProperties.getConnectionTimeout());
+        factory.setReadTimeout(clusterProperties.getReadTimeout());
+        return new ClusterDataChangedEventForwarder(new RestTemplate(factory), clusterProperties, clusterSelectMasterService);
+    }
+
 }

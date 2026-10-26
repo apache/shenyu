@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
+import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
@@ -39,6 +40,7 @@ import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -87,7 +89,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginVO> searchByCondition(final PluginQueryCondition condition) {
+    public List<PluginListVO> searchByCondition(final PluginQueryCondition condition) {
         condition.init();
         return pluginMapper.searchByCondition(condition);
     }
@@ -100,6 +102,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String createOrUpdate(final PluginDTO pluginDTO) {
+        AgentGatewayPluginConfigValidator.validate(pluginDTO.getName(), pluginDTO.getConfig());
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
 
@@ -184,10 +187,10 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     @Pageable
-    public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
+    public CommonPager<PluginListVO> listByPage(final PluginQuery pluginQuery) {
         return PageResultUtils.result(pluginQuery.getPageParameter(), () -> pluginMapper.selectByQuery(pluginQuery)
                 .stream()
-                .map(PluginVO::buildPluginVO)
+                .map(PluginListVO::buildPluginListVO)
                 .collect(Collectors.toList()));
     }
 
@@ -256,6 +259,7 @@ public class PluginServiceImpl implements PluginService {
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
+            AgentGatewayPluginConfigValidator.validate(pluginName, pluginDTO.getConfig());
             // check plugin base info
             if (existPluginMap.containsKey(pluginName)) {
                 errorMsgBuilder
@@ -316,6 +320,9 @@ public class PluginServiceImpl implements PluginService {
             Assert.isTrue(checkFile(Base64.getDecoder().decode(pluginDTO.getFile())), AdminConstants.THE_PLUGIN_JAR_FILE_IS_NOT_CORRECT_OR_EXCEEDS_16_MB);
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
+        if (Objects.nonNull(before)) {
+            AgentGatewayPluginConfigValidator.validate(before.getName(), pluginDTO.getConfig());
+        }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.updateSelective(pluginDO) > 0) {
             // publish update event.

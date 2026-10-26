@@ -129,6 +129,29 @@ public final class MetaDataTransferTest {
     }
 
     @Test
+    public void testCopyKeepsNamespaceId() {
+        metaDataDTO.setNamespaceId("ns-1");
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        MetaDataDO copied = MetaDataTransfer.INSTANCE.copy(metaDataDO);
+        assertEquals("ns-1", copied.getNamespaceId());
+    }
+
+    @Test
+    public void testMapToDataFromDtoKeepsNamespaceId() {
+        metaDataDTO.setNamespaceId("ns-1");
+        MetaData metaData = MetaDataTransfer.INSTANCE.mapToData(metaDataDTO);
+        assertEquals("ns-1", metaData.getNamespaceId());
+    }
+
+    @Test
+    public void testMapToVOKeepsNamespaceId() {
+        metaDataDTO.setNamespaceId("ns-1");
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        MetaDataVO metaDataVO = MetaDataTransfer.INSTANCE.mapToVO(metaDataDO);
+        assertEquals("ns-1", metaDataVO.getNamespaceId());
+    }
+
+    @Test
     public void testMapToDataAll() {
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         List<MetaDataDO> metaDataDOList = Collections.singletonList(metaDataDO);

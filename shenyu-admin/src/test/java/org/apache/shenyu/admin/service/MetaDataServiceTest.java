@@ -58,8 +58,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -99,7 +101,7 @@ public final class MetaDataServiceTest {
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(MetaDataServiceImpl.class)).thenReturn(loggerSpy);
     }
 
@@ -147,10 +149,17 @@ public final class MetaDataServiceTest {
         String msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
         when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
-                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
-                .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build()))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build(), MetaDataDO.builder().id("id3").build()));
         msg = metaDataService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID);
         assertEquals(StringUtils.EMPTY, msg);
+        verify(publisher, never()).onEnabled(any());
+        when(metaDataMapper.updateEnableBatch(ids, true)).thenReturn(ids.size());
+        when(metaDataMapper.selectByIdListAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(Arrays.asList(MetaDataDO.builder().id("id1").build(), MetaDataDO.builder().id("id2").build(), MetaDataDO.builder().id("id3").build()));
+        msg = metaDataService.enabledByIdsAndNamespaceId(ids, true, SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(StringUtils.EMPTY, msg);
+        verify(publisher).onEnabled(any());
     }
 
     /**
@@ -354,7 +363,7 @@ public final class MetaDataServiceTest {
         when(metaDataDTO.getId()).thenReturn("id");
         when(metaDataDTO.getPath()).thenReturn("path");
         when(metaDataDTO.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
-        when(metaDataMapper.pathExistedExclude("path", Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.pathExistedExclude("path", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id"))).thenReturn(null);
         when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
 

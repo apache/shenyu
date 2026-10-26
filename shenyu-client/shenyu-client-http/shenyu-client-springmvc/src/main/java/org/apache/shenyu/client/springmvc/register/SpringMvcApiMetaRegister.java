@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.register;
 
-import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
@@ -30,9 +30,16 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
 
@@ -66,16 +73,48 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
 
-        return Objects.nonNull(annotation) && annotation.path()[0].endsWith("/**");
+        return Objects.nonNull(annotation) && isWildcard(annotation);
+    }
+
+    @Override
+    protected List<MetaDataRegisterDTO> preParseList(final ApiBean apiBean) {
+        ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
+        List<String> beanPaths = distinctNonBlank(annotation.path());
+        if (beanPaths.isEmpty()) {
+            beanPaths = Collections.singletonList(StringUtils.EMPTY);
+        }
+        List<MetaDataRegisterDTO> result = new ArrayList<>();
+        for (String namespaceId : clientRegisterConfig.getNamespace()) {
+            Set<String> seen = new LinkedHashSet<>();
+            for (String beanPath : beanPaths) {
+                String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), beanPath);
+                if (seen.add(apiPath)) {
+                    result.add(buildPreMetaData(apiBean, annotation, apiPath, namespaceId));
+                }
+            }
+        }
+        return result;
     }
 
     @Override
     protected MetaDataRegisterDTO preParse(final ApiBean apiBean) {
+        return preParse(apiBean, clientRegisterConfig.getNamespace().get(0));
+    }
+
+    private MetaDataRegisterDTO preParse(final ApiBean apiBean, final String namespaceId) {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
-        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), annotation.path()[0]);
+        List<String> beanPaths = distinctNonBlank(annotation.path());
+        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(),
+                beanPaths.isEmpty() ? StringUtils.EMPTY : beanPaths.get(0));
 
+        return buildPreMetaData(apiBean, annotation, apiPath, namespaceId);
+    }
+
+    private MetaDataRegisterDTO buildPreMetaData(final ApiBean apiBean, final ShenyuSpringMvcClient annotation,
+                                                 final String apiPath, final String namespaceId) {
         return MetaDataRegisterDTO.builder()
+                .namespaceId(namespaceId)
                 .contextPath(clientRegisterConfig.getContextPath())
                 .addPrefixed(addPrefixed)
                 .appName(appName)
@@ -97,7 +136,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     protected Boolean match(final ApiBean apiBean) {
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
         if (Objects.nonNull(annotation)) {
-            return !annotation.path()[0].endsWith("/**");
+            return !isWildcard(annotation);
         }
         return true;
     }
@@ -112,46 +151,110 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
 
         ShenyuSpringMvcClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringMvcClient.class);
 
-        String methodPath = Objects.isNull(methodAnnotation) ? StringUtils.EMPTY : methodAnnotation.path()[0];
-
-        if (StringUtils.isEmpty(methodPath)) {
-            methodPath = apiDefinition.getMethodPath();
-        }
-
         ShenyuSpringMvcClient classAnnotation = apiDefinition.getApiBean()
                 .getAnnotation(ShenyuSpringMvcClient.class);
 
-        String beanPath = Objects.isNull(classAnnotation) || StringUtils.isBlank(classAnnotation.path()[0])
-                ? apiDefinition.getBeanPath() : classAnnotation.path()[0];
-
-        String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), beanPath, methodPath);
+        List<String> beanPaths = resolveBeanPaths(apiDefinition, classAnnotation);
+        List<String> methodPaths = resolveMethodPaths(apiDefinition, methodAnnotation);
 
         String pathDesc = Objects.isNull(methodAnnotation) ? classAnnotation.desc() : methodAnnotation.desc();
 
         boolean enabled = (Objects.isNull(classAnnotation) || classAnnotation.enabled())
                 && (Objects.isNull(methodAnnotation) || methodAnnotation.enabled());
 
-        String ruleName = Objects.isNull(methodAnnotation) || StringUtils.isEmpty(methodAnnotation.ruleName())
-                ? apiPath : methodAnnotation.ruleName();
+        String explicitRuleName = Objects.isNull(methodAnnotation) ? null : methodAnnotation.ruleName();
 
         boolean registerMetaData = (Objects.isNull(classAnnotation) || classAnnotation.registerMetaData())
                 && (Objects.isNull(methodAnnotation) || methodAnnotation.registerMetaData());
 
-        return Lists.newArrayList(MetaDataRegisterDTO.builder()
-                .contextPath(clientRegisterConfig.getContextPath())
-                .addPrefixed(addPrefixed)
-                .appName(appName)
-                .host(host)
-                .port(port)
-                .serviceName(apiDefinition.getBeanClass().getName())
-                .methodName(apiDefinition.getApiMethodName())
-                .path(apiPath)
-                .pathDesc(pathDesc)
-                .parameterTypes(apiDefinition.getParameterTypes())
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(enabled)
-                .ruleName(ruleName)
-                .registerMetaData(registerMetaData)
-                .build());
+        List<MetaDataRegisterDTO> result = new ArrayList<>();
+        for (String namespaceId : clientRegisterConfig.getNamespace()) {
+            Set<String> seen = new LinkedHashSet<>();
+            for (String beanPath : beanPaths) {
+                for (String methodPath : methodPaths) {
+                    String apiPath = PathUtils.pathJoin(clientRegisterConfig.getContextPath(), beanPath, methodPath);
+                    if (!seen.add(apiPath)) {
+                        continue;
+                    }
+                    String ruleName = StringUtils.isEmpty(explicitRuleName) ? apiPath : explicitRuleName;
+                    result.add(MetaDataRegisterDTO.builder()
+                            .namespaceId(namespaceId)
+                            .contextPath(clientRegisterConfig.getContextPath())
+                            .addPrefixed(addPrefixed)
+                            .appName(appName)
+                            .host(host)
+                            .port(port)
+                            .serviceName(apiDefinition.getBeanClass().getName())
+                            .methodName(apiDefinition.getApiMethodName())
+                            .path(apiPath)
+                            .pathDesc(pathDesc)
+                            .parameterTypes(apiDefinition.getParameterTypes())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
+                            .enabled(enabled)
+                            .ruleName(ruleName)
+                            .registerMetaData(registerMetaData)
+                            .build());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Resolves every effective class-level path alias, honouring an explicit {@link ShenyuSpringMvcClient}
+     * override first and falling back to the native {@link RequestMapping} array so that no alias is truncated.
+     */
+    private List<String> resolveBeanPaths(final ApiBean.ApiDefinition apiDefinition,
+                                          final ShenyuSpringMvcClient classAnnotation) {
+        if (Objects.nonNull(classAnnotation)) {
+            List<String> paths = distinctNonBlank(classAnnotation.path());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
+        }
+        RequestMapping requestMapping = apiDefinition.getApiBean().getAnnotation(RequestMapping.class);
+        if (Objects.nonNull(requestMapping)) {
+            List<String> paths = distinctNonBlank(requestMapping.path());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
+        }
+        return Collections.singletonList(StringUtils.defaultString(apiDefinition.getBeanPath()));
+    }
+
+    /**
+     * Resolves every effective method-level path alias, honouring an explicit {@link ShenyuSpringMvcClient}
+     * override first and falling back to the native {@link RequestMapping} array so that no alias is truncated.
+     */
+    private List<String> resolveMethodPaths(final ApiBean.ApiDefinition apiDefinition,
+                                            final ShenyuSpringMvcClient methodAnnotation) {
+        if (Objects.nonNull(methodAnnotation)) {
+            List<String> paths = distinctNonBlank(methodAnnotation.path());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
+        }
+        RequestMapping requestMapping = apiDefinition.getAnnotation(RequestMapping.class);
+        if (Objects.nonNull(requestMapping)) {
+            List<String> paths = distinctNonBlank(requestMapping.path());
+            if (!paths.isEmpty()) {
+                return paths;
+            }
+        }
+        return Collections.singletonList(StringUtils.defaultString(apiDefinition.getMethodPath()));
+    }
+
+    private boolean isWildcard(final ShenyuSpringMvcClient annotation) {
+        return ArrayUtils.isNotEmpty(annotation.path()) && annotation.path()[0].endsWith("/**");
+    }
+
+    private List<String> distinctNonBlank(final String[] paths) {
+        if (ArrayUtils.isEmpty(paths)) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(paths)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

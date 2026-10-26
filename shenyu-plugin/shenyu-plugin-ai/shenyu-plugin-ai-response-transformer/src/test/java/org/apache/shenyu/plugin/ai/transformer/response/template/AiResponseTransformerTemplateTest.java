@@ -20,9 +20,15 @@ package org.apache.shenyu.plugin.ai.transformer.response.template;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.apache.shenyu.plugin.ai.transformer.response.support.CachedRequestBodyDecorator;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.lenient;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,8 +39,12 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -42,6 +52,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @ExtendWith(MockitoExtension.class)
 class AiResponseTransformerTemplateTest {
+
+    private static final DefaultDataBufferFactory BUFFER_FACTORY = new DefaultDataBufferFactory();
 
     private AiResponseTransformerTemplate template;
 
@@ -381,4 +393,58 @@ class AiResponseTransformerTemplateTest {
                 })
                 .verifyComplete();
     }
-} 
+
+    @ParameterizedTest
+    @ValueSource(strings = {"POST", "PUT"})
+    void testAssembleMessageUsesBodyCapturedBeforeDownstreamConsumedIt(final String httpMethod) {
+        byte[] payload = "{\"customer\":\"alice\"}".getBytes(StandardCharsets.UTF_8);
+        AtomicBoolean bodyConsumed = new AtomicBoolean();
+        MockServerHttpRequest oneShotRequest = MockServerHttpRequest.method(HttpMethod.valueOf(httpMethod), "/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Flux.create(sink -> {
+                    if (!bodyConsumed.compareAndSet(false, true)) {
+                        sink.error(new IllegalStateException("request body was already consumed"));
+                        return;
+                    }
+                    sink.next(BUFFER_FACTORY.wrap(payload));
+                    sink.complete();
+                }));
+        CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(oneShotRequest);
+
+        assertEquals("{\"customer\":\"alice\"}", readBody(requestBodySnapshot.getBody()));
+
+        AiResponseTransformerTemplate snapshotTemplate =
+                new AiResponseTransformerTemplate("Transform this response", oneShotRequest, requestBodySnapshot);
+        StepVerifier.create(snapshotTemplate.assembleMessage(exchange))
+                .assertNext(message -> assertTrue(message.contains("alice")))
+                .verifyComplete();
+    }
+
+    @Test
+    void testAssembleMessageUsesTruncatedPrefixWhenSnapshotLimitIsExceeded() {
+        MockServerHttpRequest largeRequest = MockServerHttpRequest.post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Flux.just(BUFFER_FACTORY.wrap("{\"customer\":\"alice\"}".getBytes(StandardCharsets.UTF_8))));
+        CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(largeRequest, 4);
+
+        assertEquals("{\"customer\":\"alice\"}", readBody(requestBodySnapshot.getBody()));
+
+        AiResponseTransformerTemplate snapshotTemplate =
+                new AiResponseTransformerTemplate("Transform this response", largeRequest, requestBodySnapshot);
+        StepVerifier.create(snapshotTemplate.assembleMessage(exchange))
+                .assertNext(message -> {
+                    assertFalse(message.contains("alice"));
+                    assertTrue(message.contains("{\\\"cu"));
+                })
+                .verifyComplete();
+    }
+
+    private String readBody(final Flux<DataBuffer> body) {
+        return body.map(dataBuffer -> {
+            byte[] bytes = new byte[dataBuffer.readableByteCount()];
+            dataBuffer.read(bytes);
+            DataBufferUtils.release(dataBuffer);
+            return new String(bytes, StandardCharsets.UTF_8);
+        }).collectList().map(parts -> String.join("", parts)).block();
+    }
+}

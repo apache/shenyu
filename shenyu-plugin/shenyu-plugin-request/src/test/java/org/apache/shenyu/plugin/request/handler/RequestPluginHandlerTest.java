@@ -22,11 +22,16 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * request plugin handler test.
@@ -69,6 +74,44 @@ public class RequestPluginHandlerTest {
         this.requestPluginHandler.removeRule(ruleData);
         assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
         this.requestPluginHandler.removeRule(null);
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testBlankHandleClearsCachedRule(final String handle) {
+        requestPluginHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        assertNotNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        ruleData.setHandle(handle);
+        requestPluginHandler.handlerRule(ruleData);
+        assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        requestPluginHandler.handlerRule(ruleData);
+        assertNull(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testNullHandleRetainsCachedRule() {
+        requestPluginHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        Object cached = RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(key);
+
+        ruleData.setHandle(null);
+        requestPluginHandler.handlerRule(ruleData);
+
+        assertSame(cached, RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testEmptyObjectReplacesCachedRule() {
+        requestPluginHandler.handlerRule(ruleData);
+        ruleData.setHandle("{}");
+
+        requestPluginHandler.handlerRule(ruleData);
+
+        assertTrue(RequestPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).isEmptyConfig());
     }
 
     @Test

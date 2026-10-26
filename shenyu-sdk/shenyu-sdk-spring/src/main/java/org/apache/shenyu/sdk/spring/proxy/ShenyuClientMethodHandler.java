@@ -75,18 +75,26 @@ public class ShenyuClientMethodHandler {
     }
 
     private Object handlerResponse(final ShenyuResponse shenyuResponse, final Class<?> returnType) {
-        if (Objects.isNull(shenyuResponse) || void.class == returnType) {
-            return null;
-        } else if (ShenyuResponse.class == returnType) {
-            return shenyuResponse;
-        } else if (shenyuResponse.getStatus() != HttpStatus.OK.value()) {
-            log.warn("handlerResponse http status warn shenyuResponse {}", JsonUtils.toJson(shenyuResponse));
-            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
-        } else if (StringUtils.hasText(shenyuResponse.getBody())) {
-            return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
-        } else {
+        if (Objects.isNull(shenyuResponse)) {
             return null;
         }
+        // the raw ShenyuResponse return type is an explicit escape hatch: hand the response back untouched
+        if (ShenyuResponse.class == returnType) {
+            return shenyuResponse;
+        }
+        if (!isSuccessful(shenyuResponse.getStatus())) {
+            log.warn("handlerResponse http status warn shenyuResponse {}", JsonUtils.toJson(shenyuResponse));
+            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
+        }
+        if (void.class == returnType || !StringUtils.hasText(shenyuResponse.getBody())) {
+            return null;
+        }
+        return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
+    }
+
+    private boolean isSuccessful(final int status) {
+        final HttpStatus httpStatus = HttpStatus.resolve(status);
+        return Objects.nonNull(httpStatus) && httpStatus.is2xxSuccessful();
     }
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {

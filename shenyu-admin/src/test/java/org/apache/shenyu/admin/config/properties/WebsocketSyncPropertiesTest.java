@@ -35,11 +35,13 @@ public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest
     @Test
     public void testWebsocketSyncPropertiesDefaultValue() {
         assertThat(new WebsocketSyncProperties().isEnabled(), is(true));
+        Assertions.assertFalse(new WebsocketSyncProperties().isCompactDiscoveryPayload());
     }
 
     @Test
     public void testWebsocketSyncPropertiesSetValue() {
-        load(WebsocketSyncPropertiesConfiguration.class, "shenyu.sync.websocket.enabled=false");
+        load(WebsocketSyncPropertiesConfiguration.class, "shenyu.sync.websocket.enabled=false",
+                "shenyu.sync.websocket.compact-discovery-payload=true");
         WebsocketSyncProperties websocketSyncProperties = getContext().getBean(WebsocketSyncProperties.class);
         websocketSyncProperties.setMessageMaxSize(0);
         websocketSyncProperties.setAllowOrigins("allowOrigins");
@@ -48,6 +50,7 @@ public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest
         Assertions.assertEquals(websocketSyncProperties.getMessageMaxSize(), 0);
         Assertions.assertEquals(websocketSyncProperties.getAllowOrigins(), "allowOrigins");
         Assertions.assertEquals(websocketSyncProperties.getToken(), "token");
+        Assertions.assertTrue(websocketSyncProperties.isCompactDiscoveryPayload());
     }
 
     @Configuration

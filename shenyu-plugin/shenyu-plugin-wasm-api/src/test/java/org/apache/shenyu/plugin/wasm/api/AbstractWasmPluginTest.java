@@ -18,9 +18,11 @@
 package org.apache.shenyu.plugin.wasm.api;
 
 import com.dylibso.chicory.runtime.Memory;
+import com.dylibso.chicory.wasm.InvalidException;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -73,6 +76,21 @@ public class AbstractWasmPluginTest {
         final RustWasmPlugin rustPlugin = new RustWasmPlugin();
         StepVerifier.create(rustPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(shenyuPluginChain).execute(exchange);
+    }
+
+    @Test
+    public void missingExportReturnsEmptyTest() {
+        try (WasmLoader loader = new WasmLoader(RustWasmPlugin.class, null)) {
+            assertTrue(loader.getWasmExtern("missingCallback").isEmpty());
+            assertTrue(loader.getWasmExtern("execute").isPresent());
+        }
+    }
+
+    @Test
+    public void nonFunctionExportStillFailsTest() {
+        try (WasmLoader loader = new WasmLoader(RustWasmPlugin.class, null)) {
+            assertThrows(InvalidException.class, () -> loader.getWasmExtern("memory"));
+        }
     }
     
     private void mockShenyuConfig() {

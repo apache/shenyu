@@ -25,9 +25,14 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -78,6 +83,25 @@ public class UpstreamCacheManagerTest {
     public void findUpstreamListBySelectorIdTest() {
         final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
         Assertions.assertNull(upstreamCacheManager.findUpstreamListBySelectorId(SELECTOR_ID));
+    }
+
+    @Test
+    public void findUpstreamListBySelectorIdReturnsSnapshotTest() {
+        final UpstreamCacheManager upstreamCacheManager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_TEST";
+        final Upstream upstream = Upstream.builder().url("snapshot-url:8080").status(true).build();
+        List<Upstream> upstreamList = new ArrayList<>(1);
+        upstreamList.add(upstream);
+        upstreamCacheManager.submit(selectorId, upstreamList);
+
+        List<Upstream> snapshot = upstreamCacheManager.findUpstreamListBySelectorId(selectorId);
+        Upstream added = Upstream.builder().url("added-url:8080").status(true).build();
+        getUpstreamCheckTask(upstreamCacheManager).triggerAddOne(selectorId, added);
+
+        Assertions.assertEquals(1, snapshot.size());
+        Assertions.assertSame(upstream, snapshot.get(0));
+        Assertions.assertEquals(2, upstreamCacheManager.findUpstreamListBySelectorId(selectorId).size());
+        upstreamCacheManager.removeByKey(selectorId);
     }
 
     @Test
@@ -358,6 +382,196 @@ public class UpstreamCacheManagerTest {
         Assertions.assertFalse(finalResult.isEmpty());
 
         upstreamCacheManager.removeByKey(testSelectorId);
+    }
+
+    @Test
+    public void testSnapshotRemovesMissingHealthyAndUnhealthyUpstreams() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_REMOVAL_TEST";
+        Upstream kept = Upstream.builder().protocol("http://").url("kept:8080").status(true).build();
+        Upstream deletedHealthy = Upstream.builder().protocol("http://").url("deleted:8080").status(true).build();
+        Upstream deletedUnhealthy = Upstream.builder().protocol("http://").url("offline:8080").status(false).build();
+        UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            task.withLock(() -> {
+                manager.submit(selectorId, Arrays.asList(kept, deletedHealthy, deletedUnhealthy));
+                kept.setLastHealthTimestamp(123L);
+                Upstream updated = Upstream.builder().protocol("http://").url("kept:8080").status(true).weight(50).build();
+                manager.submit(selectorId, Collections.singletonList(updated));
+
+                Assertions.assertEquals(Collections.singletonList(kept), manager.findUpstreamListBySelectorId(selectorId));
+                Assertions.assertSame(kept, manager.findUpstreamListBySelectorId(selectorId).get(0));
+                Assertions.assertEquals(123L, kept.getLastHealthTimestamp());
+                Assertions.assertEquals(50, kept.getWeight());
+                Assertions.assertTrue(task.getUnhealthyUpstream().get(selectorId).isEmpty());
+            });
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"green, v1", "blue, v2"})
+    @Order(12)
+    public void testSubmitPreservesLogicalUpstreamIdentity(final String secondGroup, final String secondVersion) {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "LOGICAL_IDENTITY_" + secondGroup + secondVersion;
+        final Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").weight(10).healthCheckEnabled(false).build();
+        final Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group(secondGroup).version(secondVersion).weight(20).healthCheckEnabled(false).build();
+        try {
+            manager.submit(selectorId, List.of(first, second));
+            List<Upstream> initial = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(initial);
+            Assertions.assertEquals(2, initial.size());
+            Assertions.assertSame(first, initial.get(0));
+            Assertions.assertSame(second, initial.get(1));
+
+            final Upstream updatedFirst = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group("blue").version("v1").weight(30).healthCheckEnabled(false).build();
+            final Upstream updatedSecond = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group(secondGroup).version(secondVersion).weight(40).healthCheckEnabled(false).build();
+            updatedFirst.setLabels(Map.of("release", "canary"));
+            updatedFirst.setMetadata(Map.of("region", "east"));
+            updatedSecond.setLabels(Map.of("release", "stable"));
+            updatedSecond.setMetadata(Map.of("region", "west"));
+            manager.submit(selectorId, List.of(updatedFirst, updatedSecond));
+            List<Upstream> updated = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(updated);
+            Assertions.assertEquals(2, updated.size());
+            Assertions.assertSame(first, updated.get(0));
+            Assertions.assertSame(second, updated.get(1));
+            Assertions.assertEquals(30, first.getWeight());
+            Assertions.assertEquals(40, second.getWeight());
+            Assertions.assertEquals(Map.of("release", "canary"), first.getLabels());
+            Assertions.assertEquals(Map.of("region", "east"), first.getMetadata());
+            Assertions.assertEquals(Map.of("release", "stable"), second.getLabels());
+            Assertions.assertEquals(Map.of("region", "west"), second.getMetadata());
+
+            final Upstream offlineFirst = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                    .group("blue").version("v1").status(false).healthCheckEnabled(true).build();
+            manager.submit(selectorId, List.of(offlineFirst, updatedSecond));
+            List<Upstream> remaining = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertNotNull(remaining);
+            Assertions.assertEquals(1, remaining.size());
+            Assertions.assertSame(second, remaining.get(0));
+            Assertions.assertEquals(40, second.getWeight());
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    public void testSnapshotPreservesRemainingUnhealthyUpstream() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "SNAPSHOT_UNHEALTHY_TEST";
+        Upstream unhealthy = Upstream.builder().protocol("http://").url("kept:8080").status(false).build();
+        Upstream deleted = Upstream.builder().protocol("http://").url("deleted:8080").status(true).build();
+        UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            task.withLock(() -> {
+                manager.submit(selectorId, Arrays.asList(unhealthy, deleted));
+                unhealthy.setHealthy(false);
+                unhealthy.setLastUnhealthyTimestamp(123L);
+                manager.submit(selectorId, Collections.singletonList(
+                        Upstream.builder().protocol("http://").url("kept:8080").status(true).build()));
+
+                Assertions.assertTrue(manager.findUpstreamListBySelectorId(selectorId).isEmpty());
+                Assertions.assertSame(unhealthy, task.getUnhealthyUpstream().get(selectorId).get(0));
+                Assertions.assertEquals(123L, unhealthy.getLastUnhealthyTimestamp());
+            });
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    @Order(13)
+    public void testSubmitKeepsUnhealthyLogicalUpstreamsSeparate() throws ReflectiveOperationException {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        final String selectorId = "LOGICAL_UNHEALTHY_IDENTITY";
+        final Upstream first = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("blue").version("v1").status(false).healthCheckEnabled(true).build();
+        final Upstream second = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("green").version("v2").status(false).healthCheckEnabled(true).build();
+        final Upstream healthy = Upstream.builder().protocol("dubbo://").url("127.0.0.1:20880")
+                .group("yellow").version("v3").healthCheckEnabled(false).build();
+        final java.lang.reflect.Field lockField = UpstreamCheckTask.class.getDeclaredField("lock");
+        lockField.setAccessible(true);
+        synchronized (lockField.get(task)) {
+            try {
+                manager.submit(selectorId, List.of(first, second, healthy));
+                List<Upstream> healthyUpstreams = manager.findUpstreamListBySelectorId(selectorId);
+                Assertions.assertNotNull(healthyUpstreams);
+                Assertions.assertEquals(1, healthyUpstreams.size());
+                Assertions.assertSame(healthy, healthyUpstreams.get(0));
+                List<Upstream> unhealthyUpstreams = task.getUnhealthyUpstream().get(selectorId);
+                Assertions.assertNotNull(unhealthyUpstreams);
+                Assertions.assertEquals(2, unhealthyUpstreams.size());
+                Assertions.assertSame(first, unhealthyUpstreams.get(0));
+                Assertions.assertSame(second, unhealthyUpstreams.get(1));
+                Assertions.assertFalse(unhealthyUpstreams.contains(healthy));
+            } finally {
+                manager.removeByKey(selectorId);
+            }
+        }
+    }
+
+    @Test
+    public void testSubmitExcludesDrainingUpstreamFromSelections() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DRAINING_EXCLUSION_TEST";
+        final Upstream sibling = Upstream.builder().protocol("http://").url("sibling:8080")
+                .status(true).healthCheckEnabled(false).build();
+        final Upstream draining = Upstream.builder().protocol("http://").url("draining:8080")
+                .status(true).draining(true).healthCheckEnabled(false).build();
+        final UpstreamCheckTask task = getUpstreamCheckTask(manager);
+        Assertions.assertNotNull(task);
+        try {
+            manager.submit(selectorId, Arrays.asList(sibling, draining));
+            // the draining instance is alive but must not receive new work; the sibling keeps serving
+            List<Upstream> selectable = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertEquals(1, selectable.size());
+            Assertions.assertSame(sibling, selectable.get(0));
+            // a draining instance sits in neither pool, so no probe can restore it
+            Assertions.assertFalse(poolContainsUrl(task.getHealthyUpstream().get(selectorId), "draining:8080"));
+            Assertions.assertFalse(poolContainsUrl(task.getUnhealthyUpstream().get(selectorId), "draining:8080"));
+
+            // a later sync without the draining marker re-admits the instance
+            manager.submit(selectorId, Arrays.asList(sibling,
+                    Upstream.builder().protocol("http://").url("draining:8080")
+                            .status(true).healthCheckEnabled(false).build()));
+            List<Upstream> readmitted = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertEquals(2, readmitted.size());
+            Assertions.assertTrue(readmitted.stream().anyMatch(upstream -> "draining:8080".equals(upstream.getUrl())));
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    @Test
+    public void testSubmitAllDrainingLeavesNoSelectableUpstream() {
+        final UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        final String selectorId = "DRAINING_ALL_TEST";
+        try {
+            manager.submit(selectorId, Collections.singletonList(
+                    Upstream.builder().protocol("http://").url("only:8080")
+                            .status(true).draining(true).healthCheckEnabled(false).build()));
+            List<Upstream> selectable = manager.findUpstreamListBySelectorId(selectorId);
+            Assertions.assertTrue(Objects.isNull(selectable) || selectable.isEmpty(),
+                    "when every instance is draining the selector must have no selectable upstream");
+        } finally {
+            manager.removeByKey(selectorId);
+        }
+    }
+
+    private boolean poolContainsUrl(final List<Upstream> pool, final String url) {
+        return Objects.nonNull(pool) && pool.stream().anyMatch(upstream -> url.equals(upstream.getUrl()));
     }
 
     /**

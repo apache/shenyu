@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.service.support;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -36,18 +38,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
  * AiProxyRealKeyResolver resolves real api key from selector handle JSON.
- * Event-driven invalidation, single-flight resolve, no time TTL by default.
+ * Bounded caching with event-driven invalidation, single-flight resolve and a short failure cooldown.
  */
 @Component
 public class AiProxyRealKeyResolver {
@@ -56,23 +59,36 @@ public class AiProxyRealKeyResolver {
 
     private static final long RESOLVE_TIMEOUT_SECONDS = 2L;
 
+    private static final int RESOLVER_THREADS = 10;
+
+    private static final int RESOLVE_QUEUE_CAPACITY = 1024;
+
+    private static final long CACHE_MAXIMUM_SIZE = 10000L;
+
+    private static final long FAILURE_CACHE_SECONDS = 5L;
+
     private final SelectorMapper selectorMapper;
 
     private final ObjectMapper objectMapper;
 
-    /** selectorId -> cached real key (nullable). */
-    private final ConcurrentHashMap<String, AtomicReference<String>> cache = new ConcurrentHashMap<>();
+    /** selectorId -> cached real key. */
+    private final Cache<String, String> cache = Caffeine.newBuilder().maximumSize(CACHE_MAXIMUM_SIZE).build();
 
-    /** selectorId -> in-flight resolving future. */
-    private final Map<String, CompletableFuture<String>> inFlight = new ConcurrentHashMap<>();
+    /** Failed or empty resolutions are retried after a short cooldown. */
+    private final Cache<String, Boolean> failures = Caffeine.newBuilder().maximumSize(CACHE_MAXIMUM_SIZE)
+            .expireAfterWrite(FAILURE_CACHE_SECONDS, TimeUnit.SECONDS).build();
+
+    /** selectorId -> in-flight resolving future, guarded by its own monitor. */
+    private final Map<String, CompletableFuture<String>> inFlight = new HashMap<>();
 
     private final ExecutorService executorService;
 
     public AiProxyRealKeyResolver(final SelectorMapper selectorMapper, final ObjectMapper objectMapper) {
         this.selectorMapper = selectorMapper;
         this.objectMapper = objectMapper;
-        this.executorService = Executors.newFixedThreadPool(10,
-                ShenyuThreadFactory.create("ai-proxy-key-resolver", false));
+        this.executorService = new ThreadPoolExecutor(RESOLVER_THREADS, RESOLVER_THREADS, 0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(RESOLVE_QUEUE_CAPACITY), ShenyuThreadFactory.create("ai-proxy-key-resolver", false),
+                new ThreadPoolExecutor.AbortPolicy());
     }
 
     /**
@@ -85,29 +101,7 @@ public class AiProxyRealKeyResolver {
         if (StringUtils.isBlank(selectorId)) {
             return Optional.empty();
         }
-        final AtomicReference<String> ref = cache.get(selectorId);
-        if (Objects.nonNull(ref)) {
-            final String v = ref.get();
-            LOG.debug("[AiProxyRealKeyResolver] cache hit selectorId={}, masked={}...", selectorId, mask(v));
-            return Optional.ofNullable(ref.get());
-        }
-        // single-flight: only one resolving task per selectorId
-        final CompletableFuture<String> future = inFlight.computeIfAbsent(selectorId,
-                id -> CompletableFuture.supplyAsync(() -> doResolve(id), executorService)
-                        .whenComplete((val, ex) -> {
-                            try {
-                                if (Objects.nonNull(ex)) {
-                                    LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", id,
-                                            ex.getMessage());
-                                } else {
-                                    cache.put(id, new AtomicReference<>(val));
-                                    LOG.info("[AiProxyRealKeyResolver] resolved selectorId={}, masked={}...", id,
-                                            mask(val));
-                                }
-                            } finally {
-                                inFlight.remove(id);
-                            }
-                        }));
+        final CompletableFuture<String> future = getOrStartResolution(selectorId);
         try {
             return Optional.ofNullable(future.get(RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS));
         } catch (InterruptedException ex) {
@@ -122,6 +116,61 @@ public class AiProxyRealKeyResolver {
             LOG.warn("[AiProxyRealKeyResolver] resolve failed for selectorId={}: {}", selectorId,
                     Objects.nonNull(ex.getCause()) ? ex.getCause().getMessage() : ex.getMessage());
             return Optional.empty();
+        } catch (CancellationException ex) {
+            return Optional.empty();
+        }
+    }
+
+    private CompletableFuture<String> getOrStartResolution(final String selectorId) {
+        synchronized (inFlight) {
+            final String cached = cache.getIfPresent(selectorId);
+            if (Objects.nonNull(cached)) {
+                LOG.debug("[AiProxyRealKeyResolver] cache hit selectorId={}, masked={}...", selectorId, mask(cached));
+                return CompletableFuture.completedFuture(cached);
+            }
+            if (Objects.nonNull(failures.getIfPresent(selectorId))) {
+                return CompletableFuture.completedFuture(null);
+            }
+            final CompletableFuture<String> existing = inFlight.get(selectorId);
+            if (Objects.nonNull(existing)) {
+                return existing;
+            }
+            // Register before submitting so even immediate completion can remove the flight safely.
+            final CompletableFuture<String> future = new CompletableFuture<>();
+            inFlight.put(selectorId, future);
+            try {
+                CompletableFuture.supplyAsync(() -> doResolve(selectorId), executorService)
+                        .whenComplete((value, error) -> completeResolution(selectorId, future, value, error));
+            } catch (RejectedExecutionException ex) {
+                completeResolution(selectorId, future, null, ex);
+            }
+            return future;
+        }
+    }
+
+    private void completeResolution(final String selectorId, final CompletableFuture<String> future, final String value, final Throwable error) {
+        synchronized (inFlight) {
+            // An invalidated task must neither overwrite the cache nor remove a newer flight.
+            if (inFlight.remove(selectorId, future)) {
+                cacheResult(selectorId, Objects.isNull(error) ? value : null);
+                if (Objects.isNull(error)) {
+                    LOG.info("[AiProxyRealKeyResolver] resolved selectorId={}, masked={}...", selectorId, mask(value));
+                }
+            }
+            if (Objects.isNull(error)) {
+                future.complete(value);
+            } else {
+                future.completeExceptionally(error);
+            }
+        }
+    }
+
+    private void cacheResult(final String selectorId, final String value) {
+        if (Objects.isNull(value)) {
+            failures.put(selectorId, Boolean.TRUE);
+        } else {
+            cache.put(selectorId, value);
+            failures.invalidate(selectorId);
         }
     }
 
@@ -132,10 +181,13 @@ public class AiProxyRealKeyResolver {
      */
     public void invalidate(final String selectorId) {
         if (StringUtils.isNotBlank(selectorId)) {
-            cache.remove(selectorId);
-            final CompletableFuture<String> f = inFlight.remove(selectorId);
-            if (Objects.nonNull(f)) {
-                f.cancel(true);
+            synchronized (inFlight) {
+                cache.invalidate(selectorId);
+                failures.invalidate(selectorId);
+                final CompletableFuture<String> f = inFlight.remove(selectorId);
+                if (Objects.nonNull(f)) {
+                    f.cancel(true);
+                }
             }
         }
     }
@@ -214,9 +266,11 @@ public class AiProxyRealKeyResolver {
         final Set<String> missing = new HashSet<>();
 
         for (String id : selectorIds) {
-            AtomicReference<String> ref = cache.get(id);
-            if (Objects.nonNull(ref)) {
-                result.put(id, ref.get());
+            String value = cache.getIfPresent(id);
+            if (Objects.nonNull(value)) {
+                result.put(id, value);
+            } else if (Objects.nonNull(failures.getIfPresent(id))) {
+                result.put(id, null);
             } else {
                 missing.add(id);
             }
@@ -227,16 +281,14 @@ public class AiProxyRealKeyResolver {
             if (Objects.nonNull(selectors)) {
                 for (SelectorDO selector : selectors) {
                     String apiKey = extractApiKey(selector.getHandle());
-                    cache.put(selector.getId(), new AtomicReference<>(apiKey));
+                    cacheResult(selector.getId(), apiKey);
                     result.put(selector.getId(), apiKey);
                 }
             }
-            // Cache null for IDs not found in DB to avoid repeated DB hits.
+            // Briefly cache missing IDs, allowing recovery without a selector change event.
             for (String id : missing) {
                 if (!result.containsKey(id)) {
-                    // If not found in DB or handle is invalid, it wasn't added to result.
-                    // We should add it as null to result and cache.
-                    cache.put(id, new AtomicReference<>(null));
+                    cacheResult(id, null);
                     result.put(id, null);
                 }
             }

@@ -70,7 +70,7 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
   "name": "test-create-rule",
   "matchMode": 1,
   "sort": 1,
-  "loged": true,
+  "logged": true,
   "enabled": true,
   "ruleConditions": [
     {
@@ -93,7 +93,7 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
   "name": "test-create-rule",
   "matchMode": 1,
   "sort": 1,
-  "loged": true,
+  "logged": true,
   "enabled": true,
   "ruleConditions": [
     {

@@ -35,7 +35,7 @@ import java.util.Objects;
  * that may change between versions. The following SDK versions are tested and supported:
  * <ul>
  *   <li>MCP SDK 0.17.0 (current)</li>
- *   <li>Spring AI 1.1.2 (current)</li>
+ *   <li>Spring AI 1.1.8 (current)</li>
  * </ul>
  *
  * <p>If reflection fails (e.g., due to SDK API changes), this class will throw
@@ -44,6 +44,9 @@ import java.util.Objects;
  * @since 2.7.0.2
  */
 public class McpSessionHelper {
+
+    /** Reactor transport-context key carrying the request-local ShenYu exchange. */
+    public static final String SHENYU_EXCHANGE_CONTEXT_KEY = "shenyu.serverWebExchange";
 
     private static final Logger LOG = LoggerFactory.getLogger(McpSessionHelper.class);
 
