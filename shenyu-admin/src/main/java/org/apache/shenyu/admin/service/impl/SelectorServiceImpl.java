@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
@@ -202,12 +203,16 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
         String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
-        SelectorDO selectorDO = findByNameAndPluginNameAndNamespaceId(contextPath, pluginName, namespaceId);
+        // The per-plugin lock spans creation and notifications until this transaction commits.
+        Pair<PluginDO, SelectorDO> registration = lockSelector(contextPath, pluginName, namespaceId);
+        PluginDO pluginDO = registration.getLeft();
+        SelectorDO selectorDO = registration.getRight();
         if (Objects.isNull(selectorDO)) {
-            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
+            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginDO.getId());
             selectorDTO.setHandle(selectorHandler);
             selectorDTO.setNamespaceId(namespaceId);
             return registerDefault(selectorDTO);
@@ -426,8 +431,13 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(final String name, final String pluginName, final String namespaceId) {
-        PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
-        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
+        return lockSelector(name, pluginName, namespaceId).getRight();
+    }
+
+    private Pair<PluginDO, SelectorDO> lockSelector(final String name, final String pluginName, final String namespaceId) {
+        // Lock a persistent parent even when no selector exists yet, across all Admin instances.
+        PluginDO pluginDO = Objects.requireNonNull(pluginMapper.selectByNameForUpdate(pluginName), "unknown plugin: " + pluginName);
+        return Pair.of(pluginDO, selectorMapper.findByNameAndPluginIdAndNamespaceIdForUpdate(name, pluginDO.getId(), namespaceId));
     }
 
     @Override

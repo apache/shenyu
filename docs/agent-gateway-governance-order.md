@@ -31,10 +31,14 @@ existing AI chain. AG must not read, buffer or subscribe to the LLM request body
 body consumption remains with the existing AI plugins. A matched MCP request
 terminates in AG and does not enter Prompt, the LLM Token Limiter or AI Proxy.
 Unmatched/disabled AG continues the original chain. Moving the terminal entry
-earlier also bypasses later plugins for matched MCP, including RocketMQ logging
-and sensitiveWord. Do not assume those plugins still observe or filter MCP;
-review any deployment relying on their old position. Authentication plugins
-must still be enabled and match the intended paths; order alone is not authentication.
+earlier also bypasses later plugins for matched MCP, including `mcpServer` and
+`loggingKafka` (180), `sensitiveWord` and `loggingElasticSearch` (190), the LLM
+Token Limiter (171), RocketMQ logging (170), Prompt and AI Proxy. In particular,
+this flips the previous overlap with `mcpServer`: AG at 198 formerly ran after
+it, while AG at 169 now runs first and terminates the matched MCP path. Do not
+assume those plugins still observe, filter or route MCP; review any deployment
+relying on their old position. Authentication plugins must still be enabled and
+match the intended paths; order alone is not authentication.
 
 ## Effective order is configuration, not only the enum
 

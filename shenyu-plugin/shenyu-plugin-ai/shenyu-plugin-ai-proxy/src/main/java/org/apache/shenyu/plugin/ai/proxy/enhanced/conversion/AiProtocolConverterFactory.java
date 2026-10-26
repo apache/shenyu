@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Registry for directional AI protocol converters.
@@ -58,9 +59,6 @@ public final class AiProtocolConverterFactory {
      */
     public AiProtocolConverter getConverter(final String sourceProtocol, final String targetProtocol) {
         ConversionKey key = new ConversionKey(sourceProtocol, targetProtocol);
-        if (sourceProtocol.equals(targetProtocol)) {
-            return new IdentityAiProtocolConverter(sourceProtocol);
-        }
         AiProtocolConverter converter = converters.get(key);
         if (Objects.isNull(converter)) {
             throw new ShenyuException("Unsupported AI protocol conversion: "
@@ -70,15 +68,16 @@ public final class AiProtocolConverterFactory {
     }
 
     /**
-     * Resolve a converter from a client protocol to one of the protocols natively accepted by a provider.
-     * Native support takes precedence over registered conversion routes. When multiple routes are available,
-     * converter registration order determines the selected target.
+     * Find a registered converter from a client protocol to one of the Provider-native protocols.
+     * Converter registration order determines the selected target when multiple routes are available.
+     * Native identity routes are intentionally outside this registry.
      *
      * @param sourceProtocol client protocol identifier
      * @param targetProtocols protocols natively accepted by the provider
-     * @return identity or directional protocol converter
+     * @return matching directional converter, or empty when no conversion route exists
      */
-    public AiProtocolConverter resolveConverter(final String sourceProtocol, final Collection<String> targetProtocols) {
+    public Optional<AiProtocolConverter> findConverter(final String sourceProtocol,
+                                                       final Collection<String> targetProtocols) {
         Objects.requireNonNull(sourceProtocol, "Source AI protocol is required");
         Objects.requireNonNull(targetProtocols, "Target AI protocols are required");
         if (sourceProtocol.isBlank()) {
@@ -90,21 +89,17 @@ public final class AiProtocolConverterFactory {
                 throw new IllegalArgumentException("Target AI protocol must not be blank");
             }
         }
-        if (targetProtocols.contains(sourceProtocol)) {
-            return new IdentityAiProtocolConverter(sourceProtocol);
-        }
         for (Map.Entry<ConversionKey, AiProtocolConverter> entry : converters.entrySet()) {
             if (entry.getKey().sourceProtocol().equals(sourceProtocol)
                     && targetProtocols.contains(entry.getKey().targetProtocol())) {
-                return entry.getValue();
+                return Optional.of(entry.getValue());
             }
         }
-        throw new ShenyuException("Unsupported AI protocol conversion from " + sourceProtocol
-                + " to provider protocols " + targetProtocols);
+        return Optional.empty();
     }
 
     /**
-     * Determine whether an identity or registered directional route is supported.
+     * Determine whether a registered directional conversion is supported.
      *
      * @param sourceProtocol source protocol identifier
      * @param targetProtocol target protocol identifier
@@ -115,8 +110,7 @@ public final class AiProtocolConverterFactory {
                 || sourceProtocol.isBlank() || targetProtocol.isBlank()) {
             return false;
         }
-        return sourceProtocol.equals(targetProtocol)
-                || converters.containsKey(new ConversionKey(sourceProtocol, targetProtocol));
+        return converters.containsKey(new ConversionKey(sourceProtocol, targetProtocol));
     }
 
     private record ConversionKey(String sourceProtocol, String targetProtocol) {
@@ -129,4 +123,5 @@ public final class AiProtocolConverterFactory {
             }
         }
     }
+
 }

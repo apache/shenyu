@@ -118,12 +118,17 @@ public final class Upstream {
     /**
      * this is gray.
      */
-    private boolean gray;
+    private volatile boolean gray;
 
     /**
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
+
+    /**
+     * draining: alive, but excluded from new selections (#8042).
+     */
+    private volatile boolean draining;
     
     private volatile Map<String, String> labels = Collections.emptyMap();
 
@@ -151,6 +156,7 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
         this.healthCheckEnabled = builder.healthCheckEnabled;
+        this.draining = builder.draining;
     }
     
     /**
@@ -288,6 +294,24 @@ public final class Upstream {
      */
     public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
         this.healthCheckEnabled = healthCheckEnabled;
+    }
+
+    /**
+     * Whether the upstream is draining: alive but excluded from new selections.
+     *
+     * @return the draining
+     */
+    public boolean isDraining() {
+        return draining;
+    }
+
+    /**
+     * Sets draining.
+     *
+     * @param draining the draining
+     */
+    public void setDraining(final boolean draining) {
+        this.draining = draining;
     }
     
     /**
@@ -688,6 +712,11 @@ public final class Upstream {
         private boolean healthCheckEnabled = true;
 
         /**
+         * draining.
+         */
+        private boolean draining;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -810,6 +839,17 @@ public final class Upstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build draining.
+         *
+         * @param draining draining
+         * @return this builder
+         */
+        public Builder draining(final boolean draining) {
+            this.draining = draining;
             return this;
         }
 

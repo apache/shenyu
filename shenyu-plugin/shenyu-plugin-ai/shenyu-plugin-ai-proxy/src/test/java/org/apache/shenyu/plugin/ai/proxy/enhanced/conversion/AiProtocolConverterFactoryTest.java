@@ -56,35 +56,24 @@ class AiProtocolConverterFactoryTest {
     }
 
     @Test
-    void testSupportsIdentityWithoutRegistration() {
+    void testDoesNotTreatIdentityAsRegisteredConversion() {
         AiProtocolConverterFactory factory = new AiProtocolConverterFactory(List.of());
 
-        assertTrue(factory.supports("openai-chat", "openai-chat"));
+        assertFalse(factory.supports("openai-chat", "openai-chat"));
         assertFalse(factory.supports("openai-responses", "openai-chat"));
+        assertThrows(ShenyuException.class,
+                () -> factory.getConverter("openai-chat", "openai-chat"));
     }
 
     @Test
-    void testCreatesIdentityConverterWithoutRegistration() {
-        AiProtocolConverterFactory factory = new AiProtocolConverterFactory(List.of());
-        ShenyuAiRequest request = new ShenyuAiRequest();
-        request.setProtocol("openai-chat");
-
-        AiProtocolConverter converter = factory.getConverter("openai-chat", "openai-chat");
-        AiProtocolConversion conversion = converter.convert(request, false);
-
-        assertTrue(converter instanceof IdentityAiProtocolConverter);
-        assertSame(request, conversion.request());
-    }
-
-    @Test
-    void testPrefersNativeProviderProtocolOverConversion() {
+    void testFindsRegisteredRouteToAnyProviderProtocol() {
         AiProtocolConverter converter = new TestConverter("openai-responses", "openai-chat");
         AiProtocolConverterFactory factory = new AiProtocolConverterFactory(List.of(converter));
 
-        AiProtocolConverter resolved = factory.resolveConverter(
-                "openai-responses", Set.of("openai-chat", "openai-responses"));
+        AiProtocolConverter resolved = factory.findConverter(
+                "openai-responses", Set.of("openai-chat")).orElseThrow();
 
-        assertTrue(resolved instanceof IdentityAiProtocolConverter);
+        assertSame(converter, resolved);
     }
 
     @Test
@@ -93,19 +82,18 @@ class AiProtocolConverterFactoryTest {
         AiProtocolConverter second = new TestConverter("source", "target-a");
         AiProtocolConverterFactory factory = new AiProtocolConverterFactory(List.of(first, second));
 
-        AiProtocolConverter resolved = factory.resolveConverter(
-                "source", Set.of("target-a", "target-b"));
+        AiProtocolConverter resolved = factory.findConverter(
+                "source", Set.of("target-a", "target-b")).orElseThrow();
 
         assertSame(first, resolved);
     }
 
     @Test
-    void testRejectsSourceWithoutRouteToProviderProtocols() {
+    void testReturnsEmptyWithoutRouteToProviderProtocols() {
         AiProtocolConverterFactory factory = new AiProtocolConverterFactory(List.of(
                 new TestConverter("source", "other")));
 
-        assertThrows(ShenyuException.class,
-                () -> factory.resolveConverter("source", Set.of("target-a", "target-b")));
+        assertTrue(factory.findConverter("source", Set.of("target-a", "target-b")).isEmpty());
     }
 
     @Test

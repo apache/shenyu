@@ -26,6 +26,7 @@
 -- Run both UPDATEs in one operator-managed transaction, verify, then commit.
 -- Database writes alone do not refresh Admin/gateway caches: resynchronize
 -- all affected namespaces before routing traffic through the updated gateway.
+-- Syntax verified against MySQL, PostgreSQL and Oracle upgrade paths.
 
 UPDATE plugin SET sort = 169 WHERE name = 'agentGateway' AND sort = 198;
 

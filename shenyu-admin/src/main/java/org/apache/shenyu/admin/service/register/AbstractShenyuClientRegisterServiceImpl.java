@@ -284,6 +284,33 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return ShenyuResultMessage.SUCCESS;
     }
     
+    @Override
+    public String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        if (CollectionUtils.isEmpty(uriList)) {
+            return "";
+        }
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        if (Objects.isNull(selectorDO)) {
+            throw new ShenyuException("doDraining Failed to execute, wait to retry.");
+        }
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).toList();
+        if (CollectionUtils.isEmpty(validUriList)) {
+            return null;
+        }
+        String selectorId = selectorDO.getId();
+        // the marker travels in props, not in status: heartbeats keep flipping status
+        // back to enabled, and a draining instance must stay excluded regardless (#8042)
+        validUriList.forEach(uriRegisterDTO -> {
+            String url = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), uriRegisterDTO.getNamespaceId()).getUrl();
+            discoveryUpstreamService.markDrainingBySelectorIdAndUrl(selectorId, url, true);
+        });
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getSelectorName(), pluginName, namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        return ShenyuResultMessage.SUCCESS;
+    }
+
     protected void doDiscoveryLocal(final SelectorDO selectorDO, final String pluginName, final List<URIRegisterDTO> uriList) {
         String discoveryHandlerId = discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName, selectorDO.getNamespaceId());
         for (URIRegisterDTO uriRegisterDTO : uriList) {
@@ -291,6 +318,9 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                     uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), selectorDO.getNamespaceId());
             discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
+            // a fresh registration claims the identity: a restart releases the drain,
+            // while heartbeats alone can never do so (#8042)
+            discoveryUpstreamService.markDrainingBySelectorIdAndUrl(selectorDO.getId(), discoveryUpstreamDTO.getUrl(), false);
         }
         DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));

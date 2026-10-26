@@ -324,6 +324,17 @@ class AgentMcpTerminalObservationTest {
         observer.only(Outcome.TIMEOUT);
     }
 
+    @Test
+    void failedRecoveryWriteDoesNotOverwriteTheOriginalClassification() {
+        Recording observer = new Recording();
+        MockServerWebExchange exchange = exchange("tools/call");
+        exchange.getResponse().setWriteHandler(buffers -> buffers.doOnNext(DataBufferUtils::release).then(Mono.error(new IllegalStateException("write"))));
+        StepVerifier.create(handler(Mono.error(new AgentMcpProtocolException(403, -32001, "denied", null, null)), identity(), observer)
+                .handle(exchange, config("json", 30000), traffic, 1)).expectError().verify();
+        AgentMcpTerminalEvent event = observer.only(Outcome.REJECTED);
+        assertEquals(403, event.getHttpStatus());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
     void cancellingAStalledWriteIsNotSuccess(final String mode) {

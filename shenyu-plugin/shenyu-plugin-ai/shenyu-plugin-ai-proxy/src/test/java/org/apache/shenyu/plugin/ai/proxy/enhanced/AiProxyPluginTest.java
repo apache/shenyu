@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
@@ -65,12 +66,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -273,6 +275,15 @@ class AiProxyPluginTest {
     }
 
     @Test
+    void wrappedTimeoutKeepsTimeoutClassificationBeforeRecovery() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.error(new ShenyuException(new TimeoutException("upstream deadline"))), events::add);
+        StepVerifier.create(execute(plugin)).verifyComplete();
+        assertEquals(HttpStatus.BAD_REQUEST, exchange.getResponse().getStatusCode());
+        assertEquals(AiCallOutcome.TIMEOUT, events.get(0).outcome());
+    }
+
+    @Test
     void filtersHopHeadersAndPreservesEndToEndHeaders() {
         AiProxyPlugin plugin = plugin(request -> Mono.just(new AiUpstreamResponse(200, Map.of("Connection", List.of("X-Hop"),
                 "X-Hop", List.of("remove"), "Transfer-Encoding", List.of("chunked"), "X-End", List.of("keep")), Flux.just(bytes("ok")))));
@@ -383,7 +394,7 @@ class AiProxyPluginTest {
     private AiProxyPlugin plugin(final AiProxyTransport transport, final AiCallObserver observer) {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolConverterFactory(), request -> {
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolRouteResolver(), request -> {
                     requests.add(request);
                     return transport.execute(request);
                 }, Duration.ZERO, observer);

@@ -58,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -414,7 +414,8 @@ class AiProxyEngineOrchestrationTest {
             return Mono.error(networkFailure());
         });
         StepVerifier.create(engine.execute("invalid", config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .expectError(ShenyuException.class).verify();
+                .expectErrorMatches(error -> error instanceof AiProxyException request
+                        && request.getKind() == AiProxyException.Kind.REQUEST).verify();
         assertEquals(0, calls.get());
     }
 
@@ -472,7 +473,7 @@ class AiProxyEngineOrchestrationTest {
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(protocol)), new AiProxyProviderFactory(List.of(provider)),
-                protocolConverterFactory(), request -> Mono.just(response(200, Flux.just(bytes("ok")))), Duration.ZERO);
+                protocolRouteResolver(), request -> Mono.just(response(200, Flux.just(bytes("ok")))), Duration.ZERO);
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).verifyComplete();
         assertEquals(List.of("provider", "protocol"), conversions);
         supported.set(false);
@@ -504,13 +505,13 @@ class AiProxyEngineOrchestrationTest {
     private AiProxyEngine engine(final AiProxyTransport transport) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolConverterFactory(), transport, Duration.ZERO);
+                protocolRouteResolver(), transport, Duration.ZERO);
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolConverterFactory(), transport, retryProperties);
+                protocolRouteResolver(), transport, retryProperties);
     }
 
     private AiCommonConfig config(final boolean stream, final String model) {

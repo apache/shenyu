@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolConverterFactory;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -111,7 +111,7 @@ class AiProxyStreamCancellationTest {
         WebClient client = WebClient.builder().exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.OK)
                 .body(events.map(event -> DefaultDataBufferFactory.sharedInstance.wrap(event.getBytes(StandardCharsets.UTF_8)))).build())).build();
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                protocolConverterFactory(), new WebClientAiProxyTransport(client), Duration.ZERO);
+                protocolRouteResolver(), new WebClientAiProxyTransport(client), Duration.ZERO);
     }
 
     private Mono<Void> stream(final AiProxyEngine engine, final AtomicInteger received) {
