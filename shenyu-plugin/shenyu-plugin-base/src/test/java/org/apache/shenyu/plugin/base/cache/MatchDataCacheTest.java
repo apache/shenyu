@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.cache;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -44,6 +45,59 @@ public final class MatchDataCacheTest {
     private final String path1 = "/http/abc";
 
     private final String path2 = "/http/def";
+
+    @AfterEach
+    public void clearMatchCaches() {
+        MatchDataCache.getInstance().cleanSelectorData();
+        MatchDataCache.getInstance().cleanRuleDataData();
+    }
+
+    @Test
+    public void testSelectorScopedRuleMatches() {
+        MatchDataCache cache = MatchDataCache.getInstance();
+        RuleData first = RuleData.builder().id("first-rule").pluginName(mockPluginName1).selectorId("first").build();
+        RuleData second = RuleData.builder().id("second-rule").pluginName(mockPluginName1).selectorId("second").build();
+        cache.cacheRuleData("first", path1, first, 100, 100, 60_000);
+        cache.cacheRuleData("second", path1, second, 100, 100, 60_000);
+
+        assertEquals(first, cache.obtainRuleData(mockPluginName1, "first", path1));
+        assertEquals(second, cache.obtainRuleData(mockPluginName1, "second", path1));
+        assertNull(cache.obtainRuleData(mockPluginName1, "third", path1));
+        assertNull(cache.obtainRuleData(mockPluginName2, "first", path1));
+        assertNull(cache.obtainRuleData(mockPluginName1, "first", path2));
+        assertNull(cache.obtainRuleData(mockPluginName1, path1));
+    }
+
+    @Test
+    public void testScopedRuleInvalidationIncludesNegativeMatches() {
+        MatchDataCache cache = MatchDataCache.getInstance();
+        RuleData first = RuleData.builder().id("first-rule").pluginName(mockPluginName1).selectorId("first").build();
+        RuleData miss = RuleData.builder().pluginName(mockPluginName1).selectorId("first").build();
+        RuleData second = RuleData.builder().id("second-rule").pluginName(mockPluginName1).selectorId("second").build();
+        cache.cacheRuleData("first", path1, first, 100, 100, 60_000);
+        cache.cacheRuleData("first", path2, miss, 100, 100, 60_000);
+        cache.cacheRuleData("second", path1, second, 100, 100, 60_000);
+
+        cache.removeRuleDataBySelector(mockPluginName1, "first");
+        assertNull(cache.obtainRuleData(mockPluginName1, "first", path1));
+        assertNull(cache.obtainRuleData(mockPluginName1, "first", path2));
+        assertEquals(second, cache.obtainRuleData(mockPluginName1, "second", path1));
+
+        cache.removeRuleData(mockPluginName1, "second-rule");
+        assertNull(cache.obtainRuleData(mockPluginName1, "second", path1));
+    }
+
+    @Test
+    public void testScopedRuleKeyCannotConfuseSelectorAndPathBoundaries() {
+        MatchDataCache cache = MatchDataCache.getInstance();
+        RuleData first = RuleData.builder().id("first-rule").pluginName(mockPluginName1).selectorId("a").build();
+        RuleData second = RuleData.builder().id("second-rule").pluginName(mockPluginName1).selectorId("a/b").build();
+        cache.cacheRuleData("a", "/b/x", first, 100, 100, 60_000);
+        cache.cacheRuleData("a/b", "/x", second, 100, 100, 60_000);
+
+        assertEquals(first, cache.obtainRuleData(mockPluginName1, "a", "/b/x"));
+        assertEquals(second, cache.obtainRuleData(mockPluginName1, "a/b", "/x"));
+    }
 
     @Test
     public void testCacheSelectorData() throws NoSuchFieldException, IllegalAccessException {
@@ -119,15 +173,21 @@ public final class MatchDataCacheTest {
             cache.cacheSelectorData(path2, emptySelector, 100, 100, 500);
             cache.cacheRuleData(path1, rule, 100, 100, 500);
             cache.cacheRuleData(path2, emptyRule, 100, 100, 500);
+            cache.cacheRuleData("first", path1, rule, 100, 100, 500);
+            cache.cacheRuleData("second", path1, emptyRule, 100, 100, 500);
             assertEquals(selector, cache.obtainSelectorData(mockPluginName1, path1));
             assertEquals(emptySelector, cache.obtainSelectorData(mockPluginName1, path2));
             assertEquals(rule, cache.obtainRuleData(mockPluginName1, path1));
             assertEquals(emptyRule, cache.obtainRuleData(mockPluginName1, path2));
+            assertEquals(rule, cache.obtainRuleData(mockPluginName1, "first", path1));
+            assertEquals(emptyRule, cache.obtainRuleData(mockPluginName1, "second", path1));
             await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
                 assertNull(cache.obtainSelectorData(mockPluginName1, path1));
                 assertNull(cache.obtainSelectorData(mockPluginName1, path2));
                 assertNull(cache.obtainRuleData(mockPluginName1, path1));
                 assertNull(cache.obtainRuleData(mockPluginName1, path2));
+                assertNull(cache.obtainRuleData(mockPluginName1, "first", path1));
+                assertNull(cache.obtainRuleData(mockPluginName1, "second", path1));
             });
         } finally {
             cache.cleanSelectorData();
