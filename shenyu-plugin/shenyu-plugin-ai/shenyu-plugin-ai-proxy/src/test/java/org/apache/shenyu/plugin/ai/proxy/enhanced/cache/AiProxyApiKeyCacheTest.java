@@ -70,4 +70,52 @@ class AiProxyApiKeyCacheTest {
         AiProxyApiKeyCache.getInstance().remove(data);
         Assertions.assertNull(AiProxyApiKeyCache.getInstance().getRealApiKey("selector-3", "proxy-3"));
     }
-} 
+
+    @Test
+    void testCacheNullEnabledUpdateKeepsEnabledEntry() {
+        ProxyApiKeyData enabled = ProxyApiKeyData.builder()
+                .selectorId("selector-5")
+                .proxyApiKey("proxy-5")
+                .realApiKey("real-5")
+                .enabled(Boolean.TRUE)
+                .namespaceId("default")
+                .build();
+        AiProxyApiKeyCache.getInstance().cache(enabled);
+
+        ProxyApiKeyData update = ProxyApiKeyData.builder()
+                .selectorId("selector-5")
+                .proxyApiKey("proxy-5")
+                .realApiKey("updated-real-5")
+                .enabled(null)
+                .namespaceId("default")
+                .build();
+        AiProxyApiKeyCache.getInstance().cache(update);
+
+        Assertions.assertEquals("real-5", AiProxyApiKeyCache.getInstance().getRealApiKey("selector-5", "proxy-5"));
+        Assertions.assertEquals(1, AiProxyApiKeyCache.getInstance().size());
+    }
+
+    @Test
+    void testCacheDisabledUpdateEvictsEnabledEntry() {
+        ProxyApiKeyData enabled = ProxyApiKeyData.builder()
+                .selectorId("selector-4")
+                .proxyApiKey("proxy-4")
+                .realApiKey("real-4")
+                .enabled(Boolean.TRUE)
+                .namespaceId("default")
+                .build();
+        AiProxyApiKeyCache.getInstance().cache(enabled);
+        Assertions.assertEquals("real-4", AiProxyApiKeyCache.getInstance().getRealApiKey("selector-4", "proxy-4"));
+
+        ProxyApiKeyData disabled = ProxyApiKeyData.builder()
+                .selectorId("selector-4")
+                .proxyApiKey("proxy-4")
+                .realApiKey("real-4")
+                .enabled(Boolean.FALSE)
+                .namespaceId("default")
+                .build();
+        AiProxyApiKeyCache.getInstance().cache(disabled);
+        Assertions.assertNull(AiProxyApiKeyCache.getInstance().getRealApiKey("selector-4", "proxy-4"));
+        Assertions.assertEquals(0, AiProxyApiKeyCache.getInstance().size());
+    }
+}
