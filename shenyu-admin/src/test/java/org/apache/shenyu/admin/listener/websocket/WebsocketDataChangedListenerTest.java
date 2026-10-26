@@ -415,8 +415,8 @@ public final class WebsocketDataChangedListenerTest {
         try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
             new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(data, DataEventTypeEnum.UPDATE);
             for (DiscoverySyncData item : List.of(first, second)) {
-                collector.verify(() -> WebsocketCollector.send(eq(item.getNamespaceId()), argThat(message -> {
-                    JsonObject frame = JsonParser.parseString(message).getAsJsonObject();
+                collector.verify(() -> WebsocketCollector.sendDiscovery(eq(item.getNamespaceId()), any(), argThat(message -> {
+                    JsonObject frame = JsonParser.parseString(message.get()).getAsJsonObject();
                     return frame.getAsJsonArray("data").size() == 1
                             && item.getSelectorId().equals(frame.getAsJsonArray("data").get(0).getAsJsonObject().get("selectorId").getAsString());
                 }), eq(DataEventTypeEnum.UPDATE)));
@@ -431,8 +431,8 @@ public final class WebsocketDataChangedListenerTest {
         data.setUpstreamDataList(null);
         try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
             new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(Collections.singletonList(data), DataEventTypeEnum.DELETE);
-            collector.verify(() -> WebsocketCollector.send(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), argThat(message -> {
-                JsonObject item = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+            collector.verify(() -> WebsocketCollector.sendDiscovery(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), any(), argThat(message -> {
+                JsonObject item = JsonParser.parseString(message.get()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
                 return !item.has("upstreamDataList") && "selector-id".equals(item.get("selectorId").getAsString());
             }), eq(DataEventTypeEnum.DELETE)));
         }
@@ -457,6 +457,11 @@ public final class WebsocketDataChangedListenerTest {
             collector.when(() -> WebsocketCollector.send(eq(data.getNamespaceId()), anyString(), eq(eventType)))
                     .thenAnswer(invocation -> {
                         messages.add(invocation.getArgument(1));
+                        return null;
+                    });
+            collector.when(() -> WebsocketCollector.sendDiscovery(eq(data.getNamespaceId()), any(), any(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(invocation.<java.util.function.Supplier<String>>getArgument(2).get());
                         return null;
                     });
             listener.onDiscoveryUpstreamChanged(Collections.singletonList(data), eventType);

@@ -60,7 +60,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    private final RemoteCatalogLifecycle lifecycle = new RemoteCatalogLifecycle(3);
+    private final RemoteCatalogLifecycle lifecycle;
 
     private final Set<URI> allowedEndpoints;
 
@@ -105,6 +105,25 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
                                    final RemoteServiceCredentialResolver credentials, final String source) {
+        this(allowedEndpoints, localNames, credentials, source, false);
+    }
+
+    /**
+     * Managed remote catalog with resource lifecycle admission.
+     * @param allowedEndpoints trusted allowedEndpoints value
+     * @param localNames trusted localNames value
+     * @param credentials trusted credentials value
+     * @param resourcesEnabled whether remote resources are enabled
+     */
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
+                                   final RemoteServiceCredentialResolver credentials, final boolean resourcesEnabled) {
+        this(allowedEndpoints, localNames, credentials, null, resourcesEnabled);
+    }
+
+    private ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
+                                    final RemoteServiceCredentialResolver credentials, final String source,
+                                    final boolean resourcesEnabled) {
+        lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
         this.allowedEndpoints = Set.copyOf(allowedEndpoints);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
@@ -293,6 +312,17 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             Map<String, ObjectNode> result = new LinkedHashMap<>();
             directory.definitions(directory.names(), directory.names()).forEach((name, tool) -> result.put(name, JSON.valueToTree(tool)));
             return Map.copyOf(result);
+        }
+
+        @Override
+        public Map<String, ObjectNode> resourceDefinitions() {
+            return directory.resources().definitions();
+        }
+
+        @Override
+        public Mono<ObjectNode> readResource(final String uri, final AgentMcpExecutionContext context) {
+            return directory.resources().read(uri, context.getAllowedResources())
+                    .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", context.getDeadline()))));
         }
 
         @Override

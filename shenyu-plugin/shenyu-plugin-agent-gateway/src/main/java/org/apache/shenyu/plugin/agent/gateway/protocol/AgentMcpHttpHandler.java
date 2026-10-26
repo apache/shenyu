@@ -138,18 +138,21 @@ public final class AgentMcpHttpHandler {
                                 }
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(),
-                                        identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
-                                        identity.getToolGrants(), deadline, config.getResultFilters(), config.getHttpTools(), httpInvoker,
-                                        identity.getTenant().orElse(null), () -> {
-                                            if (Objects.nonNull(terminal)) {
-                                                terminal.attempted();
-                                            }
-                                        }))
+                                                identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
+                                                identity.getToolGrants(), deadline, config.getResultFilters(), config.getAllowedResources(),
+                                                identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
+                                                identity.getTenant().orElse(null), () -> {
+                                                    if (Objects.nonNull(terminal)) {
+                                                        terminal.attempted();
+                                                    }
+                                                }))
                                         .contextWrite(observation::traceContext)
                                         .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics))
                                         .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
-                                                traffic.toRequestContext(configurationVersion).withIdentity(identity.getTenant().orElse(null), identity.getSubject())
-                                                        .withTarget("tools/call".equals(request.getMethod()) ? request.getParams().path("name").textValue() : null,
+                                                traffic.toRequestContext(configurationVersion)
+                                                        .withIdentity(identity.getTenant().orElse(null), identity.getSubject())
+                                                        .withTarget("tools/call".equals(request.getMethod())
+                                                                ? request.getParams().path("name").textValue() : null,
                                                                 request.getMethod(), AgentMcpRequestParser.VERSION)));
                             }))
                     .flatMap(response -> {
