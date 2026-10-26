@@ -25,6 +25,16 @@ import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 public interface Constants {
 
     /**
+     * Per-connection Discovery wire capability advertised during the WebSocket handshake.
+     */
+    String X_SHENYU_DISCOVERY_PAYLOAD = "X-Shenyu-Discovery-Payload";
+
+    /**
+     * Version one of the compact Discovery projection.
+     */
+    String COMPACT_DISCOVERY_PAYLOAD_V1 = "compact-v1";
+
+    /**
      * The constant Apache SHENYU.
      */
     String SHENYU = "shenyu";
