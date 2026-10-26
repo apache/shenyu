@@ -32,17 +32,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -76,6 +75,10 @@ public class InstanceCheckService {
 
     private final ReentrantLock syncLock = new ReentrantLock();
 
+    private final Map<String, Map<Integer, Deque<Long>>> namespaceStateHistoryMap;
+
+    private final Object historyLock = new Object();
+
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
@@ -83,6 +86,7 @@ public class InstanceCheckService {
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
         this.stateHistoryMap = new ConcurrentHashMap<>();
+        this.namespaceStateHistoryMap = new HashMap<>();
     }
 
     /**
@@ -292,11 +296,41 @@ public class InstanceCheckService {
     }
 
     private void collectStateData() {
-        if (!CollectionUtils.isEmpty(instanceHealthBeatInfo)) {
-            Map<Integer, Long> pieData = instanceHealthBeatInfo.values().stream()
-                    .filter(instance -> Objects.nonNull(instance.getInstanceState()))
-                    .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
-            updateStateHistory(pieData);
+        final List<InstanceInfoVO> instances =
+                new ArrayList<>(instanceHealthBeatInfo.values());
+
+        final Map<Integer, Long> globalCounts = new HashMap<>();
+        final Map<String, Map<Integer, Long>> namespaceCounts = new HashMap<>();
+
+        for (InstanceInfoVO instance : instances) {
+            final String namespaceId = instance.getNamespaceId();
+            Map<Integer, Long> counts = null;
+
+            if (StringUtils.isNotBlank(namespaceId)) {
+                counts = namespaceCounts.computeIfAbsent(
+                        namespaceId, key -> new HashMap<>());
+            }
+
+            final Integer state = instance.getInstanceState();
+            if (Objects.nonNull(state)) {
+                globalCounts.merge(state, 1L, Long::sum);
+                if (Objects.nonNull(counts)) {
+                    counts.merge(state, 1L, Long::sum);
+                }
+            }
+        }
+
+        synchronized (historyLock) {
+            updateStateHistory(stateHistoryMap, globalCounts);
+
+            namespaceStateHistoryMap.keySet().retainAll(namespaceCounts.keySet());
+
+            namespaceCounts.forEach((namespaceId, counts) -> {
+                final Map<Integer, Deque<Long>> history =
+                        namespaceStateHistoryMap.computeIfAbsent(
+                                namespaceId, key -> new HashMap<>());
+                updateStateHistory(history, counts);
+            });
         }
     }
 
@@ -309,19 +343,31 @@ public class InstanceCheckService {
         Map<Integer, Long> pieData = instanceInfoVOS.stream()
                 .filter(instance -> Objects.nonNull(instance.getInstanceState()))
                 .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
-        List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
-        for (Integer state : Arrays.asList(0, 1, 2)) {
-            Deque<Long> queue = stateHistoryMap.getOrDefault(state, new ArrayDeque<>(MAX_HISTORY_SIZE));
-            List<Long> data = new ArrayList<>(queue);
-            while (data.size() < MAX_HISTORY_SIZE) {
-                data.add(0, 0L);
+        final List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
+
+        synchronized (historyLock) {
+            final Map<Integer, Deque<Long>> history =
+                    StringUtils.isBlank(namespaceId)
+                            ? stateHistoryMap
+                            : namespaceStateHistoryMap.get(namespaceId);
+
+            for (Integer state : Arrays.asList(0, 1, 2)) {
+                final Deque<Long> queue =
+                        Objects.isNull(history) ? null : history.get(state);
+
+                final List<Long> data = Objects.isNull(queue)
+                        ? new ArrayList<>(MAX_HISTORY_SIZE)
+                        : new ArrayList<>(queue);
+
+                while (data.size() < MAX_HISTORY_SIZE) {
+                    data.add(0, 0L);
+                }
+
+                lineList.add(new InstanceDataVisualLineVO(
+                        InstanceStatusEnum.getNameByCode(state), data));
             }
-            InstanceDataVisualLineVO dto = new InstanceDataVisualLineVO(
-                    InstanceStatusEnum.getNameByCode(state),
-                    data
-            );
-            lineList.add(dto);
         }
+
         List<InstanceDataVisualVO.Entry> pieDataList = pieData.entrySet().stream()
                 .map(entry -> {
                     Integer stateCode = entry.getKey();
@@ -334,21 +380,18 @@ public class InstanceCheckService {
         return instanceDataVisualVO;
     }
 
-    private void updateStateHistory(final Map<Integer, Long> currentData) {
-        ensureStateQueues();
+    private void updateStateHistory(final Map<Integer, Deque<Long>> history,
+                                    final Map<Integer, Long> currentData) {
         for (Integer state : Arrays.asList(0, 1, 2)) {
-            Long count = currentData.getOrDefault(state, 0L);
-            Deque<Long> queue = stateHistoryMap.get(state);
-            queue.addLast(count);
+            final Deque<Long> queue = history.computeIfAbsent(
+                    state, key -> new ArrayDeque<>(MAX_HISTORY_SIZE));
+
+            queue.addLast(currentData.getOrDefault(state, 0L));
+
             while (queue.size() > MAX_HISTORY_SIZE) {
                 queue.removeFirst();
             }
         }
     }
 
-    private void ensureStateQueues() {
-        for (Integer state : Arrays.asList(0, 1, 2)) {
-            stateHistoryMap.putIfAbsent(state, new ConcurrentLinkedDeque<>());
-        }
-    }
 }
