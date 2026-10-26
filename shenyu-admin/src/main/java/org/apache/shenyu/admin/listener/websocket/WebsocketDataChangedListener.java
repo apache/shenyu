@@ -162,13 +162,17 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     @Override
     public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
         if (compactDiscoveryPayload && CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
-            List<DiscoverySyncPayload> payloads = new ArrayList<>(discoveryUpstreamList.size());
-            for (DiscoverySyncData data : discoveryUpstreamList) {
-                if (Objects.nonNull(data)) {
-                    payloads.add(DiscoverySyncPayload.from(data));
-                }
+            for (Map.Entry<String, List<DiscoverySyncData>> entry : groupByNamespace(discoveryUpstreamList, DiscoverySyncData::getNamespaceId).entrySet()) {
+                WebsocketCollector.sendDiscovery(entry.getKey(),
+                        () -> GsonUtils.getInstance().toJson(new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), entry.getValue())),
+                        () -> {
+                            List<DiscoverySyncPayload> payloads = new ArrayList<>(entry.getValue().size());
+                            entry.getValue().forEach(data -> payloads.add(DiscoverySyncPayload.from(data)));
+                            return GsonUtils.getInstance().toJson(new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), payloads));
+                        }, eventType);
+                LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
+                        ConfigGroupEnum.DISCOVER_UPSTREAM, eventType, entry.getKey(), entry.getValue().size());
             }
-            sendByNamespace(payloads, eventType, ConfigGroupEnum.DISCOVER_UPSTREAM, DiscoverySyncPayload::namespaceId);
             return;
         }
         sendByNamespace(discoveryUpstreamList, eventType, ConfigGroupEnum.DISCOVER_UPSTREAM, DiscoverySyncData::getNamespaceId);
@@ -179,6 +183,16 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
+        for (Map.Entry<String, List<T>> entry : groupByNamespace(changed, namespaceOf).entrySet()) {
+            List<T> groupData = entry.getValue();
+            WebsocketData<T> websocketData = new WebsocketData<>(group.name(), eventType.name(), groupData);
+            WebsocketCollector.send(entry.getKey(), GsonUtils.getInstance().toJson(websocketData), eventType);
+            LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
+                    group.name(), eventType.name(), entry.getKey(), groupData.size());
+        }
+    }
+
+    private <T> Map<String, List<T>> groupByNamespace(final List<T> changed, final Function<T, String> namespaceOf) {
         Map<String, List<T>> byNamespace = new LinkedHashMap<>();
         for (T item : changed) {
             if (Objects.isNull(item)) {
@@ -187,12 +201,6 @@ public class WebsocketDataChangedListener implements DataChangedListener {
             String namespaceId = StringUtils.defaultString(namespaceOf.apply(item), SYS_DEFAULT_NAMESPACE_ID);
             byNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(item);
         }
-        for (Map.Entry<String, List<T>> entry : byNamespace.entrySet()) {
-            List<T> groupData = entry.getValue();
-            WebsocketData<T> websocketData = new WebsocketData<>(group.name(), eventType.name(), groupData);
-            WebsocketCollector.send(entry.getKey(), GsonUtils.getInstance().toJson(websocketData), eventType);
-            LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
-                    group.name(), eventType.name(), entry.getKey(), groupData.size());
-        }
+        return byNamespace;
     }
 }
