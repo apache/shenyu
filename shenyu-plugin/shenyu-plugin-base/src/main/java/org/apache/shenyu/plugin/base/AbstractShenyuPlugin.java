@@ -122,9 +122,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
-        // lru map as L1 cache,the cache is enabled by default.
-        // if the L1 cache fails to hit, using L2 cache based on trie cache.
-        // if the L2 cache fails to hit, execute default strategy.
+        // consult the bounded per-path match cache first when it is enabled.
+        // on a cache miss, match the current rule list with the default strategy.
         RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
