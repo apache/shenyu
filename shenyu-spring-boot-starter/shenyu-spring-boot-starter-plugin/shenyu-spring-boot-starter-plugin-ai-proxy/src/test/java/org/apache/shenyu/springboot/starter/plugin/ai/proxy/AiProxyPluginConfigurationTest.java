@@ -112,6 +112,20 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
+    void allowsCustomHttpClientResourcesWithTheDefaultTransport() {
+        AiProxyHttpClientResources custom = new AiProxyHttpClientResources(new AiProxyTransportProperties());
+        new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class)
+                .withBean(AiProxyHttpClientResources.class, () -> custom)
+                .run(context -> {
+                    org.assertj.core.api.Assertions.assertThat(context)
+                            .hasNotFailed()
+                            .hasSingleBean(AiProxyHttpClientResources.class)
+                            .hasSingleBean(AiProxyTransport.class);
+                    assertSame(custom, context.getBean(AiProxyHttpClientResources.class));
+                });
+    }
+
+    @Test
     void shouldUseDefaultConnectTimeout() {
         contextRunner.run(context -> {
             AiProxyTransportProperties properties = context.getBean(AiProxyTransportProperties.class);

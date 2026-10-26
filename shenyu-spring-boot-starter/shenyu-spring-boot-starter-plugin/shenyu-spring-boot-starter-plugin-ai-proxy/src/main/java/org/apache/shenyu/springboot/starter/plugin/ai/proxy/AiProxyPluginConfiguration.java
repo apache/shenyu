@@ -218,7 +218,7 @@ public class AiProxyPluginConfiguration {
      * @return shared AI proxy HTTP client resources
      */
     @Bean(destroyMethod = "close")
-    @ConditionalOnMissingBean(AiProxyTransport.class)
+    @ConditionalOnMissingBean({AiProxyTransport.class, AiProxyHttpClientResources.class})
     public AiProxyHttpClientResources aiProxyHttpClientResources(
             final AiProxyTransportProperties properties) {
         return new AiProxyHttpClientResources(properties);

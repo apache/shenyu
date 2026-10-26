@@ -61,7 +61,7 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     /**
      * Create a WebClient transport.
      *
-     * @param webClient web client
+     * @param webClient web client whose connector must enforce the desired response-header timeout
      */
     public WebClientAiProxyTransport(final WebClient webClient) {
         this(webClient, new AiProxyTransportProperties());
@@ -70,8 +70,8 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     /**
      * Create a WebClient transport.
      *
-     * @param webClient web client
-     * @param properties transport properties
+     * @param webClient web client whose connector must enforce {@link AiProxyTransportProperties#getResponseHeaderTimeout()}
+     * @param properties transport properties; response-header timeout is applied by the web client's connector
      */
     public WebClientAiProxyTransport(final WebClient webClient, final AiProxyTransportProperties properties) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
