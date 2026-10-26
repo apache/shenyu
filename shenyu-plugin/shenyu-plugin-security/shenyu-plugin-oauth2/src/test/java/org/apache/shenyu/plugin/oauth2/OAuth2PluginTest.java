@@ -21,11 +21,13 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -42,9 +44,13 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +76,7 @@ public class OAuth2PluginTest {
         when(chain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
         oAuth2AuthorizedClientService = mock(ReactiveOAuth2AuthorizedClientService.class);
         ObjectProvider<ReactiveOAuth2AuthorizedClientService> objectProvider = mock(ObjectProvider.class);
-        when(objectProvider.getIfAvailable()).thenReturn(oAuth2AuthorizedClientService);
+        lenient().when(objectProvider.getIfAvailable()).thenReturn(oAuth2AuthorizedClientService);
         this.oAuth2Plugin = new OAuth2Plugin(objectProvider);
     }
     
@@ -95,5 +101,41 @@ public class OAuth2PluginTest {
         assertTrue(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
         assertTrue(Objects.requireNonNull(request.getHeaders().get(HttpHeaders.AUTHORIZATION)).contains("Bearer token"));
     }
-}
 
+    @Test
+    public void noPrincipal() {
+        oAuth2Plugin.doExecute(mockExchange, chain, null, null).block(TIMEOUT);
+
+        assertChainExecutedWithoutAuthorization();
+    }
+
+    @Test
+    public void notOAuth2Principal() {
+        SecurityContextImpl securityContext = new SecurityContextImpl(new TestingAuthenticationToken("shenyu", "password"));
+        SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange, Mono.just(securityContext));
+
+        oAuth2Plugin.doExecute(exchange, chain, null, null).block(TIMEOUT);
+
+        assertChainExecutedWithoutAuthorization();
+    }
+
+    @Test
+    public void noAuthorizedClient() {
+        when(oAuth2AuthorizedClientService.loadAuthorizedClient(any(String.class), any())).thenReturn(Mono.empty());
+
+        OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class),
+                Collections.emptyList(), "myId");
+        SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
+        SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange, Mono.just(securityContext));
+
+        oAuth2Plugin.doExecute(exchange, chain, null, null).block(TIMEOUT);
+
+        assertChainExecutedWithoutAuthorization();
+    }
+
+    private void assertChainExecutedWithoutAuthorization() {
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(chain, times(1)).execute(captor.capture());
+        assertFalse(captor.getValue().getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
+    }
+}

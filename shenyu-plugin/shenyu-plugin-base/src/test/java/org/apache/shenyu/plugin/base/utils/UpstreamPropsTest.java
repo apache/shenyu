@@ -54,6 +54,15 @@ class UpstreamPropsTest {
     }
 
     @Test
+    void testDrainingDefaultsToFalseAndParsesBothSpellings() {
+        assertFalse(UpstreamProps.parse(null).isDraining());
+        assertFalse(UpstreamProps.parse("{\"warmup\":\"20\"}").isDraining());
+        assertTrue(UpstreamProps.parse("{\"draining\":\"true\"}").isDraining());
+        assertTrue(UpstreamProps.parse("{\"draining\":true}").isDraining());
+        assertFalse(UpstreamProps.parse("{\"draining\":\"false\"}").isDraining());
+    }
+
+    @Test
     void testToMapReturnsCopyOfAllProps() {
         final UpstreamProps props = UpstreamProps.parse("{\"warmup\":\"20\",\"az\":\"az1\"}");
         final Map<String, String> map = props.toMap();

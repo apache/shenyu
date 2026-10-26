@@ -247,7 +247,7 @@ class CacheRequestEligibilityTest {
     private void seed(final ServerWebExchange exchange, final String body) {
         MockServerHttpResponse response = new MockServerHttpResponse();
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        byte[] packet = CachedResponse.capture(response, body.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode();
+        byte[] packet = CachedResponse.capture(exchange.getRequest(), response, body.getBytes(StandardCharsets.UTF_8)).orElseThrow().encode();
         cache.cacheData(CacheUtils.responseKey(exchange, selector.getId(), rule.getId()), packet, 60).block();
     }
 

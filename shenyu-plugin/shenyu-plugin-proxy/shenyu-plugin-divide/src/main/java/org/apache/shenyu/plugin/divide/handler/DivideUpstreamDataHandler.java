@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.divide.handler;
 
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -30,6 +31,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,6 +39,16 @@ import java.util.stream.Collectors;
  * upstreamList data change.
  */
 public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHandler<Upstream> {
+
+    @Override
+    public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
+        if (Objects.isNull(discoverySyncData) || Objects.isNull(discoverySyncData.getSelectorId())) {
+            return;
+        }
+        // A selector may serve both Canary and legacy rules; retain both pools for per-request selection.
+        submitUpstreamData(discoverySyncData.getSelectorId(), convertUpstreamList(discoverySyncData.getUpstreamDataList()));
+        afterSubmitUpstreamData(discoverySyncData.getSelectorId());
+    }
 
     @Override
     public String pluginName() {
@@ -58,6 +70,7 @@ public class DivideUpstreamDataHandler extends AbstractDiscoveryUpstreamDataHand
                     .warmup(props.getWarmup())
                     .gray(props.isGray())
                     .healthCheckEnabled(props.isHealthCheckEnabled())
+                    .draining(props.isDraining())
                     .status(0 == u.getStatus())
                     .timestamp(Optional.ofNullable(u.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis()))
                     .build();
