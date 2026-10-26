@@ -50,6 +50,8 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     private final WebClient webClient;
 
+    private final Duration responseHeaderTimeout;
+
     private final Duration streamingIdleTimeout;
 
     private final Duration totalStreamDuration;
@@ -61,7 +63,7 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     /**
      * Create a WebClient transport.
      *
-     * @param webClient web client whose connector must enforce the desired response-header timeout
+     * @param webClient web client
      */
     public WebClientAiProxyTransport(final WebClient webClient) {
         this(webClient, new AiProxyTransportProperties());
@@ -70,12 +72,14 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     /**
      * Create a WebClient transport.
      *
-     * @param webClient web client whose connector must enforce {@link AiProxyTransportProperties#getResponseHeaderTimeout()}
-     * @param properties transport properties; response-header timeout is applied by the web client's connector
+     * @param webClient web client
+     * @param properties transport properties
      */
     public WebClientAiProxyTransport(final WebClient webClient, final AiProxyTransportProperties properties) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
         Objects.requireNonNull(properties, "properties must not be null");
+        this.responseHeaderTimeout = AiProxyTransportProperties.requirePositive(
+                properties.getResponseHeaderTimeout(), "responseHeaderTimeout");
         this.streamingIdleTimeout = AiProxyTransportProperties.requirePositive(
                 properties.getStreamingIdleTimeout(), "streamingIdleTimeout");
         this.totalStreamDuration = AiProxyTransportProperties.requirePositive(
@@ -113,6 +117,11 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                 .retrieve()
                 .onRawStatus(status -> status >= 400, response -> Mono.empty())
                 .toEntityFlux(DataBuffer.class)
+                .timeout(
+                        responseHeaderTimeout,
+                        timeoutFailure(
+                                AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                                "AI upstream response headers timed out"))
                 .flatMap(entity -> {
                     final Flux<DataBuffer> rawBody = Objects.requireNonNull(entity.getBody());
                     if (exceedsMaxResponseBytes(entity.getHeaders())) {
@@ -137,14 +146,14 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                             })
                             .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                             .onErrorMap(error -> !(error instanceof AiTransportException),
-                                    error -> toTransportException("AI upstream body failed", error));
+                                    error -> toTransportException("AI upstream body failed", error, true));
                     return Mono.just(new AiUpstreamResponse(
                             entity.getStatusCode().value(),
                             entity.getHeaders(),
                             enforceMaxResponseBytes(bytes)));
                 })
                 .onErrorMap(error -> !(error instanceof AiTransportException),
-                        error -> toTransportException("AI upstream exchange failed", error));
+                        error -> toTransportException("AI upstream exchange failed", error, false));
     }
 
     private <T> Mono<T> timeoutFailure(final AiTransportException.Kind kind, final String message) {
@@ -169,18 +178,19 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
         });
     }
 
-    private AiTransportException toTransportException(final String message, final Throwable failure) {
-        return new AiTransportException(classify(failure), message, failure);
+    private AiTransportException toTransportException(final String message, final Throwable failure,
+                                                       final boolean responseStarted) {
+        return new AiTransportException(classify(failure, responseStarted), message, failure);
     }
 
-    private AiTransportException.Kind classify(final Throwable failure) {
+    private AiTransportException.Kind classify(final Throwable failure, final boolean responseStarted) {
         if (hasCauseNamed(failure, POOL_ACQUIRE_TIMEOUT_EXCEPTION_NAME)) {
             return AiTransportException.Kind.CONNECTION_POOL_TIMEOUT;
         }
         if (hasCause(failure, ConnectTimeoutException.class)) {
             return AiTransportException.Kind.CONNECT_TIMEOUT;
         }
-        if (hasCause(failure, ReadTimeoutException.class)) {
+        if (!responseStarted && hasCause(failure, ReadTimeoutException.class)) {
             return AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT;
         }
         if (hasCause(failure, UnknownHostException.class)) {

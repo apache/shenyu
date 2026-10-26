@@ -66,6 +66,7 @@
   connecting to the stale endpoint. The rebuild tears down the existing SSE
   sessions; clients reconnect and re-initialize against the new endpoint.
   (#8044)
+
 - The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
   concurrent requests that miss the same response cache key share one upstream
   fill on that gateway instance instead of one per request, and the followers

@@ -255,6 +255,21 @@ class WebClientAiProxyTransportTest {
     }
 
     @Test
+    void testDoesNotClassifyBodyReadTimeoutAsResponseHeaderTimeout() {
+        final WebClient webClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.OK)
+                        .body(Flux.error(ReadTimeoutException.INSTANCE))
+                        .build()))
+                .build();
+        final AiUpstreamResponse response = new WebClientAiProxyTransport(webClient).execute(createRequest()).block();
+
+        StepVerifier.create(response.getBody())
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.UNKNOWN,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+    }
+
+    @Test
     void testUpstreamTimeoutIsNotReclassifiedAsResponseHeaderTimeout() {
         final WebClient webClient = WebClient.builder()
                 .exchangeFunction(request -> Mono.error(new TimeoutException("connection pool acquire timed out")))
@@ -306,6 +321,21 @@ class WebClientAiProxyTransportTest {
         StepVerifier.withVirtualTime(() -> transport.execute(createRequest()))
                 .expectNextMatches(response -> response.getStatusCode() == HttpStatus.OK.value())
                 .verifyComplete();
+    }
+
+    @Test
+    void testResponseHeaderTimeoutIsEnforcedForArbitraryWebClient() {
+        final WebClient webClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.never())
+                .build();
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(
+                webClient, properties(Duration.ofSeconds(5), Duration.ofSeconds(60), Duration.ofMinutes(10)));
+
+        StepVerifier.withVirtualTime(() -> transport.execute(createRequest()))
+                .thenAwait(Duration.ofSeconds(5))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
     }
 
     @Test
