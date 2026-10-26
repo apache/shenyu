@@ -31,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
 
 @Join
 public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
@@ -85,10 +85,14 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
                 continue;
             }
 
-            if (converter.getJwtVal().contains(".")) {
-                headers.add(converter.getHeaderVal(), parse(body, converter.getJwtVal().split("\\."), new AtomicInteger(0)));
+            final Object value = converter.getJwtVal().contains(".")
+                    ? parse(body, converter.getJwtVal().split("\\."))
+                    : body.get(converter.getJwtVal());
+            // overwrite rather than append, so a client-supplied header with the same name can not spoof the claim
+            if (Objects.isNull(value)) {
+                headers.remove(converter.getHeaderVal());
             } else {
-                headers.add(converter.getHeaderVal(), String.valueOf(body.get(converter.getJwtVal())));
+                headers.set(converter.getHeaderVal(), String.valueOf(value));
             }
 
         }
@@ -97,27 +101,18 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
     /**
      * Parsing multi-level tokens.
      *
-     * @param body  token
-     * @param split jwt of key
-     * @param deep  level default 0
-     * @return token of val
+     * @param body token
+     * @param path jwt of key split by "."
+     * @return token of val, or null if any node on the path is absent or not a map
      */
-    private String parse(final Map<String, Object> body,
-                         final String[] split,
-                         final AtomicInteger deep) {
-        for (Map.Entry<String, Object> entry : body.entrySet()) {
-
-            if (deep.get() == split.length - 1) {
-                return String.valueOf(body.get(split[deep.get()]));
+    private Object parse(final Map<String, Object> body, final String[] path) {
+        Object current = body;
+        for (String key : path) {
+            if (!(current instanceof Map)) {
+                return null;
             }
-
-            if (entry.getKey().equals(split[deep.get()])) {
-                if (entry.getValue() instanceof Map) {
-                    deep.incrementAndGet();
-                    return parse((Map<String, Object>) entry.getValue(), split, deep);
-                }
-            }
+            current = ((Map<?, ?>) current).get(key);
         }
-        return String.valueOf(body.get(split[deep.get()]));
+        return current;
     }
 }

@@ -93,7 +93,7 @@ public class ApiVO implements Serializable {
     private String apiDesc;
 
     /**
-     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
+     * 0-swagger,1-annotation generation,2-create manually,3-import swagger.
      */
     private Integer apiSource;
 

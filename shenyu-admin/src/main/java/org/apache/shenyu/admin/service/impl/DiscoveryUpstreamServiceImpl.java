@@ -42,10 +42,12 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -57,6 +59,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +75,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     // Keep IN lists below Oracle's 1000-expression limit and bound query payloads on all databases.
     private static final int BATCH_SIZE = 500;
+
+    // free-form props key carrying the draining admission marker (#8042)
+    private static final String DRAINING_PROP_KEY = "draining";
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -127,6 +133,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (CollectionUtils.isEmpty(upstreams)) {
             return;
         }
+        upstreams.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         Set<String> handlerIds = new LinkedHashSet<>();
         for (DiscoveryUpstreamDTO upstream : upstreams) {
             DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
@@ -143,6 +150,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional
     public int updateBatch(final String discoveryHandlerId, final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
+        // Validate the complete replacement before deleting anything or emitting a sync event.
+        discoveryUpstreamDTOList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
             discoveryUpstreamDTO.setId(null);
@@ -169,6 +178,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
             discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
@@ -294,6 +304,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String create(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -307,6 +318,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -321,6 +333,11 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId());
         return discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean hasDiscoveryHandler(final String selectorId) {
+        return Objects.nonNull(discoveryHandlerMapper.selectBySelectorId(selectorId));
     }
 
     @Override
@@ -343,10 +360,28 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void markDrainingBySelectorIdAndUrl(final String selectorId, final String url, final boolean draining) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
+        DiscoveryUpstreamDO upstream = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerDO.getId(), url);
+        if (Objects.isNull(upstream)) {
+            return;
+        }
+        Map<String, Object> props = !StringUtils.hasLength(upstream.getProps())
+                ? new LinkedHashMap<>() : GsonUtils.getInstance().convertToMap(upstream.getProps());
+        props.put(DRAINING_PROP_KEY, draining);
+        discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, GsonUtils.getInstance().toJson(props));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public ConfigImportResult importData(final List<DiscoveryUpstreamDTO> discoveryUpstreamList) {
         if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
             return ConfigImportResult.success();
         }
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -393,6 +428,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             return ConfigImportResult.success();
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
+        discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, Set<String>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper

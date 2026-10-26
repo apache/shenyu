@@ -18,11 +18,15 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -50,6 +54,15 @@ class UpstreamPropsTest {
     }
 
     @Test
+    void testDrainingDefaultsToFalseAndParsesBothSpellings() {
+        assertFalse(UpstreamProps.parse(null).isDraining());
+        assertFalse(UpstreamProps.parse("{\"warmup\":\"20\"}").isDraining());
+        assertTrue(UpstreamProps.parse("{\"draining\":\"true\"}").isDraining());
+        assertTrue(UpstreamProps.parse("{\"draining\":true}").isDraining());
+        assertFalse(UpstreamProps.parse("{\"draining\":\"false\"}").isDraining());
+    }
+
+    @Test
     void testToMapReturnsCopyOfAllProps() {
         final UpstreamProps props = UpstreamProps.parse("{\"warmup\":\"20\",\"az\":\"az1\"}");
         final Map<String, String> map = props.toMap();
@@ -59,5 +72,41 @@ class UpstreamPropsTest {
 
         map.put("az", "az2");
         assertEquals("az1", props.toMap().get("az"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{\"warmup\":\"20\",\"gray\":\"true\",\"healthCheckEnabled\":\"false\",\"labels\":{\"release\":\"stable\"}}",
+        "{\"warmup\":20,\"gray\":true,\"healthCheckEnabled\":false,\"labels\":{\"release\":\"stable\"}}"
+    })
+    void testLabelsRemainSeparateFromScalarProperties(final String input) {
+        UpstreamProps props = UpstreamProps.parse(input);
+        assertEquals(20, props.getWarmup());
+        assertTrue(props.isGray());
+        assertFalse(props.isHealthCheckEnabled());
+        assertEquals(Map.of("release", "stable"), props.getLabels());
+        assertEquals(Map.of("warmup", "20", "gray", "true", "healthCheckEnabled", "false"), props.toMap());
+        assertThrows(UnsupportedOperationException.class, () -> props.getLabels().put("release", "next"));
+    }
+
+    @Test
+    void testNestedExtensionPropertiesDoNotBreakScalarParsing() {
+        UpstreamProps props = UpstreamProps.parse("{\"az\":\"az1\",\"custom\":{\"tls\":true},\"items\":[1],\"optional\":null}");
+        assertEquals("az1", props.toMap().get("az"));
+        assertNull(props.toMap().get("optional"));
+        assertTrue(props.toMap().containsKey("optional"));
+        assertFalse(props.toMap().containsKey("custom"));
+        assertFalse(props.toMap().containsKey("items"));
+        assertTrue(props.getLabels().isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "null", "{\"labels\":{}}", "{\"healthCheckEnabled\":null}"})
+    void testEmptyPropertiesRetainDefaults(final String input) {
+        UpstreamProps props = UpstreamProps.parse(input);
+        assertEquals(10, props.getWarmup());
+        assertFalse(props.isGray());
+        assertTrue(props.isHealthCheckEnabled());
+        assertTrue(props.getLabels().isEmpty());
     }
 }

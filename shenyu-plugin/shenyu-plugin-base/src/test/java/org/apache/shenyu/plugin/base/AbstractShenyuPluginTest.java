@@ -45,7 +45,9 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -261,6 +263,58 @@ public final class AbstractShenyuPluginTest {
     }
 
     @Test
+    public void executeRuleFullWithMultipleEnabledRulesTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData secondRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(secondRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, secondRule);
+        verify(testShenyuPlugin, never()).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithLastRuleDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData disabledRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(false)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(disabledRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithAllRulesDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        this.ruleData.setEnabled(false);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+        verify(testShenyuPlugin, never()).doExecute(any(), any(), any(), any());
+    }
+
+    @Test
     public void defaultStrategySelectorMatchShouldNotLogWhenLoggingDisabled() {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
@@ -319,7 +373,7 @@ public final class AbstractShenyuPluginTest {
         try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
             StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
             assertTrue(capture.infoMessages().stream().noneMatch(message -> message.contains("rule")),
-                    "no rule match line may reach INFO when the rule's loged flag is false, got: " + capture.infoMessages());
+                    "no rule match line may reach INFO when the rule's logged flag is false, got: " + capture.infoMessages());
         }
     }
 
@@ -342,7 +396,7 @@ public final class AbstractShenyuPluginTest {
                     .filter(message -> message.contains("rule"))
                     .collect(Collectors.toList());
             assertEquals(1, ruleLines.size(),
-                    "exactly one rule match line is expected at INFO when loged is true, got: " + ruleLines);
+                    "exactly one rule match line is expected at INFO when logged is true, got: " + ruleLines);
             assertTrue(ruleLines.get(0).contains("rule success match"),
                     "the surviving line should be the one that carries the rule name, got: " + ruleLines.get(0));
         }

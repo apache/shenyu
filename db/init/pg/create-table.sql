@@ -321,7 +321,7 @@ CREATE TABLE "public"."mock_request_record"  (
   "url" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "path_variable" varchar(255) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
   "query" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
-  "header" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
+  "header" text COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
   "body" text COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -2692,7 +2692,9 @@ CREATE TABLE "public"."instance_info" (
     "instance_state" int2          NOT NULL,
     "date_created"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated"  timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    PRIMARY KEY ("id")
+    "last_heart_beat_time" int8          NOT NULL DEFAULT 0,
+    PRIMARY KEY ("id"),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 COMMENT ON COLUMN "public"."instance_info"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."instance_info"."namespace_id" IS 'namespace_id';
@@ -2703,6 +2705,7 @@ COMMENT ON COLUMN "public"."instance_info"."instance_info" IS 'instance_info';
 COMMENT ON COLUMN "public"."instance_info"."instance_state" IS 'instance_state';
 COMMENT ON COLUMN "public"."instance_info"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."instance_info"."date_updated" IS 'update time';
+COMMENT ON COLUMN "public"."instance_info"."last_heart_beat_time" IS 'last heart beat time';
 
 INSERT INTO "public"."permission" VALUES ('1697146860569642741', '1346358560427216896', '1844026099075554850', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
 INSERT INTO "public"."permission" VALUES ('1697146860569642742', '1346358560427216896', '1844026099075554851', '2023-08-31 07:22:07', '2023-08-31 07:22:07');
@@ -2907,6 +2910,26 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303905', '13463585604272
 
 -- insert data for the sensitive word plugin
 INSERT INTO "public"."plugin" VALUES ('67', 'sensitiveWord', NULL, 'Ai', 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000', NULL);
+INSERT INTO "public"."plugin" VALUES ('69', 'piiDetection', NULL, 'Ai', 196, 0, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000', NULL);
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001041', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '69', NULL, 196, 0, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001042', '69', 'detectors', 'detectors', 2, 2, 0, '{"required":"0","placeholder":"builtin detector types separated by commas, empty enables all of them","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001043', '69', 'customPatterns', 'customPatterns', 2, 2, 1, '{"required":"0","placeholder":"one TYPE=REGEX entry per line","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001044', '69', 'actions', 'actions', 2, 2, 2, '{"required":"0","placeholder":"type overrides as TYPE=ACTION separated by commas","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001045', '69', 'defaultAction', 'defaultAction', 2, 2, 3, '{"required":"0","defaultValue":"REDACT","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001046', '69', 'scope', 'scope', 2, 2, 4, '{"required":"0","defaultValue":"request","placeholder":"request, response or request,response","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001047', '69', 'maxBodySize', 'maxBodySize', 1, 2, 5, '{"required":"0","defaultValue":"1048576","placeholder":"the largest body that is scanned, in bytes, 0 means unlimited","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001048', '69', 'failClosed', 'failClosed', 3, 2, 6, '{"required":"0","defaultValue":"false","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001049', '69', 'detectorTimeoutMs', 'detectorTimeoutMs', 1, 2, 7, '{"required":"0","defaultValue":"500","rule":""}', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001031', '1346775491550474240', 'piiDetection', 'piiDetection', '/plug/piiDetection', 'piiDetection', 1, 0, 'pic-center', 0, 0, '', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001032', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:add', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001033', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:query', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001034', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:edit', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001035', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:delete', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001036', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:add', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001037', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:query', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001038', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:edit', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001039', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:delete', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."resource" VALUES ('1960000000000001040', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetection:modify', 1, '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{"required":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{"required":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684611', '67', 'database', 'database', 1, 3, 2, '{"required":"0","defaultValue":"0","rule":""}', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
@@ -2934,6 +2957,16 @@ INSERT INTO "public"."resource" VALUES ('1953048313980116914', '1953048313980116
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737584', 'failClosed', 'FAIL_CLOSED', 'open', 'true', '', 1, 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737585', 'failClosed', 'FAIL_CLOSED', 'close', 'false', '', 2, 1, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303965', '1346358560427216896', '1953048313980116905', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001051', '1346358560427216896', '1960000000000001031', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001052', '1346358560427216896', '1960000000000001032', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001053', '1346358560427216896', '1960000000000001033', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001054', '1346358560427216896', '1960000000000001034', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001055', '1346358560427216896', '1960000000000001035', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001056', '1346358560427216896', '1960000000000001036', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001057', '1346358560427216896', '1960000000000001037', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001058', '1346358560427216896', '1960000000000001038', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001059', '1346358560427216896', '1960000000000001039', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
+INSERT INTO "public"."permission" VALUES ('1960000000000001060', '1346358560427216896', '1960000000000001040', '2026-10-24 00:00:00.000', '2026-10-24 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303966', '1346358560427216896', '1953048313980116906', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303967', '1346358560427216896', '1953048313980116907', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303968', '1346358560427216896', '1953048313980116908', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
@@ -2944,3 +2977,32 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303972', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE "public"."app_auth_request" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "caller_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "request_id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "request_hash" varchar(64) COLLATE "pg_catalog"."default",
+  "auth_id" varchar(255) COLLATE "pg_catalog"."default",
+  "state" varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
+  "revoked_reason" varchar(500) COLLATE "pg_catalog"."default",
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+CREATE UNIQUE INDEX "uk_app_auth_request" ON "public"."app_auth_request" USING btree ("caller_key", "namespace_id", "request_id");
+CREATE INDEX "idx_app_auth_request_auth" ON "public"."app_auth_request" USING btree ("auth_id");
+
+-- app auth lifecycle button resources
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT INTO "public"."permission" VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."permission" VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."permission" VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO "public"."permission" VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');

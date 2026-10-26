@@ -156,6 +156,21 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         return callRaw(request).map(result -> JSON.convertValue(result, McpSchema.CallToolResult.class));
     }
 
+    @Override
+    public Mono<ObjectNode> listResources(final String cursor) {
+        return ready().then(Mono.defer(() -> request("resources/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
+    }
+
+    @Override
+    public Mono<ObjectNode> listResourceTemplates(final String cursor) {
+        return ready().then(Mono.defer(() -> request("resources/templates/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
+    }
+
+    @Override
+    public Mono<ObjectNode> readResource(final String uri) {
+        return ready().then(Mono.defer(() -> request("resources/read", Map.of("uri", uri), false)));
+    }
+
     /**
      * call Raw.
      * @param request trusted request value

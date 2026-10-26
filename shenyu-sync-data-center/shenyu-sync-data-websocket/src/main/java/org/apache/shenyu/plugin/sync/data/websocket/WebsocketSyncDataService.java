@@ -312,6 +312,9 @@ public class WebsocketSyncDataService implements SyncDataService {
         if (StringUtils.isNotBlank(websocketConfig.getToken())) {
             headers.put(Constants.X_SHENYU_SYNC_TOKEN, websocketConfig.getToken());
         }
+        if (websocketConfig.isCompactDiscoveryPayload()) {
+            headers.put(Constants.X_SHENYU_DISCOVERY_PAYLOAD, Constants.COMPACT_DISCOVERY_PAYLOAD_V1);
+        }
         return new ShenyuWebsocketClient(
                 URI.create(url),
                 headers,

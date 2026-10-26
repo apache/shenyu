@@ -98,7 +98,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             return executeRequest(exchange, selector)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
-                    .doOnError(observation::error)
                     .doFinally(signal -> {
                         if (Objects.isNull(inherited)) {
                             HttpStatusCode status = exchange.getResponse().getStatusCode();

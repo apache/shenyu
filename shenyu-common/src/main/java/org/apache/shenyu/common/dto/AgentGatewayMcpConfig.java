@@ -32,9 +32,11 @@ import java.util.Set;
 public final class AgentGatewayMcpConfig {
 
     private static final Set<String> FIELDS = Set.of("allowedTools", "allowedOrigins", "responseMode", "timeoutMs", "maxRequestBytes", "maxResponseBytes",
-            "structuredContentRemovals");
+            "structuredContentRemovals", "allowedResources", "httpTools");
 
     private final Set<String> allowedTools;
+
+    private final Set<String> allowedResources;
 
     private final Set<String> allowedOrigins;
 
@@ -48,8 +50,11 @@ public final class AgentGatewayMcpConfig {
 
     private final AgentGatewayResultFilterConfig resultFilters;
 
+    private final AgentGatewayHttpToolConfig httpTools;
+
     private AgentGatewayMcpConfig(final JsonObject object) {
         allowedTools = strings(object, "allowedTools", false);
+        allowedResources = strings(object, "allowedResources", false);
         allowedOrigins = strings(object, "allowedOrigins", true);
         responseMode = text(object, "responseMode", "json");
         if (!Set.of("json", "sse").contains(responseMode)) {
@@ -59,6 +64,7 @@ public final class AgentGatewayMcpConfig {
         maxRequestBytes = integer(object, "maxRequestBytes", 262144, 1024, 1048576);
         maxResponseBytes = integer(object, "maxResponseBytes", 1048576, 1024, 4194304);
         resultFilters = AgentGatewayResultFilterConfig.parse(object.get("structuredContentRemovals"), allowedTools);
+        httpTools = AgentGatewayHttpToolConfig.parse(object.get("httpTools"), allowedTools);
     }
 
     /**
@@ -87,6 +93,10 @@ public final class AgentGatewayMcpConfig {
         return allowedTools;
     }
 
+    public Set<String> getAllowedResources() {
+        return allowedResources;
+    }
+
     public Set<String> getAllowedOrigins() {
         return allowedOrigins;
     }
@@ -109,6 +119,10 @@ public final class AgentGatewayMcpConfig {
 
     public AgentGatewayResultFilterConfig getResultFilters() {
         return resultFilters;
+    }
+
+    public AgentGatewayHttpToolConfig getHttpTools() {
+        return httpTools;
     }
 
     private Set<String> strings(final JsonObject object, final String field, final boolean origins) {

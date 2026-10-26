@@ -19,6 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,14 +118,21 @@ public final class Upstream {
     /**
      * this is gray.
      */
-    private boolean gray;
+    private volatile boolean gray;
 
     /**
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
+
+    /**
+     * draining: alive, but excluded from new selections (#8042).
+     */
+    private volatile boolean draining;
     
-    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    private volatile Map<String, String> labels = Collections.emptyMap();
+
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
     /**
@@ -148,8 +156,27 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
         this.healthCheckEnabled = builder.healthCheckEnabled;
+        this.draining = builder.draining;
     }
     
+    /**
+     * Gets upstream labels independently of scalar metadata.
+     *
+     * @return immutable upstream labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    /**
+     * Sets an immutable snapshot of upstream labels.
+     *
+     * @param labels upstream labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = Map.copyOf(labels);
+    }
+
     /**
      * Gets protocol.
      *
@@ -267,6 +294,24 @@ public final class Upstream {
      */
     public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
         this.healthCheckEnabled = healthCheckEnabled;
+    }
+
+    /**
+     * Whether the upstream is draining: alive but excluded from new selections.
+     *
+     * @return the draining
+     */
+    public boolean isDraining() {
+        return draining;
+    }
+
+    /**
+     * Sets draining.
+     *
+     * @param draining the draining
+     */
+    public void setDraining(final boolean draining) {
+        this.draining = draining;
     }
     
     /**
@@ -667,6 +712,11 @@ public final class Upstream {
         private boolean healthCheckEnabled = true;
 
         /**
+         * draining.
+         */
+        private boolean draining;
+
+        /**
          * no args constructor.
          */
         private Builder() {
@@ -789,6 +839,17 @@ public final class Upstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build draining.
+         *
+         * @param draining draining
+         * @return this builder
+         */
+        public Builder draining(final boolean draining) {
+            this.draining = draining;
             return this;
         }
 

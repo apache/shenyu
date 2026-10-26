@@ -23,7 +23,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
@@ -37,6 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -182,7 +182,7 @@ public class ClusterForwardFilter extends OncePerRequestFilter {
             response.setContentLength(body.length);
         }
         if (body.length > 0) {
-            IOUtils.copy(new ByteArrayInputStream(body), response.getOutputStream());
+            StreamUtils.copy(new ByteArrayInputStream(body), response.getOutputStream());
             response.getOutputStream().flush();
         } else {
             response.flushBuffer();

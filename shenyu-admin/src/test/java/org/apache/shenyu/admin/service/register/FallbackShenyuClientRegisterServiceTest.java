@@ -122,6 +122,11 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
         public String rpcType() {
             return "grpc";
         }
@@ -151,6 +156,11 @@ class FallbackShenyuClientRegisterServiceTest {
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             return "doHeartbeat";
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "doDraining";
         }
         
         @Override
@@ -183,6 +193,11 @@ class FallbackShenyuClientRegisterServiceTest {
         
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         

@@ -65,6 +65,8 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
         sec.getUserProperties().put(Constants.CLIENT_PORT_NAME, httpSession.getAttribute(Constants.CLIENT_PORT_NAME));
         sec.getUserProperties().put(Constants.SHENYU_NAMESPACE_ID, httpSession.getAttribute(Constants.SHENYU_NAMESPACE_ID));
+        sec.getUserProperties().put(Constants.X_SHENYU_DISCOVERY_PAYLOAD,
+                Constants.COMPACT_DISCOVERY_PAYLOAD_V1.equals(getHeader(request.getHeaders(), Constants.X_SHENYU_DISCOVERY_PAYLOAD)));
         super.modifyHandshake(sec, request, response);
     }
 

@@ -131,7 +131,7 @@ public final class AiRequestObservation {
                 return;
             }
             completed = true;
-            attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, AiCallOutcome.ERROR);
+            attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, failure));
             AiCallOutcome error = Objects.isNull(failure) && signal == SignalType.ON_ERROR ? AiCallOutcome.ERROR : failure;
             AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
             terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage);

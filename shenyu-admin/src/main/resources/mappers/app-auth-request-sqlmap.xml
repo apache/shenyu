@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.AppAuthRequestMapper">
+
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="caller_key" property="callerKey" jdbcType="VARCHAR"/>
+        <result column="namespace_id" property="namespaceId" jdbcType="VARCHAR"/>
+        <result column="request_id" property="requestId" jdbcType="VARCHAR"/>
+        <result column="request_hash" property="requestHash" jdbcType="VARCHAR"/>
+        <result column="auth_id" property="authId" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="VARCHAR"/>
+        <result column="revoked_reason" property="revokedReason" jdbcType="VARCHAR"/>
+        <result column="date_created" property="dateCreated" jdbcType="TIMESTAMP"/>
+        <result column="date_updated" property="dateUpdated" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, caller_key, namespace_id, request_id, request_hash, auth_id, state, revoked_reason, date_created, date_updated
+    </sql>
+
+    <!-- Reserve the idempotency key: on unique-key conflict only the existing row id is assigned to the candidate;
+         whether the locked row id equals the candidate id decides first-reservation, independent of affectedRows connection settings -->
+    <insert id="reserveIfAbsent" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
+        INSERT INTO app_auth_request
+            (id, caller_key, namespace_id, request_id, request_hash, auth_id, state)
+        VALUES
+            (#{id}, #{callerKey}, #{namespaceId}, #{requestId}, #{requestHash}, #{authId}, #{state})
+        ON DUPLICATE KEY UPDATE id = app_auth_request.id
+    </insert>
+
+    <select id="selectByKeyForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM app_auth_request
+        WHERE caller_key = #{callerKey} AND namespace_id = #{namespaceId} AND request_id = #{requestId}
+        FOR UPDATE
+    </select>
+
+    <select id="selectByKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM app_auth_request
+        WHERE caller_key = #{callerKey} AND namespace_id = #{namespaceId} AND request_id = #{requestId}
+    </select>
+
+    <select id="selectByAuthId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM app_auth_request
+        WHERE auth_id = #{authId}
+    </select>
+
+    <select id="selectKeysByAuthIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM app_auth_request
+        <choose>
+            <when test="authIds != null and authIds.size() > 0">
+                WHERE auth_id IN
+                <foreach collection="authIds" item="authId" open="(" separator="," close=")">
+                    #{authId}
+                </foreach>
+            </when>
+            <otherwise>
+                WHERE 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY caller_key, namespace_id, request_id
+    </select>
+
+    <!-- CAS: only an unfinished CREATED reservation may be backfilled with the auth id -->
+    <update id="completeCreated">
+        UPDATE app_auth_request
+        SET auth_id = #{authId}
+        WHERE id = #{id} AND state = 'CREATED' AND auth_id IS NULL
+    </update>
+
+    <update id="markRevoked">
+        UPDATE app_auth_request
+        SET state = 'REVOKED', revoked_reason = #{reason}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

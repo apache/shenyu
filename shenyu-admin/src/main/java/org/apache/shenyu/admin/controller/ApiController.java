@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -96,7 +97,7 @@ public class ApiController {
      */
     @PostMapping
     @RequiresPermissions("system:api:add")
-    public ShenyuAdminResult createApi(@Valid @RequestBody final ApiDTO apiDTO) {
+    public ShenyuAdminResult createApi(@Validated(ApiDTO.Create.class) @RequestBody final ApiDTO apiDTO) {
         return ShenyuAdminResult.success(apiService.createOrUpdate(apiDTO));
     }
 
