@@ -71,6 +71,14 @@ public interface ShenyuClientRegisterRepository {
     }
 
     /**
+     * Declare the node draining: alive, but it must stop receiving new work.
+     *
+     * @param drainingDTO the draining dto
+     */
+    default void draining(URIRegisterDTO drainingDTO) {
+    }
+
+    /**
      * Send heartbeat.
      *
      * @param heartbeatDTO the heartbeat dto
