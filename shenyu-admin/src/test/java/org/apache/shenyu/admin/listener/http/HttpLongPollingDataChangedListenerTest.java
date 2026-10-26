@@ -22,10 +22,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -39,6 +41,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -62,7 +67,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * The TestCase for {@link HttpLongPollingDataChangedListener}.
@@ -274,7 +279,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         String namespaceId = DEFAULT_NAMESPACE;
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
-        ConfigDataCache cache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache cache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
         getCache().put(cacheKey, cache);
 
         boolean result = invokeCheckCacheDelayAndUpdate(cache, "md5", 500L);
@@ -295,8 +300,8 @@ public final class HttpLongPollingDataChangedListenerTest {
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
 
         // serverCache is NOT the object in CACHE; CACHE has a different instance with same md5 as client
-        ConfigDataCache serverCache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
-        ConfigDataCache latestCache = new ConfigDataCache(group, "{}", "clientMd5", 2000L, namespaceId);
+        ConfigDataCache serverCache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache latestCache = new ConfigDataCache(cacheKey, "{}", "clientMd5", 2000L, namespaceId);
         getCache().put(cacheKey, latestCache);
 
         // clientMd5 matches latestCache.md5 → returns false (no update needed)
@@ -314,7 +319,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         String namespaceId = DEFAULT_NAMESPACE;
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
-        ConfigDataCache cache = new ConfigDataCache(group, "{}", "md5", 1000L, namespaceId);
+        ConfigDataCache cache = new ConfigDataCache(cacheKey, "{}", "md5", 1000L, namespaceId);
         getCache().put(cacheKey, cache);
 
         boolean result = invokeCheckCacheDelayAndUpdate(cache, "newMd5", 500L);
@@ -332,8 +337,8 @@ public final class HttpLongPollingDataChangedListenerTest {
         String group = ConfigGroupEnum.PLUGIN.name();
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group);
 
-        ConfigDataCache oldCache = new ConfigDataCache(group, "{}", "oldMd5", 500L, namespaceId);
-        ConfigDataCache newCache = new ConfigDataCache(group, "{}", "newMd5", 2000L, namespaceId);
+        ConfigDataCache oldCache = new ConfigDataCache(cacheKey, "{}", "oldMd5", 500L, namespaceId);
+        ConfigDataCache newCache = new ConfigDataCache(cacheKey, "{}", "newMd5", 2000L, namespaceId);
         getCache().put(cacheKey, newCache);
 
         // oldCache != CACHE.get(cacheKey), clientMd5 != newMd5 → true
@@ -345,6 +350,48 @@ public final class HttpLongPollingDataChangedListenerTest {
         assertEquals(false, result);
 
         getCache().remove(cacheKey);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testClientNewerRefreshesOnlyItsNamespace(final boolean matchesClient) throws Exception {
+        RecordingHttpLongPollingDataChangedListener recordingListener =
+                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties, matchesClient ? "client" : "refreshed");
+        String namespaceId = "namespace-one";
+        try {
+            ConfigDataCache clientCache = recordingListener.seedCache(namespaceId, "client");
+            ConfigDataCache serverCache = recordingListener.seedCache(namespaceId, "old");
+
+            boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache,
+                    clientCache.getMd5(), serverCache.getLastModifyTime() + 1);
+
+            assertEquals(!matchesClient, result);
+            assertEquals(namespaceId, recordingListener.refreshedNamespace);
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testRecoveryDoesNotReadAnotherNamespace() throws Exception {
+        String namespaceId = "ns1";
+        String otherNamespaceId = "ns1_ns1";
+        RecordingHttpLongPollingDataChangedListener recordingListener =
+                new RecordingHttpLongPollingDataChangedListener(httpSyncProperties, "refreshed");
+        try {
+            ConfigDataCache otherCache = recordingListener.seedCache(otherNamespaceId, "client");
+            ConfigDataCache serverCache = recordingListener.seedCache(namespaceId, "old");
+
+            boolean result = invokeCheckCacheDelayAndUpdate(recordingListener, serverCache,
+                    otherCache.getMd5(), serverCache.getLastModifyTime() + 1);
+
+            assertEquals(true, result);
+            assertEquals(namespaceId, recordingListener.refreshedNamespace);
+            assertSame(otherCache, getCache().get(otherCache.getGroup()));
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+            clearAllGroupsInCache(otherNamespaceId);
+        }
     }
 
     /**
@@ -378,13 +425,64 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletRequest.setParameter(group, "clientMd5,500");
         this.httpServletRequest.addHeader("X-Real-PORT", "8080");
         this.httpServletRequest.addHeader(X_REAL_IP, "10.0.0.1");
+        String information = "{\"cpu\":4,\"os\":\"Windows\"}";
+        this.httpServletRequest.addHeader(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information);
 
         listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
 
-        Mockito.verify(instanceInfoReportEventPublisher).publish(any());
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        Mockito.verify(instanceInfoReportEventPublisher).publish(event.capture());
+        assertEquals(information, event.getValue().getInstanceInfo());
         assertEquals(200, this.httpServletResponse.getStatus());
 
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
+    }
+
+    @Test
+    public void testDoLongPollingIgnoresPlaceholderClientPort() throws Exception {
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "serverMd5");
+        try {
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            this.httpServletRequest.addHeader("X-Real-PORT", "0");
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+            Mockito.verify(instanceInfoReportEventPublisher, Mockito.never()).publish(Mockito.any());
+
+            this.httpServletRequest = new MockHttpServletRequest();
+            this.httpServletResponse = new MockHttpServletResponse();
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+            Mockito.verify(instanceInfoReportEventPublisher, Mockito.never()).publish(Mockito.any());
+        } finally {
+            clearAllGroupsInCache(DEFAULT_NAMESPACE);
+        }
+    }
+
+    /**
+     * test doLongPolling without optional instance information.
+     */
+    @Test
+    public void testDoLongPollingWithoutInstanceInformation() throws Exception {
+        populateAllGroupsInCache(DEFAULT_NAMESPACE, "serverMd5");
+        try {
+            setAllGroupParamsDefault(this.httpServletRequest);
+            this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "clientMd5,500");
+            this.httpServletRequest.addHeader("X-Real-PORT", "8080");
+            this.httpServletRequest.addHeader(X_REAL_IP, "10.0.0.1");
+
+            listener.doLongPolling(this.httpServletRequest, this.httpServletResponse);
+
+            ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+            Mockito.verify(instanceInfoReportEventPublisher).publish(event.capture());
+            assertEquals("", event.getValue().getInstanceInfo());
+            assertEquals("10.0.0.1", event.getValue().getInstanceIp());
+            assertEquals("8080", event.getValue().getInstancePort());
+            assertEquals(1, event.getValue().getInstanceState());
+            assertEquals(200, this.httpServletResponse.getStatus());
+        } finally {
+            clearAllGroupsInCache(DEFAULT_NAMESPACE);
+        }
     }
 
     /**
@@ -713,7 +811,7 @@ public final class HttpLongPollingDataChangedListenerTest {
     private void populateAllGroupsInCache(final String namespaceId, final String md5) throws Exception {
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
-            getCache().put(cacheKey, new ConfigDataCache(group.name(), "{}", md5, 1000L, namespaceId));
+            getCache().put(cacheKey, new ConfigDataCache(cacheKey, "{}", md5, 1000L, namespaceId));
         }
     }
 
@@ -753,10 +851,16 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     private boolean invokeCheckCacheDelayAndUpdate(final ConfigDataCache serverCache,
                                                    final String clientMd5, final long clientModifyTime) throws Exception {
+        return invokeCheckCacheDelayAndUpdate(listener, serverCache, clientMd5, clientModifyTime);
+    }
+
+    private boolean invokeCheckCacheDelayAndUpdate(final HttpLongPollingDataChangedListener target,
+                                                   final ConfigDataCache serverCache,
+                                                   final String clientMd5, final long clientModifyTime) throws Exception {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod(
                 "checkCacheDelayAndUpdate", ConfigDataCache.class, String.class, long.class);
         method.setAccessible(true);
-        return (boolean) method.invoke(listener, serverCache, clientMd5, clientModifyTime);
+        return (boolean) method.invoke(target, serverCache, clientMd5, clientModifyTime);
     }
 
     @SuppressWarnings("unchecked")
@@ -785,5 +889,29 @@ public final class HttpLongPollingDataChangedListenerTest {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod("getNamespaceId", HttpServletRequest.class);
         method.setAccessible(true);
         return (String) method.invoke(null, request);
+    }
+
+    private static final class RecordingHttpLongPollingDataChangedListener extends HttpLongPollingDataChangedListener {
+
+        private final String refreshedId;
+
+        private String refreshedNamespace;
+
+        private RecordingHttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties, final String refreshedId) {
+            super(httpSyncProperties);
+            this.refreshedId = refreshedId;
+        }
+
+        private ConfigDataCache seedCache(final String namespaceId, final String id) {
+            PluginData data = PluginData.builder().id(id).namespaceId(namespaceId).build();
+            updateCache(ConfigGroupEnum.PLUGIN, List.of(data), namespaceId);
+            return CACHE.get(buildCacheKey(namespaceId, ConfigGroupEnum.PLUGIN.name()));
+        }
+
+        @Override
+        protected void refreshLocalCache(final String namespaceId) {
+            refreshedNamespace = namespaceId;
+            seedCache(namespaceId, refreshedId);
+        }
     }
 }

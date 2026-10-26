@@ -55,8 +55,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,13 +90,16 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final TransactionTemplate discoveryActivation;
+
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
                                 final ProxySelectorMapper proxySelectorMapper,
                                 final DiscoveryRelMapper discoveryRelMapper,
                                 final DiscoveryHandlerMapper discoveryHandlerMapper,
                                 final SelectorService selectorService,
                                 final SelectorMapper selectorMapper,
-                                final DiscoveryProcessorHolder discoveryProcessorHolder) {
+                                final DiscoveryProcessorHolder discoveryProcessorHolder,
+                                final PlatformTransactionManager transactionManager) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.proxySelectorMapper = proxySelectorMapper;
@@ -98,6 +107,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
+        this.discoveryActivation = new TransactionTemplate(transactionManager);
+        this.discoveryActivation.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
     @Override
@@ -183,8 +194,23 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
         }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryConfigRegisterDTO.getDiscoveryType());
-        discoveryProcessor.createDiscovery(discoveryDO);
-        discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), proxySelectorDTO);
+        final DiscoveryDO registeredDiscovery = discoveryDO;
+        final DiscoveryHandlerDO registeredHandler = discoveryHandlerDO;
+        Runnable activate = () -> {
+            discoveryProcessor.createDiscovery(registeredDiscovery);
+            discoveryProcessor.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(registeredHandler), proxySelectorDTO);
+        };
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            activate.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // Watchers may synchronously persist upstreams; suspend the already committed transaction resources.
+                discoveryActivation.executeWithoutResult(status -> activate.run());
+            }
+        });
     }
 
     @Override
@@ -462,43 +488,42 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             return ConfigImportResult.success();
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
-        Map<String, List<DiscoveryDO>> pluginDiscoveryMap = discoveryMapper
+        Map<String, Set<String>> pluginDiscoveryMap = discoveryMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()
-                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName));
+                .collect(Collectors.groupingBy(DiscoveryDO::getPluginName,
+                        Collectors.mapping(DiscoveryDO::getDiscoveryName, Collectors.toSet())));
+        Map<String, Map<String, String>> importedHandlerIdMap = Maps.newHashMap();
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (DiscoveryDTO discoveryDTO : discoveryList) {
             String pluginName = discoveryDTO.getPluginName();
             String discoveryName = discoveryDTO.getName();
-            Set<String> existDiscoveryNameSet = pluginDiscoveryMap
-                    .getOrDefault(pluginName, Lists.newArrayList())
-                    .stream()
-                    .map(DiscoveryDO::getDiscoveryName)
-                    .collect(Collectors.toSet());
+            Set<String> existDiscoveryNameSet = pluginDiscoveryMap.computeIfAbsent(pluginName, key -> new HashSet<>());
+            Map<String, String> importedHandlerIds = importedHandlerIdMap.computeIfAbsent(pluginName, key -> Maps.newHashMap());
             if (existDiscoveryNameSet.contains(discoveryName)) {
                 errorMsgBuilder
                         .append(discoveryName)
                         .append(",");
+                String importedHandlerId = importedHandlerIds.get(discoveryName);
+                if (Objects.nonNull(importedHandlerId) && Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
+                    discoveryHandlerIdMapping.put(discoveryDTO.getDiscoveryHandler().getId(), importedHandlerId);
+                }
                 continue;
             }
             String discoveryId = UUIDUtils.getInstance().generateShortUuid();
             discoveryDTO.setId(discoveryId);
             discoveryDTO.setNamespaceId(namespace);
-            create(discoveryDTO);
+            if (Objects.isNull(create(discoveryDTO))) {
+                continue;
+            }
+            existDiscoveryNameSet.add(discoveryName);
             successCount++;
             
             // import discovery handler data
-            String discoveryHandlerId = null;
-            if (Objects.nonNull(discoveryDTO.getDiscoveryHandler())) {
-                DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer
-                        .INSTANCE
-                        .mapToDO(discoveryDTO.getDiscoveryHandler());
-                discoveryHandlerDO.setDiscoveryId(discoveryId);
-                discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
-                discoveryHandlerIdMapping.put(discoveryHandlerDO.getId(), discoveryHandlerId);
-                discoveryHandlerDO.setId(discoveryHandlerId);
-                discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+            String discoveryHandlerId = importDiscoveryHandler(discoveryDTO, context);
+            if (Objects.nonNull(discoveryHandlerId)) {
+                importedHandlerIds.put(discoveryName, discoveryHandlerId);
             }
             
             // import discovery rel data
@@ -507,12 +532,25 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         .INSTANCE
                         .mapToDO(discoveryDTO.getDiscoveryRel());
                 discoveryRelDO.setDiscoveryHandlerId(discoveryHandlerId);
-                Optional.ofNullable(discoveryRelDO.getSelectorId())
-                                .ifPresent(selectorId -> discoveryRelDO.setSelectorId(context.getSelectorIdMapping().get(selectorId)));
-                Optional.ofNullable(discoveryRelDO.getProxySelectorId())
-                        .ifPresent(proxySelectorId -> discoveryRelDO.setProxySelectorId(context.getProxySelectorIdMapping().get(proxySelectorId)));
-                discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                discoveryRelMapper.insertSelective(discoveryRelDO);
+                // rels created for a TCP proxy selector store an empty selector_id ('' in the
+                // database, not NULL), so only a non-blank reference is a remappable target;
+                // blank references keep their exported shape
+                String remappedSelectorId = StringUtils.isBlank(discoveryRelDO.getSelectorId())
+                        ? discoveryRelDO.getSelectorId() : context.getSelectorIdMapping().get(discoveryRelDO.getSelectorId());
+                String remappedProxySelectorId = StringUtils.isBlank(discoveryRelDO.getProxySelectorId())
+                        ? discoveryRelDO.getProxySelectorId() : context.getProxySelectorIdMapping().get(discoveryRelDO.getProxySelectorId());
+                boolean selectorReferenceLost = StringUtils.isNotBlank(discoveryRelDO.getSelectorId()) && Objects.isNull(remappedSelectorId);
+                boolean proxySelectorReferenceLost = StringUtils.isNotBlank(discoveryRelDO.getProxySelectorId()) && Objects.isNull(remappedProxySelectorId);
+                if (Objects.isNull(discoveryHandlerId) || selectorReferenceLost || proxySelectorReferenceLost) {
+                    // the relation's target was not imported into this namespace; skip it instead
+                    // of persisting a row whose selector/proxy-selector reference was nulled by remapping
+                    LOG.warn("skip discovery rel of discovery [{}]: referenced selector/proxy selector was not imported", discoveryName);
+                } else {
+                    discoveryRelDO.setSelectorId(remappedSelectorId);
+                    discoveryRelDO.setProxySelectorId(remappedProxySelectorId);
+                    discoveryRelDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                    discoveryRelMapper.insertSelective(discoveryRelDO);
+                }
             }
         }
         
@@ -522,5 +560,18 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .fail(successCount, "import fail discovery: " + errorMsgBuilder);
         }
         return ConfigImportResult.success(successCount);
+    }
+
+    private String importDiscoveryHandler(final DiscoveryDTO discoveryDTO, final ConfigsImportContext context) {
+        if (Objects.isNull(discoveryDTO.getDiscoveryHandler())) {
+            return null;
+        }
+        DiscoveryHandlerDO discoveryHandlerDO = DiscoveryTransfer.INSTANCE.mapToDO(discoveryDTO.getDiscoveryHandler());
+        discoveryHandlerDO.setDiscoveryId(discoveryDTO.getId());
+        String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
+        context.getDiscoveryHandlerIdMapping().put(discoveryHandlerDO.getId(), discoveryHandlerId);
+        discoveryHandlerDO.setId(discoveryHandlerId);
+        discoveryHandlerMapper.insertSelective(discoveryHandlerDO);
+        return discoveryHandlerId;
     }
 }

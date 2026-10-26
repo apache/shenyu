@@ -19,14 +19,18 @@ package org.apache.shenyu.plugin.websocket;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
@@ -38,9 +42,12 @@ import org.mockito.MockedStatic;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -50,10 +57,13 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -85,6 +95,8 @@ public class WebSocketPluginTest {
 
     private WebSocketService webSocketService;
 
+    private WebSocketClient webSocketClient;
+
     private MockedStatic<UpstreamCheckUtils> mockCheckUtils;
 
     @BeforeEach
@@ -104,7 +116,7 @@ public class WebSocketPluginTest {
                 .header(CONNECTION, "upgrade")
                 .header(com.google.common.net.HttpHeaders.SEC_WEBSOCKET_KEY, "websocket")
                 .build());
-        WebSocketClient webSocketClient = mock(WebSocketClient.class);
+        this.webSocketClient = mock(WebSocketClient.class);
         this.webSocketService = mock(WebSocketService.class);
         this.webSocketPlugin = new WebSocketPlugin(webSocketClient, webSocketService);
 
@@ -132,6 +144,78 @@ public class WebSocketPluginTest {
     }
 
     /**
+     * The count follows the session, not the handshake: the Mono the plugin returns completes as soon as the
+     * upgrade is done, so a count attached to it would be released while the session is still running.
+     */
+    @Test
+    public void leastActiveShouldCountTheSessionAndNotTheHandshake() {
+        initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            // The real service completes here, when the upgrade handshake is done.
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        long initial = upstream.getInflight().get();
+        // The handshake is over, but the session it started is still running.
+        assertEquals(initial, upstream.getInflight().get());
+
+        Disposable session = handler.get().handle(mock(WebSocketSession.class)).subscribe();
+        assertEquals(initial + 1, upstream.getInflight().get());
+
+        session.dispose();
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * A session that completes normally is released as well.
+     */
+    @Test
+    public void leastActiveShouldReleaseOnSessionCompletion() {
+        initMockInfo(LoadBalanceEnum.LEAST_ACTIVITY.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.empty());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        long initial = upstream.getInflight().get();
+        StepVerifier.create(handler.get().handle(mock(WebSocketSession.class))).verifyComplete();
+
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * The other algorithms do not read the count, so they must not touch it.
+     */
+    @Test
+    public void otherAlgorithmsShouldNotCountTheProxiedSession() {
+        initMockInfo(LoadBalanceEnum.RANDOM.getName());
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        long initial = upstream.getInflight().get();
+        Disposable session = handler.get().handle(mock(WebSocketSession.class)).subscribe();
+        assertEquals(initial, upstream.getInflight().get());
+
+        session.dispose();
+        assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
      * Skip.
      */
     @Test
@@ -146,6 +230,16 @@ public class WebSocketPluginTest {
     @Test
     public void namedTest() {
         assertEquals(PluginEnum.WEB_SOCKET.getName(), webSocketPlugin.named());
+    }
+
+    @Test
+    public void removeDiscoveryUpstreamDataTest() {
+        initMockInfo();
+        assertNotNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock"));
+
+        new WebSocketUpstreamDataHandler().removeDiscoveryUpstreamData(DiscoveryUpstreamKey.from(discoverySyncData));
+
+        assertNull(UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock"));
     }
 
     /**
@@ -173,9 +267,19 @@ public class WebSocketPluginTest {
      * Init mock info.
      */
     private void initMockInfo() {
+        initMockInfo(LoadBalanceEnum.RANDOM.getName());
+    }
+
+    /**
+     * Init mock info with the given load balance algorithm.
+     *
+     * @param loadBalance the load balance algorithm
+     */
+    private void initMockInfo(final String loadBalance) {
         ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.WEB_SOCKET.getName());
         WebSocketRuleHandle handle = new WebSocketRuleHandle();
+        handle.setLoadBalance(loadBalance);
         when(selectorData.getId()).thenReturn("mock");
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         when(discoverySyncData.getSelectorId()).thenReturn("mock");

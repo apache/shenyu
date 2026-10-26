@@ -44,7 +44,7 @@ public final class RuleData implements ResourceData {
      */
     private String selectorId;
     
-    @JsonProperty("loged")
+    @JsonProperty("logged")
     private boolean logged;
     
     /**
@@ -321,7 +321,7 @@ public final class RuleData implements ResourceData {
 
         private String selectorId;
 
-        @JsonProperty("loged")
+        @JsonProperty("logged")
         private boolean logged;
 
         private MatchMode matchMode;

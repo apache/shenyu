@@ -20,11 +20,14 @@
 name: Auto Notify
 
 on:
-  issues:
-    types: [opened]
+  workflow_dispatch:
+  # Temporarily disable notifications for newly opened issues.
+  # issues:
+  #   types: [opened]
 
 jobs:
   notify-committers:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

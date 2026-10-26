@@ -279,6 +279,7 @@ public final class InstanceInfoDO extends BaseDO {
                 .instanceInfo(instanceInfoVO.getInstanceInfo())
                 .instanceState(instanceInfoVO.getInstanceState())
                 .namespaceId(instanceInfoVO.getNamespaceId())
+                .lastHeartBeatTime(instanceInfoVO.getLastHeartBeatTime())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();
@@ -301,11 +302,13 @@ public final class InstanceInfoDO extends BaseDO {
         private String instanceInfo;
 
         private Integer instanceState;
-        
+
         private String namespaceId;
-        
+
+        private long lastHeartBeatTime;
+
         private InstanceInfoDOBuilder() {
-            
+
         }
         
         /**
@@ -406,8 +409,19 @@ public final class InstanceInfoDO extends BaseDO {
             this.namespaceId = namespaceId;
             return this;
         }
-        
-        
+
+        /**
+         * lastHeartBeatTime.
+         *
+         * @param lastHeartBeatTime the lastHeartBeatTime
+         * @return InstanceInfoDOBuilder.
+         */
+        public InstanceInfoDOBuilder lastHeartBeatTime(final long lastHeartBeatTime) {
+            this.lastHeartBeatTime = lastHeartBeatTime;
+            return this;
+        }
+
+
         /**
          * build InstanceInfoDO.
          *
@@ -424,6 +438,7 @@ public final class InstanceInfoDO extends BaseDO {
             instanceInfoDO.setInstanceInfo(instanceInfo);
             instanceInfoDO.setInstanceState(instanceState);
             instanceInfoDO.setNamespaceId(namespaceId);
+            instanceInfoDO.setLastHeartBeatTime(lastHeartBeatTime);
             return instanceInfoDO;
         }
     }

@@ -56,14 +56,17 @@
     </select>
 
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">
+        SELECT * FROM (
         SELECT
         <include refid="Base_Column_List"/>
         FROM operation_record_log
-        where rownum <![CDATA[<=]]> #{limit}
-        <if test="username != null">
-            and operator = #{username}
-        </if>
+        <where>
+            <if test="username != null">
+                operator = #{username}
+            </if>
+        </where>
         order by operation_time desc
+        ) WHERE ROWNUM <![CDATA[<=]]> #{limit}
     </select>
 
     <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
@@ -72,10 +75,10 @@
         from operation_record_log
         where operation_time between #{condition.startTime} and #{condition.endTime}
         <if test="condition.keyword != null and condition.keyword != ''">
-            and context like concat('%',#{condition.keyword},'%')
+            and context like concat(concat('%',#{condition.keyword}),'%')
         </if>
         <if test="condition.excluded != null and condition.excluded != ''">
-            and context not like concat('%',#{condition.excluded},'%')
+            and context not like concat(concat('%',#{condition.excluded}),'%')
         </if>
         <if test="condition.type != null">
             and operation_type = #{condition.type}

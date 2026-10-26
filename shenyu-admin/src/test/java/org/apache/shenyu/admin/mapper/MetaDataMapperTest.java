@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +37,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -244,6 +247,52 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         List<String> idList = Stream.of(metaDataDO.getId(), metaDataDO2.getId()).collect(Collectors.toList());
         int result = metaDataMapper.deleteByIdListAndNamespaceId(idList, SYS_DEFAULT_NAMESPACE_ID);
         assertThat(result, comparesEqualTo(idList.size()));
+    }
+
+    /**
+     * The path uniqueness check on update must be scoped to the namespace,
+     * otherwise a path that only exists in another namespace blocks the update.
+     */
+    @Test
+    public void pathExistedExcludeIsScopedByNamespace() {
+        MetaDataDO metaDataDO = getMetaDataDO();
+        metaDataDO.setPath("/namespace-scoped-path");
+        metaDataDO.setNamespaceId("namespace-a");
+        assertThat(metaDataMapper.insert(metaDataDO), comparesEqualTo(1));
+
+        // the same path inside the same namespace still collides (the row itself excluded)
+        assertThat(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-a",
+                Collections.singletonList("another-id")), comparesEqualTo(Boolean.TRUE));
+        // while the path merely existing in another namespace must not
+        assertNull(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-b",
+                Collections.singletonList("another-id")));
+        // and the row being updated is excluded from its own check
+        assertNull(metaDataMapper.pathExistedExclude("/namespace-scoped-path", "namespace-a",
+                Collections.singletonList(metaDataDO.getId())));
+    }
+
+    @Test
+    public void pathExistedExcludeHandlesEmptyAndNullExclusions() {
+        MetaDataDO metadata = getMetaDataDO();
+        assertThat(metaDataMapper.insert(metadata), comparesEqualTo(1));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                Collections.emptyList()), comparesEqualTo(Boolean.TRUE));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                null), comparesEqualTo(Boolean.TRUE));
+        assertThat(metaDataMapper.pathExistedExclude(metadata.getPath(), metadata.getNamespaceId(),
+                Collections.singletonList(null)), comparesEqualTo(Boolean.TRUE));
+    }
+
+    @Test
+    public void pathExistedExcludeStillDetectsOtherRows() {
+        MetaDataDO first = getMetaDataDO();
+        MetaDataDO second = getMetaDataDO();
+        assertThat(metaDataMapper.insert(first), comparesEqualTo(1));
+        assertThat(metaDataMapper.insert(second), comparesEqualTo(1));
+        assertThat(metaDataMapper.pathExistedExclude(first.getPath(), first.getNamespaceId(),
+                Collections.singletonList(first.getId())), comparesEqualTo(Boolean.TRUE));
+        assertNull(metaDataMapper.pathExistedExclude(first.getPath(), first.getNamespaceId(),
+                Arrays.asList(first.getId(), second.getId())));
     }
 
     private MetaDataDO getMetaDataDO() {

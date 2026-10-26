@@ -53,7 +53,7 @@ public final class SelectorData implements ResourceData {
     
     private boolean enabled;
     
-    @JsonProperty(value = "loged")
+    @JsonProperty(value = "logged")
     private boolean logged;
     
     private boolean continued;
@@ -365,7 +365,7 @@ public final class SelectorData implements ResourceData {
 
         private boolean enabled;
 
-        @JsonProperty(value = "loged")
+        @JsonProperty(value = "logged")
         private boolean logged;
 
         private boolean continued;

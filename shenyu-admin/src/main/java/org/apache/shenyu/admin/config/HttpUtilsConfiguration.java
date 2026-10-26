@@ -18,7 +18,9 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.utils.HttpUtils;
+import org.apache.shenyu.admin.config.properties.SwaggerImportProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * HTTP utilities configuration.
  */
 @Configuration
+@EnableConfigurationProperties(SwaggerImportProperties.class)
 public class HttpUtilsConfiguration {
 
     /**

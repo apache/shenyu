@@ -18,14 +18,15 @@
 package org.apache.shenyu.sdk.spring.annotation;
 
 import static com.google.common.base.Strings.emptyToNull;
-import com.google.common.collect.Lists;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -46,7 +47,7 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
 
     @Override
     public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
-        String name = ANNOTATION.cast(annotation).value();
+        String name = StringUtils.defaultIfBlank(ANNOTATION.cast(annotation).value(), ANNOTATION.cast(annotation).name());
         RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         checkState(Objects.nonNull(emptyToNull(name)), "RequestHeader.value() was empty on parameter %s", requestTemplate.getMethod().getName());
         Map<String, Collection<String>> headers = shenyuRequest.getHeaders();
@@ -57,17 +58,15 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
                     shenyuRequest.setHeaders(headers);
                 } else if (key instanceof String && value instanceof String) {
                     headers.compute((String) key, (header, old) -> {
-                        if (CollectionUtils.isEmpty(old)) {
-                            return Lists.newArrayList((String) value);
-                        }
-                        old.add((String) value);
-                        return old;
+                        Collection<String> merged = new ArrayList<>(CollectionUtils.isEmpty(old) ? Collections.emptyList() : old);
+                        merged.add((String) value);
+                        return merged;
                     });
                     shenyuRequest.setHeaders(headers);
                 }
             });
         } else if (arg instanceof String) {
-            Collection<String> headerColl = Optional.ofNullable(headers.get(name)).orElseGet(ArrayList::new);
+            Collection<String> headerColl = new ArrayList<>(Optional.ofNullable(headers.get(name)).orElseGet(ArrayList::new));
             headerColl.add((String) arg);
             headers.put(name, headerColl);
             shenyuRequest.setHeaders(headers);

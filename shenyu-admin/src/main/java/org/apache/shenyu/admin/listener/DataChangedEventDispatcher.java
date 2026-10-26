@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
@@ -57,65 +59,115 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
     private final ApplicationContext applicationContext;
     
     private List<DataChangedListener> listeners;
-    
+
+    private ClusterDataChangedEventForwarder eventForwarder;
+
     @Resource
     private ClusterProperties clusterProperties;
-    
+
     @Resource
     @Nullable
     private ClusterSelectMasterService shenyuClusterSelectMasterService;
-    
+
     public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
-    
+
     @Override
-    @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NotNull final DataChangedEvent event) {
-        for (DataChangedListener listener : listeners) {
-            if (!(listener instanceof AbstractDataChangedListener)
-                    && clusterProperties.isEnabled()
-                    && Objects.nonNull(shenyuClusterSelectMasterService)
-                    && !shenyuClusterSelectMasterService.isMaster()) {
-                LOG.info("received DataChangedEvent, not master, pass");
-                return;
+        // dispatch must never overtake the publishing transaction, so an active
+        // transaction defers delivery to afterCommit in every deployment mode
+        if (TransactionSynchronizationManager.isActualTransactionActive()
+                && TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    dispatch(event);
+                }
+            });
+            return;
+        }
+        dispatch(event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void dispatch(final DataChangedEvent event) {
+        final boolean master = isMasterOrStandalone();
+        if (!master) {
+            forwardEventToMaster(event);
+        }
+        boolean loadDoc = false;
+        Throwable listenerFailure = null;
+        try {
+            for (DataChangedListener listener : listeners) {
+                if (!master && !(listener instanceof AbstractDataChangedListener)) {
+                    // push listeners run on the master only; the event was handed over above
+                    continue;
+                }
+                final int size = event.getSource() instanceof java.util.Collection
+                        ? ((java.util.Collection<?>) event.getSource()).size() : 1;
+                LOG.info("received DataChangedEvent, group={}, size={}, type={}",
+                        event.getGroupKey(), size, event.getEventType());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
+                }
+                switch (event.getGroupKey()) {
+                    case APP_AUTH:
+                        listener.onAppAuthChanged((List<AppAuthData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case PLUGIN:
+                        listener.onPluginChanged((List<PluginData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case RULE:
+                        listener.onRuleChanged((List<RuleData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case SELECTOR:
+                        listener.onSelectorChanged((List<SelectorData>) event.getSource(),
+                                event.getEventType(), event.getNamespaceId());
+                        break;
+                    case META_DATA:
+                        listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
+                        break;
+                    case PROXY_SELECTOR:
+                        listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
+                        break;
+                    case AI_PROXY_API_KEY:
+                        listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
+                        break;
+                    case DISCOVER_UPSTREAM:
+                        listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),
+                                event.getEventType());
+                        loadDoc = true;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
+                }
             }
-            final int size = event.getSource() instanceof java.util.Collection ? ((java.util.Collection<?>) event.getSource()).size() : 1;
-            LOG.info("received DataChangedEvent, group={}, size={}, type={}", event.getGroupKey(), size, event.getEventType());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
+        } catch (Throwable ex) {
+            listenerFailure = ex;
+            throw ex;
+        } finally {
+            // load once per event, even if a later listener failed after the upstream change was applied
+            if (loadDoc) {
+                loadDocOnUpstreamChanged(event, listenerFailure);
             }
-            switch (event.getGroupKey()) {
-                case APP_AUTH:
-                    listener.onAppAuthChanged((List<AppAuthData>) event.getSource(), event.getEventType());
-                    break;
-                case PLUGIN:
-                    listener.onPluginChanged((List<PluginData>) event.getSource(), event.getEventType());
-                    break;
-                case RULE:
-                    listener.onRuleChanged((List<RuleData>) event.getSource(), event.getEventType());
-                    break;
-                case SELECTOR:
-                    listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
-                    break;
-                case META_DATA:
-                    listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
-                    break;
-                case PROXY_SELECTOR:
-                    listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
-                    break;
-                case AI_PROXY_API_KEY:
-                    listener.onAiProxyApiKeyChanged((List<ProxyApiKeyData>) event.getSource(), event.getEventType());
-                    break;
-                case DISCOVER_UPSTREAM:
-                    listener.onDiscoveryUpstreamChanged((List<DiscoverySyncData>) event.getSource(),
-                            event.getEventType());
-                    applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged(
-                            (List<DiscoverySyncData>) event.getSource(), event.getEventType());
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadDocOnUpstreamChanged(final DataChangedEvent event, final Throwable listenerFailure) {
+        try {
+            applicationContext.getBean(LoadServiceDocEntry.class).loadDocOnUpstreamChanged(
+                    (List<DiscoverySyncData>) event.getSource(), event.getEventType());
+        } catch (Throwable ex) {
+            if (Objects.isNull(listenerFailure)) {
+                throw ex;
             }
+            // keep the listener failure as the thrown exception
+            listenerFailure.addSuppressed(ex);
         }
     }
     
@@ -124,5 +176,32 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class)
                 .values();
         this.listeners = Collections.unmodifiableList(new ArrayList<>(listenerBeans));
+        this.eventForwarder = applicationContext.getBeanProvider(ClusterDataChangedEventForwarder.class)
+                .getIfAvailable();
+    }
+
+    private boolean isMasterOrStandalone() {
+        if (!clusterProperties.isEnabled() || Objects.isNull(shenyuClusterSelectMasterService)) {
+            return true;
+        }
+        return shenyuClusterSelectMasterService.isMaster();
+    }
+
+    private void forwardEventToMaster(final DataChangedEvent event) {
+        if (Objects.isNull(eventForwarder)) {
+            LOG.warn("received DataChangedEvent, not master, no forwarder available, group={}, type={},"
+                            + " push listeners will be skipped on this node",
+                    event.getGroupKey(), event.getEventType());
+            return;
+        }
+        final boolean forwarded = eventForwarder.forward(event);
+        if (forwarded) {
+            LOG.info("received DataChangedEvent, not master, forwarded to master, group={}, type={}",
+                    event.getGroupKey(), event.getEventType());
+        } else {
+            LOG.warn("received DataChangedEvent, not master, forward to master failed, group={}, type={},"
+                            + " push listeners will be skipped on this node",
+                    event.getGroupKey(), event.getEventType());
+        }
     }
 }

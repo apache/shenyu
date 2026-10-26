@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApiDocRegistrarImplTest {
 
@@ -156,6 +157,27 @@ public class ApiDocRegistrarImplTest {
     }
 
     // --- Inner types (must be after all methods per checkstyle InnerTypeLast) ---
+
+    @Test
+    void testProduceAndConsumeReadTheKeysTheSpringMvcExtractorWrites() throws Exception {
+        ApiBean apiBean = new ApiBean(RpcTypeEnum.HTTP.getName(),
+                TestHttpService.class.getName(),
+                TestHttpService.class.getDeclaredConstructor().newInstance(),
+                "httpTestService");
+        apiBean.addApiDefinition(TestHttpService.class.getMethod("findById", String.class), "/findById");
+        ApiBean.ApiDefinition definition = apiBean.getApiDefinitions().get(0);
+        // RequestMappingProcessor is the only writer of these properties and uses the plural keys
+        definition.addProperties("produces", "application/json");
+        definition.addProperties("consumes", "application/xml");
+
+        Method getProduce = ApiDocRegistrarImpl.class.getDeclaredMethod("getProduce", ApiBean.ApiDefinition.class);
+        getProduce.setAccessible(true);
+        Method getConsume = ApiDocRegistrarImpl.class.getDeclaredMethod("getConsume", ApiBean.ApiDefinition.class);
+        getConsume.setAccessible(true);
+
+        assertEquals("application/json", getProduce.invoke(httpRegistrar, definition));
+        assertEquals("application/xml", getConsume.invoke(httpRegistrar, definition));
+    }
 
     public static class TestDubboService {
         public Object findById(final String id) {
