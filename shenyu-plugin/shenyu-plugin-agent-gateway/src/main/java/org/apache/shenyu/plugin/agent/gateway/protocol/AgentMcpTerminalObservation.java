@@ -57,6 +57,8 @@ final class AgentMcpTerminalObservation {
 
     private Outcome outcome = Outcome.SERVER_ERROR;
 
+    private boolean failureClassified;
+
     private boolean completed;
 
     AgentMcpTerminalObservation(final AgentMcpTerminalObserver observer, final AgentTrafficContext traffic, final long configurationVersion) {
@@ -93,9 +95,10 @@ final class AgentMcpTerminalObservation {
     }
 
     synchronized void failure(final Throwable error, final Integer transportStatus) {
-        if (completed) {
+        if (completed || failureClassified) {
             return;
         }
+        failureClassified = true;
         Integer status = transportStatus;
         if (error instanceof AgentMcpProtocolException) {
             status = ((AgentMcpProtocolException) error).getHttpStatus();

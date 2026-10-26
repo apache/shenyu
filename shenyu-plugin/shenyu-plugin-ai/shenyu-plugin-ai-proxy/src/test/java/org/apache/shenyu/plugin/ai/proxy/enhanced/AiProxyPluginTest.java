@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
@@ -65,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -266,6 +268,15 @@ class AiProxyPluginTest {
         StepVerifier.create(execute(plugin(request -> Mono.error(failure())))).verifyComplete();
         assertEquals(HttpStatus.BAD_GATEWAY, exchange.getResponse().getStatusCode());
         assertEquals(4, requests.size());
+    }
+
+    @Test
+    void wrappedTimeoutKeepsTimeoutClassificationBeforeRecovery() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.error(new ShenyuException(new TimeoutException("upstream deadline"))), events::add);
+        StepVerifier.create(execute(plugin)).verifyComplete();
+        assertEquals(HttpStatus.BAD_REQUEST, exchange.getResponse().getStatusCode());
+        assertEquals(AiCallOutcome.TIMEOUT, events.get(0).outcome());
     }
 
     @Test

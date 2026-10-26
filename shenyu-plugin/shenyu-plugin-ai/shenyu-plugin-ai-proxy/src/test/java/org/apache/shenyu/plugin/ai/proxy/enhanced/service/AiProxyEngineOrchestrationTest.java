@@ -414,7 +414,8 @@ class AiProxyEngineOrchestrationTest {
             return Mono.error(networkFailure());
         });
         StepVerifier.create(engine.execute("invalid", config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .expectError(ShenyuException.class).verify();
+                .expectErrorMatches(error -> error instanceof AiProxyException request
+                        && request.getKind() == AiProxyException.Kind.REQUEST).verify();
         assertEquals(0, calls.get());
     }
 

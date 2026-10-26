@@ -38,6 +38,13 @@
 
 ### Behavior Changes
 
+- Agent Gateway's default order changes from 198 to 169. Matched MCP traffic now
+  terminates in Agent Gateway before `mcpServer`, Kafka/ElasticSearch logging,
+  sensitive-word filtering, Prompt, Token Limiter, RocketMQ logging and AI Proxy.
+  Deployments that previously relied on the later `mcpServer` handling an overlapping
+  path must review their selectors and explicit plugin orders; the migration changes
+  only old Agent Gateway sort values and does not rewrite custom orders.
+
 - In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
   field section: header names, field values, line framing (`: ` and CRLF),
   and section-terminating CRLF. Previously only header values were counted. Existing
