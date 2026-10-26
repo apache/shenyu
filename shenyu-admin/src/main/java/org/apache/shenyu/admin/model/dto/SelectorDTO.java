@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -85,10 +86,11 @@ public final class SelectorDTO implements Serializable {
     private Boolean enabled;
     
     /**
-     * whether loged.
+     * whether logged.
      */
     @NotNull
-    private Boolean loged;
+    @JsonAlias("loged")
+    private Boolean logged;
     
     /**
      * whether continued.
@@ -131,7 +133,7 @@ public final class SelectorDTO implements Serializable {
                        @NotNull final Integer type,
                        @NotNull final Integer sort,
                        @NotNull final Boolean enabled,
-                       final Boolean loged,
+                       final Boolean logged,
                        @NotNull final Boolean continued,
                        final String handle,
                        @Valid final List<SelectorConditionDTO> selectorConditions,
@@ -145,7 +147,7 @@ public final class SelectorDTO implements Serializable {
         this.type = type;
         this.sort = sort;
         this.enabled = enabled;
-        this.loged = loged;
+        this.logged = logged;
         this.continued = continued;
         this.handle = handle;
         this.selectorConditions = selectorConditions;
@@ -281,21 +283,21 @@ public final class SelectorDTO implements Serializable {
     }
     
     /**
-     * Gets the value of loged.
+     * Gets the value of logged.
      *
-     * @return the value of loged
+     * @return the value of logged
      */
-    public Boolean getLoged() {
-        return loged;
+    public Boolean getLogged() {
+        return logged;
     }
     
     /**
-     * Sets the loged.
+     * Sets the logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final Boolean loged) {
-        this.loged = loged;
+    public void setLogged(final Boolean logged) {
+        this.logged = logged;
     }
     
     /**
@@ -426,7 +428,7 @@ public final class SelectorDTO implements Serializable {
         SelectorDTO that = (SelectorDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(pluginId, that.pluginId) && Objects.equals(name, that.name)
                 && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type) && Objects.equals(sort, that.sort)
-                && Objects.equals(enabled, that.enabled) && Objects.equals(loged, that.loged) && Objects.equals(continued, that.continued)
+                && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged) && Objects.equals(continued, that.continued)
                 && Objects.equals(handle, that.handle) && Objects.equals(selectorConditions, that.selectorConditions)
                 && Objects.equals(matchRestful, that.matchRestful) && Objects.equals(selectorRules, that.selectorRules)
                 && Objects.equals(namespaceId, that.namespaceId);
@@ -434,7 +436,7 @@ public final class SelectorDTO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle,
+        return Objects.hash(id, pluginId, name, matchMode, type, sort, enabled, logged, continued, handle,
                 selectorConditions, matchRestful, namespaceId);
     }
 
@@ -454,7 +456,7 @@ public final class SelectorDTO implements Serializable {
         
         private Boolean enabled;
         
-        private Boolean loged;
+        private Boolean logged;
         
         private Boolean continued;
         
@@ -549,13 +551,13 @@ public final class SelectorDTO implements Serializable {
         }
         
         /**
-         * loged.
+         * logged.
          *
-         * @param loged the loged.
+         * @param logged the logged.
          * @return SelectorDTOBuilder.
          */
-        public SelectorDTOBuilder loged(final Boolean loged) {
-            this.loged = loged;
+        public SelectorDTOBuilder logged(final Boolean logged) {
+            this.logged = logged;
             return this;
         }
         
@@ -631,7 +633,7 @@ public final class SelectorDTO implements Serializable {
          * @return build object.
          */
         public SelectorDTO build() {
-            return new SelectorDTO(id, pluginId, name, matchMode, type, sort, enabled, loged, continued, handle,
+            return new SelectorDTO(id, pluginId, name, matchMode, type, sort, enabled, logged, continued, handle,
                     selectorConditions, matchRestful, selectorRules, namespaceId);
         }
     }

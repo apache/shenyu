@@ -28,6 +28,7 @@
         <result column="instance_info" jdbcType="VARCHAR" property="instanceInfo"/>
         <result column="instance_state" jdbcType="INTEGER" property="instanceState"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
+        <result column="last_heart_beat_time" jdbcType="BIGINT" property="lastHeartBeatTime"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -40,6 +41,7 @@
         instance_info,
         instance_state,
         namespace_id,
+        last_heart_beat_time,
         date_created,
         date_updated
     </sql>
@@ -53,9 +55,11 @@
           instance_port = #{instancePort, jdbcType=VARCHAR},
           instance_type = #{instanceType, jdbcType=VARCHAR},
           instance_info = #{instanceInfo, jdbcType=VARCHAR},
-          instance_state = #{instanceState, jdbcType=TINYINT}
+          instance_state = #{instanceState, jdbcType=TINYINT},
+          last_heart_beat_time = #{lastHeartBeatTime, jdbcType=BIGINT}
         WHERE
           id = #{id, jdbcType=VARCHAR}
+          AND last_heart_beat_time &lt;= #{lastHeartBeatTime, jdbcType=BIGINT}
     </update>
     
     <select id="findAllByNamespaceId" resultMap="BaseResultMap">
@@ -72,10 +76,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SElECT true
+        SELECT 1
         FROM instance_info
         WHERE id = #{id}
         LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM instance_info
+        WHERE id = #{id}
+        AND ROWNUM = 1
     </select>
     
     <select id="selectByQuery" resultMap="BaseResultMap">
@@ -125,6 +136,29 @@
         LIMIT 1
     </select>
 
+    <select databaseId="oracle" id="selectOneByQuery" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM instance_info
+        WHERE 1=1
+        <if test="instanceIp != null and instanceIp != ''">
+            AND instance_ip = #{instanceIp}
+        </if>
+        <if test="namespaceId != null and namespaceId != ''">
+            AND namespace_id = #{namespaceId}
+        </if>
+        <if test="instancePort != null and instancePort != ''">
+            AND instance_port = #{instancePort}
+        </if>
+        <if test="instanceType != null and instanceType != ''">
+            AND instance_type = #{instanceType}
+        </if>
+        <if test="instanceId != null and instanceId != ''">
+            AND id = #{instanceId}
+        </if>
+        AND ROWNUM = 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
         INSERT INTO instance_info
         (id,
@@ -135,7 +169,8 @@
         instance_type,
         instance_info,
         instance_state,
-        namespace_id)
+        namespace_id,
+        last_heart_beat_time)
         VALUES
         (#{id,jdbcType=VARCHAR},
         #{dateCreated,jdbcType=TIMESTAMP},
@@ -145,7 +180,8 @@
         #{instanceType,jdbcType=VARCHAR},
         #{instanceInfo,jdbcType=VARCHAR},
         #{instanceState,jdbcType=TINYINT},
-        #{namespaceId,jdbcType=VARCHAR})
+        #{namespaceId,jdbcType=VARCHAR},
+        #{lastHeartBeatTime,jdbcType=BIGINT})
     </insert>
 
     <delete id="delete" parameterType="java.lang.String">

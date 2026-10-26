@@ -18,6 +18,7 @@
 package org.apache.shenyu.protocol.mqtt;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,19 +35,25 @@ import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
@@ -54,10 +61,14 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -97,6 +108,10 @@ public final class PublishTest {
 
     private static final int PUBLISHER_PACKET_ID = 12345;
 
+    private static final int RETRANSMIT_PACKET_ID = 77;
+
+    private static final int BARRIER_PACKET_ID = 78;
+
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
     private static final Duration POLL_INTERVAL = Duration.ofMillis(10);
@@ -122,6 +137,8 @@ public final class PublishTest {
         Singleton.INST.single(SubscribeRepository.class, SUBSCRIBE_REPOSITORY);
         Singleton.INST.single(TopicRepository.class, TOPIC_REPOSITORY);
         Singleton.INST.single(ChannelRepository.class, CHANNEL_REPOSITORY);
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
         new MqttContext().setUserName(USER_NAME);
         new MqttContext().setPassword(PASSWORD);
 
@@ -136,6 +153,7 @@ public final class PublishTest {
     public void tearDown() {
         MqttPacketIdGenerator.remove(subscriberChannel);
         MqttPacketIdGenerator.remove(otherSubscriberChannel);
+        Singleton.INST.get(InflightRepository.class).remove(CLIENT_ID);
         publisherChannel.finishAndReleaseAll();
         clearSharedState();
 
@@ -143,27 +161,31 @@ public final class PublishTest {
         new MqttContext().setPassword(null);
     }
 
-    @Test
-    public void retainedPublishStoresMessage() {
-        new Publish().publish(publisherContext(), publishMessage(RETAINED_TOPIC, PAYLOAD, true));
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(RETAINED_TOPIC)));
+    @ParameterizedTest
+    @MethodSource("retainedPayloads")
+    public void retainedPublishReplaysOriginalBytes(final byte[] expected, final ByteBuf payload) {
+        int readerIndex = payload.readerIndex();
+        MqttPublishMessage message = new MqttPublishMessage(
+                new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_LEAST_ONCE, true, 0),
+                new MqttPublishVariableHeader(RETAINED_TOPIC, PUBLISHER_PACKET_ID), payload);
+        try {
+            new Publish().publish(publisherContext(), message);
+            assertEquals(readerIndex, payload.readerIndex());
+            awaitAssert(() -> {
+                assertArrayEquals(expected, TOPIC_REPOSITORY.get(RETAINED_TOPIC));
+                assertEquals(1, payload.refCnt());
+            });
+            payload.setZero(readerIndex, payload.readableBytes());
+        } finally {
+            message.release();
+        }
+        assertRetainedReplay(RETAINED_TOPIC, expected);
     }
 
     @Test
     public void nonRetainedPublishDoesNotStoreMessage() {
         new Publish().publish(publisherContext(), publishMessage(NON_RETAINED_TOPIC, PAYLOAD, false));
         assertNull(TOPIC_REPOSITORY.get(NON_RETAINED_TOPIC));
-    }
-
-    @Test
-    public void retainedPublishReadsMessageFromDirectPayload() {
-        ByteBuf payload = Unpooled.directBuffer().writeBytes(PAYLOAD.getBytes(StandardCharsets.UTF_8));
-        try {
-            new Publish().publish(publisherContext(), publishMessage(RETAINED_TOPIC, payload, true));
-            awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(RETAINED_TOPIC)));
-        } finally {
-            payload.release();
-        }
     }
 
     @Test
@@ -186,7 +208,7 @@ public final class PublishTest {
         new Connect().connect(ctx, connectMessage());
         new Publish().publish(ctx, publishMessage(END_TO_END_TOPIC, PAYLOAD, true));
 
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(END_TO_END_TOPIC)));
+        awaitAssert(() -> assertArrayEquals(PAYLOAD.getBytes(StandardCharsets.UTF_8), TOPIC_REPOSITORY.get(END_TO_END_TOPIC)));
         assertEquals(CLIENT_ID, CHANNEL_REPOSITORY.get(channel));
 
         CHANNEL_REPOSITORY.remove(channel);
@@ -194,15 +216,28 @@ public final class PublishTest {
     }
 
     @Test
-    public void zeroByteRetainedPublishClearsRetainedMessage() {
+    public void retainedPublishReplacesAndClearsMessage() {
         Publish publish = new Publish();
         ChannelHandlerContext ctx = publisherContext();
 
-        publish.publish(ctx, publishMessage(CLEARED_TOPIC, PAYLOAD, true));
-        awaitAssert(() -> assertEquals(PAYLOAD, TOPIC_REPOSITORY.get(CLEARED_TOPIC)));
+        byte[][] messages = {{0, (byte) 0xff, (byte) 0x80, 0x41}, {(byte) 0xfe, 0, 0x42}};
+        for (byte[] bytes : messages) {
+            MqttPublishMessage message = publishMessage(CLEARED_TOPIC, Unpooled.wrappedBuffer(bytes), true);
+            try {
+                publish.publish(ctx, message);
+                awaitAssert(() -> {
+                    assertArrayEquals(bytes, TOPIC_REPOSITORY.get(CLEARED_TOPIC));
+                    assertEquals(1, message.refCnt());
+                });
+            } finally {
+                message.release();
+            }
+            assertRetainedReplay(CLEARED_TOPIC, bytes);
+        }
 
         publish.publish(ctx, publishMessage(CLEARED_TOPIC, "", true));
         assertNull(TOPIC_REPOSITORY.get(CLEARED_TOPIC));
+        assertRetainedReplay(CLEARED_TOPIC, null);
     }
 
     @Test
@@ -254,8 +289,13 @@ public final class PublishTest {
         addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
         addSubscriber(otherSubscriberChannel, MqttQoS.EXACTLY_ONCE);
 
+        // wait for the first delivery so that the second publish cannot interleave packet id allocation
         publishToSubscribers(MqttQoS.EXACTLY_ONCE);
-        publishToSubscribers(MqttQoS.EXACTLY_ONCE);
+        captureMessages(subscriberChannel, 1);
+        captureMessages(otherSubscriberChannel, 1);
+
+        // a conforming client never reuses a packet id before its acknowledgement
+        publishToSubscribers(MqttQoS.EXACTLY_ONCE, PUBLISHER_PACKET_ID + 1, false);
 
         List<MqttPublishMessage> messages = captureMessages(subscriberChannel, 2);
         assertEquals(1, messages.get(0).variableHeader().packetId());
@@ -273,10 +313,11 @@ public final class PublishTest {
         ByteBuf payload = Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8);
         try {
             publishToSubscribers(MqttQoS.AT_LEAST_ONCE, payload);
-            awaitAssert(() -> assertEquals(3, payload.refCnt()));
 
             MqttPublishMessage delivered = captureMessage(subscriberChannel);
             MqttPublishMessage otherDelivered = captureMessage(otherSubscriberChannel);
+            // one reference held by the inbound message plus one retained duplicate per active subscriber
+            awaitAssert(() -> assertEquals(3, payload.refCnt()));
             assertEquals(PAYLOAD, delivered.payload().toString(CharsetUtil.UTF_8));
             assertEquals(PAYLOAD, otherDelivered.payload().toString(CharsetUtil.UTF_8));
 
@@ -305,6 +346,124 @@ public final class PublishTest {
         assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
         assertEquals(MqttQoS.AT_MOST_ONCE, pubRec.fixedHeader().qosLevel());
         assertEquals(PUBLISHER_PACKET_ID, ((MqttMessageIdVariableHeader) pubRec.variableHeader()).messageId());
+    }
+
+    @Test
+    public void testQos2RetransmitIsPublishedExactlyOnce() {
+        CHANNEL_REPOSITORY.add(publisherChannel, CLIENT_ID);
+        addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
+        try {
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, false);
+            captureMessages(subscriberChannel, 1);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+
+            // the retransmission is answered, but must not be delivered again (#7919)
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, true);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+
+            // ordering barrier: a fan-out happens on the common pool, so the next publish
+            // would queue behind it — if the retransmission had been delivered, the count
+            // here could only be 3, and times(2) fails deterministically
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, BARRIER_PACKET_ID, false);
+            assertPubRec(BARRIER_PACKET_ID);
+            captureMessages(subscriberChannel, 2);
+        } finally {
+            CHANNEL_REPOSITORY.remove(publisherChannel);
+        }
+    }
+
+    /**
+     * A new session (clean-session reconnect) resets the packet id space, so a
+     * stale in-flight id must not suppress a publish of the same id (#7919).
+     */
+    @Test
+    public void testCleanSessionReconnectClearsInflightIds() {
+        CHANNEL_REPOSITORY.add(publisherChannel, CLIENT_ID);
+        addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
+        final EmbeddedChannel reconnected = channel(false);
+        CHANNEL_REPOSITORY.add(reconnected, CLIENT_ID);
+        try {
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, false);
+            captureMessages(subscriberChannel, 1);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+
+            // reconnect with cleanSession=1: a new session starts, the packet id space resets
+            new Connect().connect(reconnected.pipeline().lastContext(), connectMessage());
+            assertNotNull(reconnected.readOutbound());
+
+            // the same packet id is legal again on the new session and must be delivered
+            final MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, true, MqttQoS.EXACTLY_ONCE, false, 0);
+            final MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, RETRANSMIT_PACKET_ID);
+            new Publish().publish(reconnected.pipeline().lastContext(),
+                    new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8)));
+            final MqttMessage pubRec = reconnected.readOutbound();
+            assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
+            captureMessages(subscriberChannel, 2);
+        } finally {
+            CHANNEL_REPOSITORY.remove(publisherChannel);
+            CHANNEL_REPOSITORY.remove(reconnected);
+            reconnected.finishAndReleaseAll();
+        }
+    }
+
+    @Test
+    public void testPubRelReleasesInflightForRedelivery() {
+        CHANNEL_REPOSITORY.add(publisherChannel, CLIENT_ID);
+        addSubscriber(subscriberChannel, MqttQoS.EXACTLY_ONCE);
+        try {
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, false);
+            captureMessages(subscriberChannel, 1);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+
+            new PubRel().pubRel(publisherContext(), pubRelMessage(RETRANSMIT_PACKET_ID));
+            MqttMessage pubComp = awaitOutbound(publisherChannel);
+            assertEquals(MqttMessageType.PUBCOMP, pubComp.fixedHeader().messageType());
+
+            // the packet id is free again, so the next publish is delivered
+            publishToSubscribers(MqttQoS.EXACTLY_ONCE, RETRANSMIT_PACKET_ID, true);
+            captureMessages(subscriberChannel, 2);
+            assertPubRec(RETRANSMIT_PACKET_ID);
+        } finally {
+            CHANNEL_REPOSITORY.remove(publisherChannel);
+        }
+    }
+
+    private static Stream<Arguments> retainedPayloads() {
+        byte[] text = "hello 中文".getBytes(StandardCharsets.UTF_8);
+        byte[] binary = {0, (byte) 0xff, (byte) 0x80, 0x41};
+        ByteBuf sliced = Unpooled.buffer().writeByte(0x11).writeByte(0x22).writeBytes(binary).writeByte(0x33)
+                .slice(1, binary.length + 2).setIndex(1, binary.length + 1);
+        ByteBuf direct = Unpooled.directBuffer().writeByte(0x11).writeBytes(binary).writeByte(0x22)
+                .setIndex(1, binary.length + 1);
+        return Stream.of(
+                Arguments.of(text, Unpooled.copiedBuffer(text)),
+                Arguments.of(binary, sliced),
+                Arguments.of(binary, direct));
+    }
+
+    private void assertRetainedReplay(final String topic, final byte[] expected) {
+        EmbeddedChannel channel = channel(true);
+        CHANNEL_REPOSITORY.add(channel, CLIENT_ID);
+        try {
+            new Subscribe().subscribe(channel.pipeline().lastContext(), MqttMessageBuilders.subscribe()
+                    .messageId(1).addSubscription(MqttQoS.AT_LEAST_ONCE, topic).build());
+            boolean replayed = false;
+            for (MqttMessage message = channel.readOutbound(); Objects.nonNull(message); message = channel.readOutbound()) {
+                try {
+                    if (message instanceof MqttPublishMessage && message.fixedHeader().isRetain()) {
+                        replayed = true;
+                        assertArrayEquals(expected, ByteBufUtil.getBytes(((MqttPublishMessage) message).payload()));
+                    }
+                } finally {
+                    ReferenceCountUtil.release(message);
+                }
+            }
+            assertEquals(Objects.nonNull(expected), replayed);
+        } finally {
+            SUBSCRIBE_REPOSITORY.remove(channel);
+            CHANNEL_REPOSITORY.remove(channel);
+            channel.finishAndReleaseAll();
+        }
     }
 
     /**
@@ -339,6 +498,24 @@ public final class PublishTest {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, false, 0);
         MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, PUBLISHER_PACKET_ID);
         new Publish().publish(publisherContext(), new MqttPublishMessage(fixedHeader, variableHeader, payload));
+    }
+
+    private void publishToSubscribers(final MqttQoS qos, final int packetId, final boolean dup) {
+        final MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, dup, qos, false, 0);
+        final MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(TOPIC, packetId);
+        new Publish().publish(publisherContext(),
+                new MqttPublishMessage(fixedHeader, variableHeader, Unpooled.copiedBuffer(PAYLOAD, CharsetUtil.UTF_8)));
+    }
+
+    private void assertPubRec(final int packetId) {
+        final MqttMessage pubRec = awaitOutbound(publisherChannel);
+        assertEquals(MqttMessageType.PUBREC, pubRec.fixedHeader().messageType());
+        assertEquals(packetId, ((MqttMessageIdVariableHeader) pubRec.variableHeader()).messageId());
+    }
+
+    private MqttMessage pubRelMessage(final int packetId) {
+        return new MqttMessage(new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_MOST_ONCE, false, 0),
+                MqttMessageIdVariableHeader.from(packetId));
     }
 
     private MqttPublishMessage captureMessage(final Channel channel) {
@@ -395,6 +572,7 @@ public final class PublishTest {
     }
 
     private void clearSharedState() {
+        Singleton.INST.get(SessionRepository.class).remove(CLIENT_ID);
         ALL_TOPICS.forEach(TOPIC_REPOSITORY::remove);
         SUBSCRIBE_REPOSITORY.remove(ALL_TOPICS);
         awaitAssert(() -> ALL_TOPICS.forEach(topic -> assertTrue(SUBSCRIBE_REPOSITORY.get(topic).isEmpty())));

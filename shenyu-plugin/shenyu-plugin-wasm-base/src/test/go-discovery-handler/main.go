@@ -16,7 +16,7 @@
  */
 
 // Go WASM handler for AbstractWasmDiscoveryHandler.
-// Exports handlerDiscoveryUpstreamData — (i64) -> ().
+// Exports update and optional deletion callbacks — (i64) -> ().
 // Compile with: tinygo build -target wasm-unknown -opt=2 -no-debug -panic=trap -o plugin.wasm main.go
 
 package main
@@ -34,6 +34,13 @@ func handlerDiscoveryUpstreamData(argId int64) {
 	input := wasmabi.GetArgs(argId, buf)
 	wasmabi.Eprintln("go side-> GetArgs returned " + strconv.Itoa(len(input)) + ", recv:" + string(input))
 	wasmabi.PutResult(argId, []byte("go result"))
+}
+
+//go:wasmexport removeDiscoveryUpstreamData
+func removeDiscoveryUpstreamData(argId int64) {
+	buf := make([]byte, 1024)
+	input := wasmabi.GetArgs(argId, buf)
+	wasmabi.PutResult(argId, append([]byte("removed:"), input...))
 }
 
 // main is required by TinyGo's WASI target but is never called.

@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 
 /**
  * PluginEnum.
+ *
+ * <p>Logging plugin entries are kept as core compatibility API for AbstractLoggingPlugin,
+ * even when their concrete plugin modules are migrated out of the main tree.</p>
  */
 public enum PluginEnum {
 
@@ -56,6 +59,11 @@ public enum PluginEnum {
      * Monitor plugin enum.
      */
     METRICS(15, 0, "metrics"),
+
+    /**
+     * Tracing plugin enum.
+     */
+    TRACING(0, 0, "tracing"),
     
     /**
      * Sign plugin enum.
@@ -166,19 +174,22 @@ public enum PluginEnum {
      * Logging Rabbitmq plugin enum.
      */
     LOGGING_RABBITMQ(171, 0, "loggingRabbitMQ"),
-    
+
     /**
-     * Logging AliYun sls enums.
+     * Logging Aliyun sls compatibility enum.
+     * The implementation moved to the plugin store, but the name and sort are stable API.
      */
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
-     * Logging Tencent cls enums.
+     * Logging Tencent cls compatibility enum.
+     * The implementation moved to the plugin store, but the name and sort are stable API.
      */
     LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
 
     /**
-     * Logging Huawei lts enums.
+     * Logging Huawei lts compatibility enum.
+     * The implementation moved to the plugin store, but the name and sort are stable API.
      */
     LOGGING_HUAWEI_LTS(177, 0, "loggingHuaweiLts"),
 
@@ -283,9 +294,19 @@ public enum PluginEnum {
     AI_PROXY(199, 0, "aiProxy"),
 
     /**
+     * Agent gateway plugin enum.
+     */
+    AGENT_GATEWAY(198, 0, "agentGateway"),
+
+    /**
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Pii-detection plugin enum.
+     */
+    PII_DETECTION(196, 0, "piiDetection"),
 
     /**
      * Sensitive-word plugin enum.

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.common.constant;
 
+import org.apache.shenyu.common.constant.Constants;
+
 /**
  * generic logging constant.
  */
@@ -33,9 +35,9 @@ public class GenericLoggingConstant {
     public static final String HOST = "Host";
 
     /**
-     * shenyu agent trace id.
+     * shenyu agent trace id, it is filled by the tracing plugin.
      */
-    public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
+    public static final String SHENYU_AGENT_TRACE_ID = Constants.SHENYU_AGENT_TRACE_ID;
 
     /**
      * system default, max threads.

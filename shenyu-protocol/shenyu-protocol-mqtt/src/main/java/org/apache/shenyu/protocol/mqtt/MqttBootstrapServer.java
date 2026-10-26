@@ -54,34 +54,56 @@ public class MqttBootstrapServer implements BootstrapServer {
     }
 
     @Override
-    public void start() {
-        //// todo thread start mqtt server
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.valueOf(ENV.getLeakDetectorLevel().toUpperCase(Locale.ROOT)));
-        bossGroup = new NioEventLoopGroup(ENV.getBossGroupThreadCount());
-        workerGroup = new NioEventLoopGroup(ENV.getWorkerGroupThreadCount());
-        ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new MqttTransportServerInitializer(ENV.getMaxPayloadSize()));
+    public synchronized void start() {
+        if (isRunning()) {
+            return;
+        }
+        shutdown();
+        boolean started = false;
         try {
-            future = bootstrap.bind(ENV.getPort()).sync();
-            //// todo log
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.valueOf(ENV.getLeakDetectorLevel().toUpperCase(Locale.ROOT)));
+            bossGroup = new NioEventLoopGroup(ENV.getBossGroupThreadCount());
+            workerGroup = new NioEventLoopGroup(ENV.getWorkerGroupThreadCount());
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new MqttTransportServerInitializer(ENV.getMaxPayloadSize()));
+            future = bootstrap.bind(ENV.getPort());
+            future.sync();
+            started = true;
         } catch (InterruptedException e) {
-            //// todo log
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while starting MQTT server", e);
+        } finally {
+            if (!started) {
+                shutdown();
+            }
         }
     }
 
     @Override
-    public void shutdown() {
+    public synchronized void shutdown() {
         if (Objects.nonNull(future)) {
             future.channel().close().syncUninterruptibly();
+            future = null;
         }
         if (Objects.nonNull(bossGroup)) {
             bossGroup.shutdownGracefully().syncUninterruptibly();
+            bossGroup = null;
         }
         if (Objects.nonNull(workerGroup)) {
             workerGroup.shutdownGracefully().syncUninterruptibly();
+            workerGroup = null;
         }
+    }
+
+    /**
+     * Whether the MQTT listener is active.
+     *
+     * @return true when the listener is active
+     */
+    public synchronized boolean isRunning() {
+        return Objects.nonNull(future) && future.channel().isActive();
     }
 
     private void initRepositories() throws IllegalAccessException, InstantiationException {

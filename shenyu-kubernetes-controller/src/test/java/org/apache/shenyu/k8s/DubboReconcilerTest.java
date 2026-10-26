@@ -35,14 +35,20 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.any;
@@ -81,6 +87,7 @@ public final class DubboReconcilerTest {
 
     @BeforeEach
     public void init() {
+        IngressCache.getInstance().remove(NAMESPACE, INGRESS_NAME);
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -162,6 +169,42 @@ public final class DubboReconcilerTest {
     }
 
     @Test
+    public void testIngressBeforeEndpointsRecoversOnRetry() {
+        Indexer<V1Endpoints> indexer = endpointsInformer.getIndexer();
+        final V1Endpoints ready = indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME);
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
+        Assertions.assertNull(IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+
+        when(indexer.getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(ready);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(org.mockito.ArgumentMatchers.argThat(selector ->
+                selector.getHandle().contains("127.0.0.1:20888")));
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+        verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @Test
+    public void testUnavailableUpdatePreservesAppliedIngress() {
+        Request request = new Request(NAMESPACE, INGRESS_NAME);
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(request));
+        final V1Ingress applied = IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME);
+        V1Ingress updated = new V1IngressBuilder(applied).build();
+        updated.getMetadata().setResourceVersion("2");
+        when(ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME)).thenReturn(updated);
+        when(endpointsInformer.getIndexer().getByKey(NAMESPACE + "/" + SERVICE_NAME)).thenReturn(null);
+        org.mockito.Mockito.clearInvocations(shenyuCacheRepository);
+
+        Assertions.assertEquals(new Result(true), ingressReconciler.reconcile(request));
+        Assertions.assertSame(applied, IngressCache.getInstance().get(NAMESPACE, INGRESS_NAME));
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).deleteSelectorData(any(), any());
+        org.mockito.Mockito.verify(shenyuCacheRepository, org.mockito.Mockito.never()).saveOrUpdateSelectorData(any());
+    }
+
+    @Test
     public void testParseSkipsContextPathWhenDubboEnabled() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("kubernetes.io/ingress.class", "shenyu");
@@ -191,5 +234,27 @@ public final class DubboReconcilerTest {
 
         IngressParser ingressParser = new IngressParser(serviceInformer, endpointsInformer);
         Assertions.assertEquals(1, ingressParser.parse(ingress, mock(io.kubernetes.client.openapi.apis.CoreV1Api.class)).size());
+    }
+
+    /**
+     * test reconcile with fewer protocols than endpoints.
+     */
+    @Test
+    public void testReconcileWithFewerProtocolsThanEndpoints() {
+        V1Ingress ingress = ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME);
+        Map<String, String> annotations = ingress.getMetadata().getAnnotations();
+        annotations.put("shenyu.apache.org/upstreams-protocol", "dubbo+ssl://");
+        V1Endpoints endpoints = endpointsInformer.getIndexer().getByKey(NAMESPACE + "/" + SERVICE_NAME);
+        endpoints.getSubsets().get(0).setAddresses(java.util.Arrays.asList(
+                new V1EndpointAddress().ip("127.0.0.1"), new V1EndpointAddress().ip("127.0.0.2")));
+        ingressReconciler.reconcile(new Request(NAMESPACE, INGRESS_NAME));
+        ArgumentCaptor<SelectorData> selectorCaptor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
+        List<DubboUpstream> upstreams = GsonUtils.getInstance().fromList(selectorCaptor.getValue().getHandle(), DubboUpstream.class);
+        Assertions.assertEquals(2, upstreams.size());
+        Assertions.assertEquals("127.0.0.1:20888", upstreams.get(0).getUpstreamUrl());
+        Assertions.assertEquals("dubbo+ssl://", upstreams.get(0).getProtocol());
+        Assertions.assertEquals("127.0.0.2:20888", upstreams.get(1).getUpstreamUrl());
+        Assertions.assertEquals("dubbo://", upstreams.get(1).getProtocol());
     }
 }

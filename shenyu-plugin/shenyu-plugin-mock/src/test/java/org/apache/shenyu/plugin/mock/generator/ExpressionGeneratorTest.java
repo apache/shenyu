@@ -190,6 +190,16 @@ public class ExpressionGeneratorTest {
     }
 
     @Test
+    public void testGenerateDataFromUrlEncodedForm() {
+        MockRequest formRequest = MockRequest.Builder.builder()
+                .body("name=shenyu&message=hello+world".getBytes(StandardCharsets.UTF_8))
+                .build();
+
+        assertThat(generator.generate("expression|#req.forms['name']", formRequest), is("\"shenyu\""));
+        assertThat(generator.generate("expression|#req.forms.message", formRequest), is("\"hello world\""));
+    }
+
+    @Test
     public void testGenerateDataFromReqConcurrently() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {

@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
 import org.apache.shenyu.admin.model.query.RegistryQuery;
-import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -78,7 +77,7 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             jdbcTemplate.update("INSERT INTO dashboard_user (id, user_name, role, enabled) VALUES (?, ?, 1, 1)", id, id);
             jdbcTemplate.update("INSERT INTO registry_config (id, registry_id, protocol, address, namespace) VALUES (?, ?, 'http', 'localhost', 'page-test')", id, id);
             jdbcTemplate.update("INSERT INTO instance_info (id, namespace_id, instance_ip, instance_port, instance_type, instance_info, instance_state)"
-                    + " VALUES (?, 'page-test', '127.0.0.1', '9195', 'gateway', ?, 1)", id, id);
+                    + " VALUES (?, 'page-test', '127.0.0.1', ?, 'gateway', '{}', 1)", id, String.valueOf(9195 + index));
             jdbcTemplate.update("INSERT INTO mock_request_record (id, api_id, host, port, url) VALUES (?, 'page-test', 'localhost', 80, '/')", id);
         }
         for (String table : List.of("app_auth", "dashboard_user", "registry_config", "instance_info", "mock_request_record")) {
@@ -139,7 +138,7 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             assertEquals(2, result.getPage().getTotalCount());
             assertEquals(page <= 2 ? 1 : 0, result.getDataList().size());
             for (Object row : result.getDataList()) {
-                Object id = row instanceof InstanceInfoVO ? ((InstanceInfoVO) row).getInstanceInfo() : new BeanWrapperImpl(row).getPropertyValue("id");
+                Object id = new BeanWrapperImpl(row).getPropertyValue("id");
                 assertEquals("page-test-" + (page - 1), id);
                 assertTrue(seen.add(id), "Page boundaries must not repeat rows");
             }

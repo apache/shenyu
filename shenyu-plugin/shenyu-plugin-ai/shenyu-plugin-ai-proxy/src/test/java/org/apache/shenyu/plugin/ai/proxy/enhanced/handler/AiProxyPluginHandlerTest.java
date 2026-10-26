@@ -18,13 +18,20 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.handler;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -115,7 +122,82 @@ class AiProxyPluginHandlerTest {
     }
 
     @Test
-    void testHandlerPluginDoesNothing() {
+    void testNullPluginUpdateIsIgnored() {
         handler.handlerPlugin(null);
+    }
+
+    @Test
+    void testGlobalConfigurationIsReplacedAndCopied() {
+        handler.handlerPlugin(plugin("{\"provider\":\"OpenAI\",\"apiKey\":\"first-key\",\"model\":\"first-model\"}"));
+        AiCommonConfig first = handler.getGlobalConfig();
+        assertEquals("first-model", first.getModel());
+        first.setApiKey("request-key");
+        assertEquals("first-key", handler.getGlobalConfig().getApiKey());
+        handler.handlerPlugin(plugin("{\"model\":\"second-model\"}"));
+        assertEquals("second-model", handler.getGlobalConfig().getModel());
+        assertNull(handler.getGlobalConfig().getApiKey());
+        assertNull(handler.getGlobalConfig().getProvider());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "null", "{}"})
+    void testClearingPluginConfigurationRemovesOldDefaults(final String config) {
+        handler.handlerPlugin(plugin("{\"apiKey\":\"old-key\",\"model\":\"old-model\"}"));
+        handler.handlerPlugin(plugin(config));
+        AiCommonConfig cleared = new AiProxyConfigService(handler).resolvePrimaryConfig(null);
+        assertNull(cleared.getApiKey());
+        assertNull(cleared.getModel());
+    }
+
+    @Test
+    void testDisableReenableAndRemovePlugin() {
+        PluginData data = plugin("{\"model\":\"global-model\"}");
+        handler.handlerPlugin(data);
+        data.setEnabled(false);
+        handler.handlerPlugin(data);
+        assertNull(handler.getGlobalConfig());
+        data.setEnabled(true);
+        handler.handlerPlugin(data);
+        assertEquals("global-model", handler.getGlobalConfig().getModel());
+        handler.removePlugin(data);
+        assertNull(handler.getGlobalConfig());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"not-json", "{", "[]", "{\"maxTokens\":\"invalid\"}"})
+    void testInvalidPluginConfigurationClearsDefaultsAndAllowsRecovery(final String config) {
+        handler.handlerPlugin(plugin("{\"apiKey\":\"old-key\",\"model\":\"old-model\"}"));
+        assertNotNull(handler.getGlobalConfig());
+
+        assertDoesNotThrow(() -> handler.handlerPlugin(plugin(config)));
+
+        assertNull(handler.getGlobalConfig());
+        AiCommonConfig cleared = new AiProxyConfigService(handler).resolvePrimaryConfig(null);
+        assertNull(cleared.getApiKey());
+        assertNull(cleared.getModel());
+
+        handler.handlerPlugin(plugin("{\"apiKey\":\"new-key\",\"model\":\"new-model\"}"));
+        assertEquals("new-key", handler.getGlobalConfig().getApiKey());
+        assertEquals("new-model", handler.getGlobalConfig().getModel());
+    }
+
+    @Test
+    void testHandlerInstancesDoNotShareGlobalConfiguration() {
+        AiProxyPluginHandler other = new AiProxyPluginHandler();
+        handler.handlerPlugin(plugin("{\"model\":\"first-model\"}"));
+        assertNull(other.getGlobalConfig());
+        other.handlerPlugin(plugin("{\"model\":\"second-model\"}"));
+        assertEquals("first-model", handler.getGlobalConfig().getModel());
+        assertEquals("second-model", other.getGlobalConfig().getModel());
+        handler.removePlugin(null);
+        assertEquals("second-model", other.getGlobalConfig().getModel());
+    }
+
+    private PluginData plugin(final String config) {
+        PluginData data = new PluginData();
+        data.setName(PluginEnum.AI_PROXY.getName());
+        data.setConfig(config);
+        return data;
     }
 }

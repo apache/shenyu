@@ -18,9 +18,10 @@
 
 set -euo pipefail
 
-# init kubernetes for h2
+# Initialize each storage Compose deployment.
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 curPath=$(readlink -f "$(dirname "$0")")
+HEALTHCHECK_SCRIPT="${curPath}/../../k8s/script/healthcheck.sh"
 PRGDIR=$(dirname "$curPath")
 
 docker network create -d bridge shenyu || true
@@ -49,6 +50,7 @@ for storage in "${STORAGE_ARRAY[@]}"; do
     dump_logs
     exit 1
   fi
+  bash "$HEALTHCHECK_SCRIPT" "${storage}" http://localhost:31095/actuator/health http://localhost:31195/actuator/health
   ## run e2e-test
   if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-storage -am test; then
     dump_logs

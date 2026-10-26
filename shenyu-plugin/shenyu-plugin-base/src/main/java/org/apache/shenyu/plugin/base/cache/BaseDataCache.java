@@ -18,16 +18,22 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -133,12 +139,21 @@ public final class BaseDataCache {
      */
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
-            selectorMap.computeIfPresent(data.getPluginName(), (key, value) -> {
-                final List<SelectorData> result = value.stream()
-                        .filter(selector -> !Objects.equals(selector.getId(), data.getId()))
-                        .collect(Collectors.toList());
-                return result.isEmpty() ? null : List.copyOf(result);
-            });
+            if (StringUtils.isBlank(data.getPluginName())) {
+                // a dangling selector carries no plugin name, so its entry may live under any plugin bucket
+                selectorMap.keySet().forEach(pluginName -> removeSelectData(pluginName, data.getId()));
+            } else {
+                removeSelectData(data.getPluginName(), data.getId());
+            }
+        });
+    }
+
+    private void removeSelectData(final String pluginName, final String selectorId) {
+        selectorMap.computeIfPresent(pluginName, (key, value) -> {
+            final List<SelectorData> result = value.stream()
+                    .filter(selector -> !Objects.equals(selector.getId(), selectorId))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
         });
     }
     
@@ -165,6 +180,44 @@ public final class BaseDataCache {
      */
     public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
+    }
+
+    /**
+     * Remove a batch of selectors with a single merge per affected plugin bucket.
+     * Selectors without a plugin name are matched against every bucket, mirroring
+     * {@link #removeSelectData(SelectorData)}.
+     *
+     * @param selectorDataList the selectors to remove
+     */
+    void removeSelectDataBatch(final List<SelectorData> selectorDataList) {
+        if (selectorDataList.isEmpty()) {
+            return;
+        }
+        final Map<String, Set<String>> idsByPlugin = new HashMap<>();
+        final Set<String> danglingIds = new HashSet<>();
+        for (SelectorData data : selectorDataList) {
+            if (Objects.isNull(data) || Objects.isNull(data.getId())) {
+                continue;
+            }
+            if (StringUtils.isBlank(data.getPluginName())) {
+                danglingIds.add(data.getId());
+            } else {
+                idsByPlugin.computeIfAbsent(data.getPluginName(), key -> new HashSet<>()).add(data.getId());
+            }
+        }
+        if (!danglingIds.isEmpty()) {
+            selectorMap.keySet().forEach(pluginName -> removeSelectDataByIds(pluginName, danglingIds));
+        }
+        idsByPlugin.forEach(this::removeSelectDataByIds);
+    }
+
+    private void removeSelectDataByIds(final String pluginName, final Set<String> selectorIds) {
+        selectorMap.computeIfPresent(pluginName, (key, value) -> {
+            final List<SelectorData> result = value.stream()
+                    .filter(selector -> !selectorIds.contains(selector.getId()))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
+        });
     }
     
     /**
@@ -226,6 +279,30 @@ public final class BaseDataCache {
     public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
     }
+
+    /**
+     * Remove a batch of rules with a single merge per affected selector bucket.
+     *
+     * @param ruleDataList the rules to remove
+     */
+    void removeRuleDataBatch(final List<RuleData> ruleDataList) {
+        if (ruleDataList.isEmpty()) {
+            return;
+        }
+        final Map<String, Set<String>> idsBySelector = new HashMap<>();
+        for (RuleData data : ruleDataList) {
+            if (Objects.isNull(data) || Objects.isNull(data.getId()) || Objects.isNull(data.getSelectorId())) {
+                continue;
+            }
+            idsBySelector.computeIfAbsent(data.getSelectorId(), key -> new HashSet<>()).add(data.getId());
+        }
+        idsBySelector.forEach((selectorId, ruleIds) -> ruleMap.computeIfPresent(selectorId, (key, value) -> {
+            final List<RuleData> result = value.stream()
+                    .filter(rule -> !ruleIds.contains(rule.getId()))
+                    .collect(Collectors.toList());
+            return result.isEmpty() ? null : List.copyOf(result);
+        }));
+    }
     
     /**
      * Obtain rule data list list.
@@ -271,18 +348,8 @@ public final class BaseDataCache {
      * @param data the rule data
      */
     private void ruleAccept(final RuleData data) {
-        ruleAccept(ruleMap, data);
-    }
-
-    private void ruleAccept(final ConcurrentMap<String, List<RuleData>> target, final RuleData data) {
-        String selectorId = data.getSelectorId();
-        target.compute(selectorId, (key, value) -> {
-            final List<RuleData> result = Objects.isNull(value) ? new ArrayList<>() : new ArrayList<>(value);
-            result.removeIf(rule -> Objects.equals(rule.getId(), data.getId()));
-            result.add(data);
-            result.sort(Comparator.comparing(RuleData::getSort));
-            return List.copyOf(result);
-        });
+        ruleMap.compute(data.getSelectorId(), (key, value) ->
+                upsertSorted(value, List.of(data), RuleData::getId, RuleData::getSort));
     }
 
     /**
@@ -291,18 +358,31 @@ public final class BaseDataCache {
      * @param data the selector data
      */
     private void selectorAccept(final SelectorData data) {
-        selectorAccept(selectorMap, data);
+        selectorMap.compute(data.getPluginName(), (key, value) ->
+                upsertSorted(value, List.of(data), SelectorData::getId, SelectorData::getSort));
     }
 
-    private void selectorAccept(final ConcurrentMap<String, List<SelectorData>> target, final SelectorData data) {
-        String key = data.getPluginName();
-        target.compute(key, (pluginName, value) -> {
-            final List<SelectorData> result = Objects.isNull(value) ? new ArrayList<>() : new ArrayList<>(value);
-            result.removeIf(selector -> Objects.equals(selector.getId(), data.getId()));
-            result.add(data);
-            result.sort(Comparator.comparing(SelectorData::getSort));
-            return List.copyOf(result);
-        });
+    /**
+     * Merge the batch into the current list as an upsert (same-id entries are replaced)
+     * and return a new immutable snapshot sorted by the sort key. The list is sorted once
+     * per merge, so a batch refresh of arbitrary size costs a single sort per key instead
+     * of one sort per element.
+     *
+     * @param current the currently cached list, may be {@code null}
+     * @param batch the incoming entries, must not contain {@code null} elements
+     * @param idOf the id extractor used to replace entries
+     * @param sortOf the sort key extractor
+     * @param <T> the entry type
+     * @return a new immutable list sorted by the sort key
+     */
+    private <T> List<T> upsertSorted(final List<T> current, final List<T> batch,
+                                     final Function<T, String> idOf, final Function<T, Integer> sortOf) {
+        final List<T> result = Objects.isNull(current) ? new ArrayList<>() : new ArrayList<>(current);
+        final Set<String> replacedIds = batch.stream().map(idOf).collect(Collectors.toSet());
+        result.removeIf(item -> replacedIds.contains(idOf.apply(item)));
+        result.addAll(batch);
+        result.sort(Comparator.comparing(sortOf));
+        return List.copyOf(result);
     }
 
     /**
@@ -324,6 +404,7 @@ public final class BaseDataCache {
     /**
      * Merge a batch without exposing partially refreshed data to readers.
      * Missing entries are retained because refresh messages may cover only one plugin.
+     * The batch is grouped per plugin, so each plugin's list is merged and sorted once.
      *
      * @param dataList the received data
      */
@@ -333,13 +414,18 @@ public final class BaseDataCache {
         }
         ConcurrentMap<String, List<SelectorData>> next = Maps.newConcurrentMap();
         next.putAll(selectorMap);
-        dataList.forEach(data -> selectorAccept(next, data));
+        Map<String, List<SelectorData>> grouped = dataList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(SelectorData::getPluginName));
+        grouped.forEach((pluginName, batch) -> next.compute(pluginName, (key, value) ->
+                upsertSorted(value, batch, SelectorData::getId, SelectorData::getSort)));
         selectorMap = next;
     }
 
     /**
      * Merge a batch without exposing partially refreshed data to readers.
-     * Missing entries are retained because refresh messages may cover only one plugin.
+     * Missing entries are retained because refresh messages may cover only one selector.
+     * The batch is grouped per selector, so each selector's list is merged and sorted once.
      *
      * @param dataList the received data
      */
@@ -349,7 +435,11 @@ public final class BaseDataCache {
         }
         ConcurrentMap<String, List<RuleData>> next = Maps.newConcurrentMap();
         next.putAll(ruleMap);
-        dataList.forEach(data -> ruleAccept(next, data));
+        Map<String, List<RuleData>> grouped = dataList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(RuleData::getSelectorId));
+        grouped.forEach((selectorId, batch) -> next.compute(selectorId, (key, value) ->
+                upsertSorted(value, batch, RuleData::getId, RuleData::getSort)));
         ruleMap = next;
     }
 }

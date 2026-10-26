@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -35,6 +36,7 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -48,6 +50,7 @@ import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.transfer.AppAuthTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
@@ -86,14 +89,18 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private final AuthPathMapper authPathMapper;
 
+    private final AppAuthRequestMapper appAuthRequestMapper;
+
     public AppAuthServiceImpl(final AppAuthMapper appAuthMapper,
                               final ApplicationEventPublisher eventPublisher,
                               final AuthParamMapper authParamMapper,
-                              final AuthPathMapper authPathMapper) {
+                              final AuthPathMapper authPathMapper,
+                              final AppAuthRequestMapper appAuthRequestMapper) {
         this.appAuthMapper = appAuthMapper;
         this.eventPublisher = eventPublisher;
         this.authParamMapper = authParamMapper;
         this.authPathMapper = authPathMapper;
+        this.appAuthRequestMapper = appAuthRequestMapper;
     }
 
     @Override
@@ -279,6 +286,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult syncDataByNamespaceId(final String namespaceId) {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAllByNamespaceId(namespaceId);
+        if (CollectionUtils.isEmpty(appAuthDOList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
+                    DataEventTypeEnum.REFRESH, Collections.emptyList(), namespaceId));
+            return ShenyuAdminResult.success();
+        }
         return syncData(appAuthDOList);
     }
 
@@ -377,6 +389,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             appAuthDO.setNamespaceId(namespace);
             int inserted = appAuthMapper.insertSelective(appAuthDO);
             if (inserted > 0) {
+                existAppKeySet.add(appKey);
                 successCount++;
                 // auth path
                 List<AuthPathDTO> authPathDTOList = appAuth.getAuthPathList();
@@ -425,8 +438,12 @@ public class AppAuthServiceImpl implements AppAuthService {
             appAuthCount = appAuthMapper.updateSelective(appAuthDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
+        if (appAuthCount == 0) {
+            return 0;
+        }
         // publish AppAuthData's event
         AppAuthData data = AppAuthData.builder()
+                .namespaceId(appAuthDO.getNamespaceId())
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
@@ -445,6 +462,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
+        // Lifecycle linkage: lock all associated idempotency keys first in a stable order (selectKeysByAuthIds
+        // is ordered by caller/namespace/request to avoid reverse locking); mark REVOKED in the same transaction
+        List<AppAuthRequestDO> lifecycleRecords = appAuthRequestMapper.selectKeysByAuthIds(ids);
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            appAuthRequestMapper.selectByKeyForUpdate(record.getCallerKey(), record.getNamespaceId(), record.getRequestId());
+        }
+        // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            if (!"REVOKED".equals(record.getState())) {
+                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete");
+            }
+        }
         List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(appAuthList)) {
             return 0;
@@ -456,16 +485,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
 
-        List<AppAuthData> appAuthData = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+        Map<String, List<AppAuthData>> namespaceDataList = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+                .namespaceId(StringUtils.defaultString(appAuthDO.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID))
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
                 .paramDataList(null)
                 .pathDataList(null)
-                .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
-        // publish delete event of AppAuthData
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, appAuthData));
+                .build()).collect(Collectors.groupingBy(AppAuthData::getNamespaceId));
+        // publish a separate delete event for each namespace
+        namespaceDataList.forEach((namespaceId, dataList) -> eventPublisher.publishEvent(
+                new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, dataList, namespaceId)));
 
         return affectCount;
     }

@@ -17,14 +17,17 @@
 
 package org.apache.shenyu.plugin.global.cache;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For MetaDataCache.
@@ -44,6 +47,12 @@ public final class MetaDataCacheTest {
         metaDataCache = MetaDataCache.getInstance();
     }
 
+    @AfterEach
+    public void tearDown() {
+        metaDataCache.getMetaDataMap().clear();
+        metaDataCache.getMetaDataCache().clear();
+    }
+
     @Test
     public void getInstance() {
         assertNotNull(metaDataCache);
@@ -56,5 +65,25 @@ public final class MetaDataCacheTest {
         assertEquals("/home", metaDataCache.obtain("/home").getPath());
         metaDataCache.remove(this.metaData);
         assertNull(metaDataCache.obtain("/home"));
+    }
+
+    @Test
+    public void testMetadataPathCacheIsBounded() {
+        for (int i = 0; i < Constants.CACHE_MAX_COUNT * 2; i++) {
+            metaDataCache.initCache("/path/" + i, metaData, metaData.getPath());
+        }
+
+        assertTrue(metaDataCache.getMetaDataCache().size() <= Constants.CACHE_MAX_COUNT);
+    }
+
+    @Test
+    public void testRemoveCleansWildcardPathEntries() {
+        MetaData wildcard = MetaData.builder().id("wildcard").path("/home/**").enabled(true).build();
+        metaDataCache.cache(wildcard);
+        assertNotNull(metaDataCache.obtain("/home/user/1"));
+
+        metaDataCache.remove(wildcard);
+
+        assertNull(metaDataCache.getMetaDataCache().get("/home/user/1"));
     }
 }

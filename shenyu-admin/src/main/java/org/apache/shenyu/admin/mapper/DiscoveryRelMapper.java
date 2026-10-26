@@ -45,6 +45,22 @@ public interface DiscoveryRelMapper {
     List<DiscoveryRelDO> selectAll();
 
     /**
+     * Select rows for a bounded batch of discovery handlers.
+     *
+     * @param handlerIds handler ids
+     * @return matching rows
+     */
+    List<DiscoveryRelDO> selectByDiscoveryHandlerIds(@Param("handlerIds") List<String> handlerIds);
+
+    /**
+     * Select related rows for one page in a single query.
+     *
+     * @param ids identifiers to match
+     * @return matching rows
+     */
+    List<DiscoveryRelDO> selectByProxySelectorIds(@Param("ids") List<String> ids);
+
+    /**
      * select discoveryRel by proxy selector id.
      *
      * @param proxySelectorId proxy selector id.

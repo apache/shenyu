@@ -55,14 +55,6 @@
         limit 1
     </select>
 
-    <select id="findByQuery" resultMap="BaseResultMap">
-        SELECT
-            <include refid="Base_Column_List"/>
-          FROM dashboard_user
-         WHERE user_name = #{userName, jdbcType=VARCHAR}
-           AND password = #{password, jdbcType=VARCHAR}
-    </select>
-
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
             resultMap="BaseResultMap">
         SELECT
@@ -84,10 +76,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM dashboard_user
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM dashboard_user
+         WHERE id = #{id}
+         AND ROWNUM = 1
     </select>
 
     <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.DashboardUserDO">

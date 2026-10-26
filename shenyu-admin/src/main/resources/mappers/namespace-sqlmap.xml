@@ -37,10 +37,17 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
         FROM namespace
 
         WHERE namespace_id = #{namespaceId} limit 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM namespace
+
+        WHERE namespace_id = #{namespaceId} AND ROWNUM = 1
     </select>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
