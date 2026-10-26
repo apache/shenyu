@@ -48,11 +48,13 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.ai.prompt.AiPromptPlugin;
 import org.apache.shenyu.plugin.ai.prompt.handler.AiPromptPluginDataHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
@@ -289,7 +291,8 @@ class AgentGovernanceHttpTest {
             when(values.increment(anyString(), anyLong())).thenReturn(Mono.just(2L));
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(limiter.named(), redis);
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                    new AiProxyProviderFactory(List.of(new OpenAi())), new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+                    new AiProxyProviderFactory(List.of(new OpenAi())), new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
+                    new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
             AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();

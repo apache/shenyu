@@ -103,18 +103,16 @@ public class AgentGatewayPluginConfiguration {
                 aiObservers.getIfAvailable(), environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
-                                      final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
-                                      final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
-                                      final boolean llmIdentityEnabled) {
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
+                                     final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer, final AgentMcpTerminalObserver terminalObserver,
+                                     final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
-        if (llmIdentityEnabled && resolvers.isEmpty()) {
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
+        if (llmIdentityEnabled && candidates.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
-                AgentGatewayConstants.MCP_SERVER_VERSION, catalog), resolver, tracer, terminalObserver),
-                llmIdentityEnabled ? resolver : null, aiObserver);
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog),
+                resolver, tracer, terminalObserver), llmIdentityEnabled ? resolver : null, aiObserver);
     }
 
     /**
@@ -278,23 +276,13 @@ public class AgentGatewayPluginConfiguration {
 
         /**
          * Use the explicitly supplied application telemetry, never a second SDK or global singleton.
-         * @param telemetry optional application-owned telemetry (takes precedence)
-         * @param gatewayTracer optional tracer owned by the ShenYu tracing starter
+         * @param telemetry application-owned telemetry
          * @return request-local tracing bridge
          */
         @Bean
         @ConditionalOnMissingBean(AgentMcpCallTracer.class)
-        AgentMcpCallTracer agentGatewayCallTracer(final ObjectProvider<OpenTelemetry> telemetry,
-                                                @org.springframework.beans.factory.annotation.Qualifier("tracingTracer") final ObjectProvider<io.opentelemetry.api.trace.Tracer> gatewayTracer) {
-            OpenTelemetry application = telemetry.getIfAvailable();
-            if (java.util.Objects.nonNull(application)) {
-                return new OpenTelemetryAgentMcpCallTracer(application);
-            }
-            io.opentelemetry.api.trace.Tracer shared = gatewayTracer.getIfAvailable();
-            if (java.util.Objects.isNull(shared)) {
-                throw new IllegalStateException("Enabled MCP tracing requires application OpenTelemetry, tracingTracer, or a custom AgentMcpCallTracer");
-            }
-            return new OpenTelemetryAgentMcpCallTracer(shared);
+        AgentMcpCallTracer agentGatewayCallTracer(final OpenTelemetry telemetry) {
+            return new OpenTelemetryAgentMcpCallTracer(telemetry);
         }
     }
 }

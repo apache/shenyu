@@ -49,8 +49,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
@@ -59,11 +62,13 @@ import reactor.test.StepVerifier;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -73,6 +78,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -183,6 +191,37 @@ public final class DividePluginTest {
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 
+
+    /**
+     * requestMaxSize must also be enforced for chunked / unknown-length bodies.
+     */
+    @Test
+    public void doExecuteRejectsChunkedBodyExceedingRequestMaxSize() {
+        final DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setRequestMaxSize(1);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
+        dividePluginDataHandler.handlerRule(ruleData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        final MockServerWebExchange chunked = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("Transfer-Encoding", "chunked")
+                .body("ab"));
+        chunked.getAttributes().put(Constants.CONTEXT, exchange.getAttribute(Constants.CONTEXT));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().then();
+        });
+
+        Mono<Void> result = dividePlugin.doExecute(chunked, chain, selectorData, ruleData);
+        StepVerifier.create(result)
+                .expectSubscription()
+                .verifyErrorSatisfies(error -> {
+                    assertInstanceOf(ResponseStatusException.class, error);
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ((ResponseStatusException) error).getStatusCode());
+                });
+    }
+
     @Test
     public void testRetryBackOffSpecAttributeSet() {
         DivideRuleHandle handle = new DivideRuleHandle();
@@ -283,6 +322,43 @@ public final class DividePluginTest {
     }
 
     @Test
+    public void leastActiveInflightShouldBeReservedAndReleased() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("leastActive");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(1, upstream.getInflight().get());
+        }
+    }
+
+    @Test
+    public void leastActiveInflightShouldBeReleasedOnCancellation() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("leastActive");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        upstream.getInflight().set(2);
+        when(chain.execute(exchange)).thenReturn(Mono.never());
+
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+            Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+            assertEquals(3, upstream.getInflight().get());
+
+            subscription.dispose();
+
+            assertEquals(2, upstream.getInflight().get());
+        }
+    }
+
+    @Test
     public void successResponseTriggerTest() throws Exception {
         dividePlugin = DividePlugin.class.newInstance();
         Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class, long.class);
@@ -292,6 +368,130 @@ public final class DividePluginTest {
                 .build();
         method.invoke(dividePlugin, upstream, 0L);
         assertEquals(1, upstream.getSucceeded().get());
+    }
+
+    @Test
+    public void testCalculateHeaderSizeWithEmptyHeaders() {
+        assertEquals(0L, dividePlugin.calculateHeaderSize(new HttpHeaders()));
+        assertEquals(0L, dividePlugin.calculateHeaderSize(null));
+    }
+
+    @Test
+    public void testCalculateHeaderSizeWithEmptyValuedLongHeaderName() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Host", "127.0.0.1");
+        String longHeaderName = "X-" + "N".repeat(200);
+        headers.add(longHeaderName, "");
+        // "Host: 127.0.0.1\r\n" -> 4 + 2 + 9 + 2 = 17 bytes
+        // "X-NNN...: \r\n" -> 202 + 2 + 0 + 2 = 206 bytes
+        // terminating CRLF: 2 bytes
+        // total = 17 + 206 + 2 = 225 bytes
+        assertEquals(225L, dividePlugin.calculateHeaderSize(headers));
+    }
+
+    @Test
+    public void testCalculateHeaderSizeWithSeveralLongNamesShortValues() {
+        HttpHeaders headers = new HttpHeaders();
+        String headerName1 = "X-" + "A".repeat(50);
+        String headerName2 = "X-" + "B".repeat(50);
+        headers.add(headerName1, "1");
+        headers.add(headerName2, "2");
+        // line 1: 52 + 2 + 1 + 2 = 57 bytes
+        // line 2: 52 + 2 + 1 + 2 = 57 bytes
+        // terminating CRLF: 2 bytes
+        // total = 57 + 57 + 2 = 116 bytes
+        assertEquals(116L, dividePlugin.calculateHeaderSize(headers));
+    }
+
+    @Test
+    public void testCalculateHeaderSizeWithMultiValuedHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", "text/html");
+        headers.add("Accept", "application/json");
+        // line 1: 6 ("Accept") + 2 (": ") + 9 ("text/html") + 2 ("\r\n") = 19 bytes
+        // line 2: 6 ("Accept") + 2 (": ") + 16 ("application/json") + 2 ("\r\n") = 26 bytes
+        // terminating CRLF: 2 bytes
+        // total = 19 + 26 + 2 = 47 bytes
+        assertEquals(47L, dividePlugin.calculateHeaderSize(headers));
+    }
+
+    @Test
+    public void testCalculateHeaderSizeWithEmptyValuesListAndNullValue() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-Empty", Collections.emptyList());
+        headers.put("X-Null", Collections.singletonList(null));
+        // line 1: 7 ("X-Empty") + 2 (": ") + 0 + 2 ("\r\n") = 11 bytes
+        // line 2: 6 ("X-Null") + 2 (": ") + 0 + 2 ("\r\n") = 10 bytes
+        // terminating CRLF: 2 bytes
+        // total = 11 + 10 + 2 = 23 bytes
+        assertEquals(23L, dividePlugin.calculateHeaderSize(headers));
+    }
+
+    @Test
+    public void testDoExecuteHeaderMaxSizeRejectsLongHeaderNameWithEmptyValue() {
+        DivideRuleHandle divideRuleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        divideRuleHandle.setHeaderMaxSize(128);
+
+        ShenyuContext context = mock(ShenyuContext.class);
+        context.setRpcType(RpcTypeEnum.HTTP.getName());
+
+        String longHeaderName = "X-" + "N".repeat(200);
+        ServerWebExchange customExchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header("Host", "127.0.0.1")
+                .header(longHeaderName, "")
+                .build());
+        customExchange.getAttributes().put(Constants.CONTEXT, context);
+
+        ShenyuPluginChain testChain = mock(ShenyuPluginChain.class);
+        when(testChain.execute(customExchange)).thenReturn(Mono.empty());
+
+        Mono<Void> result = dividePlugin.doExecute(customExchange, testChain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+
+        // Total header bytes = 225 > 128, must be rejected and not forwarded to chain
+        verify(testChain, never()).execute(customExchange);
+    }
+
+    @Test
+    public void testDoExecuteHeaderMaxSizeBoundaries() {
+        DivideRuleHandle divideRuleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+
+        ShenyuContext context = mock(ShenyuContext.class);
+        context.setRpcType(RpcTypeEnum.HTTP.getName());
+
+        // Header: "Host: 127.0.0.1" -> 4 + 2 + 9 + 2 = 17 bytes + 2 terminating CRLF = 19 bytes
+        ServerWebExchange boundaryExchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .header("Host", "127.0.0.1")
+                .build());
+        boundaryExchange.getAttributes().put(Constants.CONTEXT, context);
+
+        // Case 1: Over-limit (18 bytes < 19 bytes) -> rejected
+        divideRuleHandle.setHeaderMaxSize(18);
+        ShenyuPluginChain chainOver = mock(ShenyuPluginChain.class);
+        when(chainOver.execute(boundaryExchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(boundaryExchange, chainOver, selectorData, ruleData))
+                .expectSubscription().verifyComplete();
+        verify(chainOver, never()).execute(boundaryExchange);
+
+        // Case 2: Exact-limit (19 bytes == 19 bytes) -> allowed
+        divideRuleHandle.setHeaderMaxSize(19);
+        ShenyuPluginChain chainExact = mock(ShenyuPluginChain.class);
+        when(chainExact.execute(boundaryExchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(boundaryExchange, chainExact, selectorData, ruleData))
+                .expectSubscription().verifyComplete();
+        verify(chainExact, times(1)).execute(boundaryExchange);
+
+        // Case 3: Under-limit (20 bytes > 19 bytes) -> allowed
+        divideRuleHandle.setHeaderMaxSize(20);
+        ShenyuPluginChain chainUnder = mock(ShenyuPluginChain.class);
+        when(chainUnder.execute(boundaryExchange)).thenReturn(Mono.empty());
+        StepVerifier.create(dividePlugin.doExecute(boundaryExchange, chainUnder, selectorData, ruleData))
+                .expectSubscription().verifyComplete();
+        verify(chainUnder, times(1)).execute(boundaryExchange);
     }
 
     /**

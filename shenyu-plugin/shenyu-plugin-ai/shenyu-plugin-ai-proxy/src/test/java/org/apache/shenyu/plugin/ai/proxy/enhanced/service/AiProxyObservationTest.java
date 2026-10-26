@@ -55,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 
 class AiProxyObservationTest {
 
@@ -66,6 +67,7 @@ class AiProxyObservationTest {
         final AtomicInteger calls = new AtomicInteger();
         final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
+                protocolRouteResolver(),
                 request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))),
                 new AiProxyRetryProperties(1, 0, Duration.ZERO), sink);
         engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")), result -> result.getBody().then()).block();
@@ -223,6 +225,7 @@ class AiProxyObservationTest {
         final Sink sink = new Sink();
         StepVerifier.withVirtualTime(() -> {
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
+                    protocolRouteResolver(),
                     request -> Mono.just(response(503, Flux.just(bytes("{}")))), Duration.ofSeconds(30), sink);
             return engine.execute(BODY, config(false, "main"), Optional.empty(), result -> result.getBody().then());
         }).then(() -> assertEquals(1, sink.attempts.size())).thenCancel().verify();
@@ -252,7 +255,7 @@ class AiProxyObservationTest {
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiCallObserver observer) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(new OpenAi())), transport, Duration.ZERO, observer);
+                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport, Duration.ZERO, observer);
     }
 
     private AiCommonConfig config(final boolean streaming, final String model) {

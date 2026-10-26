@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
@@ -26,6 +27,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,8 +120,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                            final Set<URI> exclude) {
         final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
         final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
-        //always query the latest available list
-        final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        // Refresh health/topology without losing the request's resolved label partition.
+        final UpstreamRoutingContext routing = exchange.getAttribute(UpstreamRoutingContext.ATTRIBUTE);
+        final List<Upstream> availableUpstreamList = Objects.isNull(routing)
+                ? UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+                : routing.filter(selectorId, UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selectorId));
         if (Objects.isNull(availableUpstreamList)) {
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
@@ -150,10 +155,16 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         // in order not to affect the next retry call, newUri needs to be excluded
         exclude.add(newUri);
         final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-        return UpstreamCircuitBreaker.recordOutcome(httpClientPlugin
+        Mono<R> resend = httpClientPlugin
                 .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                .doOnError(e -> LOG.error(e.getMessage(), e)), breakerKey);
+                .doOnError(e -> LOG.error(e.getMessage(), e));
+        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            // Least active compares outstanding requests, so this attempt stays reserved until it terminates.
+            upstream.getInflight().incrementAndGet();
+            resend = resend.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        }
+        return UpstreamCircuitBreaker.recordOutcome(resend, breakerKey);
     }
 
     private boolean isSameUpstream(final URI first, final URI second) {

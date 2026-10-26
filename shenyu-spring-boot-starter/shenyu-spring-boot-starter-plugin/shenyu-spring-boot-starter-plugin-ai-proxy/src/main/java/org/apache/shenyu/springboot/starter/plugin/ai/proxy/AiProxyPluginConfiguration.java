@@ -20,9 +20,13 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 import io.netty.channel.ChannelOption;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
@@ -110,6 +114,7 @@ public class AiProxyPluginConfiguration {
      *
      * @param aiProxyProtocolFactory protocol factory
      * @param aiProxyProviderFactory provider factory
+     * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
      * @param observers optional application terminal sink
      * @param retryProperties        retry properties
@@ -117,9 +122,10 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
-                                       final AiProxyProviderFactory aiProxyProviderFactory, final AiProxyTransport aiProxyTransport,
+                                       final AiProxyProviderFactory aiProxyProviderFactory,
+                                       final AiProtocolRouteResolver aiProtocolRouteResolver, final AiProxyTransport aiProxyTransport,
                                        final ObjectProvider<AiCallObserver> observers, final AiProxyRetryProperties retryProperties) {
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport, retryProperties, observer(observers));
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProtocolRouteResolver, aiProxyTransport, retryProperties, observer(observers));
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
@@ -128,6 +134,41 @@ public class AiProxyPluginConfiguration {
             throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
         }
         return candidates.isEmpty() ? null : candidates.get(0);
+    }
+
+    /**
+     * Responses-to-Chat protocol converter.
+     *
+     * @return the Responses-to-Chat protocol converter
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ConnectResponsesToChatConverter connectResponsesToChatConverter() {
+        return new ConnectResponsesToChatConverter();
+    }
+
+    /**
+     * AI protocol converter factory.
+     *
+     * @param converters protocol converters
+     * @return the AI protocol converter factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AiProtocolConverterFactory aiProtocolConverterFactory(final List<AiProtocolConverter> converters) {
+        return new AiProtocolConverterFactory(converters);
+    }
+
+    /**
+     * AI protocol route resolver.
+     *
+     * @param converterFactory protocol converter factory
+     * @return the AI protocol route resolver
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AiProtocolRouteResolver aiProtocolRouteResolver(final AiProtocolConverterFactory converterFactory) {
+        return new AiProtocolRouteResolver(converterFactory);
     }
 
     /**
