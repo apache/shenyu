@@ -100,7 +100,7 @@ public final class OpenAiChat implements AiProxyProtocol {
             }
             payload.remove(FIELD_MAX_TOKENS);
             payload.remove(FIELD_MAX_COMPLETION_TOKENS);
-            payload.put(FIELD_MAX_COMPLETION_TOKENS, overrides.maxTokens());
+            payload.put(FIELD_MAX_TOKENS, overrides.maxTokens());
         }
         if (Objects.nonNull(overrides.stream()) && !payload.has(FIELD_STREAM)) {
             payload.put(FIELD_STREAM, overrides.stream());

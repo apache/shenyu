@@ -81,8 +81,8 @@ class OpenAiChatTest {
                 new AiProtocolRequestOverrides(0.2, 32, true));
 
         assertEquals(0.2, prepared.path("temperature").asDouble());
-        assertEquals(32, prepared.path("max_completion_tokens").asInt());
-        assertFalse(prepared.has("max_tokens"));
+        assertEquals(32, prepared.path("max_tokens").asInt());
+        assertFalse(prepared.has("max_completion_tokens"));
         assertTrue(prepared.path("stream").asBoolean());
         assertTrue(prepared.path("stream_options").path("include_usage").asBoolean());
     }

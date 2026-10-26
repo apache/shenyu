@@ -72,7 +72,15 @@ class AiProxyPluginConfigurationTest {
             org.junit.jupiter.api.Assertions.assertTrue(context.getBean(AiProtocolConverterFactory.class)
                     .supports(OpenAiResponses.NAME, OpenAiChat.NAME));
             assertSame(context.getBean(OpenAiResponses.class), context.getBean(AiProxyProtocolFactory.class).getProtocol(OpenAiResponses.NAME));
-            for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
+            AiProxyProvider openAi = factory.getProvider("OpenAI");
+            assertEquals("openai", openAi.name());
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiResponses.NAME));
+            AiProxyProvider deepSeek = factory.getProvider("DeepSeek");
+            assertEquals("deepseek", deepSeek.name().toLowerCase(java.util.Locale.ROOT));
+            org.junit.jupiter.api.Assertions.assertTrue(deepSeek.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertFalse(deepSeek.supports(OpenAiResponses.NAME));
+            for (String provider : List.of("ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
                 assertEquals(provider.toLowerCase(java.util.Locale.ROOT), factory.getProvider(provider).name().toLowerCase(java.util.Locale.ROOT));
                 org.junit.jupiter.api.Assertions.assertTrue(factory.getProvider(provider).supports(OpenAiChat.NAME));
                 org.junit.jupiter.api.Assertions.assertFalse(factory.getProvider(provider).supports(OpenAiResponses.NAME));

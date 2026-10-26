@@ -139,7 +139,7 @@ public record OpenAiProviderOptions(Authentication authentication, String creden
         AiProviderCapabilities all = AiProviderCapabilities.chat();
         return new OpenAiProviderOptions("/chat/completions", Authentication.HEADER, "Authorization", "Bearer ",
                 Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(),
-                new AiProviderCapabilities(all.protocolBindings(), all.operations(), features), ProviderProfile.deepSeekChat(), "");
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), features), ProviderProfile.deepSeekChat(), "max_tokens");
     }
 
     /**

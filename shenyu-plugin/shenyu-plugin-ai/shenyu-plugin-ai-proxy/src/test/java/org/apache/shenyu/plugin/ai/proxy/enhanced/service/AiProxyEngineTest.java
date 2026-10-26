@@ -39,6 +39,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderRequestRewr
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.BeforeEach;
@@ -165,6 +167,41 @@ class AiProxyEngineTest {
         assertFalse(payload.has("messages"));
         assertFalse(payload.has("max_completion_tokens"));
         assertFalse(payload.has("stream_options"));
+    }
+
+    @Test
+    void testDeepSeekUsesNativeChatRoute() throws Exception {
+        useDeepSeekProvider();
+        config.setProtocol(OpenAiChat.NAME);
+        config.setMaxTokens(32);
+
+        AiUpstreamRequest request = engine.buildRequest(
+                "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}", config);
+        JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertEquals("https://api.deepseek.com/chat/completions", request.getUri().toString());
+        assertEquals("hello", payload.at("/messages/0/content").asText());
+        assertEquals(32, payload.path("max_tokens").asInt());
+        assertFalse(payload.has("max_completion_tokens"));
+        assertFalse(payload.has("input"));
+    }
+
+    @Test
+    void testDeepSeekConvertsResponsesToNativeChatRoute() throws Exception {
+        useDeepSeekProvider();
+        config.setProtocol(OpenAiResponses.NAME);
+        config.setMaxTokens(32);
+
+        AiUpstreamRequest request = engine.buildRequest(
+                "{\"model\":\"deepseek-chat\",\"input\":\"hello\"}", config);
+        JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertEquals("https://api.deepseek.com/chat/completions", request.getUri().toString());
+        assertEquals("hello", payload.at("/messages/0/content").asText());
+        assertEquals(32, payload.path("max_tokens").asInt());
+        assertFalse(payload.has("max_completion_tokens"));
+        assertFalse(payload.has("max_output_tokens"));
+        assertFalse(payload.has("input"));
     }
 
     @Test
@@ -332,6 +369,16 @@ class AiProxyEngineTest {
                     return Mono.just(upstreamResponse);
                 });
         config.setProvider("custom");
+    }
+
+    private void useDeepSeekProvider() {
+        engine = new AiProxyEngine(
+                new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                new AiProxyProviderFactory(List.of(
+                        new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek()))),
+                protocolRouteResolver(), request -> Mono.just(upstreamResponse));
+        config.setProvider("DeepSeek");
+        config.setBaseUrl("https://api.deepseek.com");
     }
 
     private AiProxyProvider customProvider(final AiProviderCapabilities capabilities, final AtomicInteger builds) {
