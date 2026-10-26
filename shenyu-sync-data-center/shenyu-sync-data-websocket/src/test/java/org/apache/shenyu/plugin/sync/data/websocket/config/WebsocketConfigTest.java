@@ -27,6 +27,7 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * add test case for {@link WebsocketConfig}.
@@ -54,6 +55,12 @@ public class WebsocketConfigTest {
         assertEquals(URLS, websocketConfig.getUrls());
         assertEquals(ALLOW_ORIGIN, websocketConfig.getAllowOrigin());
         assertEquals(TOKEN, websocketConfig.getToken());
+        assertFalse(websocketConfig.isCompactDiscoveryPayload());
+        websocketConfig.setCompactDiscoveryPayload(true);
+        assertTrue(websocketConfig.isCompactDiscoveryPayload());
+        assertEquals(60, websocketConfig.getMasterCheckInterval());
+        websocketConfig.setMasterCheckInterval(30);
+        assertEquals(30, websocketConfig.getMasterCheckInterval());
     }
 
     @Test
@@ -64,19 +71,29 @@ public class WebsocketConfigTest {
         that.setToken(TOKEN);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
+        that.setInitialSyncReadiness(true);
+        assertNotEquals(websocketConfig, that);
+        that.setInitialSyncReadiness(false);
+        that.setCompactDiscoveryPayload(true);
+        assertNotEquals(websocketConfig, that);
+        that.setCompactDiscoveryPayload(false);
+        that.setMasterCheckInterval(10);
+        assertNotEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
         assertNotEquals(websocketConfig, new Object());
     }
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(), websocketConfig.getToken()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(),
+                websocketConfig.getToken(), websocketConfig.isInitialSyncReadiness(), websocketConfig.isCompactDiscoveryPayload(),
+                websocketConfig.getMasterCheckInterval()), websocketConfig.hashCode());
     }
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s', allowOrigin='%s', token='******'}";
-        String expected = String.format(toString, URLS, ALLOW_ORIGIN);
+        String toString = "WebsocketConfig{urls='%s', allowOrigin='%s', token='******', masterCheckInterval=%d}";
+        String expected = String.format(toString, URLS, ALLOW_ORIGIN, 60);
         assertEquals(expected, websocketConfig.toString());
         assertFalse(websocketConfig.toString().contains(TOKEN));
     }

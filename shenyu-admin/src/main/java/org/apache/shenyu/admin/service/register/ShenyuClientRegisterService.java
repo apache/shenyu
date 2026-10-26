@@ -94,6 +94,18 @@ public interface ShenyuClientRegisterService {
     default String offline(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return Constants.SUCCESS;
     }
+
+    /**
+     * draining: the instances stay registered but must stop receiving new work.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @param namespaceId the namespace id
+     * @return the string
+     */
+    default String draining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return Constants.SUCCESS;
+    }
     
     /**
      * Register context path.

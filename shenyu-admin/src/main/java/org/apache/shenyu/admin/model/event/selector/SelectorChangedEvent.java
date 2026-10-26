@@ -77,8 +77,8 @@ public class SelectorChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getSortCode(), after.getSortCode())) {
             builder.append(String.format("sort[%s => %s] ", before.getSortCode(), after.getSortCode()));
         }
-        if (!Objects.equals(before.getLoged(), after.getLoged())) {
-            builder.append(String.format("loged[%s => %s] ", before.getLoged(), after.getLoged()));
+        if (!Objects.equals(before.getLogged(), after.getLogged())) {
+            builder.append(String.format("logged[%s => %s] ", before.getLogged(), after.getLogged()));
         }
         if (!Objects.equals(before.getNamespaceId(), after.getNamespaceId())) {
             builder.append(String.format("namespaceId[%s => %s] ", before.getNamespaceId(), after.getNamespaceId()));

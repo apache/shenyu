@@ -31,20 +31,16 @@ public class TcpProxySelectorDataHandler implements ProxySelectorDataHandler {
     @Override
     public void handlerProxySelector(final ProxySelectorData proxySelectorData) {
         String name = proxySelectorData.getName();
-        TcpBootstrapFactory factory = TcpBootstrapFactory.getSingleton();
-        if (factory.inCache(name)) {
-            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", name, proxySelectorData.getForwardPort());
-            return;
-        }
         Integer forwardPort = proxySelectorData.getForwardPort();
         TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
         tcpServerConfiguration.setPort(forwardPort);
         tcpServerConfiguration.setProps(proxySelectorData.getProps());
         tcpServerConfiguration.setPluginSelectorName(name);
-        if (factory.createBootstrapServerIfAbsent(tcpServerConfiguration)) {
-            LOG.info("shenyu create TcpBootstrapServer success name is {} port is {}", name, forwardPort);
+        TcpBootstrapFactory factory = TcpBootstrapFactory.getSingleton();
+        if (factory.createOrUpdateBootstrapServer(tcpServerConfiguration)) {
+            LOG.info("shenyu apply TcpBootstrapServer configuration success name is {} port is {}", name, forwardPort);
         } else {
-            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", name, forwardPort);
+            LOG.debug("shenyu TcpBootstrapServer configuration unchanged name is {} port is {}", name, forwardPort);
         }
     }
 

@@ -47,7 +47,7 @@ public final class SelectorDTO implements ResourceDTO {
 
     private boolean enabled;
 
-    @JsonProperty(value = "loged")
+    @JsonProperty(value = "logged")
     private boolean logged;
 
     private boolean continued;
@@ -387,7 +387,7 @@ public final class SelectorDTO implements ResourceDTO {
 
         private boolean enabled;
 
-        @JsonProperty(value = "loged")
+        @JsonProperty(value = "logged")
         private boolean logged;
 
         private boolean continued;

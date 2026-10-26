@@ -123,14 +123,23 @@ public class HttpClientPropertiesTest {
     public void httpClientPropertiesPoolTest() {
         HttpClientProperties httpClientProperties = new HttpClientProperties();
         HttpClientProperties.Pool pool = httpClientProperties.getPool();
+        Assertions.assertEquals(HttpClientProperties.Pool.PoolType.FIXED, pool.getType());
+        Assertions.assertEquals(3000L, pool.getAcquireTimeout());
+        Assertions.assertNull(pool.getMaxPendingAcquires());
         pool.setAcquireTimeout(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
         pool.setMaxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+        pool.setMaxPendingAcquires(1000);
         pool.setName("name");
         pool.setType(HttpClientProperties.Pool.PoolType.ELASTIC);
         pool.setMaxIdleTime(0L);
         httpClientProperties.setPool(pool);
         Assertions.assertEquals(httpClientProperties.getPool().getAcquireTimeout(), ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
         Assertions.assertEquals(httpClientProperties.getPool().getMaxConnections(), ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+        Assertions.assertEquals(httpClientProperties.getPool().getMaxPendingAcquires(), 1000);
+        Assertions.assertEquals(httpClientProperties.getPool().getPendingAcquireMaxCount(), 1000);
+        pool.setPendingAcquireMaxCount(2000);
+        Assertions.assertEquals(httpClientProperties.getPool().getMaxPendingAcquires(), 2000);
+        Assertions.assertEquals(httpClientProperties.getPool().getPendingAcquireMaxCount(), 2000);
         Assertions.assertEquals(httpClientProperties.getPool().getName(), "name");
         Assertions.assertEquals(httpClientProperties.getPool().getType(), HttpClientProperties.Pool.PoolType.ELASTIC);
         Assertions.assertEquals(Duration.ofMillis(httpClientProperties.getPool().getMaxIdleTime()), Duration.ofMillis(0L));
@@ -154,6 +163,7 @@ public class HttpClientPropertiesTest {
     @Test
     public void httpClientPropertiesTest() {
         HttpClientProperties httpClientProperties = new HttpClientProperties();
+        Assertions.assertTrue(httpClientProperties.isKeepAlive());
         httpClientProperties.setAllIdleTime(1);
         httpClientProperties.setConnectTimeout(1);
         httpClientProperties.setKeepAlive(true);

@@ -39,10 +39,17 @@
     </sql>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT TRUE
+        SELECT 1
         FROM tag
         WHERE id = #{id}
         LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+        FROM tag
+        WHERE id = #{id}
+        AND ROWNUM = 1
     </select>
 
     <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">

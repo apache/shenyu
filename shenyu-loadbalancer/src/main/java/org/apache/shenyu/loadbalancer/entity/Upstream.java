@@ -19,6 +19,7 @@ package org.apache.shenyu.loadbalancer.entity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,15 +31,27 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class Upstream {
 
+    private static final String DEFAULT_PROTOCOL = "http://";
+
     /**
      * protocol.
      */
     private final String protocol;
 
     /**
+     * Normalized protocol prefix, computed once because the protocol is immutable.
+     */
+    private final transient String protocolPrefix;
+
+    /**
      * url.
      */
     private String url;
+
+    /**
+     * One selector-scoped domain key, bounded by this upstream's lifetime.
+     */
+    private transient volatile SelectorKey selectorKey;
 
     /**
      * weight.
@@ -85,6 +98,8 @@ public final class Upstream {
      */
     private String version;
 
+    private transient UpstreamIdentity identity;
+
     /**
      * ewma value.
      */
@@ -103,14 +118,21 @@ public final class Upstream {
     /**
      * this is gray.
      */
-    private boolean gray;
+    private volatile boolean gray;
 
     /**
      * health check enabled.
      */
     private boolean healthCheckEnabled = true;
+
+    /**
+     * draining: alive, but excluded from new selections (#8042).
+     */
+    private volatile boolean draining;
     
-    private Map<String, String> metadata = new ConcurrentHashMap<>();
+    private volatile Map<String, String> labels = Collections.emptyMap();
+
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<>();
     
     
     /**
@@ -124,6 +146,7 @@ public final class Upstream {
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
+        this.protocolPrefix = normalizeProtocol(builder.protocol);
         this.url = builder.url;
         this.weight = builder.weight;
         this.status = builder.status;
@@ -133,8 +156,27 @@ public final class Upstream {
         this.version = builder.version;
         this.gray = builder.gray;
         this.healthCheckEnabled = builder.healthCheckEnabled;
+        this.draining = builder.draining;
     }
     
+    /**
+     * Gets upstream labels independently of scalar metadata.
+     *
+     * @return immutable upstream labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    /**
+     * Sets an immutable snapshot of upstream labels.
+     *
+     * @param labels upstream labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = Map.copyOf(labels);
+    }
+
     /**
      * Gets protocol.
      *
@@ -196,6 +238,8 @@ public final class Upstream {
      */
     public void setUrl(final String url) {
         this.url = url;
+        this.selectorKey = null;
+        this.identity = null;
     }
     
     /**
@@ -251,6 +295,24 @@ public final class Upstream {
     public void setHealthCheckEnabled(final boolean healthCheckEnabled) {
         this.healthCheckEnabled = healthCheckEnabled;
     }
+
+    /**
+     * Whether the upstream is draining: alive but excluded from new selections.
+     *
+     * @return the draining
+     */
+    public boolean isDraining() {
+        return draining;
+    }
+
+    /**
+     * Sets draining.
+     *
+     * @param draining the draining
+     */
+    public void setDraining(final boolean draining) {
+        this.draining = draining;
+    }
     
     /**
      * Gets last health timestamp.
@@ -304,6 +366,7 @@ public final class Upstream {
      */
     public void setGroup(final String group) {
         this.group = group;
+        this.identity = null;
     }
     
     /**
@@ -322,6 +385,7 @@ public final class Upstream {
      */
     public void setVersion(final String version) {
         this.version = version;
+        this.identity = null;
     }
     
     /**
@@ -469,13 +533,9 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain() {
-        String protocol = this.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return protocolPrefix + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
     }
-    
+
     /**
      * Build request with protocol.
      *
@@ -483,7 +543,47 @@ public final class Upstream {
      * @return domain string
      */
     public String buildDomain(final String protocol) {
-        return protocol + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+        return normalizeProtocol(protocol) + Optional.ofNullable(this.getUrl()).map(String::trim).orElse(null);
+    }
+
+    /**
+     * Build a selector-scoped domain key without request-time concatenation.
+     *
+     * <p>Only one immutable entry is retained per upstream. Sharing an upstream
+     * between selectors replaces that entry, and URL changes invalidate it.
+     * Weight, group and version do not change the domain key.
+     *
+     * @param selectorId the selector id
+     * @return the selector id and current request domain separated by a colon
+     */
+    public String buildSelectorKey(final String selectorId) {
+        SelectorKey cached = selectorKey;
+        String currentUrl = url;
+        if (Objects.nonNull(cached) && Objects.equals(cached.selectorId, selectorId) && Objects.equals(cached.url, currentUrl)) {
+            return cached.key;
+        }
+        String domain = protocolPrefix + (Objects.isNull(currentUrl) ? null : currentUrl.trim());
+        SelectorKey updated = new SelectorKey(selectorId, currentUrl, selectorId + ":" + domain);
+        selectorKey = updated;
+        return updated.key;
+    }
+
+    /**
+     * Normalize a protocol value to a url prefix, so a bare scheme such as {@code http}
+     * cannot be concatenated directly with the upstream address.
+     *
+     * @param protocol protocol
+     * @return the normalized protocol, always ending with {@code ://}
+     */
+    private static String normalizeProtocol(final String protocol) {
+        if (StringUtils.isBlank(protocol)) {
+            return DEFAULT_PROTOCOL;
+        }
+        String scheme = StringUtils.stripEnd(StringUtils.stripEnd(protocol.trim(), "/"), ":");
+        if (scheme.isEmpty()) {
+            return DEFAULT_PROTOCOL;
+        }
+        return scheme + "://";
     }
     
     /**
@@ -495,6 +595,18 @@ public final class Upstream {
         return new Builder();
     }
 
+    /**
+     * Get the current immutable logical target identity.
+     *
+     * @return the logical target identity
+     */
+    public UpstreamIdentity identity() {
+        if (Objects.isNull(identity)) {
+            identity = new UpstreamIdentity(protocol, url, group, version, buildDomain());
+        }
+        return identity;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -504,12 +616,12 @@ public final class Upstream {
             return false;
         }
         Upstream that = (Upstream) o;
-        return Objects.equals(url, that.url) && Objects.equals(protocol, that.protocol);
+        return identity().equals(that.identity());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(protocol, url);
+        return identity().hashCode();
     }
 
     @Override
@@ -527,7 +639,25 @@ public final class Upstream {
     }
     
     /**
-     * class builder.
+     * Immutable selector-scoped domain cache entry.
+     */
+    private static final class SelectorKey {
+
+        private final String selectorId;
+
+        private final String url;
+
+        private final String key;
+
+        private SelectorKey(final String selectorId, final String url, final String key) {
+            this.selectorId = selectorId;
+            this.url = url;
+            this.key = key;
+        }
+    }
+
+    /**
+     * Class builder.
      */
     public static final class Builder {
 
@@ -580,6 +710,11 @@ public final class Upstream {
          * health check enabled.
          */
         private boolean healthCheckEnabled = true;
+
+        /**
+         * draining.
+         */
+        private boolean draining;
 
         /**
          * no args constructor.
@@ -704,6 +839,17 @@ public final class Upstream {
          */
         public Builder healthCheckEnabled(final boolean healthCheckEnabled) {
             this.healthCheckEnabled = healthCheckEnabled;
+            return this;
+        }
+
+        /**
+         * build draining.
+         *
+         * @param draining draining
+         * @return this builder
+         */
+        public Builder draining(final boolean draining) {
+            this.draining = draining;
             return this;
         }
 

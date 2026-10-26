@@ -60,4 +60,15 @@ public class SignAuthDataSubscriberTest {
         signAuthDataSubscriber.unSubscribe(appAuthData);
         assertNull(SignAuthDataCache.getInstance().obtainAuthData("D9FD95F496C9495DB5604222A13C3D08"));
     }
+
+    @Test
+    void refresh() {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey("stale-key");
+        signAuthDataSubscriber.onSubscribe(appAuthData);
+
+        signAuthDataSubscriber.refresh();
+
+        assertNull(SignAuthDataCache.getInstance().obtainAuthData("stale-key"));
+    }
 }

@@ -16,3 +16,4 @@
 #
 
 org.apache.shenyu.springboot.starter.k8s.IngressControllerConfiguration
+org.apache.shenyu.springboot.starter.k8s.GatewayApiControllerConfiguration

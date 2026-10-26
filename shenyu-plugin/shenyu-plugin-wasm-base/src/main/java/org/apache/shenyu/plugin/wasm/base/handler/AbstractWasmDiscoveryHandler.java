@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.wasm.base.handler;
 
+import com.dylibso.chicory.runtime.ExportFunction;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,23 +35,48 @@ public abstract class AbstractWasmDiscoveryHandler extends WasmLoader implements
     protected static final Map<Long, DiscoverySyncData> ARGUMENTS = new ConcurrentHashMap<>();
     
     protected static final String METHOD_NAME = "handlerDiscoveryUpstreamData";
+
+    protected static final String REMOVE_METHOD_NAME = "removeDiscoveryUpstreamData";
     
     @Override
     public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
         super.getWasmExtern(METHOD_NAME)
-                .map(handlerDiscoveryUpstreamData -> {
-                    // WASI cannot easily pass Java objects like JNI, here we pass Long as arg
-                    // then we can get the argument by Long
-                    final Long argumentId = getArgumentId(discoverySyncData);
-                    ARGUMENTS.put(argumentId, discoverySyncData);
-                    // call WASI function
-                    try {
-                        handlerDiscoveryUpstreamData.apply(argumentId);
-                    } finally {
-                        ARGUMENTS.remove(argumentId);
-                    }
-                    return argumentId;
-                }).orElseThrow(() -> new ShenyuWasmInitException(METHOD_NAME + " function not find in wasm file: " + getWasmName()));
+                .map(handlerDiscoveryUpstreamData -> callWASI(discoverySyncData, handlerDiscoveryUpstreamData))
+                .orElseThrow(() -> new ShenyuWasmInitException(METHOD_NAME + " function not find in wasm file: " + getWasmName()));
+    }
+
+    /**
+     * Forward deletion to the optional guest export {@code removeDiscoveryUpstreamData(i64) -> ()}.
+     *
+     * <p>The argument id uses the same {@link #getArgumentId(DiscoverySyncData)} and {@link #ARGUMENTS}
+     * bridge as updates. During the callback, the argument is a {@link DiscoverySyncData} containing
+     * the key's plugin name, selector id and optional selector name; all other fields are null.
+     * Subclasses can serialize it through {@code shenyu.get_args} as they do for updates.
+     * The argument is removed after the callback, including when the guest throws.
+     * Guests without this export keep the default no-op deletion behavior.
+     *
+     * @param key discovery upstream selector identity
+     */
+    @Override
+    public void removeDiscoveryUpstreamData(final DiscoveryUpstreamKey key) {
+        super.getWasmExtern(REMOVE_METHOD_NAME).ifPresent(remove -> {
+            DiscoverySyncData data = new DiscoverySyncData();
+            data.setPluginName(key.pluginName());
+            data.setSelectorId(key.selectorId());
+            data.setSelectorName(key.selectorName());
+            callWASI(data, remove);
+        });
+    }
+
+    private Long callWASI(final DiscoverySyncData discoverySyncData, final ExportFunction execute) {
+        final Long argumentId = getArgumentId(discoverySyncData);
+        ARGUMENTS.put(argumentId, discoverySyncData);
+        try {
+            execute.apply(argumentId);
+        } finally {
+            ARGUMENTS.remove(argumentId);
+        }
+        return argumentId;
     }
     
     protected abstract Long getArgumentId(DiscoverySyncData discoverySyncData);

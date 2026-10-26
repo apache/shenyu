@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sync.data.websocket;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -30,20 +31,27 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InOrder;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -134,6 +142,113 @@ public final class WebsocketSyncDataServiceTest {
         }
     }
 
+    @Test
+    public void testConfigurableMasterCheckInterval() throws Exception {
+        WebsocketConfig config = new WebsocketConfig();
+        config.setUrls(Collections.emptyList());
+        config.setMasterCheckInterval(15);
+        WebsocketSyncDataService service = new WebsocketSyncDataService(
+                config,
+                new ShenyuConfig(),
+                mock(PluginDataSubscriber.class),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList());
+        try {
+            Field timerTaskField = WebsocketSyncDataService.class.getDeclaredField("timerTask");
+            timerTaskField.setAccessible(true);
+            TimerTask timerTask = (TimerTask) timerTaskField.get(service);
+            Method getDelayMs = TimerTask.class.getDeclaredMethod("getDelayMs");
+            getDelayMs.setAccessible(true);
+            long delayMs = (long) getDelayMs.invoke(timerTask);
+            assertEquals(15000L, delayMs);
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMasterCheckReseedsClientsWhenAllRemoved() throws Exception {
+        WebsocketConfig config = new WebsocketConfig();
+        config.setUrls(Collections.singletonList("ws://127.0.0.1:9095/websocket"));
+        WebsocketSyncDataService service = new WebsocketSyncDataService(
+                config,
+                new ShenyuConfig(),
+                mock(PluginDataSubscriber.class),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList());
+        Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
+        clientsField.setAccessible(true);
+        List<ShenyuWebsocketClient> clients = (List<ShenyuWebsocketClient>) clientsField.get(service);
+        clients.clear();
+        ShenyuWebsocketClient closedClient = mock(ShenyuWebsocketClient.class);
+        when(closedClient.isOpen()).thenReturn(false);
+        clients.add(closedClient);
+        Field boundPort = WebsocketSyncDataService.class.getDeclaredField("boundPort");
+        boundPort.setAccessible(true);
+        boundPort.setInt(service, 9195);
+
+        try {
+            Method masterCheck = WebsocketSyncDataService.class.getDeclaredMethod("masterCheck");
+            masterCheck.setAccessible(true);
+            masterCheck.invoke(service);
+            verify(closedClient).nowClose();
+            assertEquals(1, clients.size());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    public void testOnMasterLostTriggersRediscovery() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        ShenyuWebsocketClient client = mock(ShenyuWebsocketClient.class);
+        when(client.getURI()).thenReturn(URI.create("ws://localhost:9095"));
+
+        try {
+            Method onMasterLost = WebsocketSyncDataService.class.getDeclaredMethod("onMasterLost", ShenyuWebsocketClient.class);
+            onMasterLost.setAccessible(true);
+            onMasterLost.invoke(service, client);
+
+            Field rediscoveryScheduledField = WebsocketSyncDataService.class.getDeclaredField("rediscoveryScheduled");
+            rediscoveryScheduledField.setAccessible(true);
+            AtomicBoolean rediscoveryScheduled = (AtomicBoolean) rediscoveryScheduledField.get(service);
+            assertTrue(rediscoveryScheduled.get());
+        } finally {
+            service.close();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @SuppressWarnings("unchecked")
+    void testDiscoveryCapabilityOnEveryNewConnection(final boolean compact) throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        service.getWebsocketConfig().setCompactDiscoveryPayload(compact);
+        service.getWebsocketConfig().setToken("existing-token");
+        service.getWebsocketConfig().setAllowOrigin("https://gateway.example");
+        try (MockedConstruction<ShenyuWebsocketClient> clients = mockConstruction(ShenyuWebsocketClient.class, (client, context) -> {
+            Map<String, String> headers = (Map<String, String>) context.arguments().get(1);
+            assertEquals(compact ? Constants.COMPACT_DISCOVERY_PAYLOAD_V1 : null, headers.get(Constants.X_SHENYU_DISCOVERY_PAYLOAD));
+            assertEquals("existing-token", headers.get(Constants.X_SHENYU_SYNC_TOKEN));
+            assertEquals("https://gateway.example", headers.get("Origin"));
+        })) {
+            Method createClient = WebsocketSyncDataService.class.getDeclaredMethod("createClient", String.class);
+            createClient.setAccessible(true);
+            createClient.invoke(service, "ws://first-admin/websocket");
+            createClient.invoke(service, "ws://replacement-admin/websocket");
+            assertEquals(2, clients.constructed().size());
+        } finally {
+            service.close();
+        }
+    }
+
     private WebsocketSyncDataService createWebsocketSyncDataService() {
         WebsocketConfig websocketConfig = new WebsocketConfig();
         websocketConfig.setUrls(Collections.emptyList());
@@ -145,7 +260,6 @@ public final class WebsocketSyncDataServiceTest {
                 Collections.<AuthDataSubscriber>emptyList(),
                 Collections.<ProxySelectorDataSubscriber>emptyList(),
                 Collections.<DiscoveryUpstreamDataSubscriber>emptyList(),
-                Collections.<AiProxyApiKeyDataSubscriber>emptyList(),
-                mock(ServerProperties.class));
+                Collections.<AiProxyApiKeyDataSubscriber>emptyList());
     }
 }

@@ -23,8 +23,11 @@ import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,11 +40,26 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for CommonPluginDataSubscriber.
@@ -69,12 +87,18 @@ public final class CommonPluginDataSubscriberTest {
     
     private BaseDataCache baseDataCache;
 
+    @Mock
+    private PluginDataHandler handler;
+
     @BeforeEach
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
         commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
         baseDataCache = BaseDataCache.getInstance();
+        clearCaches();
+        when(handler.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(handler));
     }
 
     @Test
@@ -85,6 +109,212 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.onSubscribe(pluginData);
         assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesConfigurationUpdates() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+        commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
+        commonPluginDataSubscriber.onRuleSubscribe(ruleData);
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(replacement).handlerSelector(selectorData);
+        verify(replacement).handlerRule(ruleData);
+        verify(handler, never()).handlerPlugin(any());
+        verify(handler, never()).handlerSelector(any());
+        verify(handler, never()).handlerRule(any());
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesConfigurationRemovals() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+        baseDataCache.cachePluginData(pluginData);
+        baseDataCache.cacheSelectData(selectorData);
+        baseDataCache.cacheRuleData(ruleData);
+
+        commonPluginDataSubscriber.unRuleSubscribe(ruleData);
+        commonPluginDataSubscriber.unSelectorSubscribe(selectorData);
+        commonPluginDataSubscriber.unSubscribe(pluginData);
+
+        verify(replacement).removePlugin(pluginData);
+        verify(replacement).removeSelector(selectorData);
+        verify(replacement).removeRule(ruleData);
+        verify(handler, never()).removePlugin(any());
+        verify(handler, never()).removeSelector(any());
+        verify(handler, never()).removeRule(any());
+    }
+
+    @Test
+    public void testExtensionCannotReplaceBuiltInHandler() {
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide"));
+        PluginData pluginData = plugin("divide", 1);
+
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(handler).handlerPlugin(pluginData);
+        verify(replacement, never()).handlerPlugin(any());
+    }
+
+    @Test
+    public void testRemovedExtensionCanBeRegisteredAgain() {
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide"));
+        commonPluginDataSubscriber.onSubscribe(plugin("divide", 1));
+        verify(handler, never()).handlerPlugin(any());
+
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 2);
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(handler, never()).handlerPlugin(any());
+    }
+
+    @Test
+    public void testRemovalKeepsUnrelatedExtensionHandler() {
+        PluginDataHandler unrelated = mock(PluginDataHandler.class);
+        when(unrelated.pluginNamed()).thenReturn("unrelated");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(unrelated));
+
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide", "unknown"));
+        PluginData pluginData = plugin("unrelated", 1);
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(unrelated).handlerPlugin(pluginData);
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesRefreshCallbacks() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+
+        commonPluginDataSubscriber.onPluginRefresh(List.of(pluginData));
+        commonPluginDataSubscriber.onSelectorRefresh(List.of(selectorData));
+        commonPluginDataSubscriber.onRuleRefresh(List.of(ruleData));
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(replacement).handlerSelector(selectorData);
+        verify(replacement).handlerRule(ruleData);
+        verify(handler, never()).handlerPlugin(any());
+        verify(handler, never()).handlerSelector(any());
+        verify(handler, never()).handlerRule(any());
+    }
+
+    @Test
+    void testPluginSnapshotKeepsExistingEntryUntilReplacementIsApplied() {
+        final PluginData oldPlugin = PluginData.builder().id("divide-id").name("divide").config("old")
+                .namespaceId("namespace-a").build();
+        final PluginData replacement = PluginData.builder().id("divide-id").name("divide").config("new")
+                .namespaceId("namespace-a").build();
+        final PluginData stale = PluginData.builder().id("removed-id").name("removed").namespaceId("namespace-a").build();
+        final PluginData otherNamespace = PluginData.builder().id("other-id").name("other").namespaceId("namespace-b").build();
+        baseDataCache.cachePluginData(oldPlugin);
+        baseDataCache.cachePluginData(stale);
+        baseDataCache.cachePluginData(otherNamespace);
+        doAnswer(invocation -> {
+            assertEquals(oldPlugin, baseDataCache.obtainPluginData("divide"));
+            return null;
+        }).when(handler).handlerPlugin(replacement);
+
+        commonPluginDataSubscriber.applyPluginDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(replacement, baseDataCache.obtainPluginData("divide"));
+        assertNull(baseDataCache.obtainPluginData("removed"));
+        assertEquals(otherNamespace, baseDataCache.obtainPluginData("other"));
+    }
+
+    @Test
+    void testSelectorSnapshotReplacesRowsAndRemovesOnlyStaleNamespaceRows() {
+        final SelectorData oldSelector = SelectorData.builder().id("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final SelectorData replacement = SelectorData.builder().id("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final SelectorData stale = SelectorData.builder().id("stale-selector").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final SelectorData otherNamespace = SelectorData.builder().id("other-selector").pluginName("divide")
+                .namespaceId("namespace-b").sort(4).build();
+        baseDataCache.cacheSelectData(oldSelector);
+        baseDataCache.cacheSelectData(stale);
+        baseDataCache.cacheSelectData(otherNamespace);
+
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(List.of(replacement, otherNamespace), baseDataCache.obtainSelectorData("divide"));
+    }
+
+    @Test
+    void testRuleSnapshotReplacesRowsAndRemovesOnlyStaleNamespaceRows() {
+        final RuleData oldRule = RuleData.builder().id("rule-a").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final RuleData replacement = RuleData.builder().id("rule-a").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final RuleData otherNamespace = RuleData.builder().id("other-rule").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-b").sort(4).build();
+        baseDataCache.cacheRuleData(oldRule);
+        baseDataCache.cacheRuleData(stale);
+        baseDataCache.cacheRuleData(otherNamespace);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(replacement));
+
+        assertEquals(List.of(replacement, otherNamespace), baseDataCache.obtainRuleData("selector-a"));
+    }
+
+    @Test
+    void testInitialSyncPropagatesHandlerFailureWithoutChangingLegacyBehavior() {
+        PluginDataHandler handler = mock(PluginDataHandler.class);
+        org.mockito.Mockito.when(handler.pluginNamed()).thenReturn(mockName1);
+        PluginData data = PluginData.builder().name(mockName1).build();
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerPlugin(data);
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(handler));
+        assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(() -> commonPluginDataSubscriber.onSubscribe(data)));
+        assertFalse(InitialSyncApplication.isActive());
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.onSubscribe(data));
+    }
+
+    @Test
+    void testInitialSyncTracksDeferredRefreshApplication() {
+        PluginData data = PluginData.builder().name("divide").build();
+        CompletableFuture<Void> deferred = new CompletableFuture<>();
+        doAnswer(invocation -> {
+            InitialSyncApplication.register(deferred);
+            return null;
+        }).when(handler).handlerPlugin(data);
+        CompletableFuture<Void> application = InitialSyncApplication.run(() -> commonPluginDataSubscriber.onPluginRefresh(List.of(data)));
+        assertFalse(application.isDone());
+        assertFalse(InitialSyncApplication.isActive());
+        deferred.completeExceptionally(new IllegalStateException("deferred refresh failed"));
+        assertTrue(application.isCompletedExceptionally());
+    }
+
+    @Test
+    void testInitialSyncPropagatesRefreshFailure() {
+        PluginData data = PluginData.builder().name("divide").build();
+        doThrow(new IllegalStateException("refresh failed")).when(handler).handlerPlugin(data);
+        assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(() -> commonPluginDataSubscriber.onPluginRefresh(List.of(data))));
+        assertFalse(InitialSyncApplication.isActive());
     }
 
     @Test
@@ -177,6 +407,52 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
+    public void testUnSelectorSubscribeWithMissingPluginName() {
+        final String path = "/dangling";
+        final MatchDataCache matchDataCache = MatchDataCache.getInstance();
+        baseDataCache.cleanSelectorData();
+        matchDataCache.cleanSelectorData();
+        matchDataCache.cleanRuleDataData();
+
+        // the gateway cached the selector under its real plugin name before the plugin row vanished
+        final SelectorData cachedSelector = SelectorData.builder().id(mockSelectorId1).enabled(true).pluginName(mockPluginName1).build();
+        final SelectorData otherPluginSelector = SelectorData.builder().id(mockSelectorId2).enabled(true).pluginName(mockPluginName2).build();
+        final RuleData cachedRule = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        baseDataCache.cacheSelectData(cachedSelector);
+        baseDataCache.cacheSelectData(otherPluginSelector);
+        matchDataCache.cacheSelectorData(path, cachedSelector, 100, 100);
+        matchDataCache.cacheRuleData(path, cachedRule, 100, 100);
+
+        // the admin cannot resolve a plugin name for the dangling selector, so the delete event carries none
+        final SelectorData deletion = SelectorData.builder().id(mockSelectorId1).enabled(true).build();
+        commonPluginDataSubscriber.unSelectorSubscribe(deletion);
+
+        assertNull(baseDataCache.obtainSelectorData(mockPluginName1));
+        assertNull(matchDataCache.obtainSelectorData(mockPluginName1, path));
+        assertNull(matchDataCache.obtainRuleData(mockPluginName1, path));
+        // an unrelated plugin keeps its selector
+        assertEquals(Lists.newArrayList(otherPluginSelector), baseDataCache.obtainSelectorData(mockPluginName2));
+    }
+
+    @Test
+    public void testUnRuleSubscribeWithMissingPluginName() {
+        final MatchDataCache matchDataCache = MatchDataCache.getInstance();
+        baseDataCache.cleanRuleData();
+        matchDataCache.cleanRuleDataData();
+
+        final RuleData cachedRule = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        baseDataCache.cacheRuleData(cachedRule);
+        matchDataCache.cacheRuleData("/rule", cachedRule, 100, 100);
+
+        // the admin cannot resolve a plugin name for a rule of a deleted plugin, so the delete event carries none
+        final RuleData deletion = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        commonPluginDataSubscriber.unRuleSubscribe(deletion);
+
+        assertNull(baseDataCache.obtainRuleData(mockSelectorId1));
+        assertNull(matchDataCache.obtainRuleData(mockPluginName1, "/rule"));
+    }
+
+    @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
@@ -260,5 +536,361 @@ public final class CommonPluginDataSubscriberTest {
     private void mockShenyuTrieConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
+    }
+
+    @AfterEach
+    public void clearCaches() {
+        baseDataCache.cleanPluginData();
+        baseDataCache.cleanSelectorData();
+        baseDataCache.cleanRuleData();
+        MatchDataCache.getInstance().cleanSelectorData();
+        MatchDataCache.getInstance().cleanRuleDataData();
+    }
+
+    @Test
+    public void pluginRefreshPublishesTheCompleteBatch() {
+        final PluginData a = plugin("jwt", 1);
+        final PluginData old = plugin("divide", 2);
+        final PluginData updated = plugin("divide", 3);
+        final PluginData added = plugin("rewrite", 4);
+        baseDataCache.cachePluginData(a);
+        baseDataCache.cachePluginData(old);
+        final var previous = baseDataCache.getPluginMap();
+        doAnswer(invocation -> {
+            assertSame(previous, baseDataCache.getPluginMap());
+            assertSame(old, baseDataCache.obtainPluginData("divide"));
+            assertNull(baseDataCache.obtainPluginData("rewrite"));
+            verifyNoInteractions(eventPublisher);
+            return null;
+        }).when(handler).handlerPlugin(updated);
+        doAnswer(invocation -> {
+            assertSame(updated, baseDataCache.obtainPluginData("divide"));
+            assertSame(added, baseDataCache.obtainPluginData("rewrite"));
+            return null;
+        }).when(eventPublisher).publishEvent(any(PluginHandlerEvent.class));
+        commonPluginDataSubscriber.onPluginRefresh(List.of(updated, added));
+        assertNotSame(previous, baseDataCache.getPluginMap());
+        assertEquals(3, baseDataCache.getPluginMap().size());
+        assertSame(a, baseDataCache.obtainPluginData("jwt"));
+        assertSame(old, previous.get("divide"));
+        verify(eventPublisher).publishEvent(org.mockito.ArgumentMatchers.argThat((PluginHandlerEvent event) ->
+                event.getSource() == updated && event.getPluginStateEnums() == PluginHandlerEventEnum.ENABLED));
+        verify(eventPublisher).publishEvent(org.mockito.ArgumentMatchers.argThat((PluginHandlerEvent event) ->
+                event.getSource() == updated && event.getPluginStateEnums() == PluginHandlerEventEnum.SORTED));
+    }
+
+    @Test
+    public void selectorHandlerSeesThePublishedBatch() {
+        final SelectorData first = selector("a", 1);
+        final SelectorData second = selector("b", 2);
+        doAnswer(invocation -> {
+            assertEquals(List.of(first, second), baseDataCache.obtainSelectorData("divide"));
+            return null;
+        }).when(handler).handlerSelector(first);
+        commonPluginDataSubscriber.onSelectorRefresh(List.of(first, second));
+        verify(handler).handlerSelector(second);
+    }
+
+    @Test
+    public void ruleHandlerSeesThePublishedBatch() {
+        final RuleData first = rule("a", 1);
+        final RuleData second = rule("b", 2);
+        doAnswer(invocation -> {
+            assertEquals(List.of(first, second), baseDataCache.obtainRuleData("selector"));
+            return null;
+        }).when(handler).handlerRule(first);
+        commonPluginDataSubscriber.onRuleRefresh(List.of(first, second));
+        verify(handler).handlerRule(second);
+    }
+
+    @Test
+    public void emptyBatchesRetainAllMaps() {
+        baseDataCache.cachePluginData(plugin("divide", 1));
+        baseDataCache.cacheSelectData(selector("a", 1));
+        baseDataCache.cacheRuleData(rule("a", 1));
+        final var plugins = baseDataCache.getPluginMap();
+        final var selectors = baseDataCache.getSelectorMap();
+        final var rules = baseDataCache.getRuleMap();
+        commonPluginDataSubscriber.onPluginRefresh(List.of());
+        commonPluginDataSubscriber.onSelectorRefresh(List.of());
+        commonPluginDataSubscriber.onRuleRefresh(List.of());
+        assertSame(plugins, baseDataCache.getPluginMap());
+        assertSame(selectors, baseDataCache.getSelectorMap());
+        assertSame(rules, baseDataCache.getRuleMap());
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    public void selectorHandlerFailureDoesNotRollBackPublishedBatch() {
+        final SelectorData old = selector("b", 1);
+        final SelectorData updated = selector("b", 2);
+        final SelectorData added = selector("c", 3);
+        baseDataCache.cacheSelectData(old);
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerSelector(updated);
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.onSelectorRefresh(List.of(updated, added)));
+        assertEquals(List.of(updated, added), baseDataCache.obtainSelectorData("divide"));
+    }
+
+    @Test
+    public void ruleHandlerFailureDoesNotRollBackPublishedBatch() {
+        final RuleData old = rule("b", 1);
+        final RuleData updated = rule("b", 2);
+        final RuleData added = rule("c", 3);
+        baseDataCache.cacheRuleData(old);
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerRule(updated);
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.onRuleRefresh(List.of(updated, added)));
+        assertEquals(List.of(updated, added), baseDataCache.obtainRuleData("selector"));
+    }
+
+    @Test
+    public void refreshInvalidatesMatchingAndNegativeCacheEntries() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+        matches.cacheSelectorData("/selector", selector("selector", 1), 100, 100);
+        matches.cacheSelectorData("/empty", SelectorData.builder().pluginName("divide").build(), 100, 100);
+        matches.cacheRuleData("/selector", rule("a", 1), 100, 100);
+        matches.cacheRuleData("/empty", RuleData.builder().pluginName("divide").build(), 100, 100);
+        commonPluginDataSubscriber.onSelectorRefresh(List.of(selector("selector", 2)));
+        assertNull(matches.obtainSelectorData("divide", "/selector"));
+        assertNull(matches.obtainSelectorData("divide", "/empty"));
+        assertNull(matches.obtainRuleData("divide", "/selector"));
+        assertNull(matches.obtainRuleData("divide", "/empty"));
+
+        matches.cacheRuleData("/rule", rule("a", 1), 100, 100);
+        matches.cacheRuleData("/empty", RuleData.builder().pluginName("divide").build(), 100, 100);
+        commonPluginDataSubscriber.onRuleRefresh(List.of(rule("a", 2)));
+        assertNull(matches.obtainRuleData("divide", "/rule"));
+        assertNull(matches.obtainRuleData("divide", "/empty"));
+
+        matches.cacheSelectorData("/selector", selector("a", 1), 100, 100);
+        matches.cacheRuleData("/rule", rule("a", 1), 100, 100);
+        commonPluginDataSubscriber.onPluginRefresh(List.of(plugin("divide", 1)));
+        assertNull(matches.obtainSelectorData("divide", "/selector"));
+        assertNull(matches.obtainRuleData("divide", "/rule"));
+    }
+
+    @Test
+    public void disabledPluginEventIsPublishedAfterTheBatch() {
+        final PluginData disabled = PluginData.builder().name("divide").enabled(false).sort(1).build();
+        doAnswer(invocation -> {
+            assertSame(disabled, baseDataCache.obtainPluginData("divide"));
+            return null;
+        }).when(eventPublisher).publishEvent(any(PluginHandlerEvent.class));
+        commonPluginDataSubscriber.onPluginRefresh(List.of(disabled));
+        verify(eventPublisher).publishEvent(org.mockito.ArgumentMatchers.argThat((PluginHandlerEvent event) ->
+                event.getSource() == disabled && event.getPluginStateEnums() == PluginHandlerEventEnum.DISABLED));
+    }
+
+    private PluginData plugin(final String name, final int sort) {
+        return PluginData.builder().name(name).sort(sort).enabled(true).build();
+    }
+
+    private SelectorData selector(final String id, final int sort) {
+        return SelectorData.builder().id(id).pluginName("divide").sort(sort).build();
+    }
+
+    private RuleData rule(final String id, final int sort) {
+        return RuleData.builder().id(id).pluginName("divide").selectorId("selector").sort(sort).build();
+    }
+
+    @Test
+    public void selectorSnapshotBatchesMergesAndPreservesSortOrder() {
+        final SelectorData existing = SelectorData.builder().id("existing").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        baseDataCache.cacheSelectData(existing);
+        final SelectorData first = SelectorData.builder().id("s-3").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final SelectorData second = SelectorData.builder().id("s-1").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final SelectorData replacement = SelectorData.builder().id("existing").pluginName("divide")
+                .namespaceId("namespace-a").sort(4).build();
+
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(first, second, replacement));
+
+        // one merge+sort per plugin bucket: sorted by the sort key, replacement supersedes the existing row
+        assertEquals(List.of(second, first, replacement), baseDataCache.obtainSelectorData("divide"));
+        verify(handler).handlerSelector(first);
+        verify(handler).handlerSelector(second);
+        verify(handler).handlerSelector(replacement);
+    }
+
+    @Test
+    public void ruleSnapshotBatchesMergesAndPreservesSortOrder() {
+        final RuleData existing = RuleData.builder().id("existing").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        baseDataCache.cacheRuleData(existing);
+        final RuleData first = RuleData.builder().id("r-3").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(3).build();
+        final RuleData second = RuleData.builder().id("r-1").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final RuleData replacement = RuleData.builder().id("existing").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(4).build();
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(first, second, replacement));
+
+        assertEquals(List.of(second, first, replacement), baseDataCache.obtainRuleData("selector-a"));
+        verify(handler).handlerRule(first);
+        verify(handler).handlerRule(second);
+        verify(handler).handlerRule(replacement);
+    }
+
+    @Test
+    public void selectorSnapshotInvokesRemoveSelectorForEachStaleRow() {
+        final SelectorData staleA = SelectorData.builder().id("stale-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final SelectorData staleB = SelectorData.builder().id("stale-b").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final SelectorData otherNamespace = SelectorData.builder().id("other").pluginName("divide")
+                .namespaceId("namespace-b").sort(3).build();
+        baseDataCache.cacheSelectData(staleA);
+        baseDataCache.cacheSelectData(staleB);
+        baseDataCache.cacheSelectData(otherNamespace);
+
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of());
+
+        assertEquals(List.of(otherNamespace), baseDataCache.obtainSelectorData("divide"));
+        verify(handler).removeSelector(staleA);
+        verify(handler).removeSelector(staleB);
+    }
+
+    @Test
+    public void ruleSnapshotInvokesRemoveRuleForEachStaleRow() {
+        final RuleData staleA = RuleData.builder().id("stale-a").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final RuleData staleB = RuleData.builder().id("stale-b").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        final RuleData otherNamespace = RuleData.builder().id("other").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-b").sort(3).build();
+        baseDataCache.cacheRuleData(staleA);
+        baseDataCache.cacheRuleData(staleB);
+        baseDataCache.cacheRuleData(otherNamespace);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of());
+
+        assertEquals(List.of(otherNamespace), baseDataCache.obtainRuleData("selector-a"));
+        verify(handler).removeRule(staleA);
+        verify(handler).removeRule(staleB);
+    }
+
+    @Test
+    public void snapshotCoalescesMatchCacheInvalidationPerAffectedPlugin() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+        // Preload positive and negative cache entries for two plugins.
+        matches.cacheSelectorData("/divide", selector("s-1", 1), 100, 100);
+        matches.cacheSelectorData("/divide-empty", SelectorData.builder().pluginName("divide").build(), 100, 100);
+        matches.cacheRuleData("/divide", rule("r-1", 1), 100, 100);
+        final SelectorData otherPlugin = SelectorData.builder().id("s-other").pluginName("rewrite")
+                .namespaceId("namespace-a").sort(1).build();
+        matches.cacheSelectorData("/rewrite", otherPlugin, 100, 100);
+
+        // Snapshot only touches the "divide" plugin; the "rewrite" cache must remain.
+        final SelectorData incoming = SelectorData.builder().id("s-2").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(incoming));
+
+        assertNull(matches.obtainSelectorData("divide", "/divide"));
+        assertNull(matches.obtainSelectorData("divide", "/divide-empty"));
+        assertNull(matches.obtainRuleData("divide", "/divide"));
+        assertNotNull(matches.obtainSelectorData("rewrite", "/rewrite"));
+    }
+
+    @Test
+    public void selectorSnapshotHandlerFailurePropagatesDuringInitialSync() {
+        final SelectorData incoming = SelectorData.builder().id("s-1").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerSelector(incoming);
+        assertThrows(IllegalStateException.class, () -> InitialSyncApplication.run(
+                () -> commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(incoming))));
+        // cache write already published before the handler ran, mirroring the pre-batch behavior
+        assertEquals(List.of(incoming), baseDataCache.obtainSelectorData("divide"));
+    }
+
+    @Test
+    public void selectorSnapshotHandlerFailureIsLoggedOutsideInitialSync() {
+        final SelectorData first = SelectorData.builder().id("s-1").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final SelectorData second = SelectorData.builder().id("s-2").pluginName("divide")
+                .namespaceId("namespace-a").sort(2).build();
+        doThrow(new IllegalStateException("handler failed")).when(handler).handlerSelector(first);
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(first, second)));
+        verify(handler).handlerSelector(second);
+        assertEquals(List.of(first, second), baseDataCache.obtainSelectorData("divide"));
+    }
+
+    @Test
+    public void danglingSelectorSnapshotSweepsMatchCacheAcrossBuckets() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+
+        // a selector cached without a plugin name (dangling), plus match-cache entries under a real plugin bucket
+        final SelectorData dangling = SelectorData.builder().id("s-dangle").pluginName("").namespaceId("namespace-a").sort(1).build();
+        baseDataCache.cacheSelectData(dangling);
+        matches.cacheSelectorData("/dangle", SelectorData.builder().id("s-dangle").pluginName("divide").build(), 100, 100);
+        matches.cacheRuleData("/dangle", RuleData.builder().id("r-dangle").selectorId("s-dangle").pluginName("divide").build(), 100, 100);
+
+        // the snapshot drops the dangling selector; its blank name must still sweep every match-cache bucket by id
+        commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of());
+
+        assertNull(matches.obtainSelectorData("divide", "/dangle"));
+        assertNull(matches.obtainRuleData("divide", "/dangle"));
+    }
+
+    @Test
+    public void danglingRuleSnapshotSweepsMatchCacheAcrossBuckets() {
+        final SelectorMatchCache selectorConfig = new SelectorMatchCache();
+        final RuleMatchCache ruleConfig = new RuleMatchCache();
+        selectorConfig.getCache().setEnabled(true);
+        ruleConfig.getCache().setEnabled(true);
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, selectorConfig, ruleConfig);
+        final MatchDataCache matches = MatchDataCache.getInstance();
+
+        // a rule keyed by selectorId whose plugin name is blank, cached under a real plugin bucket
+        final RuleData dangling = RuleData.builder().id("r-dangle").selectorId("selector-a").pluginName("")
+                .namespaceId("namespace-a").sort(1).build();
+        baseDataCache.cacheRuleData(dangling);
+        matches.cacheRuleData("/dangle", RuleData.builder().id("r-dangle").selectorId("selector-a").pluginName("divide").build(), 100, 100);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of());
+
+        assertNull(matches.obtainRuleData("divide", "/dangle"));
+    }
+
+    @Test
+    public void malformedSelectorRowIsSkippedWithoutAbortingSnapshot() {
+        final SelectorData valid = SelectorData.builder().id("s-ok").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        // no plugin name: would produce a null grouping key and NPE inside the batch cache write
+        final SelectorData malformed = SelectorData.builder().id("s-bad").namespaceId("namespace-a").sort(2).build();
+
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applySelectorDataSnapshot("namespace-a", List.of(malformed, valid)));
+
+        assertEquals(List.of(valid), baseDataCache.obtainSelectorData("divide"));
+        verify(handler).handlerSelector(valid);
+    }
+
+    @Test
+    public void malformedRuleRowIsSkippedWithoutAbortingSnapshot() {
+        final RuleData valid = RuleData.builder().id("r-ok").selectorId("selector-a").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        // no selector id: would produce a null grouping key and NPE inside the batch cache write
+        final RuleData malformed = RuleData.builder().id("r-bad").pluginName("divide").namespaceId("namespace-a").sort(2).build();
+
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(malformed, valid)));
+
+        assertEquals(List.of(valid), baseDataCache.obtainRuleData("selector-a"));
+        verify(handler).handlerRule(valid);
     }
 }

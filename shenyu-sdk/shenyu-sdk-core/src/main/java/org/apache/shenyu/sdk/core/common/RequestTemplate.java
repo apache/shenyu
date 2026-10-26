@@ -21,6 +21,7 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -84,11 +85,17 @@ public final class RequestTemplate {
 
     /**
      * Create a Request Template from an existing Request Template.
+     * <p>
+     * Header value collections are copied per entry so that per-invocation
+     * mutations (dynamic headers, cookies) never reach the template the copy was made from.
+     * </p>
      *
      * @param requestTemplate to copy from.
      * @return a new Request Template.
      */
     public static RequestTemplate from(final RequestTemplate requestTemplate) {
+        final Map<String, Collection<String>> headers = new HashMap<>();
+        requestTemplate.getHeaders().forEach((key, value) -> headers.put(key, new ArrayList<>(value)));
         return new RequestTemplate(
                 requestTemplate.getReturnType(),
                 requestTemplate.getMethod(),
@@ -98,7 +105,7 @@ public final class RequestTemplate {
                 requestTemplate.getPath(),
                 requestTemplate.getHttpMethod(),
                 requestTemplate.getParamMetadataList(),
-                requestTemplate.getHeaders(),
+                headers,
                 requestTemplate.getBody());
     }
 

@@ -30,6 +30,7 @@ import org.apache.dubbo.rpc.support.RpcUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
@@ -83,13 +84,34 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
                 return true;
             }).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(invokerGrays)) {
+                // The gray pick matched no provider, so it is discarded and this call serves from the full
+                // list. The upstream it named is not carrying the request, so it is not counted against it.
                 return dubboSelect(invokers, url, invocation);
             }
-            return dubboSelect(invokerGrays, url, invocation);
+            return withInflight(dubboSelect(invokerGrays, url, invocation), upstream, dubboRuleHandle.getLoadBalance());
         }
         return dubboSelect(invokers, url, invocation);
     }
     
+    /**
+     * Keep the gray upstream's outstanding request count current for least active selection.
+     *
+     * <p>Only the least active algorithm reads the count, and only the invoker returned here can observe
+     * the start and the completion of the RPC, so every other algorithm keeps the plain invoker.
+     *
+     * @param selected the invoker chosen for this call
+     * @param upstream the gray upstream the invoker was chosen for
+     * @param loadBalance the algorithm configured on the rule
+     * @param <T> the service type
+     * @return the invoker to hand back to Dubbo
+     */
+    private static <T> Invoker<T> withInflight(final Invoker<T> selected, final Upstream upstream, final String loadBalance) {
+        if (Objects.isNull(selected) || !LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            return selected;
+        }
+        return new InflightInvoker<>(selected, upstream);
+    }
+
     private <T> Invoker<T> dubboSelect(final List<Invoker<T>> invokers, final URL url, final Invocation invocation) {
         String loadBalance = Optional.ofNullable(url.getMethodParameter(RpcUtils.getMethodName(invocation), Constants.DUBBO_LOAD_BALANCE)).orElse(CommonConstants.DEFAULT_LOADBALANCE);
         return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadBalance).select(invokers, url, invocation);

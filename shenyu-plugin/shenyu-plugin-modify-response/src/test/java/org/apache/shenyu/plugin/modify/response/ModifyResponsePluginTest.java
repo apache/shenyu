@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
@@ -36,8 +37,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -48,6 +52,7 @@ import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,7 +111,7 @@ public final class ModifyResponsePluginTest {
                 .selectorId("1")
                 .matchMode(1)
                 .sort(1)
-                .loged(true)
+                .logged(true)
                 .selectorId("test")
                 .build();
         final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
@@ -142,6 +147,20 @@ public final class ModifyResponsePluginTest {
     }
 
     @Test
+    public void testWriteWithNonStandardStatusCode() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setStatusCode(499);
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("ok".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(HttpStatusCode.valueOf(499), response.getStatusCode());
+    }
+
+    @Test
     public void testWriteWithPreservesNonJsonBodyForHeaderOnlyRule() {
         final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
         responseRuleHandle.setAddHeaders(Collections.singletonMap("X-Test", "header-only"));
@@ -157,6 +176,67 @@ public final class ModifyResponsePluginTest {
         StepVerifier.create(response.getBodyAsString())
                 .expectNext("<p>unchanged</p>")
                 .verifyComplete();
+    }
+
+    @Test
+    public void testReplaceHeaderKeysRenamesKeyAndKeepsValues() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Old", "X-New"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Old", "abc");
+        response.getHeaders().add("X-Old", "def");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertFalse(response.getHeaders().containsKey("X-Old"));
+        assertEquals(Arrays.asList("abc", "def"), response.getHeaders().get("X-New"));
+    }
+
+    @Test
+    public void testReplaceHeaderKeysLeavesMissingSourceKeyUntouched() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Missing", "X-New"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertFalse(response.getHeaders().containsKey("X-New"));
+    }
+
+    @Test
+    public void testReplaceHeaderKeysSameKeyIsNoOp() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Keep", "X-Keep"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Keep", "abc");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(Collections.singletonList("abc"), response.getHeaders().get("X-Keep"));
+    }
+
+    @Test
+    public void testReplaceHeaderKeysCaseOnlyRenameIsNoOp() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setReplaceHeaderKeys(Collections.singletonMap("X-Keep", "x-keep"));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().add("X-Keep", "abc");
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("{}".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(Collections.singletonList("abc"), response.getHeaders().get("X-Keep"));
     }
 
     @Test
@@ -193,9 +273,35 @@ public final class ModifyResponsePluginTest {
 
         StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
 
+        assertEquals(MediaType.TEXT_PLAIN, response.getHeaders().getContentType());
         StepVerifier.create(response.getBodyAsString())
                 .expectNext("{\"value\":true,\"added\":\"true\"}")
                 .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithPreservesConfiguredContentTypeWithBodyChanges() {
+        ApplicationContext applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        final MediaType contentType = MediaType.parseMediaType("application/xml;charset=UTF-8");
+        responseRuleHandle.setSetHeaders(Collections.singletonMap(HttpHeaders.CONTENT_TYPE, contentType.toString()));
+        responseRuleHandle.setRemoveBodyKeys(Collections.singleton("$.remove"));
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        response.getHeaders().setContentLength(999);
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR,
+                ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Flux.empty()));
+        final DataBuffer body = response.bufferFactory().wrap("{\"value\":true,\"remove\":true}".getBytes(StandardCharsets.UTF_8));
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+
+        StepVerifier.create(decorator.writeWith(Mono.just(body))).verifyComplete();
+
+        assertEquals(contentType, response.getHeaders().getContentType());
+        assertEquals("{\"value\":true}".getBytes(StandardCharsets.UTF_8).length, response.getHeaders().getContentLength());
+        StepVerifier.create(response.getBodyAsString()).expectNext("{\"value\":true}").verifyComplete();
     }
 
     @Test
@@ -215,12 +321,7 @@ public final class ModifyResponsePluginTest {
 
     private void mockShenyuResult() {
         ApplicationContext applicationContext = mock(ApplicationContext.class);
-        @SuppressWarnings("unchecked")
-        ShenyuResult<Object> shenyuResult = (ShenyuResult<Object>) mock(ShenyuResult.class);
-        when(shenyuResult.format(any(ServerWebExchange.class), any())).thenAnswer(invocation -> invocation.getArgument(1));
-        when(shenyuResult.contentType(any(ServerWebExchange.class), any())).thenReturn(MediaType.APPLICATION_JSON);
-        when(shenyuResult.result(any(ServerWebExchange.class), any())).thenAnswer(invocation -> invocation.getArgument(1));
-        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
     }
 }
