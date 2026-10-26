@@ -40,6 +40,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -55,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -107,6 +109,116 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.onSubscribe(pluginData);
         assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesConfigurationUpdates() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+        commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
+        commonPluginDataSubscriber.onRuleSubscribe(ruleData);
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(replacement).handlerSelector(selectorData);
+        verify(replacement).handlerRule(ruleData);
+        verify(handler, never()).handlerPlugin(any());
+        verify(handler, never()).handlerSelector(any());
+        verify(handler, never()).handlerRule(any());
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesConfigurationRemovals() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+        baseDataCache.cachePluginData(pluginData);
+        baseDataCache.cacheSelectData(selectorData);
+        baseDataCache.cacheRuleData(ruleData);
+
+        commonPluginDataSubscriber.unRuleSubscribe(ruleData);
+        commonPluginDataSubscriber.unSelectorSubscribe(selectorData);
+        commonPluginDataSubscriber.unSubscribe(pluginData);
+
+        verify(replacement).removePlugin(pluginData);
+        verify(replacement).removeSelector(selectorData);
+        verify(replacement).removeRule(ruleData);
+        verify(handler, never()).removePlugin(any());
+        verify(handler, never()).removeSelector(any());
+        verify(handler, never()).removeRule(any());
+    }
+
+    @Test
+    public void testExtensionCannotReplaceBuiltInHandler() {
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(List.of(handler), eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide"));
+        PluginData pluginData = plugin("divide", 1);
+
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(handler).handlerPlugin(pluginData);
+        verify(replacement, never()).handlerPlugin(any());
+    }
+
+    @Test
+    public void testRemovedExtensionCanBeRegisteredAgain() {
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide"));
+        commonPluginDataSubscriber.onSubscribe(plugin("divide", 1));
+        verify(handler, never()).handlerPlugin(any());
+
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 2);
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(handler, never()).handlerPlugin(any());
+    }
+
+    @Test
+    public void testRemovalKeepsUnrelatedExtensionHandler() {
+        PluginDataHandler unrelated = mock(PluginDataHandler.class);
+        when(unrelated.pluginNamed()).thenReturn("unrelated");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(unrelated));
+
+        commonPluginDataSubscriber.removeExtendPluginDataHandlers(Set.of("divide", "unknown"));
+        PluginData pluginData = plugin("unrelated", 1);
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        verify(unrelated).handlerPlugin(pluginData);
+    }
+
+    @Test
+    public void testReloadedExtensionReceivesRefreshCallbacks() {
+        PluginDataHandler replacement = mock(PluginDataHandler.class);
+        when(replacement.pluginNamed()).thenReturn("divide");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(replacement));
+        PluginData pluginData = plugin("divide", 1);
+        SelectorData selectorData = selector("selector", 1);
+        RuleData ruleData = rule("rule", 1);
+
+        commonPluginDataSubscriber.onPluginRefresh(List.of(pluginData));
+        commonPluginDataSubscriber.onSelectorRefresh(List.of(selectorData));
+        commonPluginDataSubscriber.onRuleRefresh(List.of(ruleData));
+
+        verify(replacement).handlerPlugin(pluginData);
+        verify(replacement).handlerSelector(selectorData);
+        verify(replacement).handlerRule(ruleData);
+        verify(handler, never()).handlerPlugin(any());
+        verify(handler, never()).handlerSelector(any());
+        verify(handler, never()).handlerRule(any());
     }
 
     @Test

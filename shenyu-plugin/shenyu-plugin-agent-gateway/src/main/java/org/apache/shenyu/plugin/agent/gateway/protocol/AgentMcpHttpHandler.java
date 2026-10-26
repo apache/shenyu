@@ -114,9 +114,9 @@ public final class AgentMcpHttpHandler {
                             .flatMap(request -> {
                                 rpcId.set(request.getId());
                                 observation.parsed(request);
-                                return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(),
-                                        identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
-                                        identity.getToolGrants(), deadline, config.getResultFilters(), config.getHttpTools(), httpInvoker,
+                                return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
+                                        traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters(),
+                                        config.getAllowedResources(), identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
                                         identity.getTenant().orElse(null)))
                                         .contextWrite(observation::traceContext);
                             }))

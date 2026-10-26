@@ -41,9 +41,32 @@ public class WebsocketConfig {
     private boolean initialSyncReadiness;
 
     /**
+     * Accept the compact-v1 Discovery wire projection on this gateway connection.
+     */
+    private boolean compactDiscoveryPayload;
+
+    /**
      * Master check interval in seconds.
      */
     private int masterCheckInterval = 60;
+
+    /**
+     * Whether this gateway accepts compact Discovery payloads.
+     *
+     * @return whether compact payloads are accepted
+     */
+    public boolean isCompactDiscoveryPayload() {
+        return compactDiscoveryPayload;
+    }
+
+    /**
+     * Advertise support after auditing this gateway's Discovery subscribers.
+     *
+     * @param compactDiscoveryPayload whether compact payloads are accepted
+     */
+    public void setCompactDiscoveryPayload(final boolean compactDiscoveryPayload) {
+        this.compactDiscoveryPayload = compactDiscoveryPayload;
+    }
 
     /**
      * Whether the opt-in initial synchronization protocol is required.
@@ -142,12 +165,13 @@ public class WebsocketConfig {
                 && Objects.equals(allowOrigin, that.allowOrigin)
                 && Objects.equals(token, that.token)
                 && initialSyncReadiness == that.initialSyncReadiness
+                && compactDiscoveryPayload == that.compactDiscoveryPayload
                 && masterCheckInterval == that.masterCheckInterval;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, masterCheckInterval);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, compactDiscoveryPayload, masterCheckInterval);
     }
 
     @Override

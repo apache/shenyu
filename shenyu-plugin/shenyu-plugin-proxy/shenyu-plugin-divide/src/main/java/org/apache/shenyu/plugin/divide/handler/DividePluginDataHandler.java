@@ -20,12 +20,14 @@ package org.apache.shenyu.plugin.divide.handler;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
+import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -64,7 +66,11 @@ public class DividePluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
+            DivideRuleHandle divideRuleHandle = CanaryConfigValidator.parseHandle(s);
+            if (Objects.nonNull(divideRuleHandle.getCanary())) {
+                CanaryConfigValidator.validateExtensions(divideRuleHandle.getCanary(),
+                        ParameterDataFactory::newInstance, PredicateJudgeFactory::newInstance);
+            }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean

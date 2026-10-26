@@ -34,6 +34,7 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
 import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
@@ -75,6 +76,7 @@ public class ConnectSessionPresentTest {
         Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
         Singleton.INST.single(SessionRepository.class, new SessionRepository());
         Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
         MqttContext mqttContext = new MqttContext();
         mqttContext.setUserName("shenyu");
         mqttContext.setPassword("shenyu");
