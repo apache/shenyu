@@ -18,19 +18,23 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.HttpMethod;
@@ -39,11 +43,14 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Positive path cache entries must respect all competing candidates.
@@ -144,6 +151,62 @@ class PositiveMatchCacheTest {
         assertSame(generic, plugin.selector);
         assertSame(genericRule, plugin.rule);
         assertEquals(2, plugin.executions);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"TimeAfter,false", "TimeAfter,true", "TimeBefore,false", "TimeBefore,true"})
+    void uriTimePredicatesMustNotMakePositiveResultsReusable(final String operator, final boolean continued) {
+        LocalDateTime boundary = LocalDateTime.of(2026, 1, 1, 12, 0);
+        ConditionData timed = condition("uri", "", "2026-01-01 12:00:00");
+        timed.setOperator(operator);
+        SelectorData genericSelector = selector("selector", List.of(uriCondition()), continued);
+        BaseDataCache.getInstance().cacheSelectData(genericSelector);
+        if (continued) {
+            BaseDataCache.getInstance().cacheRuleData(rule("generic", List.of(uriCondition())));
+            BaseDataCache.getInstance().cacheRuleData(rule("special", List.of(uriCondition(), timed)));
+        } else {
+            BaseDataCache.getInstance().cacheSelectData(selector("special", List.of(uriCondition(), timed), false));
+        }
+        try (MockedStatic<LocalDateTime> time = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS)) {
+            time.when(LocalDateTime::now).thenReturn("TimeAfter".equals(operator) ? boundary.minusSeconds(1) : boundary.plusSeconds(1));
+            execute(false);
+            assertEquals(continued ? "generic" : "selector", continued ? plugin.rule.getId() : plugin.selector.getId());
+            time.when(LocalDateTime::now).thenReturn("TimeAfter".equals(operator) ? boundary.plusSeconds(1) : boundary.minusSeconds(1));
+            execute(false);
+            assertEquals("special", continued ? plugin.rule.getId() : plugin.selector.getId());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void pathCacheMustUseTheSameRewrittenUriAsMatching(final boolean continued) {
+        ConditionData first = condition("uri", "/", "/rewritten/a");
+        ConditionData second = condition("uri", "/", "/rewritten/b");
+        if (continued) {
+            ConditionData either = condition("uri", "/", "/rewritten/**");
+            either.setOperator("match");
+            BaseDataCache.getInstance().cacheSelectData(selector("selector", List.of(either), true));
+            BaseDataCache.getInstance().cacheRuleData(rule("first", List.of(first)));
+            BaseDataCache.getInstance().cacheRuleData(rule("second", List.of(second)));
+        } else {
+            BaseDataCache.getInstance().cacheSelectData(selector("first", List.of(first), false));
+            BaseDataCache.getInstance().cacheSelectData(selector("second", List.of(second), false));
+        }
+        executeRewritten("/a");
+        assertEquals("first", continued ? plugin.rule.getId() : plugin.selector.getId());
+        executeRewritten("/b");
+        assertEquals("second", continued ? plugin.rule.getId() : plugin.selector.getId());
+        executeRewritten("/a");
+        assertEquals("first", continued ? plugin.rule.getId() : plugin.selector.getId());
+    }
+
+    private void executeRewritten(final String realUrl) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/entry"));
+        ShenyuContext context = new ShenyuContext();
+        context.setRealUrl(realUrl);
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.CONTEXT_PATH, "/rewritten");
+        plugin.execute(exchange, next -> Mono.empty()).block();
     }
 
     private void execute(final boolean special) {
