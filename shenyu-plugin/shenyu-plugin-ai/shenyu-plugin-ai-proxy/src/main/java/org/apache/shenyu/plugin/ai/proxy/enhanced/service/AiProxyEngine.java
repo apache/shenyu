@@ -33,10 +33,11 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolRequestOverrides;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRoute;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRoute;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Flux;
@@ -246,10 +247,15 @@ public final class AiProxyEngine {
         provider.capabilities().validate(providerRequest, stream);
         AiProxyProtocol targetProtocol = aiProxyProtocolFactory.getProtocol(route.targetProtocol());
         AiProtocolRequestOverrides requestOverrides = new AiProtocolRequestOverrides(
-                config.getTemperature(), config.getMaxTokens(), providerRequest.hasStream() ? null : config.getStream());
+                config.getTemperature(), config.getMaxTokens(), provider.capabilities().features().contains(
+                        AiProviderCapabilities.Feature.STREAM_USAGE));
         ObjectNode originalPayload = providerRequest.getRawPayload();
+        ObjectNode payloadToPrepare = originalPayload.deepCopy();
+        if (!providerRequest.hasStream() && Objects.nonNull(config.getStream())) {
+            payloadToPrepare.put("stream", stream);
+        }
         ObjectNode outgoingPayload = Objects.requireNonNull(
-                targetProtocol.prepareOutgoingRequest(originalPayload.deepCopy(), requestOverrides),
+                targetProtocol.prepareOutgoingRequest(payloadToPrepare, requestOverrides),
                 "AI protocol prepared payload is required");
         if (!originalPayload.equals(outgoingPayload)) {
             providerRequest.setRawPayload(outgoingPayload);

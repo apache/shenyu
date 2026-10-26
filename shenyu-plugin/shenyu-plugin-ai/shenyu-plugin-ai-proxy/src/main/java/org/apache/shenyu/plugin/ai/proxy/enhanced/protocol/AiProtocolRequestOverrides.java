@@ -22,7 +22,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
  *
  * @param temperature configured temperature override
  * @param maxTokens configured maximum output token override
- * @param stream configured stream default, applied only when absent in the request
+ * @param streamUsage whether the provider supports streaming usage metadata
  */
-public record AiProtocolRequestOverrides(Double temperature, Integer maxTokens, Boolean stream) {
+public record AiProtocolRequestOverrides(Double temperature, Integer maxTokens, boolean streamUsage) {
 }

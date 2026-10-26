@@ -49,6 +49,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,6 +131,35 @@ class AiProxyEngineTest {
         assertTrue(payload.get("unknown").booleanValue());
         assertTrue(payload.get("stream_options").get("include_usage").booleanValue());
         assertEquals("text/event-stream", request.getHeaders().get("Accept").get(0));
+    }
+
+    @Test
+    void testEngineAppliesConfiguredStreamBeforeProviderPreparation() throws Exception {
+        config.setStream(true);
+
+        final AiUpstreamRequest request = engine.buildRequest(
+                "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}", config);
+        final JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertTrue(payload.path("stream").asBoolean());
+        assertTrue(payload.path("stream_options").path("include_usage").asBoolean());
+    }
+
+    @Test
+    void testEngineDoesNotAddStreamUsageForUnsupportedProvider() throws Exception {
+        final AiProviderCapabilities all = AiProviderCapabilities.chat();
+        final EnumSet<AiProviderCapabilities.Feature> features = EnumSet.copyOf(all.features());
+        features.remove(AiProviderCapabilities.Feature.STREAM_USAGE);
+        useCustomProvider(new AiProviderCapabilities(all.protocolBindings(), all.operations(), features),
+                new AtomicInteger());
+        config.setStream(true);
+
+        final AiUpstreamRequest request = engine.buildRequest(
+                "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}", config);
+        final JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+
+        assertTrue(payload.path("stream").asBoolean());
+        assertFalse(payload.has("stream_options"));
     }
 
     @Test

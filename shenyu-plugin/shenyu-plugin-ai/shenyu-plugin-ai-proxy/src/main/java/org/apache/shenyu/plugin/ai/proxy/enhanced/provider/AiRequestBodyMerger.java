@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 final class AiRequestBodyMerger {
 
+    private static final int MAX_MERGE_DEPTH = 16;
+
     private AiRequestBodyMerger() {
     }
 
@@ -41,17 +43,31 @@ final class AiRequestBodyMerger {
      * @return merged target
      */
     static ObjectNode merge(final ObjectNode target, final ObjectNode patch, final boolean force) {
+        validateDepth(patch, 0);
+        return mergeObjects(target, patch, force);
+    }
+
+    private static ObjectNode mergeObjects(final ObjectNode target, final ObjectNode patch, final boolean force) {
         Iterator<Map.Entry<String, JsonNode>> fields = patch.fields();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             JsonNode current = target.get(field.getKey());
             JsonNode value = field.getValue();
             if (value.isObject() && Objects.nonNull(current) && current.isObject()) {
-                merge((ObjectNode) current, (ObjectNode) value, force);
+                mergeObjects((ObjectNode) current, (ObjectNode) value, force);
             } else if (Objects.isNull(current) || force) {
                 target.set(field.getKey(), value.deepCopy());
             }
         }
         return target;
+    }
+
+    private static void validateDepth(final JsonNode node, final int depth) {
+        if (depth > MAX_MERGE_DEPTH) {
+            throw new IllegalArgumentException("AI request-body override exceeds maximum depth " + MAX_MERGE_DEPTH);
+        }
+        if (node.isContainerNode()) {
+            node.elements().forEachRemaining(child -> validateDepth(child, depth + 1));
+        }
     }
 }

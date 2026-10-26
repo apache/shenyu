@@ -41,10 +41,16 @@ public record AiProviderCapabilities(Map<String, AiProviderProtocolBinding> prot
      * Copy declarations so request handling never mutates provider configuration.
      */
     public AiProviderCapabilities {
+        Objects.requireNonNull(protocolBindings, "AI provider protocol bindings are required");
+        protocolBindings.forEach((protocol, binding) -> {
+            if (Objects.isNull(protocol) || protocol.isBlank()) {
+                throw new IllegalArgumentException("AI provider protocol names must not be empty");
+            }
+            if (Objects.isNull(binding)) {
+                throw new IllegalArgumentException("AI provider protocol binding must not be null: " + protocol);
+            }
+        });
         protocolBindings = Map.copyOf(protocolBindings);
-        if (protocolBindings.isEmpty() || protocolBindings.keySet().stream().anyMatch(protocol -> protocol.isBlank())) {
-            throw new IllegalArgumentException("AI provider protocol bindings must use non-empty protocol names");
-        }
         operations = Set.copyOf(operations);
         features = Set.copyOf(features);
     }

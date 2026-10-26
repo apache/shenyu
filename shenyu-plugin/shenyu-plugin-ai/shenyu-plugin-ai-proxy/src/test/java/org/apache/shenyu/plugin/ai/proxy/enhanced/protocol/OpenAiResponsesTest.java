@@ -89,10 +89,10 @@ class OpenAiResponsesTest {
 
         assertEquals(0.2, prepared.path("temperature").asDouble());
         assertEquals(32, prepared.path("max_output_tokens").asInt());
-        assertTrue(prepared.path("stream").asBoolean());
+        assertFalse(prepared.has("stream"));
         assertFalse(prepared.has("max_completion_tokens"));
         assertFalse(prepared.has("stream_options"));
         assertThrows(IllegalArgumentException.class, () -> protocol.prepareOutgoingRequest(payload,
-                new AiProtocolRequestOverrides(null, 0, null)));
+                new AiProtocolRequestOverrides(null, 0, true)));
     }
 }

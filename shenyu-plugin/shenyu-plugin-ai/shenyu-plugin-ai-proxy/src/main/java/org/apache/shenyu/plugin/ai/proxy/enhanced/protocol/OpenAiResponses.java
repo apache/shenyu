@@ -88,9 +88,6 @@ public final class OpenAiResponses implements AiProxyProtocol {
             payload.remove("max_output_tokens");
             payload.put("max_output_tokens", overrides.maxTokens());
         }
-        if (Objects.nonNull(overrides.stream()) && !payload.has("stream")) {
-            payload.put("stream", overrides.stream());
-        }
         return payload;
     }
 }

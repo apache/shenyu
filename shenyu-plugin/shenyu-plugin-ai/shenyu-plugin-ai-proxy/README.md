@@ -163,7 +163,9 @@ provider uses the `openai-chat` patch after Responses-to-Chat conversion.
 
 Patches run after typed protocol overrides and provider transformation. Plain
 JSON objects merge recursively. Arrays, scalars and type mismatches are treated
-as a single value. With `requestBodyForceOverride` unset or `false`, existing
+as a single value. Patches deeper than 16 nested JSON levels are rejected before
+merging to protect request processing from unbounded recursion. With
+`requestBodyForceOverride` unset or `false`, existing
 request or typed-option values win and the patch only fills missing fields. With
 it set to `true`, patch values replace existing values. Therefore a forced patch
 can intentionally replace the provider field generated from `maxTokens`; use
