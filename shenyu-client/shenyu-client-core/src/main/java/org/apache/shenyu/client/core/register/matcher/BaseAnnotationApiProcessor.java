@@ -44,7 +44,7 @@ public abstract class BaseAnnotationApiProcessor<T extends Annotation> implement
     
     @Override
     public boolean match(final ApiBean element) {
-        return false;
+        return true;
     }
     
     /**
@@ -54,6 +54,6 @@ public abstract class BaseAnnotationApiProcessor<T extends Annotation> implement
      * @return true
      */
     public boolean match(final ApiBean.ApiDefinition definition) {
-        return false;
+        return true;
     }
 }

@@ -26,17 +26,30 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttUnsubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttUnsubscribePayload;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for {@link Unsubscribe}.
  */
 public final class UnsubscribeTest {
+
+    @BeforeEach
+    public void setUp() {
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        Singleton.INST.single(SessionRepository.class, new SessionRepository());
+        Singleton.INST.single(SubscribeRepository.class, new SubscribeRepository());
+    }
 
     @Test
     public void unsubscribeBeforeConnectClosesChannel() {
@@ -48,6 +61,18 @@ public final class UnsubscribeTest {
         channel.runPendingTasks();
         assertFalse(channel.isActive());
         assertNull(channel.readOutbound());
+    }
+
+    @Test
+    public void unsubscribeWithoutClientIdStillAcknowledges() {
+        // connected, but the channel repository never saw this channel: the session
+        // bookkeeping must be skipped instead of throwing on a null key
+        EmbeddedChannel channel = new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        new MessageType().setConnected(channel, true);
+
+        new Unsubscribe().unsubscribe(channel.pipeline().lastContext(), unsubscribeMessage());
+
+        assertNotNull(channel.readOutbound(), "UNSUBACK must still be sent");
     }
 
     private MqttUnsubscribeMessage unsubscribeMessage() {

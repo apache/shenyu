@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -44,9 +45,17 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -56,6 +65,8 @@ import static org.mockito.Mockito.mock;
  */
 @ExtendWith(MockitoExtension.class)
 public final class ShenyuWebHandlerTest {
+
+    private static final String TRACE_ID = "4bf92f3577b34da6a3ce929d0e0e4736";
 
     @Mock
     private ShenyuWebHandler shenyuWebHandler;
@@ -89,6 +100,80 @@ public final class ShenyuWebHandlerTest {
     }
 
     @Test
+    public void handleRunsTheChainTimingWithTheTerminalSignal() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        Mono<Void> handle = shenyuWebHandler.handle(exchange);
+        // the chain only runs once it is subscribed, the tracing span is created at that point, so
+        // the chain timing is not read while the chain is assembled.
+        assertNull(exchange.getAttributes().get(Constants.CHAIN_START_TIME));
+        StepVerifier.create(handle).expectSubscription().verifyComplete();
+        assertNull(exchange.getAttributes().get(Constants.CHAIN_START_TIME));
+    }
+
+    @Test
+    public void handleLogsTheSpanTraceIdOnceTheRequestIsSubscribed() {
+        List<ShenyuPlugin> plugins = new ArrayList<>();
+        plugins.add(new TestTracingPlugin());
+        plugins.add(plugin1);
+        ShenyuWebHandler handler = new ShenyuWebHandler(plugins, shenyuLoaderService, new ShenyuConfig());
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        // the plugin timing log is written through the logger of ShenyuPlugin, so the appender is
+        // attached to the root logger to capture both messages.
+        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        Level level = root.getLevel();
+        root.setLevel(Level.DEBUG);
+        root.addAppender(appender);
+        try {
+            StepVerifier.create(handler.handle(exchange)).expectSubscription().verifyComplete();
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(level);
+        }
+        List<String> messages = appender.list.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(Collectors.toList());
+        assertTrue(messages.stream().anyMatch(message -> message.startsWith("shenyu chain handle") && message.contains(TRACE_ID)),
+                "the chain timing log has to carry the span trace id: " + messages);
+        assertTrue(messages.stream().anyMatch(message -> message.startsWith("shenyu traceId:") && message.contains(TRACE_ID)),
+                "the plugin timing log has to carry the span trace id: " + messages);
+    }
+
+    @Test
+    public void handleReportsEachSubscription() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        Level level = root.getLevel();
+        root.setLevel(Level.DEBUG);
+        root.addAppender(appender);
+        Mono<Void> handle = shenyuWebHandler.handle(exchange);
+        try {
+            StepVerifier.create(handle).expectSubscription().verifyComplete();
+            StepVerifier.create(handle).expectSubscription().verifyComplete();
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(level);
+        }
+        long reported = appender.list.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.startsWith("shenyu chain handle"))
+                .count();
+        assertEquals(2, reported, "each subscription must have its own chain timing");
+    }
+
+    @Test
     public void putExtPlugins() {
         shenyuWebHandler.putExtPlugins(Collections.emptyList());
         shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin2()));
@@ -98,6 +183,13 @@ public final class ShenyuWebHandlerTest {
     @Test
     public void putExtPluginsIsSynchronized() throws NoSuchMethodException {
         assertTrue(Modifier.isSynchronized(ShenyuWebHandler.class.getMethod("putExtPlugins", List.class).getModifiers()));
+    }
+
+    @Test
+    public void removeExtPlugins() {
+        shenyuWebHandler.removeExtPlugins(Collections.emptySet());
+        shenyuWebHandler.removeExtPlugins(Set.of(plugin1.named()));
+        assertEquals(Collections.singletonList(plugin2), shenyuWebHandler.getPlugins());
     }
 
     @Test
@@ -225,6 +317,31 @@ public final class ShenyuWebHandlerTest {
         @Override
         public boolean skip(final ServerWebExchange exchange) {
             return ShenyuPlugin.super.skip(exchange);
+        }
+    }
+
+    /**
+     * A plugin which exposes a trace id while the request is subscribed, the way the tracing plugin
+     * does, so that the timing logs of the plugins behind it can be verified.
+     */
+    static class TestTracingPlugin implements ShenyuPlugin {
+
+        @Override
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return Mono.defer(() -> {
+                exchange.getAttributes().put(Constants.SHENYU_AGENT_TRACE_ID, TRACE_ID);
+                return chain.execute(exchange);
+            });
+        }
+
+        @Override
+        public int getOrder() {
+            return 0;
+        }
+
+        @Override
+        public String named() {
+            return "test-tracing-plugin";
         }
     }
 }

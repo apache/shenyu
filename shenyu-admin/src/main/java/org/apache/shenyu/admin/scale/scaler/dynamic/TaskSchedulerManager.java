@@ -17,15 +17,18 @@
 
 package org.apache.shenyu.admin.scale.scaler.dynamic;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.shenyu.admin.scale.config.ScaleProperties;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class TaskSchedulerManager {
@@ -62,6 +65,35 @@ public class TaskSchedulerManager {
     }
 
     /**
+     * Register a task to run once at the specified instant.
+     *
+     * @param taskName taskName
+     * @param task task
+     * @param fireAt fireAt
+     */
+    public void registerOnceTask(final String taskName, final Runnable task, final Instant fireAt) {
+        cancelMonitorTask(taskName);
+        AtomicReference<ScheduledFuture<?>> futureReference = new AtomicReference<>();
+        CountDownLatch registered = new CountDownLatch(1);
+        Runnable oneShotTask = () -> {
+            try {
+                registered.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            ScheduledFuture<?> future = futureReference.get();
+            if (taskMap.remove(taskName, future)) {
+                task.run();
+            }
+        };
+        ScheduledFuture<?> future = scheduler.schedule(oneShotTask, fireAt);
+        futureReference.set(future);
+        taskMap.put(taskName, future);
+        registered.countDown();
+    }
+
+    /**
      * cancelMonitorTask.
      *
      * @param taskName taskName
@@ -75,8 +107,9 @@ public class TaskSchedulerManager {
 
 
     /**
-     * shutdown.
+     * Release monitor tasks and the scheduler when the application context closes.
      */
+    @PreDestroy
     public void shutdown() {
         taskMap.values().forEach(future -> future.cancel(true));
         scheduler.shutdown();

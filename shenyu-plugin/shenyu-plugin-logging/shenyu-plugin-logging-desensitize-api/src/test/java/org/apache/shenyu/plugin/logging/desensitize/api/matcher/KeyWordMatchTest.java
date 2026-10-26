@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,4 +60,41 @@ class KeyWordMatchTest {
         Assertions.assertTrue(match.matches("ab[secret]yz"));
         Assertions.assertTrue(match.matches("ab[other]yz"));
     }
+
+    @Test
+    public void matchesShouldNotAcceptTheEmptyKeyword() {
+        Assertions.assertFalse(keyWordMatch.matches(""), "an empty key must not be treated as a sensitive keyword");
+    }
+
+    @Test
+    public void matchesShouldIgnoreBlankTokensFromSplitKeywords() {
+        // keywords.split(";") on a value like "password;;name" contributes empty tokens
+        Set<String> mixed = new HashSet<>(Arrays.asList("password", ""));
+        KeyWordMatch match = new KeyWordMatch(mixed);
+        Assertions.assertFalse(match.matches(""), "an empty token must not recreate the empty-alternative bug");
+        Assertions.assertTrue(match.matches("password"));
+
+        Set<String> leadingBlank = new HashSet<>(Arrays.asList("", "name"));
+        Assertions.assertFalse(new KeyWordMatch(leadingBlank).matches(""));
+    }
+
+    @Test
+    public void matchesShouldNeverMatchWhenAllTokensAreBlank() {
+        Set<String> allBlank = new HashSet<>(Arrays.asList("", "   "));
+        KeyWordMatch match = new KeyWordMatch(allBlank);
+        Assertions.assertFalse(match.matches(""));
+        Assertions.assertFalse(match.matches("anything"));
+    }
+
+    @Test
+    public void matchesShouldKeepKeywordSemantics() {
+        Set<String> set = new HashSet<>();
+        set.add("password");
+        KeyWordMatch match = new KeyWordMatch(set);
+
+        Assertions.assertTrue(match.matches("password"));
+        Assertions.assertTrue(match.matches("PASSWORD"));
+        Assertions.assertFalse(match.matches("userName"));
+    }
+
 }

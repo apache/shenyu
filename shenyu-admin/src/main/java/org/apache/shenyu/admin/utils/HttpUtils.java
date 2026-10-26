@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.utils;
 
 import okhttp3.Cookie;
+import okhttp3.ConnectionPool;
+import okhttp3.Dns;
 import okhttp3.CookieJar;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
@@ -43,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -354,6 +357,26 @@ public class HttpUtils {
         return client
             .newCall(request)
             .execute();
+    }
+
+    /**
+     * Fetch an external document using DNS returned by {@link UrlSecurityUtils#validatedDns}.
+     * The URL must be the same URL that was validated. Isolate connections from the ordinary
+     * client, bypass proxies and reject redirects so only validated destinations are used.
+     * @param url validated URL
+     * @param validatedDns pinned DNS for the validated URL
+     * @return response which the caller must close
+     * @throws IOException if the request fails
+     */
+    public Response requestForValidatedResponse(final String url, final Dns validatedDns) throws IOException {
+        OkHttpClient client = httpClient.newBuilder()
+                .dns(validatedDns)
+                .proxy(Proxy.NO_PROXY)
+                .connectionPool(new ConnectionPool(0, 1, TimeUnit.SECONDS))
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .build();
+        return client.newCall(new Request.Builder().url(url).get().build()).execute();
     }
 
     /**

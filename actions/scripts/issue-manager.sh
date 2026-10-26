@@ -20,6 +20,7 @@
 # Minimal issue manager script to handle a subset of prow-style commands
 # Reads the GitHub issue_comment event JSON pointed to by GITHUB_EVENT_PATH
 # Requires GITHUB_TOKEN env and GITHUB_REPOSITORY env (owner/repo)
+# Pull request commands are handled by the dedicated pull request command workflow.
 #
 # Supported Commands:
 # -------------------
@@ -28,6 +29,7 @@
 # /assign         | Assign issue to users       | /assign or /assign @user     | Normal
 # /unassign       | Unassign users              | /unassign or /unassign @user | Normal
 # /lgtm           | Add lgtm label              | /lgtm                        | Normal
+# /unlgtm         | Remove lgtm label           | /unlgtm                      | Normal
 # /approve        | Add approved label          | /approve                     | Normal
 # /area           | Add area label              | /area plugin                 | Normal
 # /priority       | Add priority label          | /priority high               | Normal
@@ -68,6 +70,7 @@ read_event() {
 COMMENT_BODY=$(read_event '.comment.body')
 ISSUE_NUMBER=$(read_event '.issue.number')
 COMMENT_USER=$(read_event '.comment.user.login')
+IS_PULL_REQUEST=$(read_event '.issue.pull_request != null')
 
 OWNER=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f1)
 REPO=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)
@@ -156,6 +159,12 @@ normalize_user() {
 process_command() {
   local line="$1"
   line="$(echo "$line" | sed -e 's/^\s*//' -e 's/\s*$//')"
+  # Do not replay PR commands owned by the dedicated created-comment workflows.
+  if [ "$IS_PULL_REQUEST" = true ]; then
+    case "$line" in
+      \/assign*|\/unassign*|\/close|\/reopen|\/lgtm|\/unlgtm|\/cc*|\/uncc*|\/hold|\/unhold|\/retest) return ;;
+    esac
+  fi
   case "$line" in
     \/assign*)
       args="${line#\/assign}"
@@ -187,6 +196,9 @@ process_command() {
       ;;
     \/lgtm)
       add_label "lgtm"
+      ;;
+    \/unlgtm)
+      remove_label "lgtm"
       ;;
     \/approve)
       add_label "approved"

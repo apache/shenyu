@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sdk.core;
 
-import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +39,7 @@ public class ShenyuResponseTest {
                 headerMap, null, null, null);
 
         ShenyuResponse response = new ShenyuResponse(
-                HttpStatus.SC_OK,
+                200,
                 "success",
                 headerMap,
                 body,

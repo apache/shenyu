@@ -24,9 +24,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,5 +83,45 @@ public final class ModifyResponsePluginDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         assertEquals(modifyResponsePluginDataHandler.pluginNamed(), PluginEnum.MODIFY_RESPONSE.getName());
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" ", "\t\r\n"})
+    public void testBlankHandleClearsCachedRule(final String handle) {
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        assertNotNull(ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        when(ruleData.getHandle()).thenReturn(handle);
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        assertNull(ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        assertNull(ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testNullHandleRetainsCachedRule() {
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        ModifyResponseRuleHandle cached = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(key);
+
+        when(ruleData.getHandle()).thenReturn(null);
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+
+        assertSame(cached, ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(key));
+    }
+
+    @Test
+    public void testEmptyObjectReplacesCachedRule() {
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+        when(ruleData.getHandle()).thenReturn("{}");
+
+        modifyResponsePluginDataHandler.handlerRule(ruleData);
+
+        ModifyResponseRuleHandle cached = ModifyResponsePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        assertNotNull(cached);
+        assertEquals(0, cached.getStatusCode());
     }
 }

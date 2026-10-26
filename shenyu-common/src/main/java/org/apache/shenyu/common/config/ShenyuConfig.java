@@ -21,9 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.apache.shenyu.common.constant.Constants;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,6 +65,8 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+
+    private TracingConfig tracing = new TracingConfig();
 
     private SelectorMatchCache selectorMatchCache = new SelectorMatchCache();
     
@@ -144,6 +148,24 @@ public class ShenyuConfig {
      */
     public void setMetrics(final MetricsConfig metrics) {
         this.metrics = metrics;
+    }
+
+    /**
+     * Gets tracing.
+     *
+     * @return the tracing
+     */
+    public TracingConfig getTracing() {
+        return tracing;
+    }
+
+    /**
+     * Sets tracing.
+     *
+     * @param tracing the tracing
+     */
+    public void setTracing(final TracingConfig tracing) {
+        this.tracing = tracing;
     }
     
     /**
@@ -668,6 +690,32 @@ public class ShenyuConfig {
         
         private long maximumSize = 10000L;
         
+        /**
+         * Match result lifetime in milliseconds. Shorter values reduce stale reuse but increase matching work.
+         */
+        private long ttl = 60000L;
+
+        /**
+         * Get the match result lifetime.
+         *
+         * @return lifetime in milliseconds
+         */
+        public long getTtl() {
+            return ttl;
+        }
+
+        /**
+         * Set the match result lifetime.
+         *
+         * @param ttl positive lifetime in milliseconds
+         */
+        public void setTtl(final long ttl) {
+            if (ttl <= 0) {
+                throw new IllegalArgumentException("Match cache ttl must be positive");
+            }
+            this.ttl = ttl;
+        }
+
         /**
          * get rule cache enabled.
          *
@@ -1664,9 +1712,10 @@ public class ShenyuConfig {
         private Integer corePoolSize = 200;
 
         /**
-         * the maximum number of threads to allow in the thread pool.
+         * The maximum number of threads to allow in the thread pool.
+         * Defaults to corePoolSize so the eager queue cannot create unbounded workers.
          */
-        private Integer maximumPoolSize = Integer.MAX_VALUE;
+        private Integer maximumPoolSize;
 
         /**
          * when the number of threads is greater than the core,
@@ -1753,7 +1802,7 @@ public class ShenyuConfig {
          * @return the shared thread pool name prefix
          */
         public Integer getMaximumPoolSize() {
-            return maximumPoolSize;
+            return Objects.isNull(maximumPoolSize) ? corePoolSize : maximumPoolSize;
         }
     
         /**
@@ -1944,6 +1993,230 @@ public class ShenyuConfig {
         }
     }
 
+    /**
+     * The tracing config.
+     */
+    public static class TracingConfig {
+
+        private boolean enabled;
+
+        private String serviceName = "shenyu-gateway";
+
+        private boolean createSpan = true;
+
+        private String sampler = "parent_based";
+
+        private double sampleRatio = 0.1D;
+
+        private Properties resourceAttributes;
+
+        private OtlpConfig otlp = new OtlpConfig();
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Gets service name.
+         *
+         * @return the service name
+         */
+        public String getServiceName() {
+            return serviceName;
+        }
+
+        /**
+         * Sets service name.
+         *
+         * @param serviceName the service name
+         */
+        public void setServiceName(final String serviceName) {
+            this.serviceName = serviceName;
+        }
+
+        /**
+         * Gets create span.
+         *
+         * @return true while the gateway creates a span of its own
+         */
+        public boolean getCreateSpan() {
+            return createSpan;
+        }
+
+        /**
+         * Sets create span, it is disabled for a deployment which instruments the gateway already,
+         * for example with a java agent, so that the request is only propagated.
+         *
+         * @param createSpan the create span
+         */
+        public void setCreateSpan(final boolean createSpan) {
+            this.createSpan = createSpan;
+        }
+
+        /**
+         * Gets sampler.
+         *
+         * @return the sampler, one of parent_based, always_on, always_off and ratio, where
+         *         parent_based continues the decision of the client, always_on and always_off decide
+         *         about every request, and ratio continues the decision of the client while it
+         *         samples a request which carries no parent context with the given ratio
+         */
+        public String getSampler() {
+            return sampler;
+        }
+
+        /**
+         * Sets sampler, one of parent_based, always_on, always_off and ratio. The parent based
+         * sampler, which is the default, continues the decision of the client and samples a request
+         * which does not carry a decision, always_on and always_off decide about every request,
+         * including the request of a client which has decided already, and the ratio sampler
+         * continues the decision of the client as well, while it samples a request which carries no
+         * parent context with the given ratio.
+         *
+         * @param sampler the sampler
+         */
+        public void setSampler(final String sampler) {
+            this.sampler = sampler;
+        }
+
+        /**
+         * Gets sample ratio.
+         *
+         * @return the sample ratio, which is only used by the ratio sampler, and only for the
+         *         requests which carry no parent context
+         */
+        public double getSampleRatio() {
+            return sampleRatio;
+        }
+
+        /**
+         * Sets sample ratio, which is only used by the ratio sampler, and only for the requests
+         * which carry no parent context, because a request which carries a valid trace context
+         * keeps the sampling decision of the client.
+         *
+         * @param sampleRatio the sample ratio
+         */
+        public void setSampleRatio(final double sampleRatio) {
+            this.sampleRatio = sampleRatio;
+        }
+
+        /**
+         * Gets resource attributes.
+         *
+         * @return the resource attributes
+         */
+        public Properties getResourceAttributes() {
+            return resourceAttributes;
+        }
+
+        /**
+         * Sets resource attributes.
+         *
+         * @param resourceAttributes the resource attributes
+         */
+        public void setResourceAttributes(final Properties resourceAttributes) {
+            this.resourceAttributes = resourceAttributes;
+        }
+
+        /**
+         * Gets the otlp exporter config.
+         *
+         * @return the otlp config
+         */
+        public OtlpConfig getOtlp() {
+            return otlp;
+        }
+
+        /**
+         * Sets the otlp exporter config.
+         *
+         * @param otlp the otlp config
+         */
+        public void setOtlp(final OtlpConfig otlp) {
+            this.otlp = otlp;
+        }
+
+        /**
+         * The otlp exporter config of the tracing plugin.
+         */
+        public static class OtlpConfig {
+
+            private String endpoint;
+
+            private Duration timeout = Duration.ofSeconds(10);
+
+            private Properties headers;
+
+            /**
+             * Gets endpoint.
+             *
+             * @return the endpoint, empty while the spans are not exported
+             */
+            public String getEndpoint() {
+                return endpoint;
+            }
+
+            /**
+             * Sets endpoint, the traces endpoint of the collector, for example
+             * http://127.0.0.1:4318/v1/traces.
+             *
+             * @param endpoint the endpoint
+             */
+            public void setEndpoint(final String endpoint) {
+                this.endpoint = endpoint;
+            }
+
+            /**
+             * Gets timeout.
+             *
+             * @return the timeout
+             */
+            public Duration getTimeout() {
+                return timeout;
+            }
+
+            /**
+             * Sets timeout.
+             *
+             * @param timeout the timeout
+             */
+            public void setTimeout(final Duration timeout) {
+                this.timeout = timeout;
+            }
+
+            /**
+             * Gets headers.
+             *
+             * @return the headers of the export request
+             */
+            public Properties getHeaders() {
+                return headers;
+            }
+
+            /**
+             * Sets headers of the export request, for example an authorization header.
+             *
+             * @param headers the headers
+             */
+            public void setHeaders(final Properties headers) {
+                this.headers = headers;
+            }
+        }
+    }
 
     public static class SpringCloudCacheConfig {
         private Boolean enabled = Boolean.FALSE;

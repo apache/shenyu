@@ -77,4 +77,3 @@ public final class PluginResourceTransactionTest extends AbstractSpringIntegrati
         assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM permission WHERE resource_id = ?", Integer.class, resourceId));
     }
 }
-
