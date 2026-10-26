@@ -30,6 +30,7 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
@@ -42,6 +43,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * abstract shenyu plugin please extends.
@@ -51,6 +53,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
+
+    private static final Set<String> PATH_ONLY_OPERATORS = Set.of("=", "equals", "contains", "startsWith", "endsWith",
+            "match", "regex", "exclude", "pathPattern", "isBlank");
 
     private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
     
@@ -145,7 +150,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     protected String getRawPath(final ServerWebExchange exchange) {
-        return exchange.getRequest().getURI().getRawPath();
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
     
     private void initCacheConfig() {
@@ -304,7 +309,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
             // cache selector data
-            if (matchSelectorPair.getLeft()) {
+            if (matchSelectorPair.getLeft() && selectors.stream().filter(SelectorData::getEnabled)
+                    .allMatch(selector -> !Boolean.TRUE.equals(selector.getMatchRestful()) && pathOnlyConditions(selector.getConditionList()))) {
                 cacheSelectorData(path, selectorData);
             }
             return selectorData;
@@ -323,7 +329,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
             // cache rule data
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
+                    .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
@@ -337,6 +344,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
+    private boolean pathOnlyConditions(final List<ConditionData> conditions) {
+        // A path cache hit skips the entire candidate set, including candidates that did not
+        // match the warming request but could win for different request attributes.
+        // Time predicates and unknown SPI operators can depend on state outside the URI.
+        return CollectionUtils.isNotEmpty(conditions) && conditions.stream().allMatch(condition -> Objects.nonNull(condition)
+                && URI_CONDITION_TYPE.equals(condition.getParamType()) && Objects.nonNull(condition.getOperator())
+                && PATH_ONLY_OPERATORS.contains(condition.getOperator()));
+    }
+
     /**
      * print selector log.
      * please don't delete this method or refactor {@linkplain org.apache.shenyu.plugin.base.AbstractShenyuPlugin#printLog}
