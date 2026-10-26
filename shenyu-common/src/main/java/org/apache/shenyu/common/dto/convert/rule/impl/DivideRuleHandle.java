@@ -20,6 +20,7 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
+import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfig;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
@@ -69,6 +70,11 @@ public class DivideRuleHandle implements RuleHandle {
      * Canary routing configuration.
      */
     private CanaryConfig canary;
+
+    /**
+     * Optional sticky session affinity configuration.
+     */
+    private StickySessionConfig sticky;
 
     /**
      * New instance divide rule handle.
@@ -205,6 +211,25 @@ public class DivideRuleHandle implements RuleHandle {
         this.canary = canary;
     }
 
+    /**
+     * get sticky.
+     *
+     * @return sticky
+     */
+    public StickySessionConfig getSticky() {
+        return sticky;
+    }
+
+    /**
+     * set sticky.
+     *
+     * @param sticky sticky
+     */
+    public void setSticky(final StickySessionConfig sticky) {
+        this.sticky = sticky;
+    }
+
+
     public String getRetryBackOffSpec() {
         return retryBackOffSpec;
     }
@@ -225,12 +250,13 @@ public class DivideRuleHandle implements RuleHandle {
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
                 && Objects.equals(retryStrategy, that.retryStrategy)
-                && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary);
+                && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
+                && Objects.equals(sticky, that.sticky);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary, sticky);
     }
 
     @Override
@@ -255,6 +281,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + requestMaxSize
                 + ", canary="
                 + canary
+                + ", sticky="
+                + sticky
                 + '}';
     }
 }

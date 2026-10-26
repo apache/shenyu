@@ -308,6 +308,17 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(1, manager.findUpstreamListBySelectorId("handler").size());
     }
 
+    @Test
+    public void testDrainingUpstreamIsNotSelectable() {
+        publish(List.of(instance("sibling:8080", "{}"), instance("draining:8080", "{\"draining\":true}")));
+        List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, upstreams.size());
+        assertEquals("sibling:8080", upstreams.get(0).getUrl());
+        // draining travels through props into the loadbalancer entity, not through status
+        publish(List.of(instance("sibling:8080", "{}"), instance("draining:8080", "{}")));
+        assertEquals(2, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
+    }
+
     private DiscoveryUpstreamData instance(final String url, final String props) {
         return DiscoveryUpstreamData.builder().protocol("http://").url(url).status(0).props(props).build();
     }
