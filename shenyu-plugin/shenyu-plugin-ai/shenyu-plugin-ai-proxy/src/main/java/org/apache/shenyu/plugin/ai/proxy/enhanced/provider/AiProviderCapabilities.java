@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 
 import java.util.EnumSet;
 import java.util.Objects;
@@ -30,7 +29,7 @@ import java.util.Set;
 /**
  * Declared provider capabilities, independent of HTTP execution and model discovery.
  *
- * @param protocols supported client protocols
+ * @param protocols protocols accepted by the provider-facing request builder
  * @param operations supported AI operations
  * @param features supported request features
  */
@@ -46,13 +45,13 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
     }
 
     /**
-     * General Chat upstream capabilities, including conversion from Responses clients.
+     * General OpenAI Chat upstream capabilities.
      *
      * @return general capabilities
      */
     public static AiProviderCapabilities chat() {
-        return new AiProviderCapabilities(Set.of(OpenAiChat.NAME, OpenAiResponses.NAME),
-                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION, ShenyuAiRequest.Operation.RESPONSE),
+        return new AiProviderCapabilities(Set.of(OpenAiChat.NAME),
+                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION),
                 EnumSet.of(Feature.STREAMING, Feature.TOOL_CALLING, Feature.CUSTOM_TOOLS, Feature.JSON_MODE,
                         Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT));
     }

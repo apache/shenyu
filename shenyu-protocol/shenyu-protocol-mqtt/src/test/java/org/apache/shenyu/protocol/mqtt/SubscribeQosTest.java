@@ -22,6 +22,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessageBuilders;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.Attribute;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -113,6 +115,19 @@ public class SubscribeQosTest {
 
         MqttTopicSubscription subscription = subscription(session, "test/qos");
         assertEquals(MqttQoS.AT_MOST_ONCE, subscription.qualityOfService());
+    }
+
+    @Test
+    public void subscribeWithoutClientIdStillAcknowledges() {
+        // connected, but the channel repository never saw this channel: there is no
+        // client id, so the session bookkeeping must be skipped instead of throwing
+        // on a null key and leaving the SUBSCRIBE unacknowledged
+        new Subscribe().subscribe(ctx, MqttMessageBuilders.subscribe()
+                .messageId(7)
+                .addSubscription(MqttQoS.AT_LEAST_ONCE, "test/no-client")
+                .build());
+
+        verify(channel).writeAndFlush(any(MqttSubAckMessage.class));
     }
 
     private MqttTopicSubscription subscription(final MqttSession session, final String topic) {

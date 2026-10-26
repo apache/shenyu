@@ -91,6 +91,13 @@ update SQL with stale, zero, newer and equal heartbeat timestamps. The H2 servic
 suite additionally forces two independent writers to observe absence before
 either insert, in both insertion orders, and verifies caller-transaction suspension.
 
+Mock-request header checks preserve a legacy header/body row across the complete
+upgrade chain and insert a 6,000-character header in both flows. The H2 mapper
+suite covers API create/update, selective/batch inserts, 60,000-character equality
+filters, Unicode and absent-header defaults; a separate H2 migration test verifies
+existing rows survive the documented type alteration. Oracle expression handling
+has dedicated interceptor regressions.
+
 ## Local execution
 
 With a Linux Docker daemon available, from the repository root:

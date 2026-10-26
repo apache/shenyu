@@ -30,6 +30,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.WillRepository.WillEntry;
 import org.junit.jupiter.api.AfterAll;
@@ -95,6 +96,7 @@ public final class ConnectTest {
         willRepository = new WillRepository();
         Singleton.INST.single(ChannelRepository.class, channelRepository);
         Singleton.INST.single(WillRepository.class, willRepository);
+        Singleton.INST.single(InflightRepository.class, new InflightRepository());
     }
 
     @AfterEach

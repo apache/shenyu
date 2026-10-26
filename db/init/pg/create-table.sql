@@ -321,7 +321,7 @@ CREATE TABLE "public"."mock_request_record"  (
   "url" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "path_variable" varchar(255) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
   "query" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
-  "header" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
+  "header" text COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
   "body" text COLLATE "pg_catalog"."default",
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)

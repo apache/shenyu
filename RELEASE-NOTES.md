@@ -26,7 +26,41 @@
 
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
+### Observability
+
+- Divide Canary routing exports `shenyu_canary_requests_total` by configured
+  selector/rule, partition and terminal outcome, `shenyu_canary_fallback_total`
+  for successful initial Canary-to-Stable fallback, and
+  `shenyu_canary_decision_duration_seconds` for the initial decision only.
+  Internal retries do not add logical requests. These metrics use the existing
+  Metrics plugin and Prometheus endpoint; `shenyu_execute_latency_millis`
+  retains its existing labels, unit and recording behavior.
+
 ### Behavior Changes
+
+- In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
+  field section: header names, field values, line framing (`: ` and CRLF),
+  and section-terminating CRLF. Previously only header values were counted. Existing
+  deployments with strict `headerMaxSize` limits may see requests near the boundary
+  rejected; adjust `headerMaxSize` if needed. (#7818)
+
+- The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
+  concurrent requests that miss the same response cache key share one upstream
+  fill on that gateway instance instead of one per request, and the followers
+  replay the captured bytes as a cache hit would. A response that the cache would
+  not have stored, a fill that errors, a follower that waits longer than
+  `singleFlightWaitTimeoutMillis`, a full waiter set and a response above
+  `singleFlightMaxResponseBytes` all fall back to forwarding that request, so
+  coalescing never widens cache eligibility or merges responses kept apart by
+  cookie, `Vary` or cache-control rules. Bounds are set by
+  `singleFlightMaxKeys`, `singleFlightMaxWaiters`, `singleFlightWaitTimeoutMillis`,
+  `singleFlightFillTimeoutMillis` and `singleFlightMaxResponseBytes`. The feature
+  is disabled by default and absent configuration preserves the previous
+  one-forward-per-request behavior. Coordination is per gateway instance: replicas
+  still fill the same key independently and no distributed lock is taken. Set
+  `singleFlightWaitTimeoutMillis` to at least the upstream p99, otherwise slow
+  upstreams finish after followers have already given up and the burst is not
+  collapsed. (#7932)
 
 - Agent Gateway adds explicit local/remote resource lists, simple URI templates
   and reads, with independent `allowedResources`/trusted resource grants and
