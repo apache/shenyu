@@ -18,31 +18,36 @@
 package org.apache.shenyu.e2e.testcase.logging.rocketmq;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.e2e.client.WaitDataSync;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.PluginData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+import static org.awaitility.Awaitility.await;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -70,6 +75,8 @@ public class DividePluginTest {
 
     private List<String> selectorIds = Lists.newArrayList();
 
+    private List<String> ruleIds = Lists.newArrayList();
+
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
         spec.getChecker().check(gateway);
@@ -80,7 +87,7 @@ public class DividePluginTest {
             selectorIds.add(dto.getId());
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
-                client.create(rule);
+                ruleIds.add(client.create(rule).getId());
             });
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
@@ -90,23 +97,40 @@ public class DividePluginTest {
             }
         }
 
+        // Admin creation does not imply that the gateway has received the logging rules.
+        if (!selectorIds.isEmpty()) {
+            ConfigSyncHelper.awaitCreated(gateway, selectorIds, ruleIds);
+        }
         spec.getWaiting().waitFor(gateway);
     }
 
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
+        ConfigSyncHelper.awaitDeleted(gateway, selectorIds, ruleIds);
         spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
+        ruleIds = Lists.newArrayList();
+    }
+
+    static void waitForPluginConfiguration(final GatewayClient gateway, final String config) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        await().alias("RocketMQ logging plugin configuration applied to gateway")
+                .atMost(Duration.ofSeconds(30))
+                .untilAsserted(() -> {
+                    PluginData plugin = gateway.getPluginCache().values().stream()
+                            .filter(data -> "loggingRocketMQ".equals(data.getName()) && SYS_DEFAULT_NAMESPACE_NAMESPACE_ID.equals(data.getNamespaceId()))
+                            .findFirst().orElse(null);
+                    Assertions.assertNotNull(plugin, "RocketMQ logging plugin is not synchronized");
+                    Assertions.assertEquals(Boolean.TRUE, plugin.getEnabled());
+                    Assertions.assertEquals(mapper.readTree(config), mapper.readTree(plugin.getConfig()));
+                });
     }
 
     @BeforeAll
     void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        DividePluginCases.initializeTopic();
         
         LOG.info("start loggingRocketMQ plugin");
         Map<String, String> reqBody = new HashMap<>();
@@ -118,9 +142,7 @@ public class DividePluginTest {
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         reqBody.put("config", "{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"rocketmq-dialevoneid:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}");
         adminClient.changePluginStatus("1801816010882822166", reqBody);
-        Map<String, Integer> plugins = gatewayClient.getPlugins();
-        LOG.info("shenyu e2e plugin list ={}", plugins);
-        WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.logging.rocketmq.LoggingRocketMQPlugin");
+        waitForPluginConfiguration(gatewayClient, reqBody.get("config"));
         
     }
 

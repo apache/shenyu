@@ -62,8 +62,11 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
 
-    @SuppressWarnings("unchecked")
-    private static Set<String> supportSwaggerPluginSet = Collections.emptySet();
+    /**
+     * Written by {@link #loadApiDocument()} and read from discovery sync callbacks on other threads,
+     * so it must be volatile to be safely published.
+     */
+    private volatile Set<String> supportSwaggerPluginSet = Collections.emptySet();
 
     private final SelectorService selectorService;
 
@@ -182,7 +185,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Collections.emptyList();
         }
-        supportSwaggerPluginSet = new HashSet<>(pluginNames);
+        supportSwaggerPluginSet = Collections.unmodifiableSet(new HashSet<>(pluginNames));
         List<String> pluginIds = pluginDOList.stream().map(PluginDO::getId).collect(Collectors.toList());
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginIds, null, new PageParameter(1, Integer.MAX_VALUE), SYS_DEFAULT_NAMESPACE_ID));
         List<SelectorVO> clusterList = commonPager.getDataList();

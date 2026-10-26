@@ -41,9 +41,24 @@ add_module() {
   modules+=("${module}")
 }
 
+is_root_reactor_module() {
+  local module="$1"
+  local candidate="${module}"
+
+  while [[ "${candidate}" == */* ]]; do
+    if grep -Fq "<module>${candidate}</module>" pom.xml; then
+      return 0
+    fi
+    candidate="${candidate%/*}"
+  done
+
+  grep -Fq "<module>${candidate}</module>" pom.xml
+}
+
 find_module() {
   local path="$1"
   local dir
+  local module
 
   if [[ -d "${path}" ]]; then
     dir="${path}"
@@ -53,7 +68,10 @@ find_module() {
 
   while [[ "${dir}" != "." && "${dir}" != "/" ]]; do
     if [[ -f "${dir}/pom.xml" ]]; then
-      printf '%s\n' "${dir#./}"
+      module="${dir#./}"
+      if is_root_reactor_module "${module}"; then
+        printf '%s\n' "${module}"
+      fi
       return
     fi
     dir="$(dirname "${dir}")"
@@ -64,7 +82,10 @@ is_ignored_change() {
   local file="$1"
 
   case "${file}" in
-    .github/*|*.md|*.txt|resources/static/*|.asf.yaml|.gitignore|.licenserc.yaml|LICENSE|NOTICE|*/LICENSE|*/NOTICE)
+    *.png|*.jpg|*.jpeg|*.gif|*.svg|*.ico|*.pdf|*.doc|*.docx|DISCLAIMER|*/resources/static/*)
+      return 0
+      ;;
+    .github/*|shenyu-e2e/*|shenyu-integrated-test/*|*.md|*.txt|resources/static/*|.asf.yaml|.gitignore|.licenserc.yaml|LICENSE|NOTICE|*/LICENSE|*/NOTICE)
       return 0
       ;;
   esac
@@ -95,9 +116,21 @@ while IFS= read -r file; do
     module="$(find_module "${file}")"
     if [[ -n "${module:-}" ]]; then
       add_module "${module}"
+    else
+      full_build_required=true
     fi
   fi
 done < <(printf '%s' "${changed_files_json}" | jq -r '.[]')
+
+# SPI changes can affect modules that consume shared classes without declaring a
+# direct Maven dependency on every transitive module. Build the full reactor so
+# those modules cannot silently use a stale SNAPSHOT from the Maven cache.
+for module in "${modules[@]}"; do
+  if [[ "${module}" == "shenyu-spi" ]]; then
+    full_build_required=true
+    break
+  fi
+done
 
 if [[ "${has_code_changes}" == "true" && ("${#modules[@]}" -eq 0 || "${#modules[@]}" -gt "${max_modules}") ]]; then
   full_build_required=true

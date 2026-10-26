@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -42,13 +43,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,6 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -148,7 +153,7 @@ public class ShenyuToolCallback implements ToolCallback {
             final String configStr = extractRequestConfig(shenyuTool);
 
             // Get pre-stored exchange and plugin chain
-            final ServerWebExchange originExchange = getOriginExchange(sessionId);
+            final ServerWebExchange originExchange = getOriginExchange(mcpExchange, sessionId);
             final ShenyuPluginChain chain = getPluginChain(originExchange);
 
             // Execute the tool call through the plugin chain
@@ -219,6 +224,15 @@ public class ShenyuToolCallback implements ToolCallback {
                                    final String sessionId,
                                    final String configStr,
                                    final String input) {
+        return executeToolCall(originExchange, chain, sessionId, configStr, input, DEFAULT_TIMEOUT_SECONDS);
+    }
+
+    String executeToolCall(final ServerWebExchange originExchange,
+                           final ShenyuPluginChain chain,
+                           final String sessionId,
+                           final String configStr,
+                           final String input,
+                           final long timeoutSeconds) {
 
         final RequestConfigHelper configHelper = new RequestConfigHelper(configStr);
         final String toolMethod = configHelper.getMethod();
@@ -236,7 +250,7 @@ public class ShenyuToolCallback implements ToolCallback {
         final boolean isTemporarySession = sessionId.startsWith("temp_");
 
         // Execute the plugin chain asynchronously
-        chain.execute(decoratedExchange)
+        final Disposable disposable = chain.execute(decoratedExchange)
                 .doOnSubscribe(s -> LOG.debug("Plugin chain subscribed for session: {}", sessionId))
                 .doOnError(e -> {
                     LOG.error("Plugin chain execution failed for session {}: {}", sessionId, e.getMessage(), e);
@@ -267,11 +281,15 @@ public class ShenyuToolCallback implements ToolCallback {
 
         // Wait for the response with timeout
         try {
-            final String result = responseFuture.get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            final String result = responseFuture.get(timeoutSeconds, TimeUnit.SECONDS);
             LOG.debug("Tool call completed successfully for session: {}", sessionId);
             return result;
         } catch (Exception e) {
             LOG.error("Timeout or error waiting for response for session {}: {}", sessionId, e.getMessage(), e);
+
+            if (e instanceof TimeoutException) {
+                disposable.dispose();
+            }
 
             // Ensure cleanup on error for temporary sessions
             if (isTemporarySession) {
@@ -363,12 +381,15 @@ public class ShenyuToolCallback implements ToolCallback {
         final String urlTemplate = configHelper.getUrlTemplate();
         final String method = configHelper.getMethod();
         final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
+        final MediaType contentType = resolveCustomHeaders(requestTemplate, inputJson).getContentType();
+        final boolean formatJsonStrings = Objects.isNull(contentType) || MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                || contentType.getSubtype().endsWith("+json");
 
         // Build path and query parameters (no formatting needed for URLs)
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
 
         // Build body with parameter formatting (only format body parameters that need it)
-        JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
+        JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson, formatJsonStrings);
         // Fallback: if argsToJsonBody is false but input has content for body methods, use the raw input as body
         if (!argsToJsonBody && bodyJson.size() == 0 && isRequestBodyMethod(method) && inputJson.size() > 0) {
             LOG.warn("Using fallback body mapping: argsToJsonBody=false and no body-mapped args, "
@@ -388,9 +409,10 @@ public class ShenyuToolCallback implements ToolCallback {
      * @param argsToJsonBody whether to convert arguments to JSON body
      * @param argsPosition   the argument position mapping
      * @param inputJson      the input JSON object
+     * @param formatJsonStrings whether stringified JSON values should be parsed
      * @return the constructed body JSON object
      */
-    private JsonObject buildFormattedBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson) {
+    private JsonObject buildFormattedBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson, final boolean formatJsonStrings) {
         JsonObject bodyJson = new JsonObject();
 
         if (!argsToJsonBody) {
@@ -403,7 +425,7 @@ public class ShenyuToolCallback implements ToolCallback {
                 JsonElement value = inputJson.get(key);
 
                 // Format the value if it's a JSON string that should be parsed
-                JsonElement formattedValue = formatBodyParameterValue(value, key);
+                JsonElement formattedValue = formatJsonStrings ? formatBodyParameterValue(value, key) : value;
 
                 if ("body".equals(position)) {
                     bodyJson.add(key, formattedValue);
@@ -477,10 +499,11 @@ public class ShenyuToolCallback implements ToolCallback {
                 .mutate()
                 .method(HttpMethod.valueOf(requestConfig.getMethod()))
                 .header("sessionId", sessionId)
-                .header("Accept", "application/json");
+                .header("Accept", "application/json")
+                .headers(headers -> headers.remove(HttpHeaders.CONTENT_TYPE));
 
         // Add custom headers from template
-        addCustomHeaders(requestBuilder, requestConfig);
+        requestBuilder.headers(headers -> headers.putAll(resolveCustomHeaders(requestConfig.getRequestTemplate(), requestConfig.getInputJson())));
 
         // Set content type for body methods
         configureContentType(requestBuilder, requestConfig.getMethod());
@@ -492,23 +515,23 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     /**
-     * Adds custom headers from the request template to the request builder.
+     * Resolves custom headers from the request template and tool arguments.
      *
-     * @param requestBuilder the request builder
-     * @param requestConfig  the request configuration
+     * @param requestTemplate the request template
+     * @param inputJson the tool arguments
+     * @return resolved custom headers
      */
-    private void addCustomHeaders(final ServerHttpRequest.Builder requestBuilder,
-                                  final RequestConfig requestConfig) {
-        if (!requestConfig.getRequestTemplate().has("headers")) {
-            return;
+    private HttpHeaders resolveCustomHeaders(final JsonObject requestTemplate, final JsonObject inputJson) {
+        final HttpHeaders headers = new HttpHeaders();
+        if (!requestTemplate.has("headers")) {
+            return headers;
         }
 
-        JsonArray headersArray = requestConfig.getRequestTemplate().getAsJsonArray("headers");
+        JsonArray headersArray = requestTemplate.getAsJsonArray("headers");
         if (Objects.isNull(headersArray) || headersArray.isEmpty()) {
-            return;
+            return headers;
         }
 
-        JsonObject inputJson = requestConfig.getInputJson();
         for (JsonElement headerElem : headersArray) {
             if (!headerElem.isJsonObject()) {
                 continue;
@@ -528,8 +551,9 @@ public class ShenyuToolCallback implements ToolCallback {
                 headerValue = resolveTemplateVariables(headerValue, inputJson);
             }
 
-            requestBuilder.header(headerKey, headerValue);
+            headers.set(headerKey, headerValue);
         }
+        return headers;
     }
 
     /**
@@ -564,11 +588,15 @@ public class ShenyuToolCallback implements ToolCallback {
      * @param method         the HTTP method
      */
     private void configureContentType(final ServerHttpRequest.Builder requestBuilder, final String method) {
-        if (isRequestBodyMethod(method)) {
-            requestBuilder.header("Content-Type", "application/json");
-        } else {
-            requestBuilder.headers(httpHeaders -> httpHeaders.remove("Content-Type"));
-        }
+        requestBuilder.headers(headers -> {
+            if (isRequestBodyMethod(method)) {
+                if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+                }
+            } else {
+                headers.remove(HttpHeaders.CONTENT_TYPE);
+            }
+        });
     }
 
     /**
@@ -582,6 +610,12 @@ public class ShenyuToolCallback implements ToolCallback {
                               final ServerWebExchange originExchange,
                               final String path) {
         try {
+            if (path.startsWith("http://") || path.startsWith("https://")) {
+                // RequestConfigHelper#buildPath can return a complete URL from the tool input;
+                // prefixing the gateway origin would corrupt it
+                requestBuilder.uri(new URI(path));
+                return;
+            }
             final URI oldUri = originExchange.getRequest().getURI();
             final String newUriStr = oldUri.getScheme() + "://" + oldUri.getAuthority() + path;
             requestBuilder.uri(new URI(newUriStr));
@@ -628,13 +662,10 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange handleRequestBody(final ServerWebExchange decoratedExchange,
                                                 final RequestConfig requestConfig) {
         if (isRequestBodyMethod(requestConfig.getMethod())
-                && Objects.nonNull(requestConfig.getBodyJson())
-                && requestConfig.getBodyJson().size() > 0) {
-            String body = requestConfig.getBodyJson().toString();
-            return new BodyWriterExchange(decoratedExchange, body);
+                && Objects.nonNull(requestConfig.getBodyJson())) {
+            return new BodyWriterExchange(decoratedExchange, requestConfig.getBodyJson());
         }
-        // For methods without a request body or when no body is configured,
-        // return the original exchange to avoid sending an unintended "{}" body.
+        // Methods without a request body keep the existing exchange.
         return decoratedExchange;
     }
 
@@ -660,9 +691,11 @@ public class ShenyuToolCallback implements ToolCallback {
             MetaData metaData = MetaDataCache.getInstance().obtain(configHelper.getUrlTemplate());
             if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
                 decoratedExchange.getAttributes().put(Constants.META_DATA, metaData);
-                shenyuContext.setRpcType(metaData.getRpcType());
             }
 
+            // MCP tools are invoked through an internal HTTP request. The response plugin
+            // must therefore select an HTTP MessageWriter rather than an MCP writer.
+            shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
             shenyuContext.setPath(extractRawPath(decoratedPath));
 
             final Map<String, Object> attributes = decoratedExchange.getAttributes();
@@ -798,13 +831,19 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     /**
-     * Gets the origin ServerWebExchange for the given session ID.
+     * Gets the request-local exchange, falling back to the legacy session holder.
      *
+     * @param mcpExchange the current MCP request exchange
      * @param sessionId the session ID
      * @return the origin ServerWebExchange
      * @throws IllegalStateException if exchange cannot be retrieved
      */
-    private ServerWebExchange getOriginExchange(final String sessionId) {
+    private ServerWebExchange getOriginExchange(final McpSyncServerExchange mcpExchange, final String sessionId) {
+        final Object contextualExchange = Objects.isNull(mcpExchange.transportContext()) ? null
+                : mcpExchange.transportContext().get(McpSessionHelper.SHENYU_EXCHANGE_CONTEXT_KEY);
+        if (contextualExchange instanceof ServerWebExchange exchange) {
+            return exchange;
+        }
         final ServerWebExchange exchange = ShenyuMcpExchangeHolder.get(sessionId);
         if (Objects.nonNull(exchange)) {
             LOG.debug("Found existing exchange for session: {}", sessionId);

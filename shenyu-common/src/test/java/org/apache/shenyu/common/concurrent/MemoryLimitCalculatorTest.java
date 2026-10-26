@@ -20,6 +20,7 @@ package org.apache.shenyu.common.concurrent;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -46,5 +47,13 @@ public class MemoryLimitCalculatorTest {
     @Test
     public void testDefaultCalculate() {
         assertEquals((long) (MemoryLimitCalculator.maxAvailable() * 0.8), MemoryLimitCalculator.defaultLimit());
+    }
+
+    @Test
+    public void testMaxAvailableCountsMemoryTheHeapCanStillCommit() {
+        // The available memory must account for the part of the heap the JVM can
+        // still commit up to -Xmx, not only the free part of the committed heap.
+        final Runtime runtime = Runtime.getRuntime();
+        assertTrue(MemoryLimitCalculator.maxAvailable() >= runtime.maxMemory() - runtime.totalMemory());
     }
 }

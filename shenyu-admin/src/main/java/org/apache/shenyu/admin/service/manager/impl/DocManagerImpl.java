@@ -20,9 +20,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -64,11 +62,6 @@ public class DocManagerImpl implements DocManager {
      * The constant HTTP.
      */
     private static final String HTTP = "http://";
-
-    /**
-     * key:title, value:docInfo.
-     */
-    private static final Map<String, DocInfo> DOC_DEFINITION_MAP = new HashMap<>();
 
     private static final DocParser SWAGGER_DOC_PARSER = new SwaggerDocParser();
 
@@ -170,15 +163,5 @@ public class DocManagerImpl implements DocManager {
         ext.setAddPrefixed(false);
         ext.setProtocol(HTTP);
         return GsonUtils.getInstance().toJson(ext);
-    }
-
-    /**
-     * get DocInfo.
-     *
-     * @return Collection
-     */
-    @Override
-    public Collection<DocInfo> listAll() {
-        return DOC_DEFINITION_MAP.values();
     }
 }

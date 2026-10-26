@@ -34,7 +34,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -125,17 +124,11 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
      */
     @Override
     public int update(final ScaleRuleDTO scaleRuleDTO) {
-        final ScaleRuleDO before = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
         final ScaleRuleDO after = ScaleRuleDO.buildScaleRuleDO(scaleRuleDTO);
         int rows = scaleRuleMapper.updateByPrimaryKeySelective(after);
         if (rows > 0) {
             final ScaleRuleDO persisted = scaleRuleMapper.selectByPrimaryKey(scaleRuleDTO.getId());
-            runAfterCommit(() -> {
-                if (Objects.nonNull(before) && !Objects.equals(before.getMetricName(), after.getMetricName())) {
-                    scaleRuleCache.removeRulesFromCache(List.of(before.getMetricName()));
-                }
-                scaleRuleCache.addOrUpdateRuleToCache(persisted);
-            });
+            runAfterCommit(() -> scaleRuleCache.addOrUpdateRuleToCache(persisted));
         }
         return rows;
     }
@@ -150,7 +143,7 @@ public class ScaleRuleServiceImpl implements ScaleRuleService {
     public int delete(final List<String> ids) {
         int rows = scaleRuleMapper.delete(ids);
         if (rows > 0) {
-            runAfterCommit(() -> scaleRuleCache.removeRulesFromCache(ids));
+            runAfterCommit(() -> scaleRuleCache.removeRulesByIdsFromCache(ids));
         }
         return rows;
     }

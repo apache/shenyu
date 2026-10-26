@@ -38,6 +38,8 @@ public final class UpstreamProvider {
 
     private final Map<String, List<DiscoveryUpstreamData>> cache = new ConcurrentHashMap<>();
 
+    private final Map<String, String> selectorNames = new ConcurrentHashMap<>();
+
     private UpstreamProvider() {
     }
 
@@ -58,6 +60,38 @@ public final class UpstreamProvider {
      */
     public List<DiscoveryUpstreamData> provide(final String pluginSelectorName) {
         return cache.getOrDefault(pluginSelectorName, new ArrayList<>());
+    }
+
+    /**
+     * Whether the selector has an upstream cache entry.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     * @return true if the selector has an upstream cache entry
+     */
+    public boolean inCache(final String pluginSelectorName) {
+        return cache.containsKey(pluginSelectorName);
+    }
+
+    /**
+     * Register selector name by selector id.
+     *
+     * @param selectorId selectorId
+     * @param selectorName selectorName
+     */
+    public void registerSelector(final String selectorId, final String selectorName) {
+        if (Objects.nonNull(selectorId) && Objects.nonNull(selectorName)) {
+            selectorNames.put(selectorId, selectorName);
+        }
+    }
+
+    /**
+     * Get selector name by selector id.
+     *
+     * @param selectorId selectorId
+     * @return selectorName
+     */
+    public String getSelectorName(final String selectorId) {
+        return Objects.isNull(selectorId) ? null : selectorNames.get(selectorId);
     }
 
     /**
@@ -87,5 +121,27 @@ public final class UpstreamProvider {
         cache.put(pluginSelectorName, discoveryUpstreamDataList);
         Set<String> urlSet = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
         return remove.stream().filter(r -> !urlSet.contains(r.getUrl())).collect(Collectors.toList());
+    }
+
+    /**
+     * Remove upstreams.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     * @return removed upstreams
+     */
+    public List<DiscoveryUpstreamData> removeUpstreams(final String pluginSelectorName) {
+        if (Objects.isNull(pluginSelectorName)) {
+            return Collections.emptyList();
+        }
+        selectorNames.entrySet().removeIf(entry -> pluginSelectorName.equals(entry.getValue()));
+        return Optional.ofNullable(cache.remove(pluginSelectorName)).orElseGet(Collections::emptyList);
+    }
+
+    /**
+     * Clear upstreams and selector names.
+     */
+    public void clear() {
+        cache.clear();
+        selectorNames.clear();
     }
 }

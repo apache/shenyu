@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -29,14 +28,15 @@ import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.MqttSession;
+import org.apache.shenyu.protocol.mqtt.repositories.SessionRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
@@ -61,37 +61,51 @@ public class Subscribe extends MessageType {
         int packetId = msg.variableHeader().messageId();
 
         //// todo Regular match
-        List<String> ackTopics = mqttTopicSubscriptions
+        List<MqttTopicSubscription> ackSubscriptions = mqttTopicSubscriptions
                 .stream()
                 .filter(topicSub -> topicSub.qualityOfService() != FAILURE)
+                .collect(Collectors.toList());
+
+        List<String> ackTopics = ackSubscriptions.stream()
                 .map(MqttTopicSubscription::topicName)
                 .collect(Collectors.toList());
 
         Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
 
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
+        // A SUBSCRIBE can arrive on a channel that the channel repository does not
+        // know: the CONNECT may have failed, or the ownership of the client id may
+        // have been taken over by a newer connection. The session index is keyed by
+        // client id and rejects a null key, so the lookup is skipped instead of
+        // failing the whole SUBSCRIBE.
+        if (Objects.nonNull(clientId)) {
+            MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+            if (Objects.nonNull(session)) {
+                mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+            }
+        }
+
         for (String ackTopic : ackTopics) {
-            String message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
-            if (StringUtils.isNotEmpty(message)) {
+            byte[] message = Singleton.INST.get(TopicRepository.class).get(ackTopic);
+            if (Objects.nonNull(message)) {
                 sendSubMessage(ackTopic, message, packetId, channel);
             }
         }
 
-        sendSubAckMessage(packetId, ackTopics, channel);
+        sendSubAckMessage(packetId, ackSubscriptions, channel);
     }
 
     /**
      * call back request of message.
      * @param packetId packetId
-     * @param ackTopics ackTopics
+     * @param ackSubscriptions ackSubscriptions
      * @param channel channel
      */
-    private void sendSubAckMessage(final int packetId, final List<String> ackTopics, final Channel channel) {
+    private void sendSubAckMessage(final int packetId, final List<MqttTopicSubscription> ackSubscriptions, final Channel channel) {
 
-        List<Integer> qos = new ArrayList<>();
-        for (int i = 0; i < ackTopics.size(); i++) {
-            // default qos 0
-            qos.add(MqttQoS.AT_MOST_ONCE.value());
-        }
+        List<Integer> qos = ackSubscriptions.stream()
+                .map(topicSub -> topicSub.qualityOfService().value())
+                .collect(Collectors.toList());
 
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.SUBACK, false, AT_MOST_ONCE,
                 false, 0);
@@ -107,10 +121,10 @@ public class Subscribe extends MessageType {
      * @param packetId packetId
      * @param channel channel
      */
-    private void sendSubMessage(final String topic, final String message, final int packetId, final Channel channel) {
+    private void sendSubMessage(final String topic, final byte[] message, final int packetId, final Channel channel) {
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, AT_MOST_ONCE, true, 0);
         MqttPublishVariableHeader varHeader = new MqttPublishVariableHeader(topic, packetId);
-        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.copiedBuffer(message, CharsetUtil.UTF_8));
+        MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(fixedHeader, varHeader, Unpooled.wrappedBuffer(message));
         channel.writeAndFlush(mqttPublishMessage);
     }
 }

@@ -40,7 +40,7 @@ public final class RuleDTO implements ResourceDTO {
     
     private int sort;
     
-    @JsonAlias("loged")
+    @JsonAlias("logged")
     private boolean logged;
     
     private boolean enabled;
@@ -316,7 +316,7 @@ public final class RuleDTO implements ResourceDTO {
 
         private int sort;
 
-        @JsonAlias("loged")
+        @JsonAlias("logged")
         private boolean logged;
 
         private boolean enabled;

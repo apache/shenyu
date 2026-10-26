@@ -33,6 +33,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextClosedEvent;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -90,6 +94,36 @@ public class ShenyuThreadPoolConfigurationTest {
         when(objectProvider.getIfAvailable()).thenReturn(null);
         assertNotNull(shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(shenyuConfig, new TestObjectProvider<>(null)));
         assertNotNull(shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(shenyuConfig, new TestObjectProvider<>(new MemorySafeTaskQueue<>(Constants.THE_256_MB))));
+    }
+
+    @Test
+    public void testSharedPoolQueuesAtDefaultMaximum() throws InterruptedException {
+        ShenyuConfig config = new ShenyuConfig();
+        config.getSharedPool().setCorePoolSize(2);
+        ShenyuThreadPoolExecutor executor = shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(config,
+                new TestObjectProvider<>(new MemorySafeTaskQueue<>(1)));
+        CountDownLatch started = new CountDownLatch(2);
+        CountDownLatch release = new CountDownLatch(1);
+        Runnable blockingTask = () -> {
+            started.countDown();
+            try {
+                release.await();
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
+        };
+        try {
+            executor.execute(blockingTask);
+            executor.execute(blockingTask);
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            executor.execute(() -> { });
+            assertEquals(2, executor.getPoolSize());
+            assertEquals(1, executor.getQueue().size());
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+        }
     }
 
     @Test

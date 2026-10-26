@@ -20,10 +20,12 @@ package org.apache.shenyu.springboot.starter.plugin.grpc;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.GrpcPlugin;
 import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
 import org.apache.shenyu.plugin.grpc.handler.GrpcDiscoveryUpstreamDataHandler;
+import org.apache.shenyu.plugin.grpc.handler.GrpcMetaDataHandler;
 import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -75,5 +77,15 @@ public class GrpcPluginConfiguration {
     @Bean
     public ShenyuContextDecorator grpcShenyuContextDecorator() {
         return new GrpcShenyuContextDecorator();
+    }
+
+    /**
+     * Grpc meta data handler.
+     *
+     * @return the meta data handler
+     */
+    @Bean
+    public MetaDataHandler grpcMetaDataHandler() {
+        return new GrpcMetaDataHandler();
     }
 }

@@ -412,8 +412,8 @@ public class LocalPluginController {
         if (Objects.isNull(ruleData.getEnabled())) {
             ruleData.setEnabled(true);
         }
-        if (Objects.isNull(ruleData.getLoged())) {
-            ruleData.setLoged(false);
+        if (Objects.isNull(ruleData.getLogged())) {
+            ruleData.setLogged(false);
         }
         if (Objects.isNull(ruleData.getMatchRestful())) {
             ruleData.setMatchRestful(false);
