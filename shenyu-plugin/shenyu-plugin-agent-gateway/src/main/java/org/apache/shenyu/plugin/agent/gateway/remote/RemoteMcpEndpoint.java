@@ -37,6 +37,33 @@ public interface RemoteMcpEndpoint {
     Mono<McpSchema.ListToolsResult> listTools(String cursor);
 
     /**
+     * Fetch one resource page; legacy endpoint adapters fail closed until implemented.
+     * @param cursor opaque cursor or null
+     * @return native resource page
+     */
+    default Mono<ObjectNode> listResources(final String cursor) {
+        return Mono.error(new UnsupportedOperationException("Resources are not supported"));
+    }
+
+    /**
+     * Fetch one simple resource-template page.
+     * @param cursor opaque cursor or null
+     * @return native template page
+     */
+    default Mono<ObjectNode> listResourceTemplates(final String cursor) {
+        return Mono.error(new UnsupportedOperationException("Resource templates are not supported"));
+    }
+
+    /**
+     * Read a previously authorized upstream resource identifier.
+     * @param uri original resource identifier, not a destination
+     * @return native contents
+     */
+    default Mono<ObjectNode> readResource(final String uri) {
+        return Mono.error(new UnsupportedOperationException("Resource reads are not supported"));
+    }
+
+    /**
      * Invoke and decode the SDK business result model.
      * @param request trusted invocation
      * @return typed result

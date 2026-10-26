@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.MetaDataMapper;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -52,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,6 +68,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -127,6 +131,104 @@ public final class MetaDataServiceTest {
     public void testCreateOrUpdate() {
         testCreateOrUpdateForInsert();
         testCreateOrUpdateForUpdate();
+    }
+
+    /**
+     * Test case for update publishes sibling methods whose rpc_ext changed.
+     */
+    @Test
+    public void testUpdatePublishesSiblingRpcExtChanges() {
+        final String newRpcExt = "{\"timeout\":3000}";
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("id1");
+        dto.setPath("/svc/m1");
+        dto.setServiceName("svc");
+        dto.setMethodName("m1");
+        dto.setRpcExt(newRpcExt);
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO current = MetaDataDO.builder().id("id1").path("/svc/m1").serviceName("svc").methodName("m1")
+                .rpcExt("{}").enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataDO staleSibling = MetaDataDO.builder().id("id2").path("/svc/m2").serviceName("svc").methodName("m2")
+                .rpcExt("{}").enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataDO syncedSibling = MetaDataDO.builder().id("id3").path("/svc/m3").serviceName("svc").methodName("m3")
+                .rpcExt(newRpcExt).enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        when(metaDataMapper.pathExistedExclude("/svc/m1", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id1"))).thenReturn(null);
+        when(metaDataMapper.selectById("id1")).thenReturn(current);
+        when(metaDataMapper.update(any())).thenReturn(1);
+        when(metaDataMapper.findByServiceNameAndMethodAndNamespaceId("svc", null, SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(Arrays.asList(current, staleSibling, syncedSibling));
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, metaDataService.createOrUpdate(dto));
+
+        verify(metaDataMapper, times(2)).update(any());
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        List<?> source = (List<?>) captor.getValue().getSource();
+        List<String> paths = source.stream().map(o -> ((MetaData) o).getPath()).collect(Collectors.toList());
+        Assertions.assertEquals(Arrays.asList("/svc/m1", "/svc/m2"), paths);
+        source.forEach(o -> Assertions.assertEquals(newRpcExt, ((MetaData) o).getRpcExt()));
+    }
+
+    /**
+     * Test case for no events when the current metadata update returns zero.
+     */
+    @Test
+    public void testUpdateDoesNotPublishWhenCurrentUpdateReturnsZero() {
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("id1");
+        dto.setPath("/svc/m1");
+        dto.setServiceName("svc");
+        dto.setMethodName("m1");
+        dto.setRpcExt("{\"timeout\":3000}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO current = MetaDataDO.builder().id("id1").path("/svc/m1").serviceName("svc").methodName("m1")
+                .rpcExt("{}").enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        when(metaDataMapper.pathExistedExclude("/svc/m1", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id1"))).thenReturn(null);
+        when(metaDataMapper.selectById("id1")).thenReturn(current);
+        when(metaDataMapper.update(any())).thenReturn(0);
+
+        metaDataService.createOrUpdate(dto);
+
+        verify(metaDataMapper).update(any());
+        verify(metaDataMapper, never()).findByServiceNameAndMethodAndNamespaceId(any(), any(), any());
+        verifyNoInteractions(eventPublisher, publisher);
+    }
+
+    /**
+     * Test case for excluding a sibling whose metadata update returns zero from the event.
+     */
+    @Test
+    public void testUpdateDoesNotPublishSiblingWhenUpdateReturnsZero() {
+        final String newRpcExt = "{\"timeout\":3000}";
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("id1");
+        dto.setPath("/svc/m1");
+        dto.setServiceName("svc");
+        dto.setMethodName("m1");
+        dto.setRpcExt(newRpcExt);
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO current = MetaDataDO.builder().id("id1").path("/svc/m1").serviceName("svc").methodName("m1")
+                .rpcExt("{}").enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataDO sibling = MetaDataDO.builder().id("id2").path("/svc/m2").serviceName("svc").methodName("m2")
+                .rpcExt("{}").enabled(true).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        when(metaDataMapper.pathExistedExclude("/svc/m1", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id1"))).thenReturn(null);
+        when(metaDataMapper.selectById("id1")).thenReturn(current);
+        when(metaDataMapper.update(any())).thenReturn(1, 0);
+        when(metaDataMapper.findByServiceNameAndMethodAndNamespaceId("svc", null, SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(Arrays.asList(current, sibling));
+
+        metaDataService.createOrUpdate(dto);
+
+        verify(metaDataMapper, times(2)).update(any());
+        verify(publisher).onUpdated(any(MetaDataDO.class), any(MetaDataDO.class));
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        List<?> source = captor.getValue().getSource();
+        Assertions.assertEquals(1, source.size());
+        MetaData changed = (MetaData) source.get(0);
+        Assertions.assertEquals("id1", changed.getId());
+        Assertions.assertEquals("/svc/m1", changed.getPath());
+        Assertions.assertEquals(newRpcExt, changed.getRpcExt());
     }
 
     /**

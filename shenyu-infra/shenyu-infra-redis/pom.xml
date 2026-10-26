@@ -21,13 +21,18 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-infra</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-infra-redis</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-ai-common</artifactId>
