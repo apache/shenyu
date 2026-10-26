@@ -51,6 +51,9 @@ build-bootstrap:
 		-Prelease \
 		clean package
 
+smoke-image: ## smoke test the container runtime contract of the distribution images
+	@bash script/docker-image-smoke.sh
+
 build-all-image: build-admin-image build-bootstrap-image ## build images on local, does not support multi platforms.
 	@echo "build images"
 
@@ -75,7 +78,7 @@ build-bootstrap-image: build-bootstrap ## build bootstrap image for local
 publish-all-images: init publish-admin-image publish-bootstrap-image ## build and publish images on buildx, for producing multi platform images
 	@docker buildx rm shenyu
 
-.PHONY: init
+.PHONY: init smoke-image
 init:
 	@docker buildx create --name shenyu
 	@docker buildx use shenyu
@@ -95,8 +98,8 @@ publish-bootstrap-image: build-bootstrap
 	@echo "build and push bootstrap image"
 	@docker buildx build --push \
 		--platform=linux/arm64,linux/amd64 \
-		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:latest \
-		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:${VERSION} \
+		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:latest \
+		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
 		--label "commit.id=${COMMIT_ID}" \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
