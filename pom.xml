@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.7.2-SNAPSHOT</version>
+    <version>2.7.3-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -849,6 +849,7 @@
                         <exclude>shenyu-examples/**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.sha256</exclude>
                         <!-- IDE files -->
                         <exclude>**/*.iml</exclude>
                         <exclude>**/.idea/**</exclude>

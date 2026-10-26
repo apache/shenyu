@@ -17,6 +17,8 @@ limitations under the License.
 
 # Local HTTP assembly comparison — 2026-10-15
 
+Historical measurements on baseline `1d599d90`; these figures have not been re-measured on the current PR head.
+
 This is a same-host comparison for #7649, not a production capacity claim. Core baseline: `1d599d90e82e3415720b50885823eadc7b93d431` plus the minimal assembly in this change. Archive hashes and per-run measurements are in [report.json](report.json); exact packaged JAR hashes/coordinates and legal entries are in [minimal-jars.csv](minimal-jars.csv) and [full-jars.csv](full-jars.csv).
 
 Windows 11 build 26200; Ryzen 9 8945HX; 32 logical CPUs; 31.8 GiB RAM; Temurin 21.0.10+7; k6 1.0.0. Each gateway was restricted to CPU affinity 8/9 and `-XX:ActiveProcessorCount=2 -Xms512m -Xmx1024m -XX:MaxDirectMemorySize=256m`. There was no cgroup CPU quota. Generator, Python upstream and gateway shared the host. The Java sources were compiled for Java 17; these local measurements used JDK 21.
@@ -67,6 +69,6 @@ Both assemblies sustained the highest tested rate of 1000 RPS. Saturation was no
 - Docker Desktop failed to provide a daemon after a launch attempt. Image byte sizes are unmeasured; the matched-base-image build recipe is in [the guide](../../minimal-http.md).
 - True OS-cold-cache readiness, a saturation-bracketing sweep, container quotas and an independent JDK 17 CI run remain release-validation follow-ups. Keep #7649 open until its acceptance evidence is complete.
 
-## Raw evidence
+## Retained evidence
 
-[report.json](report.json) retains all per-repetition aggregate measurements; the CSV files retain both complete JAR inventories. [raw-manifest.json](raw-manifest.json) records the sizes and SHA-256 values of every original k6 sample/summary, gateway command/log, JVM counter dump and JFR recording. The raw files remain under `shenyu-bootstrap-http/target/comparison-final/` and are bundled locally as `shenyu-bootstrap-http/target/minimal-http-evidence.zip`; large profiling/sample files are not added to the source repository. Reproduce with the guide's command, using `--duration 20 --warmup 20 --idle 5 --cpu-affinity 8 9 --jfr` to match this run.
+[report.json](report.json) retains the per-repetition aggregate measurements; the CSV files retain both complete JAR inventories. The original k6 samples, gateway logs, JVM counter dumps and JFR recordings are not published, so this directory does not provide independently auditable raw performance evidence. Reproduce with the guide's command, using `--duration 20 --warmup 20 --idle 5 --cpu-affinity 8 9 --jfr` to match this historical run. New runs retain their raw files in their output directory.

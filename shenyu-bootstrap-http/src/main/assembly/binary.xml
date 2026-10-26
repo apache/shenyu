@@ -43,6 +43,11 @@
             <includes><include>*.bat</include></includes>
         </fileSet>
         <fileSet>
+            <directory>src/main/release-docs</directory>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <!-- Legal-file superset shared with the full distribution; requires a full source checkout. -->
             <directory>${project.basedir}/../shenyu-dist/shenyu-bootstrap-dist/src/main/release-docs</directory>
             <outputDirectory>/</outputDirectory>
             <excludes><exclude>README.txt</exclude></excludes>

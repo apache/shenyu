@@ -15,12 +15,13 @@
 
 # Build both assemblies with the SAME digest-pinned JAVA_IMAGE and this Dockerfile.
 # Supply the extracted distribution through --build-context distribution=PATH.
+# This comparison recipe uses MAIN_CLASS for either assembly; the module Dockerfile uses its launcher.
 ARG JAVA_IMAGE
 FROM ${JAVA_IMAGE}
 ARG MAIN_CLASS
 ENV MAIN_CLASS=${MAIN_CLASS}
 WORKDIR /opt/shenyu
-COPY --from=distribution / /opt/shenyu/
+COPY --from=distribution --chown=10001:10001 / /opt/shenyu/
 USER 10001:10001
 EXPOSE 9195
 ENTRYPOINT ["/bin/sh", "-c", "exec java $JAVA_OPTS -cp 'conf:lib/*' \"$MAIN_CLASS\" \"$@\"", "--"]

@@ -21,7 +21,12 @@ The default reactor, `shenyu-bootstrap`, existing full archives and their Docker
 No integration is removed from the main repository by this assembly.
 
 See the [2026-10-15 local comparison](results/minimal-http-2026-10-15/README.md)
-for measured results, dependency inventories, raw evidence hashes and remaining validation.
+for measured results, dependency inventories and remaining validation.
+
+This is a build-yourself assembly, outside the standard `-Prelease` profile. It is
+not an official ASF binary release. CI archives are test artifacts. An official
+release would require a separately agreed release process, release-manager signing,
+verification and community vote; this PR does not assign that responsibility.
 
 ## Runtime contract
 
@@ -53,9 +58,11 @@ an HTTP listener alone does not prove configuration readiness.
 
 ## Build and run
 
-Use JDK 17+ and the repository wrapper:
+Use JDK 17+ and the repository wrapper. Run these commands from the full source
+checkout (the assembly reuses the full distribution's legal files):
 
 ```sh
+SHENYU_VERSION=$(./mvnw -q -N -DforceStdout help:evaluate -Dexpression=project.version)
 ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http -am clean install \
   -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
 ```
@@ -66,11 +73,12 @@ On Windows use `mvnw.cmd`; quote each `-D...` argument in PowerShell.
 The reactor can build excluded optional modules needed to build the gateway starter;
 they do not enter the minimal runtime dependency closure.
 
-Outputs are `shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin.tar.gz`
-and the extracted `target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http/`.
-The archive contains `bin/`, `conf/`, `lib/`, `LICENSE`, `NOTICE` and `licenses/`.
+Outputs are `shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin.tar.gz`
+and the extracted `target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http/`.
+The archive contains `README.txt`, `bin/`, `conf/`, `lib/`, `LICENSE`, `NOTICE` and `licenses/`.
+Paths below reuse `SHENYU_VERSION` resolved above; resolve it again in a new shell.
 After compatible core artifacts are installed or published, the module also packages
-independently with `./mvnw -f shenyu-bootstrap-http/pom.xml package`.
+with `./mvnw -f shenyu-bootstrap-http/pom.xml package` from that full checkout.
 
 ```sh
 export SHENYU_NAMESPACE=649330b6-c2d7-4edc-be8e-8a54df9eb385
@@ -103,7 +111,7 @@ closure; publication and migration gates stay with #7294/#7306/#7597/#7599.
 ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http dependency:list \
   -DincludeScope=runtime -DoutputFile=target/runtime-dependencies.txt
 python script/performance/minimal-http/inventory.py \
-  shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+  shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http \
   --minimal --output shenyu-bootstrap-http/target/inventory.json
 ```
 
@@ -128,7 +136,7 @@ load generator; it is not a gateway dependency.
 python -m pip install -r script/performance/minimal-http/requirements.txt
 python -m unittest discover -s script/performance/minimal-http -p 'test_*.py'
 python script/performance/minimal-http/benchmark.py \
-  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http \
   --java "$JAVA_HOME/bin/java" --smoke-only --output /tmp/http-smoke
 ```
 
@@ -143,11 +151,11 @@ and run the disposable H2 Admin test. This test only targets the Admin it starts
 ```sh
 ./mvnw -B -Prelease -pl shenyu-dist/shenyu-admin-dist -am package \
   -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
-tar -xzf shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin.tar.gz \
+tar -xzf shenyu-dist/shenyu-admin-dist/target/apache-shenyu-${SHENYU_VERSION}-admin-bin.tar.gz \
   -C shenyu-dist/shenyu-admin-dist/target
 python script/performance/minimal-http/admin_smoke.py \
-  --admin shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin \
-  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+  --admin shenyu-dist/shenyu-admin-dist/target/apache-shenyu-${SHENYU_VERSION}-admin-bin \
+  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http \
   --java "$JAVA_HOME/bin/java" --output /tmp/http-admin-smoke
 ```
 
@@ -164,11 +172,11 @@ Build and extract the unchanged full bootstrap distribution from the same checko
 ```sh
 ./mvnw -B -Prelease -pl shenyu-dist/shenyu-bootstrap-dist -am package \
   -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
-tar -xzf shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-2.7.2-SNAPSHOT-bootstrap-bin.tar.gz \
+tar -xzf shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-${SHENYU_VERSION}-bootstrap-bin.tar.gz \
   -C shenyu-dist/shenyu-bootstrap-dist/target
 python script/performance/minimal-http/benchmark.py \
-  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
-  --full shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-2.7.2-SNAPSHOT-bootstrap-bin \
+  --minimal shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http \
+  --full shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-${SHENYU_VERSION}-bootstrap-bin \
   --java "$JAVA_HOME/bin/java" --k6 /path/to/k6 \
   --runs 3 --rates 200 500 1000 --duration 30 --warmup 30 --idle 10 \
   --cpu-affinity 2 3 --jfr --output /tmp/http-assembly-comparison
@@ -212,12 +220,12 @@ both extracted distributions (BuildKit named contexts):
 
 ```sh
 docker build -f script/performance/minimal-http/Dockerfile \
-  --build-context distribution=shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+  --build-context distribution=shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http \
   --build-arg JAVA_IMAGE="$PINNED_JAVA_IMAGE" \
   --build-arg MAIN_CLASS=org.apache.shenyu.bootstrap.http.ShenyuHttpApplication \
   -t shenyu-http-comparison:minimal .
 docker build -f script/performance/minimal-http/Dockerfile \
-  --build-context distribution=shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-2.7.2-SNAPSHOT-bootstrap-bin \
+  --build-context distribution=shenyu-dist/shenyu-bootstrap-dist/target/apache-shenyu-${SHENYU_VERSION}-bootstrap-bin \
   --build-arg JAVA_IMAGE="$PINNED_JAVA_IMAGE" \
   --build-arg MAIN_CLASS=org.apache.shenyu.bootstrap.ShenyuBootstrapApplication \
   -t shenyu-http-comparison:full .

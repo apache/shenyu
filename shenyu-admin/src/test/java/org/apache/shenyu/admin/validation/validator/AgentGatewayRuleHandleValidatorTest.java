@@ -67,6 +67,14 @@ public final class AgentGatewayRuleHandleValidatorTest {
     }
 
     @Test
+    public void testResourcePermissions() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedResources\":[\"orders.status\"]}}"));
+        for (String value : new String[] {"null", "[\"*\"]", "[\"orders.status\",\"orders.status\"]"}) {
+            assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedResources\":" + value + "}}"));
+        }
+    }
+
+    @Test
     public void testValidConfiguredHttpTool() {
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("""
                 {"trafficType":"mcp","mcp":{"allowedTools":["lookup"],"httpTools":{"lookup":{

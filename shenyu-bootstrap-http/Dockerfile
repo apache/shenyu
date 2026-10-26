@@ -16,7 +16,8 @@
 ARG JAVA_IMAGE=eclipse-temurin:17-jre
 FROM ${JAVA_IMAGE}
 WORKDIR /opt/apache-shenyu-http
-ADD target/apache-shenyu-http-*-bin.tar.gz /opt/
+# Operator image from the module archive; the performance Dockerfile compares extracted assemblies.
+ADD --chown=10001:10001 target/apache-shenyu-http-*-bin.tar.gz /opt/
 USER 10001:10001
 EXPOSE 9195
 ENTRYPOINT ["/bin/sh", "bin/start.sh"]

@@ -20,5 +20,5 @@ JAVA=java
 if [ -n "${JAVA_HOME:-}" ]; then JAVA="$JAVA_HOME/bin/java"; fi
 cd "$APP_HOME"
 # JAVA_OPTS intentionally supports multiple JVM arguments, as in the full distribution.
-exec "$JAVA" ${JAVA_OPTS:-} -cp "$APP_HOME/conf:$APP_HOME/lib/*:$APP_HOME/ext-lib/*" \
+exec "$JAVA" ${JAVA_OPTS:-} -cp "$APP_HOME/conf:$APP_HOME/lib/*" \
   org.apache.shenyu.bootstrap.http.ShenyuHttpApplication "$@"

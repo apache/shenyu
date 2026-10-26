@@ -22,6 +22,7 @@ on:
       - 'shenyu-common/**'
       - 'shenyu-admin/**'
       - 'shenyu-admin-listener/**'
+      - 'shenyu-dist/**'
       - 'shenyu-web/**'
       - 'shenyu-plugin/**'
       - 'shenyu-spring-boot-starter/**'
@@ -51,6 +52,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Resolve archive version
+        id: version
+        run: echo "version=$(./mvnw -q -N -DforceStdout help:evaluate -Dexpression=project.version)" >> "$GITHUB_OUTPUT"
       - name: Build opt-in assembly with Checkstyle and RAT
         run: |
           bash .github/scripts/test-minimal-http-routing.sh
@@ -58,20 +62,24 @@ jobs:
       - name: Record resolved runtime dependencies
         run: ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http dependency:list -DincludeScope=runtime -DoutputFile=target/runtime-dependencies.txt
       - name: Check harness and packaged routing
+        env:
+          SHENYU_VERSION: ${{ steps.version.outputs.version }}
         run: |
           python -m pip install -r script/performance/minimal-http/requirements.txt
           python -m unittest discover -s script/performance/minimal-http -p 'test_*.py'
           python script/performance/minimal-http/benchmark.py \
-            --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+            --minimal "shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http" \
             --java "$JAVA_HOME/bin/java" --smoke-only \
             --output shenyu-bootstrap-http/target/smoke
       - name: Build disposable Admin and test real centrally synchronized routes
+        env:
+          SHENYU_VERSION: ${{ steps.version.outputs.version }}
         run: |
           ./mvnw -B -Prelease -pl shenyu-dist/shenyu-admin-dist -am package -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
-          tar -xzf shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin.tar.gz -C shenyu-dist/shenyu-admin-dist/target
+          tar -xzf "shenyu-dist/shenyu-admin-dist/target/apache-shenyu-${SHENYU_VERSION}-admin-bin.tar.gz" -C shenyu-dist/shenyu-admin-dist/target
           python script/performance/minimal-http/admin_smoke.py \
-            --admin shenyu-dist/shenyu-admin-dist/target/apache-shenyu-2.7.2-SNAPSHOT-admin-bin \
-            --minimal shenyu-bootstrap-http/target/apache-shenyu-http-2.7.2-SNAPSHOT-bin/apache-shenyu-http \
+            --admin "shenyu-dist/shenyu-admin-dist/target/apache-shenyu-${SHENYU_VERSION}-admin-bin" \
+            --minimal "shenyu-bootstrap-http/target/apache-shenyu-http-${SHENYU_VERSION}-bin/apache-shenyu-http" \
             --java "$JAVA_HOME/bin/java" --output shenyu-bootstrap-http/target/admin-smoke
       - uses: actions/upload-artifact@v4
         if: always()

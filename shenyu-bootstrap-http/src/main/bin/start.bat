@@ -18,5 +18,5 @@ set "APP_HOME=%~dp0.."
 set "JAVA=java"
 if defined JAVA_HOME set "JAVA=%JAVA_HOME%\bin\java"
 cd /d "%APP_HOME%"
-"%JAVA%" %JAVA_OPTS% -cp "%APP_HOME%\conf;%APP_HOME%\lib\*;%APP_HOME%\ext-lib\*" org.apache.shenyu.bootstrap.http.ShenyuHttpApplication %*
+"%JAVA%" %JAVA_OPTS% -cp "%APP_HOME%\conf;%APP_HOME%\lib\*" org.apache.shenyu.bootstrap.http.ShenyuHttpApplication %*
 exit /b %errorlevel%

@@ -75,6 +75,8 @@ jobs:
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
+      - name: Test E2E artifact reruns
+        run: node --test .github/scripts/retest-test.mjs
       - uses: ./actions/paths-filter
         id: filter
         with:
