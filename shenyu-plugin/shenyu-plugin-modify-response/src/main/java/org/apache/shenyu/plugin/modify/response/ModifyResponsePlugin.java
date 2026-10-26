@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -144,7 +144,15 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             // replace headers
             if (MapUtils.isNotEmpty(this.ruleHandle.getReplaceHeaderKeys())) {
                 Map<String, String> replaceHeaderMap = this.ruleHandle.getReplaceHeaderKeys();
-                replaceHeaderMap.forEach((key, value) -> httpHeaders.replace(key, Collections.singletonList(value)));
+                replaceHeaderMap.forEach((key, value) -> {
+                    List<String> values = httpHeaders.get(key);
+                    // HttpHeaders is case-insensitive, so an equal or case-only-different
+                    // target key would make the trailing remove drop the header entirely
+                    if (Objects.nonNull(values) && !key.equalsIgnoreCase(value)) {
+                        httpHeaders.addAll(value, values);
+                        httpHeaders.remove(key);
+                    }
+                });
             }
 
             // remove headers
@@ -155,7 +163,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
             // reset http status
             if (this.ruleHandle.getStatusCode() > 0) {
-                this.setStatusCode(HttpStatus.valueOf(this.ruleHandle.getStatusCode()));
+                this.setStatusCode(HttpStatusCode.valueOf(this.ruleHandle.getStatusCode()));
             }
 
             // reset http headers

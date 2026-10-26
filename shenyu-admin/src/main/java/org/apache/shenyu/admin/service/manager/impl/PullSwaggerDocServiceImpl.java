@@ -91,7 +91,6 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         synchronized (interner.intern(instance.getClusterName())) {
             tagVO = saveTagVOAndAcquireLock(instance);
             if (!canPull(instance, tagVO)) {
-                LOG.info("api document has been pulled and cannot be pulled again，instance: {}", instance.getClusterName());
                 return;
             }
         }
@@ -127,16 +126,23 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     }
 
     private boolean canPull(final UpstreamInstance instance, final TagVO tagVO) {
-        boolean canPull = false;
-        if (Objects.isNull(tagVO) || Objects.isNull(tagVO.getTagExt()) || StringUtils.isEmpty(tagVO.getTagExt().getDocLock())) {
+        if (Objects.isNull(tagVO) || Objects.isNull(tagVO.getTagExt())) {
+            return false;
+        }
+        if (!isRefreshDue(instance, tagVO.getTagExt())) {
+            LOG.info("api document has been pulled and cannot be pulled again，instance: {}", instance.getClusterName());
+            return false;
+        }
+        if (StringUtils.isEmpty(tagVO.getTagExt().getDocLock())) {
             LOG.info("Unable to obtain lock for {}, retry after {} seconds.", instance.getClusterName(), DOC_LOCK_EXPIRED_TIME / 1000);
             return false;
         }
-        Long cacheLastStartUpTime = tagVO.getTagExt().getRefreshTime();
-        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime + PULL_MIN_INTERVAL_TIME) {
-            canPull = true;
-        }
-        return canPull;
+        return true;
+    }
+
+    private boolean isRefreshDue(final UpstreamInstance instance, final TagDO.TagExt tagExt) {
+        Long lastRefreshTime = tagExt.getRefreshTime();
+        return Objects.isNull(lastRefreshTime) || instance.getStartupTime() > lastRefreshTime + PULL_MIN_INTERVAL_TIME;
     }
 
     private TagVO saveTagVOAndAcquireLock(final UpstreamInstance instance) {
@@ -145,6 +151,11 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
             TagVO tagVO = tagVOList.get(0);
             TagDO.TagExt tagExt = convertTagExt(tagVO.getExt());
             tagVO.setTagExt(tagExt);
+            // already refreshed: skip without taking the lock, so nothing has to be written back
+            if (!isRefreshDue(instance, tagExt)) {
+                tagExt.setDocLock(null);
+                return tagVO;
+            }
             if (StringUtils.isNotEmpty(tagExt.getDocLock()) && NumberUtils.toLong(tagExt.getDocLock(), 0) > System.currentTimeMillis()) {
                 tagExt.setDocLock(null);
                 return tagVO;

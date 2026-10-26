@@ -83,17 +83,43 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig, L 
 
     @Override
     public void close() {
-        if (!ObjectUtils.isEmpty(closeThread.get())) {
-            Runtime.getRuntime().removeShutdownHook(closeThread.get());
-        }
-        if (isStarted.get()) {
-            isStarted.set(false);
+        this.tryRemoveShutdownHook();
+        if (isStarted.compareAndSet(true, false)) {
             try {
                 this.close0();
             } catch (Exception e) {
-                LOG.error("{} close error.", this.getClass().getSimpleName());
+                LOG.error("{} close error.", this.getClass().getSimpleName(), e);
             }
         }
+    }
+
+    /**
+     * Remove the registered shutdown hook. When the JVM is already shutting down,
+     * the hook thread is running this {@code close()} itself, so removal throws
+     * {@link IllegalStateException} and is neither possible nor needed; cleanup
+     * must still proceed to {@code close0()}.
+     */
+    protected void tryRemoveShutdownHook() {
+        final Thread hook = closeThread.get();
+        if (ObjectUtils.isEmpty(hook)) {
+            return;
+        }
+        try {
+            removeHook(hook);
+        } catch (IllegalStateException e) {
+            LOG.debug("{} skips shutdown-hook removal: {}", this.getClass().getSimpleName(), e.getMessage());
+        }
+    }
+
+    /**
+     * Single point that talks to {@link Runtime}; protected so tests can simulate
+     * the {@code IllegalStateException("Shutdown in progress")} thrown when the JVM
+     * is already shutting down and the hook thread is running {@code close()} itself.
+     *
+     * @param hook the shutdown hook registered at init
+     */
+    protected void removeHook(final Thread hook) {
+        Runtime.getRuntime().removeShutdownHook(hook);
     }
 
     @Override

@@ -37,8 +37,11 @@ on:
       - '.asf.yaml'
       - '.gitignore'
       - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
+      - '.github/**'
+      - 'actions/**'
+      - 'shenyu-e2e/**'
+      - 'shenyu-integrated-test/**'
+      - 'shenyu-examples/**'
       - '**/resources/static/**'
 
 env:
@@ -56,7 +59,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 

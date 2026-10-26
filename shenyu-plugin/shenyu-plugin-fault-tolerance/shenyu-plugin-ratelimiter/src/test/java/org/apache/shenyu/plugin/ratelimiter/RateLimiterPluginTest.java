@@ -139,7 +139,7 @@ public final class RateLimiterPluginTest {
         rateLimiterHandle.setReplenishRate(1);
         rateLimiterHandle.setBurstCapacity(100);
         rateLimiterHandle.setKeyResolverName("WHOLE_KEY_RESOLVER");
-        rateLimiterHandle.setLoged(false);
+        rateLimiterHandle.setLogged(false);
         return rateLimiterHandle;
     }
 }

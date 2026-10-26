@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.grpc;
 
 import io.grpc.CallOptions;
 import io.grpc.Context;
-import io.grpc.MethodDescriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -29,7 +28,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -37,7 +35,9 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.plugin.grpc.cache.GrpcExtInfo;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
@@ -104,15 +104,12 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
                         .map(InetAddress::getHostAddress)
                         .orElse(StringUtils.EMPTY)).attach();
 
-        GrpcExtInfo extInfo = StringUtils.isBlank(metaData.getRpcExt())
-                ? new GrpcExtInfo()
-                : Optional.ofNullable(GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class))
-                        .orElseGet(GrpcExtInfo::new);
-        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
+        GrpcExtInfo extInfo = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
+        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS);
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.GRPC.getName())).ifPresent(
             context -> Context.current().withValue(RPC_CONTEXT_KEY, context).attach());
-        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.methodType);
+        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.getMethodType());
         Context.current().detach(Context.ROOT);
 
         return Mono.fromFuture(result.thenApply(ret -> {
@@ -162,31 +159,5 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
-    }
-
-    /**
-     * The GrpcExt.
-     */
-    static class GrpcExtInfo {
-
-        private Integer timeout = 5000;
-
-        private MethodDescriptor.MethodType methodType = MethodDescriptor.MethodType.UNARY;
-
-        public Integer getTimeout() {
-            return timeout;
-        }
-
-        public void setTimeout(final Integer timeout) {
-            this.timeout = timeout;
-        }
-
-        public MethodDescriptor.MethodType getMethodType() {
-            return methodType;
-        }
-
-        public void setMethodType(final MethodDescriptor.MethodType methodType) {
-            this.methodType = methodType;
-        }
     }
 }

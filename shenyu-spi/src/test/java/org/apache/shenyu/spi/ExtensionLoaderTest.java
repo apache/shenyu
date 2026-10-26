@@ -32,6 +32,8 @@ import org.apache.shenyu.spi.fixture.SubHasDefaultSPI;
 import org.apache.shenyu.spi.fixture.TreeListSPI;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -42,12 +44,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -322,6 +329,53 @@ public final class ExtensionLoaderTest {
             thread.join();
         }
         assertEquals(threadNum * loop, cache.size());
+    }
+
+    /**
+     * Test concurrent get joins when a holder has not finished initialization.
+     *
+     * @throws Exception when reflection or concurrent execution fails
+     */
+    @Test
+    public void testMultiThreadGetJoinsWithUninitializedHolder() throws Exception {
+        ExtensionLoader<HasDefaultSPI> extensionLoader = newExtensionLoader(HasDefaultSPI.class);
+        Map<String, Object> cachedInstances = getCachedInstances(extensionLoader);
+        cachedInstances.put("subHasDefaultSPI", getHolderConstructor().newInstance());
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        try {
+            List<Future<List<HasDefaultSPI>>> futures = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                futures.add(executor.submit(extensionLoader::getJoins));
+            }
+            for (Future<List<HasDefaultSPI>> future : futures) {
+                List<HasDefaultSPI> joins = future.get(5, TimeUnit.SECONDS);
+                assertEquals(1, joins.size());
+                assertNotNull(joins.get(0));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S> ExtensionLoader<S> newExtensionLoader(final Class<S> extensionClass) throws Exception {
+        Constructor<ExtensionLoader> constructor = ExtensionLoader.class.getDeclaredConstructor(Class.class, ClassLoader.class);
+        constructor.setAccessible(true);
+        return (ExtensionLoader<S>) constructor.newInstance(extensionClass, ExtensionLoader.class.getClassLoader());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getCachedInstances(final ExtensionLoader<?> extensionLoader) throws Exception {
+        Field field = ExtensionLoader.class.getDeclaredField("cachedInstances");
+        field.setAccessible(true);
+        return (Map<String, Object>) field.get(extensionLoader);
+    }
+
+    private Constructor<?> getHolderConstructor() throws Exception {
+        Class<?> holderClass = Class.forName("org.apache.shenyu.spi.ExtensionLoader$Holder");
+        Constructor<?> constructor = holderClass.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor;
     }
 
     /**

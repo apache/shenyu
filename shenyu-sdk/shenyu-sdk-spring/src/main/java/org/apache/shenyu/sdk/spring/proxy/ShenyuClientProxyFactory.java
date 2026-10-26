@@ -21,19 +21,12 @@ import org.apache.shenyu.sdk.spring.ShenyuClientFactoryBean;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.Proxy;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * ShenyuClientProxyFactory.
  *
  */
 public final class ShenyuClientProxyFactory {
-
-    /**
-     * PROXY_CACHE.
-     */
-    private static final ConcurrentMap<Class<?>, Object> PROXY_CACHE = new ConcurrentHashMap<>();
 
     /**
      * createProxy.
@@ -48,17 +41,9 @@ public final class ShenyuClientProxyFactory {
             throw new UnsupportedOperationException("@ShenyuClient please use it on the interface. " + apiClass.getName());
         }
 
-        if (PROXY_CACHE.containsKey(apiClass)) {
-            return PROXY_CACHE.get(apiClass);
-        }
-
-        synchronized (apiClass) {
-            Object proxy = Proxy.newProxyInstance(apiClass.getClassLoader(),
-                    new Class<?>[]{apiClass},
-                    new ShenyuClientInvocationHandler(apiClass, applicationContext, shenyuClientFactoryBean));
-            PROXY_CACHE.put(apiClass, proxy);
-        }
-        return PROXY_CACHE.get(apiClass);
+        return Proxy.newProxyInstance(apiClass.getClassLoader(),
+                new Class<?>[]{apiClass},
+                new ShenyuClientInvocationHandler(apiClass, applicationContext, shenyuClientFactoryBean));
     }
 
 }

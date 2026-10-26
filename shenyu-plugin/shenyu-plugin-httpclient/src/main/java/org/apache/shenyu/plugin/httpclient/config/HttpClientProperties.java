@@ -57,7 +57,9 @@ public class HttpClientProperties {
     private Integer connectTimeout = 45000;
 
     /**
-     * The response timeout.
+     * Maximum interval in milliseconds between response reads, including body chunks; default 3s.
+     * Non-positive values disable this response deadline, not independently installed read-timeout handlers.
+     * Slow SSE/streaming responses may also require disabling readTimeout and adjusting route/caller deadlines.
      */
     private Long responseTimeout = 3000L;
 
@@ -77,7 +79,8 @@ public class HttpClientProperties {
     private Integer allIdleTime = 3000;
 
     /**
-     * readTimeout, the default is 3s.
+     * Connection read-timeout handler interval in milliseconds, default 3s; non-positive values disable the handler.
+     * When installed, this handler operates independently of responseTimeout.
      */
     private Integer readTimeout = 3000;
 
@@ -112,9 +115,9 @@ public class HttpClientProperties {
     private boolean wiretap;
 
     /**
-     * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
+     * Whether persistent HTTP connections are enabled.
      */
-    private boolean keepAlive;
+    private boolean keepAlive = true;
 
     /**
      * body max memory size, unit mb.
@@ -396,12 +399,12 @@ public class HttpClientProperties {
     public static class Pool {
 
         /**
-         * Type of pool for HttpClient to use, defaults to ELASTIC.
+         * Type of pool for HttpClient to use, defaults to FIXED.
          */
-        private PoolType type = PoolType.ELASTIC;
+        private PoolType type = PoolType.FIXED;
 
         /**
-         * The channel pool map name, defaults to proxy.
+         * The channel pool map name, defaults to shenyu-proxy.
          */
         private String name = "shenyu-proxy";
 
@@ -412,9 +415,16 @@ public class HttpClientProperties {
         private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
 
         /**
-         * Only for type FIXED, the maximum time in millis to wait for aquiring.
+         * Only for type FIXED, the maximum time in millis to wait for acquiring, defaults to 3 seconds.
          */
-        private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+        private Long acquireTimeout = 3000L;
+
+        /**
+         * The maximum number of registered requests for acquire to keep in a pending queue.
+         * When not specified (null), Reactor Netty defaults to 2 * maxConnections.
+         * Set to a positive integer to explicitly bound the queue, or -1 for unbounded.
+         */
+        private Integer maxPendingAcquires;
 
         /**
          * Time in millis after which the channel will be closed,
@@ -579,6 +589,44 @@ public class HttpClientProperties {
          */
         public Boolean getMetrics() {
             return metrics;
+        }
+
+        /**
+         * Gets max pending acquires.
+         *
+         * @return the max pending acquires
+         */
+        public Integer getMaxPendingAcquires() {
+            return maxPendingAcquires;
+        }
+
+        /**
+         * Sets max pending acquires.
+         *
+         * @param maxPendingAcquires the max pending acquires
+         */
+        public void setMaxPendingAcquires(final Integer maxPendingAcquires) {
+            this.maxPendingAcquires = maxPendingAcquires;
+        }
+
+        /**
+         * Gets pending acquire max count.
+         * Alias of {@link #getMaxPendingAcquires()}.
+         *
+         * @return the pending acquire max count
+         */
+        public Integer getPendingAcquireMaxCount() {
+            return maxPendingAcquires;
+        }
+
+        /**
+         * Sets pending acquire max count.
+         * Alias of {@link #setMaxPendingAcquires(Integer)}; when both are configured, the last one bound wins.
+         *
+         * @param pendingAcquireMaxCount the pending acquire max count
+         */
+        public void setPendingAcquireMaxCount(final Integer pendingAcquireMaxCount) {
+            this.maxPendingAcquires = pendingAcquireMaxCount;
         }
         
         /**

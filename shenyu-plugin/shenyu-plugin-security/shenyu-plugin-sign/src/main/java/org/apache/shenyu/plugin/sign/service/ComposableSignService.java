@@ -181,7 +181,13 @@ public class ComposableSignService implements SignService {
     }
 
     private VerifyResult verifyExpires(final SignParameters signParameters) {
-        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(signParameters.getTimestamp()));
+        final long timestamp;
+        try {
+            timestamp = Long.parseLong(signParameters.getTimestamp());
+        } catch (NumberFormatException e) {
+            return VerifyResult.fail(Constants.SIGN_PARAMS_ERROR);
+        }
+        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(timestamp);
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (Math.abs(between) <= delay) {
@@ -226,13 +232,24 @@ public class ComposableSignService implements SignService {
             paramDataList.stream().filter(p -> p.getAppName().equals(realAppName))
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
-                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+                    .ifPresent(param -> exchange.getAttributes().put(Constants.APP_PARAM, param));
         }
     }
 
     private boolean skipSignExchange(final ShenyuContext context) {
-        return StringUtils.equals(String.format("%s-%s", PluginEnum.SPRING_CLOUD.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.DIVIDE.getName(), context.getRpcType()), context.getModule())
-                || StringUtils.equals(String.format("%s-%s", PluginEnum.WEB_SOCKET.getName(), context.getRpcType()), context.getModule());
+        return matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.SPRING_CLOUD.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.DIVIDE.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.WEB_SOCKET.getName());
+    }
+
+    static boolean matchesDefaultModule(final String module, final String rpcType, final String pluginName) {
+        if (StringUtils.isBlank(module) || StringUtils.isBlank(rpcType)) {
+            return false;
+        }
+        int separatorIndex = pluginName.length();
+        return module.length() == separatorIndex + rpcType.length() + 1
+                && module.startsWith(pluginName)
+                && module.charAt(separatorIndex) == '-'
+                && module.regionMatches(separatorIndex + 1, rpcType, 0, rpcType.length());
     }
 }

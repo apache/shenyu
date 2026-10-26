@@ -17,39 +17,46 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.exception.ExceptionHandlers;
-import org.apache.shenyu.admin.mapper.NamespaceMapper;
-import org.apache.shenyu.admin.model.entity.NamespaceDO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
-import org.apache.shenyu.admin.service.impl.NamespaceServiceImpl;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.transfer.NamespaceTransfer;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
+import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,8 +64,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test cases for {@link ShenyuClientHttpRegistryController}.
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public final class ShenyuHttpRegistryControllerTest {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private MockMvc mockMvc;
 
@@ -66,81 +74,104 @@ public final class ShenyuHttpRegistryControllerTest {
     private ShenyuClientServerRegisterPublisher publisher;
 
     @Mock
-    private NamespaceServiceImpl namespaceService;
-
-    @Mock
-    private NamespaceMapper namespaceMapper;
+    private NamespaceService namespaceService;
 
     @InjectMocks
-    private ShenyuClientHttpRegistryController shenyuHttpRegistryController;
+    private ShenyuClientHttpRegistryController controller;
 
     @BeforeEach
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(shenyuHttpRegistryController)
-                .setControllerAdvice(new ExceptionHandlers(null))
-                .build();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
-        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
+    @ParameterizedTest
+    @MethodSource("registrationCases")
+    void testRegistrationPublishesRequest(final String endpoint, final Class<? extends DataTypeParent> dtoType,
+                                         final String body, final String namespaceId) throws Exception {
+        ObjectNode request = (ObjectNode) objectMapper.readTree(body);
+        if (Objects.nonNull(namespaceId)) {
+            request.put("namespaceId", namespaceId);
+        }
+        mockMvc.perform(post("/shenyu-client/" + endpoint)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ShenyuResultMessage.SUCCESS));
+
+        request.put("namespaceId", Objects.isNull(namespaceId) ? Constants.SYS_DEFAULT_NAMESPACE_ID : namespaceId);
+        assertPublishedRequest(dtoType, request);
+    }
+
+    private static Stream<Arguments> registrationCases() {
+        return Stream.of(null, "tenant-a").flatMap(namespace -> Stream.of(
+                Arguments.of("register-metadata", MetaDataRegisterDTO.class,
+                        "{\"appName\":\"app\",\"path\":\"/orders\",\"rpcType\":\"http\",\"enabled\":true}", namespace),
+                Arguments.of("register-uri", URIRegisterDTO.class,
+                        "{\"appName\":\"app\",\"host\":\"127.0.0.1\",\"port\":8080,\"rpcType\":\"http\"}", namespace),
+                Arguments.of("register-discoveryConfig", DiscoveryConfigRegisterDTO.class,
+                        "{\"name\":\"discovery\",\"pluginName\":\"divide\",\"discoveryType\":\"zookeeper\",\"serverList\":\"localhost:2181\"}", namespace),
+                Arguments.of("register-mcp", McpToolsRegisterDTO.class,
+                        "{\"mcpConfig\":\"{}\",\"metaDataRegisterDTO\":{\"appName\":\"tools\",\"path\":\"/tool\"}}", namespace),
+                Arguments.of("offline", URIRegisterDTO.class,
+                        "{\"appName\":\"app\",\"host\":\"127.0.0.1\",\"port\":8080,\"eventType\":\"OFFLINE\"}", namespace)));
     }
 
     @Test
-    public void testRegisterMetadata() throws Exception {
-        given(namespaceMapper.insertSelective(buildNamespaceDO())).willReturn(1);
-        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
-        when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
-        MetaDataRegisterDTO metaDataRegisterDTO = MetaDataRegisterDTO.builder()
-                .appName("app")
-                .enabled(true)
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .host("127.0.0.1")
-                .port(8080)
-                .path("/register")
-                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
-                .build();
-        doNothing().when(publisher).publish(metaDataRegisterDTO);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-metadata")
+    void testRegisterApiDoc() throws Exception {
+        JsonNode request = objectMapper.readTree("{\"apiPath\":\"/orders\",\"contextPath\":\"/app\",\"httpMethod\":0,\"document\":\"orders api\"}");
+        mockMvc.perform(post("/shenyu-client/register-apiDoc")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(GsonUtils.getInstance().toJson(metaDataRegisterDTO)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
-                .andReturn();
+                .andExpect(content().string(ShenyuResultMessage.SUCCESS));
+        assertPublishedRequest(ApiDocRegisterDTO.class, request);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"register-metadata", "register-uri", "register-apiDoc", "register-discoveryConfig", "register-mcp", "offline"})
+    void testMissingRequestBodyIsRejected(final String endpoint) throws Exception {
+        mockMvc.perform(post("/shenyu-client/" + endpoint).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(publisher);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"register-metadata", "register-uri", "register-apiDoc", "register-discoveryConfig", "register-mcp", "offline"})
+    void testMalformedRequestBodyIsRejected(final String endpoint) throws Exception {
+        mockMvc.perform(post("/shenyu-client/" + endpoint).contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(publisher);
     }
 
     @Test
-    public void testRegisterURI() throws Exception {
-        given(namespaceMapper.insertSelective(buildNamespaceDO())).willReturn(1);
-        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
-        when(namespaceMapper.existed(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(true);
-        when(namespaceService.findByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).thenReturn(buildNamespaceVo());
-        URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .appName("app")
-                .host("127.0.0.1")
-                .port(8080)
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
-                .build();
-        doNothing().when(publisher).publish(uriRegisterDTO);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/register-uri")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(GsonUtils.getInstance().toJson(uriRegisterDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
-                .andReturn();
+    void testExistingNamespace() {
+        when(namespaceService.findByNamespaceId("tenant-a")).thenReturn(new NamespaceVO());
+        assertDoesNotThrow(() -> controller.checkClientNamespaceExist("tenant-a"));
+        verify(namespaceService).findByNamespaceId("tenant-a");
     }
 
-    private NamespaceDO buildNamespaceDO() {
-        return NamespaceDO.builder()
-                .id("1")
-                .name("test")
-                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
-                .description("test")
-                .build();
+    @Test
+    void testMissingNamespace() {
+        when(namespaceService.findByNamespaceId("missing")).thenReturn(null);
+        assertThrows(IllegalArgumentException.class, () -> controller.checkClientNamespaceExist("missing"));
+        verify(namespaceService).findByNamespaceId("missing");
     }
 
-    private NamespaceVO buildNamespaceVo() {
-        return NamespaceTransfer.INSTANCE.mapToVo(buildNamespaceDO());
+    private void assertPublishedRequest(final Class<? extends DataTypeParent> dtoType, final JsonNode expected) {
+        ArgumentCaptor<DataTypeParent> captor = ArgumentCaptor.forClass(DataTypeParent.class);
+        verify(publisher).publish(captor.capture());
+        DataTypeParent published = captor.getValue();
+        assertEquals(dtoType, published.getClass());
+        JsonNode actual = objectMapper.valueToTree(published);
+        expected.fields().forEachRemaining(field -> assertJsonFields(field.getValue(), actual.get(field.getKey())));
+        verifyNoMoreInteractions(publisher);
+    }
+
+    private void assertJsonFields(final JsonNode expected, final JsonNode actual) {
+        if (expected.isObject()) {
+            expected.fields().forEachRemaining(field -> assertJsonFields(field.getValue(), actual.get(field.getKey())));
+        } else {
+            assertEquals(expected, actual);
+        }
     }
 }

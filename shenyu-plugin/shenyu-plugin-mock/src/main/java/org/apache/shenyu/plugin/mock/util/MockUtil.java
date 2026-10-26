@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Random;
 
 import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
 
@@ -114,8 +113,7 @@ public final class MockUtil {
      * @return chinese string
      */
     public static String zh(final int min, final int max) {
-        Random random = new Random();
-        int len = random.nextInt(max - min - 1) + min;
+        int len = RandomUtil.randomInt(min, max);
         return RandomStringUtils.random(len, 0x4e00, 0x9fa5, false, false);
     }
     

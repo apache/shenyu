@@ -22,26 +22,38 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.shenyu.common.utils.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.InflightRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.SubscribeRepository;
 import org.apache.shenyu.protocol.mqtt.repositories.TopicRepository;
+import org.apache.shenyu.protocol.mqtt.repositories.WillRepository;
+import org.apache.shenyu.protocol.mqtt.utils.MqttPacketIdGenerator;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 import static io.netty.handler.codec.mqtt.MqttMessageType.PUBACK;
+import static io.netty.handler.codec.mqtt.MqttMessageType.PUBREC;
 
 /**
  * Publish message.
  */
 public class Publish extends MessageType {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Publish.class);
 
     @Override
     public void publish(final ChannelHandlerContext ctx, final MqttPublishMessage msg) {
@@ -51,28 +63,33 @@ public class Publish extends MessageType {
         }
         String topic = msg.variableHeader().topicName();
         ByteBuf payload = msg.payload();
-        String message = byteBufToString(payload);
-        //// todo qos
         MqttQoS mqttQoS = msg.fixedHeader().qosLevel();
         if (msg.fixedHeader().isRetain()) {
             if (payload.isReadable()) {
+                byte[] message = new byte[payload.readableBytes()];
+                payload.getBytes(payload.readerIndex(), message);
                 Singleton.INST.get(TopicRepository.class).add(topic, message);
             } else {
                 Singleton.INST.get(TopicRepository.class).remove(topic);
             }
         }
         int packetId = msg.variableHeader().packetId();
-        CompletableFuture.runAsync(() -> send(topic, payload, packetId));
-
         switch (mqttQoS.value()) {
             case 0:
+                deliverAsync(topic, payload, mqttQoS);
                 break;
 
             case 1:
+                deliverAsync(topic, payload, mqttQoS);
                 qos1(ctx, packetId);
                 break;
 
             case 2:
+                // exactly-once: a retransmitted publish is answered with PUBREC
+                // but must not be delivered to subscribers again (#7919)
+                if (registerInbound(ctx.channel(), packetId)) {
+                    deliverAsync(topic, payload, mqttQoS);
+                }
                 qos2(ctx, packetId);
                 break;
             default:
@@ -82,17 +99,48 @@ public class Publish extends MessageType {
     }
 
     /**
-     * todo qos0.
+     * Delivers the message to the subscribers of the topic on the common pool.
+     * The inbound message is released by MqttTransportHandler once publish returns,
+     * retain the payload for the asynchronous send.
+     *
+     * @param topic the topic of the publish
+     * @param payload the payload of the publish
+     * @param mqttQoS the qos level of the publish
      */
-    private void qos0() {
-
+    private void deliverAsync(final String topic, final ByteBuf payload, final MqttQoS mqttQoS) {
+        payload.retain();
+        CompletableFuture.runAsync(() -> {
+            try {
+                send(topic, payload, mqttQoS);
+            } finally {
+                ReferenceCountUtil.safeRelease(payload);
+            }
+        });
     }
 
     /**
-     * todo qos1.
+     * Registers the inbound packet for deduplication. QoS 2 packet ids are scoped
+     * to the connection, so without a known client the publish is delivered as before.
+     *
+     * @param channel the channel of the publisher
+     * @param packetId the packet identifier of the inbound publish
+     * @return true when the packet was seen for the first time
+     */
+    private boolean registerInbound(final Channel channel, final int packetId) {
+        String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
+        if (Objects.isNull(clientId)) {
+            // dedup is keyed by the client id: without one, deliver as before
+            LOG.debug("mqtt publish on channel {} has no client id, skipping qos2 dedup", channel.id());
+            return true;
+        }
+        return Singleton.INST.get(InflightRepository.class).register(clientId, packetId);
+    }
+
+    /**
+     * send PUBACK to the publisher for a qos1 publish.
      */
     private void qos1(final ChannelHandlerContext ctx, final int packetId) {
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.AT_LEAST_ONCE, false, 0);
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMsgIdVariableHeader = MqttMessageIdVariableHeader.from(packetId);
 
         MqttPubAckMessage mqttPubAckMessage = new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
@@ -100,34 +148,69 @@ public class Publish extends MessageType {
     }
 
     /**
-     * todo qos2.
+     * send PUBREC to the publisher for a qos2 publish.
      */
     private void qos2(final ChannelHandlerContext ctx, final int packetId) {
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBACK, false, MqttQoS.EXACTLY_ONCE, false, 0);
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(PUBREC, false, MqttQoS.AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMsgIdVariableHeader = MqttMessageIdVariableHeader.from(packetId);
 
-        MqttPubAckMessage mqttPubAckMessage = new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
-        ctx.writeAndFlush(mqttPubAckMessage);
+        MqttMessage mqttPubRecMessage = new MqttMessage(mqttFixedHeader, mqttMsgIdVariableHeader);
+        ctx.writeAndFlush(mqttPubRecMessage);
     }
 
-    private String byteBufToString(final ByteBuf byteBuf) {
-        if (byteBuf.hasArray()) {
-            return new String(byteBuf.array(), byteBuf.arrayOffset() + byteBuf.readerIndex(), byteBuf.readableBytes());
-        } else {
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            return new String(bytes, 0, byteBuf.readableBytes());
-        }
-    }
-
-    private void send(final String topic, final ByteBuf payload, final int packetId) {
-        List<Channel> channels = Singleton.INST.get(SubscribeRepository.class).get(topic);
+    private void send(final String topic, final ByteBuf payload, final MqttQoS publishQoS) {
+        Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).get(topic);
         //// todo thread pool
-        channels.parallelStream().forEach(channel -> {
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
             if (channel.isActive()) {
-                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, MqttQoS.AT_MOST_ONCE, false, 0);
+                MqttQoS qos = minQoS(publishQoS, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos ? 0 : MqttPacketIdGenerator.next(channel);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, false, 0);
                 MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(topic, packetId);
-                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload));
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, Unpooled.wrappedBuffer(payload.retainedDuplicate()));
+                channel.writeAndFlush(mqttPublishMessage);
+            }
+        });
+    }
+
+    private static MqttQoS minQoS(final MqttQoS publishQoS, final MqttQoS grantedQoS) {
+        return publishQoS.value() <= grantedQoS.value() ? publishQoS : grantedQoS;
+    }
+
+    /**
+     * Publish a Last Will message to all subscribers of the will topic.
+     *
+     * @param will the will entry containing topic, message, qos, and retain flag
+     */
+    static void publishWill(final WillRepository.WillEntry will) {
+        if (Objects.isNull(will) || Objects.isNull(will.getTopic()) || Objects.isNull(will.getMessage())) {
+            return;
+        }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
+        if (will.isRetain()) {
+            if (will.getMessage().length > 0) {
+                Singleton.INST.get(TopicRepository.class).add(will.getTopic(), will.getMessage());
+            } else {
+                Singleton.INST.get(TopicRepository.class).remove(will.getTopic());
+            }
+        }
+        // MQTT-3.1.2-14/16: a retained will is stored like any other retained publish,
+        // and an empty retained will payload clears the stored value.
+        final Map<Channel, MqttQoS> subscribers = Singleton.INST.get(SubscribeRepository.class).getChannelsByTopic(will.getTopic());
+        final MqttQoS willQos = MqttQoS.valueOf(will.getQos());
+        subscribers.entrySet().parallelStream().forEach(entry -> {
+            Channel channel = entry.getKey();
+            if (channel.isActive()) {
+                MqttQoS qos = minQoS(willQos, entry.getValue());
+                int packetId = MqttQoS.AT_MOST_ONCE == qos
+                        ? 0
+                        : java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 65536);
+                MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, will.isRetain(), 0);
+                MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader(will.getTopic(), packetId);
+                MqttPublishMessage mqttPublishMessage = new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader,
+                        Unpooled.wrappedBuffer(will.getMessage()));
                 channel.writeAndFlush(mqttPublishMessage);
             }
         });

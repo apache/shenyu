@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
@@ -53,6 +54,8 @@ import java.util.Objects;
 public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
+
+    private static final String RESOURCE_ALREADY_EXISTS_EXCEPTION = "resource_already_exists_exception";
     
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -140,7 +143,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         } catch (Exception e) {
             LogUtils.error(LOG, "fail to check the index exists, error:", e);
         }
-        return true;
+        return false;
     }
 
     /**
@@ -150,7 +153,18 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
      */
     public void createIndex(final String indexName) {
         try {
-            client.indices().create(c -> c.index(indexName));
+            client.indices().create(c -> c.index(indexName).mappings(mapping -> mapping
+                    // Desensitized values remain in _source without rejecting the entire log document.
+                    .properties("timeLocal", property -> property.date(date -> date.format("yyyy-MM-dd HH:mm:ss.SSS").ignoreMalformed(true)))
+                    .properties("responseContentLength", property -> property.integer(number -> number.ignoreMalformed(true)))
+                    .properties("status", property -> property.integer(number -> number.ignoreMalformed(true)))
+                    .properties("upstreamResponseTime", property -> property.long_(number -> number.ignoreMalformed(true)))));
+        } catch (ElasticsearchException e) {
+            if (RESOURCE_ALREADY_EXISTS_EXCEPTION.equals(e.error().type())) {
+                LogUtils.info(LOG, "index {} already exists", indexName);
+                return;
+            }
+            throw e;
         } catch (IOException e) {
             LogUtils.error(LOG, "create index error:", e);
         }

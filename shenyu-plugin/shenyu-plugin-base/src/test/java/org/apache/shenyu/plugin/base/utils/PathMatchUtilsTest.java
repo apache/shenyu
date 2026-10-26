@@ -64,6 +64,14 @@ public final class PathMatchUtilsTest {
     }
 
     @Test
+    public void testPathPatternSpecificityComparison() {
+        assertTrue(PathMatchUtils.compare("/orders/details", "/orders/*", "/orders/details") < 0);
+        assertTrue(PathMatchUtils.compare("/orders/{id}", "/orders/**", "/orders/42") < 0);
+        assertEquals(0, PathMatchUtils.compare("/orders/*", "/orders/*", "/orders/42"));
+        assertTrue(PathMatchUtils.compare(null, "/orders/*", "/orders/42") > 0);
+    }
+
+    @Test
     public void testCompiledPatternsAreCached() throws ReflectiveOperationException {
         Cache<?, ?> matcherCache = getCache("MATCHER_CACHE");
         Cache<?, ?> pathPatternCache = getCache("PATH_PATTERN_CACHE");

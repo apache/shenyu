@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
  */
 public class PathMatchUtils {
 
+    private static final AntPathMatcher COMPARATOR_MATCHER = new AntPathMatcher();
+
     private static final Cache<String, AntPathMatcher> MATCHER_CACHE = Caffeine.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .build();
@@ -67,6 +69,18 @@ public class PathMatchUtils {
             return result;
         });
         return matcher.match(matchUrls, realPath);
+    }
+
+    /**
+     * Compare two path patterns for a concrete path.
+     *
+     * @param left the left path pattern
+     * @param right the right path pattern
+     * @param realPath the concrete path
+     * @return a negative value when left is more specific
+     */
+    public static int compare(final String left, final String right, final String realPath) {
+        return COMPARATOR_MATCHER.getPatternComparator(realPath).compare(left, right);
     }
     
     /**
