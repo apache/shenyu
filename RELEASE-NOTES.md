@@ -85,6 +85,13 @@
   upstreams finish after followers have already given up and the burst is not
   collapsed. (#7932)
 
+- Agent Gateway adds explicit local/remote resource lists, simple URI templates
+  and reads, with independent `allowedResources`/trusted resource grants and
+  server-namespaced remote identifiers. Remote resource discovery is disabled
+  by default and requires `aggregation.resources-enabled=true` in deployment
+  configuration. Existing tools-only deployments retain their discovery behavior;
+  resource reads reuse the owned cancellation/deadline and directory-generation
+  lifecycle. No generic file/URL fetching, prompts or subscriptions are added.
 - Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
   HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
   request-local plugin cursors, attributes and captured responses; upstream
