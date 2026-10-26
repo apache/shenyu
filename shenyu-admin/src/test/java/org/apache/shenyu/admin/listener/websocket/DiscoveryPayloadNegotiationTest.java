@@ -22,26 +22,35 @@ import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,10 +67,18 @@ class DiscoveryPayloadNegotiationTest {
 
     private final List<Session> sessions = new ArrayList<>();
 
+    private ApplicationContext previousContext;
+
+    @BeforeEach
+    void setUp() {
+        previousContext = (ApplicationContext) ReflectionTestUtils.getField(SpringBeanUtils.getInstance(), "applicationContext");
+    }
+
     @AfterEach
     void tearDown() {
         ThreadLocalUtils.clear();
         sessions.forEach(collector::onClose);
+        SpringBeanUtils.getInstance().setApplicationContext(previousContext);
     }
 
     @ParameterizedTest
@@ -138,6 +155,54 @@ class DiscoveryPayloadNegotiationTest {
         WebsocketCollector.sendDiscovery("unused-namespace", () -> "legacy-" + serializations.incrementAndGet(),
                 () -> "compact-" + serializations.incrementAndGet(), DataEventTypeEnum.UPDATE);
         assertEquals(0, serializations.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void negotiatedSnapshotPrecedesItsCompletionAndClearsFrameState(final boolean capable) {
+        ApplicationContext context = mock(ApplicationContext.class);
+        SyncDataService sync = mock(SyncDataService.class);
+        when(context.getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(context.getBean(SyncDataService.class)).thenReturn(sync);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        List<String> messages = new ArrayList<>();
+        List<String> sibling = new ArrayList<>();
+        Session session = register("namespace", capable, messages);
+        register("namespace", !capable, sibling);
+        WebsocketDataChangedListener listener = new WebsocketDataChangedListener(true);
+        when(sync.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, "namespace")).thenAnswer(invocation -> {
+            listener.onDiscoveryUpstreamChanged(List.of(discovery()), DataEventTypeEnum.MYSELF);
+            return true;
+        });
+        String requestId = UUID.randomUUID().toString();
+
+        collector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + requestId, session);
+
+        assertEquals(2, messages.size());
+        assertTrue(sibling.isEmpty());
+        WebsocketSyncFrame data = GsonUtils.getInstance().fromJson(messages.get(0), WebsocketSyncFrame.class);
+        assertEquals(requestId, data.getRequestId());
+        assertEquals(0, data.getSequence());
+        assertEquals(!capable, payload(List.of(data.getPayload())).has("discoveryHandlerId"));
+        WebsocketSyncFrame end = GsonUtils.getInstance().fromJson(messages.get(1), WebsocketSyncFrame.class);
+        assertEquals(requestId, end.getRequestId());
+        assertEquals(1, end.getSequence());
+        assertNull(end.getPayload());
+        assertNull(ThreadLocalUtils.get("sessionKey"));
+        listener.onDiscoveryUpstreamChanged(List.of(discovery()), DataEventTypeEnum.UPDATE);
+        assertEquals(3, messages.size());
+        JsonObject update = GsonUtils.getInstance().fromJson(messages.get(2), JsonObject.class);
+        assertEquals("DISCOVER_UPSTREAM", update.get("groupType").getAsString());
+        assertFalse(update.has("requestId"));
+    }
+
+    @Test
+    void initialSnapshotCannotTargetAnotherNamespace() {
+        List<String> messages = new ArrayList<>();
+        Session other = register("other-namespace", true, messages);
+        ThreadLocalUtils.put("sessionKey", other);
+        new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(List.of(discovery()), DataEventTypeEnum.MYSELF);
+        assertTrue(messages.isEmpty());
     }
 
     private DiscoverySyncData discovery() {

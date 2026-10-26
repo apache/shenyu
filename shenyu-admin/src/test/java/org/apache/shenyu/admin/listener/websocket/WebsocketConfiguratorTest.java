@@ -100,6 +100,7 @@ public class WebsocketConfiguratorTest {
         websocketSyncProperties.setToken("websocket-sync-token");
         ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
         Map<String, Object> properties = new HashMap<>();
+        properties.put(Constants.X_SHENYU_DISCOVERY_PAYLOAD, Boolean.TRUE);
         when(sec.getUserProperties()).thenReturn(properties);
         HandshakeRequest request = mock(HandshakeRequest.class);
         Map<String, List<String>> headers = new HashMap<>();
