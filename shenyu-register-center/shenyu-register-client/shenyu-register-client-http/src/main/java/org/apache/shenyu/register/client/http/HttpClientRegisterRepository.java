@@ -27,7 +27,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -132,6 +132,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     @Override
     public void offline(final URIRegisterDTO offlineDTO) {
         doUnregister(offlineDTO);
+    }
+
+    @Override
+    public void draining(final URIRegisterDTO drainingDTO) {
+        if (RuntimeUtils.listenByOther(drainingDTO.getPort())) {
+            return;
+        }
+        drainingDTO.setEventType(EventType.DRAINING);
+        doRegister(drainingDTO, Constants.URI_PATH, Constants.URI);
     }
     
     @Override

@@ -18,30 +18,7 @@
 package org.apache.shenyu.client.mcp.common.constants;
 
 /**
- * shenyu tool config constants.
+ * Compatibility alias for the main-owned MCP constants.
  */
-public class ShenyuToolConfigConstants {
-
-    /**
-     * the name key.
-     */
-    public static final String NAME_KEY = "name";
-
-    /**
-     * the parameters key.
-     */
-    public static final String PARAMETERS_KEY = "parameters";
-
-    /**
-     * the requestConfig key.
-     */
-    public static final String REQUEST_CONFIG_KEY = "requestConfig";
-
-    /**
-     * the description key.
-     */
-    public static final String DESCRIPTION_KEY = "description";
-
-
-
+public class ShenyuToolConfigConstants extends org.apache.shenyu.register.mcp.common.constants.ShenyuToolConfigConstants {
 }

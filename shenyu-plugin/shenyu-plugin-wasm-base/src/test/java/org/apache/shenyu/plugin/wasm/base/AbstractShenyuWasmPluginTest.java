@@ -78,7 +78,7 @@ public final class AbstractShenyuWasmPluginTest {
         mockShenyuConfig();
         this.ruleData = RuleData.builder()
                 .id("1").pluginName("SHENYU").selectorId("1")
-                .enabled(true).loged(true).matchRestful(false).sort(1).build();
+                .enabled(true).logged(true).matchRestful(false).sort(1).build();
         this.conditionData = new ConditionData();
         this.conditionData.setOperator("match");
         this.conditionData.setParamName("/");
@@ -158,11 +158,11 @@ public final class AbstractShenyuWasmPluginTest {
 
         RuleData rule1 = RuleData.builder()
                 .id("r1").pluginName("SHENYU").selectorId("1")
-                .enabled(true).loged(true).matchRestful(false).sort(1)
+                .enabled(true).logged(true).matchRestful(false).sort(1)
                 .conditionDataList(condList).matchMode(0).build();
         RuleData rule2 = RuleData.builder()
                 .id("r2").pluginName("SHENYU").selectorId("1")
-                .enabled(true).loged(true).matchRestful(false).sort(2)
+                .enabled(true).logged(true).matchRestful(false).sort(2)
                 .conditionDataList(condList).matchMode(0).build();
         BaseDataCache.getInstance().cacheRuleData(rule1);
         BaseDataCache.getInstance().cacheRuleData(rule2);

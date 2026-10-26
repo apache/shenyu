@@ -114,6 +114,14 @@ public interface DiscoveryUpstreamService {
      */
     List<DiscoveryUpstreamData> findBySelectorId(String selectorId);
 
+    /**
+     * Whether a selector has authoritative discovery state, including an empty instance list.
+     *
+     * @param selectorId selector id
+     * @return whether a discovery handler exists
+     */
+    boolean hasDiscoveryHandler(String selectorId);
+
 
     /**
      * deleteBySelectorIdAndUrl.
@@ -132,6 +140,17 @@ public interface DiscoveryUpstreamService {
      * @param enabled    enabled
      */
     void changeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
+
+    /**
+     * Merge a draining marker into the props of the upstream matching the selector
+     * and url. Idempotent: the marker is written, never derived from status, so a
+     * heartbeat-driven status flip cannot cancel it.
+     *
+     * @param selectorId selectorId
+     * @param url        url
+     * @param draining   true to mark draining, false to release the marker
+     */
+    void markDrainingBySelectorIdAndUrl(String selectorId, String url, boolean draining);
 
     /**
      * Import the discoveryUpstream data list.

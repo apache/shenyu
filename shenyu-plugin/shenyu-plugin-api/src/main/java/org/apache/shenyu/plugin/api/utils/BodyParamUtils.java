@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.api.utils;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,10 +65,10 @@ public final class BodyParamUtils {
         LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         Matcher matcher = QUERY_PARAM_PATTERN.matcher(param);
         while (matcher.find()) {
-            String name = matcher.group(1);
+            String name = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
             String eq = matcher.group(2);
             String value = matcher.group(3);
-            params.add(name, Objects.nonNull(value) ? value : (StringUtils.isNotBlank(eq) ? "" : null));
+            params.add(name, Objects.nonNull(value) ? URLDecoder.decode(value, StandardCharsets.UTF_8) : (StringUtils.isNotBlank(eq) ? "" : null));
         }
         return params;
     }
@@ -114,7 +116,7 @@ public final class BodyParamUtils {
             paramTypeList.addAll(Arrays.asList(StringUtils.split(parameterTypes, ",")));
         }
 
-        if (paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
+        if (!isNameMapping(parameterTypes) && paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
             return buildSingleParameter(body, parameterTypes);
         }
         Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mode.standalone;
 
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
+import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
@@ -29,13 +30,17 @@ public class ShenyuStandaloneService implements ShenyuRunningModeService {
     private final LoadServiceDocEntry loadServiceDocEntry;
 
     private final InstanceCheckService instanceCheckService;
+
+    private final ScaleLifecycleService scaleLifecycleService;
     
     public ShenyuStandaloneService(final UpstreamCheckService upstreamCheckService,
                                    final LoadServiceDocEntry loadServiceDocEntry,
-                                   final InstanceCheckService instanceCheckService) {
+                                   final InstanceCheckService instanceCheckService,
+                                   final ScaleLifecycleService scaleLifecycleService) {
         this.upstreamCheckService = upstreamCheckService;
         this.loadServiceDocEntry = loadServiceDocEntry;
         this.instanceCheckService = instanceCheckService;
+        this.scaleLifecycleService = scaleLifecycleService;
     }
     
     @Override
@@ -45,6 +50,8 @@ public class ShenyuStandaloneService implements ShenyuRunningModeService {
 
         instanceCheckService.setup();
 
+        scaleLifecycleService.start();
+
         // load api
         loadServiceDocEntry.loadApiDocument();
     }
@@ -53,5 +60,6 @@ public class ShenyuStandaloneService implements ShenyuRunningModeService {
     public void shutdown() {
         upstreamCheckService.close();
         instanceCheckService.close();
+        scaleLifecycleService.stop();
     }
 }

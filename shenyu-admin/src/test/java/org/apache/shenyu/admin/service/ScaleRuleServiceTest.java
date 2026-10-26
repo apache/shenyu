@@ -34,8 +34,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -103,13 +105,12 @@ public final class ScaleRuleServiceTest {
         ScaleRuleDTO dto = new ScaleRuleDTO();
         dto.setId("r");
         dto.setMetricName("new");
-        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(ScaleRuleDO.builder().id("r").metricName("old").build(),
-                ScaleRuleDO.builder().id("r").metricName("new").build());
+        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(ScaleRuleDO.builder().id("r").metricName("new").build());
         when(scaleRuleMapper.updateByPrimaryKeySelective(any(ScaleRuleDO.class))).thenReturn(1);
         TransactionSynchronizationManager.initSynchronization();
         scaleRuleService.update(dto);
         TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations());
-        verify(scaleRuleCache).removeRulesFromCache(any());
+        verify(scaleRuleCache, never()).removeRulesFromCache(any());
         verify(scaleRuleCache).addOrUpdateRuleToCache(any(ScaleRuleDO.class));
         TransactionSynchronizationManager.clearSynchronization();
         when(scaleRuleMapper.delete(any())).thenReturn(1);
@@ -125,7 +126,7 @@ public final class ScaleRuleServiceTest {
         ScaleRuleDTO update = new ScaleRuleDTO();
         update.setId("r");
         ScaleRuleDO persisted = ScaleRuleDO.builder().id("r").metricName("metric").build();
-        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(null, persisted);
+        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(persisted);
         when(scaleRuleMapper.updateByPrimaryKeySelective(any(ScaleRuleDO.class))).thenReturn(1);
         assertEquals(1, scaleRuleService.createOrUpdate(update));
         verify(scaleRuleMapper).insertSelective(any(ScaleRuleDO.class));
@@ -150,7 +151,6 @@ public final class ScaleRuleServiceTest {
     public void testUpdateAndDeleteSkipCacheWhenMapperReturnsZero() {
         ScaleRuleDTO dto = new ScaleRuleDTO();
         dto.setId("r");
-        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(null);
         when(scaleRuleMapper.updateByPrimaryKeySelective(any(ScaleRuleDO.class))).thenReturn(0);
         assertEquals(0, scaleRuleService.update(dto));
         when(scaleRuleMapper.delete(any())).thenReturn(0);
@@ -172,11 +172,10 @@ public final class ScaleRuleServiceTest {
     }
 
     @Test
-    public void testUpdateWithoutPreviousRuleAndDeleteAfterCommit() {
+    public void testUpdateAndDeletePublishCacheChangesAfterCommit() {
         ScaleRuleDTO dto = new ScaleRuleDTO();
         dto.setId("r");
-        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(null,
-                ScaleRuleDO.builder().id("r").metricName("metric").build());
+        when(scaleRuleMapper.selectByPrimaryKey("r")).thenReturn(ScaleRuleDO.builder().id("r").metricName("metric").build());
         when(scaleRuleMapper.updateByPrimaryKeySelective(any(ScaleRuleDO.class))).thenReturn(1);
         TransactionSynchronizationManager.initSynchronization();
         scaleRuleService.update(dto);
@@ -190,5 +189,48 @@ public final class ScaleRuleServiceTest {
         verify(scaleRuleCache, never()).removeRulesByIdsFromCache(any());
         TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations());
         verify(scaleRuleCache).removeRulesByIdsFromCache(any());
+    }
+
+    @Test
+    public void testRenamePreservesOtherRulesWithSameMetricAfterCommit() {
+        final ScaleRuleCache cache = new ScaleRuleCache();
+        final ScaleRuleDO first = ScaleRuleDO.builder().id("a").metricName("cpu_usage").build();
+        final ScaleRuleDO second = ScaleRuleDO.builder().id("b").metricName("cpu_usage").build();
+        cache.initialize(List.of(first, second));
+        final ScaleRuleDO renamed = ScaleRuleDO.builder().id("a").metricName("memory_usage").build();
+        when(scaleRuleMapper.updateByPrimaryKeySelective(any(ScaleRuleDO.class))).thenReturn(1);
+        when(scaleRuleMapper.selectByPrimaryKey("a")).thenReturn(renamed);
+        final ScaleRuleDTO update = new ScaleRuleDTO();
+        update.setId("a");
+        update.setMetricName("memory_usage");
+        final ScaleRuleService service = new ScaleRuleServiceImpl(scaleRuleMapper, cache);
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.update(update);
+
+        assertEquals(2, cache.getAllRules().size());
+        assertEquals("cpu_usage", first.getMetricName());
+        assertTrue(cache.getAllRules().contains(first));
+        TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations());
+        assertEquals(2, cache.getAllRules().size());
+        assertTrue(cache.getAllRules().contains(renamed));
+        assertTrue(cache.getAllRules().contains(second));
+    }
+
+    @Test
+    public void testDeletePreservesOtherRulesWithSameMetricAfterCommit() {
+        final ScaleRuleCache cache = new ScaleRuleCache();
+        final ScaleRuleDO first = ScaleRuleDO.builder().id("a").metricName("cpu_usage").build();
+        final ScaleRuleDO second = ScaleRuleDO.builder().id("b").metricName("cpu_usage").build();
+        cache.initialize(List.of(first, second));
+        when(scaleRuleMapper.delete(List.of("a"))).thenReturn(1);
+        final ScaleRuleService service = new ScaleRuleServiceImpl(scaleRuleMapper, cache);
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.delete(List.of("a"));
+
+        assertEquals(2, cache.getAllRules().size());
+        TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations());
+        assertEquals(List.of(second), cache.getAllRules());
     }
 }

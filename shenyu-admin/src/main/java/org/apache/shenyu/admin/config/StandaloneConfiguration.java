@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.mode.ShenyuRunningModeService;
 import org.apache.shenyu.admin.mode.standalone.ShenyuStandaloneService;
+import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
@@ -43,6 +44,7 @@ public class StandaloneConfiguration {
      * @param upstreamCheckService upstream check service
      * @param instanceCheckService instance check service
      * @param loadServiceDocEntry load service doc entry
+     * @param scaleLifecycleService scaling lifecycle service
      * @return Shenyu standalone service
      */
     @Bean(destroyMethod = "shutdown")
@@ -50,12 +52,14 @@ public class StandaloneConfiguration {
     @ConditionalOnMissingBean
     public ShenyuRunningModeService shenyuRunningModeService(final UpstreamCheckService upstreamCheckService,
                                                              final InstanceCheckService instanceCheckService,
-                                                             final LoadServiceDocEntry loadServiceDocEntry) {
+                                                             final LoadServiceDocEntry loadServiceDocEntry,
+                                                             final ScaleLifecycleService scaleLifecycleService) {
         LOGGER.info("starting in standalone mode ...");
         return new ShenyuStandaloneService(
                 upstreamCheckService,
                 loadServiceDocEntry,
-                instanceCheckService
+                instanceCheckService,
+                scaleLifecycleService
         );
     }
     

@@ -59,6 +59,11 @@ public enum PluginEnum {
      * Monitor plugin enum.
      */
     METRICS(15, 0, "metrics"),
+
+    /**
+     * Tracing plugin enum.
+     */
+    TRACING(0, 0, "tracing"),
     
     /**
      * Sign plugin enum.
@@ -297,6 +302,11 @@ public enum PluginEnum {
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Pii-detection plugin enum.
+     */
+    PII_DETECTION(196, 0, "piiDetection"),
 
     /**
      * Sensitive-word plugin enum.

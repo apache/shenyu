@@ -98,13 +98,40 @@ public final class MetaDataCache {
     /**
      * Remove auth data.
      *
+     * <p>Deletion events may carry only half of the identity: node sync sends
+     * an id without a path, path sync sends a path without an id (#7790).
+     * The partial identity is resolved against the cached canonical record so
+     * both the id map and the derived path results are invalidated, and the
+     * removal stays idempotent instead of throwing.</p>
+     *
      * @param data the data
      */
     public synchronized void remove(final MetaData data) {
-        META_DATA_MAP.remove(data.getId());
+        final String id = data.getId();
+        final String path = data.getPath();
+        final MetaData cached = Objects.nonNull(id) ? META_DATA_MAP.get(id) : findByPath(path);
+        if (Objects.nonNull(id)) {
+            META_DATA_MAP.remove(id);
+        } else if (Objects.nonNull(cached)) {
+            META_DATA_MAP.remove(cached.getId());
+        }
         indexDirty = true;
         negativeCacheDirty = true;
-        clean(data.getPath());
+        if (Objects.nonNull(path)) {
+            clean(path);
+        } else if (Objects.nonNull(cached) && Objects.nonNull(cached.getPath())) {
+            clean(cached.getPath());
+        }
+    }
+
+    private MetaData findByPath(final String path) {
+        if (Objects.isNull(path)) {
+            return null;
+        }
+        return META_DATA_MAP.values().stream()
+                .filter(metaData -> path.equals(metaData.getPath()))
+                .findFirst()
+                .orElse(null);
     }
 
     private void rebuildPathIndex() {

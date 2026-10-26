@@ -18,13 +18,18 @@
 package org.apache.shenyu.admin.listener.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.shenyu.admin.config.WebSocketSyncConfiguration;
+import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
@@ -32,17 +37,24 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -344,6 +356,142 @@ public final class WebsocketDataChangedListenerTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(value = DataEventTypeEnum.class, names = {"UPDATE", "CREATE", "DELETE", "MYSELF", "REFRESH"})
+    public void testCompactDiscoveryPreservesRuntimeData(final DataEventTypeEnum eventType) {
+        DiscoverySyncData data = discoveryData();
+        final String original = GsonUtils.getInstance().toJson(data);
+        final String legacy = discoveryMessage(new WebsocketDataChangedListener(), data, eventType);
+        WebsocketSyncProperties properties = new WebsocketSyncProperties();
+        properties.setCompactDiscoveryPayload(true);
+        WebsocketDataChangedListener configured = (WebsocketDataChangedListener) new WebSocketSyncConfiguration().websocketDataChangedListener(properties);
+        String compact = discoveryMessage(configured, data, eventType);
+        JsonObject compactFrame = JsonParser.parseString(compact).getAsJsonObject();
+        JsonObject compactData = compactFrame.getAsJsonArray("data").get(0).getAsJsonObject();
+        JsonObject compactUpstream = compactData.getAsJsonArray("upstreamDataList").get(0).getAsJsonObject();
+        assertEquals(eventType.name(), compactFrame.get("eventType").getAsString());
+        assertEquals("DISCOVER_UPSTREAM", compactFrame.get("groupType").getAsString());
+        assertFalse(compactData.has("discoveryHandlerId"));
+        for (String field : List.of("id", "dateUpdated", "discoveryHandlerId", "namespaceId")) {
+            assertFalse(compactUpstream.has(field), field);
+        }
+        DiscoverySyncData decoded = GsonUtils.getInstance().fromJson(compactData.toString(), DiscoverySyncData.class);
+        assertEquals(data.getSelectorId(), decoded.getSelectorId());
+        assertEquals(data.getSelectorName(), decoded.getSelectorName());
+        assertEquals(data.getPluginName(), decoded.getPluginName());
+        assertEquals(data.getNamespaceId(), decoded.getNamespaceId());
+        DiscoveryUpstreamData expected = data.getUpstreamDataList().get(0);
+        DiscoveryUpstreamData actual = decoded.getUpstreamDataList().get(0);
+        assertEquals(expected.getDateCreated(), actual.getDateCreated());
+        assertEquals(expected.getProtocol(), actual.getProtocol());
+        assertEquals(expected.getUrl(), actual.getUrl());
+        assertEquals(expected.getStatus(), actual.getStatus());
+        assertEquals(expected.getWeight(), actual.getWeight());
+        assertEquals(expected.getProps(), actual.getProps());
+        assertEquals(original, GsonUtils.getInstance().toJson(data));
+        assertTrue(legacy.contains("dateUpdated"));
+        assertTrue(compact.length() < legacy.length());
+    }
+
+    @Test
+    public void testCompactDiscoveryRetainsEmptyUpstreamList() {
+        DiscoverySyncData data = discoveryData();
+        data.setUpstreamDataList(Collections.emptyList());
+        String message = discoveryMessage(new WebsocketDataChangedListener(true), data, DataEventTypeEnum.UPDATE);
+        JsonObject decoded = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+        assertTrue(decoded.getAsJsonArray("upstreamDataList").isEmpty());
+    }
+
+    @Test
+    public void testCompactDiscoverySeparatesNamespacesAndSkipsNullRows() {
+        DiscoverySyncData first = discoveryData();
+        DiscoverySyncData second = discoveryData();
+        second.setNamespaceId("other-namespace");
+        second.setSelectorId("other-selector");
+        List<DiscoverySyncData> data = new ArrayList<>();
+        data.add(first);
+        data.add(null);
+        data.add(second);
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(data, DataEventTypeEnum.UPDATE);
+            for (DiscoverySyncData item : List.of(first, second)) {
+                collector.verify(() -> WebsocketCollector.sendDiscovery(eq(item.getNamespaceId()), any(), argThat(message -> {
+                    JsonObject frame = JsonParser.parseString(message.get()).getAsJsonObject();
+                    return frame.getAsJsonArray("data").size() == 1
+                            && item.getSelectorId().equals(frame.getAsJsonArray("data").get(0).getAsJsonObject().get("selectorId").getAsString());
+                }), eq(DataEventTypeEnum.UPDATE)));
+            }
+        }
+    }
+
+    @Test
+    public void testCompactDiscoveryPreservesMissingListAndDefaultNamespace() {
+        DiscoverySyncData data = discoveryData();
+        data.setNamespaceId(null);
+        data.setUpstreamDataList(null);
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(Collections.singletonList(data), DataEventTypeEnum.DELETE);
+            collector.verify(() -> WebsocketCollector.sendDiscovery(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), any(), argThat(message -> {
+                JsonObject item = JsonParser.parseString(message.get()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+                return !item.has("upstreamDataList") && "selector-id".equals(item.get("selectorId").getAsString());
+            }), eq(DataEventTypeEnum.DELETE)));
+        }
+    }
+
+    @Test
+    public void testCompactDiscoveryPreservesNullUpstreamEntries() {
+        DiscoverySyncData data = discoveryData();
+        List<DiscoveryUpstreamData> upstreams = new ArrayList<>(data.getUpstreamDataList());
+        upstreams.add(null);
+        data.setUpstreamDataList(upstreams);
+        String message = discoveryMessage(new WebsocketDataChangedListener(true), data, DataEventTypeEnum.UPDATE);
+        JsonObject item = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+        assertEquals(2, item.getAsJsonArray("upstreamDataList").size());
+        assertTrue(item.getAsJsonArray("upstreamDataList").get(1).isJsonNull());
+    }
+
+    private String discoveryMessage(final WebsocketDataChangedListener listener, final DiscoverySyncData data,
+                                    final DataEventTypeEnum eventType) {
+        List<String> messages = new ArrayList<>();
+        try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
+            collector.when(() -> WebsocketCollector.send(eq(data.getNamespaceId()), anyString(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(invocation.getArgument(1));
+                        return null;
+                    });
+            collector.when(() -> WebsocketCollector.sendDiscovery(eq(data.getNamespaceId()), any(), any(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(invocation.<java.util.function.Supplier<String>>getArgument(2).get());
+                        return null;
+                    });
+            listener.onDiscoveryUpstreamChanged(Collections.singletonList(data), eventType);
+        }
+        assertEquals(1, messages.size());
+        return messages.get(0);
+    }
+
+    private DiscoverySyncData discoveryData() {
+        DiscoveryUpstreamData upstream = new DiscoveryUpstreamData();
+        upstream.setId("row-id");
+        upstream.setDateCreated(new Timestamp(1700000000000L));
+        upstream.setDateUpdated(new Timestamp(1700000001000L));
+        upstream.setDiscoveryHandlerId("handler-id");
+        upstream.setProtocol("http://");
+        upstream.setUrl("127.0.0.1:8080");
+        upstream.setStatus(0);
+        upstream.setWeight(100);
+        upstream.setProps("{\"warmup\":600000,\"healthCheckEnabled\":false}");
+        upstream.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        DiscoverySyncData data = new DiscoverySyncData();
+        data.setSelectorId("selector-id");
+        data.setSelectorName("tcp-route");
+        data.setPluginName("divide");
+        data.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        data.setDiscoveryHandlerId("handler-id");
+        data.setUpstreamDataList(Collections.singletonList(upstream));
+        return data;
+    }
+
     /**
      * test DiscoverySyncData with empty list — no send.
      */
@@ -438,7 +586,7 @@ public final class WebsocketDataChangedListenerTest {
         ruleData.setEnabled(true);
         ruleData.setHandle("{\\\"permission\\\":\\\"reject\\\",\\\"statusCode\\\":\\\"503\\\"}");
         ruleData.setId("1336350040008105984");
-        ruleData.setLoged(true);
+        ruleData.setLogged(true);
         ruleData.setMatchMode(1);
         ruleData.setName("test");
         ruleData.setPluginName("waf");

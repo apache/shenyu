@@ -26,18 +26,20 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import okhttp3.Response;
+import okhttp3.Dns;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.admin.config.properties.SwaggerImportProperties;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
 import org.apache.shenyu.admin.service.SwaggerImportService;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterMcpServiceImpl;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.UrlSecurityUtils;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpRequestConfig;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
-import org.apache.shenyu.client.mcp.generator.McpToolsRegisterDTOGenerator;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpRequestConfig;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.mcp.generator.McpToolsRegisterDTOGenerator;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -45,6 +47,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -74,6 +77,8 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
 
     private final HttpUtils httpUtils;
 
+    private final SwaggerImportProperties swaggerImportProperties;
+
     @Value("${shenyu.swagger.max-body-size:10485760}")
     private long maxSwaggerBodySize;
 
@@ -81,8 +86,14 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     private ShenyuClientRegisterMcpServiceImpl shenyuClientRegisterMcpService;
 
     public SwaggerImportServiceImpl(final DocManager docManager, final HttpUtils httpUtils) {
+        this(docManager, httpUtils, new SwaggerImportProperties());
+    }
+
+    @Autowired
+    public SwaggerImportServiceImpl(final DocManager docManager, final HttpUtils httpUtils, final SwaggerImportProperties swaggerImportProperties) {
         this.docManager = docManager;
         this.httpUtils = httpUtils;
+        this.swaggerImportProperties = swaggerImportProperties;
     }
     
     @Override
@@ -91,10 +102,10 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         
         try {
             // 1. Validate URL
-            validateSwaggerUrl(request.getSwaggerUrl());
+            Dns validatedDns = validateSwaggerUrl(request.getSwaggerUrl());
             
             // 2. Get swagger document
-            String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl());
+            String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl(), validatedDns);
             
             // 3. Validate Swagger content and version
             validateSwaggerContent(swaggerJson);
@@ -125,9 +136,9 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         LOG.info("Start importing Mcp config: {}", request);
 
         try {
-            validateSwaggerUrl(request.getSwaggerUrl());
+            Dns validatedDns = validateSwaggerUrl(request.getSwaggerUrl());
 
-            String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl());
+            String swaggerJson = fetchSwaggerDoc(request.getSwaggerUrl(), validatedDns);
 
             String namespaceId = StringUtils.defaultIfEmpty(request.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
             List<McpToolsRegisterDTO> mcpToolsRegisterDTOList = buildMcpToolRegisterDTO(swaggerJson, namespaceId);
@@ -253,9 +264,8 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
     @Override
     public boolean testConnection(final String swaggerUrl) {
         try {
-            validateSwaggerUrl(swaggerUrl);
-            try (Response response = httpUtils.requestForResponse(swaggerUrl, 
-                    Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET, false)) {
+            Dns validatedDns = validateSwaggerUrl(swaggerUrl);
+            try (Response response = httpUtils.requestForValidatedResponse(swaggerUrl, validatedDns)) {
                 return response.code() == 200;
             }
         } catch (Exception e) {
@@ -264,14 +274,12 @@ public class SwaggerImportServiceImpl implements SwaggerImportService {
         }
     }
     
-    private void validateSwaggerUrl(final String swaggerUrl) {
-        // Use UrlSecurityUtils for SSRF protection
-        UrlSecurityUtils.validateUrlForSSRF(swaggerUrl);
+    private Dns validateSwaggerUrl(final String swaggerUrl) {
+        return UrlSecurityUtils.validatedDns(swaggerUrl, swaggerImportProperties, Dns.SYSTEM);
     }
     
-    private String fetchSwaggerDoc(final String swaggerUrl) throws IOException {
-        try (Response response = httpUtils.requestForResponse(swaggerUrl,
-                Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET, false)) {
+    private String fetchSwaggerDoc(final String swaggerUrl, final Dns validatedDns) throws IOException {
+        try (Response response = httpUtils.requestForValidatedResponse(swaggerUrl, validatedDns)) {
             
             if (response.code() != 200) {
                 throw new RuntimeException("Failed to get Swagger document, HTTP status code: " + response.code());

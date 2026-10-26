@@ -46,6 +46,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -154,6 +155,21 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         return callRaw(request).map(result -> JSON.convertValue(result, McpSchema.CallToolResult.class));
     }
 
+    @Override
+    public Mono<ObjectNode> listResources(final String cursor) {
+        return ready().then(Mono.defer(() -> request("resources/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
+    }
+
+    @Override
+    public Mono<ObjectNode> listResourceTemplates(final String cursor) {
+        return ready().then(Mono.defer(() -> request("resources/templates/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
+    }
+
+    @Override
+    public Mono<ObjectNode> readResource(final String uri) {
+        return ready().then(Mono.defer(() -> request("resources/read", Map.of("uri", uri), false)));
+    }
+
     /**
      * call Raw.
      * @param request trusted request value
@@ -192,7 +208,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             Instant deadline = transportContext.get("deadline") instanceof Instant value ? value : Instant.now().plusSeconds(4);
             Duration budget = Duration.between(Instant.now(), deadline);
             if (budget.isNegative() || budget.isZero()) {
-                return Mono.error(new IllegalStateException("Deadline expired before upstream side effect"));
+                return Mono.error(new TimeoutException("Deadline expired before upstream side effect"));
             }
             byte[] requestBytes = message.toString().getBytes(StandardCharsets.UTF_8);
             if (requestBytes.length > MAX_REQUEST_BYTES) {
@@ -246,6 +262,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             session = RemoteTransportPolicy.session(response.headers().allValues("MCP-Session-Id"));
         }
         if (notification) {
+            if (response.statusCode() != 202 || response.body().length != 0) {
+                throw new IllegalArgumentException("Invalid notification acknowledgement");
+            }
             return JSON.createObjectNode();
         }
         String contentType = response.headers().firstValue("Content-Type").orElse("").split(";")[0].trim();

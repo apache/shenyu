@@ -43,7 +43,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.lang.NonNull;
@@ -379,12 +381,15 @@ public class ShenyuToolCallback implements ToolCallback {
         final String urlTemplate = configHelper.getUrlTemplate();
         final String method = configHelper.getMethod();
         final boolean argsToJsonBody = configHelper.isArgsToJsonBody();
+        final MediaType contentType = resolveCustomHeaders(requestTemplate, inputJson).getContentType();
+        final boolean formatJsonStrings = Objects.isNull(contentType) || MediaType.APPLICATION_JSON.isCompatibleWith(contentType)
+                || contentType.getSubtype().endsWith("+json");
 
         // Build path and query parameters (no formatting needed for URLs)
         final String path = RequestConfigHelper.buildPath(urlTemplate, argsPosition, inputJson);
 
         // Build body with parameter formatting (only format body parameters that need it)
-        JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson);
+        JsonObject bodyJson = buildFormattedBodyJson(argsToJsonBody, argsPosition, inputJson, formatJsonStrings);
         // Fallback: if argsToJsonBody is false but input has content for body methods, use the raw input as body
         if (!argsToJsonBody && bodyJson.size() == 0 && isRequestBodyMethod(method) && inputJson.size() > 0) {
             LOG.warn("Using fallback body mapping: argsToJsonBody=false and no body-mapped args, "
@@ -404,9 +409,10 @@ public class ShenyuToolCallback implements ToolCallback {
      * @param argsToJsonBody whether to convert arguments to JSON body
      * @param argsPosition   the argument position mapping
      * @param inputJson      the input JSON object
+     * @param formatJsonStrings whether stringified JSON values should be parsed
      * @return the constructed body JSON object
      */
-    private JsonObject buildFormattedBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson) {
+    private JsonObject buildFormattedBodyJson(final boolean argsToJsonBody, final JsonObject argsPosition, final JsonObject inputJson, final boolean formatJsonStrings) {
         JsonObject bodyJson = new JsonObject();
 
         if (!argsToJsonBody) {
@@ -419,7 +425,7 @@ public class ShenyuToolCallback implements ToolCallback {
                 JsonElement value = inputJson.get(key);
 
                 // Format the value if it's a JSON string that should be parsed
-                JsonElement formattedValue = formatBodyParameterValue(value, key);
+                JsonElement formattedValue = formatJsonStrings ? formatBodyParameterValue(value, key) : value;
 
                 if ("body".equals(position)) {
                     bodyJson.add(key, formattedValue);
@@ -493,10 +499,11 @@ public class ShenyuToolCallback implements ToolCallback {
                 .mutate()
                 .method(HttpMethod.valueOf(requestConfig.getMethod()))
                 .header("sessionId", sessionId)
-                .header("Accept", "application/json");
+                .header("Accept", "application/json")
+                .headers(headers -> headers.remove(HttpHeaders.CONTENT_TYPE));
 
         // Add custom headers from template
-        addCustomHeaders(requestBuilder, requestConfig);
+        requestBuilder.headers(headers -> headers.putAll(resolveCustomHeaders(requestConfig.getRequestTemplate(), requestConfig.getInputJson())));
 
         // Set content type for body methods
         configureContentType(requestBuilder, requestConfig.getMethod());
@@ -508,23 +515,23 @@ public class ShenyuToolCallback implements ToolCallback {
     }
 
     /**
-     * Adds custom headers from the request template to the request builder.
+     * Resolves custom headers from the request template and tool arguments.
      *
-     * @param requestBuilder the request builder
-     * @param requestConfig  the request configuration
+     * @param requestTemplate the request template
+     * @param inputJson the tool arguments
+     * @return resolved custom headers
      */
-    private void addCustomHeaders(final ServerHttpRequest.Builder requestBuilder,
-                                  final RequestConfig requestConfig) {
-        if (!requestConfig.getRequestTemplate().has("headers")) {
-            return;
+    private HttpHeaders resolveCustomHeaders(final JsonObject requestTemplate, final JsonObject inputJson) {
+        final HttpHeaders headers = new HttpHeaders();
+        if (!requestTemplate.has("headers")) {
+            return headers;
         }
 
-        JsonArray headersArray = requestConfig.getRequestTemplate().getAsJsonArray("headers");
+        JsonArray headersArray = requestTemplate.getAsJsonArray("headers");
         if (Objects.isNull(headersArray) || headersArray.isEmpty()) {
-            return;
+            return headers;
         }
 
-        JsonObject inputJson = requestConfig.getInputJson();
         for (JsonElement headerElem : headersArray) {
             if (!headerElem.isJsonObject()) {
                 continue;
@@ -544,8 +551,9 @@ public class ShenyuToolCallback implements ToolCallback {
                 headerValue = resolveTemplateVariables(headerValue, inputJson);
             }
 
-            requestBuilder.header(headerKey, headerValue);
+            headers.set(headerKey, headerValue);
         }
+        return headers;
     }
 
     /**
@@ -580,11 +588,15 @@ public class ShenyuToolCallback implements ToolCallback {
      * @param method         the HTTP method
      */
     private void configureContentType(final ServerHttpRequest.Builder requestBuilder, final String method) {
-        if (isRequestBodyMethod(method)) {
-            requestBuilder.header("Content-Type", "application/json");
-        } else {
-            requestBuilder.headers(httpHeaders -> httpHeaders.remove("Content-Type"));
-        }
+        requestBuilder.headers(headers -> {
+            if (isRequestBodyMethod(method)) {
+                if (!headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+                }
+            } else {
+                headers.remove(HttpHeaders.CONTENT_TYPE);
+            }
+        });
     }
 
     /**
@@ -650,13 +662,10 @@ public class ShenyuToolCallback implements ToolCallback {
     private ServerWebExchange handleRequestBody(final ServerWebExchange decoratedExchange,
                                                 final RequestConfig requestConfig) {
         if (isRequestBodyMethod(requestConfig.getMethod())
-                && Objects.nonNull(requestConfig.getBodyJson())
-                && requestConfig.getBodyJson().size() > 0) {
-            String body = requestConfig.getBodyJson().toString();
-            return new BodyWriterExchange(decoratedExchange, body);
+                && Objects.nonNull(requestConfig.getBodyJson())) {
+            return new BodyWriterExchange(decoratedExchange, requestConfig.getBodyJson());
         }
-        // For methods without a request body or when no body is configured,
-        // return the original exchange to avoid sending an unintended "{}" body.
+        // Methods without a request body keep the existing exchange.
         return decoratedExchange;
     }
 

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.mcp.server.callback;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import org.apache.shenyu.common.constant.Constants;
@@ -35,6 +37,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -43,6 +48,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -364,9 +370,124 @@ class ShenyuToolCallbackTest {
     }
 
     @Test
+    void testUrlValuedArgumentsPreserveToolEndpointAndContext() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        for (String position : new String[]{"query", "body", "body.callback", "header"}) {
+            MockServerWebExchange originExchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+            ShenyuContext context = new ShenyuContext();
+            originExchange.getAttributes().put(Constants.CONTEXT, context);
+            String headerTemplate = "header".equals(position)
+                    ? ",\"headers\":[{\"key\":\"X-Callback-URL\",\"value\":\"{{.callbackUrl}}\"}]" : "";
+            String config = "{\"requestTemplate\":{\"url\":\"/search\",\"method\":\"POST\",\"argsToJsonBody\":true"
+                    + headerTemplate + "},\"argsPosition\":{\"callbackUrl\":\"" + position + "\"}}";
+            String input = "{\"callbackUrl\":\"https://callback.invalid/return\"}";
+
+            ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(shenyuToolCallback, "buildDecoratedExchange",
+                    originExchange, new CompletableFuture<String>(), "session123", config, input);
+
+            assertEquals("/search", decoratedExchange.getRequest().getPath().value(), position);
+            assertEquals("/search", context.getPath(), position);
+            assertEquals("/search", context.getRealUrl(), position);
+            if ("query".equals(position)) {
+                assertEquals("https://callback.invalid/return",
+                        decoratedExchange.getRequest().getQueryParams().getFirst("callbackUrl"));
+            }
+            if ("header".equals(position)) {
+                assertEquals("https://callback.invalid/return",
+                        decoratedExchange.getRequest().getHeaders().getFirst("X-Callback-URL"));
+            }
+            if (position.startsWith("body")) {
+                DataBuffer buffer = DataBufferUtils.join(decoratedExchange.getRequest().getBody()).block();
+                assertNotNull(buffer);
+                try {
+                    JsonObject body = JsonParser.parseString(buffer.toString(StandardCharsets.UTF_8)).getAsJsonObject();
+                    String bodyKey = "body".equals(position) ? "callbackUrl" : "callback";
+                    assertEquals("https://callback.invalid/return", body.get(bodyKey).getAsString());
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }
+        }
+    }
+
+    @Test
+    void testExplicitTargetMappingRoutesToCompleteUrl() {
+        shenyuToolCallback = new ShenyuToolCallback(toolDefinition);
+        MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+        ShenyuContext context = new ShenyuContext();
+        originExchange.getAttributes().put(Constants.CONTEXT, context);
+        String config = "{\"requestTemplate\":{\"url\":\"/search\",\"method\":\"GET\"},"
+                + "\"argsPosition\":{\"endpoint\":\"target\"}}";
+
+        ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(shenyuToolCallback, "buildDecoratedExchange",
+                originExchange, new CompletableFuture<String>(), "session123", config,
+                "{\"endpoint\":\"https://target.example/api?fixed=1\"}");
+
+        assertEquals(URI.create("https://target.example/api?fixed=1"), decoratedExchange.getRequest().getURI());
+        assertEquals("/api", context.getPath());
+        assertEquals("/api", context.getRealUrl());
+    }
+
+    @Test
     void testConstructorWithValidToolDefinition() {
         ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
         assertNotNull(callback);
         assertEquals(toolDefinition, callback.getToolDefinition());
+    }
+
+    @Test
+    void testDecoratedExchangeEncodesFormBody() {
+        final ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
+        final MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway.example:9195/mcp").build());
+        final String config = "{\"requestTemplate\":{\"url\":\"/submit\",\"method\":\"POST\","
+                + "\"headers\":[{\"key\":\"Content-Type\",\"value\":\"application/x-www-form-urlencoded\"}],"
+                + "\"argsToJsonBody\":true},\"argsPosition\":{\"name\":\"body\"}}";
+
+        final ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(
+                callback, "buildDecoratedExchange", originExchange,
+                new CompletableFuture<String>(), "session123", config,
+                "{\"name\":\"Ada & Bob\"}");
+
+        assertNotNull(decoratedExchange);
+        final DataBuffer buffer = DataBufferUtils.join(
+                decoratedExchange.getRequest().getBody()).block();
+        assertNotNull(buffer);
+        try {
+            assertEquals("name=Ada+%26+Bob", buffer.toString(StandardCharsets.UTF_8));
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
+
+        assertTrue(MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(
+                decoratedExchange.getRequest().getHeaders().getContentType()));
+    }
+
+    @Test
+    void testDecoratedExchangeDefaultsToJsonWithoutTemplateContentType() {
+        final ShenyuToolCallback callback = new ShenyuToolCallback(toolDefinition);
+        final MockServerWebExchange originExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("http://gateway.example:9195/mcp")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED).build());
+        final String config = "{\"requestTemplate\":{\"url\":\"/submit\",\"method\":\"POST\","
+                + "\"argsToJsonBody\":true},\"argsPosition\":{\"name\":\"body\"}}";
+
+        final ServerWebExchange decoratedExchange = ReflectionTestUtils.invokeMethod(
+                callback, "buildDecoratedExchange", originExchange,
+                new CompletableFuture<String>(), "session123", config,
+                "{\"name\":\"Ada & Bob\"}");
+
+        assertNotNull(decoratedExchange);
+        assertEquals(MediaType.APPLICATION_JSON, decoratedExchange.getRequest().getHeaders().getContentType());
+        final DataBuffer buffer = DataBufferUtils.join(decoratedExchange.getRequest().getBody()).block();
+        assertNotNull(buffer);
+        try {
+            final JsonObject body = JsonParser.parseString(buffer.toString(StandardCharsets.UTF_8)).getAsJsonObject();
+            assertEquals("Ada & Bob", body.get("name").getAsString());
+        } finally {
+            DataBufferUtils.release(buffer);
+        }
     }
 }

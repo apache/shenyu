@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
@@ -160,6 +161,10 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isNotEmpty(appPathDOList)) {
             throw new ShenyuAdminException("appPath exist under those namespace!");
         }
+        List<DiscoveryDO> discoveryDOList = discoveryMapper.selectAllByNamespaceIds(namespaceIdList);
+        if (CollectionUtils.isNotEmpty(discoveryDOList)) {
+            throw new ShenyuAdminException("discovery exist under those namespace!");
+        }
         namespaceMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
@@ -178,7 +183,9 @@ public class NamespaceServiceImpl implements NamespaceService {
     public List<NamespaceVO> list(final String name) {
         
         if (SessionUtil.isAdmin()) {
-            List<NamespaceDO> allList = namespaceMapper.selectAll();
+            NamespaceQuery query = new NamespaceQuery();
+            query.setName(name);
+            List<NamespaceDO> allList = namespaceMapper.selectByQuery(query);
             return allList.stream().map(NamespaceTransfer.INSTANCE::mapToVo).collect(Collectors.toList());
         }
         

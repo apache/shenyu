@@ -101,6 +101,8 @@ public class URIRegisterExecutorSubscriberTest {
         verify(service).heartbeat(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
         verify(service).offline(eq(selectorName), argThat(uris -> belongsToNamespace(uris, firstNamespace)), eq(firstNamespace));
         verify(service).offline(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
+        verify(service).draining(eq(selectorName), argThat(uris -> belongsToNamespace(uris, firstNamespace)), eq(firstNamespace));
+        verify(service).draining(eq(selectorName), argThat(uris -> belongsToNamespace(uris, secondNamespace)), eq(secondNamespace));
     }
     
     @Test

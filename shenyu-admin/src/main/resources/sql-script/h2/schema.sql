@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `sort_code` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `rule_name` varchar(128) NOT NULL COMMENT 'rule name',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
+  `logged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(4) NOT NULL COMMENT 'sort',
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `mock_request_record`  (
   `url` varchar(1024) NOT NULL COMMENT 'the request url',
   `path_variable` varchar(255) NOT NULL DEFAULT '' COMMENT 'the request param in url',
   `query` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param after url',
-  `header` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param in header',
+  `header` clob NOT NULL DEFAULT '' COMMENT 'the request param in header',
   `body` text COMMENT 'the request body',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
@@ -1417,7 +1417,9 @@ CREATE TABLE IF NOT EXISTS instance_info
     `instance_state`  int  NOT NULL COMMENT  '0-unknown 1-online 2-offline',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    `last_heart_beat_time`   bigint  NOT NULL DEFAULT 0 COMMENT 'last heart beat time',
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_instance_info_identity UNIQUE (namespace_id, instance_ip, instance_port, instance_type)
 );
 
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1697141926281382720', '1346358560427216896', '1346778036402483300', '2023-08-31 06:59:01', '2023-08-31 06:59:01');
@@ -1518,6 +1520,26 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001029', '1346358560427216896', '1960000000000001019', '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 /*insert data for the sensitive word plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('67', 'sensitiveWord', 'Ai', 197, null, '0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('69', 'piiDetection', 'Ai', 196, null, '0');
+INSERT IGNORE INTO `namespace_plugin_rel` (`id`,`namespace_id`,`plugin_id`, `config`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1960000000000001041', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '69', null, 196, 0, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001042', '69', 'detectors', 'detectors', 2, 2, 0, '{\"required\":\"0\",\"placeholder\":\"builtin detector types separated by commas, empty enables all of them\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001043', '69', 'customPatterns', 'customPatterns', 2, 2, 1, '{\"required\":\"0\",\"placeholder\":\"one TYPE=REGEX entry per line\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001044', '69', 'actions', 'actions', 2, 2, 2, '{\"required\":\"0\",\"placeholder\":\"type overrides as TYPE=ACTION separated by commas\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001045', '69', 'defaultAction', 'defaultAction', 2, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"REDACT\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001046', '69', 'scope', 'scope', 2, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"request\",\"placeholder\":\"request, response or request,response\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001047', '69', 'maxBodySize', 'maxBodySize', 1, 2, 5, '{\"required\":\"0\",\"defaultValue\":\"1048576\",\"placeholder\":\"the largest body that is scanned, in bytes, 0 means unlimited\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001048', '69', 'failClosed', 'failClosed', 3, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"false\",\"rule\":\"\"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1960000000000001049', '69', 'detectorTimeoutMs', 'detectorTimeoutMs', 1, 2, 7, '{\"required\":\"0\",\"defaultValue\":\"500\",\"rule\":\"\"}');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001031', '1346775491550474240', 'piiDetection', 'piiDetection', '/plug/piiDetection', 'piiDetection', 1, 0, 'pic-center', 0, 0, '', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001032', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:add', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001033', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:query', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001034', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:edit', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001035', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionSelector:delete', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001036', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:add', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001037', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:query', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001038', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:edit', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001039', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetectionRule:delete', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`,`resource_type`,`sort`,`icon`,`is_leaf`,`is_route`,`perms`,`status`,`date_created`,`date_updated`) VALUES ('1960000000000001040', '1960000000000001031', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:piiDetection:modify', 1, '2026-10-24 00:00:00', '2026-10-24 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1942847622591684609', '67', 'url', 'url', 2, 3, 0, '{\"required\":\"0\",\"rule\":\"\"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1942847622591684610', '67', 'password', 'password', 2, 3, 1, '{\"required\":\"0\",\"rule\":\"\"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1942847622591684611', '67', 'database', 'database', 1, 3, 2, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}');
@@ -1545,6 +1567,16 @@ INSERT IGNORE INTO `resource` (`id`,`parent_id`,`title`,`name`,`url`,`component`
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1679002911061737584', 'failClosed', 'FAIL_CLOSED', 'open', 'true', '', 1, 1);
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1679002911061737585', 'failClosed', 'FAIL_CLOSED', 'close', 'false', '', 2, 1);
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303965', '1346358560427216896', '1953048313980116905', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001051', '1346358560427216896', '1960000000000001031', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001052', '1346358560427216896', '1960000000000001032', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001053', '1346358560427216896', '1960000000000001033', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001054', '1346358560427216896', '1960000000000001034', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001055', '1346358560427216896', '1960000000000001035', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001056', '1346358560427216896', '1960000000000001036', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001057', '1346358560427216896', '1960000000000001037', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001058', '1346358560427216896', '1960000000000001038', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001059', '1346358560427216896', '1960000000000001039', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1960000000000001060', '1346358560427216896', '1960000000000001040', '2026-10-24 00:00:00', '2026-10-24 00:00:00');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303966', '1346358560427216896', '1953048313980116906', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303967', '1346358560427216896', '1953048313980116907', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1953049887387303968', '1346358560427216896', '1953048313980116908', '2026-09-21 00:00:00', '2026-09-21 00:00:00');
@@ -1567,7 +1599,7 @@ CREATE INDEX idx_app_auth_ns_key ON `app_auth` (namespace_id, app_key);
 CREATE INDEX idx_auth_path_auth ON `auth_path` (auth_id);
 CREATE INDEX idx_auth_param_auth ON `auth_param` (auth_id);
 CREATE INDEX idx_permission_object_resource ON `permission` (object_id, resource_id);
-CREATE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON `data_permission` (user_id, data_type, data_id);
 CREATE INDEX idx_tag_relation_api_tag ON `tag_relation` (api_id, tag_id);
 CREATE INDEX idx_tag_relation_tag_api ON `tag_relation` (tag_id, api_id);
 CREATE INDEX idx_api_path_method_rpc ON `api` (api_path, http_method, rpc_type);
@@ -1594,3 +1626,32 @@ CREATE INDEX idx_resource_parent ON `resource` (parent_id);
 -- Plugin snapshot and permission query indexes.
 CREATE INDEX IF NOT EXISTS `idx_selector_plugin_id` ON `selector` (`plugin_id`);
 CREATE INDEX IF NOT EXISTS `idx_permission_resource_id` ON `permission` (`resource_id`);
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE IF NOT EXISTS `app_auth_request`  (
+  `id` varchar(128) NOT NULL,
+  `caller_key` varchar(128) NOT NULL,
+  `namespace_id` varchar(64) NOT NULL,
+  `request_id` varchar(64) NOT NULL,
+  `request_hash` varchar(64) NULL DEFAULT NULL,
+  `auth_id` varchar(255) NULL DEFAULT NULL,
+  `state` varchar(16) NOT NULL,
+  `revoked_reason` varchar(500) NULL DEFAULT NULL,
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`)
+);
+CREATE UNIQUE INDEX uk_app_auth_request ON `app_auth_request` (`caller_key`, `namespace_id`, `request_id`);
+CREATE INDEX idx_app_auth_request_auth ON `app_auth_request` (`auth_id`);
+
+-- app auth lifecycle button resources
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT INTO `permission` VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+INSERT INTO `permission` VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
