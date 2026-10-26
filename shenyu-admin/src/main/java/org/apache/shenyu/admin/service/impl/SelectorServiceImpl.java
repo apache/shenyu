@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
@@ -94,6 +95,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -201,12 +203,16 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String registerDefault(final MetaDataRegisterDTO dto, final String pluginName, final String selectorHandler) {
         String contextPath = ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName());
         String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
-        SelectorDO selectorDO = findByNameAndPluginNameAndNamespaceId(contextPath, pluginName, namespaceId);
+        // The per-plugin lock spans creation and notifications until this transaction commits.
+        Pair<PluginDO, SelectorDO> registration = lockSelector(contextPath, pluginName, namespaceId);
+        PluginDO pluginDO = registration.getLeft();
+        SelectorDO selectorDO = registration.getRight();
         if (Objects.isNull(selectorDO)) {
-            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginMapper.selectByName(pluginName).getId());
+            SelectorDTO selectorDTO = SelectorUtil.buildSelectorDTO(contextPath, pluginDO.getId());
             selectorDTO.setHandle(selectorHandler);
             selectorDTO.setNamespaceId(namespaceId);
             return registerDefault(selectorDTO);
@@ -425,8 +431,13 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(final String name, final String pluginName, final String namespaceId) {
-        PluginDO pluginDO = pluginMapper.selectByNameForUpdate(pluginName);
-        return selectorMapper.findByNameAndPluginIdAndNamespaceId(name, pluginDO.getId(), namespaceId);
+        return lockSelector(name, pluginName, namespaceId).getRight();
+    }
+
+    private Pair<PluginDO, SelectorDO> lockSelector(final String name, final String pluginName, final String namespaceId) {
+        // Lock a persistent parent even when no selector exists yet, across all Admin instances.
+        PluginDO pluginDO = Objects.requireNonNull(pluginMapper.selectByNameForUpdate(pluginName), "unknown plugin: " + pluginName);
+        return Pair.of(pluginDO, selectorMapper.findByNameAndPluginIdAndNamespaceIdForUpdate(name, pluginDO.getId(), namespaceId));
     }
 
     @Override
@@ -515,6 +526,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
+        List<SelectorData> importedSelectors = new ArrayList<>();
         Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAll().stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(SelectorDO::getPluginId));
@@ -544,12 +556,14 @@ public class SelectorServiceImpl implements SelectorService {
                                 .append(selectorName)
                                 .append(",");
                     } else {
-                        create(selectorDTO);
-                        successCount++;
+                        if (createForImport(selectorDTO, importedSelectors) > 0) {
+                            successCount++;
+                        }
                     }
                 }
             }
         }
+        publishImportEvent(importedSelectors);
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
@@ -567,9 +581,11 @@ public class SelectorServiceImpl implements SelectorService {
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
-        Map<String, List<SelectorDO>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
+        List<SelectorData> importedSelectors = new ArrayList<>();
+        Map<String, Map<String, String>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(SelectorDO::getPluginId));
+                .collect(Collectors.groupingBy(SelectorDO::getPluginId,
+                        Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId, (first, second) -> first)));
 
         Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
                 .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
@@ -580,11 +596,7 @@ public class SelectorServiceImpl implements SelectorService {
             List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
 
-                Map<String, String> existSelectorSet = Optional
-                        .ofNullable(pluginSelectorMap.get(pluginId))
-                        .orElseGet(Lists::newArrayList)
-                        .stream()
-                        .collect(Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId));
+                Map<String, String> existSelectorSet = pluginSelectorMap.computeIfAbsent(pluginId, key -> new HashMap<>());
 
                 for (SelectorDTO selectorDTO : selectorDTOList) {
                     // filter by selectorName
@@ -598,7 +610,7 @@ public class SelectorServiceImpl implements SelectorService {
                     } else {
                         // gen new id
                         String selectorId = UUIDUtils.getInstance().generateShortUuid();
-                        selectorIdMapping.put(selectorDTO.getId(), selectorId);
+                        final String oldSelectorId = selectorDTO.getId();
                         selectorDTO.setId(selectorId);
                         selectorDTO.setNamespaceId(namespace);
                         selectorDTO.setPluginId(pluginId);
@@ -607,12 +619,16 @@ public class SelectorServiceImpl implements SelectorService {
                                             c.setSelectorId(selectorId);
                                             c.setId(null);
                                         });
-                        create(selectorDTO);
-                        successCount++;
+                        if (createForImport(selectorDTO, importedSelectors) > 0) {
+                            existSelectorSet.put(selectorName, selectorId);
+                            selectorIdMapping.put(oldSelectorId, selectorId);
+                            successCount++;
+                        }
                     }
                 }
             }
         }
+        publishImportEvent(importedSelectors);
         if (StringUtils.isNotEmpty(errorMsgBuilder)) {
             errorMsgBuilder.setLength(errorMsgBuilder.length() - 1);
             return ConfigImportResult
@@ -626,6 +642,10 @@ public class SelectorServiceImpl implements SelectorService {
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
         ids.forEach(id -> {
             SelectorDO selectorDO = selectorMapper.selectById(id);
+            if (Objects.isNull(selectorDO) || !Objects.equals(selectorDO.getNamespaceId(), namespaceId)) {
+                // the selector does not belong to the request namespace; skip it
+                return;
+            }
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {
@@ -679,14 +699,40 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions, final List<SelectorConditionDO> beforeSelectorCondition) {
+        SelectorData selectorData = buildSelectorData(selectorDO, selectorConditions, beforeSelectorCondition);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(selectorData)));
+    }
+
+    private int createForImport(final SelectorDTO selectorDTO, final List<SelectorData> importedSelectors) {
+        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
+        final int selectorCount = selectorMapper.insertSelective(selectorDO);
+        selectorDTO.setId(selectorDO.getId());
+        createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
+        if (selectorCount > 0) {
+            importedSelectors.add(buildSelectorData(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList()));
+            selectorEventPublisher.onCreated(selectorDO);
+        }
+        return selectorCount;
+    }
+
+    private void publishImportEvent(final List<SelectorData> importedSelectors) {
+        Map<String, List<SelectorData>> selectorsByNamespace = new LinkedHashMap<>();
+        for (SelectorData selector : importedSelectors) {
+            String namespaceId = StringUtils.defaultIfEmpty(selector.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
+            selector.setNamespaceId(namespaceId);
+            selectorsByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(selector);
+        }
+        selectorsByNamespace.values().forEach(selectors ->
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, selectors)));
+    }
+
+    private SelectorData buildSelectorData(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions,
+                                           final List<SelectorConditionDO> beforeSelectorCondition) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList = ListUtil.map(selectorConditions, ConditionTransfer.INSTANCE::mapToSelectorDTO);
         List<ConditionData> beforeConditionDataList = ListUtil.map(beforeSelectorCondition, ConditionTransfer.INSTANCE::mapToSelectorDO);
-        // build selector data.
-        SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList, beforeConditionDataList);
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(selectorData)));
+        return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList, beforeConditionDataList);
     }
 
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {

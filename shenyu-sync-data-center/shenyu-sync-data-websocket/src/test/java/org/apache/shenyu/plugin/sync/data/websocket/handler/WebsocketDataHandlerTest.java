@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
@@ -41,6 +42,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.Mockito;
 
 public final class WebsocketDataHandlerTest {
@@ -50,7 +52,7 @@ public final class WebsocketDataHandlerTest {
     private WebsocketDataHandler websocketDataHandler;
 
     @BeforeEach
-    public void testWebsocketDataHandler() {
+    public void setUp() {
         pluginDataSubscriber = mock(PluginDataSubscriber.class);
         List<AuthDataSubscriber> authDataSubscribers = new LinkedList<>();
         List<MetaDataSubscriber> metaDataSubscribers = new LinkedList<>();
@@ -64,6 +66,55 @@ public final class WebsocketDataHandlerTest {
                 proxySelectorDataSubscribers,
                 discoveryUpstreamDataSubscribers,
                 aiProxyApiKeyDataSubscribers);
+    }
+
+    @Test
+    public void testConstructingAnotherHandlerDoesNotReplaceSubscribers() {
+        PluginDataSubscriber otherSubscriber = mock(PluginDataSubscriber.class);
+        final WebsocketDataHandler other = new WebsocketDataHandler(otherSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson(), DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(pluginDataSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        Mockito.verifyNoInteractions(otherSubscriber);
+
+        other.executor(ConfigGroupEnum.PLUGIN, getJson(), DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(otherSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        Mockito.verifyNoMoreInteractions(pluginDataSubscriber, otherSubscriber);
+    }
+
+    @Test
+    public void testSnapshotUsesTheConnectionSubscriber() {
+        PluginDataSubscriber otherSubscriber = mock(PluginDataSubscriber.class);
+        final WebsocketDataHandler other = new WebsocketDataHandler(otherSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+        websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
+        Mockito.verify(pluginDataSubscriber).applyPluginDataSnapshot("namespace-a", Collections.emptyList());
+        Mockito.verifyNoInteractions(otherSubscriber);
+
+        other.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-b", "namespace-b");
+        Mockito.verify(otherSubscriber).applyPluginDataSnapshot("namespace-b", Collections.emptyList());
+        Mockito.verifyNoMoreInteractions(pluginDataSubscriber, otherSubscriber);
+    }
+
+    @Test
+    public void testDiscoverySubscriberListsAreConnectionLocal() {
+        DiscoveryUpstreamDataSubscriber firstSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        DiscoveryUpstreamDataSubscriber secondSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
+        final WebsocketDataHandler first = new WebsocketDataHandler(pluginDataSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.singletonList(firstSubscriber), Collections.emptyList());
+        final WebsocketDataHandler second = new WebsocketDataHandler(pluginDataSubscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.singletonList(secondSubscriber), Collections.emptyList());
+        String json = "[{\"selectorId\":\"selector-1\",\"pluginName\":\"divide\",\"namespaceId\":\"namespace-a\",\"upstreamDataList\":[]}]";
+
+        first.executor(ConfigGroupEnum.DISCOVER_UPSTREAM, json, DataEventTypeEnum.UPDATE.name());
+        verify(firstSubscriber).onSubscribe(Mockito.any(DiscoverySyncData.class));
+        Mockito.verifyNoInteractions(secondSubscriber);
+
+        second.executor(ConfigGroupEnum.DISCOVER_UPSTREAM, json, DataEventTypeEnum.UPDATE.name());
+        verify(secondSubscriber).onSubscribe(Mockito.any(DiscoverySyncData.class));
+        Mockito.verifyNoMoreInteractions(firstSubscriber, secondSubscriber);
     }
 
     @Test
@@ -101,6 +152,51 @@ public final class WebsocketDataHandlerTest {
     }
 
     @Test
+    public void testDuplicatedEventIsAppliedOnlyOnce() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).onPluginRefresh(Mockito.anyList());
+    }
+
+    @Test
+    public void testChangedPayloadIsAppliedAgain() {
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test"), DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test_2"), DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
+    }
+
+    @Test
+    public void testSamePayloadWithAnotherEventTypeIsApplied() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.UPDATE.name());
+        Mockito.verify(pluginDataSubscriber).refreshPluginDataAll();
+        List<PluginData> pluginDataList = new PluginDataHandler(pluginDataSubscriber).convert(json);
+        pluginDataList.forEach(verify(pluginDataSubscriber)::onSubscribe);
+    }
+
+    @Test
+    public void testSnapshotInvalidatesDeduplication() {
+        String json = getJson();
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, "[]", "namespace-a", "namespace-a");
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber).applyPluginDataSnapshot("namespace-a", Collections.emptyList());
+    }
+
+    @Test
+    public void testDeduplicationIsPerGroup() {
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, "[]", DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, "[]", DataEventTypeEnum.REFRESH.name());
+        websocketDataHandler.executor(ConfigGroupEnum.SELECTOR, "[]", DataEventTypeEnum.REFRESH.name());
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshPluginDataAll();
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshSelectorDataAll();
+    }
+
+    @Test
     public void testPluginDeleteExecutor() {
         String json = getJson();
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, json, DataEventTypeEnum.DELETE.name());
@@ -111,7 +207,7 @@ public final class WebsocketDataHandlerTest {
     @Test
     public void testEmptySnapshotClearsOnlyItsGroup() {
         websocketDataHandler.snapshot(ConfigGroupEnum.RULE, "[]", "namespace-a", "namespace-a");
-        verify(pluginDataSubscriber).refreshRuleDataNamespace("namespace-a");
+        verify(pluginDataSubscriber).applyRuleDataSnapshot("namespace-a", Collections.emptyList());
         Mockito.verifyNoMoreInteractions(pluginDataSubscriber);
     }
 
@@ -132,15 +228,14 @@ public final class WebsocketDataHandlerTest {
     @Test
     public void testSnapshotReplacesStalePluginBeforeSubscribing() {
         websocketDataHandler.snapshot(ConfigGroupEnum.PLUGIN, getJson(), "namespace-a", "namespace-a");
-        org.mockito.InOrder order = Mockito.inOrder(pluginDataSubscriber);
-        order.verify(pluginDataSubscriber).refreshPluginDataNamespace("namespace-a");
-        order.verify(pluginDataSubscriber).onSubscribe(Mockito.any(PluginData.class));
+        verify(pluginDataSubscriber).applyPluginDataSnapshot(Mockito.eq("namespace-a"), Mockito.anyList());
     }
 
     @Test
     public void testEmptySnapshotsRemoveStaleGatewayCache() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
@@ -184,6 +279,7 @@ public final class WebsocketDataHandlerTest {
     public void testEmptyNamespaceSnapshotPreservesOtherNamespaces() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
@@ -216,14 +312,15 @@ public final class WebsocketDataHandlerTest {
     public void testNonEmptySnapshotRemovesMissingRulesAndPreservesOtherNamespace() {
         BaseDataCache cache = BaseDataCache.getInstance();
         PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.emptyList(),
+                mock(ApplicationEventPublisher.class),
                 new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
         WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a")
+        RuleData stale = RuleData.builder().id("stale-rule").selectorId("selector-a").pluginName("divide")
                 .namespaceId("namespace-a").sort(1).build();
-        RuleData replacement = RuleData.builder().id("replacement-rule").selectorId("selector-a")
+        RuleData replacement = RuleData.builder().id("replacement-rule").selectorId("selector-a").pluginName("divide")
                 .namespaceId("namespace-a").sort(2).build();
-        RuleData other = RuleData.builder().id("other-rule").selectorId("selector-b")
+        RuleData other = RuleData.builder().id("other-rule").selectorId("selector-b").pluginName("divide")
                 .namespaceId("namespace-b").sort(1).build();
         cache.cacheRuleData(stale);
         cache.cacheRuleData(other);
@@ -238,9 +335,13 @@ public final class WebsocketDataHandlerTest {
     }
 
     private String getJson() {
+        return getJson("plugin_test");
+    }
+
+    private String getJson(final String pluginName) {
         PluginData pluginData = new PluginData();
         pluginData.setId("1397952341475799040");
-        pluginData.setName("plugin_test");
+        pluginData.setName(pluginName);
         pluginData.setConfig("config_test");
         pluginData.setNamespaceId("namespace-a");
         pluginData.setEnabled(true);

@@ -92,6 +92,10 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
             if (CollectionUtils.isNotEmpty(offline)) {
                 service.offline(selectorName, offline, namespaceId);
             }
+            List<URIRegisterDTO> draining = groupByEventType.get(EventType.DRAINING);
+            if (CollectionUtils.isNotEmpty(draining)) {
+                service.draining(selectorName, draining, namespaceId);
+            }
         });
     }
     

@@ -28,7 +28,7 @@
         <result column="selector_type" jdbcType="INTEGER" property="selectorType"/>
         <result column="sort_code" jdbcType="INTEGER" property="sortCode"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
-        <result column="loged" jdbcType="TINYINT" property="loged"/>
+        <result column="logged" jdbcType="TINYINT" property="logged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
         <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="namespace_id" jdbcType="VARCHAR" property="namespaceId"/>
@@ -45,7 +45,7 @@
         selector_type,
         sort_code,
         enabled,
-        loged,
+        logged,
         continued,
         match_restful,
         handle,
@@ -62,7 +62,7 @@
         ${alis}.selector_type,
         ${alis}.sort_code,
         ${alis}.enabled,
-        ${alis}.loged,
+        ${alis}.logged,
         ${alis}.continued,
         ${alis}.match_restful,
         ${alis}.handle,
@@ -85,6 +85,15 @@
                  <foreach collection="idSet" item="id" index="index" open="(" separator="," close=")">
                     #{id, jdbcType=VARCHAR}
                  </foreach>
+    </select>
+
+    <select id="findByNameAndPluginIdAndNamespaceIdForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE selector_name = #{name, jdbcType=VARCHAR}
+          AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        FOR UPDATE
     </select>
 
     <select id="selectByNameAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -215,10 +224,17 @@
     </select>
 
     <select id="existed" resultType="java.lang.Boolean">
-        SELECT true
+        SELECT 1
           FROM selector
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select databaseId="oracle" id="existed" resultType="java.lang.Boolean">
+        SELECT 1
+          FROM selector
+         WHERE id = #{id}
+         AND ROWNUM = 1
     </select>
 
     <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
@@ -245,7 +261,7 @@
             </if>
 
             <if test="condition.userId != null and condition.userId != ''">
-                AND exists(select true
+                AND exists(select 1
                     from data_permission
                     where data_id = selector.id
                         and user_id = #{condition.userId})
@@ -289,7 +305,7 @@
                     selector_type,
                     sort_code,
                     enabled,
-                    loged,
+                    logged,
                     continued,
                     match_restful,
                     handle,
@@ -304,7 +320,7 @@
                     #{selectorType, jdbcType=INTEGER},
                     #{sortCode, jdbcType=INTEGER},
                     #{enabled, jdbcType=TINYINT},
-                    #{loged, jdbcType=TINYINT},
+                    #{logged, jdbcType=TINYINT},
                     #{continued, jdbcType=TINYINT},
                     #{matchRestful, jdbcType=TINYINT},
                     #{handle, jdbcType=VARCHAR},
@@ -339,8 +355,8 @@
             <if test="enabled != null">
                 enabled,
             </if>
-            <if test="loged != null">
-                loged,
+            <if test="logged != null">
+                logged,
             </if>
             <if test="continued != null">
                 continued,
@@ -381,8 +397,8 @@
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
             </if>
-            <if test="loged != null">
-                #{loged, jdbcType=TINYINT},
+            <if test="logged != null">
+                #{logged, jdbcType=TINYINT},
             </if>
             <if test="continued != null">
                 #{continued, jdbcType=TINYINT},
@@ -410,7 +426,7 @@
                selector_type = #{selectorType, jdbcType=INTEGER},
                sort_code = #{sortCode, jdbcType=INTEGER},
                enabled = #{enabled, jdbcType=TINYINT},
-               loged = #{loged, jdbcType=TINYINT},
+               logged = #{logged, jdbcType=TINYINT},
                continued = #{continued, jdbcType=TINYINT},
                match_restful = #{matchRestful, jdbcType=TINYINT},
                handle = #{handle, jdbcType=VARCHAR}
@@ -444,8 +460,8 @@
             <if test="enabled != null">
                 enabled = #{enabled, jdbcType=TINYINT},
             </if>
-            <if test="loged != null">
-                loged = #{loged, jdbcType=TINYINT},
+            <if test="logged != null">
+                logged = #{logged, jdbcType=TINYINT},
             </if>
             <if test="continued != null">
                 continued = #{continued, jdbcType=TINYINT},

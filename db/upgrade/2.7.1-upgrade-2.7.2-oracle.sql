@@ -54,6 +54,13 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);
 
+-- add indexes to speed up the admin plugin snapshot and permission queries
+create index idx_selector_plugin_id on selector (plugin_id);
+create index idx_permission_object_id on permission (object_id);
+create index idx_permission_resource_id on permission (resource_id);
+create index idx_resource_parent_id on "resource" (parent_id);
+create index idx_user_role_user_id on user_role (user_id);
+
 -- Agent Gateway: keep upgrade seeds consistent with the fresh-install schema.
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
 VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, sysdate, sysdate);
@@ -95,3 +102,51 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespa
 VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0);
 -- add index to speed up the meta data path uniqueness check
 create index idx_meta_data_namespace_path on meta_data (namespace_id, path);
+create index idx_operation_log_time on operation_record_log (operation_time);
+-- Keep the index name within Oracle's 30-character identifier limit.
+create index idx_operation_log_oper_time on operation_record_log (operator, operation_time);
+
+-- Retain the smallest existing id for each grant before enforcing uniqueness.
+DELETE FROM data_permission duplicate_permission
+WHERE EXISTS (
+    SELECT 1 FROM data_permission retained_permission
+    WHERE duplicate_permission.user_id = retained_permission.user_id
+      AND duplicate_permission.data_type = retained_permission.data_type
+      AND duplicate_permission.data_id = retained_permission.data_id
+      AND duplicate_permission.id > retained_permission.id
+);
+CREATE UNIQUE INDEX idx_data_permission_user_type ON data_permission (user_id, data_type, data_id);
+
+-- Add the durable last heart beat observation to instance records.
+ALTER TABLE instance_info ADD last_heart_beat_time NUMBER DEFAULT 0 NOT NULL;
+COMMENT ON COLUMN instance_info.last_heart_beat_time IS 'last heart beat time';
+
+-- app auth lifecycle idempotency records (no credential copies stored)
+CREATE TABLE app_auth_request
+(
+    id             VARCHAR2(128) not null,
+    caller_key     VARCHAR2(128) not null,
+    namespace_id   VARCHAR2(64) not null,
+    request_id     VARCHAR2(64) not null,
+    request_hash   VARCHAR2(64),
+    auth_id        VARCHAR2(255),
+    state          VARCHAR2(16) not null,
+    revoked_reason VARCHAR2(500),
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_app_auth_request PRIMARY KEY (id),
+    CONSTRAINT uk_app_auth_request UNIQUE (caller_key, namespace_id, request_id)
+);
+CREATE INDEX idx_app_auth_request_auth ON app_auth_request (auth_id);
+
+-- app auth lifecycle button resources
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116923', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REVOKE', '', '', '', 2, 23, '', 1, 0, 'system:authen:lifecycleRevoke', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116924', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.REPLACEPATHS', '', '', '', 2, 24, '', 1, 0, 'system:authen:lifecycleReplacePaths', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
+
+-- grant the lifecycle buttons to the admin role (CI native-sql matrix requires every resource to have an admin permission)
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117951', '1346358560427216896', '1953048313980116921', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);

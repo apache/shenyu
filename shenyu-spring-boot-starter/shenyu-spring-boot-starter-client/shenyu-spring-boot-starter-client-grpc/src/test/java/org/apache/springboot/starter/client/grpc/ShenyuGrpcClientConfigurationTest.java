@@ -19,7 +19,7 @@ package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
-import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

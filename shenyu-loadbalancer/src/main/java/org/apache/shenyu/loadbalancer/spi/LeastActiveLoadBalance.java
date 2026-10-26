@@ -21,110 +21,70 @@ import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * least active algorithm impl.
+ *
+ * <p>An upstream is active while it is serving a request, which is recorded in {@link Upstream#getInflight()}:
+ * the count is increased before a request is forwarded and released on success, error and cancellation. The
+ * least active upstream wins; when several upstreams share the lowest count they are picked by weight, warmup
+ * included, so a newly added upstream is not sent a catch-up burst while its weight is still ramping up.
+ *
+ * <p>The divide, websocket and apache dubbo gray routing paths maintain the count. Other callers see every
+ * upstream at the same baseline and the choice falls back to weight: the grpc picker, the tcp proxy and the
+ * java sdk rebuild {@link Upstream} objects on every call, so a count kept on them could not be shared across
+ * requests.
  */
 @Join
 public class LeastActiveLoadBalance extends AbstractLoadBalancer {
 
-    private final int recyclePeriod = 60000;
-
-    private final ConcurrentMap<String, ActiveCount> countMap = new ConcurrentHashMap<>(16);
-
-    private final AtomicBoolean updateLock = new AtomicBoolean();
-
-    private volatile long lastRecycle;
-
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
-        long now = System.currentTimeMillis();
-        Map<String, Upstream> domainMap = upstreamList.stream()
-                .collect(Collectors.toConcurrentMap(Upstream::buildDomain, upstream -> upstream));
+        int length = upstreamList.size();
+        long leastActive = Long.MAX_VALUE;
+        int leastCount = 0;
+        int[] leastIndexes = new int[length];
+        int[] weights = new int[length];
+        int totalWeight = 0;
+        int firstWeight = 0;
+        boolean sameWeight = true;
 
-        domainMap.keySet().forEach(domain -> {
-            ActiveCount activeCount = countMap.computeIfAbsent(domain, key -> new ActiveCount(now));
-            activeCount.setLastUpdate(now);
-        });
-
-        final String domain = countMap.entrySet().stream()
-                // Ensure that the filtered domain is included in the domainMap.
-                .filter(entry -> domainMap.containsKey(entry.getKey()))
-                .min(Comparator.comparingLong(entry -> entry.getValue().getCount()))
-                .map(Map.Entry::getKey)
-                .orElse(upstreamList.get(0).buildDomain());
-
-        ActiveCount activeCount = countMap.get(domain);
-        if (Objects.nonNull(activeCount)) {
-            activeCount.increase();
-        }
-
-        // A removed domain's entry lingers for up to recyclePeriod, safely excluded from selection meanwhile.
-        if (!updateLock.get() && now - lastRecycle > recyclePeriod && updateLock.compareAndSet(false, true)) {
-            try {
-                countMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
-                lastRecycle = now;
-            } finally {
-                updateLock.set(false);
+        for (int i = 0; i < length; i++) {
+            Upstream upstream = upstreamList.get(i);
+            long active = upstream.getInflight().get();
+            int afterWarmup = getWeight(upstream);
+            weights[i] = afterWarmup;
+            if (active < leastActive) {
+                leastActive = active;
+                leastCount = 1;
+                leastIndexes[0] = i;
+                totalWeight = afterWarmup;
+                firstWeight = afterWarmup;
+                sameWeight = true;
+            } else if (active == leastActive) {
+                leastIndexes[leastCount++] = i;
+                totalWeight += afterWarmup;
+                if (sameWeight && i > 0 && afterWarmup != firstWeight) {
+                    sameWeight = false;
+                }
             }
         }
-        return domainMap.get(domain);
-    }
 
-    /**
-     * The type Active count.
-     */
-    protected static class ActiveCount {
-
-        private final AtomicLong count = new AtomicLong(Long.MIN_VALUE);
-
-        private volatile long lastUpdate;
-
-        ActiveCount(final long lastUpdate) {
-            this.lastUpdate = lastUpdate;
+        if (leastCount == 1) {
+            return upstreamList.get(leastIndexes[0]);
         }
-
-        /**
-         * Increase count.
-         */
-        void increase() {
-            count.addAndGet(1);
+        if (!sameWeight && totalWeight > 0) {
+            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            for (int i = 0; i < leastCount; i++) {
+                int leastIndex = leastIndexes[i];
+                offsetWeight -= weights[leastIndex];
+                if (offsetWeight < 0) {
+                    return upstreamList.get(leastIndex);
+                }
+            }
         }
-
-        /**
-         * Get count.
-         *
-         * @return the count
-         */
-        long getCount() {
-            return count.get();
-        }
-
-        /**
-         * Gets last update.
-         *
-         * @return the last update
-         */
-        long getLastUpdate() {
-            return lastUpdate;
-        }
-
-        /**
-         * Sets last update.
-         *
-         * @param lastUpdate the last update
-         */
-        void setLastUpdate(final long lastUpdate) {
-            this.lastUpdate = lastUpdate;
-        }
+        return upstreamList.get(leastIndexes[ThreadLocalRandom.current().nextInt(leastCount)]);
     }
 }

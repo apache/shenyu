@@ -23,6 +23,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandle;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandleParser;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolExecutor;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -34,15 +38,27 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * Establishes an isolated request context for agent traffic and continues to
- * the existing AI proxy chain.
+ * Establishes an isolated request context, dispatching matched MCP rules locally
+ * and continuing LLM traffic to the existing AI proxy chain.
  */
 public class AgentGatewayPlugin extends AbstractShenyuPlugin {
 
     private final AgentGatewayRuleHandleParser parser = new AgentGatewayRuleHandleParser();
+
+    private final AgentMcpHttpHandler mcpHandler;
+
+    public AgentGatewayPlugin() {
+        this(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION),
+                exchange -> Mono.empty()));
+    }
+
+    public AgentGatewayPlugin(final AgentMcpHttpHandler mcpHandler) {
+        this.mcpHandler = Objects.requireNonNull(mcpHandler, "mcpHandler");
+    }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -50,11 +66,11 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if (Boolean.FALSE.equals(selector.getContinued())) {
             return chain.execute(exchange);
         }
-        final AgentGatewayRuleHandle handle = resolveHandle(rule);
-        if (!handle.isValid()) {
-            return reject(exchange, handle.getErrorMessage());
-        }
         return Mono.defer(() -> {
+            final AgentGatewayRuleHandle handle = resolveHandle(rule);
+            if (!handle.isValid()) {
+                return reject(exchange, handle.getErrorMessage());
+            }
             final AgentTrafficContext context = new AgentTrafficContext(
                     UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
             final Object previousContext = exchange.getAttributes()
@@ -62,7 +78,10 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             if (handle.isResponseRequestId()) {
                 registerResponseRequestId(exchange, context.getRequestId());
             }
-            return chain.execute(exchange)
+            return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
+                    ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration(),
+                            new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes()))
+                    : chain.execute(exchange))
                     .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context))
                     .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
         });
@@ -105,6 +124,11 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
         return WebFluxResultUtils.result(exchange, error);
+    }
+
+    @Override
+    public boolean skip(final ServerWebExchange exchange) {
+        return Boolean.TRUE.equals(exchange.getAttribute(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE));
     }
 
     @Override

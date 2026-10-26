@@ -64,14 +64,19 @@ jobs:
     outputs:
       code: ${{ steps.modules.outputs.has_code_changes }}
       code_files: ${{ steps.filter.outputs.code_files }}
+      rat_required: ${{ steps.filter.outputs.code }}
       modules: ${{ steps.modules.outputs.modules }}
       full_build_required: ${{ steps.modules.outputs.full_build_required }}
     steps:
       - uses: actions/checkout@v3
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test Maven transfer retries
+        run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
+      - name: Test E2E artifact reruns
+        run: node --test .github/scripts/retest-test.mjs
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -111,6 +116,47 @@ jobs:
       - name: Test GHCR publish routing
         run: bash .github/scripts/resolve-ghcr-publish-test.sh
 
+  registry_dependencies:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.code == 'true'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Replay registration contract and check resolved client boundaries
+        run: |
+          python3 .github/scripts/test-client-boundary.py
+          python3 .github/scripts/check-client-boundary.py
+          ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
+            -Dtest=RegistrationProtocolCompatibilityTest,ZookeeperClientDiscoveryIntegrationTest,HeartbeatListenerConfigurationTest \
+            -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
+            -Dscope=test -DoutputType=tgf -DoutputFile=target/client-boundary.tgf
+          python3 .github/scripts/check-client-boundary.py --trees
+      - name: Check resolved registry dependency boundaries
+        run: |
+          python3 .github/scripts/test-registry-dependencies.py
+          REGISTRY_MODULES="$(python3 .github/scripts/check-registry-dependencies.py --modules)"
+          ./mvnw -B -ntp -pl "$REGISTRY_MODULES" -am package dependency:tree \
+            -DskipTests -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
+            -Dscope=runtime -DoutputType=tgf -DoutputFile=target/registry-dependencies.tgf
+          python3 .github/scripts/check-registry-dependencies.py
+
+  rat_check:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.rat_required == 'true'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Run Apache RAT check
+        run: ./mvnw -B -ntp apache-rat:check
+
   pr_build:
     needs: changes
     runs-on: ubuntu-latest
@@ -136,21 +182,6 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-      - name: Install mvnd
-        shell: bash
-        run: |
-          MVND_VERSION=1.0.6
-          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-          unzip -q mvnd.zip
-          mkdir -p $HOME/.local
-          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-
-      - name: Verify mvnd installation
-        shell: bash
-        run: mvnd --version || echo "mvnd version check failed, will use maven wrapper as fallback"
-
       - name: Build with Maven
         shell: bash
         run: |
@@ -162,13 +193,7 @@ jobs:
             MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am"
           fi
 
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build"
-            mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
-          else
-            echo "Falling back to maven wrapper"
-            ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
-          fi
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
 
   build_local_repo:
     needs: changes
@@ -331,6 +356,7 @@ jobs:
     if: (github.repository == 'apache/shenyu') && always()
     needs:
       - changes
+      - rat_check
       - pr_build
       - build_local_repo
       - test_group
@@ -340,6 +366,9 @@ jobs:
       - name: checking job status
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit -1
+          if [[ "${{ needs.changes.outputs.rat_required }}" == "true" ]]; then
+            [[ "${{ needs.rat_check.result }}" == "success" ]] || exit -1
+          fi
           if [[ "${{ needs.changes.outputs.code }}" == "true" && "${{ github.event_name }}" == "pull_request" ]]; then
             [[ "${{ needs.pr_build.result }}" == "success" ]] || exit -1
           fi

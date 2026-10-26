@@ -41,7 +41,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sleep 10s
   docker ps -a
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test
+  bash .github/scripts/maven-with-retry.sh ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test
   # shellcheck disable=SC2181
   if (($?)); then
     echo "${sync}-sync-e2e-test failed"
@@ -52,9 +52,9 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
-    echo "shenyu-examples-dubbo log:"
+    echo "shenyu-examples-websocket log:"
     echo "------------------"
-    docker compose -f "${PRGDIR}"/shenyu-examples-dubbo-compose.yml logs shenyu-examples-websocket
+    docker compose -f "${PRGDIR}"/shenyu-examples-websocket-compose.yml logs shenyu-examples-websocket
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down

@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -106,7 +107,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethod().name());
         requestInfo.setRequestMethod(request.getMethod().name());
-        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
+        requestInfo.setRequestHeader(() -> LogCollectUtils.getHeaders(request.getHeaders()));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
@@ -115,9 +116,10 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setSelectorId(selector.getId());
         requestInfo.setRuleId(rule.getId());
         requestInfo.setNamespaceId(rule.getNamespaceId());
-        LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
+        GenericGlobalConfig globalConfig = LogCollectConfigUtils.getGlobalConfig(selector.getPluginId());
+        LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo, globalConfig.getMaxRequestBody());
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
-                requestInfo, this.logCollector(), desensitized, keyWordMatch, dataDesensitizeAlg);
+                requestInfo, this.logCollector(), desensitized, keyWordMatch, dataDesensitizeAlg, globalConfig.getMaxResponseBody());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);

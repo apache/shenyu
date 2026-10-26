@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.google.gson.JsonObject;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -33,11 +38,15 @@ import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -58,6 +67,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,6 +75,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -97,14 +108,21 @@ public final class WebsocketCollectorTest {
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(WebsocketCollector.class)).thenReturn(loggerSpy);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
     @AfterAll
     public static void close() {
         loggerFactoryMockedStatic.close();
+    }
+
+    @Test
+    public void testUnrelatedClassLoggerIsPreserved() {
+        Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+        assertNotNull(logger);
+        assertEquals(JsonUtils.class.getName(), logger.getName());
+        assertNull(JsonUtils.jsonToObject("", Map.class));
     }
 
     @BeforeEach
@@ -332,8 +350,68 @@ public final class WebsocketCollectorTest {
         String bootstrapMsg = "{\"" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO + "\":{\"key\":\"val\"}}";
         websocketCollector.onMessage(bootstrapMsg, session);
 
-        verify(publisher, times(1)).publish(isA(org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent.class));
+        verify(publisher, times(1)).publish(isA(InstanceInfoReportEvent.class));
         websocketCollector.onClose(session);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"cpu\":4,\"os\":\"Windows\"}", "{\"note\":\"{\\\"nested\\\":true}\"}"})
+    void testBootstrapInstanceInfoPreservesJsonString(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = GsonUtils.getInstance().toJson(Map.of(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information));
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals(information, event.getValue().getInstanceInfo());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testBootstrapObjectInformationIsPreserved() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = "{\"bootstrapInstanceInfo\":{\"note\":\"{\\\"nested\\\":true}\"}}";
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        Map<String, Object> information = GsonUtils.getInstance().fromJson(event.getValue().getInstanceInfo(), Map.class);
+        assertEquals("{\"nested\":true}", information.get("note"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"{broken}", "not-json", "[]"})
+    void testMalformedOptionalInformationStillPublishesHeartbeat(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        JsonObject message = new JsonObject();
+        message.addProperty(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information);
+
+        assertDoesNotThrow(() -> websocketCollector.onMessage(message.toString(), session));
+
+        verify(publisher).publish(isA(InstanceInfoReportEvent.class));
+    }
+
+    @Test
+    void testMalformedBootstrapFrameDoesNotPreventNextHeartbeat() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String[] messages = {"{\"bootstrapInstanceInfo\":", "[\"bootstrapInstanceInfo\"]", "\"bootstrapInstanceInfo\"", "null /* bootstrapInstanceInfo */"};
+        for (String message : messages) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(message, session));
+        }
+        verify(publisher, never()).publish(any(InstanceInfoReportEvent.class));
+
+        websocketCollector.onMessage("{\"bootstrapInstanceInfo\":\"{\\\"cpu\\\":4}\"}", session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals("{\"cpu\":4}", event.getValue().getInstanceInfo());
     }
 
     @Test
@@ -558,6 +636,48 @@ public final class WebsocketCollectorTest {
         verify(async, times(1)).sendText(eq("broadcast-msg"), any(SendHandler.class));
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testSendWithNamespaceIdLogsBoundedMetadataNotThePayload() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        // a realistic envelope carrying a secret; the collector must log bounded metadata, never the payload
+        final String message = "{\"groupType\":\"AI_PROXY_API_KEY\",\"eventType\":\"UPDATE\",\"data\":[{\"apiKey\":\"api-secret\"}]}";
+        // Attach to the root logger: the collector's events reach it through additivity whether the collector's
+        // static LOG is the real logger or the @BeforeAll spy, whose copied parent chain still points at the root.
+        final ch.qos.logback.classic.Logger root =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        final Level original = root.getLevel();
+        root.setLevel(Level.INFO);
+        root.addAppender(appender);
+        try {
+            WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(original);
+        }
+        // delivery is preserved even though the diagnostic no longer serializes the payload
+        verify(async, times(1)).sendText(eq(message), any(SendHandler.class));
+        // exactly one bounded INFO diagnostic is emitted, and no DEBUG redaction/serialization runs at INFO
+        final String collectorName = WebsocketCollector.class.getName();
+        assertEquals(1L, appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .count(), "expected exactly one bounded collector diagnostic");
+        final String logged = appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .findFirst()
+                .orElse("");
+        assertTrue(logged.contains(Constants.SYS_DEFAULT_NAMESPACE_ID), logged);
+        assertTrue(logged.contains(DataEventTypeEnum.CREATE.name()), logged);
+        assertTrue(logged.contains(String.valueOf(message.length())), logged);
+        // neither the payload shape, nor the secret, nor the redaction marker may be serialized into the log
+        assertFalse(logged.contains("groupType"), logged);
+        assertFalse(logged.contains("api-secret"), logged);
+        assertFalse(logged.contains("******"), logged);
     }
 
     @Test

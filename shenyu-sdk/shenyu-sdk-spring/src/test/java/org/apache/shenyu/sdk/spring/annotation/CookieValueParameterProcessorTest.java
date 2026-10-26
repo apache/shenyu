@@ -19,7 +19,10 @@ package org.apache.shenyu.sdk.spring.annotation;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
@@ -27,6 +30,7 @@ import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +61,16 @@ public class CookieValueParameterProcessorTest {
         when(template.getHeaders()).thenReturn(Maps.newHashMap());
         when(req.getHeaders()).thenReturn(headers);
         this.request = req;
+    }
+
+    @Test
+    public void processArgumentNameOnlyTest() {
+        final CookieValue cookie = spy(CookieValue.class);
+        when(cookie.value()).thenReturn("");
+        when(cookie.name()).thenReturn("name2");
+        processor.processArgument(request, cookie, "two");
+
+        assertTrue(request.getHeaders().get(HttpHeaders.COOKIE).contains("name2=two"), "cookie name alias resolve error");
     }
 
     @Test
@@ -101,6 +115,27 @@ public class CookieValueParameterProcessorTest {
 
         assertTrue(request.getHeaders().containsKey(HttpHeaders.COOKIE), "cookie value resolve fail");
         assertTrue(request.getHeaders().get(HttpHeaders.COOKIE).contains("two=twoValue"), "cookie value resolve error");
+    }
+
+    @Test
+    public void processArgumentDoesNotAccumulateAcrossCalls() {
+        final RequestTemplate template = new RequestTemplate();
+        template.setHttpMethod(ShenyuRequest.HttpMethod.GET);
+        template.getHeaders().put(HttpHeaders.COOKIE, Collections.singletonList("static=static"));
+
+        final CookieValue cookie = spy(CookieValue.class);
+        when(cookie.value()).thenReturn("session");
+
+        final ShenyuRequest first = RequestTemplate.from(template).request();
+        processor.processArgument(first, cookie, "one");
+        assertEquals(Arrays.asList("static=static", "session=one"), new ArrayList<>(first.getHeaders().get(HttpHeaders.COOKIE)));
+
+        final ShenyuRequest second = RequestTemplate.from(template).request();
+        processor.processArgument(second, cookie, "two");
+        assertEquals(Arrays.asList("static=static", "session=two"), new ArrayList<>(second.getHeaders().get(HttpHeaders.COOKIE)));
+
+        // the shared template was never touched
+        assertEquals(Collections.singletonList("static=static"), template.getHeaders().get(HttpHeaders.COOKIE));
     }
 
     @AfterEach

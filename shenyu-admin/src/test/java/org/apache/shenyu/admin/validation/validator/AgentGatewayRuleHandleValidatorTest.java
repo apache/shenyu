@@ -34,6 +34,8 @@ public final class AgentGatewayRuleHandleValidatorTest {
     public void testValidHandles() {
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"LLM\"}"));
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"LLM\",\"responseRequestId\":false}"));
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{}}"));
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"],\"responseMode\":\"sse\"}}"));
     }
 
     @ParameterizedTest
@@ -47,7 +49,13 @@ public final class AgentGatewayRuleHandleValidatorTest {
         "{\"trafficType\":true}",
         "{\"trafficType\":\"LLM\",\"responseRequestId\":\"true\"}",
         "{\"trafficType\":\"LLM\",\"responseRequestId\":null}",
-        "{\"trafficType\":\"LLM\",\"extra\":42}"
+        "{\"trafficType\":\"LLM\",\"extra\":42}",
+        "{\"trafficType\":\"mcp\"}",
+        "{\"trafficType\":\"mcp\",\"mcp\":null}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"future\":true}}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"timeoutMs\":0}}",
+        "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"*\"]}}",
+        "{\"trafficType\":\"LLM\",\"mcp\":{}}"
     })
     public void testInvalidHandles(final String handle) {
         assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));
@@ -56,5 +64,43 @@ public final class AgentGatewayRuleHandleValidatorTest {
     @Test
     public void testNullHandle() {
         assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(null));
+    }
+
+    @Test
+    public void testResourcePermissions() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedResources\":[\"orders.status\"]}}"));
+        for (String value : new String[] {"null", "[\"*\"]", "[\"orders.status\",\"orders.status\"]"}) {
+            assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedResources\":" + value + "}}"));
+        }
+    }
+
+    @Test
+    public void testValidConfiguredHttpTool() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("""
+                {"trafficType":"mcp","mcp":{"allowedTools":["lookup"],"httpTools":{"lookup":{
+                "description":"HTTP lookup","inputSchema":{"type":"object","properties":{}},
+                "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders/status"},"argsPosition":{}}}}}}
+                """));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{\"foreign\":{}}", "{\"lookup\":{\"future\":true}}"})
+    public void testInvalidConfiguredHttpTool(final String plans) {
+        String handle = "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"lookup\"],\"httpTools\":" + plans + "}}";
+        assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));
+    }
+
+    @Test
+    public void testValidStructuredContentDeletion() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"crm.profile\"],"
+                + "\"structuredContentRemovals\":{\"crm.profile\":[\"/secret\"]}}}"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{\"crm.profile\":[]}", "{\"other.profile\":[\"/secret\"]}",
+            "{\"crm.profile\":[\"secret\"]}", "{\"crm.profile\":[\"/a~2\"]}", "{\"crm.profile\":[\"/secret\",\"/secret\"]}"})
+    public void testInvalidStructuredContentDeletion(final String deletion) {
+        String handle = "{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"crm.profile\"],\"structuredContentRemovals\":" + deletion + "}}";
+        assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate(handle));
     }
 }

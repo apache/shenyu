@@ -17,54 +17,8 @@
 
 package org.apache.shenyu.client.mcp.common.dto;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * the shenyu mcp request config object.
+ * Client compatibility alias for the shared MCP request model.
  */
-public class ShenyuMcpRequestConfig {
-
-    private Map<String, String> headers = new HashMap<>();
-
-    private String bodyToJson;
-
-    public ShenyuMcpRequestConfig() {
-    }
-
-    /**
-     * get headers.
-     *
-     * @return headers
-     */
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    /**
-     * set headers.
-     *
-     * @param headers headers
-     */
-    public void setHeaders(final Map<String, String> headers) {
-        this.headers = headers;
-    }
-
-    /**
-     * get bodyToJson.
-     *
-     * @return bodyToJson
-     */
-    public String getBodyToJson() {
-        return bodyToJson;
-    }
-
-    /**
-     * set bodyToJson.
-     *
-     * @param bodyToJson bodyToJson
-     */
-    public void setBodyToJson(final String bodyToJson) {
-        this.bodyToJson = bodyToJson;
-    }
+public class ShenyuMcpRequestConfig extends org.apache.shenyu.register.mcp.common.dto.ShenyuMcpRequestConfig {
 }

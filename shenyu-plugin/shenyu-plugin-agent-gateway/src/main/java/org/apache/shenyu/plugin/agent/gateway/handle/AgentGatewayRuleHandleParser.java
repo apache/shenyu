@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public final class AgentGatewayRuleHandleParser {
 
     private static final String RESPONSE_REQUEST_ID = "responseRequestId";
 
-    private static final Set<String> SUPPORTED_FIELDS = Set.of(TRAFFIC_TYPE, RESPONSE_REQUEST_ID);
+    private static final Set<String> SUPPORTED_FIELDS = Set.of(TRAFFIC_TYPE, RESPONSE_REQUEST_ID, "mcp");
 
     /**
      * Parse one rule handle. Unknown fields are ignored for forward compatibility.
@@ -66,8 +67,8 @@ public final class AgentGatewayRuleHandleParser {
                 return invalid(rawHandle, "trafficType must be a string");
             }
             final String trafficType = object.get(TRAFFIC_TYPE).getAsString();
-            if (!"LLM".equals(trafficType)) {
-                return invalid(rawHandle, "trafficType must be LLM");
+            if (!"LLM".equals(trafficType) && !"mcp".equals(trafficType)) {
+                return invalid(rawHandle, "trafficType must be LLM or mcp");
             }
             boolean responseRequestId = false;
             if (object.has(RESPONSE_REQUEST_ID)) {
@@ -77,6 +78,16 @@ public final class AgentGatewayRuleHandleParser {
                     return invalid(rawHandle, "responseRequestId must be a boolean");
                 }
                 responseRequestId = responseElement.getAsBoolean();
+            }
+            if ("mcp".equals(trafficType)) {
+                try {
+                    return AgentGatewayRuleHandle.mcp(rawHandle, responseRequestId, AgentGatewayMcpConfig.parse(object.get("mcp"), false));
+                } catch (IllegalArgumentException error) {
+                    return invalid(rawHandle, error.getMessage());
+                }
+            }
+            if (object.has("mcp")) {
+                return invalid(rawHandle, "mcp configuration requires trafficType mcp");
             }
             return AgentGatewayRuleHandle.valid(rawHandle, "LLM", responseRequestId);
         } catch (JsonParseException | IllegalStateException | UnsupportedOperationException ex) {

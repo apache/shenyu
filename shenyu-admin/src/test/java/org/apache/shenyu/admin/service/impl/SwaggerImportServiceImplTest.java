@@ -18,12 +18,14 @@
 package org.apache.shenyu.admin.service.impl;
 
 import okhttp3.MediaType;
+import okhttp3.Dns;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
+import org.apache.shenyu.admin.config.properties.SwaggerImportProperties;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.dto.SwaggerImportRequest;
@@ -33,6 +35,8 @@ import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -41,20 +45,23 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import org.apache.shenyu.client.mcp.common.dto.ShenyuMcpTool;
+import org.apache.shenyu.register.mcp.common.dto.ShenyuMcpTool;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Collections;
+import java.util.Set;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
@@ -82,6 +89,8 @@ public class SwaggerImportServiceImplTest {
 
     private SwaggerImportServiceImpl service;
 
+    private SwaggerImportProperties properties;
+
     @Mock
     private ShenyuClientRegisterMcpServiceImpl mcpService;
 
@@ -89,7 +98,8 @@ public class SwaggerImportServiceImplTest {
     public void setUp() {
         docManager = new RecordingDocManager();
         httpUtils = new StubHttpUtils();
-        service = new SwaggerImportServiceImpl(docManager, httpUtils);
+        properties = new SwaggerImportProperties();
+        service = new SwaggerImportServiceImpl(docManager, httpUtils, properties);
         ReflectionTestUtils.setField(service, "maxSwaggerBodySize", DEFAULT_MAX_SWAGGER_BODY_SIZE);
         ReflectionTestUtils.setField(service, "shenyuClientRegisterMcpService", mcpService);
     }
@@ -133,6 +143,33 @@ public class SwaggerImportServiceImplTest {
         assertEquals(SYS_DEFAULT_NAMESPACE_ID, captor.getValue().getNamespaceId());
         assertEquals(SYS_DEFAULT_NAMESPACE_ID,
                 captor.getValue().getMetaDataRegisterDTO().getNamespaceId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {8080, 8081, 9090, 9091})
+    public void shouldUseValidatedTransportForAllSwaggerEntryPoints(final int port) throws IOException {
+        SwaggerImportRequest request = request();
+        request.setSwaggerUrl("http://8.8.8.8:" + port + "/v3/api-docs");
+        httpUtils.setResponse(response(responseBody(SWAGGER_JSON, -1, JSON_UTF_8)));
+        service.importSwagger(request);
+        assertEquals(SWAGGER_JSON, docManager.getDocJson());
+        httpUtils.setResponse(response(responseBody(MCP_SWAGGER_JSON, -1, JSON_UTF_8)));
+        service.importMcpConfig(request);
+        httpUtils.setResponse(response(responseBody(SWAGGER_JSON, -1, JSON_UTF_8)));
+        assertTrue(service.testConnection(request.getSwaggerUrl()));
+        assertEquals(3, httpUtils.requests);
+        assertEquals(Collections.singletonList(InetAddress.getByName("8.8.8.8")), httpUtils.dns.lookup("8.8.8.8"));
+    }
+
+    @Test
+    public void shouldApplyConfiguredPolicyToAllSwaggerEntryPoints() {
+        properties.setDeniedPorts(Set.of(8080));
+        SwaggerImportRequest request = request();
+        request.setSwaggerUrl("http://8.8.8.8:8080/v3/api-docs");
+        assertThrows(IllegalArgumentException.class, () -> service.importSwagger(request));
+        assertThrows(IllegalArgumentException.class, () -> service.importMcpConfig(request));
+        assertFalse(service.testConnection(request.getSwaggerUrl()));
+        assertEquals(0, httpUtils.requests);
     }
 
     private SwaggerImportRequest request() {
@@ -216,11 +253,6 @@ public class SwaggerImportServiceImplTest {
             this.docJson = docJson;
         }
 
-        @Override
-        public Collection<DocInfo> listAll() {
-            return Collections.emptyList();
-        }
-
         private String getDocJson() {
             return docJson;
         }
@@ -230,14 +262,18 @@ public class SwaggerImportServiceImplTest {
 
         private Response response;
 
+        private Dns dns;
+
+        private int requests;
+
         private void setResponse(final Response response) {
             this.response = response;
         }
 
         @Override
-        public Response requestForResponse(final String url, final Map<String, ?> form,
-                                           final Map<String, String> header, final HTTPMethod method,
-                                           final boolean followRedirects) {
+        public Response requestForValidatedResponse(final String url, final Dns validatedDns) {
+            dns = validatedDns;
+            requests++;
             return response;
         }
     }

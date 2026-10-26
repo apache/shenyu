@@ -17,8 +17,11 @@
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 
@@ -36,6 +39,22 @@ class MigrationConsistencyTest(unittest.TestCase):
 
     def test_all_dialects_match(self):
         CHECK.check(ROOT)
+
+    def test_opengauss_uses_shared_schema_and_its_own_upgrade(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            schema = root / "db/init/pg/create-table.sql"
+            migration = root / "db/upgrade/2.7.1-upgrade-2.7.2-og.sql"
+            schema.parent.mkdir(parents=True)
+            migration.parent.mkdir(parents=True)
+            schema.write_text((ROOT / "db/init/pg/create-table.sql").read_text(encoding="utf-8"), encoding="utf-8")
+            released_upgrade = (ROOT / "db/upgrade/2.7.1-upgrade-2.7.2-og.sql").read_text(encoding="utf-8")
+            migration.write_text(released_upgrade, encoding="utf-8")
+            with patch.object(CHECK, "DIALECTS", ("og",)):
+                CHECK.check(root)
+                migration.write_text(released_upgrade.replace("plugin:agentGatewayRule:delete", "plugin:agentGatewayRule:edit"), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "og: fresh-install/upgrade mismatch"):
+                    CHECK.check(root)
 
     def test_missing_each_required_record_is_detected(self):
         for table, ids in CHECK.EXPECTED.items():
@@ -61,6 +80,24 @@ class MigrationConsistencyTest(unittest.TestCase):
 
     def test_formatting_is_ignored(self):
         self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("VALUES (", "VALUES\n  (")))
+
+    def test_null_keyword_case_is_ignored(self):
+        self.assertEqual(24, CHECK.check_pair(self.schema, self.migration.replace("NULL", "null")))
+
+    def test_quoted_null_is_not_a_null_literal(self):
+        changed, replacements = re.subn(
+            r"('68', )NULL(, \d+)",
+            r"\1'NULL'\2",
+            self.migration,
+            count=1,
+        )
+        self.assertEqual(
+            1,
+            replacements,
+            "fixture drifted: no '68', NULL, <sort> row found",
+        )
+        with self.assertRaisesRegex(ValueError, "mismatch"):
+            CHECK.check_pair(self.schema, changed)
 
     def test_commented_out_migration_is_rejected(self):
         disabled = "\n".join("-- " + line for line in self.migration.splitlines())

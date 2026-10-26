@@ -34,6 +34,7 @@ import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.k8s.cache.IngressCache;
 import org.apache.shenyu.k8s.cache.IngressSelectorCache;
@@ -44,6 +45,7 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,6 +79,11 @@ public final class DivideIngressReconcilerTest {
 
     @BeforeEach
     public void init() {
+        // These caches are process-wide singletons; isolate each test case.
+        IngressCache.getInstance().remove("mockedNamespace", "mockedIngress");
+        IngressSelectorCache.getInstance().remove("mockedNamespace", "mockedIngress", PluginEnum.DIVIDE.getName());
+        ServiceIngressCache.getInstance().removeSpecifiedIngressName(
+                "mockedNamespace", "testService", "mockedNamespace", "mockedIngress");
         ingressInformer = mock(SharedIndexInformer.class);
         secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -125,6 +132,24 @@ public final class DivideIngressReconcilerTest {
         Assertions.assertEquals(new Result(false), result);
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+    }
+
+    /**
+     * test reconcile with fewer protocols than endpoints.
+     */
+    @Test
+    public void testReconcileWithFewerProtocolsThanEndpoints() {
+        V1Ingress ingress = ingressInformer.getIndexer().getByKey("mockedNamespace/mockedIngress");
+        Map<String, String> annotations = ingress.getMetadata().getAnnotations();
+        annotations.put("shenyu.apache.org/upstreams-protocol", "https://");
+        V1Endpoints endpoints = endpointsInformer.getIndexer().getByKey("mockedNamespace/testService");
+        endpoints.getSubsets().get(0).setAddresses(java.util.Arrays.asList(
+                new V1EndpointAddress().ip("127.0.0.1"), new V1EndpointAddress().ip("127.0.0.2")));
+        ingressReconciler.reconcile(new Request("mockedNamespace", "mockedIngress"));
+        ArgumentCaptor<SelectorData> selectorCaptor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(selectorCaptor.capture());
+        Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("https://"));
+        Assertions.assertTrue(selectorCaptor.getValue().getHandle().contains("http://"));
     }
 
     /**

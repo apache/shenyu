@@ -18,12 +18,16 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +43,12 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -81,59 +87,98 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
+        return executeFailover(clientResponse, exchange, duration, retryTimes, Duration.ZERO, th -> true);
+    }
+
+    /**
+     * Retry eligible failures on another upstream after the configured delay.
+     *
+     * @param clientResponse original request response
+     * @param exchange current exchange
+     * @param duration timeout per request
+     * @param retryTimes number of retries
+     * @param backoff delay before selecting the next upstream
+     * @param retryFilter eligible failures
+     * @return response after failover
+     */
+    Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration,
+                           final int retryTimes, final Duration backoff, final Predicate<Throwable> retryFilter) {
         final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
-        return resend(clientResponse, exchange, duration, exclude, retryTimes)
-                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        Mono<R> result = clientResponse;
+        for (int i = 0; i < retryTimes; i++) {
+            result = result.onErrorResume(retryFilter, th -> backoff.isZero()
+                    ? resend(exchange, duration, exclude)
+                    : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
+        }
+        return result.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
     }
 
-    private Mono<R> resend(final Mono<R> clientResponse,
-                           final ServerWebExchange exchange,
-                           final Duration duration,
-                           final Set<URI> exclude,
-                           final int retryTimes) {
-        Mono<R> result = clientResponse;
-        for (int i = 0; i < retryTimes; i++) {
-            result = resend(result, exchange, duration, exclude);
-        }
-        return result;
-    }
-
-    private Mono<R> resend(final Mono<R> response,
-                           final ServerWebExchange exchange,
+    private Mono<R> resend(final ServerWebExchange exchange,
                            final Duration duration,
                            final Set<URI> exclude) {
-        // does it necessary to add backoff interval time ?
-        return response.onErrorResume(th -> {
-            final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
-            final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
-            //always query the latest available list
-            final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
-                    .stream().filter(data -> {
-                        final String trimUri = data.getUrl().trim();
-                        for (URI needToExclude : exclude) {
-                            if ((needToExclude.getHost() + ":" + needToExclude.getPort()).equals(trimUri)) {
-                                return false;
-                            }
+        final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
+        final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
+        // Refresh health/topology without losing the request's resolved label partition.
+        final UpstreamRoutingContext routing = exchange.getAttribute(UpstreamRoutingContext.ATTRIBUTE);
+        final List<Upstream> availableUpstreamList = Objects.isNull(routing)
+                ? UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+                : routing.filter(selectorId, UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selectorId));
+        if (Objects.isNull(availableUpstreamList)) {
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final List<Upstream> upstreamList = availableUpstreamList
+                .stream().filter(data -> {
+                    final URI upstreamUri = URI.create(data.buildDomain());
+                    for (URI needToExclude : exclude) {
+                        if (isSameUpstream(needToExclude, upstreamUri)) {
+                            return false;
                         }
-                        return true;
-                    }).collect(Collectors.toList());
-            if (upstreamList.isEmpty()) {
-                // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
-            }
-            final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
-            if (Objects.isNull(upstream)) {
-                // no need to retry anymore
-                return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
-            }
-            final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
-            // in order not to affect the next retry call, newUri needs to be excluded
-            exclude.add(newUri);
-            return httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
-                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e));
-        });
+                    }
+                    return true;
+                })
+                //skip upstreams that are still blocked by the built-in circuit breaker
+                .filter(data -> UpstreamCircuitBreaker.getInstance()
+                        .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
+                .collect(Collectors.toList());
+        if (upstreamList.isEmpty()) {
+            // no need to retry anymore
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
+        if (Objects.isNull(upstream)) {
+            // no need to retry anymore
+            return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
+        }
+        final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
+        // in order not to affect the next retry call, newUri needs to be excluded
+        exclude.add(newUri);
+        final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+        Mono<R> retryResponse = httpClientPlugin
+                .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
+                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+                .doOnError(e -> LOG.error(e.getMessage(), e));
+        if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
+            // Selecting the retry upstream above goes through the load balancer, which increments the P2C
+            // inflight counter of the newly picked upstream. Divide's completion callback only captures the
+            // initially selected upstream, so release this attempt's increment to keep P2C accounting paired
+            // across success, failure and cancellation of the failover. See #7975.
+            retryResponse = retryResponse.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        } else if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            // Least active compares outstanding requests but does not reserve on select, so this attempt
+            // stays reserved until it terminates. See #7986.
+            upstream.getInflight().incrementAndGet();
+            retryResponse = retryResponse.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        }
+        return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey);
+    }
+
+    private boolean isSameUpstream(final URI first, final URI second) {
+        final String firstScheme = first.getScheme().toLowerCase(Locale.ROOT);
+        final String secondScheme = second.getScheme().toLowerCase(Locale.ROOT);
+        return firstScheme.equals(secondScheme)
+                && first.getHost().equalsIgnoreCase(second.getHost())
+                && UriUtils.getActualPort(firstScheme, first.getPort()) == UriUtils.getActualPort(secondScheme, second.getPort());
     }
 }

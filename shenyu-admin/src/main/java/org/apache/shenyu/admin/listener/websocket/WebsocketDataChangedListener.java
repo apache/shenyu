@@ -22,6 +22,7 @@ import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.model.dto.DiscoverySyncPayload;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -34,9 +35,16 @@ import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * The type Websocket data changed listener.
@@ -45,25 +53,29 @@ import java.util.List;
  */
 public class WebsocketDataChangedListener implements DataChangedListener {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketDataChangedListener.class);
+
+    private final boolean compactDiscoveryPayload;
+
+    /**
+     * Create a listener using the legacy payload.
+     */
+    public WebsocketDataChangedListener() {
+        this(false);
+    }
+
+    /**
+     * Create a listener with optional Discovery payload projection.
+     *
+     * @param compactDiscoveryPayload whether to omit Discovery management fields
+     */
+    public WebsocketDataChangedListener(final boolean compactDiscoveryPayload) {
+        this.compactDiscoveryPayload = compactDiscoveryPayload;
+    }
+
     @Override
-    public void onPluginChanged(
-            final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
-        WebsocketData<PluginData> websocketData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            String namespaceId =
-                    pluginDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
-        }
+    public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(pluginDataList, eventType, ConfigGroupEnum.PLUGIN, PluginData::getNamespaceId);
     }
 
     @Override
@@ -77,24 +89,8 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onSelectorChanged(
-            final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
-        WebsocketData<SelectorData> websocketData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
-        if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            String namespaceId =
-                    selectorDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(websocketData), eventType);
-        }
+    public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(selectorDataList, eventType, ConfigGroupEnum.SELECTOR, SelectorData::getNamespaceId);
     }
 
     @Override
@@ -108,23 +104,8 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onRuleChanged(
-            final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
-        WebsocketData<RuleData> configData =
-                new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
-        if (CollectionUtils.isNotEmpty(ruleDataList)) {
-            String namespaceId =
-                    ruleDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
-        }
+    public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(ruleDataList, eventType, ConfigGroupEnum.RULE, RuleData::getNamespaceId);
     }
 
     @Override
@@ -138,24 +119,8 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onAppAuthChanged(
-            final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
-        WebsocketData<AppAuthData> configData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
-        if (CollectionUtils.isNotEmpty(appAuthDataList)) {
-            String namespaceId =
-                    appAuthDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
-        }
+    public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(appAuthDataList, eventType, ConfigGroupEnum.APP_AUTH, AppAuthData::getNamespaceId);
     }
 
     @Override
@@ -180,92 +145,62 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onMetaDataChanged(
-            final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
-        WebsocketData<MetaData> configData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
-        if (CollectionUtils.isNotEmpty(metaDataList)) {
-            String namespaceId =
-                    metaDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
-        }
+    public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(metaDataList, eventType, ConfigGroupEnum.META_DATA, MetaData::getNamespaceId);
     }
 
     @Override
-    public void onProxySelectorChanged(
-            final List<ProxySelectorData> proxySelectorDataList,
-            final DataEventTypeEnum eventType) {
-        WebsocketData<ProxySelectorData> configData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.PROXY_SELECTOR.name(),
-                        eventType.name(),
-                        proxySelectorDataList);
-        if (CollectionUtils.isNotEmpty(proxySelectorDataList)) {
-            String namespaceId =
-                    proxySelectorDataList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
-        }
+    public void onProxySelectorChanged(final List<ProxySelectorData> proxySelectorDataList, final DataEventTypeEnum eventType) {
+        sendByNamespace(proxySelectorDataList, eventType, ConfigGroupEnum.PROXY_SELECTOR, ProxySelectorData::getNamespaceId);
     }
 
     @Override
-    public void onAiProxyApiKeyChanged(
-            final List<ProxyApiKeyData> changed, final DataEventTypeEnum eventType) {
-        WebsocketData<ProxyApiKeyData> configData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.AI_PROXY_API_KEY.name(), eventType.name(), changed);
-        if (CollectionUtils.isNotEmpty(changed)) {
-            String namespaceId =
-                    changed.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
-        }
+    public void onAiProxyApiKeyChanged(final List<ProxyApiKeyData> changed, final DataEventTypeEnum eventType) {
+        sendByNamespace(changed, eventType, ConfigGroupEnum.AI_PROXY_API_KEY, ProxyApiKeyData::getNamespaceId);
     }
 
     @Override
-    public void onDiscoveryUpstreamChanged(
-            final List<DiscoverySyncData> discoveryUpstreamList,
-            final DataEventTypeEnum eventType) {
-        WebsocketData<DiscoverySyncData> configData =
-                new WebsocketData<>(
-                        ConfigGroupEnum.DISCOVER_UPSTREAM.name(),
-                        eventType.name(),
-                        discoveryUpstreamList);
-        if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
-            String namespaceId =
-                    discoveryUpstreamList.stream()
-                            .map(
-                                    value ->
-                                            StringUtils.defaultString(
-                                                    value.getNamespaceId(),
-                                                    SYS_DEFAULT_NAMESPACE_ID))
-                            .findFirst()
-                            .get();
-            WebsocketCollector.send(
-                    namespaceId, GsonUtils.getInstance().toJson(configData), eventType);
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoveryUpstreamList, final DataEventTypeEnum eventType) {
+        if (compactDiscoveryPayload && CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
+            for (Map.Entry<String, List<DiscoverySyncData>> entry : groupByNamespace(discoveryUpstreamList, DiscoverySyncData::getNamespaceId).entrySet()) {
+                WebsocketCollector.sendDiscovery(entry.getKey(),
+                        () -> GsonUtils.getInstance().toJson(new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), entry.getValue())),
+                        () -> {
+                            List<DiscoverySyncPayload> payloads = new ArrayList<>(entry.getValue().size());
+                            entry.getValue().forEach(data -> payloads.add(DiscoverySyncPayload.from(data)));
+                            return GsonUtils.getInstance().toJson(new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), payloads));
+                        }, eventType);
+                LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
+                        ConfigGroupEnum.DISCOVER_UPSTREAM, eventType, entry.getKey(), entry.getValue().size());
+            }
+            return;
         }
+        sendByNamespace(discoveryUpstreamList, eventType, ConfigGroupEnum.DISCOVER_UPSTREAM, DiscoverySyncData::getNamespaceId);
+    }
+
+    private <T> void sendByNamespace(final List<T> changed, final DataEventTypeEnum eventType,
+                                     final ConfigGroupEnum group, final Function<T, String> namespaceOf) {
+        if (CollectionUtils.isEmpty(changed)) {
+            return;
+        }
+        for (Map.Entry<String, List<T>> entry : groupByNamespace(changed, namespaceOf).entrySet()) {
+            List<T> groupData = entry.getValue();
+            WebsocketData<T> websocketData = new WebsocketData<>(group.name(), eventType.name(), groupData);
+            WebsocketCollector.send(entry.getKey(), GsonUtils.getInstance().toJson(websocketData), eventType);
+            LOG.info("websocket config delivered, group={}, eventType={}, namespaceId={}, count={}",
+                    group.name(), eventType.name(), entry.getKey(), groupData.size());
+        }
+    }
+
+    private <T> Map<String, List<T>> groupByNamespace(final List<T> changed, final Function<T, String> namespaceOf) {
+        Map<String, List<T>> byNamespace = new LinkedHashMap<>();
+        for (T item : changed) {
+            if (Objects.isNull(item)) {
+                continue;
+            }
+            String namespaceId = StringUtils.defaultString(namespaceOf.apply(item), SYS_DEFAULT_NAMESPACE_ID);
+            byNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(item);
+        }
+        return byNamespace;
     }
 }
