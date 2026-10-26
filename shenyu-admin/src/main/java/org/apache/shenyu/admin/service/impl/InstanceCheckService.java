@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualLineVO;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
@@ -44,6 +45,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,8 @@ import java.util.stream.Collectors;
 public class InstanceCheckService {
 
     private static final int MAX_HISTORY_SIZE = 20;
+
+    private static final long DB_CLEANUP_INTERVAL_MS = TimeUnit.HOURS.toMillis(1);
 
     private static final Logger LOG = LoggerFactory.getLogger(InstanceCheckService.class);
 
@@ -71,6 +75,8 @@ public class InstanceCheckService {
 
     private InstanceInfoService instanceInfoService;
 
+    private final InstanceRetentionProperties instanceRetentionProperties;
+
     private final Map<Integer, Deque<Long>> stateHistoryMap;
 
     private final ReentrantLock syncLock = new ReentrantLock();
@@ -79,12 +85,16 @@ public class InstanceCheckService {
 
     private final Object historyLock = new Object();
 
-    public InstanceCheckService(final InstanceInfoService instanceInfoService) {
+    private volatile long lastDbCleanupTime;
+
+    public InstanceCheckService(final InstanceInfoService instanceInfoService,
+                                final InstanceRetentionProperties instanceRetentionProperties) {
         this.scheduledTime = 10;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
         this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
+        this.instanceRetentionProperties = instanceRetentionProperties;
         this.stateHistoryMap = new ConcurrentHashMap<>();
         this.namespaceStateHistoryMap = new HashMap<>();
     }
@@ -169,6 +179,11 @@ public class InstanceCheckService {
         } catch (Exception e) {
             LOG.error("upstream scheduled check error", e);
         }
+        try {
+            purgeExpiredInstances();
+        } catch (Exception e) {
+            LOG.error("instance retention cleanup error", e);
+        }
     }
 
     private void doCheck() {
@@ -194,6 +209,65 @@ public class InstanceCheckService {
         });
         // sample the aggregated state once per scheduled cycle, after all instances are updated
         collectStateData();
+    }
+
+    /**
+     * Remove instances that stayed in the DELETED state longer than the configured retention period.
+     * The cleanup runs only on the node that owns the liveness checks (the master Admin in a cluster),
+     * and the database delete is guarded by the same cutoff so a renewed identity is never removed.
+     */
+    void purgeExpiredInstances() {
+        if (!instanceRetentionProperties.isEnabled()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long ttlMillis = instanceRetentionProperties.getTtl().toMillis();
+        long cutoff = now - ttlMillis;
+        if (cutoff < 0) {
+            return;
+        }
+        int purgedCount = 0;
+        // iterate the live map instead of copying it: ConcurrentHashMap iteration is weakly consistent,
+        // and computeIfPresent re-checks the current value before removing the entry.
+        for (Map.Entry<String, InstanceInfoVO> entry : instanceHealthBeatInfo.entrySet()) {
+            InstanceInfoVO instance = entry.getValue();
+            if (Objects.isNull(instance)) {
+                continue;
+            }
+            String instanceKey = entry.getKey();
+            AtomicBoolean purged = new AtomicBoolean(false);
+            instanceHealthBeatInfo.computeIfPresent(instanceKey, (key, current) -> {
+                if (shouldPurge(current, cutoff)) {
+                    purged.set(true);
+                    return null;
+                }
+                return current;
+            });
+            if (purged.get()) {
+                purgedCount++;
+                LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} purged after retention ttl!",
+                        instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
+            }
+        }
+        if (purgedCount > 0) {
+            LOG.info("[instanceHealthInfo]{} expired instance record(s) removed from memory", purgedCount);
+        }
+        // The in-memory purge needs the liveness cadence, but the bulk delete does not:
+        // run the database cleanup at most once per interval instead of on every check cycle.
+        if (now - lastDbCleanupTime < DB_CLEANUP_INTERVAL_MS) {
+            return;
+        }
+        lastDbCleanupTime = now;
+        int deletedRows = instanceInfoService.deleteExpired(cutoff);
+        if (deletedRows > 0) {
+            LOG.info("[instanceHealthInfo]{} expired instance record(s) removed from database", deletedRows);
+        }
+    }
+
+    private boolean shouldPurge(final InstanceInfoVO instance, final long cutoff) {
+        return Objects.nonNull(instance.getInstanceState())
+                && InstanceStatusEnum.DELETED.getCode() == instance.getInstanceState()
+                && instance.getLastHeartBeatTime() < cutoff;
     }
 
     public void syncDB() {
