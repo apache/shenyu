@@ -45,7 +45,9 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,7 +79,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchRestful(false)
                 .sort(1).build();
         this.conditionData = new ConditionData();
@@ -106,6 +108,15 @@ public final class AbstractShenyuPluginTest {
     /**
      * The plugin is null test.
      */
+    @Test
+    public void printLogToleratesNullLoggedFlag() throws Exception {
+        java.lang.reflect.Method printLog = AbstractShenyuPlugin.class
+                .getDeclaredMethod("printLog", RuleData.class, String.class);
+        printLog.setAccessible(true);
+        RuleData nullLogged = RuleData.builder().id("id").name("rule").pluginName("plugin").build();
+        printLog.invoke(testShenyuPlugin, nullLogged, "plugin");
+    }
+
     @Test
     public void executePluginIsNullTest() {
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
@@ -210,7 +221,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -221,7 +232,7 @@ public final class AbstractShenyuPluginTest {
                 .pluginName("SHENYU")
                 .selectorId("1")
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .matchMode(0)
                 .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
@@ -249,6 +260,58 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithMultipleEnabledRulesTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData secondRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(secondRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, secondRule);
+        verify(testShenyuPlugin, never()).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithLastRuleDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        RuleData disabledRule = RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(false)
+                .logged(true)
+                .sort(2).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        BaseDataCache.getInstance().cacheRuleData(disabledRule);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleFullWithAllRulesDisabledTest() {
+        this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        this.selectorData.setLogged(true);
+        this.ruleData.setEnabled(false);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
+        verify(testShenyuPlugin, never()).doExecute(any(), any(), any(), any());
     }
 
     @Test
@@ -299,7 +362,7 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
-        this.ruleData.setLoged(false);
+        this.ruleData.setLogged(false);
         this.selectorData.setSort(1);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(false);
@@ -310,7 +373,7 @@ public final class AbstractShenyuPluginTest {
         try (LogCapture capture = LogCapture.attach(AbstractShenyuPlugin.class)) {
             StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
             assertTrue(capture.infoMessages().stream().noneMatch(message -> message.contains("rule")),
-                    "no rule match line may reach INFO when the rule's loged flag is false, got: " + capture.infoMessages());
+                    "no rule match line may reach INFO when the rule's logged flag is false, got: " + capture.infoMessages());
         }
     }
 
@@ -319,7 +382,7 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
-        this.ruleData.setLoged(true);
+        this.ruleData.setLogged(true);
         this.selectorData.setSort(1);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
@@ -333,7 +396,7 @@ public final class AbstractShenyuPluginTest {
                     .filter(message -> message.contains("rule"))
                     .collect(Collectors.toList());
             assertEquals(1, ruleLines.size(),
-                    "exactly one rule match line is expected at INFO when loged is true, got: " + ruleLines);
+                    "exactly one rule match line is expected at INFO when logged is true, got: " + ruleLines);
             assertTrue(ruleLines.get(0).contains("rule success match"),
                     "the surviving line should be the one that carries the rule name, got: " + ruleLines.get(0));
         }

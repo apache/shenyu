@@ -245,6 +245,18 @@ jobs:
           name: shenyu-images
           path: /tmp/shenyu/
 
+      - name: Verify the image artifacts are present
+        run: |
+          missing=()
+          for tar in apache-shenyu-admin.tar apache-shenyu-bootstrap.tar; do
+            [[ -f "/tmp/shenyu/${tar}" ]] || missing+=("${tar}")
+          done
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "::error::shenyu-images does not contain ${missing[*]}."
+            echo "::error::A failed-job rerun never re-executes build-docker-images, so /retest cannot recover this run once the artifact has expired. Rerun all jobs of this workflow, or push a new commit."
+            exit 1
+          fi
+
       - name: Load ShenYu Docker Images
         run: |
           docker load --input /tmp/shenyu/apache-shenyu-admin.tar
@@ -339,6 +351,18 @@ jobs:
         with:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
+
+      - name: Verify the image artifacts are present
+        run: |
+          missing=()
+          for tar in apache-shenyu-admin.tar apache-shenyu-bootstrap.tar; do
+            [[ -f "/tmp/shenyu/${tar}" ]] || missing+=("${tar}")
+          done
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "::error::shenyu-images does not contain ${missing[*]}."
+            echo "::error::A failed-job rerun never re-executes build-docker-images, so /retest cannot recover this run once the artifact has expired. Rerun all jobs of this workflow, or push a new commit."
+            exit 1
+          fi
 
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2

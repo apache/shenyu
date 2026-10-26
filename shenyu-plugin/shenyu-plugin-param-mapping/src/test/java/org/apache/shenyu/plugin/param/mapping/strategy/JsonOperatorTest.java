@@ -17,13 +17,19 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingRuleHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -34,11 +40,17 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -80,8 +92,61 @@ public class JsonOperatorTest {
 
     @Test
     public void testApply() {
+        DocumentContext body = JsonPath.parse(applyAndReadBody(this.exchange, paramMappingRuleHandle));
+
+        assertEquals("SHENYU", body.read("$.webName"));
+        assertEquals("shenyu", body.read("$.realName"));
+        assertEquals(2, body.<Map<String, Object>>read("$").size());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    public void testEmptyBodyWithoutAdditionsPassesThrough(final List<ParamMappingRuleHandle.ParamMapInfo> additions) {
+        ServerWebExchange jsonExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/json")
+                .contentType(MediaType.APPLICATION_JSON).build());
+        paramMappingRuleHandle.setAddParameterKeys(additions);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
-        StepVerifier.create(jsonOperator.apply(this.exchange, this.chain, paramMappingRuleHandle)).expectSubscription().verifyComplete();
+
+        StepVerifier.create(jsonOperator.apply(jsonExchange, this.chain, paramMappingRuleHandle)).verifyComplete();
+
+        verify(this.chain).execute(jsonExchange);
+    }
+
+    @Test
+    public void testEmptyStringBodyWithoutAdditionsPassesThrough() {
+        ServerWebExchange jsonExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/json")
+                .contentType(MediaType.APPLICATION_JSON).body(""));
+        paramMappingRuleHandle.setAddParameterKeys(Collections.emptyList());
+
+        assertEquals("", applyAndReadBody(jsonExchange, paramMappingRuleHandle));
+        verify(this.chain).execute(jsonExchange);
+    }
+
+    @Test
+    public void testAddParameterToEmptyBody() {
+        ServerWebExchange jsonExchange = MockServerWebExchange.from(MockServerHttpRequest.post("/json")
+                .contentType(MediaType.APPLICATION_JSON).build());
+        ParamMappingRuleHandle rule = new ParamMappingRuleHandle();
+        rule.setAddParameterKeys(paramMappingRuleHandle.getAddParameterKeys());
+
+        assertEquals("{\"webName\":\"SHENYU\"}", applyAndReadBody(jsonExchange, rule));
+    }
+
+    private String applyAndReadBody(final ServerWebExchange jsonExchange, final ParamMappingRuleHandle rule) {
+        AtomicReference<String> body = new AtomicReference<>("");
+        when(this.chain.execute(any())).thenAnswer(invocation -> {
+            ServerWebExchange downstream = invocation.getArgument(0);
+            return DataBufferUtils.join(downstream.getRequest().getBody()).doOnNext(buffer -> {
+                try {
+                    body.set(buffer.toString(StandardCharsets.UTF_8));
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }).then();
+        });
+        StepVerifier.create(jsonOperator.apply(jsonExchange, this.chain, rule)).verifyComplete();
+        return body.get();
     }
 }
 

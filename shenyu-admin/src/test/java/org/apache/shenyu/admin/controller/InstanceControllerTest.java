@@ -21,9 +21,11 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
+import org.apache.shenyu.admin.model.vo.InstanceDiagnosticsVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
+import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -64,6 +67,9 @@ public final class InstanceControllerTest {
 
     @Mock
     private InstanceCheckService instanceCheckService;
+
+    @Mock
+    private InstanceDiagnosticsService instanceDiagnosticsService;
 
 
     private InstanceInfoVO vo;
@@ -91,7 +97,8 @@ public final class InstanceControllerTest {
         InstanceInfoVO health = buildVO();
         health.setInstanceState(2);
         health.setLastHeartBeatTime(123L);
-        health.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+        Timestamp healthDateUpdated = new Timestamp(456L);
+        health.setDateUpdated(healthDateUpdated);
         given(this.instanceCheckService.getInstanceHealthBeatInfo(anyString())).willReturn(health);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance")
@@ -106,6 +113,41 @@ public final class InstanceControllerTest {
                 .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())))
                 .andExpect(jsonPath("$.data.dataList[0].id", is("instance-1")))
                 .andExpect(jsonPath("$.data.dataList[1].id", is("instance-2")));
+        assertEquals(health.getLastHeartBeatTime(), vo.getLastHeartBeatTime());
+        assertEquals(health.getInstanceState(), vo.getInstanceState());
+        assertEquals(healthDateUpdated, vo.getDateUpdated());
+    }
+
+    @Test
+    public void testQueryPluginsWithMissingHealthBeatInfo() throws Exception {
+        final PageParameter pageParameter = new PageParameter(1, 10);
+        Timestamp dateUpdated = new Timestamp(123L);
+        vo.setInstanceState(2);
+        vo.setLastHeartBeatTime(0L);
+        vo.setDateUpdated(dateUpdated);
+        InstanceInfoVO persistedHeartbeatVO = buildVO();
+        persistedHeartbeatVO.setInstanceState(3);
+        persistedHeartbeatVO.setLastHeartBeatTime(456L);
+        CommonPager<InstanceInfoVO> pager = new CommonPager<>();
+        pager.setPage(pageParameter);
+        pager.setDataList(List.of(vo, persistedHeartbeatVO));
+        given(this.instanceInfoService.listByPage(any(InstanceQuery.class))).willReturn(pager);
+        given(this.instanceCheckService.getInstanceKey((InstanceInfoVO) any())).willReturn("key");
+        given(this.instanceCheckService.getInstanceHealthBeatInfo(anyString())).willReturn(null);
+
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance")
+                        .param("instanceType", vo.getInstanceType())
+                        .param("instanceIp", vo.getInstanceIp())
+                        .param("instancePort", vo.getInstancePort())
+                        .param("namespaceId", vo.getNamespaceId())
+                        .param("currentPage", String.valueOf(pageParameter.getCurrentPage()))
+                        .param("pageSize", String.valueOf(pageParameter.getPageSize())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.dataList[0].instanceState", is(2)))
+                .andExpect(jsonPath("$.data.dataList[0].lastHeartBeatTime", is(123)))
+                .andExpect(jsonPath("$.data.dataList[1].instanceState", is(3)))
+                .andExpect(jsonPath("$.data.dataList[1].lastHeartBeatTime", is(456)));
+        assertEquals(dateUpdated, vo.getDateUpdated());
     }
 
     @Test
@@ -116,6 +158,47 @@ public final class InstanceControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())))
                 .andExpect(jsonPath("$.data.id", is("instance-1")));
+    }
+
+    @Test
+    public void testInstanceDiagnostics() throws Exception {
+        InstanceDiagnosticsVO diagnosticsVO = new InstanceDiagnosticsVO();
+        diagnosticsVO.setInstanceId("123");
+        diagnosticsVO.setNamespaceId("ns");
+        diagnosticsVO.setLinks(List.of(new InstanceDiagnosticsVO.ObservabilityLink(
+                InstanceDiagnosticsVO.ObservabilityLink.TYPE_METRICS,
+                InstanceDiagnosticsVO.ObservabilityLink.STATE_NOT_CONFIGURED,
+                null)));
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("123", null, null)).willReturn(diagnosticsVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.instanceId", is("123")))
+                .andExpect(jsonPath("$.data.links[0].type", is("METRICS")))
+                .andExpect(jsonPath("$.data.links[0].state", is("NOT_CONFIGURED")));
+    }
+
+    @Test
+    public void testInstanceDiagnosticsWithTimeRange() throws Exception {
+        InstanceDiagnosticsVO diagnosticsVO = new InstanceDiagnosticsVO();
+        diagnosticsVO.setInstanceId("123");
+        diagnosticsVO.setStartTime(1000L);
+        diagnosticsVO.setEndTime(2000L);
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("123", 1000L, 2000L)).willReturn(diagnosticsVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "123")
+                        .param("startTime", "1000")
+                        .param("endTime", "2000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.startTime", is(1000)))
+                .andExpect(jsonPath("$.data.endTime", is(2000)));
+    }
+
+    @Test
+    public void testInstanceDiagnosticsNotFound() throws Exception {
+        given(this.instanceDiagnosticsService.getInstanceDiagnostics("404", null, null)).willReturn(null);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}/diagnostics", "404"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.NOT_FOUND_EXCEPTION)));
     }
 
     @Test

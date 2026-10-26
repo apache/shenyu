@@ -26,12 +26,78 @@
 
 - `DiscoveryUpstreamDataSubscriber#unSubscribe(DiscoverySyncData)` has been replaced by `unSubscribe(DiscoveryUpstreamKey)`. Downstream implementations must update their method signature; this is a source- and binary-incompatible change. (#7289)
 
+### Observability
+
+- Divide Canary routing exports `shenyu_canary_requests_total` by configured
+  selector/rule, partition and terminal outcome, `shenyu_canary_fallback_total`
+  for successful initial Canary-to-Stable fallback, and
+  `shenyu_canary_decision_duration_seconds` for the initial decision only.
+  Internal retries do not add logical requests. These metrics use the existing
+  Metrics plugin and Prometheus endpoint; `shenyu_execute_latency_millis`
+  retains its existing labels, unit and recording behavior.
+
 ### Behavior Changes
 
+- In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
+  field section: header names, field values, line framing (`: ` and CRLF),
+  and section-terminating CRLF. Previously only header values were counted. Existing
+  deployments with strict `headerMaxSize` limits may see requests near the boundary
+  rejected; adjust `headerMaxSize` if needed. (#7818)
+
+- The cache plugin accepts opt-in `singleFlightEnabled` coalescing. When enabled,
+  concurrent requests that miss the same response cache key share one upstream
+  fill on that gateway instance instead of one per request, and the followers
+  replay the captured bytes as a cache hit would. A response that the cache would
+  not have stored, a fill that errors, a follower that waits longer than
+  `singleFlightWaitTimeoutMillis`, a full waiter set and a response above
+  `singleFlightMaxResponseBytes` all fall back to forwarding that request, so
+  coalescing never widens cache eligibility or merges responses kept apart by
+  cookie, `Vary` or cache-control rules. Bounds are set by
+  `singleFlightMaxKeys`, `singleFlightMaxWaiters`, `singleFlightWaitTimeoutMillis`,
+  `singleFlightFillTimeoutMillis` and `singleFlightMaxResponseBytes`. The feature
+  is disabled by default and absent configuration preserves the previous
+  one-forward-per-request behavior. Coordination is per gateway instance: replicas
+  still fill the same key independently and no distributed lock is taken. Set
+  `singleFlightWaitTimeoutMillis` to at least the upstream p99, otherwise slow
+  upstreams finish after followers have already given up and the burst is not
+  collapsed. (#7932)
+
+- Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
+  HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
+  request-local plugin cursors, attributes and captured responses; upstream
+  configuration remains owned by existing routing plugins. Caller credentials,
+  cookies and web sessions are not delegated. Results pass through existing MCP
+  authorization, filtering and terminal metrics. No per-tool Java Bean or gateway
+  restart is required for rule updates; absent plans preserve previous behavior.
+
+- `shenyu.httpclient.keepAlive` now defaults to `true`, enabling persistent
+  upstream connections and reducing connection setup overhead. It previously
+  defaulted to `false` as a workaround for stale pooled connections being reset
+  by the peer (Reactor Netty issue #388).
+  Configure `shenyu.httpclient.pool.maxIdleTime` below the upstream or load balancer idle timeout
+  when using a fixed connection pool. If connection resets persist, restore
+  the previous behavior with `shenyu.httpclient.keepAlive=false`.
+  For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
+  size the connection limit for the deployment; the default follows Reactor Netty.
 - CORS origin patterns are compiled when the gateway starts. An invalid
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
   Validate the expression before deploying a configuration change.
+
+- The misspelled `loged` column of the `selector` and `rule` tables is renamed
+  to `logged`, together with the matching fields of the Admin REST DTOs/VOs
+  (`SelectorDTO`, `RuleDTO`, `SelectorVO`, `RuleVO`) and the gateway-side
+  `RuleData`. Existing deployments must run the `2.7.2-upgrade-2.7.3-*.sql`
+  script for their database dialect (MySQL, PostgreSQL, Oracle, openGauss,
+  OceanBase) before upgrading. Upgrade order matters: the field is part of the
+  admin-to-bootstrap sync contract, so upgrade all bootstrap instances before,
+  or together with, admin — a new admin emitting `logged` is not understood by
+  old bootstraps, and that direction cannot be tolerated in code. For one release the Admin REST layer keeps
+  accepting the old `loged` request field via a JSON alias, but responses
+  always use `logged`; stored rate-limiter handle JSON keeps parsing the old
+  `loged` key via a Gson alternate. REST API clients that read `loged` from
+  responses must switch to `logged`. (#7589)
+
 - HTTP client registration now treats non-success Admin responses as failures,
   using the same bounded failback policy as transport errors (18 retry attempts
   per pending task). The text response contract does not reliably distinguish

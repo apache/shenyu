@@ -40,6 +40,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -96,6 +97,36 @@ public class TagServiceTest {
         given(this.tagMapper.selectByPrimaryKey(any())).willReturn(buildTagDO());
         int cnt = tagService.update(tagDTO);
         assertEquals(cnt, 1);
+    }
+
+    @Test
+    public void testUpdateWithNullParentTagId() {
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setId("123");
+        tagDTO.setName("name");
+        tagDTO.setParentTagId(null);
+        TagDO before = buildTagDO();
+        before.setParentTagId(null);
+        given(this.tagMapper.selectByPrimaryKey("123")).willReturn(before);
+        given(this.tagMapper.updateByPrimaryKeySelective(any())).willReturn(1);
+        int cnt = tagService.update(tagDTO);
+        assertEquals(cnt, 1);
+        assertNull(tagDTO.getParentTagId());
+    }
+
+    @Test
+    public void testUpdateWithNonExistentTag() {
+        TagDTO tagDTO = buildTagDTO();
+        given(this.tagMapper.selectByPrimaryKey("789")).willReturn(null);
+        assertThrows(ValidFailException.class, () -> tagService.update(tagDTO));
+    }
+
+    @Test
+    public void testUpdateWithNonExistentParentTag() {
+        TagDTO tagDTO = buildTagDTO();
+        given(this.tagMapper.selectByPrimaryKey("789")).willReturn(buildTagDO());
+        given(this.tagMapper.selectByPrimaryKey("456")).willReturn(null);
+        assertThrows(ValidFailException.class, () -> tagService.update(tagDTO));
     }
 
     @Test

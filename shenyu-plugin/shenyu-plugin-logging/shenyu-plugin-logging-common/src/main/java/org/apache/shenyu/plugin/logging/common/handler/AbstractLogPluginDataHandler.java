@@ -128,6 +128,8 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         String handleJson = selectorData.getHandle();
         if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
+            // a cleared handle must drop the stale selector override so sampling falls back to the global config
+            SELECT_API_CONFIG_MAP.remove(selectorData.getId());
             return;
         }
         GenericApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson, genericApiConfigClass);

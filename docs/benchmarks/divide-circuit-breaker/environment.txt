@@ -1,0 +1,7 @@
+JDK: 17.0.18+8-LTS
+OS: Windows 11 amd64
+Processors: 32
+Max heap: 134217728
+JVM args: [-Xms128m, -Xmx128m]
+Warmup requests per variant/case: 50000
+Target request rate: 50000

@@ -33,8 +33,12 @@ public class GrpcRegisterConfigTest {
     public void testGetterSetter() {
         GrpcRegisterConfig config = new GrpcRegisterConfig();
         config.setThreadpool("threadPool");
+        config.setMaxAggregatedResultCount(100L);
+        config.setMaxAggregatedResultBytes(1024L);
         
         assertThat(config.getThreadpool(), is("threadPool"));
+        assertThat(config.getMaxAggregatedResultCount(), is(100L));
+        assertThat(config.getMaxAggregatedResultBytes(), is(1024L));
     }
     
     @Test
@@ -44,8 +48,25 @@ public class GrpcRegisterConfigTest {
         
         config1.setThreadpool("threadPool");
         config2.setThreadpool("threadPool");
+        config1.setMaxAggregatedResultCount(100L);
+        config2.setMaxAggregatedResultCount(100L);
+        config1.setMaxAggregatedResultBytes(1024L);
+        config2.setMaxAggregatedResultBytes(1024L);
         
         assertThat(ImmutableSet.of(config1, config2), hasSize(1));
+    }
+    
+    @Test
+    public void testNotEqualsWhenBudgetDiffers() {
+        GrpcRegisterConfig config1 = new GrpcRegisterConfig();
+        GrpcRegisterConfig config2 = new GrpcRegisterConfig();
+        
+        config1.setThreadpool("threadPool");
+        config2.setThreadpool("threadPool");
+        config1.setMaxAggregatedResultCount(100L);
+        config2.setMaxAggregatedResultCount(200L);
+        
+        assertThat(ImmutableSet.of(config1, config2), hasSize(2));
     }
     
 }

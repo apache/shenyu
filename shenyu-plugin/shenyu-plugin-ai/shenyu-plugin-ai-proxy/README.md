@@ -43,7 +43,7 @@ a library codec alone does not define its endpoint or authentication contract.
 
 1. ShenYu resolves global/selector configuration, proxy credentials and fallback.
 2. The protocol decoder validates the envelope and retains the original payload.
-3. The provider applies gateway overrides, then `ConnectProtocolAdapter` converts
+3. The provider applies gateway overrides, then `ConnectResponsesToChatConverter` converts
    to Chat using a request-scoped `ConversionContext`. The configured upstream
    model is authoritative. The provider profile runs once after conversion.
 4. ShenYu constructs the HTTP endpoint and authorization headers and sends the
@@ -55,6 +55,38 @@ a library codec alone does not define its endpoint or authentication contract.
    chunks; ShenYu emits `event: <type>` and `data: <json>` Responses SSE frames.
    Stream state is allocated per subscription, including retries. Finalization
    runs only on normal completion, never cancellation or transport failure.
+
+## Plugin defaults and selector overrides
+
+AI Proxy accepts defaults in the plugin's existing `config` JSON, synchronized
+from Admin. For example:
+
+```json
+{
+  "provider": "OpenAI",
+  "baseUrl": "https://api.openai.com",
+  "apiKey": "<upstream-api-key>",
+  "model": "gpt-4o-mini",
+  "maxTokens": 1024
+}
+```
+
+A selector can then use `{}` to inherit these connection/model settings, or
+supply a partial handle such as `{"model":"another-model"}`. Non-null selector
+values take precedence. Existing selector defaults for temperature (`0.8`),
+stream (`false`) and protocol (`openai-chat`) retain their current precedence;
+set those selector fields explicitly when a route needs different behavior.
+
+Plugin updates replace the defaults rather than retaining omitted fields.
+Blank, `null` or `{}` configuration clears the previous connection/model values;
+disabling or deleting the plugin also clears its defaults. Each request receives
+a copy, so request-specific proxy credentials do not alter later requests.
+Malformed plugin configuration clears the defaults and logs a warning without
+interrupting configuration synchronization. A later valid update restores them.
+Defaults belong to the handler/resolver instance wired by the starter; separate
+application contexts do not share plugin configuration through a process-wide
+`Singleton`. Programmatic construction must pass the same `AiProxyPluginHandler`
+to `new AiProxyConfigService(handler)` and the plugin.
 
 ## Configuration and use
 

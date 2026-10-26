@@ -70,6 +70,8 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      # Opt in only after checking built-in and external gateway consumers. See shenyu-admin/README.md.
+      compact-discovery-payload: false
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
       # Reconciles gateway sessions connected to this admin node with the shared
@@ -96,6 +98,9 @@ shenyu:
 #      connectionTimeoutMilliseconds: 2000
 #    http:
 #      enabled: true
+#      cache-rebuild-window: 0ms # opt in with e.g. 10ms after measuring convergence
+#      cache-rebuild-max-pending-keys: 1024
+#      cache-rebuild-threads: 1 # raise when many namespaces/groups change concurrently
 #    nacos:
 #      url: localhost:8848
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
@@ -151,6 +156,10 @@ shenyu:
       - /rule/batch
       - /rule
       - /rule/**
+      - /scale/policy
+      - /scale/policy/**
+      - /scale/rule
+      - /scale/rule/**
       - /plugin
       - /plugin/**
       - /plugin/createPluginResource/**
@@ -212,6 +221,12 @@ shenyu:
       - /alert/report
   swagger:
     max-body-size: 10485760
+    # Applies to Swagger import, MCP import and test-connection. Empty allows any non-denied port.
+    allowed-ports: []
+    # Replaces the default deny list; denied ports take precedence over allowed-ports.
+    # 8080/8081/9090/9091 are allowed by default. All DNS answers must still be public addresses.
+    # Redirects and proxies are disabled; the request connects only to validated DNS addresses.
+    denied-ports: [22, 23, 3389, 25, 53, 135, 139, 445, 5432, 3306, 1433, 6379, 11211, 5984, 9200, 2181, 9092, 9093, 2375, 2376, 25672, 5672, 15672, 4369]
   dashboard:
     core:
       onlySuperAdminPermission:

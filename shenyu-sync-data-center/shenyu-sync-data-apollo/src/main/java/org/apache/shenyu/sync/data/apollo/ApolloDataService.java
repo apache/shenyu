@@ -95,9 +95,8 @@ public class ApolloDataService extends AbstractNodeDataSyncService implements Sy
                     return;
                 }
                 final String newValue = configChange.getNewValue();
-                // skip last is "list"
-                final int lastListStrIndex = changeKey.length() - DefaultNodeConstants.LIST_STR.length();
-                if (changeKey.lastIndexOf(DefaultNodeConstants.LIST_STR) == lastListStrIndex) {
+                // Skip list index keys.
+                if (changeKey.endsWith(DefaultNodeConstants.POINT_LIST)) {
                     return;
                 }
                 // check prefix
