@@ -33,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class SelectorDataHandlerTest {
@@ -65,25 +64,29 @@ public final class SelectorDataHandlerTest {
     public void testDoRefresh() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(3);
         selectorDataHandler.doRefresh(selectorDataList);
+        verify(subscriber).refreshSelectorDataAll();
         verify(subscriber).onSelectorRefresh(selectorDataList);
     }
 
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testRefreshEventsUseOnlyTheBatchCallback(final String eventType) {
+    void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
         List<SelectorData> batch = createFakeSelectorDataObjects(2);
         batch.forEach(data -> data.setContinued(true));
         selectorDataHandler.handle(new Gson().toJson(batch), eventType);
+        verify(subscriber).refreshSelectorDataAll();
         verify(subscriber).onSelectorRefresh(batch);
         verifyNoMoreInteractions(subscriber);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testEmptyRefreshDoesNotCallSubscriber(final String eventType) {
+    void testEmptyRefreshClearsSnapshot(final String eventType) {
         selectorDataHandler.handle("[]", eventType);
-        verifyNoInteractions(subscriber);
+        verify(subscriber).refreshSelectorDataAll();
+        verify(subscriber).onSelectorRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
     }
 
     @Test

@@ -167,6 +167,20 @@ public final class BaseDataCacheTest {
     }
 
     @Test
+    public void testRemoveSelectDataSweepsAllBucketsWhenPluginNameIsMissing() {
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).sort(1).build();
+        cache.cacheSelectData(firstCachedSelectorData);
+        cache.cacheSelectData(secondCachedSelectorData);
+
+        // the deletion event of a dangling selector carries no plugin name
+        cache.removeSelectData(SelectorData.builder().id("1").build());
+
+        assertNull(cache.obtainSelectorData(mockPluginName1));
+        assertEquals(Lists.newArrayList(secondCachedSelectorData), cache.obtainSelectorData(mockPluginName2));
+    }
+
+    @Test
     public void testCleanSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
         SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
@@ -466,5 +480,18 @@ public final class BaseDataCacheTest {
 
     private RuleData rule(final String id, final int sort) {
         return RuleData.builder().id(id).pluginName("divide").selectorId("selector").sort(sort).build();
+    }
+
+    @Test
+    public void batchRefreshUpsertsAndSortsTheMergedListOncePerKey() {
+        cache.cacheSelectData(selector("a", 4));
+        cache.cacheRuleData(rule("a", 4));
+        cache.refreshSelectorData(List.of(selector("d", 1), selector("c", 3), selector("a", 2), selector("e", 5)));
+        cache.refreshRuleData(List.of(rule("d", 1), rule("c", 3), rule("a", 2), rule("e", 5)));
+        // same-id entries are replaced by the batch and the merged list is sorted by sort
+        assertEquals(List.of(selector("d", 1), selector("a", 2), selector("c", 3), selector("e", 5)),
+                cache.obtainSelectorData("divide"));
+        assertEquals(List.of(rule("d", 1), rule("a", 2), rule("c", 3), rule("e", 5)),
+                cache.obtainRuleData("selector"));
     }
 }

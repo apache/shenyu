@@ -269,6 +269,9 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                             continue;
                         }
                         Map<String, String> metadataAnnotations = service.getMetadata().getAnnotations();
+                        if (Objects.isNull(metadataAnnotations)) {
+                            continue;
+                        }
                         List<ConditionData> ruleConditionList = getRuleConditionList(metadataAnnotations);
                         RuleData ruleData = createRuleData(metadataAnnotations, ruleConditionList, annotations);
                         MetaData metaData = parseMetaData(metadataAnnotations);
@@ -347,7 +350,7 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .handle(GsonUtils.getInstance().toJson(grpcRuleHandle))
                 .conditionDataList(ruleConditionList)
-                .loged(true)
+                .logged(true)
                 .enabled(true)
                 .build();
     }
@@ -399,7 +402,7 @@ public class GrpcParser implements K8sResourceParser<V1Ingress> {
                 .handle(GsonUtils.getInstance().toJson(grpcRuleHandle))
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(Collections.singletonList(conditionData))
-                .loged(false)
+                .logged(false)
                 .enabled(true)
                 .sort(Integer.MAX_VALUE).build();
 

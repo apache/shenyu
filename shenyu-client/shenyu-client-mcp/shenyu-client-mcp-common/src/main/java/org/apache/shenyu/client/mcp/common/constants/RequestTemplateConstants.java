@@ -18,38 +18,7 @@
 package org.apache.shenyu.client.mcp.common.constants;
 
 /**
- * requestTemplate constants.
+ * Compatibility alias for the main-owned MCP constants.
  */
-public class RequestTemplateConstants {
-
-    /**
-     * the url key.
-     */
-    public static final String URL_KEY = "url";
-
-    /**
-     * the method key.
-     */
-    public static final String METHOD_KEY = "method";
-
-    /**
-     * the bodyJson key.
-     */
-    public static final String BODY_JSON_KEY = "argsToJsonBody";
-
-    /**
-     * the headers key.
-     */
-    public static final String HEADERS_KEY = "headers";
-
-    /**
-     * the argsPosition key.
-     */
-    public static final String ARGS_POSITION_KEY = "argsPosition";
-
-    /**
-     * the requestTemplate key.
-     */
-    public static final String REQUEST_TEMPLATE_KEY = "requestTemplate";
-
+public class RequestTemplateConstants extends org.apache.shenyu.register.mcp.common.constants.RequestTemplateConstants {
 }

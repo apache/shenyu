@@ -43,8 +43,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -78,13 +76,6 @@ import java.util.function.BiFunction;
 public class ComposableSignService implements SignService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComposableSignService.class);
-
-    /**
-     * Plugins whose module attribute is built as {@code pluginName + "-" + rpcType};
-     * for these the app name is taken from the request context path instead of the module.
-     */
-    private static final List<String> SKIP_SIGN_PLUGIN_NAMES = Collections.unmodifiableList(Arrays.asList(
-            PluginEnum.SPRING_CLOUD.getName(), PluginEnum.DIVIDE.getName(), PluginEnum.WEB_SOCKET.getName()));
 
     @Value("${shenyu.sign.delay:5}")
     private int delay;
@@ -190,7 +181,13 @@ public class ComposableSignService implements SignService {
     }
 
     private VerifyResult verifyExpires(final SignParameters signParameters) {
-        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(signParameters.getTimestamp()));
+        final long timestamp;
+        try {
+            timestamp = Long.parseLong(signParameters.getTimestamp());
+        } catch (NumberFormatException e) {
+            return VerifyResult.fail(Constants.SIGN_PARAMS_ERROR);
+        }
+        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(timestamp);
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (Math.abs(between) <= delay) {
@@ -235,18 +232,24 @@ public class ComposableSignService implements SignService {
             paramDataList.stream().filter(p -> p.getAppName().equals(realAppName))
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
-                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+                    .ifPresent(param -> exchange.getAttributes().put(Constants.APP_PARAM, param));
         }
     }
 
     private boolean skipSignExchange(final ShenyuContext context) {
-        final String module = context.getModule();
-        final String rpcType = context.getRpcType();
-        if (StringUtils.isAnyBlank(module, rpcType)) {
+        return matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.SPRING_CLOUD.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.DIVIDE.getName())
+                || matchesDefaultModule(context.getModule(), context.getRpcType(), PluginEnum.WEB_SOCKET.getName());
+    }
+
+    static boolean matchesDefaultModule(final String module, final String rpcType, final String pluginName) {
+        if (StringUtils.isBlank(module) || StringUtils.isBlank(rpcType)) {
             return false;
         }
-        final String rpcTypeSuffix = "-" + rpcType;
-        return module.endsWith(rpcTypeSuffix)
-                && SKIP_SIGN_PLUGIN_NAMES.contains(module.substring(0, module.length() - rpcTypeSuffix.length()));
+        int separatorIndex = pluginName.length();
+        return module.length() == separatorIndex + rpcType.length() + 1
+                && module.startsWith(pluginName)
+                && module.charAt(separatorIndex) == '-'
+                && module.regionMatches(separatorIndex + 1, rpcType, 0, rpcType.length());
     }
 }

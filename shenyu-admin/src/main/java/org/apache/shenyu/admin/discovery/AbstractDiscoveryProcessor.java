@@ -37,7 +37,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -97,7 +97,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoveryConfig.setRegisterType(type);
         discoveryConfig.setProps(properties);
         discoveryConfig.setServerLists(discoveryDO.getServerList());
-        ShenyuInstanceRegisterRepository discoveryService = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(type);
+        ShenyuInstanceRegisterRepository discoveryService = ShenyuInstanceRegisterRepositoryFactory.loadRepository(type);
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
         dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());
@@ -258,7 +258,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * @param proxySelectorDTO proxySelectorDTO
      */
     public void addDiscoverySyncDataListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId());
+        final DataChangedEventListener changedEventListener = this.getChangedEventListener(discoveryHandlerDTO.getDiscoveryId(), buildProxySelectorKey(discoveryHandlerDTO.getListenerNode()));
         if (Objects.nonNull(changedEventListener)) {
             DiscoverySyncData discoverySyncData = new DiscoverySyncData();
             discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
@@ -300,20 +300,22 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
      * addChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @param dataChangedEventListener dataChangedEventListener
      */
-    public void addChangedEventListener(final String discoveryId, final DataChangedEventListener dataChangedEventListener) {
-        this.dataChangedEventListenerMap.put(discoveryId, dataChangedEventListener);
+    public void addChangedEventListener(final String discoveryId, final String key, final DataChangedEventListener dataChangedEventListener) {
+        this.dataChangedEventListenerMap.put(discoveryId + ":" + key, dataChangedEventListener);
     }
 
     /**
      * getChangedEventListener.
      *
      * @param discoveryId discoveryId
+     * @param key watched service key
      * @return {@link DataChangedEventListener}
      */
-    public DataChangedEventListener getChangedEventListener(final String discoveryId) {
-        return this.dataChangedEventListenerMap.get(discoveryId);
+    public DataChangedEventListener getChangedEventListener(final String discoveryId, final String key) {
+        return this.dataChangedEventListenerMap.get(discoveryId + ":" + key);
     }
 
     /**

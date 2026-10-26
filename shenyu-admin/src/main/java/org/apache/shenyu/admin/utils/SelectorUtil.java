@@ -86,7 +86,7 @@ public final class SelectorUtil {
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .matchMode(MatchModeEnum.AND.getCode())
                 .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
+                .logged(Boolean.TRUE)
                 .continued(Boolean.TRUE)
                 .matchRestful(Boolean.FALSE)
                 .sort(1)

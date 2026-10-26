@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MapUtilsTest {
 
@@ -35,4 +36,29 @@ public class MapUtilsTest {
         assertEquals(stringStringMap.get("a").getClass(), String.class);
         assertEquals(stringStringMap.get("a"), "1");
     }
+
+    @Test
+    public void testComputeIfAbsentWithExistingValue() {
+        final Map<String, String> cache = new HashMap<>();
+        cache.put("name", "shenyu");
+
+        final String result = MapUtils.computeIfAbsent(cache, "name", key -> {
+            fail("Mapping function must not run when the value exists");
+            return "new-value";
+        });
+
+        assertEquals("shenyu", result);
+        assertEquals("shenyu", cache.get("name"));
+    }
+
+    @Test
+    public void testComputeIfAbsentWithMissingValue() {
+        final Map<String, String> cache = new HashMap<>();
+
+        final String result = MapUtils.computeIfAbsent(cache, "name", key -> "shenyu");
+
+        assertEquals("shenyu", result);
+        assertEquals("shenyu", cache.get("name"));
+    }
+
 }

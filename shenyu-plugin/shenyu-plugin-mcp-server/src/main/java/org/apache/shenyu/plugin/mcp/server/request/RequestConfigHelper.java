@@ -127,20 +127,19 @@ public class RequestConfigHelper {
      */
     public static String buildPath(final String urlTemplate, final JsonObject argsPosition,
                                    final JsonObject inputJson) {
-        // First, check if the input value is already a complete URL
-        if (isCompleteUrl(argsPosition, inputJson)) {
-            return getCompleteUrl(argsPosition, inputJson);
-        }
+        // Only an explicitly target-mapped argument may replace the configured endpoint.
+        String requestUrl = isCompleteUrl(argsPosition, inputJson)
+                ? getCompleteUrl(argsPosition, inputJson) : urlTemplate;
 
         StringBuilder queryBuilder = new StringBuilder();
 
         // Check whether the URL template already contains the query parameters
-        boolean hasExistingQuery = urlTemplate.contains("?");
-        String basePath = hasExistingQuery ? urlTemplate.substring(0, urlTemplate.indexOf("?")) : urlTemplate;
-        String existingQuery = hasExistingQuery ? urlTemplate.substring(urlTemplate.indexOf("?") + 1) : "";
+        boolean hasExistingQuery = requestUrl.contains("?");
+        String basePath = hasExistingQuery ? requestUrl.substring(0, requestUrl.indexOf("?")) : requestUrl;
+        String existingQuery = hasExistingQuery ? requestUrl.substring(requestUrl.indexOf("?") + 1) : "";
 
         // Handle new query parameters
-        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder);
+        basePath = processArguments(argsPosition, inputJson, basePath, queryBuilder, existingQuery);
 
         // Clear the template variables that have not been replaced
         basePath = basePath.replaceAll("\\{\\{\\.[^}]+}}", "");
@@ -158,7 +157,7 @@ public class RequestConfigHelper {
      */
     private static boolean isCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
         for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
+            if ("target".equals(argsPosition.get(key).getAsString()) && inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
                     if (value.startsWith("http://") || value.startsWith("https://")) {
@@ -181,7 +180,7 @@ public class RequestConfigHelper {
      */
     private static String getCompleteUrl(final JsonObject argsPosition, final JsonObject inputJson) {
         for (String key : argsPosition.keySet()) {
-            if (inputJson.has(key)) {
+            if ("target".equals(argsPosition.get(key).getAsString()) && inputJson.has(key)) {
                 try {
                     String value = inputJson.get(key).getAsString();
                     if (value.startsWith("http://") || value.startsWith("https://")) {
@@ -202,10 +201,11 @@ public class RequestConfigHelper {
      * @param inputJson the input JSON object
      * @param basePath the base path to modify
      * @param queryBuilder the query builder to append to
+     * @param existingQuery the existing query string
      * @return the modified base path
      */
     private static String processArguments(final JsonObject argsPosition, final JsonObject inputJson,
-                                       final String basePath, final StringBuilder queryBuilder) {
+                                       final String basePath, final StringBuilder queryBuilder, final String existingQuery) {
         String modifiedBasePath = basePath;
         for (String key : argsPosition.keySet()) {
             String position = argsPosition.get(key).getAsString();
@@ -216,7 +216,7 @@ public class RequestConfigHelper {
                 modifiedBasePath = modifiedBasePath.replace("{{." + key + "}}", UriUtils.encodePathSegment(value, StandardCharsets.UTF_8));
             } else if ("query".equals(position) && inputJson.has(key)) {
                 // Handle query parameters
-                if (!modifiedBasePath.contains(key + "=")) {
+                if (!existingQuery.startsWith(key + "=") && !existingQuery.contains("&" + key + "=")) {
                     if (!queryBuilder.isEmpty()) {
                         queryBuilder.append("&");
                     }
@@ -244,11 +244,7 @@ public class RequestConfigHelper {
 
         // Add query parameters
         if (!queryBuilder.isEmpty()) {
-            if (hasExistingQuery) {
-                finalPath.append("&").append(queryBuilder);
-            } else {
-                finalPath.append("?").append(queryBuilder);
-            }
+            finalPath.append("?").append(queryBuilder);
         }
 
         // Add existing query parameters

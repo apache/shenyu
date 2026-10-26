@@ -70,7 +70,8 @@ public final class ShiroConfigurationTest {
         ShiroProperties shiroProperties = mock(ShiroProperties.class);
         List<String> whiteList = Arrays.asList("test1", "test2");
         when(shiroProperties.getWhiteList()).thenReturn(whiteList);
-        ShiroFilterFactoryBean shiroFilterFactoryBean = shiroConfiguration.shiroFilterFactoryBean(securityManager, shiroProperties);
+        ShiroFilterFactoryBean shiroFilterFactoryBean = shiroConfiguration.shiroFilterFactoryBean(securityManager, shiroProperties,
+                new org.apache.shenyu.admin.config.properties.ClusterProperties());
         assertEquals(securityManager, shiroFilterFactoryBean.getSecurityManager());
         assertNotNull(shiroFilterFactoryBean.getFilters());
         assertNotNull(shiroFilterFactoryBean.getFilters().get("statelessAuth"));
@@ -98,4 +99,33 @@ public final class ShiroConfigurationTest {
         LifecycleBeanPostProcessor postProcessor = shiroConfiguration.lifecycleBeanPostProcessor();
         assertNotNull(postProcessor);
     }
+
+    @Test
+    public void testClusterEndpointUsesDedicatedFilterBeforeWhitelist() throws Exception {
+        org.apache.shenyu.admin.config.properties.ClusterProperties cluster = new org.apache.shenyu.admin.config.properties.ClusterProperties();
+        cluster.setEnabled(true);
+        cluster.setEventSecret("dedicated-node-secret");
+        ShiroProperties properties = new ShiroProperties();
+        properties.setWhiteList(java.util.List.of("/cluster/**"));
+        DefaultWebSecurityManager manager = new DefaultWebSecurityManager(mock(AuthorizingRealm.class));
+        ShiroFilterFactoryBean factory = shiroConfiguration.shiroFilterFactoryBean(manager, properties, cluster);
+        jakarta.servlet.Filter filter = (jakarta.servlet.Filter) factory.getObject();
+        org.springframework.mock.web.MockHttpServletRequest request =
+                new org.springframework.mock.web.MockHttpServletRequest("POST", "/cluster/data-change-event");
+        request.setServletPath("/cluster/data-change-event");
+        request.addHeader("X-Access-Token", "ordinary-user-token");
+        org.springframework.mock.web.MockHttpServletResponse response = new org.springframework.mock.web.MockHttpServletResponse();
+        java.util.concurrent.atomic.AtomicBoolean reachedController = new java.util.concurrent.atomic.AtomicBoolean();
+        try {
+            filter.doFilter(request, response, (req, res) -> reachedController.set(true));
+            assertEquals(403, response.getStatus());
+            org.junit.jupiter.api.Assertions.assertFalse(reachedController.get());
+            request.addHeader(org.apache.shenyu.admin.shiro.bean.ClusterEventAuthFilter.HEADER, "dedicated-node-secret");
+            filter.doFilter(request, new org.springframework.mock.web.MockHttpServletResponse(), (req, res) -> reachedController.set(true));
+            assertTrue(reachedController.get());
+        } finally {
+            manager.destroy();
+        }
+    }
+
 }

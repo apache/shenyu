@@ -158,6 +158,17 @@ class SelectorEventPublisherTest {
     }
 
     @Test
+    void testOnDeletedSelectorReferencingMissingPlugin() {
+        // a dangling selector whose plugin row was already deleted resolves to a null plugin name
+        SelectorDO selector = buildSelectorDO("1", "deleted-plugin", "selector1");
+        List<PluginDO> plugins = Collections.emptyList();
+
+        selectorEventPublisher.onDeleted(Collections.singletonList(selector), plugins);
+
+        verify(applicationEventPublisher, times(2)).publishEvent(any());
+    }
+
+    @Test
     void testOnDeletedEmptyCollection() {
         List<SelectorDO> emptySelectors = Collections.emptyList();
         List<PluginDO> emptyPlugins = Collections.emptyList();
@@ -206,7 +217,7 @@ class SelectorEventPublisherTest {
                 .selectorName(selectorName)
                 .matchMode(0)
                 .enabled(true)
-                .loged(false)
+                .logged(false)
                 .sortCode(1)
                 .handle("{}")
                 .matchRestful(false)

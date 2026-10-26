@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.google.gson.JsonObject;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
+import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -33,11 +38,15 @@ import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -58,6 +67,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,6 +75,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -97,9 +108,8 @@ public final class WebsocketCollectorTest {
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(WebsocketCollector.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class);
+        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
         loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(WebsocketCollector.class)).thenReturn(loggerSpy);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(anyString())).thenReturn(loggerSpy);
     }
 
     @AfterAll
@@ -107,11 +117,20 @@ public final class WebsocketCollectorTest {
         loggerFactoryMockedStatic.close();
     }
 
+    @Test
+    public void testUnrelatedClassLoggerIsPreserved() {
+        Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+        assertNotNull(logger);
+        assertEquals(JsonUtils.class.getName(), logger.getName());
+        assertNull(JsonUtils.jsonToObject("", Map.class));
+    }
+
     @BeforeEach
     void setUp() {
         websocketCollector = new WebsocketCollector();
         // Clear shared static state between tests
         clearStaticSessionState();
+        WebsocketCollector.resetSendGuards();
         when(session.isOpen()).thenReturn(true);
         Map<String, Object> userProperties = new HashMap<>();
         userProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -143,6 +162,17 @@ public final class WebsocketCollectorTest {
         if (Objects.nonNull(sessionNamespaces)) {
             sessionNamespaces.clear();
         }
+    }
+
+    @Test
+    public void testNestedApiKeysAreRedacted() {
+        String message = "{\"data\":[{\"proxyApiKey\":\"proxy-secret\","
+                + "\"nested\":{\"realApiKey\":\"real-secret\",\"apiKey\":\"api-secret\"}}]}";
+        String masked = ReflectionTestUtils.invokeMethod(WebsocketCollector.class, "maskSensitive", message);
+        assertFalse(masked.contains("proxy-secret"));
+        assertFalse(masked.contains("real-secret"));
+        assertFalse(masked.contains("api-secret"));
+        assertTrue(masked.contains("******"));
     }
 
     @Test
@@ -320,8 +350,68 @@ public final class WebsocketCollectorTest {
         String bootstrapMsg = "{\"" + InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO + "\":{\"key\":\"val\"}}";
         websocketCollector.onMessage(bootstrapMsg, session);
 
-        verify(publisher, times(1)).publish(isA(org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent.class));
+        verify(publisher, times(1)).publish(isA(InstanceInfoReportEvent.class));
         websocketCollector.onClose(session);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"cpu\":4,\"os\":\"Windows\"}", "{\"note\":\"{\\\"nested\\\":true}\"}"})
+    void testBootstrapInstanceInfoPreservesJsonString(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = GsonUtils.getInstance().toJson(Map.of(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information));
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals(information, event.getValue().getInstanceInfo());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testBootstrapObjectInformationIsPreserved() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String message = "{\"bootstrapInstanceInfo\":{\"note\":\"{\\\"nested\\\":true}\"}}";
+
+        websocketCollector.onMessage(message, session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        Map<String, Object> information = GsonUtils.getInstance().fromJson(event.getValue().getInstanceInfo(), Map.class);
+        assertEquals("{\"nested\":true}", information.get("note"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"{broken}", "not-json", "[]"})
+    void testMalformedOptionalInformationStillPublishesHeartbeat(final String information) {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        JsonObject message = new JsonObject();
+        message.addProperty(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, information);
+
+        assertDoesNotThrow(() -> websocketCollector.onMessage(message.toString(), session));
+
+        verify(publisher).publish(isA(InstanceInfoReportEvent.class));
+    }
+
+    @Test
+    void testMalformedBootstrapFrameDoesNotPreventNextHeartbeat() {
+        InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
+        when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);
+        String[] messages = {"{\"bootstrapInstanceInfo\":", "[\"bootstrapInstanceInfo\"]", "\"bootstrapInstanceInfo\"", "null /* bootstrapInstanceInfo */"};
+        for (String message : messages) {
+            assertDoesNotThrow(() -> websocketCollector.onMessage(message, session));
+        }
+        verify(publisher, never()).publish(any(InstanceInfoReportEvent.class));
+
+        websocketCollector.onMessage("{\"bootstrapInstanceInfo\":\"{\\\"cpu\\\":4}\"}", session);
+
+        ArgumentCaptor<InstanceInfoReportEvent> event = ArgumentCaptor.forClass(InstanceInfoReportEvent.class);
+        verify(publisher).publish(event.capture());
+        assertEquals("{\"cpu\":4}", event.getValue().getInstanceInfo());
     }
 
     @Test
@@ -549,7 +639,49 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    void testSendBySessionFailure() {
+    void testSendWithNamespaceIdLogsBoundedMetadataNotThePayload() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        // a realistic envelope carrying a secret; the collector must log bounded metadata, never the payload
+        final String message = "{\"groupType\":\"AI_PROXY_API_KEY\",\"eventType\":\"UPDATE\",\"data\":[{\"apiKey\":\"api-secret\"}]}";
+        // Attach to the root logger: the collector's events reach it through additivity whether the collector's
+        // static LOG is the real logger or the @BeforeAll spy, whose copied parent chain still points at the root.
+        final ch.qos.logback.classic.Logger root =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        final Level original = root.getLevel();
+        root.setLevel(Level.INFO);
+        root.addAppender(appender);
+        try {
+            WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(original);
+        }
+        // delivery is preserved even though the diagnostic no longer serializes the payload
+        verify(async, times(1)).sendText(eq(message), any(SendHandler.class));
+        // exactly one bounded INFO diagnostic is emitted, and no DEBUG redaction/serialization runs at INFO
+        final String collectorName = WebsocketCollector.class.getName();
+        assertEquals(1L, appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .count(), "expected exactly one bounded collector diagnostic");
+        final String logged = appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .findFirst()
+                .orElse("");
+        assertTrue(logged.contains(Constants.SYS_DEFAULT_NAMESPACE_ID), logged);
+        assertTrue(logged.contains(DataEventTypeEnum.CREATE.name()), logged);
+        assertTrue(logged.contains(String.valueOf(message.length())), logged);
+        // neither the payload shape, nor the secret, nor the redaction marker may be serialized into the log
+        assertFalse(logged.contains("groupType"), logged);
+        assertFalse(logged.contains("api-secret"), logged);
+        assertFalse(logged.contains("******"), logged);
+    }
+
+    @Test
+    void testSendBySessionFailure() throws Exception {
         final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
         when(session.getAsyncRemote()).thenReturn(async);
         when(session.isOpen()).thenReturn(true);
@@ -562,8 +694,85 @@ public final class WebsocketCollectorTest {
         }).when(async).sendText(anyString(), any(SendHandler.class));
         WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "fail-msg", DataEventTypeEnum.CREATE);
         verify(async, times(1)).sendText(eq("fail-msg"), any(SendHandler.class));
+        // a failed send closes the session so the gateway reconnects and resynchronizes
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
 
         websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testCloseCancelsInFlightWatchdog() {
+        WebsocketCollector.setSendTimeoutMillis(60000L);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        websocketCollector.onOpen(session);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stalled-message", DataEventTypeEnum.CREATE);
+        Map<?, ?> queues = (Map<?, ?>) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SEND_QUEUES");
+        Object queue = java.util.Objects.requireNonNull(queues).get(session);
+        java.util.concurrent.ScheduledFuture<?> future = (java.util.concurrent.ScheduledFuture<?>)
+                ReflectionTestUtils.getField(queue, "timeoutFuture");
+        org.junit.jupiter.api.Assertions.assertNotNull(future);
+        assertFalse(future.isCancelled());
+        websocketCollector.onClose(session);
+        assertTrue(future.isCancelled());
+        assertNull(ReflectionTestUtils.getField(queue, "timeoutFuture"));
+        WebsocketCollector.resetSendGuards();
+    }
+
+    @Test
+    void testMissingSendCallbackTimesOutAndClosesSession() throws Exception {
+        WebsocketCollector.setSendTimeoutMillis(150);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        // container never invokes the send handler — the stalled-connection case
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "stuck-message", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "second-message", DataEventTypeEnum.CREATE);
+        // only the first message reaches sendText; the second stays queued
+        verify(async, times(1)).sendText(eq("stuck-message"), any(SendHandler.class));
+        verify(async, never()).sendText(eq("second-message"), any(SendHandler.class));
+
+        // the watchdog closes the broken session within a bounded time
+        waitUntil(() -> getSessionSetSize() == 0L);
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testSynchronousSendExceptionClosesSession() throws Exception {
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        when(session.isOpen()).thenReturn(true);
+        websocketCollector.onOpen(session);
+
+        doAnswer(invocation -> {
+            throw new IllegalStateException("broken pipe");
+        }).when(async).sendText(anyString(), any(SendHandler.class));
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "boom-message", DataEventTypeEnum.CREATE);
+
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
+    }
+
+    @Test
+    void testQueueOverflowClosesSession() throws Exception {
+        WebsocketCollector.setMaxQueuedMessages(2);
+        final RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+        when(session.getAsyncRemote()).thenReturn(async);
+        doAnswer(invocation -> null).when(async).sendText(anyString(), any(SendHandler.class));
+        websocketCollector.onOpen(session);
+
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m1", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m2", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m3", DataEventTypeEnum.CREATE);
+        WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, "m4", DataEventTypeEnum.CREATE);
+
+        verify(async, times(1)).sendText(eq("m1"), any(SendHandler.class));
+        verify(session, times(1)).close();
+        assertEquals(0, sendQueueSize());
     }
 
     @Test
@@ -639,5 +848,12 @@ public final class WebsocketCollectorTest {
 
     private Session getSession() {
         return (Session) ThreadLocalUtils.get("sessionKey");
+    }
+
+    private void waitUntil(final java.util.function.Supplier<Boolean> condition) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 3000L;
+        while (!condition.get() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20L);
+        }
     }
 }

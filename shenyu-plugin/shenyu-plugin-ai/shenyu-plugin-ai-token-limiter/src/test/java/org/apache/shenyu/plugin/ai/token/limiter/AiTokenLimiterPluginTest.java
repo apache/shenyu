@@ -23,11 +23,23 @@ import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,8 +47,12 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,6 +62,100 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for {@link AiTokenLimiterPlugin}.
  */
 class AiTokenLimiterPluginTest {
+
+    private static final String USAGE_EVENT = "data: {\"usage\":{\"completion_tokens\":12}}\n\n";
+
+    private static final String RESPONSES_COMPLETED_EVENT = "event: response.completed\n"
+            + "data: {\"type\":\"response.completed\",\"sequence_number\":4,\"response\":{\"id\":\"resp_1\",\"object\":\"response\","
+            + "\"status\":\"completed\",\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}}\n\n";
+
+    private static final String RESPONSES_BODY = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"completed\","
+            + "\"output\":[],\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}";
+
+    @Test
+    void testResponsesStreamEventRecordsOutputTokens() {
+        // Issue #7911: a Responses terminal event carries its usage inside the response object.
+        assertResponseUsage(RESPONSES_COMPLETED_EVENT, new byte[][] {RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8)},
+                false, false, 12L);
+    }
+
+    @Test
+    void testResponsesStreamEventAcrossBuffersRecordsOutputTokens() {
+        // Split inside the output_tokens key: neither buffer holds a complete event, so the streaming JSON-parse path
+        // finds nothing and the regex fallback over the accumulated SSE tail is what accounts the usage.
+        byte[] content = RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8);
+        int split = RESPONSES_COMPLETED_EVENT.indexOf("\"output_tokens\"");
+        byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
+        for (boolean flush : new boolean[] {false, true}) {
+            assertResponseUsage(RESPONSES_COMPLETED_EVENT, chunks, flush, false, 12L);
+        }
+    }
+
+    @Test
+    void testCompleteResponsesBodyRecordsOutputTokens() {
+        // A converted, non-streaming Responses body is not SSE framed: only the buffered fallback sees it.
+        byte[] content = RESPONSES_BODY.getBytes(StandardCharsets.UTF_8);
+        assertResponseUsage(RESPONSES_BODY, new byte[][] {content}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageIsNotReadFromMaxOutputTokens() {
+        // max_output_tokens is an echo of the request limit, never an accounted count.
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"max_output_tokens\":99,\"usage\":{\"input_tokens\":3,"
+                + "\"output_tokens\":12,\"total_tokens\":15}}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageWithoutOutputTokensRecordsNothing() {
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"incomplete\",\"max_output_tokens\":99}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 0L);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false, field", "true, field", "true, number"})
+    void testResponseUsageAcrossBuffers(final boolean flush, final String boundary) {
+        byte[] content = USAGE_EVENT.getBytes(StandardCharsets.UTF_8);
+        int split = USAGE_EVENT.indexOf("field".equals(boundary) ? "tokens" : "2");
+        byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
+        assertResponseUsage(content, chunks, flush, false);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testResponseUsageAcrossGzipBuffers(final boolean flush) throws IOException {
+        byte[] compressed = compressGzip(USAGE_EVENT);
+        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), flush, true);
+    }
+
+    @Test
+    void testFlushUsageIsFinalizedAfterOuterPublisherCompletes() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        ByteArrayOutputStream forwarded = new ByteArrayOutputStream();
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(buffer -> {
+            byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            forwarded.writeBytes(bytes);
+            DataBufferUtils.release(buffer);
+        }).then());
+        List<Long> recorded = new ArrayList<>();
+        List<Throwable> errors = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Sinks.Many<Publisher<? extends DataBuffer>> body = Sinks.many().unicast().onBackpressureBuffer();
+        response.writeAndFlushWith(body.asFlux()).subscribe(unused -> { }, errors::add);
+        int split = USAGE_EVENT.indexOf("tokens");
+        body.tryEmitNext(Mono.just(exchange.getResponse().bufferFactory().wrap(USAGE_EVENT.substring(0, split).getBytes(StandardCharsets.UTF_8)))).orThrow();
+        assertEquals(USAGE_EVENT.substring(0, split), forwarded.toString(StandardCharsets.UTF_8));
+        assertTrue(recorded.isEmpty());
+        body.tryEmitNext(Mono.just(exchange.getResponse().bufferFactory().wrap(USAGE_EVENT.substring(split).getBytes(StandardCharsets.UTF_8)))).orThrow();
+        assertEquals(USAGE_EVENT, forwarded.toString(StandardCharsets.UTF_8));
+        assertTrue(recorded.isEmpty());
+
+        body.tryEmitComplete().orThrow();
+        assertTrue(errors.isEmpty());
+        assertEquals(List.of(12L), recorded);
+    }
 
     @Test
     void testBodyWriterRetainsOnlyTailBytes() {
@@ -240,6 +350,39 @@ class AiTokenLimiterPluginTest {
                 ShenyuRedisSerializationContext.stringSerializationContext().getValueSerializationPair();
 
         assertEquals("0", valuePair.read(valuePair.write("0")));
+    }
+
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip) {
+        assertResponseUsage(expected, chunks, flush, gzip, 12L);
+    }
+
+    private void assertResponseUsage(final String expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
+        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, flush, gzip, expectedTokens);
+    }
+
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+        if (gzip) {
+            exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        }
+        List<Long> recorded = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Flux<DataBuffer> body = Flux.fromArray(chunks).map(exchange.getResponse().bufferFactory()::wrap);
+        Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
+        completion.block();
+
+        assertEquals(List.of(expectedTokens), recorded);
+        byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
+            byte[] bytes = new byte[buffer.readableByteCount()];
+            buffer.read(bytes);
+            DataBufferUtils.release(buffer);
+            return bytes;
+        }).block();
+        assertArrayEquals(expected, forwarded);
     }
 
     @SuppressWarnings("unchecked")

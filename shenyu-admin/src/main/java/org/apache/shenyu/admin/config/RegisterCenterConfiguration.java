@@ -18,17 +18,12 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
-import org.apache.shenyu.admin.lock.RegisterExecutionRepository;
-import org.apache.shenyu.admin.lock.impl.PlatformTransactionRegisterExecutionRepository;
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
@@ -65,19 +60,6 @@ public class RegisterCenterConfiguration {
         Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
         publisher.start(registerServiceMap, discoveryService);
         return publisher;
-    }
-    
-    /**
-     * Shenyu client server register  server global lock repository.
-     *
-     * @param platformTransactionManager the platformTransactionManager
-     * @param pluginMapper the shenyu pluginMapper
-     * @return the shenyu server register repository
-     */
-    @Bean
-    @ConditionalOnMissingBean(name = "registerExecutionRepository")
-    public RegisterExecutionRepository registerExecutionRepository(final PlatformTransactionManager platformTransactionManager, final PluginMapper pluginMapper) {
-        return new PlatformTransactionRegisterExecutionRepository(platformTransactionManager, pluginMapper);
     }
     
 }

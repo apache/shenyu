@@ -36,6 +36,7 @@ import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.BoundServerPort;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.common.utils.ThreadUtils;
@@ -50,7 +51,8 @@ import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.apache.shenyu.sync.data.http.refresh.DataRefreshFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -60,6 +62,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -90,8 +93,10 @@ public class HttpSyncDataService implements SyncDataService {
 
     private final ShenyuConfig shenyuConfig;
 
-    @Value("${server.port}")
-    private int port;
+    /**
+     * Port of the application listener. Zero until the server initialization event.
+     */
+    private volatile int boundPort;
 
     public HttpSyncDataService(final HttpConfig httpConfig,
                                final PluginDataSubscriber pluginDataSubscriber,
@@ -116,6 +121,30 @@ public class HttpSyncDataService implements SyncDataService {
         this.okHttpClient = okHttpClient;
         this.shenyuConfig = shenyuConfig;
         this.start();
+    }
+
+    /**
+     * Record the application listener port. The management server and any port that is not yet bound
+     * are ignored, so long polling does not publish a placeholder.
+     *
+     * @param event web server initialization event
+     */
+    @EventListener
+    public void onWebServerInitialized(final WebServerInitializedEvent event) {
+        if (Objects.isNull(event.getWebServer()) || Objects.isNull(event.getApplicationContext())) {
+            return;
+        }
+        OptionalInt resolved = BoundServerPort.resolve(event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+        if (resolved.isEmpty()) {
+            LOG.debug("Ignore http sync port from namespace {} port {}", event.getApplicationContext().getServerNamespace(), event.getWebServer().getPort());
+            return;
+        }
+        int observed = resolved.getAsInt();
+        if (boundPort == observed) {
+            return;
+        }
+        boundPort = observed;
+        LOG.info("Application server bound on port {}, http sync will report it", observed);
     }
 
     private void start() {
@@ -212,12 +241,15 @@ public class HttpSyncDataService implements SyncDataService {
         }
         params.put("namespaceId", Lists.newArrayList(shenyuConfig.getNamespace()));
         LOG.debug("listener params: [{}]", params);
-        Headers headers = new Headers.Builder()
+        Headers.Builder headerBuilder = new Headers.Builder()
                 .add(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken())
                 .add("Content-Type", "application/x-www-form-urlencoded")
-                .add("X-Real-PORT", port + "")
-                .add(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, SystemInfoUtils.getSystemInfo())
-                .build();
+                .add(InstanceTypeConstants.BOOTSTRAP_INSTANCE_INFO, SystemInfoUtils.getSystemInfo());
+        int port = boundPort;
+        if (port > 0) {
+            headerBuilder.add("X-Real-PORT", String.valueOf(port));
+        }
+        Headers headers = headerBuilder.build();
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         String uri = UriComponentsBuilder.fromHttpUrl(listenerUrl).queryParams(params).build(true).toUriString();
         Request request = new Request.Builder()

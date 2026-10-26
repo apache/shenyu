@@ -33,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public final class RuleDataHandlerTest {
@@ -65,24 +64,28 @@ public final class RuleDataHandlerTest {
     public void testDoRefresh() {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(3);
         ruleDataHandler.doRefresh(ruleDataList);
+        verify(subscriber).refreshRuleDataAll();
         verify(subscriber).onRuleRefresh(ruleDataList);
     }
 
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testRefreshEventsUseOnlyTheBatchCallback(final String eventType) {
+    void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
         List<RuleData> batch = createFakeRuleDateObjects(2);
         ruleDataHandler.handle(new Gson().toJson(batch), eventType);
+        verify(subscriber).refreshRuleDataAll();
         verify(subscriber).onRuleRefresh(batch);
         verifyNoMoreInteractions(subscriber);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"REFRESH", "MYSELF"})
-    void testEmptyRefreshDoesNotCallSubscriber(final String eventType) {
+    void testEmptyRefreshClearsSnapshot(final String eventType) {
         ruleDataHandler.handle("[]", eventType);
-        verifyNoInteractions(subscriber);
+        verify(subscriber).refreshRuleDataAll();
+        verify(subscriber).onRuleRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
     }
 
     @Test

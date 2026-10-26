@@ -60,7 +60,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     @Override
     public String registerURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String result;
-        String key = key(selectorName);
+        String key = key(selectorName, namespaceId);
         try {
             this.removeFallBack(key);
             result = this.doRegisterURI(selectorName, uriList, namespaceId);
@@ -76,6 +76,11 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     @Override
     public String heartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return doHeartbeat(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String draining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doDraining(selectorName, uriList, namespaceId);
     }
     
     private void addFallback(final String key, final FallbackHolder holder) {
@@ -103,8 +108,8 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         }
     }
 
-    private String key(final String selectorName) {
-        return String.join(":", selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
+    private String key(final String selectorName, final String namespaceId) {
+        return String.join(":", selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
     }
 
     /**
@@ -124,6 +129,17 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     abstract String doHeartbeat(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Draining: mark the instances so gateways stop selecting them for new work,
+     * while they keep serving the work already admitted.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @param namespaceId  the namespace id
+     * @return the string
+     */
+    abstract String doDraining(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.

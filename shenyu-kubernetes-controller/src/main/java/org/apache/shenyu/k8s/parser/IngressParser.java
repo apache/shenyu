@@ -32,9 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Parser of Ingress.
@@ -47,6 +49,8 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
 
     private final Lister<V1Endpoints> endpointsLister;
 
+    private final List<IngressPluginDefinition> pluginDefinitions;
+
     /**
      * IngressParser Constructor.
      *
@@ -54,8 +58,21 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
      * @param endpointsInformer endpointsInformer
      */
     public IngressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer) {
+        this(serviceInformer, endpointsInformer, Collections.emptyList());
+    }
+
+    /**
+     * IngressParser Constructor.
+     *
+     * @param serviceInformer   serviceInformer
+     * @param endpointsInformer endpointsInformer
+     * @param pluginDefinitions external plugin definitions
+     */
+    public IngressParser(final SharedIndexInformer<V1Service> serviceInformer, final SharedIndexInformer<V1Endpoints> endpointsInformer,
+                         final List<IngressPluginDefinition> pluginDefinitions) {
         this.serviceLister = new Lister<>(serviceInformer.getIndexer());
         this.endpointsLister = new Lister<>(endpointsInformer.getIndexer());
+        this.pluginDefinitions = Objects.isNull(pluginDefinitions) ? Collections.emptyList() : new ArrayList<>(pluginDefinitions);
     }
 
     /**
@@ -73,11 +90,14 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
         boolean brpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_BRPC_ENABLED);
         boolean grpcEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_GRPC_ENABLED);
         boolean sofaEnabled = getBooleanAnnotation(ingress, IngressConstants.PLUGIN_SOFA_ENABLED);
+        Optional<IngressPluginDefinition> pluginDefinition = findPluginDefinition(ingress);
 
-        if (!dubboEnabled && !webSocketEnabled && !brpcEnabled && !grpcEnabled && !sofaEnabled) {
+        if (!dubboEnabled && !webSocketEnabled && !brpcEnabled && !grpcEnabled && !sofaEnabled && !pluginDefinition.isPresent()) {
             contextPathParse(ingress, shenyuMemoryConfigList, coreV1Api);
         }
-        if (dubboEnabled) {
+        if (pluginDefinition.isPresent()) {
+            shenyuMemoryConfigList.add(pluginDefinition.get().parse(ingress, coreV1Api, serviceLister, endpointsLister));
+        } else if (dubboEnabled) {
             DubboIngressParser dubboIngressParser = new DubboIngressParser(serviceLister, endpointsLister);
             shenyuMemoryConfigList.add(dubboIngressParser.parse(ingress, coreV1Api));
         } else if (webSocketEnabled) {
@@ -94,6 +114,27 @@ public class IngressParser implements K8sResourceListParser<V1Ingress> {
             shenyuMemoryConfigList.add(divideIngressParser.parse(ingress, coreV1Api));
         }
         return shenyuMemoryConfigList;
+    }
+
+    /**
+     * Find external plugin definition for the ingress.
+     *
+     * @param ingress ingress
+     * @return first matching definition
+     */
+    public Optional<IngressPluginDefinition> findPluginDefinition(final V1Ingress ingress) {
+        return pluginDefinitions.stream().filter(definition -> definition.matchesIngress(ingress)).findFirst();
+    }
+
+    /**
+     * Find external plugin-owned metadata paths for the ingress.
+     *
+     * @param definition plugin definition
+     * @param ingress ingress
+     * @return metadata paths owned by the definition
+     */
+    public List<String> findMetadataPaths(final IngressPluginDefinition definition, final V1Ingress ingress) {
+        return definition.metadataPaths(ingress, serviceLister, endpointsLister);
     }
 
     private boolean getBooleanAnnotation(final V1Ingress ingress, final String annotationKey) {

@@ -23,6 +23,8 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.metrics.LoggingQueueMetrics;
+import org.apache.shenyu.common.metrics.LoggingQueueMetrics.Mode;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
@@ -44,6 +46,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForBody;
 import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForSingleWord;
@@ -57,9 +60,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
-    private int bufferSize;
+    private volatile int bufferSize;
 
-    private BlockingQueue<L> bufferQueue;
+    private volatile BlockingQueue<L> bufferQueue;
 
     private final Map<String, BlockingQueue<L>> bufferQueueS = Maps.newConcurrentMap();
 
@@ -67,12 +70,28 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
 
     private long lastPushTime;
 
-    private final AtomicBoolean started = new AtomicBoolean(true);
+    private final AtomicBoolean started = new AtomicBoolean(false);
+
+    private final AtomicLong multiBufferCapacity = new AtomicLong();
+
+    private final LoggingQueueMetrics singleClientMetrics = new LoggingQueueMetrics(getClass(), Mode.SINGLE,
+            () -> started.get() ? bufferQueue.size() : 0,
+            () -> isActiveMode(false) ? bufferSize : 0);
+
+    private final LoggingQueueMetrics multiClientMetrics = new LoggingQueueMetrics(getClass(), Mode.MULTI,
+            () -> started.get() ? bufferQueueS.values().stream().mapToLong(BlockingQueue::size).sum() : 0,
+            () -> isActiveMode(true) ? multiBufferCapacity.get() : 0);
+
+    private ShenyuThreadPoolExecutor executor;
 
     @Override
-    public void start() {
-        bufferSize = getLogCollectConfig().getBufferQueueSize();
-        bufferQueue = new LinkedBlockingDeque<>(bufferSize);
+    public synchronized void start() {
+        refreshBufferSize();
+        if (started.get()) {
+            return;
+        }
+        // Admission is bounded in collect(), allowing live capacity changes without dropping queued logs.
+        bufferQueue = new LinkedBlockingDeque<>();
         ShenyuConfig config = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig());
         final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
         ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
@@ -81,20 +100,47 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
                 ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
                 new ThreadPoolExecutor.AbortPolicy());
         started.set(true);
-        threadExecutor.execute(this::consume);
+        executor = threadExecutor;
+        try {
+            threadExecutor.execute(() -> consume(threadExecutor));
+        } catch (RuntimeException e) {
+            started.set(false);
+            threadExecutor.shutdownNow();
+            throw e;
+        }
+        singleClientMetrics.register();
+        multiClientMetrics.register();
+    }
+
+    private boolean isActiveMode(final boolean multiClient) {
+        return started.get() && getMultiClient() == multiClient;
+    }
+
+    private void refreshBufferSize() {
+        int configuredSize = getLogCollectConfig().getBufferQueueSize();
+        if (configuredSize <= 0) {
+            throw new IllegalArgumentException("bufferQueueSize must be positive");
+        }
+        bufferSize = configuredSize;
     }
 
     @Override
     public void collect(final L log) {
-        if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
+        if (!started.get() || Objects.isNull(log) || Objects.isNull(getLogConsumeClient(log.getSelectorId()))) {
             return;
         }
         if (getMultiClient()) {
             String selectorId = log.getSelectorId();
             BlockingQueue<L> bufferQueue = bufferQueueS.computeIfAbsent(selectorId, bufferQueueS -> initQueue(selectorId));
-            bufferQueue.offer(log);
+            multiClientMetrics.recordAdmission(bufferQueue.offer(log));
         } else {
-            bufferQueue.offer(log);
+            BlockingQueue<L> queue = bufferQueue;
+            boolean admitted;
+            synchronized (queue) {
+                // On shrink, retain the backlog but reject new logs until it falls below the new limit.
+                admitted = queue.size() < bufferSize && queue.offer(log);
+            }
+            singleClientMetrics.recordAdmission(admitted);
         }
     }
 
@@ -107,8 +153,8 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     /**
      * batch and async consume.
      */
-    private void consume() {
-        while (started.get()) {
+    private void consume(final ThreadPoolExecutor consumerExecutor) {
+        while (!consumerExecutor.isShutdown()) {
             int diffTimeMSForPush = 100;
             try {
                 List<L> logs = new ArrayList<>();
@@ -138,8 +184,10 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     }
 
     private BlockingQueue<L> initQueue(final String selectorId) {
-        BlockingQueue<L> queue = new LinkedBlockingDeque<>(getLogCollectConfig().getBufferQueueSize());
+        int capacity = getLogCollectConfig().getBufferQueueSize();
+        BlockingQueue<L> queue = new LinkedBlockingDeque<>(capacity);
         lastPushTimeS.put(selectorId, System.currentTimeMillis());
+        multiBufferCapacity.addAndGet(capacity);
         return queue;
     }
 
@@ -178,6 +226,31 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             this.lastPushTime = time;
         } else {
             ThreadUtils.sleep(TimeUnit.MILLISECONDS, diffTimeMSForPush);
+        }
+    }
+
+    private void flushBufferQueues() throws Exception {
+        if (getMultiClient()) {
+            for (Map.Entry<String, BlockingQueue<L>> entry : bufferQueueS.entrySet()) {
+                flushBufferQueue(entry.getValue(), getLogConsumeClient(entry.getKey()));
+            }
+        } else {
+            flushBufferQueue(bufferQueue, getLogConsumeClient());
+        }
+    }
+
+    private void flushBufferQueue(final BlockingQueue<L> queue, final AbstractLogConsumeClient<?, L> logConsumeClient) throws Exception {
+        if (Objects.isNull(queue) || Objects.isNull(logConsumeClient)) {
+            return;
+        }
+        int batchSize = 100;
+        while (!queue.isEmpty()) {
+            List<L> logs = new ArrayList<>(batchSize);
+            queue.drainTo(logs, batchSize);
+            if (logs.isEmpty()) {
+                return;
+            }
+            logConsumeClient.consume(logs);
         }
     }
 
@@ -259,11 +332,20 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     protected abstract void desensitizeLog(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
 
     @Override
-    public void close() throws Exception {
+    public synchronized void close() throws Exception {
         started.set(false);
+        if (Objects.nonNull(executor)) {
+            executor.shutdownNow();
+        }
         AbstractLogConsumeClient<?, ?> logCollectClient = getLogConsumeClient();
-        if (Objects.nonNull(logCollectClient)) {
-            logCollectClient.close();
+        try {
+            flushBufferQueues();
+        } finally {
+            singleClientMetrics.unregister();
+            multiClientMetrics.unregister();
+            if (Objects.nonNull(logCollectClient)) {
+                logCollectClient.close();
+            }
         }
     }
 }

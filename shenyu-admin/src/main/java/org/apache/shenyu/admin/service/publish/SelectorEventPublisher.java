@@ -96,7 +96,7 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
         List<SelectorData> selectorDataList = selectors.stream()
                 .map(selectorDO -> {
                     String pluginName = pluginMap.get(selectorDO.getPluginId());
-                    if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
+                    if (PluginEnum.DIVIDE.getName().equals(pluginName)) {
                         UpstreamCheckService.removeByKey(selectorDO.getId());
                     }
                     return SelectorDO.transFrom(selectorDO, pluginName, null);
