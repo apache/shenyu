@@ -424,6 +424,15 @@ map_domain_path() {
 while IFS= read -r file; do
   [[ -n "${file}" ]] || continue
 
+  if [[ "${mode}" == "e2e" ]]; then
+    case "${file}" in
+      .github/workflows/e2e-k8s.yml|.github/scripts/*e2e-maven-repository*|.github/scripts/resolve-test-case-matrix.sh|.github/scripts/resolve-test-case-matrix-test.sh)
+        full_required=true
+        continue
+        ;;
+    esac
+  fi
+
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
       .github/workflows/integrated-test-k8s-ingress.yml)
