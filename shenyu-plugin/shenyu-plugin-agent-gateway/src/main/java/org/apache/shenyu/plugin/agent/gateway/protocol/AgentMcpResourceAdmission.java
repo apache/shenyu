@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.common.metrics.AgentAdmissionMetrics;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -86,18 +87,21 @@ public interface AgentMcpResourceAdmission {
         }
 
         /**
-         * Atomically install new limits and close only the retired controller.
+         * Atomically install new limits and close only the retired active controller.
          * @param replacement validated replacement controller
          */
         public void replace(final ResourceAdmissionController replacement) {
             Objects.requireNonNull(replacement, "replacement");
+            if (replacement.delegate.closed()) {
+                replacement.delegate.close();
+                return;
+            }
+            AgentResourceAdmission retired;
             synchronized (this) {
-                if (current != delegate) {
-                    return;
-                }
+                retired = current;
                 current = replacement.delegate;
             }
-            delegate.close();
+            retired.close();
         }
 
         @Override
@@ -107,6 +111,22 @@ public interface AgentMcpResourceAdmission {
                 active = current;
             }
             active.close();
+        }
+
+        /**
+         * Read the currently active limits without creating another controller.
+         * @return immutable trusted limits
+         */
+        public AgentGatewayAdmissionConfig config() {
+            return current.config();
+        }
+
+        /**
+         * Read the live states of the active controller.
+         * @return immutable controller snapshots
+         */
+        public java.util.List<AgentAdmissionMetrics.Snapshot> snapshot() {
+            return current.snapshot();
         }
     }
 }

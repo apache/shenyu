@@ -34,6 +34,7 @@ import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServerBinding;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
@@ -221,7 +222,8 @@ class OpenTelemetryAgentMcpRemoteTracingTest {
             URI endpoint = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
             assertEquals(204, HttpClient.newHttpClient().send(HttpRequest.newBuilder(endpoint.resolve("/ready"))
                     .timeout(WAIT).build(), HttpResponse.BodyHandlers.discarding()).statusCode());
-            catalog = new ManagedRemoteMcpCatalog(Set.of(endpoint), Set.of(), target -> new RemoteServerBinding.Credential(target, "fixed-service-token"));
+            catalog = new ManagedRemoteMcpCatalog(Set.of(endpoint), Set.of(), target -> new RemoteServerBinding.Credential(target, "fixed-service-token"),
+                    AgentMcpResourceAdmission.create(new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16)), false);
             String source = "{\"aggregation\":{\"revision\":\"trace-v1\",\"servers\":[{\"name\":\"orders\",\"endpoint\":\"" + endpoint
                     + "\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}]}}";
             catalog.reload(source).contextWrite(value -> value.put(AgentTraceContext.HEADERS_KEY,

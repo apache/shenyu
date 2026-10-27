@@ -68,11 +68,16 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
             if (root.isEmpty()) {
                 return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
             }
-            Set<String> pluginFields = new HashSet<>(Set.of("aggregation"));
+            boolean hasAggregation = root.has("aggregation");
+            Set<String> pluginFields = new HashSet<>(hasAggregation ? Set.of("aggregation") : Set.of());
             if (root.has("admission")) {
                 pluginFields.add("admission");
             }
             fields(root, pluginFields);
+            if (!hasAggregation) {
+                return new AgentGatewayAggregationConfig("empty", List.of(),
+                        AgentGatewayAdmissionConfig.parse(root.get("admission")));
+            }
             JsonNode aggregation = root.get("aggregation");
             fields(aggregation, Set.of("revision", "servers"));
             if (!aggregation.path("servers").isArray()) {

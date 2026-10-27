@@ -69,6 +69,15 @@ class AgentGatewayAggregationConfigTest {
     }
 
     @Test
+    void parsesAdmissionWithoutRemoteAggregation() {
+        String source = "{\"admission\":{\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,"
+                + "\"localQueued\":0,\"remoteInFlight\":2,\"remoteQueued\":2}}";
+        AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
+        assertTrue(config.servers().isEmpty());
+        assertEquals(1, config.admission().localInFlight());
+    }
+
+    @Test
     void rejectsUnknownOrExcessiveAdmissionFields() {
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(0, 0, 1, 0, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(129, 0, 1, 0, 1, 0));

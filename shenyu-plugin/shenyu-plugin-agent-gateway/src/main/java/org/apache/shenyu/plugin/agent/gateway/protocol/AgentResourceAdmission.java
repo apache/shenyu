@@ -127,6 +127,22 @@ public final class AgentResourceAdmission implements AutoCloseable {
         return result;
     }
 
+    /**
+     * Current trusted limits.
+     * @return immutable admission configuration
+     */
+    public AgentGatewayAdmissionConfig config() {
+        return config;
+    }
+
+    /**
+     * Whether this controller has already been closed.
+     * @return terminal close state
+     */
+    public boolean closed() {
+        return closed;
+    }
+
     /** Stop new work and cancel queued waiters; terminal executions still release once. */
     public void close() {
         closed = true;

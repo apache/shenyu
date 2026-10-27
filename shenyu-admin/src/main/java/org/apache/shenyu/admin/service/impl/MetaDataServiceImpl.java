@@ -319,23 +319,30 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
         metaDataDO.setPathDesc(Optional.ofNullable(metaDataDO.getPathDesc()).orElse(""));
         final MetaDataDO before = metaDataMapper.selectById(metaDataDO.getId());
+        final List<MetaData> changedMetaData = new LinkedList<>();
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
+            changedMetaData.add(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO));
             // update other rpc_ext for the same service
             final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethodAndNamespaceId(
                     metaDataDO.getServiceName(), null, metaDataDO.getNamespaceId())).orElseGet(LinkedList::new);
             for (MetaDataDO b : befores) {
+                if (Objects.equals(b.getId(), metaDataDO.getId()) || Objects.equals(b.getRpcExt(), metaDataDTO.getRpcExt())) {
+                    continue;
+                }
                 MetaDataDO update = MetaDataTransfer.INSTANCE.copy(b);
                 update.setRpcExt(metaDataDTO.getRpcExt());
                 if (metaDataMapper.update(update) > 0) {
                     publisher.onUpdated(update, b);
+                    changedMetaData.add(MetaDataTransfer.INSTANCE.mapToData(update));
                 }
             }
         }
 
-        // publish AppAuthData's update event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+        // publish MetaData's update event, including sibling methods whose rpc_ext changed
+        if (!changedMetaData.isEmpty()) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE, changedMetaData));
+        }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 

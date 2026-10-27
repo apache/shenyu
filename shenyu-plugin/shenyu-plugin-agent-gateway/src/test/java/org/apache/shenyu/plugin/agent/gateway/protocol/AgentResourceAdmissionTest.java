@@ -168,12 +168,74 @@ class AgentResourceAdmissionTest {
     }
 
     @Test
+    void everyReplacementBecomesActiveAndFinalCloseRemovesMetrics() throws Exception {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 1, 1, 1, 1, 1));
+        try {
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(2, 1, 1, 1, 1, 1)));
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(3, 1, 1, 1, 1, 1)));
+            Sinks.Empty<Void> first = Sinks.empty();
+            Sinks.Empty<Void> second = Sinks.empty();
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            try {
+                final Future<?> one = executor.submit(() -> StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), first.asMono())).expectComplete().verify());
+                final Future<?> two = executor.submit(() -> StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), second.asMono())).expectComplete().verify());
+                awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 2);
+                first.tryEmitEmpty();
+                second.tryEmitEmpty();
+                one.get(5, TimeUnit.SECONDS);
+                two.get(5, TimeUnit.SECONDS);
+            } finally {
+                executor.shutdownNow();
+            }
+            StepVerifier.create(controller.withLocal(Instant.now(), Mono.just("third"))).expectNext("third").verifyComplete();
+        } finally {
+            controller.close();
+        }
+        assertTrue(AgentAdmissionMetrics.snapshots().stream()
+                .filter(snapshot -> snapshot.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
+                .noneMatch(snapshot -> snapshot.inFlightLimit() == 3), "active admission metrics must be removed after close");
+    }
+
+    @Test
+    void redundantReplacementIsClosedWithoutReplacingActiveLimits() {
+        AgentMcpResourceAdmission.ResourceAdmissionController active =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(2, 1, 1, 1, 1, 1));
+        AgentMcpResourceAdmission.ResourceAdmissionController stale =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(3, 1, 1, 1, 1, 1));
+        try {
+            stale.close();
+            active.replace(stale);
+            assertEquals(2, active.snapshot().stream()
+                    .filter(snapshot -> snapshot.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
+                    .findFirst().orElseThrow().inFlightLimit());
+        } finally {
+            active.close();
+        }
+        assertTrue(AgentAdmissionMetrics.snapshots().stream()
+                        .filter(snapshot -> snapshot.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
+                        .noneMatch(snapshot -> snapshot.inFlightLimit() == 3),
+                "a closed redundant replacement must stay unregistered");
+    }
+
+    @Test
     void rejectInvalidConfigurationBeforeControllerCreation() {
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(0, 0, 1, 0, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(1, 0, 1, 0, 33, 0));
     }
 
     private static void await(final AgentResourceAdmission controller, final AgentAdmissionMetrics.Scope scope, final int expected) throws InterruptedException {
+        for (int i = 0; i < 200; i++) {
+            if (controller.snapshot().stream().anyMatch(state -> state.scope() == scope && state.inFlight() >= expected)) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        assertTrue(false, "admission permit was not acquired");
+    }
+
+    private static void awaitActive(final AgentMcpResourceAdmission.ResourceAdmissionController controller,
+                                    final AgentAdmissionMetrics.Scope scope, final int expected) throws InterruptedException {
         for (int i = 0; i < 200; i++) {
             if (controller.snapshot().stream().anyMatch(state -> state.scope() == scope && state.inFlight() >= expected)) {
                 return;

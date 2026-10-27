@@ -70,8 +70,6 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final AgentMcpResourceAdmission.ResourceAdmissionController admission;
 
-    private volatile AgentGatewayAdmissionConfig admissionConfig;
-
     private final Scheduler scheduler = Schedulers.newBoundedElastic(1, 16, "agent-mcp-config");
 
     private final Sinks.Many<ControlUpdate> updates = Sinks.many().unicast().onBackpressureBuffer(new ArrayBlockingQueue<>(16));
@@ -93,7 +91,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param credentials trusted credentials value
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
-        this(allowedEndpoints, localNames, credentials, null);
+        this(allowedEndpoints, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false);
     }
 
     /**
@@ -104,33 +102,28 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param source complete trusted plugin configuration
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
-                                   final RemoteServiceCredentialResolver credentials, final String source) {
-        this(allowedEndpoints, localNames, credentials, source, false);
+                                   final RemoteServiceCredentialResolver credentials,
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
+        this(allowedEndpoints, localNames, credentials, admission, false);
     }
 
     /**
-     * Managed remote catalog with resource lifecycle admission.
+     * Managed remote catalog with a shared resource admission controller.
      * @param allowedEndpoints trusted allowedEndpoints value
      * @param localNames trusted localNames value
      * @param credentials trusted credentials value
+     * @param admission shared trusted admission controller
      * @param resourcesEnabled whether remote resources are enabled
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
-                                   final RemoteServiceCredentialResolver credentials, final boolean resourcesEnabled) {
-        this(allowedEndpoints, localNames, credentials, null, resourcesEnabled);
-    }
-
-    private ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
-                                    final RemoteServiceCredentialResolver credentials, final String source,
-                                    final boolean resourcesEnabled) {
+                                   final RemoteServiceCredentialResolver credentials,
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                   final boolean resourcesEnabled) {
         lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
         this.allowedEndpoints = Set.copyOf(allowedEndpoints);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
-        this.admissionConfig = Objects.isNull(source)
-                ? AgentGatewayAdmissionConfig.parse(null)
-                : AgentGatewayAggregationConfig.parsePluginConfig(source).admission();
-        this.admission = AgentMcpResourceAdmission.create(this.admissionConfig);
+        this.admission = Objects.requireNonNull(admission, "admission");
         this.allowedEndpoints.forEach(RemoteTransportPolicy::endpoint);
         // The single owned subscription belongs to the control-plane lifecycle, never a request.
         lifecycle.refresh(List.of()).block(Duration.ofSeconds(6));
@@ -208,7 +201,6 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                     .doOnSuccess(ignored -> {
                         if (stillCurrent.getAsBoolean()) {
                             admission.replace(AgentMcpResourceAdmission.create(config.admission()));
-                            admissionConfig = config.admission();
                         }
                     });
         });
@@ -241,7 +233,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @return immutable trusted configuration
      */
     public AgentGatewayAdmissionConfig admissionConfig() {
-        return admissionConfig;
+        return admission.config();
     }
 
     /**
@@ -252,9 +244,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         Diagnostics state = diagnosticsState();
         Map<String, Object> result = new LinkedHashMap<>(state.lifecycle().toMap());
         result.put("lastFailure", state.lastFailure());
-        result.put("admission", Map.of("globalInFlight", admissionConfig.globalInFlight(), "globalQueued", admissionConfig.globalQueued(),
-                "localInFlight", admissionConfig.localInFlight(), "localQueued", admissionConfig.localQueued(),
-                "remoteInFlight", admissionConfig.remoteInFlight(), "remoteQueued", admissionConfig.remoteQueued()));
+        AgentGatewayAdmissionConfig config = admission.config();
+        result.put("admission", Map.of("globalInFlight", config.globalInFlight(), "globalQueued", config.globalQueued(),
+                "localInFlight", config.localInFlight(), "localQueued", config.localQueued(),
+                "remoteInFlight", config.remoteInFlight(), "remoteQueued", config.remoteQueued()));
         return Map.copyOf(result);
     }
 

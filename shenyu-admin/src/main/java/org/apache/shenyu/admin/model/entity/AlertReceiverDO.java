@@ -39,7 +39,7 @@ public class AlertReceiverDO {
     /**
      * is enabled this receiver.
      */
-    private boolean enable = true;
+    private Boolean enable;
     
     /**
      * Notification information method: 0-SMS 1-Email 2-webhook 3-WeChat Official Account. 
@@ -141,7 +141,7 @@ public class AlertReceiverDO {
     /**
      * match all.
      */
-    private boolean matchAll = true;
+    private Boolean matchAll;
     
     /**
      * match alert levels.
@@ -204,7 +204,7 @@ public class AlertReceiverDO {
      * is enable.
      * @return enable
      */
-    public boolean isEnable() {
+    public Boolean getEnable() {
         return enable;
     }
     
@@ -212,7 +212,7 @@ public class AlertReceiverDO {
      * set enable.
      * @param enable enable
      */
-    public void setEnable(final boolean enable) {
+    public void setEnable(final Boolean enable) {
         this.enable = enable;
     }
     
@@ -540,7 +540,7 @@ public class AlertReceiverDO {
      * is match all.
      * @return match all
      */
-    public boolean isMatchAll() {
+    public Boolean getMatchAll() {
         return matchAll;
     }
     
@@ -548,7 +548,7 @@ public class AlertReceiverDO {
      * set match all.
      * @param matchAll match all
      */
-    public void setMatchAll(final boolean matchAll) {
+    public void setMatchAll(final Boolean matchAll) {
         this.matchAll = matchAll;
     }
     

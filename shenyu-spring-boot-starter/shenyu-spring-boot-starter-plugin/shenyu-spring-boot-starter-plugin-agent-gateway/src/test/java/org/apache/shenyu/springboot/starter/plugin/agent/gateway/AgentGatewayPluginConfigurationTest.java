@@ -32,6 +32,9 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceDefinition;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceInvocation;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -42,10 +45,16 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.util.Set;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -240,6 +249,98 @@ class AgentGatewayPluginConfigurationTest {
                     assertEquals(200, exchange.getResponse().getStatusCode().value());
                     assertTrue(exchange.getResponse().getBodyAsString().block().contains("\"isError\":false"));
                 });
+    }
+
+    @Test
+    void localOnlyGatewayUsesAndReloadsIndependentAdmission() throws Exception {
+        Sinks.Empty<Void> activeTool = Sinks.empty();
+        AtomicInteger calls = new AtomicInteger();
+        final AgentToolProvider tool = new AgentToolProvider() {
+            @Override
+            public String getName() {
+                return "read";
+            }
+
+            @Override
+            public String getDescription() {
+                return "Read a resource";
+            }
+
+            @Override
+            public JsonObject getInputSchema() {
+                return JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject();
+            }
+
+            @Override
+            public void validate(final JsonObject arguments) {
+            }
+
+            @Override
+            public Mono<JsonObject> invoke(final org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation invocation) {
+                return Mono.defer(() -> {
+                    calls.incrementAndGet();
+                    return activeTool.asMono().map(ignored -> new JsonObject());
+                });
+            }
+        };
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentToolProvider.class, () -> tool)
+                .withBean(AgentMcpSecurityResolver.class, () -> exchange -> Mono.just(new AgentMcpIdentity("tenant", Set.of("read"))))
+                .run(context -> {
+                    final AgentMcpResourceAdmission.ResourceAdmissionController admission =
+                            context.getBean(AgentMcpResourceAdmission.ResourceAdmissionController.class);
+                    assertEquals(32, admission.snapshot().stream()
+                            .filter(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL)
+                            .findFirst().orElseThrow().inFlightLimit());
+                    context.getBean(PluginDataHandler.class).handlerPlugin(pluginData("{\"admission\":{"
+                            + "\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,\"localQueued\":0,"
+                            + "\"remoteInFlight\":2,\"remoteQueued\":2}}"));
+                    assertEquals(1, admission.snapshot().stream()
+                            .filter(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL)
+                            .findFirst().orElseThrow().inFlightLimit());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    AgentMcpDispatcher dispatcher = (AgentMcpDispatcher) ReflectionTestUtils.getField(handler, "dispatcher");
+                    assertEquals(admission, ReflectionTestUtils.getField(dispatcher, "admission"));
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedTools\":[\"read\"]}"), true);
+                    ExecutorService executor = Executors.newFixedThreadPool(2);
+                    try {
+                        MockServerWebExchange firstExchange = exchange();
+                        final Future<?> first = executor.submit(() -> StepVerifier.create(handler.handle(firstExchange, config,
+                                new AgentTrafficContext("first", "mcp", "selector", "rule"), 1)).verifyComplete());
+                        awaitLocalInFlight(admission, 1);
+                        MockServerWebExchange rejectedExchange = exchange();
+                        StepVerifier.create(handler.handle(rejectedExchange, config,
+                                        new AgentTrafficContext("second", "mcp", "selector", "rule"), 1))
+                                .verifyComplete();
+                        assertEquals(429, rejectedExchange.getResponse().getStatusCode().value());
+                        assertTrue(rejectedExchange.getResponse().getBodyAsString().block().contains("-32026"));
+                        assertEquals(1, calls.get());
+                        activeTool.tryEmitEmpty();
+                        first.get(5, TimeUnit.SECONDS);
+                    } finally {
+                        executor.shutdownNow();
+                    }
+                });
+    }
+
+    private static void awaitLocalInFlight(final AgentMcpResourceAdmission.ResourceAdmissionController admission, final int expected)
+            throws InterruptedException {
+        for (int i = 0; i < 200; i++) {
+            if (admission.snapshot().stream()
+                    .anyMatch(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL
+                            && snapshot.inFlight() == expected)) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        throw new AssertionError("local admission execution was not acquired");
+    }
+
+    private PluginData pluginData(final String config) {
+        PluginData plugin = new PluginData();
+        plugin.setEnabled(true);
+        plugin.setConfig(config);
+        return plugin;
     }
 
     @Test

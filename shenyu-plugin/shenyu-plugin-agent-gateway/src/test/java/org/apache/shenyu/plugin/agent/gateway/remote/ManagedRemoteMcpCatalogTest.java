@@ -23,6 +23,7 @@ import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import org.junit.jupiter.api.Test;
@@ -109,15 +110,22 @@ class ManagedRemoteMcpCatalogTest {
 
     @Test
     void validConfigurationReplacesAdmissionLimitsAfterCredentialResolution() throws InterruptedException {
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16));
         ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(URI.create("https://192.0.2.10:443/mcp")), Set.of(), target ->
-                new RemoteServerBinding.Credential(target, "fixed-test-token"));
+                new RemoteServerBinding.Credential(target, "fixed-test-token"), admission, false);
         try {
             assertEquals(128, catalog.admissionConfig().globalInFlight());
             catalog.accept(event(true, configWithAdmission(16, 8, 4)));
+            admission.replace(AgentMcpResourceAdmission.create(
+                    new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(16, 32, 16, 8, 8, 4)));
             await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
             assertEquals(16, catalog.admissionConfig().globalInFlight());
             assertEquals(8, catalog.admissionConfig().remoteInFlight());
             assertEquals(4, catalog.admissionConfig().remoteQueued());
+            assertEquals(16, admission.snapshot().stream()
+                    .filter(state -> state.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.GLOBAL)
+                    .findFirst().orElseThrow().inFlightLimit());
         } finally {
             catalog.close();
         }

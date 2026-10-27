@@ -84,8 +84,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher        eventPublisher is used to publish sort plugin event
-     * @param selectorMatchConfig   shenyu trie config
-     * @param ruleMatchCacheConfig  shenyu trie config
+     * @param selectorMatchConfig   selector match cache config
+     * @param ruleMatchCacheConfig  rule match cache config
      */
     public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList,
                                       final ApplicationEventPublisher eventPublisher,
@@ -456,7 +456,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         sortPluginIfOrderChange(oldPluginData, pluginData);
 
         final String pluginName = pluginData.getName();
-        // if update plugin, remove selector and rule match cache/trie cache
+        // if update plugin, remove selector and rule match cache
         if (selectorMatchConfig.getCache().getEnabled()) {
             MatchDataCache.getInstance().removeSelectorData(pluginName);
         }
