@@ -123,7 +123,10 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
         }
         entity.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         int rows = mapper.updateSelective(entity);
-        publishChange(DataEventTypeEnum.UPDATE, entity);
+        if (rows > 0) {
+            final ProxyApiKeyDO updated = mapper.selectById(entity.getId());
+            publishChange(DataEventTypeEnum.UPDATE, updated);
+        }
         return rows;
     }
 

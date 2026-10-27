@@ -41,6 +41,8 @@ import org.mockito.quality.Strictness;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -214,6 +216,7 @@ public final class InstanceCheckServiceTest {
 
     @Test
     void testHandleBeatInfoRefreshesInstanceInfoOnExistingIdentity() {
+
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
@@ -225,18 +228,23 @@ public final class InstanceCheckServiceTest {
         InstanceBeatInfoDTO second = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         second.setInstanceInfo("{\"version\":\"2.0\"}");
         instanceCheckService.handleBeatInfo(second);
+
         assertEquals("{\"version\":\"2.0\"}", cached.getInstanceInfo());
     }
 
     @Test
     void testHandleBeatInfoKeepsInstanceInfoWhenBeatCarriesBlank() {
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+
         first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
-        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
+
+        InstanceInfoVO cached =
+                instanceCheckService.getInstanceHealthBeatInfo(first);
         assertNotNull(cached);
 
-        InstanceBeatInfoDTO blank = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        InstanceBeatInfoDTO blank =
+                buildDTO("127.0.0.1", "8080", "grpc", "ns");
         blank.setInstanceInfo("");
         instanceCheckService.handleBeatInfo(blank);
         assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
@@ -542,6 +550,184 @@ public final class InstanceCheckServiceTest {
         assertEquals(original.getDateCreated(), copy.getDateCreated());
         assertEquals(original.getDateUpdated(), copy.getDateUpdated());
         assertEquals(original.getLastHeartBeatTime(), copy.getLastHeartBeatTime());
+    }
+
+    @Test
+    void testHistoryIsScopedByNamespace() {
+        // Namespace A has two online instances.
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.1", "8080", "http", "nsA"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.2", "8080", "http", "nsA"));
+
+        // Namespace B has three online instances.
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.3", "8080", "http", "nsB"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.4", "8080", "http", "nsB"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.5", "8080", "http", "nsB"));
+
+        // Collect one history sample without waiting for the scheduler.
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "collectStateData");
+
+        assertEquals(2L, lastOnlineCount("nsA"));
+        assertEquals(3L, lastOnlineCount("nsB"));
+        assertEquals(5L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistoryRetainsLatestTwentySamples() {
+        for (int index = 1; index <= 25; index++) {
+            instanceCheckService.handleBeatInfo(
+                    buildDTO("10.1.0." + index, "8080", "http", "nsA"));
+
+            ReflectionTestUtils.invokeMethod(
+                    instanceCheckService, "collectStateData");
+        }
+
+        final List<Long> history = instanceCheckService
+                .getInstanceDataVisual("nsA")
+                .getLineData()
+                .stream()
+                .filter(line -> InstanceStatusEnum.getNameByCode(
+                        InstanceStatusEnum.ONLINE.getCode()).equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+
+        assertEquals(20, history.size());
+        assertEquals(6L, history.get(0).longValue());
+        assertEquals(25L, history.get(19).longValue());
+        assertEquals(25L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistoryIsRemovedWhenNamespaceHasNoTrackedInstances() {
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.2.0.1", "8080", "http", "nsA"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.2.0.2", "8080", "http", "nsB"));
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertEquals(1L, lastOnlineCount("nsA"));
+        assertEquals(1L, lastOnlineCount("nsB"));
+
+        final Map<?, ?> instances = (Map<?, ?>) ReflectionTestUtils.getField(
+                instanceCheckService, "instanceHealthBeatInfo");
+
+        assertNotNull(instances);
+
+        // Simulate namespace A having no tracked instances.
+        instances.entrySet().removeIf(entry ->
+                "nsA".equals(((InstanceInfoVO) entry.getValue()).getNamespaceId()));
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        final Map<?, ?> histories = (Map<?, ?>) ReflectionTestUtils.getField(
+                instanceCheckService, "namespaceStateHistoryMap");
+
+        assertNotNull(histories);
+        assertFalse(histories.containsKey("nsA"));
+        assertEquals(1L, lastOnlineCount("nsB"));
+        assertEquals(1L, lastOnlineCount(""));
+
+        // Missing namespaces return zero-filled curves without creating histories.
+        for (String namespaceId : Arrays.asList("nsA", "missing")) {
+            final InstanceDataVisualVO visual =
+                    instanceCheckService.getInstanceDataVisual(namespaceId);
+
+            assertTrue(visual.getPieData().isEmpty());
+            assertEquals(3, visual.getLineData().size());
+            visual.getLineData().forEach(line -> {
+                assertEquals(20, line.getData().size());
+                assertTrue(line.getData().stream().allMatch(value -> value == 0L));
+            });
+
+            assertFalse(histories.containsKey(namespaceId));
+        }
+
+        // No instances remain anywhere.
+        instances.clear();
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertTrue(histories.isEmpty());
+        assertEquals(0L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistorySeparatesStatesAcrossNamespaces() {
+        final InstanceInfoVO onlineA =
+                buildVO("10.3.0.1", "8080", "http", "nsA");
+        final InstanceInfoVO offlineA =
+                buildVO("10.3.0.2", "8080", "http", "nsA");
+        final InstanceInfoVO deletedB =
+                buildVO("10.3.0.3", "8080", "http", "nsB");
+
+        onlineA.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+        offlineA.setInstanceState(InstanceStatusEnum.OFFLINE.getCode());
+        deletedB.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+
+        when(instanceInfoService.list()).thenReturn(
+                Arrays.asList(onlineA, offlineA, deletedB));
+        instanceCheckService.fetchInstanceData();
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertStateCount("nsA", InstanceStatusEnum.ONLINE, 1L);
+        assertStateCount("nsA", InstanceStatusEnum.OFFLINE, 1L);
+        assertStateCount("nsA", InstanceStatusEnum.DELETED, 0L);
+
+        assertStateCount("nsB", InstanceStatusEnum.ONLINE, 0L);
+        assertStateCount("nsB", InstanceStatusEnum.OFFLINE, 0L);
+        assertStateCount("nsB", InstanceStatusEnum.DELETED, 1L);
+
+        assertStateCount("", InstanceStatusEnum.ONLINE, 1L);
+        assertStateCount("", InstanceStatusEnum.OFFLINE, 1L);
+        assertStateCount("", InstanceStatusEnum.DELETED, 1L);
+    }
+
+    private void assertStateCount(final String namespaceId,
+                                  final InstanceStatusEnum status,
+                                  final long expected) {
+        final InstanceDataVisualVO visual =
+                instanceCheckService.getInstanceDataVisual(namespaceId);
+        final String stateName =
+                InstanceStatusEnum.getNameByCode(status.getCode());
+
+        final List<Long> history = visual.getLineData().stream()
+                .filter(line -> stateName.equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+
+        assertEquals(expected, history.get(history.size() - 1).longValue());
+
+        final long pieCount = visual.getPieData().stream()
+                .filter(entry -> stateName.equals(entry.getName()))
+                .mapToLong(InstanceDataVisualVO.Entry::getValue)
+                .sum();
+
+        assertEquals(expected, pieCount);
+    }
+
+    private long lastOnlineCount(final String namespaceId) {
+        final List<Long> history = instanceCheckService
+                .getInstanceDataVisual(namespaceId)
+                .getLineData()
+                .stream()
+                .filter(line -> InstanceStatusEnum.getNameByCode(
+                        InstanceStatusEnum.ONLINE.getCode()).equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+        return history.get(history.size() - 1);
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {

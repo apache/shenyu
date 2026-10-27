@@ -186,15 +186,19 @@ public final class UpstreamCacheManager {
         initializeUpstreamHealthStatus(actualUpstreamList);
 
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
-                .collect(Collectors.partitioningBy(Upstream::isStatus));
+                .collect(Collectors.partitioningBy(upstream -> upstream.isStatus() && !upstream.isDraining()));
         final List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
-        final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
+        final List<Upstream> drainingUpstreamList = actualUpstreamList.stream()
+                .filter(Upstream::isDraining).collect(Collectors.toList());
+        final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false).stream()
+                .filter(upstream -> !upstream.isDraining()).collect(Collectors.toList());
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
         removeStaleUpstreams(selectorId, actualUpstreamList, existUpstreamList);
         updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
+        processDrainingUpstreams(selectorId, drainingUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
@@ -268,6 +272,13 @@ public final class UpstreamCacheManager {
                 task.putToMap(task.getUnhealthyUpstream(), selectorId, offlineUp);
             }
         });
+    }
+
+    private void processDrainingUpstreams(final String selectorId, final List<Upstream> drainingUpstreamList) {
+        // A draining upstream leaves both health pools, so no new selection returns it
+        // and no probe can restore it; it stays in the configured set, and a later sync
+        // without the draining marker re-admits it through the regular paths (#8042).
+        drainingUpstreamList.forEach(drainingUp -> task.triggerRemoveOne(selectorId, drainingUp));
     }
 
     private void processValidUpstreams(final String selectorId, final List<Upstream> validUpstreamList,

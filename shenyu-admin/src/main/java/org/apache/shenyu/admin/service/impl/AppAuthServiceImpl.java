@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -33,6 +34,7 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -85,14 +87,18 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private final AuthPathMapper authPathMapper;
 
+    private final AppAuthRequestMapper appAuthRequestMapper;
+
     public AppAuthServiceImpl(final AppAuthMapper appAuthMapper,
                               final ApplicationEventPublisher eventPublisher,
                               final AuthParamMapper authParamMapper,
-                              final AuthPathMapper authPathMapper) {
+                              final AuthPathMapper authPathMapper,
+                              final AppAuthRequestMapper appAuthRequestMapper) {
         this.appAuthMapper = appAuthMapper;
         this.eventPublisher = eventPublisher;
         this.authParamMapper = authParamMapper;
         this.authPathMapper = authPathMapper;
+        this.appAuthRequestMapper = appAuthRequestMapper;
     }
 
     @Override
@@ -453,6 +459,18 @@ public class AppAuthServiceImpl implements AppAuthService {
     public int delete(final List<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return 0;
+        }
+        // Lifecycle linkage: lock all associated idempotency keys first in a stable order (selectKeysByAuthIds
+        // is ordered by caller/namespace/request to avoid reverse locking); mark REVOKED in the same transaction
+        List<AppAuthRequestDO> lifecycleRecords = appAuthRequestMapper.selectKeysByAuthIds(ids);
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            appAuthRequestMapper.selectByKeyForUpdate(record.getCallerKey(), record.getNamespaceId(), record.getRequestId());
+        }
+        // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            if (!"REVOKED".equals(record.getState())) {
+                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete");
+            }
         }
         List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(appAuthList)) {

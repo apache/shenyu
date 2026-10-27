@@ -161,9 +161,9 @@ jobs:
             docker pull "$image"
           }
 
-          pull_with_retry alpine:latest
+          pull_with_retry alpine:3.24
+          pull_with_retry amazoncorretto:17.0.21-alpine3.24
           pull_with_retry amazoncorretto:17.0.11-alpine3.19
-          pull_with_retry centos:7
           pull_with_retry eclipse-temurin:17-centos7
           pull_with_retry elasticsearch:8.2.3
           pull_with_retry otel/opentelemetry-collector-contrib:0.111.0
@@ -196,7 +196,12 @@ jobs:
       - name: Verify integrated test image
         run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
       - name: Start docker compose
-        run: docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+        run: |
+          if ! docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d; then
+            docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml ps --all || true
+            docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --no-color --tail=200 || true
+            exit 1
+          fi
       - name: Wait for docker compose start up completely
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       - name: Disk space info
