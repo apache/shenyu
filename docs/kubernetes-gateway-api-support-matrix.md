@@ -111,7 +111,7 @@ Consequences that the rest of this document depends on:
 | `spec.listeners[].protocol` | `HTTP` only. Everything else → listener `Accepted=False`, `UnsupportedProtocol`. |
 | `spec.listeners[].port` | Must equal the data-plane port. Otherwise → listener `Accepted=False`, `PortUnavailable`. |
 | `spec.listeners[].hostname` | Honoured; intersected with `HTTPRoute.spec.hostnames`. Exact names and `*.` suffix wildcards, which match one or more leading labels (`*.example.com` matches `a.example.com` and `a.b.example.com`). |
-| `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default) and `All`. `Selector` → route `Accepted=False`, `UnsupportedValue`. |
+| `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default) and `All`. `Selector` → attachment through that listener is denied with route `Accepted=False`, `UnsupportedValue`; the listener's own status stays `Accepted=True`, so the listener status alone does not show the problem. |
 | `spec.listeners[].allowedRoutes.kinds` | Honoured; absent means "all protocol-matching kinds", i.e. HTTPRoute. |
 | `spec.listeners[].tls` | Not supported (no TLS listener). Ignored for HTTP listeners. |
 | `spec.addresses` | **Ignored** — the controller does not bind the requested address (see §5.2). |
@@ -133,8 +133,8 @@ where they exist, because that is what decides whether a gap can block core conf
 | --- | --- |
 | `spec.parentRefs[].group` / `.kind` | `gateway.networking.k8s.io` / `Gateway` (both optional). Foreign kinds are skipped without writing status, per spec. |
 | `spec.parentRefs[].namespace` | Cross-namespace attachment allowed only by the listener's `allowedRoutes`; `ReferenceGrant` never applies to parentRefs. |
-| `spec.parentRefs[].sectionName` | Honoured — but a non-matching value reports the wrong reason (§7.4). |
-| `spec.parentRefs[].port` | Honoured — same reason problem. |
+| `spec.parentRefs[].sectionName` | Honoured; a non-matching value reports `Accepted=False` / `NoMatchingParent`. |
+| `spec.parentRefs[].port` | Honoured; a non-matching value reports `Accepted=False` / `NoMatchingParent`. |
 | `spec.hostnames` | Exact names and `*.` suffix wildcards (`*.example.com` matches one or more leading labels, so both `a.example.com` and `a.b.example.com` qualify, while the bare domain `example.com` does not). Empty means "any host". Response precedence across routes deviates for wildcard/wildcard ties (§7.7). |
 | `spec.rules[].matches[].path` | `Exact`, `PathPrefix` (default), `RegularExpression`. `PathPrefix` matches on path element boundaries (`/foo` does not match `/foobar`). API level: Core for Exact/PathPrefix, implementation-specific for RegularExpression. |
 | `spec.rules[].matches[].method` | Honoured. API level: Extended, but exercised by a core test. |
@@ -212,7 +212,11 @@ Unsupported input falls into three classes. The classification is deliberate and
 | --- | --- |
 | Route-level `filters` | Route config removed entirely, `Accepted=False` / `UnsupportedValue`. |
 | Non-Service `backendRef`, missing Service/Endpoints, denied cross-namespace reference | Only that backend is dropped; its declared weight becomes a fail-target (`127.0.0.1:1`, connection refused) so the invalid share fails instead of silently re-flowing onto healthy backends. `ResolvedRefs=False` with `InvalidKind` / `BackendNotFound` / `RefNotPermitted`. |
-| Listener with unsupported protocol or port, `allowedRoutes.from=Selector`, unmatched `sectionName`/port | Route not attached, `Accepted=False` with `UnsupportedProtocol` / `PortUnavailable` / `UnsupportedValue`. |
+| Listener with unsupported protocol or port | Listener `Accepted=False` with `UnsupportedProtocol` / `PortUnavailable`. The route's own reason follows the precedence in §7.4: an accepting served listener first, then `UnsupportedValue` when only an unserved listener would accept the route, then the served listener's denial, then the unserved listener's denial. |
+| Route denied by listener policy (namespace or kind) | Route not attached, `Accepted=False` / `NotAllowedByListeners`. |
+| Route hostnames not intersecting a listener hostname | Route not attached, `Accepted=False` / `NoMatchingListenerHostname`. |
+| Route whose `sectionName`/`port` matches no listener, or whose Gateway does not exist | Route not attached, `Accepted=False` / `NoMatchingParent`. |
+| `allowedRoutes.from=Selector` | Route not attached, `Accepted=False` / `UnsupportedValue`; the listener status is unaffected (§3.2). |
 
 In all three cases the request either fails or reaches nothing: routing is never broadened, and
 never silently redirected to a backend the author did not ask for.
@@ -281,17 +285,18 @@ including `HTTPRouteMatching`, `HTTPRouteExactPathMatching`, `HTTPRouteHeaderMat
 `HTTPRouteListenerHostnameMatching`, `HTTPRouteHostnameIntersection`, `HTTPRoutePathMatchOrder`,
 `HTTPRouteMatchingAcrossRoutes`, `HTTPRouteWeight`, `HTTPRouteCrossNamespace`,
 `HTTPRouteReferenceGrant`, `HTTPRouteObservedGenerationBump` and the invalid-input tests. Most of
-those ShenYu already implements per §3. The following **core** tests fail today, each because of
-a gap in §7:
+those ShenYu already implements per §3. The following **core** tests failed before this document
+was written. The four rejection-reason assertions are now correct, but the tests themselves still
+run against a Gateway whose declared port the suite dials, so they remain blocked until §7.1 lands:
 
-| Core test | Blocked by |
+| Core test | Blocked by / status |
 | --- | --- |
 | every test (suite dials the Gateway's declared port) | §7.1 port model |
 | `HTTPRouteHTTPSListener` | §7.2 no HTTPS listener |
 | `HTTPRouteRequestHeaderModifier` | §7.3 no filters |
 | `HTTPRouteRedirectHostAndStatus` | §7.3 no filters |
-| `HTTPRouteInvalidParentRefNotMatchingSectionName`, `HTTPRouteInvalidParentRefNotMatchingListenerPort`, `HTTPRouteInvalidParentRefSectionNameNotMatchingPort` | §7.4 wrong `Accepted` reason (`NoMatchingParent` expected) |
-| `HTTPRouteInvalidCrossNamespaceParentRef` | §7.4 wrong `Accepted` reason (`NotAllowedByListeners` expected) |
+| `HTTPRouteInvalidParentRefNotMatchingSectionName`, `HTTPRouteInvalidParentRefNotMatchingListenerPort`, `HTTPRouteInvalidParentRefSectionNameNotMatchingPort` | reason fixed by #8163 (`NoMatchingParent`); still blocked by §7.1 |
+| `HTTPRouteInvalidCrossNamespaceParentRef` | reason fixed by #8163 (`NotAllowedByListeners`); still blocked by §7.1 |
 | `HTTPRouteServiceTypes` | §7.5 `Endpoints`-only backend resolution |
 
 Everything marked *Extended* in the API reference (response header modification, rewrites,
@@ -306,9 +311,10 @@ green job with silently skipped features is worse than a red job.
 
 ## 7. Known limitations / open gaps
 
-Ordered by what blocks what. §7.1–§7.5 each block the core `GATEWAY-HTTP` run; the rest are
-correctness or completeness gaps to be scheduled. Everything here was verified against the source
-of this repository and, where it concerns the specification, against Gateway API v1.5.1.
+Ordered by what blocks what. §7.1–§7.3 and §7.5 block the core `GATEWAY-HTTP` run; the remaining
+entries are correctness or completeness gaps to be scheduled. §7.4 is kept as the record of a fix
+shipped in #8163, not as an open gap. Everything here was verified against the source of this
+repository and, where it concerns the specification, against Gateway API v1.5.1.
 
 ### 7.1 Listener port is not decoupled from the data-plane port *(blocks conformance)*
 
@@ -334,7 +340,7 @@ at least `RequestHeaderModifier` (rule level) and `RequestRedirect` (hostname + 
 `*Redirect` status-code cases are *extended*. Mapping the two core filters onto the existing
 request/rewrite/redirect plugins is the largest single piece of remaining work.
 
-### 7.4 Route rejection reasons deviate from the specification *(blocks conformance)*
+### 7.4 Route rejection reasons *(fixed in #8163)*
 
 The v1.5.1 API reference is explicit:
 
@@ -343,10 +349,45 @@ The v1.5.1 API reference is explicit:
 - `NoMatchingParent` — "a Route ParentRef specifies a Port and/or SectionName that does not match
   any Listeners in the Gateway".
 
-ShenYu reports `RefNotPermitted` for the first case and `UnsupportedValue` for the second
-(`HTTPRouteReconciler#evaluateListeners`), and the suite asserts these reason strings exactly in
-four core tests. `RefNotPermitted` is reserved for `ResolvedRefs`, where ShenYu already uses it
-correctly. This is the cheapest conformance fix in the list.
+ShenYu used to report `RefNotPermitted` for the first case and `UnsupportedValue` for the second.
+`HTTPRouteReconciler#evaluateListeners` now reports the specified reasons, and `RefNotPermitted` is
+left to `ResolvedRefs` where it belongs.
+
+Listeners are evaluated in two tiers and the verdicts are merged, so neither tier can hide the
+other's answer:
+
+- A served listener that accepts the route wins over any denial, so one restrictive listener cannot
+  veto another one.
+- A denial by a served listener is reported before a denial by a listener this controller cannot
+  serve, because the served one is where the route would actually be programmed.
+- When a served listener denies but an unserved listener's policy and hostname would accept the
+  route, the reason is `UnsupportedValue`: the route is blocked by what this controller can serve,
+  and `NotAllowedByListeners` — "the Gateway has no Listener whose `allowedRoutes` criteria permit
+  the route" — would be false for that Gateway.
+- When no served listener reached any verdict, the unserved listeners' denials are reported, so a
+  policy or hostname denial behind a listener on an unmapped port (all of them, under the current
+  port model, §7.1) still surfaces as such.
+
+Without that split the reported reason would follow the port model rather than the specification,
+and would change back once #8165 lands.
+
+`UnsupportedValue` is now limited to controller-capability statements: `allowedRoutes.from=Selector`
+(an unsupported value, see §3.2) and a route whose only permitting listener is one this controller
+cannot serve. Neither is a parent-matching or policy problem; the second one is what #8165 (port
+model) and #8167 (HTTPS listeners) remove. The generic "no listener with a supported protocol on a
+served port" branch is kept only as a defensive fallthrough — with a non-empty listener selection it
+is unreachable, because every listener either records an acceptance, a denial, or that an unserved
+listener permits the route.
+
+Every route rejection path listed in §5.1 now has a unit test asserting its reason: route-level
+`filters`, missing Gateway, unmatched `sectionName`, unmatched `port`, a `sectionName` and `port` that
+only match different listeners, namespace denial (served and unserved listener), kind denial,
+hostname mismatch, `from=Selector`, an unserved listener that would have accepted the route, the
+reason priority between two served listeners denying differently, a served listener accepting over
+another one denying, a rejected parentRef reported next to an accepted one, config cleanup when every
+parent rejects, and the patch that corrects a route already reported with the old reason.
+`HttpRouteParserTest` pins the other half of the move: a cross-namespace `backendRef` without a
+ReferenceGrant still reports `ResolvedRefs=False` / `RefNotPermitted`.
 
 ### 7.5 Backends are resolved only from `Endpoints` *(blocks conformance)*
 
@@ -463,6 +504,7 @@ Unit-level coverage for the claims in §3–§5 lives in
   new version's conformance suite.
 - Any PR that adds a feature updates §3, §5 and, when conformance is wired up, the declared
   feature list together. The three must never disagree.
-- Known gaps move from §7 into §3 only when a test in this repository fails without the fix.
+- Known gaps move from §7 into §3 once a test in this repository fails without the fix; the §7
+  entry is then reduced to a record of the fix and its tests, and is dropped at the next revision.
 - A withdrawn claim (§7.15) may only be reinstated together with the evidence that contradicts
   it.

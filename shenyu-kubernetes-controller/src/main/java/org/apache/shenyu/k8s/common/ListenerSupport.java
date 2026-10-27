@@ -90,6 +90,18 @@ public final class ListenerSupport {
         return Objects.nonNull(port) && port == servedPort;
     }
 
+    /**
+     * Whether this controller can actually serve the listener. Gateway status and HTTPRoute attachment
+     * must share this predicate, otherwise a listener reported as unusable would still accept routes.
+     *
+     * @param listener the listener object
+     * @param servedPort the port the embedded ShenYu data plane listens on
+     * @return true if the listener speaks plain HTTP on the served port
+     */
+    public static boolean isServable(final JsonObject listener, final long servedPort) {
+        return isSupportedProtocol(listener) && servesPort(listener, servedPort);
+    }
+
     public static String nameOf(final JsonObject listener) {
         return JsonFields.getString(listener, "name");
     }

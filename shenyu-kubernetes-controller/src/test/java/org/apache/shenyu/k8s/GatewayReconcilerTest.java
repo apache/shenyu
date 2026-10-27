@@ -271,6 +271,65 @@ public final class GatewayReconcilerTest {
         }
     }
 
+    /**
+     * A listener this controller cannot serve reports why: a non-HTTP protocol is UnsupportedProtocol, a
+     * port the data plane does not listen on is PortUnavailable. Both must stay distinct, and gating
+     * usability through one shared predicate must not collapse them into one reason.
+     */
+    @Test
+    public void testListenerStatusReportsWhyEachListenerIsUnusable() throws Exception {
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        JsonArray listeners = gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners");
+        // HTTP listener on a port the data plane does not serve
+        listeners.get(0).getAsJsonObject().addProperty("port", 80);
+        JsonObject httpsListener = new JsonObject();
+        httpsListener.addProperty("name", "https");
+        httpsListener.addProperty("protocol", "HTTPS");
+        httpsListener.addProperty("port", 443);
+        listeners.add(httpsListener);
+
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getAuthentications()).thenReturn(Map.of());
+        when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
+                .thenReturn(mock(okhttp3.Call.class));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
+
+        Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
+        Assertions.assertEquals(new Result(false), result);
+
+        JsonArray listenerStatuses = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status").getAsJsonArray("listeners");
+        Assertions.assertEquals(2, listenerStatuses.size());
+        for (JsonElement element : listenerStatuses) {
+            JsonObject listenerStatus = element.getAsJsonObject();
+            String name = listenerStatus.get("name").getAsString();
+            JsonObject accepted = listenerStatus.getAsJsonArray("conditions").get(0).getAsJsonObject();
+            Assertions.assertEquals("False", accepted.get("status").getAsString());
+            if ("http".equals(name)) {
+                Assertions.assertEquals("PortUnavailable", accepted.get("reason").getAsString(),
+                        "an HTTP listener on an unserved port must report PortUnavailable");
+            } else {
+                Assertions.assertEquals("UnsupportedProtocol", accepted.get("reason").getAsString(),
+                        "a non-HTTP listener must report UnsupportedProtocol");
+            }
+        }
+    }
+
     private JsonArray buildConditions(final String acceptedStatus, final String programmedStatus) {
         JsonObject accepted = new JsonObject();
         accepted.addProperty("type", "Accepted");

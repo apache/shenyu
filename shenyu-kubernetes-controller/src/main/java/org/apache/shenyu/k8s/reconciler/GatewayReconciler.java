@@ -340,8 +340,7 @@ public class GatewayReconciler implements Reconciler {
         for (JsonObject listener : listeners) {
             boolean protocolOk = ListenerSupport.isSupportedProtocol(listener);
             Long port = ListenerSupport.portOf(listener);
-            boolean portOk = Objects.nonNull(port) && port == servedPort;
-            boolean usable = protocolOk && portOk;
+            boolean usable = ListenerSupport.isServable(listener, servedPort);
             anyUsableListener |= usable;
 
             JsonObject listenerStatus = new JsonObject();
