@@ -22,6 +22,7 @@ First launch is explicitly NOT a controlled OS-cold-cache measurement.
 
 import argparse
 import json
+import math
 import os
 import platform
 import re
@@ -200,14 +201,33 @@ def load(args, url, body, rate, duration, output, gateway=None):
                 process.wait(timeout=5)
         elapsed = time.monotonic() - started
         cpu = 100 * (sum(target.cpu_times()[:2]) - cpu_before) / elapsed if target else None
+    # 99 is a completed run with failed thresholds, useful when bracketing load.
+    # Other exits (including external aborts) must not look like gateway saturation.
+    if process.returncode not in (0, 99):
+        raise RuntimeError(f"k6 exited with {process.returncode}; inspect {output / 'k6.log'}")
     summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
     metrics = summary["metrics"]
-    def value(name, key, default=0):
-        return metrics.get(name, {}).get("values", {}).get(key, default)
-    requests = value("http_reqs", "count")
-    successful = value("successful_requests", "count")
-    return {"offered_rps": rate, "successful_rps": successful / duration, "requests": requests,
-            "errors": requests - successful, "dropped_iterations": value("dropped_iterations", "count"),
+    def nonnegative(value, name):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ValueError(f"Invalid k6 summary value for {name}: {value}")
+        return value
+    def count(name):
+        value = nonnegative(metrics.get(name, {}).get("values", {}).get("count"), name)
+        if value != int(value):
+            raise ValueError(f"Invalid k6 summary count for {name}: {value}")
+        return value
+    requests, successful = count("http_reqs"), count("successful_requests")
+    if requests == 0 or successful > requests:
+        raise ValueError("Invalid k6 summary: expected completed requests and successes <= requests")
+    measured_ms = nonnegative(summary.get("state", {}).get("testRunDurationMs"), "testRunDurationMs")
+    if measured_ms == 0:
+        raise ValueError("Invalid k6 summary: testRunDurationMs must be positive")
+    # k6 counts requests completed during gracefulStop. Use its actual run duration,
+    # not only the offered-load window, to avoid inflating throughput at high load.
+    measured_seconds = measured_ms / 1000
+    return {"offered_rps": rate, "offered_duration_s": duration, "measurement_duration_s": measured_seconds,
+            "successful_rps": successful / measured_seconds, "requests": requests,
+            "errors": requests - successful, "dropped_iterations": count("dropped_iterations") if "dropped_iterations" in metrics else 0,
             "latency_ms": metrics["http_req_duration"]["values"], "thresholds_passed": process.returncode == 0,
             "cpu_percent_one_core": cpu, "peak_sampled_rss_bytes": max(samples) if samples else None}
 

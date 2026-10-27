@@ -19,7 +19,8 @@ limitations under the License.
 
 Historical measurements on baseline `1d599d90`; these figures have not been re-measured on the current PR head.
 
-This is a same-host comparison for #7649, not a production capacity claim. Core baseline: `1d599d90e82e3415720b50885823eadc7b93d431` plus the minimal assembly in this change. Archive hashes and per-run measurements are in [report.json](report.json); exact packaged JAR hashes/coordinates and legal entries are in [minimal-jars.csv](minimal-jars.csv) and [full-jars.csv](full-jars.csv).
+These are **relative-only same-host observations** for #7649, not absolute
+Linux/JDK 17 performance expectations or a production capacity claim. Core baseline: `1d599d90e82e3415720b50885823eadc7b93d431` plus the minimal assembly in this change. Archive hashes and per-run measurements are in [report.json](report.json); exact packaged JAR hashes/coordinates and legal entries are in [minimal-jars.csv](minimal-jars.csv) and [full-jars.csv](full-jars.csv).
 
 Windows 11 build 26200; Ryzen 9 8945HX; 32 logical CPUs; 31.8 GiB RAM; Temurin 21.0.10+7; k6 1.0.0. Each gateway was restricted to CPU affinity 8/9 and `-XX:ActiveProcessorCount=2 -Xms512m -Xmx1024m -XX:MaxDirectMemorySize=256m`. There was no cgroup CPU quota. Generator, Python upstream and gateway shared the host. The Java sources were compiled for Java 17; these local measurements used JDK 21.
 
@@ -56,7 +57,21 @@ All direct-upstream controls passed the same SLA, with no response errors or dro
 
 k6 recorded 0.00 ms for some medians on this Windows host; treat those values as a measurement limitation, not literal zero latency.
 
-Both assemblies sustained the highest tested rate of 1000 RPS. Saturation was not reached, so this does not measure either assembly's maximum throughput. Some latency ranges overlap; no general latency or QPS improvement is established. The observed benefit is package size, readiness time and working set for this workload/environment.
+Both assemblies completed the offered load at the highest tested rate of 1000 RPS
+without recorded errors or dropped iterations. Saturation was not reached, so
+this does not measure either assembly's maximum throughput or establish that no
+throughput difference exists at higher rates. Some latency ranges overlap; no
+general latency or QPS improvement is established. Readiness and working-set
+comparisons apply only to this historical same-host workload/environment, not to
+the target platform.
+
+The historical harness divided successful response counts by the configured
+20-second arrival window, including any responses completed during graceful stop
+in the numerator. The table and `report.json` retain those original values; they
+are **not corrected wall-clock throughput measurements**. New runs use k6's actual
+run duration, including graceful stop, and record both durations. The original
+summaries needed to recalculate these historical rates are not published, so no
+corrected values or fresh measurements are claimed here.
 
 ## Validation and remaining release evidence
 

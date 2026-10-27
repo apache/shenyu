@@ -21,7 +21,10 @@ The default reactor, `shenyu-bootstrap`, existing full archives and their Docker
 No integration is removed from the main repository by this assembly.
 
 See the [2026-10-15 local comparison](results/minimal-http-2026-10-15/README.md)
-for measured results, dependency inventories and remaining validation.
+for historical, relative-only same-host observations, dependency inventories and
+remaining validation. The Windows/JDK 21 timings, throughput and resource values
+are not absolute expectations for the Linux/JDK 17 target. They do not establish
+production capacity, a throughput improvement or controlled OS-cold-cache readiness.
 
 This is a build-yourself assembly, outside the standard `-Prelease` profile. It is
 not an official ASF binary release. CI archives are test artifacts. An official
@@ -165,7 +168,7 @@ Admin REST operations to update the rule's path, delete/recreate the rule and de
 the selector. It verifies convergence through gateway traffic after every mutation.
 `.github/workflows/minimal-http.yml` packages and runs both smoke paths on JDK 17.
 
-## Same-environment measurement
+## Relative-only same-host measurement
 
 Build and extract the unchanged full bootstrap distribution from the same checkout:
 
@@ -200,6 +203,13 @@ body/status errors and dropped iterations are retained. JFR capture starts befor
 warmup and includes all measured rates equally. Raw k6 samples, summaries, process
 commands/counters, gateway logs, JFR files and `report.json` remain in the output folder.
 The output directory must be new, preventing accidental evidence replacement.
+`successful_rps` divides successful responses by k6's actual `testRunDurationMs`,
+including graceful-stop completion time, rather than only the configured arrival
+window. Both `offered_duration_s` and `measurement_duration_s` are recorded so late
+completions cannot silently inflate throughput. k6 exit 99 retains a completed
+threshold-failing point for the sweep; other nonzero exits abort the harness and
+must not be interpreted as gateway saturation. Missing or invalid counters and
+measurement durations also fail instead of becoming zero-valued evidence.
 
 Use only rates whose direct control passes when comparing gateway capacity. A point
 passes the default limits when p99 is below 100 ms, response errors are below 0.1%, and
@@ -208,7 +218,10 @@ capacity; if every rate passes, report the highest tested sustainable rate, not 
 measured maximum. Compare equal successful throughput separately from capacity limits.
 Report repetition ranges and variability; a smaller image does not establish higher QPS.
 The co-located Python upstream/generator makes this a local comparison, not a production
-capacity claim. Use dedicated hosts/cgroups and a non-bottleneck upstream for release results.
+capacity claim. Treat startup, latency, throughput and resource observations as
+relative-only for that exact host/JDK/workload. Use Linux with JDK 17, controlled
+cgroups, a separate generator host and a non-bottleneck upstream before deriving
+absolute target-platform or release conclusions.
 
 The harness labels first-observed and subsequent warm-filesystem launches honestly.
 It does not flush the operating system's file cache. True cold-cache readiness requires
