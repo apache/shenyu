@@ -86,6 +86,17 @@ public interface PluginDataSubscriber {
      */
     default void refreshSelectorDataSelf(List<SelectorData> selectorDataList) {
     }
+
+    /**
+     * Authoritatively replace the selector rows of the namespaces and plugins present
+     * in the payload. The default keeps the legacy whole-cache clear for custom subscribers.
+     *
+     * @param selectorDataList the received data
+     */
+    default void refreshSelectorDataScoped(List<SelectorData> selectorDataList) {
+        refreshSelectorDataAll();
+        onSelectorRefresh(selectorDataList);
+    }
     
     /**
      * On rule subscribe.
@@ -115,6 +126,17 @@ public interface PluginDataSubscriber {
      * @param ruleDataList the rule data list
      */
     default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
+    }
+
+    /**
+     * Authoritatively replace the rule rows of the namespaces and plugins present
+     * in the payload. The default keeps the legacy whole-cache clear for custom subscribers.
+     *
+     * @param ruleDataList the received data
+     */
+    default void refreshRuleDataScoped(List<RuleData> ruleDataList) {
+        refreshRuleDataAll();
+        onRuleRefresh(ruleDataList);
     }
 
     /**

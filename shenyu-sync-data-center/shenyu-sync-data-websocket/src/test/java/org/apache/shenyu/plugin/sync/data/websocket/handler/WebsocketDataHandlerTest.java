@@ -161,6 +161,31 @@ public final class WebsocketDataHandlerTest {
     }
 
     @Test
+    public void testFailedScopedRefreshIsNotDeduplicated() {
+        final org.apache.shenyu.plugin.base.handler.PluginDataHandler pluginHandler =
+                mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
+        Mockito.when(pluginHandler.pluginNamed()).thenReturn("divide");
+        final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.singletonList(pluginHandler),
+                mock(ApplicationEventPublisher.class), new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        final WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        final SelectorData selector = SelectorData.builder().id("failed-selector").pluginName("divide")
+                .namespaceId("namespace-a").sort(1).build();
+        final String json = GsonUtils.getInstance().toJson(Collections.singletonList(selector));
+        Mockito.doThrow(new IllegalStateException("handler failed")).when(pluginHandler).handlerSelector(Mockito.any(SelectorData.class));
+        final BaseDataCache cache = BaseDataCache.getInstance();
+        try {
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> handler.executor(ConfigGroupEnum.SELECTOR, json, DataEventTypeEnum.REFRESH.name()));
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> handler.executor(ConfigGroupEnum.SELECTOR, json, DataEventTypeEnum.REFRESH.name()));
+            Mockito.verify(pluginHandler, Mockito.times(2)).handlerSelector(Mockito.any(SelectorData.class));
+        } finally {
+            cache.cleanSelectorData();
+        }
+    }
+
+    @Test
     public void testChangedPayloadIsAppliedAgain() {
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test"), DataEventTypeEnum.REFRESH.name());
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test_2"), DataEventTypeEnum.REFRESH.name());
@@ -193,7 +218,7 @@ public final class WebsocketDataHandlerTest {
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, "[]", DataEventTypeEnum.REFRESH.name());
         websocketDataHandler.executor(ConfigGroupEnum.SELECTOR, "[]", DataEventTypeEnum.REFRESH.name());
         Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshPluginDataAll();
-        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshSelectorDataAll();
+        Mockito.verify(pluginDataSubscriber, Mockito.times(1)).refreshSelectorDataScoped(Collections.emptyList());
     }
 
     @Test
