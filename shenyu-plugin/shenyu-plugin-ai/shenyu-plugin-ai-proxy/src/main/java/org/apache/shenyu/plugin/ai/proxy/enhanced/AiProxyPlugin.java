@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
