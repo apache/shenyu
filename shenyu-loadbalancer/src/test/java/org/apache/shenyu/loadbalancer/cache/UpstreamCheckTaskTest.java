@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Timeout;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -443,6 +445,86 @@ public class UpstreamCheckTaskTest {
         assertTrue(task.getLastRoundOldestHealthStateMillis() >= 4_000L,
                 "oldest health-state age must reflect the stale timestamp, got "
                         + task.getLastRoundOldestHealthStateMillis());
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * A malformed upstream URL throws from inside the probe instead of returning {@code false}. That
+     * exception must stay confined to its own endpoint: the round still applies every other probe
+     * result, still clears its bookkeeping, and the endpoint transitions like any other failed probe
+     * (#8138). Removing it afterwards must not disturb later rounds.
+     */
+    @Test
+    @Timeout(30000)
+    public void exceptionalProbeDoesNotPoisonLaterRounds() {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        task.setPoolSize(2);
+        task.setCheckTimeout(500);
+        task.schedule();
+
+        final String selectorId = "future-isolation";
+        // "notaport" makes Integer.parseInt throw inside the probe, so this future would be
+        // exceptional rather than an ordinary unsuccessful TCP probe.
+        final Upstream malformed = Upstream.builder().url("127.0.0.1:notaport").build();
+        malformed.setHealthy(true);
+        // An ordinary failed probe that must still be applied in the same round.
+        final Upstream unreachable = Upstream.builder().url("127.0.0.1:65400").build();
+        unreachable.setHealthy(true);
+        task.triggerAddOne(selectorId, malformed);
+        task.triggerAddOne(selectorId, unreachable);
+
+        task.run();
+
+        assertFalse(task.getCheckStarted().get(), "the round must release its guard");
+        assertTrue(task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()).contains(unreachable),
+                "the failed probe must leave the healthy pool even though another probe threw");
+        assertFalse(task.getHealthyUpstream().getOrDefault(selectorId, List.of()).contains(unreachable),
+                "the failed probe must not stay in the healthy pool");
+        assertTrue(task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()).contains(malformed),
+                "the malformed endpoint must transition out of the healthy pool as a failed probe");
+
+        task.triggerRemoveOne(selectorId, malformed);
+        final long roundsBefore = task.getTotalRounds();
+        task.run();
+
+        assertTrue(task.getTotalRounds() > roundsBefore, "a later round must still complete");
+        assertFalse(task.getHealthyUpstream().getOrDefault(selectorId, List.of()).contains(malformed),
+                "the removed malformed endpoint must not be reintroduced by a later round");
+        assertTrue(task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()).contains(unreachable),
+                "the later round must keep applying probe results");
+
+        task.triggerRemoveAll(selectorId);
+    }
+
+    /**
+     * A future that fails before it can produce a result (for example a cancelled or rejected task)
+     * must be skipped without hiding the results of the futures around it, and the round must still
+     * clear its bookkeeping so the next round starts from an empty list.
+     */
+    @Test
+    @Timeout(10000)
+    @SuppressWarnings("unchecked")
+    public void failedFutureIsSkippedAndBookkeepingIsCleared() throws Exception {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        final Field futuresField = UpstreamCheckTask.class.getDeclaredField("futures");
+        futuresField.setAccessible(true);
+        final List<CompletableFuture<UpstreamWithSelectorId>> futures =
+                (List<CompletableFuture<UpstreamWithSelectorId>>) futuresField.get(task);
+
+        final String selectorId = "future-skip";
+        final Upstream recovered = Upstream.builder().url("").healthCheckEnabled(false).build();
+        recovered.setHealthy(true);
+        futures.add(CompletableFuture.supplyAsync(() -> {
+            throw new IllegalStateException("probe setup failed");
+        }));
+        futures.add(CompletableFuture.completedFuture(new UpstreamWithSelectorId(selectorId, recovered)));
+
+        task.run();
+
+        assertTrue(task.getHealthyUpstream().getOrDefault(selectorId, List.of()).contains(recovered),
+                "a healthy result after a failed future must still be applied");
+        assertTrue(futures.isEmpty(), "the round must always clear its futures, got " + futures.size());
 
         task.triggerRemoveAll(selectorId);
     }
