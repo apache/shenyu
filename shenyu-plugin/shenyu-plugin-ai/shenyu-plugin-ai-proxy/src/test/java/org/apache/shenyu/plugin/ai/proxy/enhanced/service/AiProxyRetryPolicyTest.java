@@ -98,6 +98,8 @@ class AiProxyRetryPolicyTest {
     void shouldBlockAmbiguousReplayWhenRequestBearsTools() {
         for (AiTransportException.Kind kind : new AiTransportException.Kind[] {
                 AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
+                AiTransportException.Kind.RESPONSE_TOO_LARGE,
                 AiTransportException.Kind.CONNECTION_RESET,
                 AiTransportException.Kind.IO_FAILURE}) {
             assertEquals(AiProxyRetryPolicy.Decision.PROPAGATE_ERROR,
@@ -105,6 +107,18 @@ class AiProxyRetryPolicyTest {
         }
         assertEquals(AiProxyRetryPolicy.Decision.RETRY,
                 policy.decideTransport(transport(AiTransportException.Kind.CONNECT_TIMEOUT, 2, true, false)));
+    }
+
+    @Test
+    void shouldApplyNeverPolicyToFallbackEligibleTransportFailure() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        properties.getReplay().setAmbiguousTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        assertEquals(AiProxyRetryPolicy.Decision.PROPAGATE_ERROR, policy.decideTransport(
+                fallbackContext(AiTransportException.Kind.RESPONSE_TOO_LARGE, properties)));
+
+        properties.getReplay().setDefiniteTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        assertEquals(AiProxyRetryPolicy.Decision.PROPAGATE_ERROR, policy.decideTransport(
+                fallbackContext(AiTransportException.Kind.CONNECT_TIMEOUT, properties)));
     }
 
     @Test
@@ -182,6 +196,12 @@ class AiProxyRetryPolicyTest {
                                                       final boolean providerDeclared) {
         return new AiProxyRetryPolicy.FailureContext(kind, null, Map.of(), 1, false, true,
                 ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), providerDeclared, false);
+    }
+
+    private AiProxyRetryPolicy.FailureContext fallbackContext(final AiTransportException.Kind kind,
+                                                              final AiProxyRetryProperties properties) {
+        return new AiProxyRetryPolicy.FailureContext(kind, null, Map.of(), 1, true, true,
+                ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), true, true);
     }
 
     private AiProxyRetryPolicy.FailureContext contextStatus(final int status,

@@ -36,6 +36,8 @@ final class AiProxyRetryPolicy {
 
     private static final Set<AiTransportException.Kind> AMBIGUOUS_FAILURES =
             Set.of(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                    AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
+                    AiTransportException.Kind.RESPONSE_TOO_LARGE,
                     AiTransportException.Kind.CONNECTION_RESET,
                     AiTransportException.Kind.IO_FAILURE);
 
@@ -43,23 +45,23 @@ final class AiProxyRetryPolicy {
         if (!retryableStatus(context.status())) {
             return Decision.FORWARD_RESPONSE;
         }
-        return decideReplayableFailure(context, context.fallbackAvailable());
+        return decideReplayableFailure(context, true, context.fallbackAvailable());
     }
 
     Decision decideTransport(final FailureContext context) {
-        if (!retryableTransportFailure(context.kind())) {
-            if (context.fallbackAvailable() && fallbackEligibleTransportFailure(context.kind())) {
-                return Decision.FALLBACK;
-            }
+        boolean retryEligible = retryableTransportFailure(context.kind());
+        boolean fallbackEligible = fallbackEligibleTransportFailure(context.kind());
+        if (!retryEligible && !fallbackEligible) {
             return Decision.PROPAGATE_ERROR;
         }
-        return decideReplayableFailure(context, fallbackEligibleTransportFailure(context.kind()));
+        return decideReplayableFailure(context, retryEligible, fallbackEligible);
     }
 
-    private Decision decideReplayableFailure(final FailureContext context, final boolean fallbackEligible) {
+    private Decision decideReplayableFailure(final FailureContext context, final boolean retryEligible,
+                                             final boolean fallbackEligible) {
         AiProxyRetryProperties.ReplayMode mode = context.replayPolicy()
                 .mode(context.operation(), context.executionAmbiguous(), !context.hasStatus());
-        if (context.retriesRemaining() > 0
+        if (retryEligible && context.retriesRemaining() > 0
                 && replayAllowed(mode, context.providerDeclaredReplaySafe(), context)) {
             return Decision.RETRY;
         }

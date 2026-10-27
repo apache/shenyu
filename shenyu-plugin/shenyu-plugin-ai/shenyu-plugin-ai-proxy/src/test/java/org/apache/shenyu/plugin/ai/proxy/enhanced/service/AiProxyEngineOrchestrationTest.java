@@ -565,6 +565,47 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void responseTooLargeHonorsNeverReplayPolicyForToolBearingRequests() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyRetryProperties properties = noJitterRetryProperties();
+        properties.getReplay().setAmbiguousTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        properties.getReplay().setDefiniteTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(responseTooLargeFailure());
+        }, properties);
+        String toolBody = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\"}}],"
+                + "\"tool_choice\":\"auto\"}";
+
+        StepVerifier.create(engine.execute(toolBody, config(false, "main"), Optional.of(config(false, "fallback")),
+                response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_TOO_LARGE,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void streamIdleTimeoutHonorsConservativePolicyForToolBearingRequests() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(transportFailure(AiTransportException.Kind.STREAM_IDLE_TIMEOUT));
+        }, noJitterRetryProperties());
+        String toolBody = "{\"stream\":true,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\"}}],"
+                + "\"tool_choice\":\"auto\"}";
+
+        StepVerifier.create(engine.execute(toolBody, config(true, "main"), Optional.empty(),
+                response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
     void neverRetriesOrFallsBackAfterBodyEmission() {
         AtomicInteger calls = new AtomicInteger();
         List<String> received = new ArrayList<>();

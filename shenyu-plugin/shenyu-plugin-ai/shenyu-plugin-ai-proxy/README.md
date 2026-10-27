@@ -228,7 +228,10 @@ configure pools/timeouts, write client responses, or implement retry/fallback po
   No retry or fallback occurs after a converted response event reaches the client.
 - Retry replay is bounded by a shared request deadline and configurable by failure
   stage, operation, and provider replay-safety declaration. By default ambiguous
-  transport failures are replayed only for requests without tool-bearing fields.
+  transport failures—including post-execution stream idle and response-size
+  failures—are replayed only for requests without tool-bearing fields. Fallback
+  uses the same replay policy as another upstream execution; an explicit `NEVER`
+  policy blocks fallback as well as retry.
   `Retry-After` (delay-seconds or HTTP date), capped exponential backoff, and
   bounded jitter are applied together; an over-limit Retry-After stops replay
   rather than retrying earlier than the upstream allows. Primary retries and
