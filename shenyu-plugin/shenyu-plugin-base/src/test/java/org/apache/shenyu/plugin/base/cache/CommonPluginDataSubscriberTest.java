@@ -599,7 +599,7 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
-    public void testRefreshSelectorDataScopedHandlerFailureIsLoggedAndCacheConverges() {
+    public void testRefreshSelectorDataScopedHandlerFailurePropagatesAndCacheConverges() {
         final SelectorData staleRow = SelectorData.builder().id("s-stale").pluginName("divide")
                 .namespaceId("ns1").sort(1).build();
         baseDataCache.cacheSelectData(staleRow);
@@ -609,12 +609,13 @@ public final class CommonPluginDataSubscriberTest {
                 .namespaceId("ns1").sort(3).build();
         doThrow(new IllegalStateException("handler failed")).when(handler).handlerSelector(failing);
 
-        assertDoesNotThrow(() -> commonPluginDataSubscriber.refreshSelectorDataScoped(List.of(failing, succeeding)));
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.refreshSelectorDataScoped(List.of(failing, succeeding)));
 
-        // the cache converges and later callbacks are still delivered despite the failing handler
+        // the cache already converged before the callbacks ran, so the failure does not roll it back,
+        // and the failing row aborts the remaining callbacks like the legacy refresh did
         assertEquals(List.of(failing, succeeding), baseDataCache.obtainSelectorData("divide"));
         verify(handler).removeSelector(staleRow);
-        verify(handler).handlerSelector(succeeding);
+        verify(handler, never()).handlerSelector(succeeding);
     }
 
     @Test
@@ -680,7 +681,7 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
-    public void testRefreshRuleDataScopedHandlerFailureIsLoggedAndCacheConverges() {
+    public void testRefreshRuleDataScopedHandlerFailurePropagatesAndCacheConverges() {
         final RuleData staleRow = RuleData.builder().id("r-stale").selectorId("selector-failure").pluginName("divide")
                 .namespaceId("ns1").sort(1).build();
         baseDataCache.cacheRuleData(staleRow);
@@ -690,11 +691,11 @@ public final class CommonPluginDataSubscriberTest {
                 .namespaceId("ns1").sort(3).build();
         doThrow(new IllegalStateException("handler failed")).when(handler).handlerRule(failing);
 
-        assertDoesNotThrow(() -> commonPluginDataSubscriber.refreshRuleDataScoped(List.of(failing, succeeding)));
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.refreshRuleDataScoped(List.of(failing, succeeding)));
 
         assertEquals(List.of(failing, succeeding), baseDataCache.obtainRuleData("selector-failure"));
         verify(handler).removeRule(staleRow);
-        verify(handler).handlerRule(succeeding);
+        verify(handler, never()).handlerRule(succeeding);
     }
 
     @Test

@@ -182,7 +182,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
 
     @Override
     public void applySelectorDataSnapshot(final String namespaceId, final List<SelectorData> dataList) {
-        applySelectorSnapshotCore(namespaceId, null, dataList);
+        applySelectorSnapshotCore(false, namespaceId, null, dataList);
     }
 
     @Override
@@ -194,19 +194,22 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         final Map<String, List<SelectorData>> dataByNamespace = new LinkedHashMap<>();
         dataList.stream().filter(Objects::nonNull).forEach(data ->
                 dataByNamespace.computeIfAbsent(data.getNamespaceId(), key -> new ArrayList<>()).add(data));
-        dataByNamespace.forEach((namespaceId, namespaceData) -> applySelectorSnapshotCore(namespaceId,
+        dataByNamespace.forEach((namespaceId, namespaceData) -> applySelectorSnapshotCore(true, namespaceId,
                 scopeKeys(namespaceData, SelectorData::getPluginName), namespaceData));
     }
 
     /**
      * Shared body of {@link #applySelectorDataSnapshot} and {@link #refreshSelectorDataScoped}:
      * an authoritative replace restricted to the given scopes, where a null plugin set
-     * keeps every plugin of the given namespaces. Cache rows converge first, then per-row
-     * callbacks run guarded so one failing handler does not block the remaining rows, and
-     * the match cache invalidates last, after the rows it mirrors are already gone.
+     * keeps every plugin of the given namespaces. Cache rows converge first, and the match
+     * cache invalidates last, after the rows it mirrors are already gone.
+     *
+     * @param propagateHandlerFailures snapshots isolate a failing handler so remaining rows still converge,
+     *                                 while a scoped refresh propagates it so the caller cannot treat the
+     *                                 payload as applied (the websocket dedup would skip the retry)
      */
-    private void applySelectorSnapshotCore(final String namespaceId, final Set<String> pluginNames,
-                                           final List<SelectorData> dataList) {
+    private void applySelectorSnapshotCore(final boolean propagateHandlerFailures, final String namespaceId,
+                                           final Set<String> pluginNames, final List<SelectorData> dataList) {
         final BaseDataCache cache = BaseDataCache.getInstance();
         // A row without a plugin name yields a null grouping key in refreshSelectorData, whose compute on a
         // concurrent map throws and would abort the whole snapshot (and, over a websocket, loop resyncs).
@@ -235,14 +238,14 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         try {
             // removal callbacks run first so handler state keyed by row id is installed last
-            stale.forEach(data -> runGuarded(data, () -> {
+            stale.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.removeSelector(data));
                 }
             }));
-            incoming.forEach(data -> runGuarded(data, () -> {
+            incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.handlerSelector(data));
@@ -258,7 +261,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
 
     @Override
     public void applyRuleDataSnapshot(final String namespaceId, final List<RuleData> dataList) {
-        applyRuleSnapshotCore(namespaceId, null, dataList);
+        applyRuleSnapshotCore(false, namespaceId, null, dataList);
     }
 
     @Override
@@ -270,15 +273,19 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         final Map<String, List<RuleData>> dataByNamespace = new LinkedHashMap<>();
         dataList.stream().filter(Objects::nonNull).forEach(data ->
                 dataByNamespace.computeIfAbsent(data.getNamespaceId(), key -> new ArrayList<>()).add(data));
-        dataByNamespace.forEach((namespaceId, namespaceData) -> applyRuleSnapshotCore(namespaceId,
+        dataByNamespace.forEach((namespaceId, namespaceData) -> applyRuleSnapshotCore(true, namespaceId,
                 scopeKeys(namespaceData, RuleData::getPluginName), namespaceData));
     }
 
     /**
      * Rule counterpart of {@link #applySelectorSnapshotCore} for
      * {@link #applyRuleDataSnapshot} and {@link #refreshRuleDataScoped}.
+     *
+     * @param propagateHandlerFailures snapshots isolate a failing handler so remaining rows still converge,
+     *                                 while a scoped refresh propagates it so the caller cannot treat the
+     *                                 payload as applied (the websocket dedup would skip the retry)
      */
-    private void applyRuleSnapshotCore(final String namespaceId, final Set<String> pluginNames,
+    private void applyRuleSnapshotCore(final boolean propagateHandlerFailures, final String namespaceId, final Set<String> pluginNames,
                                        final List<RuleData> dataList) {
         final BaseDataCache cache = BaseDataCache.getInstance();
         // A row without a selector id yields a null grouping key in refreshRuleData, whose compute on a
@@ -315,13 +322,13 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             // A moved rule is stale under its old membership and incoming under the new one, and handlers
             // may key rule state by rule id alone, so removals must run first: running them after would
             // delete the replacement state the incoming callbacks just installed.
-            stale.forEach(data -> runGuarded(data, () -> {
+            stale.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.removeRule(data));
                 }
             }));
-            incoming.forEach(data -> runGuarded(data, () -> {
+            incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.handlerRule(data));
@@ -556,6 +563,18 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         if (ruleMatchCacheConfig.getCache().getEnabled()) {
             MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
             MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
+        }
+    }
+
+    /**
+     * Run a per-row callback for an authoritative apply: unguarded when the caller must see the
+     * failure, otherwise guarded as described in {@link #runGuarded}.
+     */
+    private <T> void runCallback(final boolean propagateHandlerFailures, final T data, final Runnable action) {
+        if (propagateHandlerFailures) {
+            action.run();
+        } else {
+            runGuarded(data, action);
         }
     }
 
