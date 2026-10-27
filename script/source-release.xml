@@ -32,6 +32,8 @@
       <excludes>
         <!-- Bundled GitHub Actions are CI tooling, not release sources. -->
         <exclude>actions/**</exclude>
+        <!-- The wrapper downloads this bootstrap binary when needed. -->
+        <exclude>.mvn/wrapper/maven-wrapper.jar</exclude>
         <!-- build output -->
         <exclude>%regex[(?!((?!${project.build.directory}/)[^/]+/)*src/).*${project.build.directory}.*]</exclude>
 
