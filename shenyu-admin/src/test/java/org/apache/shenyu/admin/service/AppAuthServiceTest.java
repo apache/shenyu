@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
@@ -107,6 +108,9 @@ public final class AppAuthServiceTest {
     @Mock
     private AuthPathMapper authPathMapper;
 
+    @Mock
+    private AppAuthRequestMapper appAuthRequestMapper;
+
     private final AppAuthDO appAuthDO = buildAppAuthDO();
 
     @Test
@@ -168,8 +172,16 @@ public final class AppAuthServiceTest {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamList(authParamDTOList);
+        AuthPathDTO firstPath = buildAuthPathDTO();
+        AuthPathDTO secondPath = buildAuthPathDTO();
+        secondPath.setAppName("secondAppName");
+        secondPath.setPath("/second");
+        appAuthDTO.setAuthPathList(List.of(firstPath, secondPath));
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 2
+                && "testAppName".equals(paths.get(0).getAppName())
+                && "secondAppName".equals(paths.get(1).getAppName())));
         verify(appAuthMapper).updateSelective(any(AppAuthDO.class));
         verify(appAuthMapper, never()).update(any(AppAuthDO.class));
     }

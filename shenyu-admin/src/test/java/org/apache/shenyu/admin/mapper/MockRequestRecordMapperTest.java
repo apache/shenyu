@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
+import org.apache.shenyu.admin.model.vo.MockRequestRecordVO;
+import org.apache.shenyu.admin.service.MockRequestRecordService;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,9 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private MockRequestRecordMapper mockRequestRecordMapper;
+
+    @Resource
+    private MockRequestRecordService mockRequestRecordService;
 
     @Test
     @Transactional
@@ -175,6 +180,64 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         mockRequestRecordQuery.setUrl("http://baidu.com/test");
         List<MockRequestRecordDO> mockRequestRecordDOS = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
         assertEquals(mockRequestRecordDOS.size(), 1);
+    }
+
+    @Test
+    @Transactional
+    public void testSelectByQueryOrdersByDateUpdatedAndId() {
+        Timestamp older = Timestamp.valueOf("2024-01-01 00:00:00");
+        Timestamp newer = Timestamp.valueOf("2024-01-02 00:00:00");
+        MockRequestRecordDO olderRecord = MockRequestRecordDO.builder()
+                .id("mock-order-older")
+                .apiId("mock-order-api")
+                .host("127.0.0.1")
+                .port(8080)
+                .url("http://localhost/older")
+                .pathVariable("")
+                .query("")
+                .header("")
+                .dateCreated(older)
+                .dateUpdated(older)
+                .build();
+        MockRequestRecordDO newerRecord = MockRequestRecordDO.builder()
+                .id("mock-order-z")
+                .apiId("mock-order-api")
+                .host("127.0.0.1")
+                .port(8080)
+                .url("http://localhost/newer")
+                .pathVariable("")
+                .query("")
+                .header("")
+                .dateCreated(newer)
+                .dateUpdated(newer)
+                .build();
+        MockRequestRecordDO sameTimeRecord = MockRequestRecordDO.builder()
+                .id("mock-order-y")
+                .apiId("mock-order-api")
+                .host("127.0.0.1")
+                .port(8080)
+                .url("http://localhost/same-time")
+                .pathVariable("")
+                .query("")
+                .header("")
+                .dateCreated(newer)
+                .dateUpdated(newer)
+                .build();
+        mockRequestRecordMapper.insert(olderRecord);
+        mockRequestRecordMapper.insert(newerRecord);
+        mockRequestRecordMapper.insert(sameTimeRecord);
+
+        MockRequestRecordQuery query = new MockRequestRecordQuery();
+        query.setApiId("mock-order-api");
+        List<MockRequestRecordDO> records = mockRequestRecordMapper.selectByQuery(query);
+
+        assertEquals(3, records.size());
+        assertEquals("mock-order-z", records.get(0).getId());
+        assertEquals("mock-order-y", records.get(1).getId());
+        assertEquals("mock-order-older", records.get(2).getId());
+
+        MockRequestRecordVO selectedRecord = mockRequestRecordService.queryByApiId("mock-order-api");
+        assertEquals("mock-order-z", selectedRecord.getId());
     }
 
     @Test

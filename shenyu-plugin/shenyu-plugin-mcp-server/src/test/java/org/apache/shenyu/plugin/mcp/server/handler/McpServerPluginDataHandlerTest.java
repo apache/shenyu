@@ -204,7 +204,6 @@ class McpServerPluginDataHandlerTest {
     void movingASelectorRevokesTheToolFromThePreviousServer() {
         dataHandler.handlerRule(restartRule());
         dataHandler.handlerSelector(restartSelector());
-        when(shenyuMcpServerManager.hasMcpServer("/restart")).thenReturn(true);
         when(shenyuMcpServerManager.hasMcpServer("/moved")).thenReturn(true);
         SelectorData moved = restartSelector();
         moved.getConditionList().get(0).setParamValue("/moved/**");
@@ -228,7 +227,6 @@ class McpServerPluginDataHandlerTest {
     void movedSelectorReplaysRulesToAnExistingServer() {
         dataHandler.handlerRule(restartRule());
         dataHandler.handlerSelector(restartSelector());
-        when(shenyuMcpServerManager.hasMcpServer("/restart")).thenReturn(true);
         when(shenyuMcpServerManager.hasMcpServer("/moved")).thenReturn(true);
         SelectorData moved = restartSelector();
         moved.getConditionList().get(0).setParamValue("/moved/**");
@@ -246,6 +244,70 @@ class McpServerPluginDataHandlerTest {
         rule.setHandle(null);
         dataHandler.handlerSelector(restartSelector());
         verify(shenyuMcpServerManager).addTool(eq("/restart"), eq("restart-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void testHandlerSelectorEndpointUpdateRebuildsServer() {
+        // first sync creates the server with the default endpoint, and a rule registers its tool
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/message");
+        dataHandler.handlerRule(endpointRule());
+        verify(shenyuMcpServerManager).addTool(eq("/endpoint"), eq("endpoint-tool"), any(), any(), anyString());
+
+        // handle-only update: same path, new endpoint — the server must be rebuilt
+        // around the new endpoint and the tools replayed onto it (#8044)
+        org.mockito.Mockito.reset(shenyuMcpServerManager);
+        when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(false);
+        dataHandler.handlerSelector(endpointSelector("/rpc"));
+        verify(shenyuMcpServerManager).removeMcpServer("/endpoint");
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/rpc");
+        verify(shenyuMcpServerManager).addTool(eq("/endpoint"), eq("endpoint-tool"), any(), any(), anyString());
+    }
+
+    @Test
+    void testEndpointUpdateRebuildsEvenWhenTeardownFindsNoServer() {
+        // first sync creates the server under the default endpoint
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/message");
+
+        // stale-window sync: the manager no longer knows a server under the previous
+        // path, yet one still exists under the current path advertising the old
+        // endpoint; the rebuild must not depend on that lookup (#8044)
+        org.mockito.Mockito.reset(shenyuMcpServerManager);
+        when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(false, true);
+        dataHandler.handlerSelector(endpointSelector("/rpc"));
+        verify(shenyuMcpServerManager).removeMcpServer("/endpoint");
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/rpc");
+    }
+
+    @Test
+    void testHandlerSelectorUnchangedEndpointDoesNotRebuildServer() {
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager).getOrCreateMcpServerTransport("/endpoint", "/message");
+
+        dataHandler.handlerSelector(endpointSelector("/message"));
+        verify(shenyuMcpServerManager, never()).removeMcpServer(anyString());
+        verify(shenyuMcpServerManager, never()).getOrCreateMcpServerTransport("/endpoint", "/rpc");
+    }
+
+    private SelectorData endpointSelector(final String messageEndpoint) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue("/endpoint/**");
+        SelectorData selector = new SelectorData();
+        selector.setId("endpoint-selector");
+        selector.setConditionList(Collections.singletonList(condition));
+        selector.setHandle("{\"messageEndpoint\":\"" + messageEndpoint + "\"}");
+        return selector;
+    }
+
+    private RuleData endpointRule() {
+        RuleData rule = new RuleData();
+        rule.setId("endpoint-rule");
+        rule.setSelectorId("endpoint-selector");
+        rule.setName("endpoint-tool");
+        rule.setHandle("{\"name\":\"endpoint-tool\",\"parameters\":[]}");
+        return rule;
     }
 
     private RuleData restartRule() {
@@ -376,7 +438,6 @@ class McpServerPluginDataHandlerTest {
         previousServer.setPath("/mcp/old");
         McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector1", previousServer);
         when(shenyuMcpServerManager.hasMcpServer(anyString())).thenReturn(false);
-        when(shenyuMcpServerManager.hasMcpServer("/mcp/old")).thenReturn(true);
 
         ConditionData condition = new ConditionData();
         condition.setParamType(ParamTypeEnum.URI.getName());

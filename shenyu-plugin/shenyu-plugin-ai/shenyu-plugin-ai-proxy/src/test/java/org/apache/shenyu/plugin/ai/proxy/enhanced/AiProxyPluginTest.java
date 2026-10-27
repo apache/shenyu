@@ -44,7 +44,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -58,6 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -177,10 +180,63 @@ class AiProxyPluginTest {
     }
 
     @Test
-    void missingProxyKeyIsUnauthorized() {
+    void invalidProxyKeyRejectsBeforeReadingRequestBody() {
         handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "invalid")
+                .body(body.flux(REQUEST_BODY)));
         StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
         assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void disabledProxyKeyRejectsBeforeReadingRequestBody() {
+        handle.setProxyEnabled("true");
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-disabled")
+                .realApiKey("real-key").enabled(false).build());
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-disabled")
+                .body(body.flux(REQUEST_BODY)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void missingProxyKeyIsUnauthorizedBeforeReadingRequestBody() {
+        handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(body.flux(REQUEST_BODY)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void invalidProxyKeyRejectsOversizedBodyWithoutAggregatingIt() {
+        handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "invalid")
+                .body(body.flux("x".repeat(5 * 1024 * 1024 + 1))));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void validProxyKeyStillEnforcesBodyLimit() {
+        handle.setProxyEnabled("true");
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-valid")
+                .realApiKey("real-key").enabled(true).build());
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-valid")
+                .body("x".repeat(5 * 1024 * 1024 + 1)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
         assertTrue(requests.isEmpty());
     }
 
@@ -299,6 +355,12 @@ class AiProxyPluginTest {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
+    private void assertBodyNotSubscribed(final BodyProbe body) {
+        assertEquals(0, body.subscriptions.get());
+        assertEquals(0, body.reads.get());
+        assertEquals(0, body.cancellations.get());
+    }
+
     private AiProxyHandle.FallbackConfig fallback(final String prefix) {
         AiProxyHandle.FallbackConfig config = new AiProxyHandle.FallbackConfig();
         config.setProvider("DeepSeek");
@@ -310,5 +372,21 @@ class AiProxyPluginTest {
 
     private AiTransportException failure() {
         return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "fixture failure", null);
+    }
+
+    private static final class BodyProbe {
+
+        private final AtomicInteger subscriptions = new AtomicInteger();
+
+        private final AtomicInteger reads = new AtomicInteger();
+
+        private final AtomicInteger cancellations = new AtomicInteger();
+
+        private Flux<DataBuffer> flux(final String body) {
+            return Flux.<DataBuffer>just(new DefaultDataBufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8)))
+                    .doOnSubscribe(subscription -> subscriptions.incrementAndGet())
+                    .doOnNext(buffer -> reads.incrementAndGet())
+                    .doOnCancel(cancellations::incrementAndGet);
+        }
     }
 }

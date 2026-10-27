@@ -133,6 +133,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     public void offline(final URIRegisterDTO offlineDTO) {
         doUnregister(offlineDTO);
     }
+
+    @Override
+    public void draining(final URIRegisterDTO drainingDTO) {
+        if (RuntimeUtils.listenByOther(drainingDTO.getPort())) {
+            return;
+        }
+        drainingDTO.setEventType(EventType.DRAINING);
+        doRegister(drainingDTO, Constants.URI_PATH, Constants.URI);
+    }
     
     @Override
     public void sendHeartbeat(final URIRegisterDTO heartbeatDTO) {
