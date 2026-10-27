@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.TagService;
@@ -61,6 +62,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
@@ -94,6 +98,9 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Mock
     private UpstreamCheckService upstreamCheckService;
+
+    @Mock
+    private DiscoveryUpstreamService discoveryUpstreamService;
 
     @Mock
     private RegisterApiDocService registerApiDocService;
@@ -237,6 +244,24 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         assertTrue(ruleDTO.getLogged());
         assertEquals(1, ruleDTO.getSort());
         assertEquals("Rule_Handler", ruleDTO.getHandle());
+    }
+
+    @Test
+    public void testDoNotReadyAndDoReady() {
+        SelectorDO selectorDO = new SelectorDO();
+        selectorDO.setId("selector-1");
+        selectorDO.setSelectorName("ctx");
+        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        List<URIRegisterDTO> uriList = Collections.singletonList(URIRegisterDTO.builder()
+                .host("127.0.0.1").port(8080).protocol("http://").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build());
+
+        assertEquals(ShenyuResultMessage.SUCCESS,
+                abstractShenyuClientRegisterService.doNotReady("ctx", uriList, SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryUpstreamService).markNotReadyBySelectorIdAndUrl(eq("selector-1"), anyString(), eq(true));
+
+        assertEquals(ShenyuResultMessage.SUCCESS,
+                abstractShenyuClientRegisterService.doReady("ctx", uriList, SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryUpstreamService).markReadyBySelectorIdAndUrl(eq("selector-1"), anyString());
     }
 
     static class MockAbstractShenyuClientRegisterServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
