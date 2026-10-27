@@ -53,6 +53,7 @@ import org.apache.shenyu.plugin.divide.sticky.StickySessionAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -417,13 +418,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
             public Flux<DataBuffer> getBody() {
                 return Flux.defer(() -> {
                     forwarded = 0;
-                    return super.getBody().doOnNext(buffer -> {
-                        forwarded += buffer.readableByteCount();
-                        if (forwarded > maxSize) {
-                            LOG.error("request entity is too large");
-                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
-                        }
-                    });
+                    // The overflowing chunk is owned by this operator and is released before the
+                    // error is propagated. doOnDiscard covers chunks that an upstream publisher
+                    // has already queued when the body is cancelled or fails before forwarding.
+                    return super.getBody()
+                            .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                            .doOnNext(buffer -> {
+                                forwarded += buffer.readableByteCount();
+                                if (forwarded > maxSize) {
+                                    DataBufferUtils.release(buffer);
+                                    LOG.error("request entity is too large");
+                                    throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                                }
+                            });
                 });
             }
         }).build();
