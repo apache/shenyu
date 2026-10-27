@@ -21,6 +21,7 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import org.apache.shenyu.common.config.ShenyuConfig.MetricsConfig;
 import org.apache.shenyu.common.metrics.LoggingQueueMetrics;
+import org.apache.shenyu.common.metrics.AgentMcpCatalogMetrics;
 import org.apache.shenyu.common.metrics.LoggingQueueMetrics.Mode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
@@ -55,8 +56,10 @@ public final class PrometheusMetricsServiceTest {
     @Test
     public void testRegistersLoggingQueueMetrics() {
         LoggingQueueMetrics metrics = new LoggingQueueMetrics(getClass(), Mode.SINGLE, () -> 2, () -> 10);
+        AgentMcpCatalogMetrics catalog = new AgentMcpCatalogMetrics(() -> new AgentMcpCatalogMetrics.Snapshot(2, 1, 1, 0, 5000, true, true, false));
         try {
             metrics.register();
+            catalog.register();
             MetricsConfig config = new MetricsConfig();
             config.setProps(new Properties());
             PrometheusMetricsService service = new PrometheusMetricsService();
@@ -64,8 +67,11 @@ public final class PrometheusMetricsServiceTest {
             ReflectionTestUtils.invokeMethod(service, "register", config);
             assertEquals(2.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.LOGGING_QUEUE_SIZE,
                     new String[]{"collector", "mode"}, new String[]{getClass().getName(), "single"}));
+            assertEquals(5.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_MCP_CATALOG_LAST_SUCCESS_AGE_SECONDS));
+            assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_MCP_CATALOG_RECOVERIES_TOTAL));
         } finally {
             metrics.unregister();
+            catalog.unregister();
             CollectorRegistry.defaultRegistry.clear();
         }
     }

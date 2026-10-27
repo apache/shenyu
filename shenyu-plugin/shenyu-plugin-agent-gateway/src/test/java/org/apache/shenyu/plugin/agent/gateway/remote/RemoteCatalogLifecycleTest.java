@@ -175,6 +175,24 @@ class RemoteCatalogLifecycleTest {
     }
 
     @Test
+    void publicationHookObservesCommittedGenerationAndSkipsFencedWork() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        AtomicInteger publications = new AtomicInteger();
+        try {
+            manager.refresh(List.of(), List.of(), Set.of(), () -> true, 1, version -> {
+                assertEquals(version, manager.diagnosticsState().currentVersion());
+                publications.incrementAndGet();
+            }).block(WAIT);
+            assertEquals(1, publications.get());
+            assertNull(manager.refresh(List.of(), List.of(), Set.of(), () -> false, 1,
+                    ignored -> publications.incrementAndGet()).block(WAIT));
+            assertEquals(1, publications.get());
+        } finally {
+            manager.closeGracefully().block(WAIT);
+        }
+    }
+
+    @Test
     void supersededControlUpdateCannotPublishAfterHandshakeCompletes() {
         Fake client = new Fake("superseded");
         client.handshake = Sinks.one();
@@ -304,6 +322,81 @@ class RemoteCatalogLifecycleTest {
         assertThrows(IllegalArgumentException.class, () -> new RemoteCatalogLifecycle(3, 9));
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 9, Integer.MAX_VALUE})
+    void invalidRefreshConcurrencyPreservesPublishedDirectory(final int concurrency) {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        Fake current = new Fake("current");
+        AtomicInteger allocations = new AtomicInteger();
+        try {
+            manager.refresh(List.of(config(current))).block(WAIT);
+            long version = manager.diagnosticsState().currentVersion();
+            var target = new RemoteCatalogLifecycle.Config("next", "v1", () -> {
+                allocations.incrementAndGet();
+                return new Fake("next");
+            });
+            assertThrows(IllegalArgumentException.class,
+                    () -> manager.refresh(List.of(target), List.of(), Set.of(), () -> true, concurrency).block(WAIT));
+            assertEquals(0, allocations.get());
+            assertEquals(version, manager.diagnosticsState().currentVersion());
+            assertEquals(TOOLS, manager.visible(TOOLS, TOOLS));
+            assertEquals(0, current.closes.get());
+        } finally {
+            manager.closeGracefully().block(WAIT);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 8})
+    void perRefreshConcurrencyBoundsHandshakeSubscriptions(final int concurrency) {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, concurrency == 1 ? 8 : 1);
+        List<Fake> clients = List.of(new Fake("alpha"), new Fake("beta"), new Fake("gamma"));
+        clients.forEach(client -> client.handshake = Sinks.one());
+        List<RemoteCatalogLifecycle.Config> configs = clients.stream().map(client -> config(client.version, client)).toList();
+        var update = manager.refresh(configs, List.of(), Set.of(), () -> true, concurrency).toFuture();
+        try {
+            assertEquals(Math.min(concurrency, clients.size()),
+                    clients.stream().mapToInt(client -> client.handshake.currentSubscriberCount()).sum());
+            for (Fake client : clients) {
+                assertEquals(1, client.handshake.currentSubscriberCount());
+                client.handshake.tryEmitValue(client.info());
+                assertTrue(clients.stream().mapToInt(target -> target.handshake.currentSubscriberCount()).sum() <= concurrency);
+            }
+            Mono.fromFuture(update).block(WAIT);
+            assertEquals(3, manager.diagnosticsState().clients());
+        } finally {
+            update.cancel(true);
+            manager.closeGracefully().block(WAIT);
+        }
+        clients.forEach(client -> assertEquals(1, client.closes.get()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 8})
+    void perRefreshConcurrencyBoundsDiscoverySubscriptions(final int concurrency) {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, concurrency == 1 ? 8 : 1);
+        List<Fake> clients = List.of(new Fake("alpha"), new Fake("beta"), new Fake("gamma"));
+        clients.forEach(client -> client.discoveryGate = Sinks.one());
+        List<RemoteCatalogLifecycle.Config> configs = clients.stream().map(client -> config(client.version, client)).toList();
+        var update = manager.refresh(configs, List.of(), Set.of(), () -> true, concurrency).toFuture();
+        try {
+            assertEquals(Math.min(concurrency, clients.size()),
+                    clients.stream().mapToInt(client -> client.discoveryGate.currentSubscriberCount()).sum());
+            for (Fake client : clients) {
+                assertEquals(1, client.discoveryGate.currentSubscriberCount());
+                client.discoveryGate.tryEmitValue(true);
+                assertTrue(clients.stream().mapToInt(target -> target.discoveryGate.currentSubscriberCount()).sum() <= concurrency);
+            }
+            Mono.fromFuture(update).block(WAIT);
+            Set<String> exposed = Set.of("alpha.lookup", "beta.lookup", "gamma.lookup");
+            assertEquals(exposed, manager.visible(exposed, exposed));
+        } finally {
+            update.cancel(true);
+            manager.closeGracefully().block(WAIT);
+        }
+        clients.forEach(client -> assertEquals(1, client.closes.get()));
+    }
+
     @Test
     void boundedParallelRefreshPublishesEveryTargetDeterministically() {
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, 4);
@@ -354,6 +447,8 @@ class RemoteCatalogLifecycleTest {
 
         private Sinks.One<McpSchema.InitializeResult> handshake;
 
+        private Sinks.One<Boolean> discoveryGate;
+
         private boolean failClose;
 
         private boolean failHandshake;
@@ -386,7 +481,8 @@ class RemoteCatalogLifecycleTest {
             if (Objects.isNull(cursor) || repeatCursor) {
                 page.put("nextCursor", "page-two");
             }
-            return Mono.just(json.convertValue(page, McpSchema.ListToolsResult.class));
+            McpSchema.ListToolsResult result = json.convertValue(page, McpSchema.ListToolsResult.class);
+            return Objects.isNull(cursor) && Objects.nonNull(discoveryGate) ? discoveryGate.asMono().thenReturn(result) : Mono.just(result);
         }
 
         @Override
