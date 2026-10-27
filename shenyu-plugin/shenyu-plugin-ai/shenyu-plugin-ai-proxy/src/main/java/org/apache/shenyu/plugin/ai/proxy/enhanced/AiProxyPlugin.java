@@ -115,6 +115,27 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+            final String realApiKey;
+            if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
+                String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
+                realApiKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                        : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                if (Objects.isNull(realApiKey)) {
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return exchange.getResponse().setComplete();
+                }
+            } else {
+                realApiKey = null;
+            }
+            AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
+            if (Objects.nonNull(realApiKey)) {
+                config.setApiKey(realApiKey);
+                ProxyApiKeyData mapping = AiProxyApiKeyCache.getInstance()
+                        .getValidatedMapping(selector.getId(), exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY));
+                if (Objects.nonNull(mapping)) {
+                    observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
+                }
+            }
             return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
                     .switchIfEmpty(Mono.error(new ShenyuException("AI request body must not be empty")))
                     .flatMap(buffer -> {
@@ -123,19 +144,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                             body = buffer.toString(StandardCharsets.UTF_8);
                         } finally {
                             DataBufferUtils.release(buffer);
-                        }
-                        AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
-                        if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
-                            String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
-                            org.apache.shenyu.common.dto.ProxyApiKeyData mapping = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
-                                    : AiProxyApiKeyCache.getInstance().getValidatedMapping(selector.getId(), proxyKey);
-                            String realKey = Objects.isNull(mapping) ? null : mapping.getRealApiKey();
-                            if (Objects.isNull(realKey)) {
-                                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                return exchange.getResponse().setComplete();
-                            }
-                            config.setApiKey(realKey);
-                            observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
                         }
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));

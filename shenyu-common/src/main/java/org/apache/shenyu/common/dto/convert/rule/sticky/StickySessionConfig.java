@@ -28,7 +28,9 @@ import java.util.List;
 public class StickySessionConfig {
 
     /**
-     * Default response cookie name.
+     * Base name of the default response cookie. The effective name carries a
+     * suffix derived from the rule id, so rules served under the same host keep
+     * their bindings in separate browser cookies (#8136).
      */
     public static final String DEFAULT_COOKIE_NAME = "Shenyu-Route";
 
@@ -44,7 +46,10 @@ public class StickySessionConfig {
     private boolean enabled;
 
     /**
-     * Response cookie name.
+     * Response cookie name. The default name is a base name: the effective name
+     * carries a rule-scoped suffix so that rules on the same host do not
+     * overwrite each other's binding. Any other configured name is used
+     * verbatim and is therefore shared by every rule that configures it (#8136).
      */
     private String cookieName = DEFAULT_COOKIE_NAME;
 

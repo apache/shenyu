@@ -59,8 +59,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doAnswer;
@@ -176,6 +177,42 @@ public final class InstanceCheckServiceTest {
         instanceCheckService.fetchInstanceData();
 
         assertNotNull(instanceCheckService.getInstanceHealthBeatInfo("10.1.1.1:9090@http#ns2"));
+    }
+
+    @Test
+    void testHandleBeatInfoIgnoresIncompleteIdentity() {
+        InstanceBeatInfoDTO blankIp = buildDTO("", "8080", "grpc", "ns");
+        InstanceBeatInfoDTO blankPort = buildDTO("127.0.0.1", "", "grpc", "ns");
+        InstanceBeatInfoDTO blankType = buildDTO("127.0.0.1", "8080", "", "ns");
+        InstanceBeatInfoDTO whitespaceIp = buildDTO(" ", "8080", "grpc", "ns");
+
+        for (InstanceBeatInfoDTO dto : Arrays.asList(blankIp, blankPort, blankType, whitespaceIp)) {
+            assertFalse(instanceCheckService.handleBeatInfo(dto));
+            assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto),
+                    "an incomplete identity must not create a live entry");
+        }
+
+        instanceCheckService.syncDB();
+        verify(instanceInfoService, times(0)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testHandleBeatInfoDefaultsBlankNamespace() {
+        final InstanceBeatInfoDTO blankNs = buildDTO("127.0.0.1", "8080", "grpc", "");
+        final InstanceBeatInfoDTO whitespaceNs = buildDTO("10.0.0.1", "9090", "http", "  ");
+
+        assertTrue(instanceCheckService.handleBeatInfo(blankNs));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(blankNs));
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, instanceCheckService.getInstanceHealthBeatInfo(blankNs).getNamespaceId());
+
+        assertTrue(instanceCheckService.handleBeatInfo(whitespaceNs));
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, instanceCheckService.getInstanceHealthBeatInfo(whitespaceNs).getNamespaceId());
+    }
+
+    @Test
+    void testHandleBeatInfoAcceptsCompleteIdentity() {
+        assertTrue(instanceCheckService.handleBeatInfo(buildDTO("127.0.0.1", "8080", "grpc", "ns")));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo("127.0.0.1:8080@grpc#ns"));
     }
 
     @Test
