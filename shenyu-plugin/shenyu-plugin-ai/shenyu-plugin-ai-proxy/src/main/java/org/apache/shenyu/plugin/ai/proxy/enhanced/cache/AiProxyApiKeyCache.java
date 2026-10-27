@@ -57,16 +57,22 @@ public final class AiProxyApiKeyCache {
     }
 
     /**
-     * Cache data when enabled.
+     * Cache enabled data and evict explicitly disabled data, ignoring a null enabled status.
      *
      * @param data data
      */
     public void cache(final ProxyApiKeyData data) {
-        if (Objects.nonNull(data) && Boolean.TRUE.equals(data.getEnabled())) {
+        if (Objects.isNull(data)) {
+            return;
+        }
+        if (Boolean.TRUE.equals(data.getEnabled())) {
             dataMap.put(key(data), data);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("[AiProxyApiKeyCache] cache key={}, size={}", key(data), dataMap.size());
             }
+        } else if (Boolean.FALSE.equals(data.getEnabled())) {
+            // a disabled key arrives as an UPDATE event, so the stale enabled entry must be evicted here
+            remove(data);
         }
     }
 

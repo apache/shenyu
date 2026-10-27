@@ -26,6 +26,11 @@
     <artifactId>shenyu-client-core</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
 <!--        <dependency>-->
 <!--            <groupId>org.apache.shenyu</groupId>-->
 <!--            <artifactId>shenyu-spi</artifactId>-->

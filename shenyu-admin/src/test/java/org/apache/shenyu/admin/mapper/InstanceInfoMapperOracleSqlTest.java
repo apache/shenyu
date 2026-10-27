@@ -59,4 +59,24 @@ public final class InstanceInfoMapperOracleSqlTest {
         assertTrue(sql.contains("instance_port = ?"), sql);
         assertTrue(sql.contains("instance_type = ?"), sql);
     }
+
+    @Test
+    public void testSelectByQueryUsesTwoArgumentConcat() throws Exception {
+        Configuration configuration = new Configuration();
+        configuration.setDatabaseId("oracle");
+        try (InputStream in = Resources.getResourceAsStream("mappers/instance-info-sqlmap.xml")) {
+            new XMLMapperBuilder(in, configuration,
+                    "mappers/instance-info-sqlmap.xml", configuration.getSqlFragments()).parse();
+        }
+        InstanceQuery query = new InstanceQuery();
+        query.setInstanceIp("10.");
+        query.setNamespaceId("ns");
+        BoundSql boundSql = configuration
+                .getMappedStatement("org.apache.shenyu.admin.mapper.InstanceInfoMapper.selectByQuery")
+                .getBoundSql(query);
+        String sql = boundSql.getSql().toLowerCase(Locale.ROOT);
+        String compact = sql.replaceAll("\\s+", "");
+        assertFalse(compact.contains("concat('%',?,'%')"), sql);
+        assertTrue(compact.contains("concat(concat('%',?),'%')"), sql);
+    }
 }

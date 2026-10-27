@@ -115,16 +115,16 @@ public class AgentGatewayPluginConfiguration {
                 environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
                                       final ObjectProvider<AgentResourceProvider> resources, final AgentMcpTerminalObserver terminalObserver,
                                       final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
-        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
-        if (llmIdentityEnabled && resolvers.isEmpty()) {
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
+        if (llmIdentityEnabled && candidates.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
+        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
                 AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer, terminalObserver),
                 llmIdentityEnabled ? resolver : null, aiObserver);
