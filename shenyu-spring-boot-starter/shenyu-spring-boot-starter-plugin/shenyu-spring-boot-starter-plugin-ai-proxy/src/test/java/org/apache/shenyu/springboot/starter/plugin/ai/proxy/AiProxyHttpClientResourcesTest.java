@@ -115,7 +115,7 @@ class AiProxyHttpClientResourcesTest {
         properties.getPool().setMaxConnections(1);
         properties.getPool().setPendingAcquireMaxCount(1);
         properties.getPool().setPendingAcquireTimeout(Duration.ofMillis(100));
-        properties.setResponseHeaderTimeout(Duration.ofMillis(20));
+        properties.setResponseHeaderTimeout(Duration.ofSeconds(1));
         final AiProxyHttpClientResources resources = new AiProxyHttpClientResources(properties);
         final WebClient webClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(resources.getHttpClient()))
