@@ -105,9 +105,6 @@ public class OpenAiResponsesProfile implements PiiProtocolProfile {
             slots.add(text);
         }
         // a function_call item embeds its identifiers in the arguments JSON string
-        PiiTextSlot arguments = PiiTextSlot.ofMember(object, "arguments");
-        if (Objects.nonNull(arguments)) {
-            slots.add(arguments);
-        }
+        PiiContentParts.collectFunctionCallArguments(object, slots);
     }
 }

@@ -25,8 +25,11 @@ import java.util.Objects;
 /**
  * The known protocol profiles. Selection validates the containers and text
  * members used by extraction, not the complete provider schema. Malformed
- * extraction shapes are unsupported modes and follow the rule's failure policy.
- * A valid message with no text, such as a tool call, is not a malformed payload.
+ * extraction shapes are unsupported modes and follow the rule's failure policy;
+ * a textual base64 {@code file_data} that cannot be decoded is malformed rather
+ * than silently skipped, so it cannot leak under a fail closed rule. A valid
+ * message with no scannable text, such as an image only message, is not a
+ * malformed payload.
  */
 public final class PiiProtocolProfiles {
 
@@ -159,9 +162,27 @@ public final class PiiProtocolProfiles {
                         && !isString(object.get("text"))) {
                     return false;
                 }
+                if ("file".equals(name) && !validFilePart(object)) {
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    /**
+     * A file part is malformed when its textual base64 {@code file_data} cannot
+     * be decoded: the text is claimed to be scanned, so passing it through
+     * silently would leak it under a fail closed rule. A binary media type is out
+     * of scope instead and stays valid.
+     */
+    private static boolean validFilePart(final JsonObject part) {
+        JsonElement file = part.get("file");
+        if (Objects.isNull(file) || !file.isJsonObject()) {
+            return true;
+        }
+        JsonElement fileData = file.getAsJsonObject().get("file_data");
+        return !isString(fileData) || !Base64TextData.isUndecodableTextualData(fileData.getAsString());
     }
 
     private static boolean validTextMember(final JsonObject object) {

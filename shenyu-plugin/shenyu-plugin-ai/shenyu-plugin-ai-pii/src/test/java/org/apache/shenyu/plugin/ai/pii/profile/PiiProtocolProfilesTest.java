@@ -256,6 +256,68 @@ public final class PiiProtocolProfilesTest {
         assertEquals("card 4111111111111111", slots.get(2).text());
     }
 
+    @Test
+    public void testResponsesNonFunctionCallItemArgumentsAreNotScanned() {
+        // a stray arguments member on another item type is not mistaken for message text
+        JsonObject root = parse("{\"output\":[{\"type\":\"message\",\"role\":\"assistant\","
+                + "\"content\":[{\"type\":\"text\",\"text\":\"hi\"}],"
+                + "\"arguments\":\"{\\\"email\\\":\\\"a@b.com\\\"}\"}]}");
+        assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(root).id());
+        List<PiiTextSlot> slots = new OpenAiResponsesProfile().responseSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals("hi", slots.get(0).text());
+    }
+
+    @Test
+    public void testMimeWrappedFileDataIsScanned() {
+        // a long payload forces the MIME encoder to insert CRLF line breaks every 76 characters
+        String text = "notes for the agent: my primary phone number for the escalation path is 13800138000";
+        String wrapped = Base64.getMimeEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
+        assertTrue(wrapped.contains("\r\n"));
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"file\",\"file\":{\"file_data\":\""
+                + "data:text/plain;base64," + wrapped.replace("\r", "\\r").replace("\n", "\\n")
+                + "\"}}]}]}");
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(root).id());
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals(text, slots.get(0).text());
+    }
+
+    @Test
+    public void testUrlSafeFileDataIsScanned() {
+        // the URL safe alphabet encodes byte sequences the standard alphabet cannot express with + and /
+        byte[] bytes = {(byte) 0xfb, (byte) 0xef, (byte) 0xbe, (byte) 0x6d, (byte) 0x79, (byte) 0x20,
+                (byte) 0x69, (byte) 0x64, (byte) 0x20, (byte) 0x69, (byte) 0x73, (byte) 0x20,
+                (byte) 0x31, (byte) 0x33, (byte) 0x38, (byte) 0x30, (byte) 0x30, (byte) 0x31,
+                (byte) 0x33, (byte) 0x38, (byte) 0x30, (byte) 0x30, (byte) 0x30};
+        String urlSafe = Base64.getUrlEncoder().encodeToString(bytes);
+        assertTrue(urlSafe.contains("-") || urlSafe.contains("_"));
+        JsonObject root = parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"file\",\"file\":{\"file_data\":\"data:text/plain;base64," + urlSafe + "\"}}]}]}");
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(root).id());
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals(new String(bytes, StandardCharsets.UTF_8), slots.get(0).text());
+    }
+
+    @Test
+    public void testUndecodableTextualFileDataIsMalformed() {
+        // a corrupt payload under a textual media type is malformed, not silently skipped,
+        // so a fail closed rule rejects it instead of leaking it
+        String corrupt = "data:text/plain;base64,!!!!not-base64!!!!";
+        assertNull(PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"file\",\"file\":{\"file_data\":\"" + corrupt + "\"}}]}]}")));
+        assertNull(PiiProtocolProfiles.select(parse("{\"input\":[{\"type\":\"message\",\"role\":\"user\","
+                + "\"content\":[{\"type\":\"file\",\"file\":{\"file_data\":\"" + corrupt + "\"}}]}]}")));
+        assertNull(PiiProtocolProfiles.selectResponse(parse("{\"choices\":[{\"message\":{\"role\":\"user\","
+                + "\"content\":[{\"type\":\"file\",\"file\":{\"file_data\":\"" + corrupt + "\"}}]}}]}")));
+        // an undecodable binary media type stays out of scope and therefore valid
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"user\","
+                + "\"content\":[{\"type\":\"file\",\"file\":{\"file_data\":\"data:image/png;base64,!!!!\"}}]}]}"))
+                .id());
+    }
+
     private JsonObject parse(final String json) {
         return JsonParser.parseString(json).getAsJsonObject();
     }

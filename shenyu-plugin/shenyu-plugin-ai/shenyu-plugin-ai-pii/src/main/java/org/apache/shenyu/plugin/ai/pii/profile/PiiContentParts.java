@@ -51,6 +51,9 @@ final class PiiContentParts {
                 continue;
             }
             JsonObject object = part.getAsJsonObject();
+            // the plain text member is read for every part before the type dispatch: a
+            // document part that also carries a text member yields two slots, which the
+            // overlapping range merge in PiiScanner collapses into a single redaction
             addIfPresent(slots, PiiTextSlot.ofMember(object, "text"));
             String type = typeOf(object);
             if ("document".equals(type)) {
@@ -85,6 +88,20 @@ final class PiiContentParts {
         JsonElement functionCall = message.get("function_call");
         if (Objects.nonNull(functionCall) && functionCall.isJsonObject()) {
             addIfPresent(slots, PiiTextSlot.ofMember(functionCall.getAsJsonObject(), "arguments"));
+        }
+    }
+
+    /**
+     * Collect the arguments of a responses {@code function_call} item. The
+     * arguments are gated on the item type, so a stray {@code arguments} member
+     * on another item type is not mistaken for message text.
+     *
+     * @param item the responses item
+     * @param slots the collector
+     */
+    static void collectFunctionCallArguments(final JsonObject item, final List<PiiTextSlot> slots) {
+        if ("function_call".equals(stringMember(item, "type"))) {
+            addIfPresent(slots, PiiTextSlot.ofMember(item, "arguments"));
         }
     }
 
