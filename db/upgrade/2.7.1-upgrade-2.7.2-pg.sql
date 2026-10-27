@@ -62,7 +62,7 @@ CREATE INDEX IF NOT EXISTS "idx_resource_parent_id" ON "public"."resource" USING
 CREATE INDEX IF NOT EXISTS "idx_user_role_user_id" ON "public"."user_role" USING btree ("user_id");
 
 -- Agent Gateway: keep upgrade seeds consistent with the fresh-install schema.
-INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 169, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
+INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
 INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001001', '68', 'responseRequestId', 'responseRequestId', 3, 2, 1, '{"required":"0","defaultValue":"false","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO "public"."resource" VALUES ('1960000000000001010', '1346775491550474240', 'agentGateway', 'agentGateway', '/plug/agentGateway', 'agentGateway', 1, 0, 'pic-center', 0, 0, '', 1, '2026-09-19 00:00:00', '2026-09-19 00:00:00');
@@ -85,7 +85,7 @@ INSERT INTO "public"."permission" VALUES ('1960000000000001026', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1960000000000001027', '1346358560427216896', '1960000000000001017', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1960000000000001028', '1346358560427216896', '1960000000000001018', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1960000000000001029', '1346358560427216896', '1960000000000001019', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 169, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 -- add index to speed up the meta data path uniqueness check
 CREATE INDEX "idx_meta_data_namespace_path" ON "public"."meta_data" USING btree ("namespace_id","path");
 CREATE INDEX "idx_operation_log_time" ON "public"."operation_record_log" USING btree ("operation_time");
