@@ -218,9 +218,12 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             selectorData.setHandle(handler);
             // update db
             selectorService.updateSelective(selectorDO);
-            // publish change event.
-            doDiscoveryLocal(selectorDO, pluginName, validUriList);
         }
+        // the registration-owned readiness reset runs whether or not the selector handle
+        // changed: a duplicate registration of an unchanged endpoint takes the buildHandle
+        // null path, and a restarted client that never sends an explicit READY would stay
+        // excluded by its persisted markers forever otherwise (#8042)
+        doDiscoveryLocal(selectorDO, pluginName, validUriList);
         return ShenyuResultMessage.SUCCESS;
     }
 
