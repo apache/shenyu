@@ -30,13 +30,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -189,7 +193,7 @@ class AgentResourceAdmissionTest {
             } finally {
                 executor.shutdownNow();
             }
-            StepVerifier.create(controller.withLocal(Instant.now(), Mono.just("third"))).expectNext("third").verifyComplete();
+            StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), Mono.just("third"))).expectNext("third").verifyComplete();
         } finally {
             controller.close();
         }
@@ -309,6 +313,70 @@ class AgentResourceAdmissionTest {
     }
 
     @Test
+    void globalLimitReloadDoesNotRaceDirectSubscriptions() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        try {
+            for (int trial = 0; trial < 100; trial++) {
+                AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                        AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 4, 4, 4, 4, 4));
+                List<Sinks.Empty<Void>> actions = new ArrayList<>();
+                AtomicReference<Throwable> failure = new AtomicReference<>();
+                for (int i = 0; i < 4; i++) {
+                    actions.add(Sinks.empty());
+                }
+                subscribe(controller, actions.get(0), failure);
+                awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+                subscribe(controller, actions.get(1), failure);
+                awaitQueued(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+
+                CyclicBarrier barrier = new CyclicBarrier(3);
+                CountDownLatch finished = new CountDownLatch(3);
+                executor.execute(() -> {
+                    await(barrier);
+                    try {
+                        controller.replace(AgentMcpResourceAdmission.create(
+                                new AgentGatewayAdmissionConfig(3, 4, 4, 4, 4, 4)));
+                    } finally {
+                        finished.countDown();
+                    }
+                });
+                executor.execute(() -> {
+                    await(barrier);
+                    try {
+                        subscribe(controller, actions.get(2), failure);
+                    } finally {
+                        finished.countDown();
+                    }
+                });
+                executor.execute(() -> {
+                    await(barrier);
+                    try {
+                        subscribe(controller, actions.get(3), failure);
+                    } finally {
+                        finished.countDown();
+                    }
+                });
+                assertTrue(finished.await(5, TimeUnit.SECONDS));
+                awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 3);
+
+                AgentAdmissionMetrics.Snapshot global = snapshot(controller, AgentAdmissionMetrics.Scope.GLOBAL);
+                assertEquals(3, global.inFlightLimit());
+                assertTrue(global.inFlight() <= 3, "reload and direct subscriptions admitted " + global.inFlight() + " actions");
+                assertEquals(1, global.queued());
+                assertEquals(3, snapshot(controller, AgentAdmissionMetrics.Scope.LOCAL).inFlight());
+                assertNull(failure.get());
+
+                actions.forEach(Sinks.Empty::tryEmitEmpty);
+                awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 0);
+                awaitQueued(controller, AgentAdmissionMetrics.Scope.GLOBAL, 0);
+                controller.close();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void redundantReplacementIsClosedWithoutReplacingActiveLimits() {
         AgentMcpResourceAdmission.ResourceAdmissionController active =
                 AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(2, 1, 1, 1, 1, 1));
@@ -343,6 +411,14 @@ class AgentResourceAdmissionTest {
             TimeUnit.MILLISECONDS.sleep(10);
         }
         assertTrue(false, "admission permit was not acquired");
+    }
+
+    private static void await(final CyclicBarrier barrier) {
+        try {
+            barrier.await(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new IllegalStateException("concurrent admission workers did not start together", e);
+        }
     }
 
     private static void awaitQueued(final AgentResourceAdmission controller, final int expected) throws InterruptedException {
@@ -384,5 +460,12 @@ class AgentResourceAdmissionTest {
             TimeUnit.MILLISECONDS.sleep(10);
         }
         assertTrue(false, "admission permit was not acquired");
+    }
+
+    private static void subscribe(final AgentMcpResourceAdmission.ResourceAdmissionController controller,
+                                  final Sinks.Empty<Void> action,
+                                  final AtomicReference<Throwable> failure) {
+        controller.withLocal(Instant.now().plusSeconds(2), action.asMono())
+                .subscribe(ignored -> { }, error -> failure.compareAndSet(null, error));
     }
 }

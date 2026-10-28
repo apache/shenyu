@@ -315,19 +315,21 @@ public final class AgentResourceAdmission implements AutoCloseable {
         }
 
         private void promote() {
-            while (inFlight < inFlightLimit) {
-                Waiter next = waiting.pollFirst();
-                if (Objects.isNull(next)) {
-                    return;
+            synchronized (lock) {
+                while (inFlight < inFlightLimit) {
+                    Waiter next = waiting.pollFirst();
+                    if (Objects.isNull(next)) {
+                        return;
+                    }
+                    queued--;
+                    if (!Instant.now().isBefore(next.deadline) || closed) {
+                        rejected.incrementAndGet();
+                        next.completeExceptionally(AgentAdmissionException.deadline());
+                        continue;
+                    }
+                    inFlight++;
+                    next.complete();
                 }
-                queued--;
-                if (!Instant.now().isBefore(next.deadline) || closed) {
-                    rejected.incrementAndGet();
-                    next.completeExceptionally(AgentAdmissionException.deadline());
-                    continue;
-                }
-                inFlight++;
-                next.complete();
             }
         }
 
