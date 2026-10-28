@@ -247,7 +247,7 @@ The text of each license is the standard Apache 2.0 license.
 	dubbo 3.2.14: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.41.0: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
-    failureaccess 1.0.1: https://github.com/google/guava, Apache 2.0
+    failureaccess 1.0.3: https://github.com/google/guava, Apache 2.0
     fastjson2 2.0.51: https://github.com/alibaba/fastjson2, Apache 2.0
     grpc-api 1.65.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-util 1.65.1 https://github.com/grpc/grpc, Apache 2.0
@@ -258,12 +258,13 @@ The text of each license is the standard Apache 2.0 license.
     grpc-protobuf-lite 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-stub 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     gson 2.13.2: https://github.com/google/gson, Apache 2.0
-    guava 32.0.0-jre: https://github.com/google/guava, Apache 2.0
+    guava 33.7.2-jre: https://github.com/google/guava, Apache 2.0
+    jspecify 1.0.1: https://jspecify.dev/, Apache 2.0
     httpasyncclient 4.1.5: https://github.com/apache/httpcomponents-client , Apache 2.0
     httpclient 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
     httpcore 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
     httpcore-nio 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
-    j2objc-annotations 2.8 https://github.com/google/j2objc, Apache 2.0
+    j2objc-annotations 3.1 https://github.com/google/j2objc, Apache 2.0
     jackson-annotations 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-core 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
     jackson-databind 2.17.1: http://github.com/FasterXML/jackson, Apache 2.0
