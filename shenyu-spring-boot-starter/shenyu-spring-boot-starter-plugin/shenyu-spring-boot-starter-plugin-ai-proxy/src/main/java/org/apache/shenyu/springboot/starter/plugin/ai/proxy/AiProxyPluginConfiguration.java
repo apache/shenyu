@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
@@ -123,6 +124,7 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyTransport       transport
      * @param observers optional application terminal sink
      * @param retryProperties        retry properties
+     * @param attemptListener        optional attempt listener
      * @return the AI proxy engine
      */
     @Bean
@@ -131,9 +133,12 @@ public class AiProxyPluginConfiguration {
                                        final AiProtocolRouteResolver aiProtocolRouteResolver,
                                        final AiProxyTransport aiProxyTransport,
                                        final ObjectProvider<AiCallObserver> observers,
-                                       final AiProxyRetryProperties retryProperties) {
+                                       final AiProxyRetryProperties retryProperties,
+                                       final ObjectProvider<AiProxyAttemptListener> attemptListener) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, retryProperties, observer(observers));
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties,
+                observer(observers), attemptListener.getIfAvailable(() -> event -> {
+                }));
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {

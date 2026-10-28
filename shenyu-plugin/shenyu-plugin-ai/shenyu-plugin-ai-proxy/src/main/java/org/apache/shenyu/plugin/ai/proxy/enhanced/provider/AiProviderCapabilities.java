@@ -32,8 +32,22 @@ import java.util.Set;
  * @param protocols protocols accepted by the provider-facing request builder
  * @param operations supported AI operations
  * @param features supported request features
+ * @param replaySafety explicitly declared replay-safe operations
  */
-public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.Operation> operations, Set<Feature> features) {
+public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.Operation> operations,
+                                     Set<Feature> features, Set<ReplaySafety> replaySafety) {
+
+    /**
+     * Compatibility constructor for capability declarations that do not claim replay safety.
+     *
+     * @param protocols supported protocols
+     * @param operations supported operations
+     * @param features supported features
+     */
+    public AiProviderCapabilities(final Set<String> protocols, final Set<ShenyuAiRequest.Operation> operations,
+                                  final Set<Feature> features) {
+        this(protocols, operations, features, Set.of());
+    }
 
     /**
      * Copy declarations so request handling never mutates provider configuration.
@@ -42,6 +56,7 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
         protocols = Set.copyOf(protocols);
         operations = Set.copyOf(operations);
         features = Set.copyOf(features);
+        replaySafety = Set.copyOf(replaySafety);
     }
 
     /**
@@ -53,7 +68,8 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
         return new AiProviderCapabilities(Set.of(OpenAiChat.NAME),
                 EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION),
                 EnumSet.of(Feature.STREAMING, Feature.TOOL_CALLING, Feature.CUSTOM_TOOLS, Feature.JSON_MODE,
-                        Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT));
+                        Feature.JSON_SCHEMA, Feature.STREAM_USAGE, Feature.AUDIO_OUTPUT),
+                EnumSet.of(ReplaySafety.SAFE));
     }
 
     /**
@@ -116,6 +132,16 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
         }
     }
 
+    /**
+     * Check an explicit operation replay-safety declaration.
+     *
+     * @param operation requested AI operation
+     * @return whether the provider declared the operation replay-safe
+     */
+    public boolean isReplaySafe(final ShenyuAiRequest.Operation operation) {
+        return operations.contains(operation) && replaySafety.contains(ReplaySafety.SAFE);
+    }
+
     private boolean nonempty(final JsonNode node) {
         return Objects.nonNull(node) && !node.isNull() && !node.isEmpty();
     }
@@ -135,5 +161,13 @@ public record AiProviderCapabilities(Set<String> protocols, Set<ShenyuAiRequest.
      */
     public enum Feature {
         STREAMING, TOOL_CALLING, CUSTOM_TOOLS, JSON_MODE, JSON_SCHEMA, STREAM_USAGE, AUDIO_OUTPUT
+    }
+
+    /**
+     * Explicit replay-safety declarations. The gateway never infers application
+     * idempotency from a tool-bearing payload.
+     */
+    public enum ReplaySafety {
+        SAFE
     }
 }

@@ -112,8 +112,8 @@ public final class AgentMcpDispatcher {
                               final AgentMcpResourceAdmission admission) {
         this.registry = Objects.requireNonNull(registry, "registry");
         this.remoteCatalog = remoteCatalog;
+        this.resourceRegistry = Objects.requireNonNull(resourceRegistry, "resourceRegistry");
         this.resources = new AgentMcpResourceDispatcher(resourceRegistry);
-        this.resourceRegistry = resourceRegistry;
         this.admission = Objects.requireNonNull(admission, "admission");
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
             throw new IllegalArgumentException("Server identity must not be blank");
@@ -136,6 +136,10 @@ public final class AgentMcpDispatcher {
         return Mono.defer(() -> {
             AgentMcpExecutionContext context = Objects.requireNonNull(contextFactory.get(), "execution context");
             if (!context.getHttpTools().getTools().isEmpty()) {
+                // The rule-local HTTP tools are bound through a nested dispatcher; the local
+                // resource registrations are request independent and must be carried over, the
+                // nested execution context still grants the same resources, so an empty
+                // registry would reject every configured local resource.
                 AgentToolRegistry captured = registry.withProviders(context.getHttpTools().getTools().values().stream()
                         .map(tool -> (AgentToolProvider) new AgentHttpToolProvider(tool, context.getHttpInvoker())).toList());
                 AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
