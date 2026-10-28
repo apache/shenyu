@@ -65,7 +65,7 @@
             (#{id,jdbcType=VARCHAR}, #{callerKey,jdbcType=VARCHAR}, #{namespaceId,jdbcType=VARCHAR},
              #{requestId,jdbcType=VARCHAR}, #{requestHash,jdbcType=VARCHAR}, #{authId,jdbcType=VARCHAR},
              #{state,jdbcType=VARCHAR})
-        ON CONFLICT DO NOTHING
+        ON DUPLICATE KEY UPDATE NOTHING
     </insert>
 
     <insert id="reserveIfAbsent" databaseId="oracle" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
@@ -125,17 +125,18 @@
         ORDER BY caller_key, namespace_id, request_id
     </select>
 
-    <!-- CAS: only an unfinished CREATED reservation may be backfilled with the auth id -->
+    <!-- CAS: only an unfinished CREATED reservation may be backfilled with the auth id.
+         State is bound, not a literal: PostgreSQL and Oracle prepare interceptors lowercase the SQL text. -->
     <update id="completeCreated">
         UPDATE app_auth_request
-        SET auth_id = #{authId}
-        WHERE id = #{id} AND state = 'CREATED' AND auth_id IS NULL
+        SET auth_id = #{authId,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR} AND state = #{state,jdbcType=VARCHAR} AND auth_id IS NULL
     </update>
 
     <update id="markRevoked">
         UPDATE app_auth_request
-        SET state = 'REVOKED', revoked_reason = #{reason}
-        WHERE id = #{id}
+        SET state = #{state,jdbcType=VARCHAR}, revoked_reason = #{reason,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
 
 </mapper>

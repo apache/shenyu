@@ -21,23 +21,32 @@ import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.mapping.Environment;
+import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
+import org.apache.shenyu.admin.mybatis.og.interceptor.OpenGaussSQLPrepareInterceptor;
+import org.apache.shenyu.admin.mybatis.oracle.OracleSQLPrepareInterceptor;
+import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * reserveIfAbsent keeps the original row on every Admin databaseId.
- * H2 compatibility modes stand in for MySQL, PostgreSQL and Oracle syntax; they are not those servers.
+ * reserveIfAbsent keeps the original row on every Admin databaseId, including through the prepare
+ * interceptors that lowercase SQL text. H2 compatibility modes stand in for MySQL, PostgreSQL and Oracle
+ * syntax; they are not those servers, and H2 cannot execute openGauss ON DUPLICATE KEY UPDATE NOTHING.
  */
 class AppAuthRequestReservationDialectTest {
 
@@ -49,28 +58,54 @@ class AppAuthRequestReservationDialectTest {
             + "PRIMARY KEY (id), UNIQUE (caller_key, namespace_id, request_id))";
 
     @Test
-    void reserveIfAbsentKeepsTheOriginalRowOnEachDialect() throws Exception {
-        assertReplay("mysql", "MySQL");
-        assertReplay("h2", "MySQL");
-        assertReplay("oceanbase", "MySQL");
-        assertReplay("postgresql", "PostgreSQL");
-        assertReplay("opengauss", "PostgreSQL");
-        assertReplay("oracle", "Oracle");
+    void reserveBackfillAndRevokeKeepCreatedStateThroughPrepareInterceptors() throws Exception {
+        assertLifecycle("mysql", "MySQL", null);
+        assertLifecycle("h2", "MySQL", null);
+        assertLifecycle("oceanbase", "MySQL", null);
+        assertLifecycle("postgresql", "PostgreSQL", new PostgreSQLPrepareInterceptor());
+        assertLifecycle("oracle", "Oracle", new OracleSQLPrepareInterceptor());
     }
 
-    private void assertReplay(final String databaseId, final String h2Mode) throws Exception {
+    @Test
+    void openGaussStatementIsDuplicateKeyNothingAndStateParametersSurviveLowercasing() throws Exception {
+        final UnpooledDataSource dataSource = new UnpooledDataSource("org.h2.Driver",
+                "jdbc:h2:mem:app-auth-opengauss;MODE=PostgreSQL;DB_CLOSE_DELAY=-1", "sa", "");
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(CREATE_TABLE);
+            try (PreparedStatement insert = connection.prepareStatement(
+                    "INSERT INTO app_auth_request (id, caller_key, namespace_id, request_id, request_hash, auth_id, state) "
+                            + "VALUES ('id-1', 'caller', 'ns', 'req', 'hash-1', NULL, 'CREATED')")) {
+                insert.executeUpdate();
+            }
+        }
+        final Configuration configuration = configuration(dataSource, "opengauss", new OpenGaussSQLPrepareInterceptor());
+        final String sql = configuration.getMappedStatement(AppAuthRequestMapper.class.getName() + ".reserveIfAbsent")
+                .getBoundSql(candidate("id-1", "hash-1", "CREATED")).getSql();
+        assertTrue(sql.contains("ON DUPLICATE KEY UPDATE NOTHING"), sql);
+        assertFalse(sql.contains("ON CONFLICT"), sql);
+        try (SqlSession session = new SqlSessionFactoryBuilder().build(configuration).openSession(true)) {
+            final AppAuthRequestMapper mapper = session.getMapper(AppAuthRequestMapper.class);
+            assertEquals(1, mapper.completeCreated("id-1", "auth-1", "CREATED"));
+            assertEquals(1, mapper.markRevoked("id-1", "drill", "REVOKED"));
+            final AppAuthRequestDO revoked = mapper.selectByKey("caller", "ns", "req");
+            assertEquals("REVOKED", revoked.getState());
+            assertEquals("hash-1", revoked.getRequestHash());
+            assertEquals("auth-1", revoked.getAuthId());
+            assertEquals("drill", revoked.getRevokedReason());
+        } finally {
+            drop(dataSource);
+        }
+    }
+
+    private void assertLifecycle(final String databaseId, final String h2Mode, final Interceptor interceptor) throws Exception {
         final UnpooledDataSource dataSource = new UnpooledDataSource("org.h2.Driver",
                 "jdbc:h2:mem:app-auth-" + databaseId + ";MODE=" + h2Mode + ";DB_CLOSE_DELAY=-1", "sa", "");
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE);
         }
-        final Environment environment = new Environment("app-auth-" + databaseId, new JdbcTransactionFactory(), dataSource);
-        final Configuration configuration = new Configuration(environment);
-        configuration.setMapUnderscoreToCamelCase(true);
-        configuration.setDatabaseId(databaseId);
-        new XMLMapperBuilder(Resources.getResourceAsStream("mappers/app-auth-request-sqlmap.xml"),
-                configuration, "mappers/app-auth-request-sqlmap.xml", configuration.getSqlFragments()).parse();
+        final Configuration configuration = configuration(dataSource, databaseId, interceptor);
         final SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(configuration);
         try (SqlSession session = factory.openSession(true)) {
             final AppAuthRequestMapper mapper = session.getMapper(AppAuthRequestMapper.class);
@@ -82,16 +117,45 @@ class AppAuthRequestReservationDialectTest {
             assertEquals("CREATED", locked.getState(), databaseId);
             assertNull(locked.getAuthId(), databaseId);
 
+            assertEquals(1, mapper.completeCreated("id-1", "auth-1", "CREATED"), databaseId);
+            final AppAuthRequestDO filled = mapper.selectByKey("caller", "ns", "req");
+            assertEquals("CREATED", filled.getState(), databaseId);
+            assertEquals("auth-1", filled.getAuthId(), databaseId);
+            assertEquals("hash-1", filled.getRequestHash(), databaseId);
+
+            assertEquals(1, mapper.markRevoked("id-1", "drill", "REVOKED"), databaseId);
+            final AppAuthRequestDO revoked = mapper.selectByKey("caller", "ns", "req");
+            assertEquals("REVOKED", revoked.getState(), databaseId);
+            assertEquals("drill", revoked.getRevokedReason(), databaseId);
+            assertEquals("auth-1", revoked.getAuthId(), databaseId);
+
             mapper.reserveIfAbsent(candidate("id-new", null, "REVOKED", "req-new"));
             final AppAuthRequestDO tombstone = mapper.selectByKey("caller", "ns", "req-new");
             assertEquals("id-new", tombstone.getId(), databaseId);
             assertNull(tombstone.getRequestHash(), databaseId);
             assertEquals("REVOKED", tombstone.getState(), databaseId);
         } finally {
-            try (Connection connection = dataSource.getConnection();
-                 Statement statement = connection.createStatement()) {
-                statement.execute("DROP TABLE IF EXISTS app_auth_request");
-            }
+            drop(dataSource);
+        }
+    }
+
+    private Configuration configuration(final UnpooledDataSource dataSource, final String databaseId, final Interceptor interceptor) throws Exception {
+        final Environment environment = new Environment("app-auth-" + databaseId, new JdbcTransactionFactory(), dataSource);
+        final Configuration configuration = new Configuration(environment);
+        configuration.setMapUnderscoreToCamelCase(true);
+        configuration.setDatabaseId(databaseId);
+        if (Objects.nonNull(interceptor)) {
+            configuration.addInterceptor(interceptor);
+        }
+        new XMLMapperBuilder(Resources.getResourceAsStream("mappers/app-auth-request-sqlmap.xml"),
+                configuration, "mappers/app-auth-request-sqlmap.xml", configuration.getSqlFragments()).parse();
+        return configuration;
+    }
+
+    private void drop(final UnpooledDataSource dataSource) throws Exception {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute("DROP TABLE IF EXISTS app_auth_request");
         }
     }
 
