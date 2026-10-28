@@ -87,28 +87,37 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
                 // list. The upstream it named is not carrying the request, so it is not counted against it.
                 return dubboSelect(invokers, url, invocation);
             }
-            return withInflight(dubboSelect(invokerGrays, url, invocation), upstream, dubboRuleHandle.getLoadBalance());
+            return markInflightTarget(invocation, upstream, dubboRuleHandle.getLoadBalance(), dubboSelect(invokerGrays, url, invocation));
         }
         return dubboSelect(invokers, url, invocation);
     }
-    
+
     /**
      * Keep the gray upstream's outstanding request count current for least active selection.
      *
-     * <p>Only the least active algorithm reads the count, and only the invoker returned here can observe
-     * the start and the completion of the RPC, so every other algorithm keeps the plain invoker.
+     * <p>Only the least active algorithm reads the count. The count itself is maintained by
+     * {@link DubboGrayInflightFilter}, which runs after the cluster committed to a provider:
+     * this method only marks the upstream chosen for the current attempt on a local attachment.
+     * The invoker handed to Dubbo stays the bare directory invoker — a wrapper here would enter
+     * Dubbo's already-tried list, where raw candidates can never compare equal to it and a failed
+     * provider would be retried even when another one is available (#8132).
      *
-     * @param selected the invoker chosen for this call
+     * @param invocation the current invocation
      * @param upstream the gray upstream the invoker was chosen for
      * @param loadBalance the algorithm configured on the rule
+     * @param selected the invoker chosen for this call
      * @param <T> the service type
-     * @return the invoker to hand back to Dubbo
+     * @return the invoker to hand back to Dubbo, unchanged
      */
-    private static <T> Invoker<T> withInflight(final Invoker<T> selected, final Upstream upstream, final String loadBalance) {
-        if (Objects.isNull(selected) || !LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+    private static <T> Invoker<T> markInflightTarget(final Invocation invocation, final Upstream upstream,
+                                                     final String loadBalance, final Invoker<T> selected) {
+        if (Objects.isNull(selected) || !LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)
+                || StringUtils.isBlank(upstream.getUrl())) {
+            // an upstream that is not addressable by url cannot be re-identified by the filter
             return selected;
         }
-        return new InflightInvoker<>(selected, upstream);
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, upstream.getUrl());
+        return selected;
     }
 
     private <T> Invoker<T> dubboSelect(final List<Invoker<T>> invokers, final URL url, final Invocation invocation) {
