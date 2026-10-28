@@ -131,8 +131,11 @@ class AiProxyPluginTest {
     @Test
     void testExecuteWithDynamicFallback() throws Exception {
         handle.setFallbackConfig(fallback("admin"));
-        String body = REQUEST_BODY.substring(0, REQUEST_BODY.length() - 1)
-                + ",\"fallbackConfig\":{\"provider\":\"DeepSeek\",\"baseUrl\":\"https://dynamic.example\",\"apiKey\":\"dynamic-key\",\"model\":\"dynamic-model\",\"maxTokens\":12}}";
+        handle.setDynamicFallbackEnabled(true);
+        AiProxyHandle.FallbackConfig dynamic = fallback("dynamic");
+        dynamic.setMaxTokens(12);
+        handle.setFallbackTargets(Map.of("dynamic", dynamic));
+        String body = REQUEST_BODY.substring(0, REQUEST_BODY.length() - 1) + ",\"fallbackConfig\":{\"target\":\"dynamic\"}}";
         exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(body));
         AiProxyPlugin plugin = plugin(request -> Mono.just(request.getUri().getHost().equals("main.example") ? response(500, "busy") : response(200, "fallback")));
         StepVerifier.create(execute(plugin)).verifyComplete();

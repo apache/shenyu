@@ -20,19 +20,24 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class AiProxyConfigServiceTest {
@@ -96,15 +101,16 @@ public class AiProxyConfigServiceTest {
 
     @Test
     void testResolveDynamicFallbackConfigPresent() {
-        String requestBody = "{\"fallbackConfig\": {\"model\": \"dynamic-fallback-model\"}}";
-        AiCommonConfig primaryConfig = new AiCommonConfig();
-        primaryConfig.setProvider("primary-provider");
-
-        Optional<AiCommonConfig> result = configService.resolveDynamicFallbackConfig(primaryConfig, requestBody);
-
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setModel("dynamic-fallback-model");
+        AiCommonConfig primary = primary();
+        Optional<AiCommonConfig> result = configService.resolveDynamicFallbackConfig(primary, managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}");
         assertTrue(result.isPresent());
         assertEquals("dynamic-fallback-model", result.get().getModel());
-        assertEquals("primary-provider", result.get().getProvider());
+        assertEquals("OpenAI", result.get().getProvider());
+        assertEquals("primary-key", result.get().getApiKey());
+        assertNull(target.getApiKey());
+        assertEquals("primary", primary.getModel());
     }
 
     @Test
@@ -122,9 +128,7 @@ public class AiProxyConfigServiceTest {
         String requestBody = "{\"fallbackConfig\": {\"model\": \"dynamic-fallback-model\"";
         AiCommonConfig primaryConfig = new AiCommonConfig();
 
-        Optional<AiCommonConfig> result = configService.resolveDynamicFallbackConfig(primaryConfig, requestBody);
-
-        assertFalse(result.isPresent());
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primaryConfig, requestBody));
     }
 
     @Test
@@ -135,6 +139,8 @@ public class AiProxyConfigServiceTest {
         handle.setFallbackConfig(fallback);
         AiCommonConfig primaryConfig = new AiCommonConfig();
         primaryConfig.setProvider("primary-provider");
+        primaryConfig.setBaseUrl("https://primary.example");
+        primaryConfig.setApiKey("primary-key");
 
         Optional<AiCommonConfig> result = configService.resolveAdminFallbackConfig(primaryConfig, handle);
 
@@ -257,4 +263,100 @@ public class AiProxyConfigServiceTest {
         resolved.setApiKey("per-request-key");
         assertEquals("global-key", configService.resolvePrimaryConfig(null).getApiKey());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "{}", "{\"target\":null}", "{\"target\":2}", "{\"target\":\"\"}",
+        "{\"target\":\"../backup\"}", "{\"target\":\"backup\",\"apiKey\":\"caller-key\"}"})
+    void rejectsMalformedOrInlineSelections(final String selection) {
+        AiProxyHandle handle = managed(new AiProxyHandle.FallbackConfig());
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), handle, "{\"fallbackConfig\":" + selection + "}"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"https://other.example", "http://primary.example", "https://primary.example:444", "https://primary.example/another-account"})
+    void changedEndpointCannotInheritThePrimaryCredential(final String endpoint) {
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setBaseUrl(endpoint);
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}"));
+        assertNull(target.getApiKey());
+    }
+
+    @Test
+    void changedProviderCannotInheritThePrimaryCredential() {
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setProvider("OtherProvider");
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}"));
+    }
+
+    @Test
+    void changedAdminEndpointAlsoRequiresItsOwnCredential() {
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setBaseUrl("https://other.example");
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setFallbackConfig(target);
+        assertThrows(ShenyuException.class, () -> configService.resolveAdminFallbackConfig(primary(), handle));
+        target.setApiKey("admin-key");
+        assertEquals("admin-key", configService.resolveAdminFallbackConfig(primary(), handle).orElseThrow().getApiKey());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"file:///tmp/model", "https://user:password@example.test", "https://example.test?token=secret", "https://example.test#fragment", "https://example.test:0", "https://example.test:99999", "not an endpoint"})
+    void rejectsAmbiguousOrNonHttpManagedEndpoints(final String endpoint) {
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setBaseUrl(endpoint);
+        target.setApiKey("managed-key");
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}"));
+    }
+
+    @Test
+    void explicitTargetCredentialDoesNotMutateThePrimaryOrOtherTargets() {
+        AiCommonConfig primary = primary();
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        target.setBaseUrl("https://other.example");
+        target.setApiKey("managed-key");
+        AiCommonConfig resolved = configService.resolveDynamicFallbackConfig(primary, managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}").orElseThrow();
+        assertEquals("managed-key", resolved.getApiKey());
+        resolved.setApiKey("request-local-change");
+        assertEquals("primary-key", primary.getApiKey());
+        assertEquals("managed-key", target.getApiKey());
+    }
+
+    @Test
+    void selectorsCannotUseOtherSelectorsTargetsAndUpdatesTakeEffect() {
+        AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
+        AiProxyHandle allowed = managed(target);
+        AiProxyHandle denied = new AiProxyHandle();
+        denied.setDynamicFallbackEnabled(true);
+        String request = "{\"fallbackConfig\":{\"target\":\"backup\"}}";
+        assertTrue(configService.resolveDynamicFallbackConfig(primary(), allowed, request).isPresent());
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), denied, request));
+        allowed.setFallbackTargets(Map.of());
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), allowed, request));
+        allowed.setFallbackTargets(Map.of("backup", target));
+        allowed.setDynamicFallbackEnabled(null);
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), allowed, request));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"fallbackConfig\":{\"target\":\"backup\"}} {}", "{\"fallbackConfig\":{},\"fallbackConfig\":{\"target\":\"backup\"}}"})
+    void rejectsTrailingOrDuplicateRequestFields(final String request) {
+        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), managed(new AiProxyHandle.FallbackConfig()), request));
+    }
+
+    private AiProxyHandle managed(final AiProxyHandle.FallbackConfig target) {
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setDynamicFallbackEnabled(true);
+        handle.setFallbackTargets(Map.of("backup", target));
+        return handle;
+    }
+
+    private AiCommonConfig primary() {
+        AiCommonConfig config = new AiCommonConfig();
+        config.setProvider("OpenAI");
+        config.setBaseUrl("https://primary.example");
+        config.setApiKey("primary-key");
+        config.setModel("primary");
+        return config;
+    }
+
 }

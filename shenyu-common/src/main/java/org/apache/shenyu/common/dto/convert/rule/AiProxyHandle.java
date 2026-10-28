@@ -19,6 +19,9 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.shenyu.common.enums.AiModelProviderEnum;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -65,6 +68,16 @@ public class AiProxyHandle {
      * fallback config.
      */
     private FallbackConfig fallbackConfig;
+
+    /**
+     * Explicit opt-in for request-selected, administrator-managed fallback targets.
+     */
+    private Boolean dynamicFallbackEnabled = false;
+
+    /**
+     * Selector-local targets that requests may select by name.
+     */
+    private Map<String, FallbackConfig> fallbackTargets = Collections.emptyMap();
 
     /**
      * AI protocol identifier.
@@ -305,6 +318,42 @@ public class AiProxyHandle {
     }
 
     /**
+     * Get the request-selected fallback opt-in.
+     *
+     * @return whether managed fallback selection is enabled
+     */
+    public Boolean getDynamicFallbackEnabled() {
+        return dynamicFallbackEnabled;
+    }
+
+    /**
+     * Set the request-selected fallback opt-in.
+     *
+     * @param dynamicFallbackEnabled whether managed fallback selection is enabled
+     */
+    public void setDynamicFallbackEnabled(final Boolean dynamicFallbackEnabled) {
+        this.dynamicFallbackEnabled = dynamicFallbackEnabled;
+    }
+
+    /**
+     * Get selector-local managed fallback targets.
+     *
+     * @return managed target definitions
+     */
+    public Map<String, FallbackConfig> getFallbackTargets() {
+        return fallbackTargets;
+    }
+
+    /**
+     * Set selector-local managed fallback targets.
+     *
+     * @param fallbackTargets managed target definitions
+     */
+    public void setFallbackTargets(final Map<String, FallbackConfig> fallbackTargets) {
+        this.fallbackTargets = Objects.isNull(fallbackTargets) ? Collections.emptyMap() : new LinkedHashMap<>(fallbackTargets);
+    }
+
+    /**
      * get proxyEnabled.
      *
      * @return proxyEnabled
@@ -339,12 +388,14 @@ public class AiProxyHandle {
                 && Objects.equals(maxTokens, that.maxTokens)
                 && Objects.equals(stream, that.stream)
                 && Objects.equals(fallbackConfig, that.fallbackConfig)
+                && Objects.equals(dynamicFallbackEnabled, that.dynamicFallbackEnabled)
+                && Objects.equals(fallbackTargets, that.fallbackTargets)
                 && Objects.equals(proxyEnabled, that.proxyEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig, proxyEnabled);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig, dynamicFallbackEnabled, fallbackTargets, proxyEnabled);
     }
 
     @Override
@@ -358,6 +409,8 @@ public class AiProxyHandle {
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream
                 + ", fallbackConfig=" + fallbackConfig
+                + ", dynamicFallbackEnabled=" + dynamicFallbackEnabled
+                + ", fallbackTargetCount=" + (Objects.isNull(fallbackTargets) ? 0 : fallbackTargets.size())
                 + ", proxyEnabled=" + proxyEnabled
                 + '}';
     }

@@ -107,7 +107,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         } finally {
                             DataBufferUtils.release(buffer);
                         }
-                        Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, body)
+                        Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response));
                     });
