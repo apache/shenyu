@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.base.circuitbreaker;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
@@ -45,6 +47,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class UpstreamCircuitBreakerTest {
 
     private static final String KEY = "selector:http://127.0.0.1:9090";
+
+
+    @Test
+    public void clientErrorDoesNotRecordUpstreamFailure() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8080").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-4xx", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+
+        // three client-caused 4xx rejections must not open the breaker
+        for (int i = 0; i < 3; i++) {
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                            Mono.error(new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
+                    .expectError(ResponseStatusException.class)
+                    .verify();
+        }
+        assertTrue(breaker.isRequestAllowed(key), "client-side 4xx must not count as upstream failures");
+
+        // a genuine upstream failure still records normally
+        StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
+                .expectError(RuntimeException.class)
+                .verify();
+    }
 
     @Test
     public void testRequestsAllowedByDefault() {
