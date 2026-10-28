@@ -42,7 +42,7 @@ public class AlertReceiverDTO implements Serializable {
     /**
      * is enabled this receiver.
      */
-    private boolean enable = true;
+    private Boolean enable;
     
     /**
      * Notification information method: 0-SMS 1-Email 2-webhook 3-WeChat Official Account. 
@@ -144,7 +144,7 @@ public class AlertReceiverDTO implements Serializable {
     /**
      * match all.
      */
-    private boolean matchAll = true;
+    private Boolean matchAll;
     
     /**
      * match alert levels.
@@ -207,7 +207,7 @@ public class AlertReceiverDTO implements Serializable {
      * is enable.
      * @return enable
      */
-    public boolean isEnable() {
+    public Boolean getEnable() {
         return enable;
     }
     
@@ -215,7 +215,7 @@ public class AlertReceiverDTO implements Serializable {
      * set enable.
      * @param enable enable
      */
-    public void setEnable(final boolean enable) {
+    public void setEnable(final Boolean enable) {
         this.enable = enable;
     }
     
@@ -543,7 +543,7 @@ public class AlertReceiverDTO implements Serializable {
      * is match all.
      * @return match all
      */
-    public boolean isMatchAll() {
+    public Boolean getMatchAll() {
         return matchAll;
     }
     
@@ -551,7 +551,7 @@ public class AlertReceiverDTO implements Serializable {
      * set match all.
      * @param matchAll match all
      */
-    public void setMatchAll(final boolean matchAll) {
+    public void setMatchAll(final Boolean matchAll) {
         this.matchAll = matchAll;
     }
     

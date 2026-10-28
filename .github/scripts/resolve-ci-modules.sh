@@ -22,6 +22,7 @@ max_modules="${MAX_CI_MODULES:-8}"
 has_code_changes=false
 full_build_required=false
 modules=()
+module_count=0
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required to resolve changed Maven modules." >&2
@@ -32,13 +33,14 @@ add_module() {
   local module="$1"
   local existing
 
-  for existing in "${modules[@]}"; do
+  for existing in ${modules[@]+"${modules[@]}"}; do
     if [[ "${existing}" == "${module}" ]]; then
       return
     fi
   done
 
   modules+=("${module}")
+  module_count=$((module_count + 1))
 }
 
 is_root_reactor_module() {
@@ -82,6 +84,10 @@ is_ignored_change() {
   local file="$1"
 
   case "${file}" in
+    # The opt-in reactor is packaged and smoke-tested by minimal-http.yml.
+    shenyu-bootstrap-http/*|script/performance/minimal-http/*)
+      return 0
+      ;;
     *.png|*.jpg|*.jpeg|*.gif|*.svg|*.ico|*.pdf|*.doc|*.docx|DISCLAIMER|*/resources/static/*)
       return 0
       ;;
@@ -125,18 +131,23 @@ done < <(printf '%s' "${changed_files_json}" | jq -r '.[]')
 # SPI changes can affect modules that consume shared classes without declaring a
 # direct Maven dependency on every transitive module. Build the full reactor so
 # those modules cannot silently use a stale SNAPSHOT from the Maven cache.
-for module in "${modules[@]}"; do
+for module in ${modules[@]+"${modules[@]}"}; do
   if [[ "${module}" == "shenyu-spi" ]]; then
     full_build_required=true
     break
   fi
 done
 
-if [[ "${has_code_changes}" == "true" && ("${#modules[@]}" -eq 0 || "${#modules[@]}" -gt "${max_modules}") ]]; then
+if [[ "${has_code_changes}" == "true" && ("${module_count}" -eq 0 || "${module_count}" -gt "${max_modules}") ]]; then
   full_build_required=true
 fi
 
-modules_csv="$(IFS=,; printf '%s' "${modules[*]}")"
+# Bash 3.2 treats even an initialized empty array as unset with nounset.
+# Only expand the joined array after at least one module has been recorded.
+modules_csv=""
+if [[ "${module_count}" -gt 0 ]]; then
+  modules_csv="$(IFS=,; printf '%s' "${modules[*]}")"
+fi
 
 {
   echo "has_code_changes=${has_code_changes}"

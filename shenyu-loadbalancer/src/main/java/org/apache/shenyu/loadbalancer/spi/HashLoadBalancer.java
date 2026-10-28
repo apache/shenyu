@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -53,7 +54,10 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
         final List<String> ringKey = new ArrayList<>(upstreamList.size());
         upstreamList.forEach(upstream -> ringKey.add(upstream.identity().hashKey()));
         final SortedMap<Long, Integer> treeMap = ringCache.computeIfAbsent(List.copyOf(ringKey), this::buildRing);
-        long hash = hash(data.getIp());
+        // an explicit deterministic key (e.g. extracted from a configured header or cookie)
+        // takes precedence over the legacy client-ip key, which stays the default (#8037)
+        final String key = StringUtils.isNotBlank(data.getHashKey()) ? data.getHashKey() : data.getIp();
+        long hash = hash(key);
         SortedMap<Long, Integer> lastRing = treeMap.tailMap(hash);
         if (!lastRing.isEmpty()) {
             return upstreamList.get(lastRing.get(lastRing.firstKey()));
