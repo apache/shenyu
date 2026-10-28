@@ -41,14 +41,16 @@ public final class AgentResourceAdmission implements AutoCloseable {
 
     private final Deque<Scope> remotes = new ArrayDeque<>();
 
+    private final Object promotionLock = new Object();
+
     private final AgentAdmissionMetrics registration;
 
     private volatile boolean closed;
 
     public AgentResourceAdmission(final AgentGatewayAdmissionConfig config) {
         this.config = Objects.requireNonNull(config, "config");
-        global = new Scope("global", config.globalInFlight(), config.globalQueued());
-        local = new Scope("local", config.localInFlight(), config.localQueued());
+        global = new Scope("global", promotionLock, config.globalInFlight(), config.globalQueued());
+        local = new Scope("local", promotionLock, config.localInFlight(), config.localQueued());
         registration = AgentAdmissionMetrics.register(this::snapshot);
     }
 
@@ -109,7 +111,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
                     return scope;
                 }
             }
-            Scope scope = new Scope(name, config.remoteInFlight(), config.remoteQueued());
+            Scope scope = new Scope(name, promotionLock, config.remoteInFlight(), config.remoteQueued());
             remotes.add(scope);
             return scope;
         }
@@ -147,12 +149,17 @@ public final class AgentResourceAdmission implements AutoCloseable {
             throw new IllegalStateException("Admission controller is closed");
         }
         final AgentGatewayAdmissionConfig replacementConfig = replacement.config();
-        synchronized (remotes) {
-            config = replacementConfig;
-            global.updateLimits(replacementConfig.globalInFlight(), replacementConfig.globalQueued());
-            local.updateLimits(replacementConfig.localInFlight(), replacementConfig.localQueued());
-            remotes.forEach(scope -> scope.updateLimits(replacementConfig.remoteInFlight(), replacementConfig.remoteQueued()));
+        synchronized (promotionLock) {
+            synchronized (remotes) {
+                config = replacementConfig;
+                global.installLimits(replacementConfig.globalInFlight(), replacementConfig.globalQueued());
+                local.installLimits(replacementConfig.localInFlight(), replacementConfig.localQueued());
+                remotes.forEach(scope -> scope.installLimits(replacementConfig.remoteInFlight(), replacementConfig.remoteQueued()));
+            }
         }
+        global.promote();
+        local.promote();
+        remotes.forEach(Scope::promote);
     }
 
     /**
@@ -238,6 +245,8 @@ public final class AgentResourceAdmission implements AutoCloseable {
 
         private final Object lock = new Object();
 
+        private final Object promotionLock;
+
         private final Deque<Waiter> waiting = new ArrayDeque<>();
 
         private int inFlight;
@@ -246,8 +255,9 @@ public final class AgentResourceAdmission implements AutoCloseable {
 
         private boolean closed;
 
-        private Scope(final String name, final int inFlightLimit, final int queueLimit) {
+        private Scope(final String name, final Object promotionLock, final int inFlightLimit, final int queueLimit) {
             this.name = name;
+            this.promotionLock = promotionLock;
             this.inFlightLimit = inFlightLimit;
             this.queueLimit = queueLimit;
         }
@@ -278,20 +288,21 @@ public final class AgentResourceAdmission implements AutoCloseable {
         }
 
         void release(final Wait wait) {
-            if (Objects.isNull(wait.waiter)) {
-                completeActive(wait);
-                return;
-            }
-            boolean promoted;
-            synchronized (lock) {
-                promoted = wait.waiter.state == State.PROMOTED;
-                if (wait.waiter.state == State.WAITING && waiting.remove(wait.waiter)) {
-                    queued--;
-                    rejected.incrementAndGet();
-                }
-                wait.waiter.completeExceptionally(AgentAdmissionException.deadline());
-                if (promoted) {
-                    completeActive(wait);
+            synchronized (promotionLock) {
+                synchronized (lock) {
+                    if (Objects.isNull(wait.waiter)) {
+                        completeActive(wait);
+                        return;
+                    }
+                    boolean promoted = wait.waiter.state == State.PROMOTED;
+                    if (wait.waiter.state == State.WAITING && waiting.remove(wait.waiter)) {
+                        queued--;
+                        rejected.incrementAndGet();
+                    }
+                    wait.waiter.completeExceptionally(AgentAdmissionException.deadline());
+                    if (promoted) {
+                        completeActive(wait);
+                    }
                 }
             }
         }
@@ -317,7 +328,6 @@ public final class AgentResourceAdmission implements AutoCloseable {
                 }
                 inFlight++;
                 next.complete();
-                return;
             }
         }
 
@@ -340,11 +350,10 @@ public final class AgentResourceAdmission implements AutoCloseable {
             }
         }
 
-        void updateLimits(final int inFlightLimit, final int queueLimit) {
+        void installLimits(final int inFlightLimit, final int queueLimit) {
             synchronized (lock) {
                 this.inFlightLimit = inFlightLimit;
                 this.queueLimit = queueLimit;
-                promote();
             }
         }
     }

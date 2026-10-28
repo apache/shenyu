@@ -28,6 +28,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -221,6 +222,93 @@ class AgentResourceAdmissionTest {
     }
 
     @Test
+    void localLimitReloadInstallsBeforePromotingQueuedRequests() throws Exception {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 4, 1, 0, 1, 4));
+        List<Sinks.Empty<Void>> actions = new ArrayList<>();
+        try {
+            for (int i = 0; i < 4; i++) {
+                Sinks.Empty<Void> action = Sinks.empty();
+                actions.add(action);
+                StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), action.asMono()))
+                        .expectComplete().verifyLater();
+                if (i == 0) {
+                    awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+                }
+            }
+            awaitQueued(controller, AgentAdmissionMetrics.Scope.GLOBAL, 3);
+
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(4, 4, 4, 4, 1, 4)));
+
+            awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 4);
+            awaitActive(controller, AgentAdmissionMetrics.Scope.LOCAL, 4);
+            assertEquals(0, snapshot(controller, AgentAdmissionMetrics.Scope.GLOBAL).queued());
+            assertEquals(0, snapshot(controller, AgentAdmissionMetrics.Scope.LOCAL).queued());
+        } finally {
+            actions.forEach(Sinks.Empty::tryEmitEmpty);
+            controller.close();
+        }
+    }
+
+    @Test
+    void remoteLimitReloadInstallsBeforePromotingQueuedRequests() throws Exception {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 4, 4, 4, 1, 0));
+        List<Sinks.Empty<Void>> actions = new ArrayList<>();
+        try {
+            for (int i = 0; i < 4; i++) {
+                Sinks.Empty<Void> action = Sinks.empty();
+                actions.add(action);
+                StepVerifier.create(controller.withRemote("orders", Instant.now().plusSeconds(2), action.asMono()))
+                        .expectComplete().verifyLater();
+                if (i == 0) {
+                    awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+                }
+            }
+            awaitQueued(controller, AgentAdmissionMetrics.Scope.GLOBAL, 3);
+
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(4, 4, 4, 4, 4, 4)));
+
+            awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 4);
+            awaitActive(controller, AgentAdmissionMetrics.Scope.REMOTE, 4);
+            assertEquals(0, snapshot(controller, AgentAdmissionMetrics.Scope.GLOBAL).queued());
+            assertEquals(0, snapshot(controller, AgentAdmissionMetrics.Scope.REMOTE).queued());
+        } finally {
+            actions.forEach(Sinks.Empty::tryEmitEmpty);
+            controller.close();
+        }
+    }
+
+    @Test
+    void globalLimitReloadPromotesAllNewlyAvailableWaiters() throws Exception {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 4, 4, 4, 4, 4));
+        List<Sinks.Empty<Void>> actions = new ArrayList<>();
+        try {
+            for (int i = 0; i < 4; i++) {
+                Sinks.Empty<Void> action = Sinks.empty();
+                actions.add(action);
+                StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), action.asMono()))
+                        .expectComplete().verifyLater();
+                if (i == 0) {
+                    awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+                }
+            }
+            awaitQueued(controller, AgentAdmissionMetrics.Scope.GLOBAL, 3);
+
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(4, 4, 4, 4, 4, 4)));
+
+            AgentAdmissionMetrics.Snapshot global = snapshot(controller, AgentAdmissionMetrics.Scope.GLOBAL);
+            assertEquals(4, global.inFlight());
+            assertEquals(0, global.queued());
+            assertEquals(4, snapshot(controller, AgentAdmissionMetrics.Scope.LOCAL).inFlight());
+        } finally {
+            actions.forEach(Sinks.Empty::tryEmitEmpty);
+            controller.close();
+        }
+    }
+
+    @Test
     void redundantReplacementIsClosedWithoutReplacingActiveLimits() {
         AgentMcpResourceAdmission.ResourceAdmissionController active =
                 AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(2, 1, 1, 1, 1, 1));
@@ -257,6 +345,36 @@ class AgentResourceAdmissionTest {
         assertTrue(false, "admission permit was not acquired");
     }
 
+    private static void awaitQueued(final AgentResourceAdmission controller, final int expected) throws InterruptedException {
+        for (int i = 0; i < 200; i++) {
+            if (controller.snapshot().stream().mapToInt(AgentAdmissionMetrics.Snapshot::queued).max().orElse(0) == expected) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        assertTrue(false, "admission waiter was not queued");
+    }
+
+    private static void awaitQueued(final AgentMcpResourceAdmission.ResourceAdmissionController controller,
+                                    final AgentAdmissionMetrics.Scope scope,
+                                    final int expected) throws InterruptedException {
+        for (int i = 0; i < 200; i++) {
+            if (snapshot(controller, scope).queued() == expected) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        assertTrue(false, "admission waiter was not queued");
+    }
+
+    private static AgentAdmissionMetrics.Snapshot snapshot(final AgentMcpResourceAdmission.ResourceAdmissionController controller,
+                                                           final AgentAdmissionMetrics.Scope scope) {
+        return controller.snapshot().stream()
+                .filter(state -> state.scope() == scope)
+                .findFirst()
+                .orElseThrow();
+    }
+
     private static void awaitActive(final AgentMcpResourceAdmission.ResourceAdmissionController controller,
                                     final AgentAdmissionMetrics.Scope scope, final int expected) throws InterruptedException {
         for (int i = 0; i < 200; i++) {
@@ -266,15 +384,5 @@ class AgentResourceAdmissionTest {
             TimeUnit.MILLISECONDS.sleep(10);
         }
         assertTrue(false, "admission permit was not acquired");
-    }
-
-    private static void awaitQueued(final AgentResourceAdmission controller, final int expected) throws InterruptedException {
-        for (int i = 0; i < 200; i++) {
-            if (controller.snapshot().stream().mapToInt(AgentAdmissionMetrics.Snapshot::queued).max().orElse(0) == expected) {
-                return;
-            }
-            TimeUnit.MILLISECONDS.sleep(10);
-        }
-        assertTrue(false, "admission waiter was not queued");
     }
 }
