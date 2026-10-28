@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -32,6 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
@@ -160,7 +162,7 @@ class AiProxyEngineOrchestrationTest {
             return Mono.just(attempt < 4
                     ? response(503, Flux.just(bytes("unavailable")))
                     : response(200, Flux.just(bytes("ok"))));
-        }, new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1)));
+        }, noJitterRetryProperties());
 
         StepVerifier.withVirtualTime(() -> engine.execute(BODY, config(false, "main"), Optional.empty(),
                         response -> response.getBody().then()))
@@ -175,6 +177,202 @@ class AiProxyEngineOrchestrationTest {
                 .thenAwait(Duration.ofSeconds(4))
                 .then(() -> assertEquals(4, calls.get()))
                 .verifyComplete();
+    }
+
+    @Test
+    void nonStreamingRetryAfterOverridesBackoffWithinTheSharedDeadline() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            int attempt = calls.incrementAndGet();
+            return Mono.just(attempt == 1
+                    ? response(429, Map.of("Retry-After", List.of("2")), Flux.just(bytes("busy")))
+                    : response(200, Flux.just(bytes("ok"))));
+        }, retryProperties(Duration.ofMillis(10), Duration.ofMinutes(1)));
+
+        StepVerifier.withVirtualTime(() -> engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectSubscription()
+                .then(() -> assertEquals(1, calls.get()))
+                .thenAwait(Duration.ofMillis(9))
+                .then(() -> assertEquals(1, calls.get()))
+                .thenAwait(Duration.ofMillis(1).plus(Duration.ofSeconds(2)))
+                .then(() -> assertEquals(2, calls.get()))
+                .verifyComplete();
+    }
+
+    @Test
+    void sharedDeadlineStopsRetriesAndFallback() {
+        AtomicInteger calls = new AtomicInteger();
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(503, Flux.just(bytes("busy"))));
+        }, retryProperties(Duration.ofMillis(100), Duration.ofMillis(50)), events::add);
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"),
+                        Optional.of(config(false, "fallback")), response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals("AI proxy request deadline exceeded before retry",
+                        assertInstanceOf(AiProxyException.class, error).getMessage()))
+                .verify(Duration.ofSeconds(3));
+        assertEquals(1, calls.get());
+        assertEquals(List.of(new AiProxyAttemptEvent(events.get(0).invocationId(), 0,
+                AiProxyAttemptEvent.Phase.PRIMARY,
+                AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null)), events);
+    }
+
+    @Test
+    void excessiveRetryAfterDoesNotRetryEarlierThanTheUpstreamHint() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(429, Map.of("Retry-After", List.of("999")), Flux.just(bytes("busy"))));
+        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)));
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals("AI upstream returned HTTP 429",
+                        assertInstanceOf(RuntimeException.class, error).getMessage()))
+                .verify(Duration.ofSeconds(3));
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void ambiguousTransportFailuresDoNotReplayToolBearingRequests() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(transportFailure(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT));
+        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)));
+
+        StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"tools\":[{\"type\":\"function\"}]}",
+                        config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void cancellationDuringRetryDelayDoesNotStartTheNextAttempt() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(503, Flux.just(bytes("busy"))));
+        }, retryProperties(Duration.ofSeconds(1), Duration.ofMinutes(1)));
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectSubscription()
+                .thenAwait(Duration.ofMillis(20))
+                .thenCancel()
+                .verify(Duration.ofSeconds(2));
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void attemptListenerReceivesBoundedIdentityAndReasons() {
+        AtomicInteger calls = new AtomicInteger();
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                protocolRouteResolver(), request -> {
+                    int attempt = calls.incrementAndGet();
+                    return attempt == 1
+                            ? Mono.just(response(429, Map.of("Retry-After", List.of("1")), Flux.just(bytes("busy"))))
+                            : Mono.just(response(200, Flux.just(bytes("ok"))));
+                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
+                response -> response.getBody().then())).verifyComplete();
+        String invocationId = events.get(0).invocationId();
+        assertEquals(List.of(
+                new AiProxyAttemptEvent(invocationId, 0, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.RETRY_STATUS, Duration.ofSeconds(1)),
+                new AiProxyAttemptEvent(invocationId, 1, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.COMPLETED, null)), events);
+    }
+
+    @Test
+    void fallbackAttemptsKeepThePrimaryAttemptIndexSequence() {
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
+        properties.setMaxRetries(0);
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                protocolRouteResolver(), request -> {
+                    String body = new String(request.getBody(), StandardCharsets.UTF_8);
+                    return body.contains("\"model\":\"fallback\"")
+                            ? Mono.just(response(200, Flux.just(bytes("fallback response"))))
+                            : Mono.just(response(429, Flux.just(bytes("busy"))));
+                }, properties, (AiProxyAttemptListener) events::add);
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"),
+                        Optional.of(config(false, "fallback")), response -> response.getBody().then()))
+                .verifyComplete();
+        String invocationId = events.get(0).invocationId();
+        assertEquals(List.of(
+                new AiProxyAttemptEvent(invocationId, 0, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.FALLBACK_STATUS, null),
+                new AiProxyAttemptEvent(invocationId, 1, AiProxyAttemptEvent.Phase.FALLBACK,
+                        AiProxyAttemptEvent.Reason.COMPLETED, null)), events);
+    }
+
+    @Test
+    void providerDeclaredFallbackReplaySafetyComesFromTheFallbackProvider() {
+        AtomicInteger calls = new AtomicInteger();
+        AtomicBoolean fallbackDeclaredSafe = new AtomicBoolean();
+        AiProxyProvider fallbackProvider = new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "unsafe-fallback";
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return new AiUpstreamRequest();
+            }
+
+            @Override
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                AiProviderCapabilities chat = AiProviderCapabilities.chat();
+                return fallbackDeclaredSafe.get()
+                        ? AiProviderCapabilities.chat()
+                        : new AiProviderCapabilities(chat.protocols(), chat.operations(), chat.features());
+            }
+        };
+        AiCommonConfig fallbackConfig = config(false, "fallback");
+        fallbackConfig.setProvider("unsafe-fallback");
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), fallbackProvider)),
+                protocolRouteResolver(), request -> {
+                    calls.incrementAndGet();
+                    return Mono.just(response(429, Flux.just(bytes("busy"))));
+                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)));
+
+        AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
+        properties.getReplay().setResponseStatus(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED);
+        final AiProxyEngine providerDeclaredEngine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), fallbackProvider)),
+                protocolRouteResolver(), request -> {
+                    calls.incrementAndGet();
+                    return Mono.just(response(429, Flux.just(bytes("busy"))));
+                }, properties);
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(fallbackConfig),
+                        response -> response.getBody().then()))
+                .verifyComplete();
+        assertEquals(5, calls.get());
+
+        fallbackDeclaredSafe.set(true);
+        StepVerifier.create(providerDeclaredEngine.execute(BODY, config(false, "main"), Optional.of(fallbackConfig),
+                        response -> response.getBody().then()))
+                .verifyComplete();
+        assertEquals(10, calls.get());
     }
 
     @Test
@@ -368,17 +566,63 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void responseTooLargeHonorsNeverReplayPolicyForToolBearingRequests() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyRetryProperties properties = noJitterRetryProperties();
+        properties.getReplay().setAmbiguousTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        properties.getReplay().setDefiniteTransport(AiProxyRetryProperties.ReplayMode.NEVER);
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(responseTooLargeFailure());
+        }, properties);
+        String toolBody = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\"}}],"
+                + "\"tool_choice\":\"auto\"}";
+
+        StepVerifier.create(engine.execute(toolBody, config(false, "main"), Optional.of(config(false, "fallback")),
+                response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.RESPONSE_TOO_LARGE,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void streamIdleTimeoutHonorsConservativePolicyForToolBearingRequests() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.error(transportFailure(AiTransportException.Kind.STREAM_IDLE_TIMEOUT));
+        }, noJitterRetryProperties());
+        String toolBody = "{\"stream\":true,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\"}}],"
+                + "\"tool_choice\":\"auto\"}";
+
+        StepVerifier.create(engine.execute(toolBody, config(true, "main"), Optional.empty(),
+                response -> response.getBody().then()))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify();
+        assertEquals(1, calls.get());
+    }
+
+    @Test
     void neverRetriesOrFallsBackAfterBodyEmission() {
         AtomicInteger calls = new AtomicInteger();
         List<String> received = new ArrayList<>();
-        AiProxyEngine engine = engine(request -> {
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                protocolRouteResolver(), request -> {
             calls.incrementAndGet();
             return Mono.just(response(200, Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
-        });
+        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> consume(response, received)))
                 .expectError(AiTransportException.class).verify();
         assertEquals(1, calls.get());
         assertEquals(List.of("data: {\"first\":true}\n\n"), received);
+        assertEquals(List.of(new AiProxyAttemptEvent(events.get(0).invocationId(), 0,
+                AiProxyAttemptEvent.Phase.PRIMARY, AiProxyAttemptEvent.Reason.OUTPUT_COMMITTED, null)), events);
     }
 
     @Test
@@ -506,9 +750,29 @@ class AiProxyEngineOrchestrationTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
+        return engine(transport, retryProperties, event -> {
+        });
+    }
+
+    private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties,
+                                 final AiProxyAttemptListener listener) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, retryProperties);
+                protocolRouteResolver(), transport, retryProperties, listener);
+    }
+
+    private AiProxyRetryProperties retryProperties(final Duration initialBackoff, final Duration requestDeadline) {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, initialBackoff);
+        properties.setMaxBackoff(initialBackoff);
+        properties.setJitterFraction(0d);
+        properties.setRequestDeadline(requestDeadline);
+        return properties;
+    }
+
+    private AiProxyRetryProperties noJitterRetryProperties() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1));
+        properties.setJitterFraction(0d);
+        return properties;
     }
 
     private AiCommonConfig config(final boolean stream, final String model) {
@@ -523,6 +787,11 @@ class AiProxyEngineOrchestrationTest {
 
     private AiUpstreamResponse response(final int status, final Flux<byte[]> body) {
         return new AiUpstreamResponse(status, Map.of("X-Upstream", List.of("kept")), body);
+    }
+
+    private AiUpstreamResponse response(final int status, final Map<String, List<String>> headers,
+                                        final Flux<byte[]> body) {
+        return new AiUpstreamResponse(status, headers, body);
     }
 
     private Mono<Void> consume(final AiUpstreamResponse response, final List<String> received) {

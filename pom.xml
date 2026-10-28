@@ -50,6 +50,38 @@
         <module>shenyu-infra</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <id>minimal-http</id>
+            <modules>
+                <module>shenyu-bootstrap-http</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>apache-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>source-release-assembly</id>
+                                <!-- Override the parent descriptor for the Maven source distribution. -->
+                                <configuration combine.self="override">
+                                    <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                                    <descriptors>
+                                        <descriptor>script/source-release.xml</descriptor>
+                                    </descriptors>
+                                    <tarLongFileMode>posix</tarLongFileMode>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>

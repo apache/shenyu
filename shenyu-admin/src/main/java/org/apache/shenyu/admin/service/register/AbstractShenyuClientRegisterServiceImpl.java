@@ -274,8 +274,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 LOG.error("publish instance info error", e);
             }
 
-            LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
-            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
+            // Local probe mode: bootstrap-local health checking is the authority, so a plain heartbeat
+            // only reports instance info and triggers the snapshot refresh below; it must not write back
+            // upstream status on the admin's behalf, in particular it must not revive an upstream that
+            // the operator explicitly disabled.
+            if (!upstreamCheckService.isLocalMode()) {
+                LOG.info("change alive selectorId={}|url={}", selectorId, discoveryUpstreamDTO.getUrl());
+                discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, discoveryUpstreamDTO.getUrl(), Boolean.TRUE);
+            }
         });
 
         DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getSelectorName(), pluginName, namespaceId);
