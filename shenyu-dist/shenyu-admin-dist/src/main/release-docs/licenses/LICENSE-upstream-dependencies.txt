@@ -2212,12 +2212,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================
-org.jspecify:jspecify:1.0.1 / org/jspecify/annotations/NonNull.java, org/jspecify/annotations/NullUnmarked.java, org/jspecify/annotations/package-info.java
-https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1-sources.jar
+org.jspecify:jspecify:0.3.0 / org/jspecify/annotations/NullMarked.java, org/jspecify/annotations/Nullable.java
+https://repo.maven.apache.org/maven2/org/jspecify/jspecify/0.3.0/jspecify-0.3.0-sources.jar
 ========================================================================
 
 /*
- * Copyright 2022 The JSpecify Authors.
+ * Copyright 2018-2020 The JSpecify Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2233,12 +2233,12 @@ https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1-
  */
 
 ========================================================================
-org.jspecify:jspecify:1.0.1 / org/jspecify/annotations/NullMarked.java, org/jspecify/annotations/Nullable.java
-https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1-sources.jar
+org.jspecify:jspecify:0.3.0 / org/jspecify/annotations/NonNull.java, org/jspecify/annotations/NullUnmarked.java, org/jspecify/annotations/package-info.java
+https://repo.maven.apache.org/maven2/org/jspecify/jspecify/0.3.0/jspecify-0.3.0-sources.jar
 ========================================================================
 
 /*
- * Copyright 2018-2020 The JSpecify Authors.
+ * Copyright 2022 The JSpecify Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

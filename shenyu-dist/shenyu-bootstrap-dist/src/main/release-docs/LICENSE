@@ -259,7 +259,7 @@ The text of each license is the standard Apache 2.0 license.
     grpc-stub 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     gson 2.13.2: https://github.com/google/gson, Apache 2.0
     guava 33.7.2-jre: https://github.com/google/guava, Apache 2.0
-    jspecify 1.0.1: https://jspecify.dev/, Apache 2.0
+    jspecify 0.3.0: https://jspecify.dev/, Apache 2.0
     httpasyncclient 4.1.5: https://github.com/apache/httpcomponents-client , Apache 2.0
     httpclient 4.5.13: http://hc.apache.org/httpcomponents-client, Apache 2.0
     httpcore 4.4.16: http://hc.apache.org/httpcomponents-core-ga, Apache 2.0
