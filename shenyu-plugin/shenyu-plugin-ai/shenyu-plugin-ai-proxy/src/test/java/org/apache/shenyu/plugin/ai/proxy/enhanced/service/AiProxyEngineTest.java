@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConversion;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
@@ -130,7 +129,7 @@ class AiProxyEngineTest {
 
     @Test
     void testBuildRequestRejectsMalformedJson() {
-        assertThrows(ShenyuException.class, () -> engine.buildRequest("not-json", config));
+        assertThrows(AiProxyException.class, () -> engine.buildRequest("not-json", config));
     }
 
     @Test

@@ -18,13 +18,13 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.dto.AgentRequestContext;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import reactor.util.context.ContextView;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -54,8 +54,12 @@ public final class AiObservationSupport {
      * @return bounded classification
      */
     public static AiCallOutcome outcome(final Throwable error) {
-        if (error instanceof TimeoutException) {
-            return AiCallOutcome.TIMEOUT;
+        Throwable cause = error;
+        for (int depth = 0; depth < 16 && Objects.nonNull(cause); depth++) {
+            if (cause instanceof TimeoutException) {
+                return AiCallOutcome.TIMEOUT;
+            }
+            cause = cause.getCause();
         }
         if (error instanceof AiTransportException transport) {
             return switch (transport.getKind()) {
@@ -63,7 +67,7 @@ public final class AiObservationSupport {
                 default -> AiCallOutcome.ERROR;
             };
         }
-        if (error instanceof ShenyuException || error instanceof DataBufferLimitException
+        if (error instanceof DataBufferLimitException
                 || error instanceof AiProxyException proxy && proxy.getKind() == AiProxyException.Kind.REQUEST) {
             return AiCallOutcome.REJECTED;
         }

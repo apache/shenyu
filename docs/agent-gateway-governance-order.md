@@ -31,10 +31,14 @@ existing AI chain. AG must not read, buffer or subscribe to the LLM request body
 body consumption remains with the existing AI plugins. A matched MCP request
 terminates in AG and does not enter Prompt, the LLM Token Limiter or AI Proxy.
 Unmatched/disabled AG continues the original chain. Moving the terminal entry
-earlier also bypasses later plugins for matched MCP, including RocketMQ logging
-and sensitiveWord. Do not assume those plugins still observe or filter MCP;
-review any deployment relying on their old position. Authentication plugins
-must still be enabled and match the intended paths; order alone is not authentication.
+earlier also bypasses later plugins for matched MCP, including `mcpServer` and
+`loggingKafka` (180), `sensitiveWord` and `loggingElasticSearch` (190), the LLM
+Token Limiter (171), RocketMQ logging (170), Prompt and AI Proxy. In particular,
+this flips the previous overlap with `mcpServer`: AG at 198 formerly ran after
+it, while AG at 169 now runs first and terminates the matched MCP path. Do not
+assume those plugins still observe, filter or route MCP; review any deployment
+relying on their old position. Authentication plugins must still be enabled and
+match the intended paths; order alone is not authentication.
 
 ## Effective order is configuration, not only the enum
 
@@ -125,13 +129,13 @@ plugins, selector matching and unsynchronized caches require separate inspection
    an intentional custom 198 from the default. If any such row is custom, do not
    run the broad script: restrict each UPDATE to explicitly approved row IDs.
    Other custom values, including invalid ones, are left untouched.
-3. For approved default-only deployments, run
-   `db/upgrade/2.7.2-agent-gateway-order.sql` in one client-managed transaction.
-   It updates only AG rows with `sort = 198` to 169, globally and in all namespaces,
-   and is repeatable. It does not change enabled/config fields or other plugins.
-   MySQL/OceanBase use `START TRANSACTION`; PostgreSQL/openGauss use `BEGIN`;
-   disable autocommit for H2/Oracle as appropriate. Inspect affected counts before
-   committing; roll back if they differ from the reviewed candidate list.
+3. For approved default-only deployments, run the database's
+   `db/upgrade/2.7.2-upgrade-2.7.3-<dialect>.sql` migration. Its Agent Gateway
+   section updates only AG rows with `sort = 198` to 169, globally and in all
+   namespaces, and is repeatable. It does not change enabled/config fields or
+   other plugins. Run the whole migration in one transaction, inspect affected
+   counts before committing, and roll back if they differ from the reviewed
+   candidate list.
 4. Inspect legacy Prompt/Proxy drift separately. For each reviewed row, use the
    Admin namespace plugin editor to set Prompt 170 or Proxy 199, or an explicit
    row-ID-and-old-sort-guarded UPDATE. Never blanket-normalize custom orders.

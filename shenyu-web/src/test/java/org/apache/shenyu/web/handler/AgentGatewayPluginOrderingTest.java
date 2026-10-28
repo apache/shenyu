@@ -51,7 +51,7 @@ import static org.mockito.Mockito.mock;
 class AgentGatewayPluginOrderingTest {
 
     private static final List<PluginEnum> PLUGINS = Arrays.asList(PluginEnum.AI_PROXY, PluginEnum.AI_TOKEN_LIMITER,
-            PluginEnum.AI_PROMPT, PluginEnum.AGENT_GATEWAY, PluginEnum.KEY_AUTH);
+            PluginEnum.AI_PROMPT, PluginEnum.MCP_SERVER, PluginEnum.AGENT_GATEWAY, PluginEnum.KEY_AUTH);
 
     private final Map<String, PluginData> previous = new HashMap<>();
 
@@ -75,7 +75,7 @@ class AgentGatewayPluginOrderingTest {
 
     @Test
     void shouldUseEnumOrderWithoutCachedConfiguration() {
-        assertOrder(handler(false), "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy");
+        assertOrder(handler(false), "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
     }
 
     @Test
@@ -83,20 +83,20 @@ class AgentGatewayPluginOrderingTest {
         PLUGINS.forEach(plugin -> cache(plugin, plugin.getCode()));
         ShenyuWebHandler handler = handler(false);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
-        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy");
+        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
     }
 
     @Test
     void shouldNotSilentlyRepairAnUnmigratedCachedGateway() {
         cache(PluginEnum.AGENT_GATEWAY, 198);
-        assertOrder(handler(false), "keyAuth", "aiPrompt", "aiTokenLimiter", "agentGateway", "aiProxy");
+        assertOrder(handler(false), "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "agentGateway", "aiProxy");
     }
 
     @Test
     void shouldRetainExplicitCustomOrdersEvenWhenUnsafe() {
         cache(PluginEnum.AGENT_GATEWAY, 149);
         cache(PluginEnum.AI_PROXY, 148);
-        assertOrder(handler(false), "aiProxy", "agentGateway", "keyAuth", "aiPrompt", "aiTokenLimiter");
+        assertOrder(handler(false), "aiProxy", "agentGateway", "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer");
     }
 
     @Test
@@ -104,23 +104,23 @@ class AgentGatewayPluginOrderingTest {
         ShenyuWebHandler handler = handler(false);
         cache(PluginEnum.AGENT_GATEWAY, 198);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, data(PluginEnum.AGENT_GATEWAY, 198)));
-        assertOrder(handler, "keyAuth", "aiPrompt", "aiTokenLimiter", "agentGateway", "aiProxy");
+        assertOrder(handler, "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "agentGateway", "aiProxy");
         cache(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode());
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
-        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy");
+        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
         BaseDataCache.getInstance().removePluginDataByPluginName(PluginEnum.AGENT_GATEWAY.getName());
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, data(PluginEnum.AGENT_GATEWAY, 198)));
-        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy");
+        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
     }
 
     @Test
     void shouldContinueFromGatewayThroughTheExistingAiChain() {
         verifyChain(handler(false));
-        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy"), executed);
+        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy"), executed);
     }
 
     @Test
-    void shouldNotReachLlmPluginsWhenGatewayTerminates() {
+    void shouldNotReachLaterPluginsWhenGatewayTerminates() {
         verifyChain(handler(true));
         assertEquals(Arrays.asList("keyAuth", "agentGateway"), executed);
     }
@@ -130,7 +130,7 @@ class AgentGatewayPluginOrderingTest {
         ShenyuWebHandler handler = handler(false);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DISABLED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
         verifyChain(handler);
-        assertEquals(Arrays.asList("keyAuth", "aiPrompt", "aiTokenLimiter", "aiProxy"), executed);
+        assertEquals(Arrays.asList("keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy"), executed);
     }
 
     private ShenyuWebHandler handler(final boolean gatewayTerminates) {
