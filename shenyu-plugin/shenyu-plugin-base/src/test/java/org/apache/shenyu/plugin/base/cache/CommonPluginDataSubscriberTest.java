@@ -61,6 +61,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -284,6 +285,46 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.applyRuleDataSnapshot("namespace-a", List.of(replacement));
 
         assertEquals(List.of(replacement, otherNamespace), baseDataCache.obtainRuleData("selector-a"));
+    }
+
+    @Test
+    public void testSelectorSnapshotRemovesPluginBucketAbsentFromPayload() {
+        // a complete namespace snapshot replaces every plugin of the namespace, including a plugin
+        // whose whole bucket is absent from the payload because its last row was deleted
+        final PluginDataHandler grpcHandler = mock(PluginDataHandler.class);
+        when(grpcHandler.pluginNamed()).thenReturn("grpc");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(grpcHandler));
+        final SelectorData divideRow = SelectorData.builder().id("s-divide").pluginName("divide")
+                .namespaceId("ns1").sort(1).build();
+        final SelectorData grpcRow = SelectorData.builder().id("s-grpc").pluginName("grpc")
+                .namespaceId("ns1").sort(1).build();
+        baseDataCache.cacheSelectData(divideRow);
+        baseDataCache.cacheSelectData(grpcRow);
+
+        commonPluginDataSubscriber.applySelectorDataSnapshot("ns1", List.of(divideRow));
+
+        assertEquals(List.of(divideRow), baseDataCache.obtainSelectorData("divide"));
+        assertNull(baseDataCache.obtainSelectorData("grpc"));
+        verify(grpcHandler).removeSelector(grpcRow);
+    }
+
+    @Test
+    public void testRuleSnapshotRemovesPluginBucketAbsentFromPayload() {
+        final PluginDataHandler grpcHandler = mock(PluginDataHandler.class);
+        when(grpcHandler.pluginNamed()).thenReturn("grpc");
+        commonPluginDataSubscriber.putExtendPluginDataHandler(List.of(grpcHandler));
+        final RuleData divideRule = RuleData.builder().id("r-divide").selectorId("selector-1").pluginName("divide")
+                .namespaceId("ns1").sort(1).build();
+        final RuleData grpcRule = RuleData.builder().id("r-grpc").selectorId("selector-2").pluginName("grpc")
+                .namespaceId("ns1").sort(1).build();
+        baseDataCache.cacheRuleData(divideRule);
+        baseDataCache.cacheRuleData(grpcRule);
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("ns1", List.of(divideRule));
+
+        assertEquals(List.of(divideRule), baseDataCache.obtainRuleData("selector-1"));
+        assertNull(baseDataCache.obtainRuleData("selector-2"));
+        verify(grpcHandler).removeRule(grpcRule);
     }
 
     @Test
@@ -740,6 +781,62 @@ public final class CommonPluginDataSubscriberTest {
         final InOrder inOrder = inOrder(handler);
         inOrder.verify(handler).removeRule(original);
         inOrder.verify(handler).handlerRule(moved);
+    }
+
+    @Test
+    public void testScopedRefreshKeepsFailedSelectorRemovalRetryable() {
+        final SelectorData staleRow = SelectorData.builder().id("s-old").pluginName("divide")
+                .namespaceId("ns1").sort(1).build();
+        baseDataCache.cacheSelectData(staleRow);
+        final SelectorData replacement = SelectorData.builder().id("s-new").pluginName("divide")
+                .namespaceId("ns1").sort(2).build();
+        doThrow(new IllegalStateException("removal failed")).doNothing().when(handler).removeSelector(staleRow);
+
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.refreshSelectorDataScoped(List.of(replacement)));
+        // the failed removal keeps the stale row cached, so the retry rediscovers it as stale
+        assertEquals(List.of(staleRow, replacement), baseDataCache.obtainSelectorData("divide"));
+
+        commonPluginDataSubscriber.refreshSelectorDataScoped(List.of(replacement));
+
+        assertEquals(List.of(replacement), baseDataCache.obtainSelectorData("divide"));
+        verify(handler, times(2)).removeSelector(staleRow);
+    }
+
+    @Test
+    public void testScopedRefreshKeepsFailedRuleRemovalRetryable() {
+        final RuleData staleRow = RuleData.builder().id("r-old").selectorId("selector-1").pluginName("divide")
+                .namespaceId("ns1").sort(1).build();
+        baseDataCache.cacheRuleData(staleRow);
+        final RuleData replacement = RuleData.builder().id("r-new").selectorId("selector-1").pluginName("divide")
+                .namespaceId("ns1").sort(2).build();
+        doThrow(new IllegalStateException("removal failed")).doNothing().when(handler).removeRule(staleRow);
+
+        assertThrows(IllegalStateException.class, () -> commonPluginDataSubscriber.refreshRuleDataScoped(List.of(replacement)));
+        assertEquals(List.of(staleRow, replacement), baseDataCache.obtainRuleData("selector-1"));
+
+        commonPluginDataSubscriber.refreshRuleDataScoped(List.of(replacement));
+
+        assertEquals(List.of(replacement), baseDataCache.obtainRuleData("selector-1"));
+        verify(handler, times(2)).removeRule(staleRow);
+    }
+
+    @Test
+    public void testSnapshotKeepsFailedRuleRemovalRetryable() {
+        final RuleData staleRow = RuleData.builder().id("r-old").selectorId("selector-1").pluginName("divide")
+                .namespaceId("ns1").sort(1).build();
+        baseDataCache.cacheRuleData(staleRow);
+        final RuleData replacement = RuleData.builder().id("r-new").selectorId("selector-1").pluginName("divide")
+                .namespaceId("ns1").sort(2).build();
+        doThrow(new IllegalStateException("removal failed")).doNothing().when(handler).removeRule(staleRow);
+
+        // a snapshot isolates per-row failures, but must still keep the failed removal discoverable
+        assertDoesNotThrow(() -> commonPluginDataSubscriber.applyRuleDataSnapshot("ns1", List.of(replacement)));
+        assertEquals(List.of(staleRow, replacement), baseDataCache.obtainRuleData("selector-1"));
+
+        commonPluginDataSubscriber.applyRuleDataSnapshot("ns1", List.of(replacement));
+
+        assertEquals(List.of(replacement), baseDataCache.obtainRuleData("selector-1"));
+        verify(handler, times(2)).removeRule(staleRow);
     }
 
     @Test

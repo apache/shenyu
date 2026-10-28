@@ -201,8 +201,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     /**
      * Shared body of {@link #applySelectorDataSnapshot} and {@link #refreshSelectorDataScoped}:
      * an authoritative replace restricted to the given scopes, where a null plugin set
-     * keeps every plugin of the given namespaces. Cache rows converge first, and the match
-     * cache invalidates last, after the rows it mirrors are already gone.
+     * keeps every plugin of the given namespaces. Stale rows leave the cache only after
+     * their removal callbacks succeeded, and the match cache invalidates last.
      *
      * @param propagateHandlerFailures snapshots isolate a failing handler so remaining rows still converge,
      *                                 while a scoped refresh propagates it so the caller cannot treat the
@@ -233,18 +233,25 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         if (!incoming.isEmpty()) {
             cache.refreshSelectorData(incoming);
         }
-        if (!stale.isEmpty()) {
-            cache.removeSelectDataBatch(stale);
-        }
         try {
-            // removal callbacks run first so handler state keyed by row id is installed last
-            stale.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
-                // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
-                if (StringUtils.isNotBlank(data.getPluginName())) {
-                    Optional.ofNullable(handlerMap.get(data.getPluginName()))
-                            .ifPresent(handler -> handler.removeSelector(data));
+            // Removal callbacks run first so handler state keyed by row id is installed last, and each
+            // stale row leaves the cache only after its own removal callback succeeded: a failed cleanup
+            // keeps the row cached, so the next apply rediscovers it as stale and retries the handler state.
+            final List<SelectorData> cleaned = new ArrayList<>(stale.size());
+            for (SelectorData data : stale) {
+                if (runCallback(propagateHandlerFailures, data, () -> {
+                    // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
+                    if (StringUtils.isNotBlank(data.getPluginName())) {
+                        Optional.ofNullable(handlerMap.get(data.getPluginName()))
+                                .ifPresent(handler -> handler.removeSelector(data));
+                    }
+                })) {
+                    cleaned.add(data);
                 }
-            }));
+            }
+            if (!cleaned.isEmpty()) {
+                cache.removeSelectDataBatch(cleaned);
+            }
             incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
@@ -252,8 +259,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 }
             }));
         } finally {
-            // Invalidate even if a handler aborted during initial sync: the stale rows are already gone from
-            // BaseDataCache above, so a retry cannot rediscover them and their match cache would stay stale.
+            // Invalidate even if a handler aborted, so a retry is not left with match-cache entries
+            // mirroring rows the aborted apply already replaced.
             invalidateSelectorMatchCacheByPlugins(collectAffectedPlugins(incoming, stale, SelectorData::getPluginName));
             invalidateDanglingSelectorMatchCache(incoming, stale);
         }
@@ -315,19 +322,25 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         if (!incoming.isEmpty()) {
             cache.refreshRuleData(incoming);
         }
-        if (!stale.isEmpty()) {
-            cache.removeRuleDataBatch(stale);
-        }
         try {
             // A moved rule is stale under its old membership and incoming under the new one, and handlers
             // may key rule state by rule id alone, so removals must run first: running them after would
-            // delete the replacement state the incoming callbacks just installed.
-            stale.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
-                if (StringUtils.isNotBlank(data.getPluginName())) {
-                    Optional.ofNullable(handlerMap.get(data.getPluginName()))
-                            .ifPresent(handler -> handler.removeRule(data));
+            // delete the replacement state the incoming callbacks just installed. Each stale row leaves
+            // the cache only after its own removal callback succeeded, keeping a failed cleanup retryable.
+            final List<RuleData> cleaned = new ArrayList<>(stale.size());
+            for (RuleData data : stale) {
+                if (runCallback(propagateHandlerFailures, data, () -> {
+                    if (StringUtils.isNotBlank(data.getPluginName())) {
+                        Optional.ofNullable(handlerMap.get(data.getPluginName()))
+                                .ifPresent(handler -> handler.removeRule(data));
+                    }
+                })) {
+                    cleaned.add(data);
                 }
-            }));
+            }
+            if (!cleaned.isEmpty()) {
+                cache.removeRuleDataBatch(cleaned);
+            }
             incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
@@ -335,8 +348,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                 }
             }));
         } finally {
-            // Invalidate even if a handler aborted during initial sync, so a retry is not left with stale
-            // match-cache entries for rows already removed from BaseDataCache above.
+            // Invalidate even if a handler aborted, so a retry is not left with match-cache entries
+            // mirroring rows the aborted apply already replaced.
             invalidateRuleMatchCacheByPlugins(collectAffectedPlugins(incoming, stale, RuleData::getPluginName));
             invalidateDanglingRuleMatchCache(incoming, stale);
         }
@@ -569,28 +582,34 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     /**
      * Run a per-row callback for an authoritative apply: unguarded when the caller must see the
      * failure, otherwise guarded as described in {@link #runGuarded}.
+     *
+     * @return whether the callback completed without failure
      */
-    private <T> void runCallback(final boolean propagateHandlerFailures, final T data, final Runnable action) {
+    private <T> boolean runCallback(final boolean propagateHandlerFailures, final T data, final Runnable action) {
         if (propagateHandlerFailures) {
             action.run();
-        } else {
-            runGuarded(data, action);
+            return true;
         }
+        return runGuarded(data, action);
     }
 
     /**
      * Run a per-row callback for a snapshot apply, preserving the exception semantics of
      * {@link #subscribeDataHandler}: during initial sync failures abort the snapshot, otherwise
      * they are logged so subsequent rows still converge.
+     *
+     * @return whether the callback completed without failure
      */
-    private <T> void runGuarded(final T data, final Runnable action) {
+    private <T> boolean runGuarded(final T data, final Runnable action) {
         try {
             action.run();
+            return true;
         } catch (Exception e) {
             if (InitialSyncApplication.isActive()) {
                 throw new IllegalStateException("Initial configuration application failed", e);
             }
             LOG.error("snapshot handler error, classData: {}", JsonUtils.toJson(data), e);
+            return false;
         }
     }
 
