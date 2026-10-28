@@ -131,7 +131,7 @@ public class ApacheDubboGrayLoadBalanceTest {
         Invoker<Object> selected = apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, rpcInvocation);
 
         assertSame(rpcInvoker, selected);
-        assertEquals(upstream.identity().hashKey(), rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
+        assertEquals(upstream.identity().markerKey(), rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
     }
 
     @Test

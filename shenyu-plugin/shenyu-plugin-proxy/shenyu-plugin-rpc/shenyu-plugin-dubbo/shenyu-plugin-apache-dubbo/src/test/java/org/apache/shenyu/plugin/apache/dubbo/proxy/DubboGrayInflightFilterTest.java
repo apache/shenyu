@@ -337,7 +337,7 @@ public class DubboGrayInflightFilterTest {
     }
 
     private void mark(final RpcInvocation rpcInvocation, final Upstream selected) {
-        rpcInvocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, selected.identity().hashKey());
+        rpcInvocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, selected.identity().markerKey());
     }
 
     private RpcInvocation markedInvocation() {

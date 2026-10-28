@@ -158,7 +158,9 @@ public class GrayLoadBalanceClusterIdentityTest {
                 Arrays.asList(providerA, providerB), alreadyTried);
         assertEquals("b:1", committed.getUrl().getAddress(),
                 "provider A is already tried, so the reselect must choose provider B");
-        assertEquals(upstreamA.identity().hashKey(), invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY),
+        assertEquals(org.apache.shenyu.common.utils.GsonUtils.getInstance()
+                        .toJson(new String[]{upstreamA.getProtocol(), upstreamA.getUrl(), upstreamA.getGroup(), upstreamA.getVersion()}),
+                invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY),
                 "reselect does not call the load balance again, so the marker still names the proposal");
 
         when(committedProvider.getUrl()).thenReturn(committed.getUrl());
@@ -176,6 +178,56 @@ public class GrayLoadBalanceClusterIdentityTest {
 
         responseFuture.complete(new AppResponse("ok"));
         assertEquals(committedInitial, upstreamB.getInflight().get());
+    }
+
+    /**
+     * Two address-only gray records that differ only in their registry protocol are distinct
+     * logical upstreams, yet the legacy hash-ring key collapses both to the bare address.
+     * The real leastActive balancer selects the idle Nacos record; the filter must count the
+     * selected identity, not the first address match (#8132).
+     */
+    @Test
+    public void countsTheSelectedIdentityWhenAddressOnlyRecordsDifferByRegistryProtocol() throws Exception {
+        final Upstream zookeeper = Upstream.builder().protocol("zookeeper://").url("shared:1").build();
+        zookeeper.getInflight().set(10);
+        final Upstream nacos = Upstream.builder().protocol("nacos://").url("shared:1").build();
+        nacos.getInflight().set(0);
+        final MockInvoker<Object> sharedProvider = new MockInvoker<>(URL.valueOf("dubbo://shared:1"), Object.class);
+        UpstreamCacheManager.getInstance().submit(Constants.DUBBO_SELECTOR_ID, Arrays.asList(zookeeper, nacos));
+        loadBalancerFactoryMockedStatic.close();
+        try {
+            TestClusterInvoker clusterInvoker = new TestClusterInvoker(directory);
+            // two directory invokers, so the cluster actually consults the load balance
+            // (a single invoker short-circuits before any selection)
+            final Invoker<Object> committed = clusterInvoker.pick(grayLoadBalance, invocation,
+                    Arrays.asList(providerA, sharedProvider), new ArrayList<>());
+            assertEquals("shared:1", committed.getUrl().getAddress());
+            assertEquals(org.apache.shenyu.common.utils.GsonUtils.getInstance()
+                            .toJson(new String[]{"nacos://", "shared:1", null, null}),
+                    invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY),
+                    "leastActive must select the idle nacos record and the marker must carry its full identity");
+
+            when(committedProvider.getUrl()).thenReturn(committed.getUrl());
+            CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+            when(committedProvider.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+            long zkInitial = zookeeper.getInflight().get();
+            long nacosInitial = nacos.getInflight().get();
+            new DubboGrayInflightFilter().invoke(committedProvider, invocation);
+
+            assertEquals(zkInitial, zookeeper.getInflight().get(),
+                    "the zookeeper record is not carrying the request");
+            assertEquals(nacosInitial + 1, nacos.getInflight().get(),
+                    "the selected nacos record carries the attempt");
+
+            responseFuture.complete(new AppResponse("ok"));
+            assertEquals(nacosInitial, nacos.getInflight().get());
+        } finally {
+            UpstreamCacheManager.getInstance().removeByKey(Constants.DUBBO_SELECTOR_ID);
+            loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
+            loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
+                    .thenReturn(upstreamA);
+        }
     }
 
     /**

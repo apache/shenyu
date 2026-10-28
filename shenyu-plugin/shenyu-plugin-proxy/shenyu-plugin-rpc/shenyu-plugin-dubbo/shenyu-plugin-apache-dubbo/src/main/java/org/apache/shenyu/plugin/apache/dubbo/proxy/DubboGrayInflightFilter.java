@@ -28,6 +28,7 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
@@ -86,7 +87,7 @@ public class DubboGrayInflightFilter implements Filter {
         return result.whenCompleteWithContext((response, throwable) -> release(released, upstream));
     }
 
-    private Upstream matchUpstream(final Invocation invocation, final String selectedKey, final URL providerUrl) {
+    private Upstream matchUpstream(final Invocation invocation, final String marker, final URL providerUrl) {
         String selectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
         if (StringUtils.isBlank(selectorId) || Objects.isNull(providerUrl) || StringUtils.isBlank(providerUrl.getAddress())) {
             return null;
@@ -106,14 +107,42 @@ public class DubboGrayInflightFilter implements Filter {
                 compatible.add(upstream);
             }
         }
-        for (final Upstream upstream : compatible) {
-            if (selectedKey.equals(upstream.identity().hashKey())) {
+        final String[] selected = selectedIdentity(marker);
+        if (Objects.nonNull(selected)) {
+            for (final Upstream upstream : compatible) {
                 // the load balance selected this logical upstream and it still describes the
-                // committed provider, even if another overlapping entry matches as well
-                return upstream;
+                // committed provider, even if another overlapping entry matches as well; the
+                // protocol only takes part in this identity comparison and is never compared
+                // against the committed provider's RPC URL scheme
+                if (Objects.equals(StringUtils.trimToNull(selected[0]), upstream.getProtocol())
+                        && Objects.equals(StringUtils.trimToNull(selected[1]), upstream.getUrl())
+                        && Objects.equals(StringUtils.trimToNull(selected[2]), upstream.getGroup())
+                        && Objects.equals(StringUtils.trimToNull(selected[3]), upstream.getVersion())) {
+                    return upstream;
+                }
             }
         }
         return mostSpecific(compatible);
+    }
+
+    /**
+     * Parses the marker into the selected upstream's full identity
+     * (protocol, address, group, version), or null when it does not carry one.
+     * JSON nulls arrive as empty strings through the shared string adapter and
+     * are normalized back to null before comparison.
+     *
+     * @param marker the marker attachment value
+     * @return the four identity fields, or null
+     */
+    private static String[] selectedIdentity(final String marker) {
+        try {
+            final String[] identity = GsonUtils.getInstance().fromJson(marker, String[].class);
+            return Objects.nonNull(identity) && identity.length == 4 ? identity : null;
+        } catch (RuntimeException e) {
+            // a malformed marker still counts nothing by identity; the compatible-set
+            // resolution below keeps the attempt attributed conservatively
+            return null;
+        }
     }
 
     /**

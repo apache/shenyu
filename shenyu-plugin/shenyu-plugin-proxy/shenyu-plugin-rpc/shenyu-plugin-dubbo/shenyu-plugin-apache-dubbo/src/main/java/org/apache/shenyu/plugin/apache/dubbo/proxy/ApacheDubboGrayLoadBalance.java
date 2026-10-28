@@ -118,7 +118,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
             // an upstream that is not addressable by url cannot be re-identified by the filter
             return selected;
         }
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, upstream.identity().hashKey());
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, upstream.identity().markerKey());
         return selected;
     }
 
