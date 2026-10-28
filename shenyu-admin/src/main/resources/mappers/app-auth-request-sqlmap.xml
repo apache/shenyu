@@ -35,14 +35,58 @@
         id, caller_key, namespace_id, request_id, request_hash, auth_id, state, revoked_reason, date_created, date_updated
     </sql>
 
-    <!-- Reserve the idempotency key: on unique-key conflict only the existing row id is assigned to the candidate;
-         whether the locked row id equals the candidate id decides first-reservation, independent of affectedRows connection settings -->
+    <!-- Reserve the idempotency key. A conflicting unique key leaves the stored row unchanged, so the
+         caller decides first-reservation by comparing the locked row id with the candidate id.
+         MySQL, H2 (MODE=MySQL) and OceanBase use this statement. -->
     <insert id="reserveIfAbsent" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
         INSERT INTO app_auth_request
             (id, caller_key, namespace_id, request_id, request_hash, auth_id, state)
         VALUES
-            (#{id}, #{callerKey}, #{namespaceId}, #{requestId}, #{requestHash}, #{authId}, #{state})
+            (#{id,jdbcType=VARCHAR}, #{callerKey,jdbcType=VARCHAR}, #{namespaceId,jdbcType=VARCHAR},
+             #{requestId,jdbcType=VARCHAR}, #{requestHash,jdbcType=VARCHAR}, #{authId,jdbcType=VARCHAR},
+             #{state,jdbcType=VARCHAR})
         ON DUPLICATE KEY UPDATE id = app_auth_request.id
+    </insert>
+
+    <insert id="reserveIfAbsent" databaseId="postgresql" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
+        INSERT INTO app_auth_request
+            (id, caller_key, namespace_id, request_id, request_hash, auth_id, state)
+        VALUES
+            (#{id,jdbcType=VARCHAR}, #{callerKey,jdbcType=VARCHAR}, #{namespaceId,jdbcType=VARCHAR},
+             #{requestId,jdbcType=VARCHAR}, #{requestHash,jdbcType=VARCHAR}, #{authId,jdbcType=VARCHAR},
+             #{state,jdbcType=VARCHAR})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="reserveIfAbsent" databaseId="opengauss" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
+        INSERT INTO app_auth_request
+            (id, caller_key, namespace_id, request_id, request_hash, auth_id, state)
+        VALUES
+            (#{id,jdbcType=VARCHAR}, #{callerKey,jdbcType=VARCHAR}, #{namespaceId,jdbcType=VARCHAR},
+             #{requestId,jdbcType=VARCHAR}, #{requestHash,jdbcType=VARCHAR}, #{authId,jdbcType=VARCHAR},
+             #{state,jdbcType=VARCHAR})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="reserveIfAbsent" databaseId="oracle" parameterType="org.apache.shenyu.admin.model.entity.AppAuthRequestDO">
+        MERGE INTO app_auth_request target
+        USING (
+            SELECT CAST(#{id,jdbcType=VARCHAR} AS VARCHAR(128)) id,
+                   CAST(#{callerKey,jdbcType=VARCHAR} AS VARCHAR(128)) caller_key,
+                   CAST(#{namespaceId,jdbcType=VARCHAR} AS VARCHAR(64)) namespace_id,
+                   CAST(#{requestId,jdbcType=VARCHAR} AS VARCHAR(64)) request_id,
+                   CAST(#{requestHash,jdbcType=VARCHAR} AS VARCHAR(64)) request_hash,
+                   CAST(#{authId,jdbcType=VARCHAR} AS VARCHAR(255)) auth_id,
+                   CAST(#{state,jdbcType=VARCHAR} AS VARCHAR(16)) state
+            FROM dual
+        ) source
+        ON (target.caller_key = source.caller_key
+            AND target.namespace_id = source.namespace_id
+            AND target.request_id = source.request_id)
+        WHEN NOT MATCHED THEN
+            INSERT (id, caller_key, namespace_id, request_id, request_hash, auth_id, state)
+            VALUES (source.id, source.caller_key, source.namespace_id, source.request_id,
+                    source.request_hash, source.auth_id, source.state)
     </insert>
 
     <select id="selectByKeyForUpdate" resultMap="BaseResultMap">
