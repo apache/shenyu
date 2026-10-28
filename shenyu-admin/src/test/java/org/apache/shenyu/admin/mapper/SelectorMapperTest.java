@@ -38,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test Cases for SelectorMapper.
@@ -60,6 +61,17 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
+    }
+
+    @Test
+    public void testSelectNamespaceIdById() {
+        SelectorDO selectorDO = buildSelectorDO();
+        assertEquals(1, selectorMapper.insert(selectorDO));
+
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, selectorMapper.selectNamespaceIdById(selectorDO.getId()));
+        assertNull(selectorMapper.selectNamespaceIdById("missing-selector"));
+
+        assertEquals(1, selectorMapper.delete(selectorDO.getId()));
     }
 
     @Test

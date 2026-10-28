@@ -55,6 +55,12 @@
          WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectNamespaceIdById" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT namespace_id
+          FROM rule
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
