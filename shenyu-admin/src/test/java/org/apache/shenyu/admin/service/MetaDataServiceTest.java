@@ -124,6 +124,28 @@ public final class MetaDataServiceTest {
     }
 
     /**
+     * Test case for re-registering disabled metadata keeps it disabled on the gateway.
+     */
+    @Test
+    public void testSaveOrUpdateMetaDataKeepsExistingEnabledStatus() {
+        MetaDataDO exist = MetaDataDO.builder().id("1").enabled(false).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataRegisterDTO registerDTO = new MetaDataRegisterDTO();
+        registerDTO.setPath("/svc/m1");
+        registerDTO.setEnabled(true);
+
+        metaDataService.saveOrUpdateMetaData(exist, registerDTO);
+
+        ArgumentCaptor<MetaDataDO> doCaptor = ArgumentCaptor.forClass(MetaDataDO.class);
+        verify(metaDataMapper).update(doCaptor.capture());
+        Assertions.assertFalse(doCaptor.getValue().getEnabled());
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        List<?> source = (List<?>) captor.getValue().getSource();
+        Assertions.assertEquals(1, source.size());
+        Assertions.assertFalse(((MetaData) source.get(0)).getEnabled());
+    }
+
+    /**
      * Test case for createOrUpdate.<br>
      * Note that the following methods have dependencies before and after.
      */

@@ -93,6 +93,8 @@ public class MetaDataServiceImpl implements MetaDataService {
             eventType = DataEventTypeEnum.CREATE;
         } else {
             metaDataDO.setId(exist.getId());
+            // the update sql keeps the stored enabled status, so the event must carry it too
+            metaDataDO.setEnabled(exist.getEnabled());
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
