@@ -19,16 +19,21 @@ output=$(mktemp)
 trap 'rm -f "$output"' EXIT
 
 assert_routing() {
-  CHANGED_FILES_JSON="$1" GITHUB_OUTPUT="$output" bash .github/scripts/resolve-ci-modules.sh > /dev/null
+  CHANGED_FILES_JSON="$1" GITHUB_OUTPUT="$output" "${BASH}" .github/scripts/resolve-ci-modules.sh > /dev/null
   grep -Fxq "has_code_changes=$2" "$output"
   grep -Fxq "modules=$3" "$output"
   grep -Fxq "full_build_required=$4" "$output"
   : > "$output"
 }
 
+assert_routing '[]' false '' false
+assert_routing '["README.md"]' false '' false
 assert_routing '["shenyu-bootstrap-http/pom.xml"]' false '' false
 assert_routing '["shenyu-bootstrap-http/src/main/java/org/apache/shenyu/bootstrap/http/ShenyuHttpApplication.java"]' false '' false
 assert_routing '["script/performance/minimal-http/fixture.py"]' false '' false
 assert_routing '["shenyu-bootstrap-http/pom.xml","shenyu-common/pom.xml"]' true 'shenyu-common' false
 assert_routing '["pom.xml"]' true '' true
-echo 'Minimal HTTP CI routing tests passed'
+assert_routing '["shenyu-common/pom.xml","shenyu-common/pom.xml"]' true 'shenyu-common' false
+assert_routing '["shenyu-spi/pom.xml"]' true 'shenyu-spi' true
+MAX_CI_MODULES=0 assert_routing '["shenyu-common/pom.xml"]' true 'shenyu-common' true
+echo 'Minimal HTTP CI routing tests passed (10 cases)'
