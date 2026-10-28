@@ -340,6 +340,14 @@ public final class DiscoveryServiceImplTest {
         stored.setProps("{}");
         stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        final DiscoveryHandlerDO handlerRow = DiscoveryHandlerDO.builder().id("handler-1").discoveryId("discovery-1").listenerNode("/shenyu/discovery/order").build();
+        given(discoveryHandlerMapper.selectByDiscoveryId("discovery-1")).willReturn(Collections.singletonList(handlerRow));
+        final ProxySelectorDO proxySelectorRow = new ProxySelectorDO();
+        proxySelectorRow.setId("proxy-1");
+        proxySelectorRow.setName("order");
+        proxySelectorRow.setPluginName("divide");
+        proxySelectorRow.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(proxySelectorMapper.selectByHandlerId("handler-1")).willReturn(proxySelectorRow);
         // each select returns an independent snapshot, like a real database read
         when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
         // a real updateSelective writes the argument into the stored row
@@ -371,6 +379,9 @@ public final class DiscoveryServiceImplTest {
         final org.mockito.InOrder order = org.mockito.Mockito.inOrder(discoveryProcessor);
         order.verify(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         order.verify(discoveryProcessor).createDiscovery(any(DiscoveryDO.class));
+        // the replacement repository must re-bind the existing selector's watch, or the
+        // route stops receiving registry updates after the configuration change
+        order.verify(discoveryProcessor).createProxySelector(any(DiscoveryHandlerDTO.class), any(ProxySelectorDTO.class));
     }
 
     @Test

@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
@@ -306,7 +307,25 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .dateCreated(before.getDateCreated())
                     .dateUpdated(after.getDateUpdated())
                     .build();
-            discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType()).createDiscovery(effectiveAfter);
+            final DiscoveryProcessor replacement = discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType());
+            replacement.createDiscovery(effectiveAfter);
+            // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per proxy selector by
+            // createProxySelector, so re-bind every selector attached to this discovery
+            // or existing routes would stop receiving registry updates
+            for (DiscoveryHandlerDO handler : discoveryHandlerMapper.selectByDiscoveryId(effectiveAfter.getId())) {
+                final ProxySelectorDO proxySelector = proxySelectorMapper.selectByHandlerId(handler.getId());
+                if (Objects.isNull(proxySelector)) {
+                    continue;
+                }
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler),
+                        DiscoveryTransfer.INSTANCE.mapToDTO(proxySelector));
+            }
+            // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per proxy selector by
+            // createProxySelector, so re-bind every selector attached to this discovery
+            // or existing routes would stop receiving registry updates
+
         }
     }
 
