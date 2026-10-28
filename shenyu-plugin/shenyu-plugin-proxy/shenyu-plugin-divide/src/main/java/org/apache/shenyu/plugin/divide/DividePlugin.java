@@ -69,7 +69,7 @@ import org.springframework.http.HttpStatusCode;
 import reactor.core.publisher.SignalType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.lang.NonNull;
-import org.springframework.web.server.ResponseStatusException;
+import org.apache.shenyu.plugin.base.circuitbreaker.ShenyuLocalRejectException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -601,7 +601,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
                                 if (forwarded > maxSize) {
                                     DataBufferUtils.release(buffer);
                                     LOG.error("request entity is too large");
-                                    throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                                    throw new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
                                 }
                             });
                 });

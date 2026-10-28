@@ -50,24 +50,55 @@ public final class UpstreamCircuitBreakerTest {
 
 
     @Test
-    public void clientErrorDoesNotRecordUpstreamFailure() {
+    public void localRejectDoesNotRecordUpstreamFailure() {
         final Upstream upstream = Upstream.builder().url("http://localhost:8080").build();
-        final String key = UpstreamCircuitBreaker.buildKey("selector-4xx", upstream);
+        final String key = UpstreamCircuitBreaker.buildKey("selector-local-reject", upstream);
         final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // three gateway-local rejections must not open the breaker
+            for (int i = 0; i < 3; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
+                        .expectError(ShenyuLocalRejectException.class)
+                        .verify();
+            }
+            assertTrue(breaker.isRequestAllowed(key), "gateway-local rejections must not count as upstream failures");
 
-        // three client-caused 4xx rejections must not open the breaker
-        for (int i = 0; i < 3; i++) {
-            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
-                            Mono.error(new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
-                    .expectError(ResponseStatusException.class)
+            // a plain upstream failure still records normally
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
+                    .expectError(RuntimeException.class)
                     .verify();
-        }
-        assertTrue(breaker.isRequestAllowed(key), "client-side 4xx must not count as upstream failures");
 
-        // a genuine upstream failure still records normally
-        StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
-                .expectError(RuntimeException.class)
-                .verify();
+            // threshold genuine failures open the breaker (classification is not a blanket skip)
+            for (int i = 0; i < 4; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
+                        .expectError(RuntimeException.class)
+                        .verify();
+            }
+            assertFalse(breaker.isRequestAllowed(key), "genuine upstream failures must still open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
+    }
+
+    @Test
+    public void upstreamTimeout408StillRecordsFailure() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8081").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-408", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // 408 is emitted by the retry strategy for exhausted upstream timeouts — an
+            // upstream failure that must keep counting (not a gateway-local rejection)
+            for (int i = 0; i < 6; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "upstream timed out")), key))
+                        .expectError(ResponseStatusException.class)
+                        .verify();
+            }
+            assertFalse(breaker.isRequestAllowed(key), "408 upstream timeouts must still open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
     }
 
     @Test
