@@ -35,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -125,6 +126,90 @@ public class DubboGrayInflightFilterTest {
     }
 
     @Test
+    public void countsTheCommittedProviderNotTheMarkedOne() {
+        Upstream markedProposal = newUpstream("a:1");
+        Upstream committed = newUpstream("b:1");
+        cacheUpstreams(markedProposal, committed);
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://b:1"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long markedInitial = markedProposal.getInflight().get();
+        long committedInitial = committed.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(markedInitial, markedProposal.getInflight().get(),
+                "the marked proposal is not necessarily the committed provider");
+        assertEquals(committedInitial + 1, committed.getInflight().get(),
+                "the committed provider carries the attempt");
+        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+
+        responseFuture.complete(new AppResponse("ok"));
+        assertEquals(committedInitial, committed.getInflight().get());
+    }
+
+    @Test
+    public void countsTheUpstreamMatchingTheCommittedGroupAndVersion() {
+        Upstream versionOne = newUpstream("shared:1", "g", "1");
+        Upstream versionTwo = newUpstream("shared:1", "g", "2");
+        cacheUpstreams(versionOne, versionTwo);
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "shared:1");
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long versionOneInitial = versionOne.getInflight().get();
+        long versionTwoInitial = versionTwo.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(versionOneInitial, versionOne.getInflight().get(),
+                "the same-address upstream of another version must not be counted");
+        assertEquals(versionTwoInitial + 1, versionTwo.getInflight().get(),
+                "the committed group/version identifies the accounting upstream");
+
+        responseFuture.complete(new AppResponse("ok"));
+        assertEquals(versionTwoInitial, versionTwo.getInflight().get());
+    }
+
+    @Test
+    public void doesNotCountWhenTheCommittedProviderIsUnknown() {
+        Upstream markedProposal = newUpstream("a:1");
+        cacheUpstreams(markedProposal);
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://c:1"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long markedInitial = markedProposal.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(markedInitial, markedProposal.getInflight().get(),
+                "an unknown committed provider must not fall back to the marked proposal");
+        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+        responseFuture.complete(new AppResponse("ok"));
+    }
+
+    @Test
+    public void countsWhenTheConfiguredGroupIsAbsent() {
+        Upstream addressOnly = newUpstream("a:1");
+        cacheUpstreams(addressOnly);
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://a:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long initial = addressOnly.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(initial + 1, addressOnly.getInflight().get(),
+                "a blank configured group/version is a wildcard, matching the load balance");
+
+        responseFuture.complete(new AppResponse("ok"));
+        assertEquals(initial, addressOnly.getInflight().get());
+    }
+
+    @Test
     public void passesThroughWithoutTheMarker() {
         when(nextInvoker.invoke(invocation)).thenReturn(AsyncRpcResult.newDefaultAsyncResult("ok", invocation));
 
@@ -143,6 +228,20 @@ public class DubboGrayInflightFilterTest {
 
         assertEquals(1, upstream.getInflight().get());
         filter.invoke(nextInvoker, invocation);
+    }
+
+    private Upstream newUpstream(final String url) {
+        return newUpstream(url, null, null);
+    }
+
+    private Upstream newUpstream(final String url, final String group, final String version) {
+        Upstream result = Upstream.builder().url(url).group(group).version(version).build();
+        result.getInflight().set(1);
+        return result;
+    }
+
+    private void cacheUpstreams(final Upstream... upstreams) {
+        UpstreamCacheManager.getInstance().submit(SELECTOR_ID, Arrays.asList(upstreams));
     }
 
     private void markUpstream(final RpcInvocation rpcInvocation) {

@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.rpc.AppResponse;
+import org.apache.dubbo.rpc.AsyncRpcResult;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
@@ -28,6 +30,7 @@ import org.apache.dubbo.rpc.support.MockInvoker;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
@@ -44,6 +47,7 @@ import org.mockito.quality.Strictness;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,6 +74,9 @@ public class GrayLoadBalanceClusterIdentityTest {
 
     @Mock
     private Directory<Object> directory;
+
+    @Mock
+    private Invoker<Object> committedProvider;
 
     private MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic;
 
@@ -101,6 +108,7 @@ public class GrayLoadBalanceClusterIdentityTest {
         upstreamB.getInflight().set(1);
         providerA = new MockInvoker<>(URL.valueOf("dubbo://a:1"), Object.class);
         providerB = new MockInvoker<>(URL.valueOf("dubbo://b:1"), Object.class);
+        UpstreamCacheManager.getInstance().submit(Constants.DUBBO_SELECTOR_ID, Arrays.asList(upstreamA, upstreamB));
 
         when(directory.getConsumerUrl()).thenReturn(URL.valueOf("dubbo://consumer:1?loadbalance=shenyuDeterministic"));
         loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
@@ -119,6 +127,7 @@ public class GrayLoadBalanceClusterIdentityTest {
         loadBalancerFactoryMockedStatic.close();
         ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get().getAllCache().clear();
         ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get().getAllCache().clear();
+        UpstreamCacheManager.getInstance().removeByKey(Constants.DUBBO_SELECTOR_ID);
     }
 
     @Test
@@ -136,6 +145,37 @@ public class GrayLoadBalanceClusterIdentityTest {
 
         assertEquals("b:1", secondPick.getUrl().getAddress(),
                 "provider A is already tried, so the reselect must choose provider B");
+    }
+
+    @Test
+    public void reselectCountsTheCommittedProviderNotTheMarkedOne() throws Exception {
+        TestClusterInvoker clusterInvoker = new TestClusterInvoker(directory);
+        ArrayList<Invoker<Object>> alreadyTried = new ArrayList<>();
+        Invoker<Object> firstPick = clusterInvoker.pick(grayLoadBalance, invocation,
+                Arrays.asList(providerA, providerB), alreadyTried);
+        alreadyTried.add(firstPick);
+        Invoker<Object> committed = clusterInvoker.pick(grayLoadBalance, invocation,
+                Arrays.asList(providerA, providerB), alreadyTried);
+        assertEquals("b:1", committed.getUrl().getAddress(),
+                "provider A is already tried, so the reselect must choose provider B");
+        assertEquals("a:1", invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL),
+                "reselect does not call the load balance again, so the marker still names the proposal");
+
+        when(committedProvider.getUrl()).thenReturn(committed.getUrl());
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(committedProvider.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long proposalInitial = upstreamA.getInflight().get();
+        long committedInitial = upstreamB.getInflight().get();
+        new DubboGrayInflightFilter().invoke(committedProvider, invocation);
+
+        assertEquals(proposalInitial, upstreamA.getInflight().get(),
+                "the proposal is not carrying the request");
+        assertEquals(committedInitial + 1, upstreamB.getInflight().get(),
+                "the reselected provider carries the attempt");
+
+        responseFuture.complete(new AppResponse("ok"));
+        assertEquals(committedInitial, upstreamB.getInflight().get());
     }
 
     /**

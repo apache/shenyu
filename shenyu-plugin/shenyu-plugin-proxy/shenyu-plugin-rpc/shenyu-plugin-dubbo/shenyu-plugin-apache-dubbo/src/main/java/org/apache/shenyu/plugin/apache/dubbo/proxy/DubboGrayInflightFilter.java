@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.common.extension.Activate;
 import org.apache.dubbo.rpc.Filter;
@@ -35,15 +36,18 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Keeps the selected upstream's outstanding request count current for the dubbo gray
+ * Keeps the accounting upstream's outstanding request count current for the dubbo gray
  * least-active path, without wrapping the invoker Dubbo receives.
  *
- * <p>The gray load balance marks the upstream it selected for the current attempt
- * ({@code DUBBO_INFLIGHT_UPSTREAM_URL}); this consumer-side filter runs after the cluster
- * has committed to a provider, so counting here sees every actual attempt, including ones
- * produced by a retry reselection. Wrapping the invoker instead would put a foreign object
- * into Dubbo's already-tried list, where raw-directory candidates can never compare equal
- * to it and a failed provider would be retried even when another one is available (#8132).
+ * <p>The gray load balance marks the upstream it proposed for the current attempt
+ * ({@code DUBBO_INFLIGHT_UPSTREAM_URL}). The marker only says that this attempt came from
+ * the gray least-active path: it is not the accounting target, because the cluster may
+ * reselect a different provider after the load balance returned without calling it again.
+ * The filter therefore resolves the invoker the cluster actually committed to (address,
+ * group and version) against the selector's upstreams and counts that one. Wrapping the
+ * invoker instead would put a foreign object into Dubbo's already-tried list, where
+ * raw-directory candidates can never compare equal to it and a failed provider would be
+ * retried even when another one is available (#8132).
  *
  * <p>The count is increased when the RPC starts, not when the invoker is selected, and it is
  * released exactly once per attempt, either when the returned result completes or when the
@@ -55,13 +59,14 @@ public class DubboGrayInflightFilter implements Filter {
 
     @Override
     public Result invoke(final Invoker<?> invoker, final Invocation invocation) throws RpcException {
-        Object upstreamUrl = invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL);
-        // the marker is local bookkeeping and must never travel to the provider
-        invocation.getObjectAttachments().remove(Constants.DUBBO_INFLIGHT_UPSTREAM_URL);
-        if (Objects.isNull(upstreamUrl)) {
+        // the marker is local bookkeeping and must never travel to the provider; it only
+        // says this attempt came from the gray least-active path
+        boolean grayAttempt = Objects.nonNull(
+                invocation.getObjectAttachments().remove(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+        if (!grayAttempt) {
             return invoker.invoke(invocation);
         }
-        Upstream upstream = matchUpstream(invocation, String.valueOf(upstreamUrl));
+        Upstream upstream = matchUpstream(invocation, invoker.getUrl());
         if (Objects.isNull(upstream)) {
             return invoker.invoke(invocation);
         }
@@ -82,19 +87,36 @@ public class DubboGrayInflightFilter implements Filter {
         return result.whenCompleteWithContext((response, throwable) -> release(released, upstream));
     }
 
-    private Upstream matchUpstream(final Invocation invocation, final String upstreamUrl) {
+    private Upstream matchUpstream(final Invocation invocation, final URL providerUrl) {
         String selectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
-        if (StringUtils.isBlank(selectorId)) {
+        if (StringUtils.isBlank(selectorId) || Objects.isNull(providerUrl) || StringUtils.isBlank(providerUrl.getAddress())) {
             return null;
         }
         List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
         if (CollectionUtils.isEmpty(upstreams)) {
             return null;
         }
+        final String address = providerUrl.getAddress();
+        final String group = StringUtils.trimToNull(providerUrl.getParameter(Constants.GROUP));
+        final String version = StringUtils.trimToNull(providerUrl.getParameter(Constants.VERSION));
         return upstreams.stream()
-                .filter(upstream -> upstreamUrl.equals(upstream.getUrl()))
+                .filter(upstream -> address.equals(upstream.getUrl()))
+                .filter(upstream -> matchesConfigured(upstream.getGroup(), group))
+                .filter(upstream -> matchesConfigured(upstream.getVersion(), version))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Whether the committed provider satisfies a configured group or version. A blank
+     * configuration is a wildcard, which is how the gray load balance filters invokers.
+     *
+     * @param configured the configured group or version
+     * @param actual the committed provider's group or version
+     * @return true when the field does not restrict the provider
+     */
+    private static boolean matchesConfigured(final String configured, final String actual) {
+        return StringUtils.isBlank(configured) || StringUtils.trim(configured).equals(actual);
     }
 
     private void release(final AtomicBoolean released, final Upstream upstream) {
