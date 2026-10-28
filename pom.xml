@@ -710,6 +710,55 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
+                    <configuration>
+                        <!-- Shaded dependencies must retain every upstream license and notice. -->
+                        <transformers>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/LICENSE</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/LICENSE.txt</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/LICENSE.md</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/NOTICE</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/NOTICE.txt</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/NOTICE.md</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/FastDoubleParser-LICENSE</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/FastDoubleParser-NOTICE</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/thirdparty-LICENSE</resource>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                <resource>META-INF/LICENSE-shaded-dependencies.txt</resource>
+                                <file>${maven.multiModuleProjectDirectory}/licenses/LICENSE-apollo-shaded.txt</file>
+                            </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                <resource>META-INF/NOTICE-shaded-dependencies.txt</resource>
+                                <file>${maven.multiModuleProjectDirectory}/licenses/NOTICE-apollo-shaded.txt</file>
+                            </transformer>
+                        </transformers>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
