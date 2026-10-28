@@ -36,8 +36,6 @@ public class DataPermissionCheckerImpl implements DataPermissionChecker {
 
     private static final String ANONYMOUS_USER_ID = "-1";
 
-    private static final String ANONYMOUS_USER_NAME = "unknown";
-
     private final DataPermissionMapper dataPermissionMapper;
 
     private final NamespaceUserService namespaceUserService;
@@ -63,7 +61,7 @@ public class DataPermissionCheckerImpl implements DataPermissionChecker {
             return;
         }
         final String userId = SessionUtil.visitorId();
-        if (StringUtils.isBlank(userId) || ANONYMOUS_USER_ID.equals(userId) || ANONYMOUS_USER_NAME.equals(userId)) {
+        if (StringUtils.isBlank(userId) || ANONYMOUS_USER_ID.equals(userId)) {
             throw new UnauthorizedException("Data permission check failed: the caller is not an authenticated dashboard user");
         }
         final boolean belongsToNamespace = StringUtils.isNotBlank(namespaceId)

@@ -287,12 +287,16 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public RuleVO findById(final String id) {
+        final String namespaceId = ruleMapper.selectNamespaceIdById(id);
+        if (Objects.isNull(namespaceId)) {
+            return null;
+        }
+        // Detail reads must apply the same data scope as the paged list queries, before loading configuration.
+        dataPermissionChecker.requireRuleReadable(id, namespaceId);
         final RuleDO ruleDO = ruleMapper.selectById(id);
         if (Objects.isNull(ruleDO)) {
             return null;
         }
-        // Detail reads must apply the same data scope as the paged list queries.
-        dataPermissionChecker.requireRuleReadable(ruleDO.getId(), ruleDO.getNamespaceId());
         return RuleVO.buildRuleVO(ruleDO,
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }

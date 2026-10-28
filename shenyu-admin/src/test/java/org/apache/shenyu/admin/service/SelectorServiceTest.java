@@ -287,6 +287,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
+        given(this.selectorMapper.selectNamespaceIdById(eq("123"))).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
         SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
@@ -298,21 +299,22 @@ public final class SelectorServiceTest {
 
     @Test
     public void testFindByIdReturnsNullForUnknownIdentifier() {
-        given(this.selectorMapper.selectById("missing")).willReturn(null);
+        given(this.selectorMapper.selectNamespaceIdById("missing")).willReturn(null);
         assertNull(this.selectorService.findById("missing"));
         verifyNoInteractions(dataPermissionChecker, selectorConditionMapper);
+        verify(this.selectorMapper, never()).selectById("missing");
     }
 
     @Test
     public void testFindByIdDeniedDoesNotReadSelectorConfiguration() {
-        SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById("denied")).willReturn(selectorDO);
+        given(this.selectorMapper.selectNamespaceIdById("denied")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         doThrow(new UnauthorizedException("denied")).when(dataPermissionChecker)
-                .requireSelectorReadable(selectorDO.getId(), selectorDO.getNamespaceId());
+                .requireSelectorReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
 
         assertThrows(UnauthorizedException.class, () -> this.selectorService.findById("denied"));
-        verify(dataPermissionChecker).requireSelectorReadable(selectorDO.getId(), selectorDO.getNamespaceId());
+        verify(dataPermissionChecker).requireSelectorReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
         verifyNoInteractions(selectorConditionMapper);
+        verify(this.selectorMapper, never()).selectById("denied");
     }
 
     @Test

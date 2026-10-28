@@ -388,12 +388,16 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorVO findById(final String id) {
+        final String namespaceId = selectorMapper.selectNamespaceIdById(id);
+        if (Objects.isNull(namespaceId)) {
+            return null;
+        }
+        // Detail reads must apply the same data scope as the paged list queries, before loading configuration.
+        dataPermissionChecker.requireSelectorReadable(id, namespaceId);
         final SelectorDO selectorDO = selectorMapper.selectById(id);
         if (Objects.isNull(selectorDO)) {
             return null;
         }
-        // Detail reads must apply the same data scope as the paged list queries.
-        dataPermissionChecker.requireSelectorReadable(selectorDO.getId(), selectorDO.getNamespaceId());
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
         SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorDO, conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);

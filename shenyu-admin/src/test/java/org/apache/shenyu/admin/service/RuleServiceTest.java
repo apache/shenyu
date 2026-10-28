@@ -175,6 +175,7 @@ public final class RuleServiceTest {
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
+        given(this.ruleMapper.selectNamespaceIdById("123")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
@@ -187,21 +188,22 @@ public final class RuleServiceTest {
 
     @Test
     public void testFindByIdReturnsNullForUnknownIdentifier() {
-        given(this.ruleMapper.selectById("missing")).willReturn(null);
+        given(this.ruleMapper.selectNamespaceIdById("missing")).willReturn(null);
         assertNull(this.ruleService.findById("missing"));
         verifyNoInteractions(dataPermissionChecker, ruleConditionMapper);
+        verify(this.ruleMapper, never()).selectById("missing");
     }
 
     @Test
     public void testFindByIdDeniedDoesNotReadRuleConfiguration() {
-        RuleDO ruleDO = buildRuleDO("denied");
-        given(this.ruleMapper.selectById("denied")).willReturn(ruleDO);
+        given(this.ruleMapper.selectNamespaceIdById("denied")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         doThrow(new UnauthorizedException("denied")).when(dataPermissionChecker)
-                .requireRuleReadable(ruleDO.getId(), ruleDO.getNamespaceId());
+                .requireRuleReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
 
         assertThrows(UnauthorizedException.class, () -> this.ruleService.findById("denied"));
-        verify(dataPermissionChecker).requireRuleReadable(ruleDO.getId(), ruleDO.getNamespaceId());
+        verify(dataPermissionChecker).requireRuleReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
         verifyNoInteractions(ruleConditionMapper);
+        verify(this.ruleMapper, never()).selectById("denied");
     }
 
     @Test
