@@ -292,7 +292,7 @@ public class AppAuthTransactionService {
             authPathMapper.batchSave(newPaths);
         }
 
-        registerAfterCommitUpdateEvent(auth, appName, newPaths);
+        registerAfterCommitUpdateEvent(auth, params, newPaths);
         final List<String> pathList = newPaths.stream().map(AuthPathDO::getPath).collect(Collectors.toList());
         return AppAuthResultVO.builder()
                 .state(STATE_CREATED)
@@ -307,7 +307,16 @@ public class AppAuthTransactionService {
                 .build();
     }
 
-    private void registerAfterCommitUpdateEvent(final AppAuthDO auth, final String appName, final List<AuthPathDO> paths) {
+    /**
+     * Publish the update event as a complete snapshot: the gateway subscribers replace the whole cached auth with
+     * the payload, so the untouched application parameters must be carried along with the replaced paths.
+     *
+     * @param auth the auth being updated
+     * @param params the persisted application parameters, part of the snapshot because replacePaths never touches them
+     * @param paths the new path records
+     */
+    private void registerAfterCommitUpdateEvent(final AppAuthDO auth, final List<AuthParamDO> params,
+                                                final List<AuthPathDO> paths) {
         try {
             final AppAuthData data = AppAuthData.builder()
                     .appKey(auth.getAppKey())
@@ -315,9 +324,12 @@ public class AppAuthTransactionService {
                     .open(auth.getOpen())
                     .enabled(auth.getEnabled())
                     .namespaceId(auth.getNamespaceId())
+                    .paramDataList(params.stream()
+                            .map(param -> new AuthParamData(param.getAppName(), param.getAppParam()))
+                            .collect(Collectors.toList()))
                     .pathDataList(paths.stream()
                             .map(path -> AuthPathData.builder()
-                                    .appName(appName).path(path.getPath()).enabled(path.getEnabled()).build())
+                                    .appName(path.getAppName()).path(path.getPath()).enabled(path.getEnabled()).build())
                             .collect(Collectors.toList()))
                     .build();
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
