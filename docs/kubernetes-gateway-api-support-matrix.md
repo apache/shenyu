@@ -110,7 +110,7 @@ Consequences that the rest of this document depends on:
 | --- | --- |
 | `spec.listeners[].protocol` | `HTTP` only. Everything else → listener `Accepted=False`, `UnsupportedProtocol`. |
 | `spec.listeners[].port` | Must equal the data-plane port. Otherwise → listener `Accepted=False`, `PortUnavailable`. |
-| `spec.listeners[].hostname` | Honoured; intersected with `HTTPRoute.spec.hostnames`. Exact and single-label `*.` wildcards. |
+| `spec.listeners[].hostname` | Honoured; intersected with `HTTPRoute.spec.hostnames`. Exact names and `*.` suffix wildcards, which match one or more leading labels (`*.example.com` matches `a.example.com` and `a.b.example.com`). |
 | `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default) and `All`. `Selector` → route `Accepted=False`, `UnsupportedValue`. |
 | `spec.listeners[].allowedRoutes.kinds` | Honoured; absent means "all protocol-matching kinds", i.e. HTTPRoute. |
 | `spec.listeners[].tls` | Not supported (no TLS listener). Ignored for HTTP listeners. |
@@ -135,13 +135,13 @@ where they exist, because that is what decides whether a gap can block core conf
 | `spec.parentRefs[].namespace` | Cross-namespace attachment allowed only by the listener's `allowedRoutes`; `ReferenceGrant` never applies to parentRefs. |
 | `spec.parentRefs[].sectionName` | Honoured — but a non-matching value reports the wrong reason (§7.4). |
 | `spec.parentRefs[].port` | Honoured — same reason problem. |
-| `spec.hostnames` | Exact and single-label wildcard (`*.example.com`, which never matches the bare domain). Empty means "any host". Response precedence across routes deviates for wildcard/wildcard ties (§7.7). |
+| `spec.hostnames` | Exact names and `*.` suffix wildcards (`*.example.com` matches one or more leading labels, so both `a.example.com` and `a.b.example.com` qualify, while the bare domain `example.com` does not). Empty means "any host". Response precedence across routes deviates for wildcard/wildcard ties (§7.7). |
 | `spec.rules[].matches[].path` | `Exact`, `PathPrefix` (default), `RegularExpression`. `PathPrefix` matches on path element boundaries (`/foo` does not match `/foobar`). API level: Core for Exact/PathPrefix, implementation-specific for RegularExpression. |
 | `spec.rules[].matches[].method` | Honoured. API level: Extended, but exercised by a core test. |
 | `spec.rules[].matches[].headers` | `Exact` and `RegularExpression`, name + value; header **names** are matched case-insensitively (Spring's header map), values case-sensitively. |
 | `spec.rules[].matches[].queryParams` | `Exact` and `RegularExpression`, name + value. API level: Extended. |
 | Match combination | Conditions inside one `matches` entry are AND-ed; multiple `matches` in a rule are OR-ed. CRD caps: 16 rules, 64 matches per rule, <128 matches per route, 16 headers and 16 query params per match. |
-| Rule precedence | Spec order: hostname (exact > wildcard, more labels > fewer, none lowest), path (exact > longest prefix > regex), method present, header count, query count, then rule order. Rules are capped at 16 by the CRD, which fits the 4-bit rule-order field exactly. |
+| Rule precedence | Spec order: hostname (exact > wildcard, more labels > fewer up to the six-label clamp in §7.7, none lowest), path (exact > longest prefix > regex), method present, header count, query count, then rule order. Rules are capped at 16 by the CRD, which fits the 4-bit rule-order field exactly. |
 | Cross-route precedence | **Not implemented**: the spec's "oldest Route, then `namespace/name`" tie-break is missing (§7.6). |
 | `spec.rules[].backendRefs[].kind` | **`Service` (core group) only.** Any other kind → `ResolvedRefs=False`, `InvalidKind`. |
 | `spec.rules[].backendRefs[].port` | Required when the Service has more than one port; omitted with a single-port Service is resolved from it. |
@@ -160,6 +160,14 @@ Note on status semantics: HTTPRoute has no `Programmed` condition in the specifi
 this controller does not invent one. `Accepted=True` / `ResolvedRefs=True` means the route was
 *validated and translated* into data-plane config; it is not a probe of the data plane itself.
 That distinction is deliberate — do not read it as "traffic is flowing".
+
+Note on wildcard hostnames: the API reference for `HTTPRouteSpec.Hostnames` defines `*.` as a
+suffix match — "a match for `*.example.com` would match both `test.example.com`, and
+`foo.test.example.com`, but not `example.com`" — so the multi-label behaviour in the two
+rows above is spec-mandated rather than a ShenYu extension. The core test
+`HTTPRouteHostnameIntersection` pins it in both directions: a listener hostname of
+`*.wildcard.io` serves `foo.bar.wildcard.io` while the bare `wildcard.io` is rejected, and a
+route hostname of `*.anotherwildcard.io` serves `foo.bar.anotherwildcard.io`.
 
 ### 3.4 ReferenceGrant
 
@@ -355,12 +363,16 @@ oldest creation timestamp, then the first in `namespace/name` order. The selecto
 hostname/path/method/header/query/rule order only, so cross-route ties fall through to data-cache
 insertion order — i.e. the winner is effectively arbitrary and can change after a restart.
 
-### 7.7 Wildcard hostname precedence uses label count, not character count
+### 7.7 Wildcard hostname precedence loses specificity beyond six labels
 
 For two intersecting wildcard hostnames the spec ranks by "characters in a matching hostname";
-`HttpRouteParser#hostnameScore` ranks by wildcard label count. `*.example.com` versus
-`*.a-long-label.com` can therefore be ordered differently from the specification. Exact-versus-
-wildcard ordering is correct.
+`HttpRouteParser#hostnameScore` ranks by wildcard label count and clamps it with
+`Math.min(suffixLabelCount, 6)`. Below the clamp the two orderings agree, because two wildcards
+that both match one hostname must have suffixes where one contains the other, and the longer
+suffix then has both more labels and more characters. At or above the clamp they diverge:
+`*.a.b.c.d.e.com` and `*.x.a.b.c.d.e.com` both score 6, both match `h.x.a.b.c.d.e.com`, and the
+remaining path/method/header/query/rule-order fields — not the hostname — then decide the winner,
+so the less specific `*.a.b.c.d.e.com` can win. Exact-versus-wildcard ordering is correct.
 
 ### 7.8 A `matches` entry with more than 16 conditions escapes the padding
 
