@@ -225,6 +225,12 @@ public class NamespaceServiceImpl implements NamespaceService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String namespaceId = StringUtils.defaultString(namespaceDTO.getNamespaceId(), NamespaceIDUtils.getInstance().generateNamespaceID());
+        // The namespace table only makes the primary key unique. Reusing an existing namespace_id
+        // would insert a second row for that namespace and let NamespaceCreatedEvent grant the caller
+        // membership in it, which would then pass the update/delete membership guard.
+        if (Objects.nonNull(namespaceMapper.selectByNamespaceId(namespaceId))) {
+            throw new ShenyuAdminException("namespace id already exist: " + namespaceId);
+        }
         NamespaceDO namespaceDO = NamespaceDO.builder()
                 .id(id)
                 .namespaceId(namespaceId)

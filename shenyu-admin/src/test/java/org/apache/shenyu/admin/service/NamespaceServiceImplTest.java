@@ -247,6 +247,19 @@ public final class NamespaceServiceImplTest {
     }
 
     @Test
+    public void testCreateRejectsExistingNamespaceId() {
+        loginAs("user-1");
+        when(namespaceMapper.selectByNamespaceId("namespace-id"))
+                .thenReturn(NamespaceDO.builder().id("another-id").namespaceId("namespace-id").build());
+
+        assertThrows(ShenyuAdminException.class,
+                () -> namespaceService.createOrUpdate(namespaceDTO(null, "namespace-id")));
+
+        verify(namespaceMapper, never()).insert(any());
+        verifyNoInteractions(namespaceEventPublisher);
+    }
+
+    @Test
     public void testUpdateRequiresEditPermission() {
         loginAs("user-1");
         doThrow(new UnauthorizedException()).when(subject).checkPermission("system:namespace:edit");
