@@ -447,7 +447,7 @@ The text of each license is the standard Apache 2.0 license.
     netflix-infix 0.3.0: https://github.com/Netflix/netflix-commons, Apache 2.0
     servo-core 0.12.21: https://github.com/Netflix/servo, Apache 2.0
     guava 33.7.2-jre: https://github.com/google/guava, Apache 2.0
-    jspecify 1.0.1: https://jspecify.dev/, Apache 2.0
+    jspecify 0.3.0: https://jspecify.dev/, Apache 2.0
     kotlin-stdlib-jdk7 1.9.24: https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-jdk8 1.9.24: https://kotlinlang.org, Apache 2.0
     nekohtml 1.9.22: http://nekohtml.sourceforge.net/, Apache 2.0
