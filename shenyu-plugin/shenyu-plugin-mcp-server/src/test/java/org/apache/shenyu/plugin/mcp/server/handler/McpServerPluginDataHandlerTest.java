@@ -42,10 +42,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -584,6 +586,36 @@ class McpServerPluginDataHandlerTest {
         verify(shenyuMcpServerManager, never()).removeTool("/b", "moved-tool");
         assertEquals(List.of(moved), BaseDataCache.getInstance().obtainRuleData("selector-b"));
         assertNotNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(moved)));
+    }
+
+    @Test
+    void failedRuleRemovalIsRetriedThroughScopedRefresh() {
+        dataHandler.handlerSelector(selectorAt("/a/**", "selector-a"));
+        final RuleData stale = toolRule("selector-a");
+        stale.setSort(1);
+        dataHandler.handlerRule(stale);
+        BaseDataCache.getInstance().cacheRuleData(stale);
+        final RuleData replacement = toolRule("selector-a");
+        replacement.setId("replacement-rule");
+        replacement.setName("replacement-tool");
+        replacement.setHandle("{\"name\":\"replacement-tool\",\"parameters\":[]}");
+        replacement.setSort(2);
+        final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(
+                List.of(dataHandler), new SelectorMatchCache(), new RuleMatchCache());
+        doThrow(new IllegalStateException("removal failed")).doNothing()
+                .when(shenyuMcpServerManager).removeTool("/a", "moved-tool");
+
+        assertThrows(IllegalStateException.class, () -> subscriber.refreshRuleDataScoped(List.of(replacement)));
+        assertEquals(List.of(stale, replacement), BaseDataCache.getInstance().obtainRuleData("selector-a"));
+
+        subscriber.refreshRuleDataScoped(List.of(replacement));
+
+        verify(shenyuMcpServerManager, times(2)).removeTool("/a", "moved-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/a"), eq("replacement-tool"), any(), any(), anyString());
+        verify(shenyuMcpServerManager, never()).removeTool("/a", "replacement-tool");
+        assertEquals(List.of(replacement), BaseDataCache.getInstance().obtainRuleData("selector-a"));
+        assertNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(stale)));
+        assertNotNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(replacement)));
     }
 
     private SelectorData selectorAt(final String uriPattern, final String selectorId) {
