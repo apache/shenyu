@@ -22,13 +22,18 @@ import jakarta.annotation.Resource;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDivideServiceImpl;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 import org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
 import org.apache.shenyu.registry.api.entity.InstanceEntity;
@@ -36,9 +41,16 @@ import org.apache.shenyu.registry.api.path.InstancePathConstants;
 import org.apache.shenyu.registry.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.RecordApplicationEvents;
+import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -54,17 +66,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * Replays the discovery wire contract through Admin and main-owned ZooKeeper APIs.
  */
-@TestPropertySource(properties = "shenyu.sync.websocket.token=zk-6525-sync")
+@RecordApplicationEvents
+@TestPropertySource(properties = {"shenyu.sync.websocket.token=zk-6525-sync", "shenyu.register.props.checked=false"})
 public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringIntegrationTest {
 
     @LocalServerPort
@@ -78,6 +101,18 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     @Resource
     private DiscoveryMapper discoveryMapper;
+
+    @Resource
+    private ShenyuClientRegisterDivideServiceImpl divideRegistration;
+
+    @Resource
+    private PlatformTransactionManager transactionManager;
+
+    @Resource
+    private DiscoveryService discoveryService;
+
+    @Autowired
+    private ApplicationEvents applicationEvents;
 
     private final List<ShenyuInstanceRegisterRepository> clients = new CopyOnWriteArrayList<>();
 
@@ -99,7 +134,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
             backend.close();
         }
         List<DiscoveryDO> discoveries = registeredDiscoveries();
-        discoveries.forEach(discovery -> processorHolder.chooseProcessor("zookeeper").removeDiscovery(discovery));
+        discoveries.forEach(discovery -> processorHolder.chooseProcessor(discovery.getDiscoveryType()).removeDiscovery(discovery));
         jdbcTemplate.update("DELETE FROM discovery_upstream WHERE discovery_handler_id IN "
                 + "(SELECT discovery_handler_id FROM discovery_rel WHERE selector_id LIKE 'zk-6525-%')");
         jdbcTemplate.update("DELETE FROM discovery_handler WHERE id IN (SELECT discovery_handler_id FROM discovery_rel WHERE selector_id LIKE 'zk-6525-%')");
@@ -174,8 +209,130 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
             awaitUpstreams("b", List.of("127.0.0.1:19196"));
             stopInstance(other);
             awaitUpstreams("b", List.of());
-            registeredDiscoveries().forEach(discovery -> processorHolder.chooseProcessor("zookeeper").removeDiscovery(discovery));
+            registeredDiscoveries().forEach(discovery -> processorHolder.chooseProcessor(discovery.getDiscoveryType()).removeDiscovery(discovery));
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testConfiguredDiscoveryWinsRegardlessOfUriArrivalOrder(final boolean uriFirst) throws Exception {
+        createSelector("a");
+        try (TestingServer server = new TestingServer()) {
+            if (uriFirst) {
+                registerUri(19190);
+            }
+            startInstance(server, "a", 19195);
+            awaitUpstreams("a", List.of("127.0.0.1:19195"));
+            if (!uriFirst) {
+                registerUri(19190);
+            }
+            awaitUpstreams("a", List.of("127.0.0.1:19195"));
+            assertEquals(1, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM discovery_rel WHERE selector_id='zk-6525-a'", Integer.class));
+            assertEquals("zookeeper", jdbcTemplate.queryForObject("SELECT d.discovery_type FROM discovery d JOIN discovery_handler h ON h.discovery_id=d.id "
+                    + "JOIN discovery_rel r ON r.discovery_handler_id=h.id WHERE r.selector_id='zk-6525-a'", String.class));
+            assertEquals(InstancePathConstants.buildInstanceParentPath("zk-6525-a"), listenerNode("a"));
+        }
+    }
+
+    @Test
+    public void testConcurrentUriRegistrationHasOneBindingAndKeepsBothUpstreams() throws Exception {
+        createSelector("a");
+        CyclicBarrier start = new CyclicBarrier(2);
+        ExecutorService writers = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> first = writers.submit(() -> {
+                start.await(10, TimeUnit.SECONDS);
+                registerUri(19190);
+                return null;
+            });
+            Future<?> second = writers.submit(() -> {
+                start.await(10, TimeUnit.SECONDS);
+                registerUri(19191);
+                return null;
+            });
+            first.get(15, TimeUnit.SECONDS);
+            second.get(15, TimeUnit.SECONDS);
+            assertEquals(1, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM discovery_rel WHERE selector_id='zk-6525-a'", Integer.class));
+            awaitUpstreams("a", List.of("127.0.0.1:19190", "127.0.0.1:19191"));
+        } finally {
+            writers.shutdownNow();
+            assertTrue(writers.awaitTermination(10, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
+    public void testRolledBackUriRegistrationLeavesNoDiscoveryBinding() {
+        createSelector("a");
+        Integer discoveries = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM discovery", Integer.class);
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            registerUri(19190);
+            status.setRollbackOnly();
+        });
+        assertEquals(0, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM discovery_rel WHERE selector_id='zk-6525-a'", Integer.class));
+        assertEquals(discoveries, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM discovery", Integer.class));
+    }
+
+    @Test
+    public void testBlockedSelectorDoesNotBlockAnotherSelectorOfTheSamePlugin() throws Exception {
+        createSelector("a");
+        createSelector("b");
+        ExecutorService writers = Executors.newFixedThreadPool(2);
+        AtomicReference<Future<?>> blocked = new AtomicReference<>();
+        try {
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                jdbcTemplate.queryForObject("SELECT id FROM selector WHERE id='zk-6525-a' FOR UPDATE", String.class);
+                CountDownLatch started = new CountDownLatch(1);
+                blocked.set(writers.submit(() -> {
+                    started.countDown();
+                    registerUri("a", 19190);
+                }));
+                assertDoesNotThrow(() -> assertTrue(started.await(5, TimeUnit.SECONDS)));
+                assertThrows(TimeoutException.class, () -> blocked.get().get(250, TimeUnit.MILLISECONDS));
+                Future<?> independent = writers.submit(() -> registerUri("b", 19191));
+                assertDoesNotThrow(() -> independent.get(5, TimeUnit.SECONDS));
+            });
+            blocked.get().get(15, TimeUnit.SECONDS);
+            awaitUpstreams("a", List.of("127.0.0.1:19190"));
+            awaitUpstreams("b", List.of("127.0.0.1:19191"));
+        } finally {
+            writers.shutdownNow();
+            assertTrue(writers.awaitTermination(10, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
+    public void testEmptyConfiguredDiscoveryClearsThePreviousLocalRuntimeUpstreams() throws Exception {
+        createSelector("a");
+        registerUri(19190);
+        applicationEvents.clear();
+        try (TestingServer server = new TestingServer()) {
+            DiscoveryConfigRegisterDTO config = new DiscoveryConfigRegisterDTO();
+            config.setSelectorName("/zk-6525-a");
+            config.setPluginName("divide");
+            config.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+            config.setName("zk-6525-empty");
+            config.setDiscoveryType("zookeeper");
+            config.setServerList(server.getConnectString());
+            config.setListenerNode(InstancePathConstants.buildInstanceParentPath("zk-6525-a"));
+            config.setHandler("{}");
+            discoveryService.registerDiscoveryConfig(config);
+            awaitUpstreams("a", List.of());
+            assertTrue(applicationEvents.stream(DataChangedEvent.class)
+                    .filter(event -> event.getGroupKey() == ConfigGroupEnum.DISCOVER_UPSTREAM)
+                    .flatMap(event -> event.getSource().stream()).filter(DiscoverySyncData.class::isInstance)
+                    .map(DiscoverySyncData.class::cast).anyMatch(data -> "zk-6525-a".equals(data.getSelectorId())
+                            && (Objects.isNull(data.getUpstreamDataList()) || data.getUpstreamDataList().isEmpty())));
+        }
+    }
+
+    private void registerUri(final int port) {
+        registerUri("a", port);
+    }
+
+    private void registerUri(final String app, final int port) {
+        URIRegisterDTO uri = URIRegisterDTO.builder().host("127.0.0.1").port(port).protocol("http")
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        assertEquals("success", divideRegistration.doRegisterURI("/zk-6525-" + app, List.of(uri), Constants.SYS_DEFAULT_NAMESPACE_ID));
     }
 
     private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {

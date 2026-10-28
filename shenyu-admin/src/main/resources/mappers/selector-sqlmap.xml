@@ -77,6 +77,21 @@
     </select>
 
 
+    <select id="selectByIdForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM selector WHERE id = #{id, jdbcType=VARCHAR}
+        FOR UPDATE
+    </select>
+
+    <select id="findByNameAndPluginNameAndNamespaceIdForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE selector_name = #{name, jdbcType=VARCHAR}
+          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+          AND plugin_id = (SELECT id FROM plugin WHERE name = #{pluginName, jdbcType=VARCHAR})
+        FOR UPDATE
+    </select>
+
     <select id="selectByIdSet" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>

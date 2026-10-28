@@ -49,6 +49,27 @@ public interface DiscoveryMapper extends ExistProvider {
     DiscoveryDO selectById(String id);
 
     /**
+     * Read the current discovery while registering a selector.
+     *
+     * @param id discovery id
+     * @return current discovery
+     */
+    DiscoveryDO selectByIdForUpdate(String id);
+
+    /**
+     * Read the current shared discovery after acquiring its plugin lock.
+     *
+     * @param pluginName plugin name
+     * @param level discovery level
+     * @param namespaceId namespace id
+     * @param discoveryType discovery type
+     * @return current discovery
+     */
+    DiscoveryDO selectByPluginNameAndLevelAndNamespaceIdAndTypeForUpdate(@Param("pluginName") String pluginName,
+            @Param("level") String level, @Param("namespaceId") String namespaceId, @Param("discoveryType") String discoveryType);
+
+
+    /**
      * selectAll.
      *
      * @return discoveryDOList

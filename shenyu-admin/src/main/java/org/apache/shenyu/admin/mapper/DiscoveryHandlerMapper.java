@@ -143,4 +143,13 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
      * @return DiscoveryHandlerDO
      */
     DiscoveryHandlerDO selectBySelectorId(String selectorId);
+
+    /**
+     * Read the current handler after acquiring the selector registration lock.
+     *
+     * @param selectorId selector id
+     * @return current handler
+     */
+    DiscoveryHandlerDO selectBySelectorIdForUpdate(String selectorId);
+
 }

@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
@@ -60,6 +61,10 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -112,10 +117,25 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     private PluginMapper pluginMapper;
 
     @Resource
+    private SelectorMapper selectorMapper;
+
+    @Resource
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
     @Resource
     private InstanceInfoReportEventPublisher publisher;
+
+    private TransactionTemplate uriRegistration;
+
+    /**
+     * Set the transaction manager for initial and fallback URI registration.
+     *
+     * @param transactionManager transaction manager
+     */
+    @Resource
+    public void setTransactionManager(final PlatformTransactionManager transactionManager) {
+        uriRegistration = new TransactionTemplate(transactionManager);
+    }
 
     /**
      * Selector handler string.
@@ -196,8 +216,12 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
+        return uriRegistration.execute(status -> registerURIWithLock(selectorName, uriList, namespaceId));
+    }
+
+    private String registerURIWithLock(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorMapper.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         LOG.info("selector info params: selectorName: {}, pluginName: {}, namespaceId: {}, selectorDO info: {}.",
                 selectorName, pluginName, namespaceId, selectorDO);
         if (Objects.isNull(selectorDO)) {
@@ -210,6 +234,10 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         List<URIRegisterDTO> validUriList = uriList.stream()
                 .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
                 .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(validUriList)
+                || Objects.isNull(discoveryService.registerDefaultDiscovery(selectorDO.getId(), pluginName, namespaceId))) {
+            return ShenyuResultMessage.SUCCESS;
+        }
         String handler = buildHandle(validUriList, selectorDO);
         if (Objects.nonNull(handler)) {
             selectorDO.setHandle(handler);
@@ -322,8 +350,20 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             // while heartbeats alone can never do so (#8042)
             discoveryUpstreamService.markDrainingBySelectorIdAndUrl(selectorDO.getId(), discoveryUpstreamDTO.getUrl(), false);
         }
-        DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        Runnable publish = () -> {
+            DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publish.run();
+                }
+            });
+        } else {
+            publish.run();
+        }
     }
 
     protected DiscoverySyncData fetch(final String selectorId, final String selectorName, final String pluginName, final String namespaceId) {

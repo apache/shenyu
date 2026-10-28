@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -33,6 +35,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
@@ -92,9 +95,6 @@ public final class DiscoveryServiceImplTest {
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
     @Mock
-    private SelectorService selectorService;
-
-    @Mock
     private SelectorMapper selectorMapper;
 
     @Mock
@@ -106,13 +106,28 @@ public final class DiscoveryServiceImplTest {
     @Mock
     private PlatformTransactionManager transactionManager;
 
+    @Mock
+    private PluginMapper pluginMapper;
+
+    @Mock
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
     private DiscoveryServiceImpl discoveryService;
 
     @BeforeEach
     public void setUp() {
         discoveryService = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, discoveryRelMapper,
-                discoveryHandlerMapper, selectorService, selectorMapper, discoveryProcessorHolder, transactionManager);
+                discoveryHandlerMapper, selectorMapper, discoveryProcessorHolder, transactionManager, pluginMapper, discoveryUpstreamMapper);
         given(discoveryProcessorHolder.chooseProcessor(anyString())).willReturn(discoveryProcessor);
+        given(pluginMapper.selectByName("divide")).willReturn(PluginDO.builder().id("5").build());
+        given(selectorMapper.selectByIdForUpdate(anyString())).willAnswer(invocation -> SelectorDO.builder().id(invocation.getArgument(0))
+                .pluginId("5").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build());
+        given(discoveryHandlerMapper.selectBySelectorIdForUpdate(anyString()))
+                .willAnswer(invocation -> discoveryHandlerMapper.selectBySelectorId(invocation.getArgument(0)));
+        given(discoveryMapper.selectByIdForUpdate(anyString())).willAnswer(invocation -> discoveryMapper.selectById(invocation.getArgument(0)));
+        given(discoveryMapper.selectByPluginNameAndLevelAndNamespaceIdAndTypeForUpdate(anyString(), anyString(), anyString(), anyString()))
+                .willAnswer(invocation -> discoveryMapper.selectByPluginNameAndLevelAndNamespaceIdAndType(
+                        invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2), invocation.getArgument(3)));
     }
 
     @Test
@@ -153,10 +168,10 @@ public final class DiscoveryServiceImplTest {
     @Test
     public void testBindingRetriesAndFailsWhenSelectorIsMissing() {
         DiscoveryConfigRegisterDTO config = bindingConfig();
-        given(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID))
+        given(selectorMapper.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID))
                 .willReturn(null);
         assertThrows(ShenyuException.class, () -> discoveryService.registerDiscoveryConfig(config));
-        verify(selectorService, org.mockito.Mockito.times(3))
+        verify(selectorMapper, org.mockito.Mockito.times(3))
                 .findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID);
         verifyNoInteractions(discoveryMapper, discoveryHandlerMapper, discoveryRelMapper, discoveryProcessor);
     }
@@ -167,7 +182,7 @@ public final class DiscoveryServiceImplTest {
         selector.setId("selector");
         selector.setSelectorName("test");
         selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        given(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID))
+        given(selectorMapper.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID))
                 .willReturn(selector);
         DiscoveryDO existing = DiscoveryDO.builder().id("discovery").discoveryType("local").build();
         DiscoveryHandlerDO handler = DiscoveryHandlerDO.builder().id("handler").discoveryId("discovery").build();
@@ -181,12 +196,75 @@ public final class DiscoveryServiceImplTest {
         verify(discoveryProcessor).createDiscovery(existing);
     }
 
+    @Test
+    public void testConfiguredDiscoveryRebindsAnAutomaticallyCreatedLocalHandler() {
+        DiscoveryConfigRegisterDTO config = bindingConfig();
+        config.setDiscoveryType("zookeeper");
+        config.setHandler("configured-handler");
+        config.setListenerNode("/configured");
+        DiscoveryDO remote = DiscoveryDO.builder().id("remote").discoveryType("zookeeper").build();
+        DiscoveryDO fallback = DiscoveryDO.builder().id("fallback").discoveryType("local").discoveryLevel("0")
+                .discoveryName("divide_default_discovery").namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        given(discoveryMapper.selectByPluginNameAndLevelAndNamespaceIdAndType(anyString(), anyString(), anyString(), anyString()))
+                .willReturn(remote);
+        given(discoveryMapper.selectById("fallback")).willReturn(fallback);
+        given(discoveryHandlerMapper.selectBySelectorId("selector"))
+                .willReturn(DiscoveryHandlerDO.builder().id("handler").discoveryId("fallback").build());
+
+        discoveryService.registerDiscoveryConfig(config);
+
+        ArgumentCaptor<DiscoveryHandlerDO> handler = ArgumentCaptor.forClass(DiscoveryHandlerDO.class);
+        verify(discoveryHandlerMapper).updateSelective(handler.capture());
+        assertEquals("handler", handler.getValue().getId());
+        assertEquals("remote", handler.getValue().getDiscoveryId());
+        assertEquals("configured-handler", handler.getValue().getHandler());
+        assertEquals("/configured", handler.getValue().getListenerNode());
+        verify(discoveryRelMapper, never()).insertSelective(any());
+        verify(discoveryUpstreamMapper).deleteByDiscoveryHandlerId("handler");
+        org.mockito.InOrder activation = inOrder(discoveryProcessor);
+        activation.verify(discoveryProcessor).removeSelectorUpstream(any());
+        activation.verify(discoveryProcessor).createDiscovery(remote);
+        activation.verify(discoveryProcessor).createProxySelector(any(), any());
+        verify(discoveryMapper).delete("fallback", SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    @Test
+    public void testDefaultRegistrationDoesNotReturnARemoteHandlerForLocalUpstreams() {
+        given(discoveryHandlerMapper.selectBySelectorId("selector"))
+                .willReturn(DiscoveryHandlerDO.builder().id("handler").discoveryId("remote").build());
+        given(discoveryMapper.selectById("remote")).willReturn(DiscoveryDO.builder().id("remote").discoveryType("zookeeper").build());
+
+        assertNull(discoveryService.registerDefaultDiscovery("selector", "divide", SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testClientConfigurationDoesNotReplaceAnEstablishedRemoteDiscovery() {
+        DiscoveryConfigRegisterDTO config = bindingConfig();
+        config.setDiscoveryType("nacos");
+        given(discoveryHandlerMapper.selectBySelectorId("selector"))
+                .willReturn(DiscoveryHandlerDO.builder().id("handler").discoveryId("remote").build());
+        given(discoveryMapper.selectById("remote")).willReturn(DiscoveryDO.builder().id("remote").discoveryType("zookeeper").build());
+
+        discoveryService.registerDiscoveryConfig(config);
+
+        verify(discoveryMapper, never()).insertSelective(any());
+        verify(discoveryHandlerMapper, never()).updateSelective(any());
+        verifyNoInteractions(discoveryProcessor, discoveryUpstreamMapper);
+    }
+
+    @Test
+    public void testDefaultRegistrationRejectsAnIncorrectNamespace() {
+        assertThrows(ShenyuException.class, () -> discoveryService.registerDefaultDiscovery("selector", "divide", "another-namespace"));
+        verifyNoInteractions(discoveryHandlerMapper, discoveryRelMapper, discoveryUpstreamMapper);
+    }
+
     private DiscoveryConfigRegisterDTO bindingConfig() {
         SelectorDO selector = new SelectorDO();
         selector.setId("selector");
         selector.setSelectorName("test");
         selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        given(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID)).willReturn(selector);
+        given(selectorMapper.findByNameAndPluginNameAndNamespaceIdForUpdate("test", "divide", SYS_DEFAULT_NAMESPACE_ID)).willReturn(selector);
         DiscoveryConfigRegisterDTO config = new DiscoveryConfigRegisterDTO();
         config.setSelectorName("test");
         config.setPluginName("divide");
@@ -425,7 +503,8 @@ public final class DiscoveryServiceImplTest {
         String handlerId = discoveryService.registerDefaultDiscovery("s", "divide", SYS_DEFAULT_NAMESPACE_ID);
         org.junit.jupiter.api.Assertions.assertNotNull(handlerId);
         verify(discoveryMapper).insertSelective(any());
-        when(discoveryHandlerMapper.selectBySelectorId("existing")).thenReturn(DiscoveryHandlerDO.builder().id("h").build());
+        when(discoveryHandlerMapper.selectBySelectorId("existing")).thenReturn(DiscoveryHandlerDO.builder().id("h").discoveryId("local").build());
+        when(discoveryMapper.selectById("local")).thenReturn(DiscoveryDO.builder().id("local").discoveryType("local").build());
         assertEquals("h", discoveryService.registerDefaultDiscovery("existing", "divide", SYS_DEFAULT_NAMESPACE_ID));
         assertEquals(0, discoveryService.importData(Collections.emptyList()).getSuccessCount());
         DiscoveryDTO dto = new DiscoveryDTO();
