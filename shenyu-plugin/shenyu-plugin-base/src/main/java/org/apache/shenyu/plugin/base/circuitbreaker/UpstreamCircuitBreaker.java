@@ -18,12 +18,14 @@
 package org.apache.shenyu.plugin.base.circuitbreaker;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A lightweight built-in circuit breaker for divide/http proxy upstreams.
@@ -208,6 +210,11 @@ public final class UpstreamCircuitBreaker {
         this.breakers.remove(key);
     }
 
+    private static boolean isClientError(final Throwable error) {
+        return error instanceof ResponseStatusException
+                && ((ResponseStatusException) error).getStatusCode().is4xxClientError();
+    }
+
     /**
      * Wrap a forwarded {@link Mono} so that its terminal signal is recorded as
      * a success or a failure of the upstream identified by the given key.
@@ -221,23 +228,31 @@ public final class UpstreamCircuitBreaker {
         return Mono.defer(() -> {
             CircuitBreakerState initial = INSTANCE.breakers.get(key);
             long generation = Objects.isNull(initial) ? 0 : initial.getGeneration();
-            return source.doFinally(signal -> {
-                if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
-                    return;
-                }
-                CircuitBreakerState current = INSTANCE.breakers.get(key);
-                if (Objects.isNull(initial)) {
-                    if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
-                        current = INSTANCE.breakers.computeIfAbsent(key,
-                                ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
-                    }
-                } else if (current != initial) {
-                    return;
-                }
-                if (Objects.nonNull(current)) {
-                    current.recordOrdinaryOutcome(generation, signal);
-                }
-            });
+            // a client-caused 4xx (e.g. the gateway's own request-body limit) is not an
+            // upstream failure; counting it would open the breaker for a healthy backend,
+            // so classify the terminal error before the outcome reaches the state machine
+            final AtomicBoolean clientError = new AtomicBoolean(false);
+            return source.doOnError(error -> clientError.set(isClientError(error)))
+                    .doFinally(signal -> {
+                        if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
+                            return;
+                        }
+                        if (clientError.get()) {
+                            return;
+                        }
+                        CircuitBreakerState current = INSTANCE.breakers.get(key);
+                        if (Objects.isNull(initial)) {
+                            if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
+                                current = INSTANCE.breakers.computeIfAbsent(key,
+                                        ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
+                            }
+                        } else if (current != initial) {
+                            return;
+                        }
+                        if (Objects.nonNull(current)) {
+                            current.recordOrdinaryOutcome(generation, signal);
+                        }
+                    });
         });
     }
 
