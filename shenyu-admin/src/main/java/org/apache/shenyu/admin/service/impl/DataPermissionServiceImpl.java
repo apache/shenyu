@@ -107,14 +107,19 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * Resolve the effective data permission scope of a dashboard caller.
      *
      * @param userId user id
+     * @param dataType data permission data type
      * @return effective {@linkplain DataPermissionScope}
      */
     @Override
-    public DataPermissionScope getDataScope(final String userId) {
-        if (SessionUtil.isAdmin()) {
+    public DataPermissionScope getDataScope(final String userId, final Integer dataType) {
+        if (SessionUtil.isAdmin() && StringUtils.equals(userId, SessionUtil.visitorId())) {
             return DataPermissionScope.unrestricted();
         }
-        return DataPermissionScope.of(getDataPermission(userId));
+        final List<String> dataIds = getUserDataPermissionList(userId).stream()
+                .filter(permission -> Objects.equals(permission.getDataType(), dataType))
+                .map(DataPermissionDO::getDataId)
+                .collect(Collectors.toList());
+        return DataPermissionScope.of(dataIds);
     }
 
     /**

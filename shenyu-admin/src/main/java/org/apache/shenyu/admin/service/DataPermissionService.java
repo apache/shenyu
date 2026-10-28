@@ -49,13 +49,14 @@ public interface DataPermissionService {
     /**
      * Resolve the effective data permission scope of a dashboard caller.
      * <p>Global administrators are unrestricted; every other caller is
-     * restricted to the granted resource ids, and an empty grant set means
-     * that no resource is readable.</p>
+     * restricted to the granted resource ids of the requested data type, and
+     * an empty grant set means that no resource is readable.</p>
      *
      * @param userId user id
+     * @param dataType data permission data type, e.g. selector or rule
      * @return effective {@linkplain DataPermissionScope}
      */
-    DataPermissionScope getDataScope(String userId);
+    DataPermissionScope getDataScope(String userId, Integer dataType);
 
     /**
      * Create selector data permission.

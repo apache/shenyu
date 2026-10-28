@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.model.query.FilterQuery;
 import org.apache.shenyu.admin.service.DataPermissionScope;
 import org.apache.shenyu.admin.service.DataPermissionService;
-import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -36,6 +36,8 @@ import java.util.stream.Stream;
 
 import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_RULE;
 import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_SELECTOR;
+import static org.apache.shenyu.common.constant.AdminConstants.RULE_DATA_TYPE;
+import static org.apache.shenyu.common.constant.AdminConstants.SELECTOR_DATA_TYPE;
 
 /**
  * Data permission aop aspect.
@@ -86,21 +88,25 @@ public class DataPermissionAspect {
         if (Objects.isNull(dataPermission) || Objects.isNull(args)) {
             return args;
         }
-        DataPermissionScope scope = dataPermissionService.getDataScope(JwtUtils.getUserInfo().getUserId());
+        final Integer dataType;
+        switch (dataPermission.dataType()) {
+            case DATA_PERMISSION_SELECTOR:
+                dataType = SELECTOR_DATA_TYPE;
+                break;
+            case DATA_PERMISSION_RULE:
+                dataType = RULE_DATA_TYPE;
+                break;
+            default:
+                return args;
+        }
+        DataPermissionScope scope = dataPermissionService.getDataScope(SessionUtil.visitorId(), dataType);
         if (scope.isUnrestricted()) {
             return args;
         }
         // A restricted scope with no grants sets an empty filter, which the SQL renders as "match nothing".
-        switch (dataPermission.dataType()) {
-            case DATA_PERMISSION_SELECTOR:
-            case DATA_PERMISSION_RULE:
-                Stream.of(args)
-                        .filter(FilterQuery.class::isInstance)
-                        .forEach(q -> ((FilterQuery) q).setFilterIds(scope.getDataIds()));
-                break;
-            default:
-                break;
-        }
+        Stream.of(args)
+                .filter(FilterQuery.class::isInstance)
+                .forEach(q -> ((FilterQuery) q).setFilterIds(scope.getDataIds()));
         return args;
     }
 }
