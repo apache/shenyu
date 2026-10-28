@@ -52,6 +52,14 @@ public interface SelectorMapper extends ExistProvider {
     SelectorDO selectById(String id);
 
     /**
+     * select selector namespace id by id.
+     *
+     * @param id primary key.
+     * @return namespace id, or null when the selector does not exist
+     */
+    String selectNamespaceIdById(String id);
+
+    /**
      * Select selector by a list of ids.
      *
      * @param idSet a list of ids
