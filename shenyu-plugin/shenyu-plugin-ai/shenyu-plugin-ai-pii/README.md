@@ -53,9 +53,11 @@ extraction and configurable actions.
 
 ## Bounded first release
 
-- Server sent events and compressed responses (`Content-Encoding` other than `identity`)
-  cannot be scanned. With a fail closed rule they are rejected, otherwise they are passed
-  through **unchanged** (a compressed body is never decoded and re encoded).
+- Server sent events and compressed payloads (`Content-Encoding` other than `identity`, in
+  either direction) cannot be scanned. With a fail closed rule they are rejected, a
+  compressed request before the backend is invoked; otherwise they are passed through
+  **unchanged**: a compressed body is never decoded as text and re encoded, the original
+  wire bytes are forwarded with their original `Content-Encoding` and framing headers.
 - Streaming requests (`stream: true`) under a response scope are rejected up front
   when the rule is fail closed. In fail-open mode, if request scanning is also enabled,
   the request scan observes the flag and skips response inspection with a warning.

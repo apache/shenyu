@@ -76,6 +76,12 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectNamespaceIdById" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT namespace_id
+        FROM selector
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
 
     <select id="selectByIdSet" resultMap="BaseResultMap">
         SELECT
@@ -133,12 +139,17 @@
                 <bind name="nameLike" value="('%' + name + '%')"/>
                  AND selector_name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
-            <if test="filterIds != null">
-                 AND id IN
-                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
-                    #{filterId, jdbcType=VARCHAR}
-                </foreach>
-            </if>
+            <choose>
+                <when test="filterIds != null and filterIds.size() > 0">
+                     AND id IN
+                    <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                        #{filterId, jdbcType=VARCHAR}
+                    </foreach>
+                </when>
+                <when test="filterIds != null">
+                     AND 1 = 0
+                </when>
+            </choose>
         </where>
         ORDER BY sort_code
     </select>
@@ -191,12 +202,17 @@
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND selector_name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
-            <if test="filterIds != null">
-                AND id IN
-                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
-                    #{filterId, jdbcType=VARCHAR}
-                </foreach>
-            </if>
+            <choose>
+                <when test="filterIds != null and filterIds.size() > 0">
+                    AND id IN
+                    <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                        #{filterId, jdbcType=VARCHAR}
+                    </foreach>
+                </when>
+                <when test="filterIds != null">
+                    AND 1 = 0
+                </when>
+            </choose>
         </where>
 
     </select>
