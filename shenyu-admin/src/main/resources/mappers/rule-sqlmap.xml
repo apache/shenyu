@@ -83,12 +83,17 @@
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND rule_name like #{nameLike, jdbcType=VARCHAR}
             </if>
-            <if test="filterIds != null">
-                AND id IN
-                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
-                    #{filterId, jdbcType=VARCHAR}
-                </foreach>
-            </if>
+            <choose>
+                <when test="filterIds != null and filterIds.size() > 0">
+                    AND id IN
+                    <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                        #{filterId, jdbcType=VARCHAR}
+                    </foreach>
+                </when>
+                <when test="filterIds != null">
+                    AND 1 = 0
+                </when>
+            </choose>
         </where>
         ORDER BY sort_code
     </select>
@@ -122,12 +127,17 @@
                 <bind name="nameLike" value="('%' + name + '%')"/>
                 AND rule_name LIKE #{nameLike, jdbcType=VARCHAR}
             </if>
-            <if test="filterIds != null">
-                AND id IN
-                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
-                    #{filterId, jdbcType=VARCHAR}
-                </foreach>
-            </if>
+            <choose>
+                <when test="filterIds != null and filterIds.size() > 0">
+                    AND id IN
+                    <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                        #{filterId, jdbcType=VARCHAR}
+                    </foreach>
+                </when>
+                <when test="filterIds != null">
+                    AND 1 = 0
+                </when>
+            </choose>
         </where>
     </select>
 

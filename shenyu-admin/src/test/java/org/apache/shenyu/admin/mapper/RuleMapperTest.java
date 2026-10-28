@@ -233,6 +233,23 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         assertThat(ruleMapper.countByQuery(query), equalTo(0));
     }
 
+    @Test
+    @Transactional
+    public void testEmptyPermissionFilterMatchesNothing() {
+        RuleDO ruleDO = buildRuleDO();
+        ruleMapper.insert(ruleDO);
+        RuleQuery query = new RuleQuery();
+        query.setSelectorId(ruleDO.getSelectorId());
+        query.setFilterIds(Collections.emptyList());
+
+        assertThat(ruleMapper.countByQuery(query), equalTo(0));
+        assertThat(ruleMapper.selectByQuery(query).size(), equalTo(0));
+
+        query.setFilterIds(null);
+        assertThat(ruleMapper.countByQuery(query), equalTo(1));
+        assertThat(ruleMapper.selectByQuery(query).size(), equalTo(1));
+    }
+
     private RuleDO buildRuleDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();

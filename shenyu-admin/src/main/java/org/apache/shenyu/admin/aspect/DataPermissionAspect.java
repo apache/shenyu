@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.aspect;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.model.query.FilterQuery;
+import org.apache.shenyu.admin.service.DataPermissionScope;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -86,17 +86,17 @@ public class DataPermissionAspect {
         if (Objects.isNull(dataPermission) || Objects.isNull(args)) {
             return args;
         }
-        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserInfo().getUserId());
-        if (CollectionUtils.isEmpty(dataPermissionList)) {
+        DataPermissionScope scope = dataPermissionService.getDataScope(JwtUtils.getUserInfo().getUserId());
+        if (scope.isUnrestricted()) {
             return args;
         }
-
+        // A restricted scope with no grants sets an empty filter, which the SQL renders as "match nothing".
         switch (dataPermission.dataType()) {
             case DATA_PERMISSION_SELECTOR:
             case DATA_PERMISSION_RULE:
                 Stream.of(args)
                         .filter(FilterQuery.class::isInstance)
-                        .forEach(q -> ((FilterQuery) q).setFilterIds(dataPermissionList));
+                        .forEach(q -> ((FilterQuery) q).setFilterIds(scope.getDataIds()));
                 break;
             default:
                 break;

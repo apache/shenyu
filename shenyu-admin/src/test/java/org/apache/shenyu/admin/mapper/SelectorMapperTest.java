@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -245,6 +246,22 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(1, selectorMapper.countByQuery(query));
         query.setName("missing-keyword");
         assertEquals(0, selectorMapper.countByQuery(query));
+    }
+
+    @Test
+    @Transactional
+    public void testEmptyPermissionFilterMatchesNothing() {
+        SelectorDO selectorDO = buildSelectorDO();
+        selectorMapper.insert(selectorDO);
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), null, new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
+        query.setFilterIds(Collections.emptyList());
+
+        assertEquals(0, selectorMapper.countByQuery(query));
+        assertEquals(0, selectorMapper.selectByQuery(query).size());
+
+        query.setFilterIds(null);
+        assertEquals(1, selectorMapper.countByQuery(query));
+        assertEquals(1, selectorMapper.selectByQuery(query).size());
     }
 
     private SelectorDO buildSelectorDO() {

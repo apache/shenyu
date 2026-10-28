@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.aspect;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.query.FilterQuery;
+import org.apache.shenyu.admin.service.DataPermissionScope;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -30,12 +31,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_RULE;
 import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -81,18 +84,32 @@ public class DataPermissionAspectTest {
         assertDoesNotThrow(() -> dataPermissionAspect.around(point));
         try (MockedStatic<JwtUtils> jwtUtilsMockedStatic = mockStatic(JwtUtils.class)) {
             when(signature.getMethod()).thenReturn(DataPermissionAspectTest.class.getMethod("selectorMethod"));
+            final FilterQuery query = new FilterQuery();
             final Object[] objects = new Object[2];
-            objects[0] = new FilterQuery();
+            objects[0] = query;
             when(point.getArgs()).thenReturn(objects);
             jwtUtilsMockedStatic.when(JwtUtils::getUserInfo).thenReturn(new UserInfo());
-            when(dataPermissionService.getDataPermission(any())).thenReturn(new ArrayList<>());
+
+            // selected resources: only the granted ids are applied.
+            List<String> grantedIds = Collections.singletonList("permission");
+            when(dataPermissionService.getDataScope(any())).thenReturn(DataPermissionScope.of(grantedIds));
             assertDoesNotThrow(() -> dataPermissionAspect.around(point));
-            List<String> stringList = new ArrayList<>();
-            stringList.add("permission");
-            when(dataPermissionService.getDataPermission(any())).thenReturn(stringList);
+            assertEquals(grantedIds, query.getFilterIds());
+
+            // no grants: the scope is restricted but empty, never unrestricted.
+            when(dataPermissionService.getDataScope(any())).thenReturn(DataPermissionScope.of(Collections.emptyList()));
             assertDoesNotThrow(() -> dataPermissionAspect.around(point));
+            assertTrue(query.getFilterIds().isEmpty());
+
+            // administrator: explicit unrestricted scope leaves the query untouched.
+            query.setFilterIds(null);
+            when(dataPermissionService.getDataScope(any())).thenReturn(DataPermissionScope.unrestricted());
+            assertDoesNotThrow(() -> dataPermissionAspect.around(point));
+            assertNull(query.getFilterIds());
+
             when(signature.getMethod()).thenReturn(DataPermissionAspectTest.class.getMethod("ruleMethod"));
             assertDoesNotThrow(() -> dataPermissionAspect.around(point));
+            assertNull(query.getFilterIds());
             when(signature.getMethod()).thenReturn(DataPermissionAspectTest.class.getMethod("otherMethod"));
             assertDoesNotThrow(() -> dataPermissionAspect.around(point));
         }
