@@ -239,7 +239,7 @@ The text of each license is the standard Apache 2.0 license.
     commons-lang3 3.18.0: https://github.com/apache/commons-lang, Apache 2.0
     commons-compress 1.22: https://github.com/apache/commons-compress, Apache 2.0
     disruptor 3.4.0: https://github.com/LMAX-Exchange/disruptor , Apache 2.0
-    error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
+    error_prone_annotations 2.41.0: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1:https://github.com/google/guava, Apache 2.0
     grpc-api 1.65.1: https://github.com/grpc/grpc, Apache 2.0
@@ -469,7 +469,7 @@ The text of each license is the standard Apache 2.0 license.
     commons-jxpath 1.3: https://github.com/apache/commons-jxpath, Apache 2.0
     commons-lang 2.6: https://github.com/apache/commons-lang, Apache 2.0
     commons-logging 1.2: https://github.com/apache/commons-logging, Apache 2.0
-    error_prone_annotations 2.11.0: https://github.com/google/error-prone, Apache 2.0
+    error_prone_annotations 2.41.0: https://github.com/google/error-prone, Apache 2.0
     eureka-client 2.0.2 https://github.com/Netflix/eureka, Apache 2.0
     j2objc-annotations 2.8 https://github.com/google/j2objc, Apache 2.0
     jettison 1.5.4: https://github.com/jettison-json/jettison, Apache 2.0
@@ -486,7 +486,7 @@ The text of each license is the standard Apache 2.0 license.
     thymeleaf-spring5 3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
     xercesImpl 2.11.0: https://xerces.apache.org/xerces2-j/, Apache 2.0
     xml-apis 1.4.01: http://xml.apache.org/commons/components/external/, Apache 2.0
-    error_prone_annotations 2.18.0: https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotations, Apache 2.0
+    error_prone_annotations 2.41.0: https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotations, Apache 2.0
     kubernetes.io 17.0.2: https://github.com/kubernetes/k8s.io/blob/main/LICENSE, Apache 2.0
     msg-simple 1.13: https://github.com/java-json-tools/msg-simple, Apache 2.0
     msg-simple 1.2: https://github.com/java-json-tools/msg-simple, Apache 2.0
@@ -720,10 +720,10 @@ Public Domain licenses
 Bouncy Castle licenses
 ========================================================================
 
-    bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
+    bcprov-jdk18on 1.85: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
     bcutil-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
     bcpkix-jdk18on 1.72: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
-    bcprov-jdk18on 1.84: https://github.com/bcgit/bc-java, Bouncy Castle
+    bcprov-jdk18on 1.85: https://github.com/bcgit/bc-java, Bouncy Castle
 
 ========================================================================
 XPP License

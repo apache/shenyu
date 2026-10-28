@@ -226,6 +226,18 @@ configure pools/timeouts, write client responses, or implement retry/fallback po
   errors retain their original status/body. Conversion errors are not retried;
   ShenYu's existing transport/status retry and fallback rules remain in force.
   No retry or fallback occurs after a converted response event reaches the client.
+- Retry replay is bounded by a shared request deadline and configurable by failure
+  stage, operation, and provider replay-safety declaration. By default ambiguous
+  transport failures—including post-execution stream idle and response-size
+  failures—are replayed only for requests without tool-bearing fields. Fallback
+  uses the same replay policy as another upstream execution; an explicit `NEVER`
+  policy blocks fallback as well as retry.
+  `Retry-After` (delay-seconds or HTTP date), capped exponential backoff, and
+  bounded jitter are applied together; an over-limit Retry-After stops replay
+  rather than retrying earlier than the upstream allows. Primary retries and
+  fallback share the deadline and attempt limits. Attempt events expose attempt
+  identity, phase, reason, and the bounded Retry-After fact to an optional
+  listener bean.
 - Usage conversion is not billing. Provider charges and gateway quotas must not
   be inferred from synthetic or missing usage values.
 
