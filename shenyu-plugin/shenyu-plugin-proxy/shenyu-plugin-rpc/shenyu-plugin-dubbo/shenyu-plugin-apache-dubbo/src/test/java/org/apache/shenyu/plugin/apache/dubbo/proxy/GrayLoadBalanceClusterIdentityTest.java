@@ -158,7 +158,7 @@ public class GrayLoadBalanceClusterIdentityTest {
                 Arrays.asList(providerA, providerB), alreadyTried);
         assertEquals("b:1", committed.getUrl().getAddress(),
                 "provider A is already tried, so the reselect must choose provider B");
-        assertEquals("a:1", invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL),
+        assertEquals(upstreamA.identity().hashKey(), invocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY),
                 "reselect does not call the load balance again, so the marker still names the proposal");
 
         when(committedProvider.getUrl()).thenReturn(committed.getUrl());

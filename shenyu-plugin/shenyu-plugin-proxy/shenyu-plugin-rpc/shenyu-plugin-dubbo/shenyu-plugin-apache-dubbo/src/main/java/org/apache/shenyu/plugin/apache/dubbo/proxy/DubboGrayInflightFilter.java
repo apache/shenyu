@@ -31,6 +31,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,15 +40,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Keeps the accounting upstream's outstanding request count current for the dubbo gray
  * least-active path, without wrapping the invoker Dubbo receives.
  *
- * <p>The gray load balance marks the upstream it proposed for the current attempt
- * ({@code DUBBO_INFLIGHT_UPSTREAM_URL}). The marker only says that this attempt came from
- * the gray least-active path: it is not the accounting target, because the cluster may
- * reselect a different provider after the load balance returned without calling it again.
- * The filter therefore resolves the invoker the cluster actually committed to (address,
- * group and version) against the selector's upstreams and counts that one. Wrapping the
- * invoker instead would put a foreign object into Dubbo's already-tried list, where
- * raw-directory candidates can never compare equal to it and a failed provider would be
- * retried even when another one is available (#8132).
+ * <p>The gray load balance marks the logical upstream it selected for the current attempt
+ * ({@code DUBBO_INFLIGHT_UPSTREAM_IDENTITY}) with that upstream's full identity. The marker
+ * is not the accounting target by itself, but it is honored while the selected upstream still
+ * matches the provider the cluster committed to; this keeps overlapping address-only and
+ * group/version entries apart. When the cluster reselects a different provider, the filter
+ * counts the unique most specific compatible upstream and never attributes an ambiguous
+ * overlap by list order. Wrapping the invoker instead would put a foreign object into Dubbo's
+ * already-tried list, where raw-directory candidates can never compare equal to it and a
+ * failed provider would be retried even when another one is available (#8132).
  *
  * <p>The count is increased when the RPC starts, not when the invoker is selected, and it is
  * released exactly once per attempt, either when the returned result completes or when the
@@ -59,14 +60,12 @@ public class DubboGrayInflightFilter implements Filter {
 
     @Override
     public Result invoke(final Invoker<?> invoker, final Invocation invocation) throws RpcException {
-        // the marker is local bookkeeping and must never travel to the provider; it only
-        // says this attempt came from the gray least-active path
-        boolean grayAttempt = Objects.nonNull(
-                invocation.getObjectAttachments().remove(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
-        if (!grayAttempt) {
+        // the marker is local bookkeeping and must never travel to the provider
+        Object marker = invocation.getObjectAttachments().remove(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY);
+        if (!(marker instanceof String) || StringUtils.isBlank((String) marker)) {
             return invoker.invoke(invocation);
         }
-        Upstream upstream = matchUpstream(invocation, invoker.getUrl());
+        Upstream upstream = matchUpstream(invocation, (String) marker, invoker.getUrl());
         if (Objects.isNull(upstream)) {
             return invoker.invoke(invocation);
         }
@@ -87,7 +86,7 @@ public class DubboGrayInflightFilter implements Filter {
         return result.whenCompleteWithContext((response, throwable) -> release(released, upstream));
     }
 
-    private Upstream matchUpstream(final Invocation invocation, final URL providerUrl) {
+    private Upstream matchUpstream(final Invocation invocation, final String selectedKey, final URL providerUrl) {
         String selectorId = invocation.getAttachment(Constants.DUBBO_SELECTOR_ID);
         if (StringUtils.isBlank(selectorId) || Objects.isNull(providerUrl) || StringUtils.isBlank(providerUrl.getAddress())) {
             return null;
@@ -99,12 +98,51 @@ public class DubboGrayInflightFilter implements Filter {
         final String address = providerUrl.getAddress();
         final String group = StringUtils.trimToNull(providerUrl.getParameter(Constants.GROUP));
         final String version = StringUtils.trimToNull(providerUrl.getParameter(Constants.VERSION));
-        return upstreams.stream()
-                .filter(upstream -> address.equals(upstream.getUrl()))
-                .filter(upstream -> matchesConfigured(upstream.getGroup(), group))
-                .filter(upstream -> matchesConfigured(upstream.getVersion(), version))
-                .findFirst()
-                .orElse(null);
+        final List<Upstream> compatible = new ArrayList<>();
+        for (final Upstream upstream : upstreams) {
+            if (address.equals(upstream.getUrl())
+                    && matchesConfigured(upstream.getGroup(), group)
+                    && matchesConfigured(upstream.getVersion(), version)) {
+                compatible.add(upstream);
+            }
+        }
+        for (final Upstream upstream : compatible) {
+            if (selectedKey.equals(upstream.identity().hashKey())) {
+                // the load balance selected this logical upstream and it still describes the
+                // committed provider, even if another overlapping entry matches as well
+                return upstream;
+            }
+        }
+        return mostSpecific(compatible);
+    }
+
+    /**
+     * Resolve a reselected provider to a single logical upstream. The entry refining the
+     * provider with the most configured group/version fields wins; an ambiguous overlap is
+     * not attributed to either entry.
+     *
+     * @param compatible the upstreams matching the committed provider
+     * @return the unique most specific upstream, or null when the match is ambiguous
+     */
+    private static Upstream mostSpecific(final List<Upstream> compatible) {
+        int best = -1;
+        Upstream resolved = null;
+        for (final Upstream upstream : compatible) {
+            int score = 0;
+            if (StringUtils.isNotBlank(upstream.getGroup())) {
+                score++;
+            }
+            if (StringUtils.isNotBlank(upstream.getVersion())) {
+                score++;
+            }
+            if (score > best) {
+                best = score;
+                resolved = upstream;
+            } else if (score == best) {
+                resolved = null;
+            }
+        }
+        return resolved;
     }
 
     /**

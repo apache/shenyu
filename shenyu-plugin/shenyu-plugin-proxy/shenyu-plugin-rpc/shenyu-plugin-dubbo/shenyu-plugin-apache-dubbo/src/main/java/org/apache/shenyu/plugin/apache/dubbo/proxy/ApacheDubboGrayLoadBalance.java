@@ -97,8 +97,10 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
      *
      * <p>Only the least active algorithm reads the count. The count itself is maintained by
      * {@link DubboGrayInflightFilter}, which runs after the cluster committed to a provider:
-     * this method only marks the upstream chosen for the current attempt on a local attachment.
-     * The invoker handed to Dubbo stays the bare directory invoker — a wrapper here would enter
+     * this method only marks the logical upstream chosen for the current attempt on a local
+     * attachment, using its full identity so overlapping address-only and group/version
+     * entries stay distinguishable. The invoker handed to Dubbo stays the bare directory
+     * invoker — a wrapper here would enter
      * Dubbo's already-tried list, where raw candidates can never compare equal to it and a failed
      * provider would be retried even when another one is available (#8132).
      *
@@ -116,7 +118,7 @@ public class ApacheDubboGrayLoadBalance implements LoadBalance {
             // an upstream that is not addressable by url cannot be re-identified by the filter
             return selected;
         }
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, upstream.getUrl());
+        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, upstream.identity().hashKey());
         return selected;
     }
 

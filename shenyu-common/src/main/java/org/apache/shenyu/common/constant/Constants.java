@@ -592,12 +592,14 @@ public interface Constants {
     String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
 
     /**
-     * Marks the upstream the gray load balance selected for the current dubbo attempt,
+     * Marks the logical upstream the gray load balance selected for the current dubbo
+     * attempt. The value is the selected upstream's {@code UpstreamIdentity#hashKey()},
      * so the consumer-side inflight filter can keep the provider's outstanding count
-     * current without wrapping the invoker (a wrapper would break Dubbo's
-     * already-tried bookkeeping, see #8132).
+     * current without wrapping the invoker (a wrapper would break Dubbo's already-tried
+     * bookkeeping, see #8132). The attachment is local bookkeeping and is removed before
+     * the call reaches the provider.
      */
-    String DUBBO_INFLIGHT_UPSTREAM_URL = "shenyuDubboInflightUpstreamUrl";
+    String DUBBO_INFLIGHT_UPSTREAM_IDENTITY = "shenyuDubboInflightUpstreamIdentity";
 
     /**
      * dubbo serialization protobuf.

@@ -43,12 +43,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,6 +91,7 @@ public class ApacheDubboGrayLoadBalanceTest {
 
         when(dubboRuleHandle.getLoadBalance()).thenReturn("random");
         when(upstream.getInflight()).thenReturn(new AtomicLong(1));
+        when(upstream.identity()).thenReturn(Upstream.builder().url("localhost").build().identity());
         mockInvoker = new MockInvoker<>(URL.valueOf("localhost"), Object.class);
         invokers = Collections.singletonList(mockInvoker);
         loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
@@ -131,7 +131,7 @@ public class ApacheDubboGrayLoadBalanceTest {
         Invoker<Object> selected = apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, rpcInvocation);
 
         assertSame(rpcInvoker, selected);
-        assertEquals("localhost", rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+        assertEquals(upstream.identity().hashKey(), rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
     }
 
     @Test
@@ -143,7 +143,7 @@ public class ApacheDubboGrayLoadBalanceTest {
         RpcInvocation rpcInvocation = grayInvocation();
 
         assertSame(rpcInvoker, apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, rpcInvocation));
-        verify(invocation, never()).setObjectAttachment(any(), any());
+        assertNull(rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
     }
 
     /**

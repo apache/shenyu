@@ -89,7 +89,7 @@ public class DubboGrayInflightFilterTest {
         long initial = upstream.getInflight().get();
         filter.invoke(nextInvoker, invocation);
         assertEquals(initial + 1, upstream.getInflight().get());
-        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_URL),
+        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY),
                 "the local marker must be removed before the call continues");
 
         responseFuture.complete(new AppResponse("ok"));
@@ -130,7 +130,7 @@ public class DubboGrayInflightFilterTest {
         Upstream markedProposal = newUpstream("a:1");
         Upstream committed = newUpstream("b:1");
         cacheUpstreams(markedProposal, committed);
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        mark(invocation, markedProposal);
         when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://b:1"));
         CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
         when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
@@ -143,7 +143,7 @@ public class DubboGrayInflightFilterTest {
                 "the marked proposal is not necessarily the committed provider");
         assertEquals(committedInitial + 1, committed.getInflight().get(),
                 "the committed provider carries the attempt");
-        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
 
         responseFuture.complete(new AppResponse("ok"));
         assertEquals(committedInitial, committed.getInflight().get());
@@ -154,7 +154,7 @@ public class DubboGrayInflightFilterTest {
         Upstream versionOne = newUpstream("shared:1", "g", "1");
         Upstream versionTwo = newUpstream("shared:1", "g", "2");
         cacheUpstreams(versionOne, versionTwo);
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "shared:1");
+        mark(invocation, versionTwo);
         when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
         CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
         when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
@@ -176,7 +176,7 @@ public class DubboGrayInflightFilterTest {
     public void doesNotCountWhenTheCommittedProviderIsUnknown() {
         Upstream markedProposal = newUpstream("a:1");
         cacheUpstreams(markedProposal);
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        mark(invocation, markedProposal);
         when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://c:1"));
         CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
         when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
@@ -186,7 +186,7 @@ public class DubboGrayInflightFilterTest {
 
         assertEquals(markedInitial, markedProposal.getInflight().get(),
                 "an unknown committed provider must not fall back to the marked proposal");
-        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_URL));
+        assertFalse(invocation.getObjectAttachments().containsKey(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
         responseFuture.complete(new AppResponse("ok"));
     }
 
@@ -194,7 +194,7 @@ public class DubboGrayInflightFilterTest {
     public void countsWhenTheConfiguredGroupIsAbsent() {
         Upstream addressOnly = newUpstream("a:1");
         cacheUpstreams(addressOnly);
-        invocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "a:1");
+        mark(invocation, addressOnly);
         when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://a:1?group=g&version=2"));
         CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
         when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
@@ -207,6 +207,94 @@ public class DubboGrayInflightFilterTest {
 
         responseFuture.complete(new AppResponse("ok"));
         assertEquals(initial, addressOnly.getInflight().get());
+    }
+
+    @Test
+    public void countsTheSelectedSpecificUpstreamWhenWildcardAndExactOverlap() {
+        Upstream wildcard = newUpstream("shared:1");
+        Upstream specific = newUpstream("shared:1", "g", "2");
+        cacheUpstreams(wildcard, specific);
+        mark(invocation, specific);
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long wildcardInitial = wildcard.getInflight().get();
+        long specificInitial = specific.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(wildcardInitial, wildcard.getInflight().get(),
+                "the overlapping wildcard entry did not receive this attempt");
+        assertEquals(specificInitial + 1, specific.getInflight().get(),
+                "the selected specific entry carries the attempt");
+
+        responseFuture.complete(new AppResponse("ok"));
+        assertEquals(specificInitial, specific.getInflight().get());
+    }
+
+    @Test
+    public void keepsTheSelectedWildcardUpstreamWhenItIsCompatible() {
+        Upstream wildcard = newUpstream("shared:1");
+        Upstream specific = newUpstream("shared:1", "g", "2");
+        cacheUpstreams(wildcard, specific);
+        mark(invocation, wildcard);
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long wildcardInitial = wildcard.getInflight().get();
+        long specificInitial = specific.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(wildcardInitial + 1, wildcard.getInflight().get(),
+                "the entry the load balance selected stays the accounting target");
+        assertEquals(specificInitial, specific.getInflight().get());
+
+        responseFuture.complete(new AppResponse("ok"));
+    }
+
+    @Test
+    public void reselectPrefersTheMostSpecificCompatibleUpstream() {
+        Upstream versionOne = newUpstream("shared:1", "g", "1");
+        Upstream wildcard = newUpstream("shared:1");
+        Upstream versionTwo = newUpstream("shared:1", "g", "2");
+        cacheUpstreams(versionOne, wildcard, versionTwo);
+        mark(invocation, versionOne);
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long wildcardInitial = wildcard.getInflight().get();
+        long versionTwoInitial = versionTwo.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(wildcardInitial, wildcard.getInflight().get(),
+                "a reselection must not fall back to the wildcard entry by list order");
+        assertEquals(versionTwoInitial + 1, versionTwo.getInflight().get(),
+                "the committed provider's most specific identity carries the attempt");
+
+        responseFuture.complete(new AppResponse("ok"));
+    }
+
+    @Test
+    public void doesNotCountAmbiguousPartialOverlaps() {
+        Upstream groupOnly = newUpstream("shared:1", "g", null);
+        Upstream versionOnly = newUpstream("shared:1", null, "2");
+        cacheUpstreams(groupOnly, versionOnly);
+        mark(invocation, newUpstream("other:1"));
+        when(nextInvoker.getUrl()).thenReturn(URL.valueOf("dubbo://shared:1?group=g&version=2"));
+        CompletableFuture<AppResponse> responseFuture = new CompletableFuture<>();
+        when(nextInvoker.invoke(invocation)).thenReturn(new AsyncRpcResult(responseFuture, invocation));
+
+        long groupOnlyInitial = groupOnly.getInflight().get();
+        long versionOnlyInitial = versionOnly.getInflight().get();
+        filter.invoke(nextInvoker, invocation);
+
+        assertEquals(groupOnlyInitial, groupOnly.getInflight().get(),
+                "an ambiguous overlap must not be attributed by list order");
+        assertEquals(versionOnlyInitial, versionOnly.getInflight().get());
+
+        responseFuture.complete(new AppResponse("ok"));
     }
 
     @Test
@@ -245,14 +333,18 @@ public class DubboGrayInflightFilterTest {
     }
 
     private void markUpstream(final RpcInvocation rpcInvocation) {
-        rpcInvocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "localhost");
+        mark(rpcInvocation, upstream);
+    }
+
+    private void mark(final RpcInvocation rpcInvocation, final Upstream selected) {
+        rpcInvocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY, selected.identity().hashKey());
     }
 
     private RpcInvocation markedInvocation() {
         RpcInvocation rpcInvocation = new RpcInvocation();
         rpcInvocation.setMethodName("m");
         rpcInvocation.setAttachment(Constants.DUBBO_SELECTOR_ID, SELECTOR_ID);
-        rpcInvocation.setObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_URL, "localhost");
+        mark(rpcInvocation, upstream);
         return rpcInvocation;
     }
 }
