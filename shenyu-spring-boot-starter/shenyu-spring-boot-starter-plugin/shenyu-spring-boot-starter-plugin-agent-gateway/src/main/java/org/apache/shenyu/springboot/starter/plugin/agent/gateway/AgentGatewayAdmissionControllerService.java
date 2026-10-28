@@ -31,7 +31,7 @@ public final class AgentGatewayAdmissionControllerService {
     }
 
     /**
-     * Validate and atomically replace the active controller.
+     * Validate limits and atomically update the active controller's accounting state.
      * @param source complete trusted plugin configuration
      * @return immutable active limits
      */

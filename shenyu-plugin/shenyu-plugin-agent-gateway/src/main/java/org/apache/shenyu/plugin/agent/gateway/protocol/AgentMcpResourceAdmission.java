@@ -87,7 +87,9 @@ public interface AgentMcpResourceAdmission {
         }
 
         /**
-         * Atomically install new limits and close only the retired active controller.
+         * Apply replacement limits without replacing the shared accounting state.
+         * Requests owned by the active controller remain admitted or queued across reloads.
+         *
          * @param replacement validated replacement controller
          */
         public void replace(final ResourceAdmissionController replacement) {
@@ -96,12 +98,11 @@ public interface AgentMcpResourceAdmission {
                 replacement.delegate.close();
                 return;
             }
-            AgentResourceAdmission retired;
-            synchronized (this) {
-                retired = current;
-                current = replacement.delegate;
+            try {
+                current.updateLimits(replacement.delegate);
+            } finally {
+                replacement.delegate.close();
             }
-            retired.close();
         }
 
         @Override

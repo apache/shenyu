@@ -35,11 +35,13 @@ import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
+import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -50,6 +52,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -61,8 +64,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.ArgumentMatchers.any;
 
 class AgentGatewayPluginConfigurationTest {
@@ -308,6 +314,9 @@ class AgentGatewayPluginConfigurationTest {
                         final Future<?> first = executor.submit(() -> StepVerifier.create(handler.handle(firstExchange, config,
                                 new AgentTrafficContext("first", "mcp", "selector", "rule"), 1)).verifyComplete());
                         awaitLocalInFlight(admission, 1);
+                        context.getBean(PluginDataHandler.class).handlerPlugin(pluginData("{\"admission\":{"
+                                + "\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,\"localQueued\":0,"
+                                + "\"remoteInFlight\":2,\"remoteQueued\":2}}"));
                         MockServerWebExchange rejectedExchange = exchange();
                         StepVerifier.create(handler.handle(rejectedExchange, config,
                                         new AgentTrafficContext("second", "mcp", "selector", "rule"), 1))
@@ -341,6 +350,43 @@ class AgentGatewayPluginConfigurationTest {
         plugin.setEnabled(true);
         plugin.setConfig(config);
         return plugin;
+    }
+
+    @Test
+    void pluginRemovalAndBlankConfigStillReachCatalogAndAdmission() {
+        ManagedRemoteMcpCatalog catalog = mock(ManagedRemoteMcpCatalog.class);
+        List<PluginData> events = new ArrayList<>();
+        doAnswer(invocation -> events.add(invocation.getArgument(0, PluginData.class)))
+                .when(catalog).accept(any(PluginData.class));
+        try (AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                     AgentMcpResourceAdmission.create(new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(
+                             8, 4, 4, 2, 2, 2))) {
+            AgentGatewayAdmissionControllerService admission = new AgentGatewayAdmissionControllerService(controller);
+            PluginDataHandler handler = new AgentGatewayPluginConfiguration()
+                    .agentGatewayPluginDataHandler(provider(catalog), provider(admission));
+
+            handler.removePlugin(new PluginData());
+            handler.handlerPlugin(pluginData(" "));
+
+            assertEquals(2, events.size());
+            assertEquals(Boolean.FALSE, events.get(0).getEnabled());
+            assertNull(events.get(0).getConfig());
+            assertEquals(128, controller.config().globalInFlight());
+            assertEquals(32, controller.config().localInFlight());
+
+            PluginData invalid = pluginData("{\"admission\":{\"globalInFlight\":999,\"globalQueued\":4,"
+                    + "\"localInFlight\":4,\"localQueued\":2,\"remoteInFlight\":2,\"remoteQueued\":2}}");
+            assertThrows(IllegalArgumentException.class, () -> handler.handlerPlugin(invalid));
+            assertEquals(3, events.size());
+            assertSame(invalid, events.get(2));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> ObjectProvider<T> provider(final T value) {
+        ObjectProvider<T> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(value);
+        return provider;
     }
 
     @Test

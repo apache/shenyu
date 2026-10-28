@@ -152,11 +152,12 @@ public class AgentGatewayPluginConfiguration {
         AgentGatewayAdmissionControllerService admission = admissions.getIfAvailable();
         ManagedRemoteMcpCatalog catalog = catalogs.getIfAvailable();
         return new AgentGatewayPluginDataHandler(plugin -> {
-            if (java.util.Objects.nonNull(admission)) {
-                admission.update(java.util.Objects.requireNonNull(plugin.getConfig(), "{}"));
-            }
             if (java.util.Objects.nonNull(catalog)) {
                 catalog.accept(plugin);
+            }
+            if (java.util.Objects.nonNull(admission)) {
+                String config = plugin.getConfig();
+                admission.update(java.util.Objects.isNull(config) || config.isBlank() ? "{}" : config);
             }
         });
     }

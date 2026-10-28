@@ -33,7 +33,7 @@ import java.util.Deque;
 /** Deterministic gateway resource admission with bounded deadline-aware queues. */
 public final class AgentResourceAdmission implements AutoCloseable {
 
-    private final AgentGatewayAdmissionConfig config;
+    private volatile AgentGatewayAdmissionConfig config;
 
     private final Scope global;
 
@@ -136,6 +136,26 @@ public final class AgentResourceAdmission implements AutoCloseable {
     }
 
     /**
+     * Apply new limits to the same accounting state. Requests already admitted or queued
+     * remain owned by this controller, so a configuration reload cannot reset their permits.
+     *
+     * @param replacement trusted controller whose validated configuration is applied
+     */
+    void updateLimits(final AgentResourceAdmission replacement) {
+        Objects.requireNonNull(replacement, "replacement");
+        if (closed) {
+            throw new IllegalStateException("Admission controller is closed");
+        }
+        final AgentGatewayAdmissionConfig replacementConfig = replacement.config();
+        synchronized (remotes) {
+            config = replacementConfig;
+            global.updateLimits(replacementConfig.globalInFlight(), replacementConfig.globalQueued());
+            local.updateLimits(replacementConfig.localInFlight(), replacementConfig.localQueued());
+            remotes.forEach(scope -> scope.updateLimits(replacementConfig.remoteInFlight(), replacementConfig.remoteQueued()));
+        }
+    }
+
+    /**
      * Whether this controller has already been closed.
      * @return terminal close state
      */
@@ -210,9 +230,9 @@ public final class AgentResourceAdmission implements AutoCloseable {
 
         private final String name;
 
-        private final int inFlightLimit;
+        private int inFlightLimit;
 
-        private final int queueLimit;
+        private int queueLimit;
 
         private final AtomicLong rejected = new AtomicLong();
 
@@ -317,6 +337,14 @@ public final class AgentResourceAdmission implements AutoCloseable {
         AgentAdmissionMetrics.Snapshot snapshot(final AgentAdmissionMetrics.Scope scope) {
             synchronized (lock) {
                 return new AgentAdmissionMetrics.Snapshot(scope, inFlight, queued, inFlightLimit, queueLimit, rejected.get());
+            }
+        }
+
+        void updateLimits(final int inFlightLimit, final int queueLimit) {
+            synchronized (lock) {
+                this.inFlightLimit = inFlightLimit;
+                this.queueLimit = queueLimit;
+                promote();
             }
         }
     }

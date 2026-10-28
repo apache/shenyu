@@ -151,7 +151,7 @@ class AgentResourceAdmissionTest {
     }
 
     @Test
-    void replacingControllerRetiresOldMetricsAndKeepsNewLimits() {
+    void replacingControllerKeepsSharedAccountingAndAppliesNewLimits() {
         AgentMcpResourceAdmission.ResourceAdmissionController first =
                 AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 1, 1, 1, 1, 1));
         AgentMcpResourceAdmission.ResourceAdmissionController second =
@@ -161,14 +161,14 @@ class AgentResourceAdmissionTest {
             List<AgentAdmissionMetrics.Snapshot> snapshots = AgentAdmissionMetrics.snapshots();
             assertEquals(2, snapshots.size());
             assertEquals(2, snapshots.stream().filter(state -> state.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
-                    .mapToInt(AgentAdmissionMetrics.Snapshot::inFlightLimit).sum());
+                    .mapToInt(AgentAdmissionMetrics.Snapshot::inFlightLimit).sum(), "replacement metrics must stay retired");
         } finally {
             first.close();
         }
     }
 
     @Test
-    void everyReplacementBecomesActiveAndFinalCloseRemovesMetrics() throws Exception {
+    void everyReplacementUpdatesActiveControllerAndFinalCloseRemovesMetrics() throws Exception {
         AgentMcpResourceAdmission.ResourceAdmissionController controller =
                 AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 1, 1, 1, 1, 1));
         try {
@@ -195,6 +195,29 @@ class AgentResourceAdmissionTest {
         assertTrue(AgentAdmissionMetrics.snapshots().stream()
                 .filter(snapshot -> snapshot.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
                 .noneMatch(snapshot -> snapshot.inFlightLimit() == 3), "active admission metrics must be removed after close");
+    }
+
+    @Test
+    void unchangedReplacementDoesNotResetActiveRequestAccounting() throws Exception {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0));
+        Sinks.Empty<Void> active = Sinks.empty();
+        try {
+            StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), active.asMono()))
+                    .expectComplete().verifyLater();
+            awaitActive(controller, AgentAdmissionMetrics.Scope.GLOBAL, 1);
+            controller.replace(AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0)));
+            AtomicInteger calls = new AtomicInteger();
+            StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(2), Mono.fromCallable(calls::incrementAndGet)))
+                    .expectError(AgentResourceAdmission.AgentAdmissionException.class).verify(Duration.ofSeconds(2));
+            assertEquals(0, calls.get());
+            assertEquals(1, controller.snapshot().stream()
+                    .filter(snapshot -> snapshot.scope() == AgentAdmissionMetrics.Scope.GLOBAL)
+                    .findFirst().orElseThrow().inFlight());
+        } finally {
+            active.tryEmitEmpty();
+            controller.close();
+        }
     }
 
     @Test

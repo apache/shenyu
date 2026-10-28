@@ -78,6 +78,7 @@ public final class AiProxyEngine {
     private final AiProxyRetryProperties retryProperties;
 
     private final AiCallObserver observer;
+
     private final AiProxyAttemptListener attemptListener;
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
@@ -126,7 +127,7 @@ public final class AiProxyEngine {
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                          final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
                          final AiProxyRetryProperties retryProperties) {
-        this(protocols, providers, routeResolver, transport, retryProperties, event -> {
+        this(protocols, providers, routeResolver, transport, retryProperties, (AiProxyAttemptListener) event -> {
         });
     }
 
@@ -483,16 +484,16 @@ public final class AiProxyEngine {
 
     private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
         if (Objects.isNull(requestBody) || requestBody.isBlank()) {
-            throw new ShenyuException("AI request body must not be empty");
+            throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must not be empty", null);
         }
         final JsonNode root;
         try {
             root = OBJECT_MAPPER.readTree(requestBody);
         } catch (JsonProcessingException error) {
-            throw new ShenyuException("AI request body must be valid JSON", error);
+            throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must be valid JSON", error);
         }
         if (!root.isObject()) {
-            throw new ShenyuException("AI request body must be a JSON object");
+            throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must be a JSON object", null);
         }
         ObjectNode payload = (ObjectNode) root;
         String upstreamBody = requestBody;
@@ -503,7 +504,8 @@ public final class AiProxyEngine {
         AiProxyProtocol protocol = Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()
                 ? aiProxyProtocolFactory.detect(payload) : aiProxyProtocolFactory.getProtocol(config.getProtocol());
         if (!protocol.matches(payload)) {
-            throw new ShenyuException("Request body does not match AI protocol: " + protocol.name());
+            throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                    "Request body does not match AI protocol: " + protocol.name(), null);
         }
         ShenyuAiRequest decoded = applyModelOverride(protocol.decodeRequest(upstreamBody, payload), protocol, config);
         AiProxyProvider provider = aiProxyProviderFactory.getProvider(providerName(config));
