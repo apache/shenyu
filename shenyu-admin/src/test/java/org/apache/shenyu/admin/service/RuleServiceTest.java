@@ -55,6 +55,7 @@ import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,10 +86,12 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -126,10 +129,13 @@ public final class RuleServiceTest {
     @Mock
     private RuleEventPublisher ruleEventPublisher;
 
+    @Mock
+    private DataPermissionChecker dataPermissionChecker;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher, shenyuDictMapper);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher, shenyuDictMapper, dataPermissionChecker);
     }
 
     @Test
@@ -177,6 +183,25 @@ public final class RuleServiceTest {
         final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
+    }
+
+    @Test
+    public void testFindByIdReturnsNullForUnknownIdentifier() {
+        given(this.ruleMapper.selectById("missing")).willReturn(null);
+        assertNull(this.ruleService.findById("missing"));
+        verifyNoInteractions(dataPermissionChecker, ruleConditionMapper);
+    }
+
+    @Test
+    public void testFindByIdDeniedDoesNotReadRuleConfiguration() {
+        RuleDO ruleDO = buildRuleDO("denied");
+        given(this.ruleMapper.selectById("denied")).willReturn(ruleDO);
+        doThrow(new UnauthorizedException("denied")).when(dataPermissionChecker)
+                .requireRuleReadable(ruleDO.getId(), ruleDO.getNamespaceId());
+
+        assertThrows(UnauthorizedException.class, () -> this.ruleService.findById("denied"));
+        verify(dataPermissionChecker).requireRuleReadable(ruleDO.getId(), ruleDO.getNamespaceId());
+        verifyNoInteractions(ruleConditionMapper);
     }
 
     @Test
