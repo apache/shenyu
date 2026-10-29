@@ -310,6 +310,28 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             final DiscoveryProcessor replacement = discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType());
             replacement.createDiscovery(effectiveAfter);
             // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per selector by
+            // createProxySelector, so re-bind every selector attached to this discovery or
+            // existing routes would stop receiving registry updates. Both relation kinds
+            // must be restored (see syncData): proxy-selector relations and ordinary
+            // selector relations synthesized into a ProxySelectorDTO
+            proxySelectorMapper.selectByDiscoveryId(effectiveAfter.getId()).forEach(proxySelector -> {
+                final DiscoveryHandlerDO handler = discoveryHandlerMapper.selectByProxySelectorId(proxySelector.getId());
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelector));
+            });
+            for (SelectorDO selector : selectorMapper.selectByDiscoveryId(effectiveAfter.getId())) {
+                final DiscoveryHandlerDO handler = discoveryHandlerMapper.selectBySelectorId(selector.getId());
+                if (Objects.isNull(handler)) {
+                    continue;
+                }
+                final ProxySelectorDTO synthesized = new ProxySelectorDTO();
+                synthesized.setPluginName(effectiveAfter.getPluginName());
+                synthesized.setName(selector.getSelectorName());
+                synthesized.setId(selector.getId());
+                synthesized.setNamespaceId(selector.getNamespaceId());
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler), synthesized);
+            }
+            // createDiscovery only initializes the repository and resets the listener-key
             // cache; the watchInstances subscriptions are installed per proxy selector by
             // createProxySelector, so re-bind every selector attached to this discovery
             // or existing routes would stop receiving registry updates

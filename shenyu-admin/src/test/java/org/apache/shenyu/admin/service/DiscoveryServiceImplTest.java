@@ -347,7 +347,8 @@ public final class DiscoveryServiceImplTest {
         proxySelectorRow.setName("order");
         proxySelectorRow.setPluginName("divide");
         proxySelectorRow.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
-        given(proxySelectorMapper.selectByHandlerId("handler-1")).willReturn(proxySelectorRow);
+        given(proxySelectorMapper.selectByDiscoveryId("discovery-1")).willReturn(Collections.singletonList(proxySelectorRow));
+        given(discoveryHandlerMapper.selectByProxySelectorId("proxy-1")).willReturn(handlerRow);
         // each select returns an independent snapshot, like a real database read
         when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
         // a real updateSelective writes the argument into the stored row
