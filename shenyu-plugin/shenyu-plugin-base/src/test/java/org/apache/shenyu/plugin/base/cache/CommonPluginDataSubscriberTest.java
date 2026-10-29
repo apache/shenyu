@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.cache;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -637,6 +638,36 @@ public final class CommonPluginDataSubscriberTest {
 
         assertEquals(List.of(ns1Divide, ns2Divide), baseDataCache.obtainSelectorData("divide"));
         assertEquals(List.of(ns2Other, ns1Other), baseDataCache.obtainSelectorData("pluginB"));
+    }
+
+    @Test
+    public void testRefreshSelectorDataScopedNormalizesNullNamespace() {
+        final SelectorData cached = SelectorData.builder().id("s-cached").pluginName("divide")
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).sort(1).build();
+        final SelectorData incoming = SelectorData.builder().id("s-incoming").pluginName("divide")
+                .namespaceId(null).sort(2).build();
+        baseDataCache.cacheSelectData(cached);
+
+        commonPluginDataSubscriber.refreshSelectorDataScoped(List.of(incoming));
+
+        assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, incoming.getNamespaceId());
+        assertEquals(List.of(incoming), baseDataCache.obtainSelectorData("divide"));
+        verify(handler).removeSelector(cached);
+    }
+
+    @Test
+    public void testRefreshRuleDataScopedNormalizesNullNamespace() {
+        final RuleData cached = RuleData.builder().id("r-cached").selectorId("selector-1").pluginName("divide")
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).sort(1).build();
+        final RuleData incoming = RuleData.builder().id("r-incoming").selectorId("selector-1").pluginName("divide")
+                .namespaceId(null).sort(2).build();
+        baseDataCache.cacheRuleData(cached);
+
+        commonPluginDataSubscriber.refreshRuleDataScoped(List.of(incoming));
+
+        assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, incoming.getNamespaceId());
+        assertEquals(List.of(incoming), baseDataCache.obtainRuleData("selector-1"));
+        verify(handler).removeRule(cached);
     }
 
     @Test

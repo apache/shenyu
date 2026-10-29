@@ -31,6 +31,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.sync.data.websocket.LegacyPluginDataSubscriber;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -359,6 +360,35 @@ public final class WebsocketDataHandlerTest {
         }
     }
 
+    @Test
+    public void testSnapshotKeepsLegacyRefreshOrderForLegacySubscriber() {
+        for (ConfigGroupEnum group : List.of(ConfigGroupEnum.PLUGIN, ConfigGroupEnum.SELECTOR, ConfigGroupEnum.RULE)) {
+            LegacyPluginDataSubscriber subscriber = new LegacyPluginDataSubscriber();
+            WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(),
+                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+            String json = GsonUtils.getInstance().toJson(List.of(legacyRow(group)));
+
+            handler.snapshot(group, json, "namespace-a", "namespace-a");
+
+            org.junit.jupiter.api.Assertions.assertEquals(List.of(
+                            group + ":all",
+                            group + ":self:legacy-row",
+                            group + ":subscribe:legacy-row"),
+                    subscriber.getCalls());
+        }
+    }
+
+    @Test
+    public void testEmptySnapshotKeepsLegacyRefreshForLegacySubscriber() {
+        LegacyPluginDataSubscriber subscriber = new LegacyPluginDataSubscriber();
+        WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+        handler.snapshot(ConfigGroupEnum.RULE, "[]", "namespace-a", "namespace-a");
+
+        org.junit.jupiter.api.Assertions.assertEquals(List.of("RULE:all"), subscriber.getCalls());
+    }
+
     private String getJson() {
         return getJson("plugin_test");
     }
@@ -374,5 +404,19 @@ public final class WebsocketDataHandlerTest {
         LinkedList<PluginData> list = new LinkedList<>();
         list.add(pluginData);
         return GsonUtils.getGson().toJson(list);
+    }
+
+    private Object legacyRow(final ConfigGroupEnum group) {
+        switch (group) {
+            case PLUGIN:
+                return PluginData.builder().name("legacy-row").namespaceId("namespace-a").build();
+            case SELECTOR:
+                return SelectorData.builder().id("legacy-row").pluginName("divide")
+                        .namespaceId("namespace-a").sort(1).build();
+            case RULE:
+            default:
+                return RuleData.builder().id("legacy-row").selectorId("selector-a").pluginName("divide")
+                        .namespaceId("namespace-a").sort(1).build();
+        }
     }
 }

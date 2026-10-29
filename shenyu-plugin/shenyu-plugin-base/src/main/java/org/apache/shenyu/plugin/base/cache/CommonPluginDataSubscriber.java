@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -192,8 +193,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             return;
         }
         final Map<String, List<SelectorData>> dataByNamespace = new LinkedHashMap<>();
-        dataList.stream().filter(Objects::nonNull).forEach(data ->
-                dataByNamespace.computeIfAbsent(data.getNamespaceId(), key -> new ArrayList<>()).add(data));
+        dataList.stream().filter(Objects::nonNull).forEach(data -> {
+            final String namespaceId = StringUtils.defaultIfBlank(data.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID);
+            data.setNamespaceId(namespaceId);
+            dataByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        });
         dataByNamespace.forEach((namespaceId, namespaceData) -> applySelectorSnapshotCore(true, namespaceId,
                 scopeKeys(namespaceData, SelectorData::getPluginName), namespaceData));
     }
@@ -278,8 +282,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             return;
         }
         final Map<String, List<RuleData>> dataByNamespace = new LinkedHashMap<>();
-        dataList.stream().filter(Objects::nonNull).forEach(data ->
-                dataByNamespace.computeIfAbsent(data.getNamespaceId(), key -> new ArrayList<>()).add(data));
+        dataList.stream().filter(Objects::nonNull).forEach(data -> {
+            final String namespaceId = StringUtils.defaultIfBlank(data.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID);
+            data.setNamespaceId(namespaceId);
+            dataByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        });
         dataByNamespace.forEach((namespaceId, namespaceData) -> applyRuleSnapshotCore(true, namespaceId,
                 scopeKeys(namespaceData, RuleData::getPluginName), namespaceData));
     }
