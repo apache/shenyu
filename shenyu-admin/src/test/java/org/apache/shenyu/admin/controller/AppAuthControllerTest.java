@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.Date;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -32,7 +32,6 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
@@ -67,6 +66,7 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -117,24 +117,32 @@ public final class AppAuthControllerTest {
     @Test
     public void testSearch() throws Exception {
         final String queryUri = "/appAuth/list/search";
-        PageCondition pageCondition = buildPageRecordLogQueryCondition();
+        final PageCondition<AppAuthQuery> pageCondition = buildPageAppAuthQueryCondition();
+        given(this.appAuthService.searchByPage(any()))
+                .willReturn(new PageInfo<>(Collections.singletonList(appAuthListVO)));
         this.mockMvc.perform(MockMvcRequestBuilders.post(queryUri)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(pageCondition)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.list[0].appKey", is(appAuthListVO.getAppKey())))
+                .andExpect(jsonPath("$.data.list[0].appSecret").doesNotExist())
                 .andReturn();
     }
 
     @Test
     public void testSearchAdaptor() throws Exception {
         final String queryUri = "/appAuth/list/search/adaptor";
-        PageCondition pageCondition = buildPageRecordLogQueryCondition();
+        final PageCondition<AppAuthQuery> pageCondition = buildPageAppAuthQueryCondition();
+        given(this.appAuthService.searchByPageToPager(any()))
+                .willReturn(new CommonPager<>(new PageParameter(1, 10, 1), Collections.singletonList(appAuthListVO)));
         this.mockMvc.perform(MockMvcRequestBuilders.post(queryUri)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(pageCondition)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList[0].appKey", is(appAuthListVO.getAppKey())))
+                .andExpect(jsonPath("$.data.dataList[0].appSecret").doesNotExist())
                 .andReturn();
     }
 
@@ -386,17 +394,11 @@ public final class AppAuthControllerTest {
                 .andReturn();
     }
 
-    private PageCondition<RecordLogQueryCondition> buildPageRecordLogQueryCondition() {
-        PageCondition<RecordLogQueryCondition> pageCondition = new PageCondition<>();
+    private PageCondition<AppAuthQuery> buildPageAppAuthQueryCondition() {
+        final PageCondition<AppAuthQuery> pageCondition = new PageCondition<>();
         pageCondition.setPageSize(10);
         pageCondition.setPageNum(1);
-        RecordLogQueryCondition recordLogQueryCondition = new RecordLogQueryCondition();
-        recordLogQueryCondition.setUsername("admin");
-        recordLogQueryCondition.setKeyword("testerror");
-        recordLogQueryCondition.setStartTime(new Date());
-        recordLogQueryCondition.setEndTime(new Date());
-        recordLogQueryCondition.setType("");
-        pageCondition.setCondition(recordLogQueryCondition);
+        pageCondition.setCondition(new AppAuthQuery());
         return pageCondition;
     }
 }
