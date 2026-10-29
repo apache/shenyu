@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.admin.service.AppAuthService;
@@ -99,6 +100,10 @@ public final class AppAuthControllerTest {
     private final AppAuthVO appAuthVO = new AppAuthVO("0001", "testAppKey", "testAppSecret",
             "testUser", "18600000000", "{\"extInfo\": \"test\"}",
             true, true, null, null,
+            DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+    private final AppAuthListVO appAuthListVO = new AppAuthListVO("0001", "testAppKey", "testUser",
+            "18600000000", "{\"extInfo\": \"test\"}", true, true, SYS_DEFAULT_NAMESPACE_ID,
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @BeforeEach
@@ -205,7 +210,7 @@ public final class AppAuthControllerTest {
     public void testFindPageByQuery() throws Exception {
         final PageParameter pageParameter = new PageParameter();
         final AppAuthQuery appAuthQuery = new AppAuthQuery("testAppKey", "18600000000", pageParameter, SYS_DEFAULT_NAMESPACE_ID);
-        final CommonPager<AppAuthVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(appAuthVO));
+        final CommonPager<AppAuthListVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(appAuthListVO));
         given(this.appAuthService.listByPage(appAuthQuery)).willReturn(commonPager);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(NamespaceMapper.class)).thenReturn(namespaceMapper);
@@ -218,7 +223,8 @@ public final class AppAuthControllerTest {
                 .param("namespaceId", SYS_DEFAULT_NAMESPACE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data.dataList[0].appKey", is(appAuthVO.getAppKey())))
+                .andExpect(jsonPath("$.data.dataList[0].appKey", is(appAuthListVO.getAppKey())))
+                .andExpect(jsonPath("$.data.dataList[0].appSecret").doesNotExist())
                 .andReturn();
     }
 
@@ -230,6 +236,7 @@ public final class AppAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(appAuthVO.getId())))
+                .andExpect(jsonPath("$.data.appSecret", is(appAuthVO.getAppSecret())))
                 .andReturn();
     }
 
