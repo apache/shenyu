@@ -23,6 +23,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
+import org.apache.shenyu.common.dto.convert.rule.sticky.DeterministicKeyConfig;
 import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
@@ -49,10 +50,14 @@ import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
 import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
+import org.apache.shenyu.plugin.divide.sticky.DeterministicKeyExtractor;
 import org.apache.shenyu.plugin.divide.sticky.StickySessionAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -84,6 +89,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private final CanaryDecisionService canaryDecisionService;
 
     private final StickySessionAffinity stickySessionAffinity = new StickySessionAffinity();
+
+    private final DeterministicKeyExtractor deterministicKeyExtractor = new DeterministicKeyExtractor();
 
     public DividePlugin() {
         this(new DefaultCanaryDecisionService());
@@ -364,7 +371,39 @@ public class DividePlugin extends AbstractShenyuPlugin {
             exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
             return null;
         }
+        // a configured deterministic key maps a binding-less request onto the admitted
+        // candidates by the consistent hash ring; it is key hashing, not a binding —
+        // no separate cookie is written for it and a missing key falls back to the
+        // algorithm (#8037). The key is a sub-mode of the sticky configuration: it is
+        // evaluated inside the affinity path, so sticky itself must be active (enabled
+        // with usable binding secrets), which keeps one configuration surface.
+        final Upstream keyed = resolveWithDeterministicKey(exchange, sticky, ruleHandle, breakeredUpstreamList);
+        if (Objects.nonNull(keyed)) {
+            return keyed;
+        }
         return LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+    }
+
+    private Upstream resolveWithDeterministicKey(final ServerWebExchange exchange, final StickySessionConfig sticky,
+                                                 final DivideRuleHandle ruleHandle, final List<Upstream> breakeredUpstreamList) {
+        final DeterministicKeyConfig keyConfig = Objects.nonNull(sticky) ? sticky.getKey() : null;
+        if (Objects.isNull(keyConfig) || !keyConfig.isConfigured()) {
+            return null;
+        }
+        final String key = deterministicKeyExtractor.extract(exchange, keyConfig);
+        if (Objects.isNull(key)) {
+            return null;
+        }
+        final LoadBalanceData data = new LoadBalanceData();
+        data.setHashKey(key);
+        final Upstream upstream = LoadBalancerFactory.selector(breakeredUpstreamList, LoadBalanceEnum.HASH.getName(), data);
+        if (Objects.nonNull(upstream) && P2C.equals(ruleHandle.getLoadBalance())) {
+            // the hash pick skips the P2C selection, which normally reserves the
+            // attempt: the same accounting must apply or the count drifts down
+            upstream.getInflight().incrementAndGet();
+            upstream.setLastPicked(System.currentTimeMillis());
+        }
+        return upstream;
     }
 
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
@@ -417,13 +456,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
             public Flux<DataBuffer> getBody() {
                 return Flux.defer(() -> {
                     forwarded = 0;
-                    return super.getBody().doOnNext(buffer -> {
-                        forwarded += buffer.readableByteCount();
-                        if (forwarded > maxSize) {
-                            LOG.error("request entity is too large");
-                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
-                        }
-                    });
+                    // The overflowing chunk is owned by this operator and is released before the
+                    // error is propagated. doOnDiscard covers chunks that an upstream publisher
+                    // has already queued when the body is cancelled or fails before forwarding.
+                    return super.getBody()
+                            .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                            .doOnNext(buffer -> {
+                                forwarded += buffer.readableByteCount();
+                                if (forwarded > maxSize) {
+                                    DataBufferUtils.release(buffer);
+                                    LOG.error("request entity is too large");
+                                    throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                                }
+                            });
                 });
             }
         }).build();

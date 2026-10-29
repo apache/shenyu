@@ -31,6 +31,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
@@ -40,6 +41,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProp
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -112,6 +114,7 @@ public class AiProxyPluginConfiguration {
      * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
      * @param retryProperties        retry properties
+     * @param attemptListener        optional attempt listener
      * @return the AI proxy engine
      */
     @Bean
@@ -119,9 +122,12 @@ public class AiProxyPluginConfiguration {
                                        final AiProxyProviderFactory aiProxyProviderFactory,
                                        final AiProtocolRouteResolver aiProtocolRouteResolver,
                                        final AiProxyTransport aiProxyTransport,
-                                       final AiProxyRetryProperties retryProperties) {
+                                       final AiProxyRetryProperties retryProperties,
+                                       final ObjectProvider<AiProxyAttemptListener> attemptListener) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, retryProperties);
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties,
+                attemptListener.getIfAvailable(() -> event -> {
+                }));
     }
 
     /**

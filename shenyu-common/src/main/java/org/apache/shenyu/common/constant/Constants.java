@@ -552,6 +552,22 @@ public interface Constants {
     String SCHEDULED_TIME_VALUE = "10";
 
     /**
+     * probe mode.
+     */
+    String PROBE_MODE = "probeMode";
+
+    /**
+     * default probe mode value, the admin probes upstreams centrally.
+     */
+    String DEFAULT_PROBE_MODE_VALUE = "central";
+
+    /**
+     * local probe mode value, the admin never penalizes upstreams on its own
+     * probe results and bootstrap-local health checking decides routing eligibility.
+     */
+    String LOCAL_PROBE_MODE_VALUE = "local";
+
+    /**
      * default headerMaxSize value.
      */
     int HEADER_MAX_SIZE = 10240;

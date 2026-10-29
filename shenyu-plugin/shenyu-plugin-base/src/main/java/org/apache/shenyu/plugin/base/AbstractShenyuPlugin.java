@@ -122,15 +122,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
-        // lru map as L1 cache,the cache is enabled by default.
-        // if the L1 cache fails to hit, using L2 cache based on trie cache.
-        // if the L2 cache fails to hit, execute default strategy.
+        // consult the bounded per-path match cache first when it is enabled.
+        // on a cache miss, match the current rule list with the default strategy.
         RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, rules, path);
+            ruleData = defaultMatchRule(exchange, selectors, rules, path);
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
@@ -315,8 +314,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return selectorData;
         } else {
-            // if not match selector, cache empty selector data.
-            if (matchSelectorPair.getLeft()) {
+            // A negative entry is keyed by (plugin, path), so it is only sound when every
+            // enabled candidate is decided by the path.
+            if (matchSelectorPair.getLeft() && pathOnlySelectorSet(selectors)) {
                 SelectorData emptySelectorData = SelectorData.builder().pluginName(named()).build();
                 cacheSelectorData(path, emptySelectorData);
             }
@@ -324,7 +324,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
+                                      final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
@@ -335,8 +336,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return ruleData;
         } else {
-            // if not match rule, cache empty rule data.
-            if (matchRulePair.getLeft()) {
+            // The rule cache key carries no selector id, so a negative entry additionally
+            // requires the whole selector set to be decided by the path.
+            if (matchRulePair.getLeft() && pathOnlySelectorSet(selectors) && pathOnlyRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }
@@ -351,6 +353,30 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return CollectionUtils.isNotEmpty(conditions) && conditions.stream().allMatch(condition -> Objects.nonNull(condition)
                 && URI_CONDITION_TYPE.equals(condition.getParamType()) && Objects.nonNull(condition.getOperator())
                 && PATH_ONLY_OPERATORS.contains(condition.getOperator()));
+    }
+
+    private boolean pathOnlySelectorSet(final List<SelectorData> selectors) {
+        for (SelectorData selector : selectors) {
+            if (!Boolean.TRUE.equals(selector.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(selector.getMatchRestful()) || !pathOnlyConditions(selector.getConditionList())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean pathOnlyRuleSet(final List<RuleData> rules) {
+        for (RuleData rule : rules) {
+            if (!Boolean.TRUE.equals(rule.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(rule.getMatchRestful()) || !pathOnlyConditions(rule.getConditionDataList())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

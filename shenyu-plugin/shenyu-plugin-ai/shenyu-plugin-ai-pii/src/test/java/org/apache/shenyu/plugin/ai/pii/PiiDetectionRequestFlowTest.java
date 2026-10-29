@@ -32,18 +32,26 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.zip.GZIPOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +72,9 @@ public final class PiiDetectionRequestFlowTest {
 
     private static final String STREAMING_CHAT_BODY = "{\"model\":\"gpt-4\",\"stream\":true,\"messages\":"
             + "[{\"role\":\"user\",\"content\":\"my number is 13800138000\"}]}";
+
+    private static final String PLAIN_CHAT_BODY = "{\"model\":\"gpt-4\",\"messages\":"
+            + "[{\"role\":\"user\",\"content\":\"hello\"}]}";
 
     private final List<PiiAuditRecord> audits = new CopyOnWriteArrayList<>();
 
@@ -223,6 +234,105 @@ public final class PiiDetectionRequestFlowTest {
         verify(chain, atLeastOnce()).execute(any(ServerWebExchange.class));
     }
 
+    @Test
+    public void testCompressedRequestIsForwardedByteForByteWhenFailOpen() throws Exception {
+        byte[] compressed = gzip(PLAIN_CHAT_BODY);
+        ByteProbe probe = new ByteProbe();
+        PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
+
+        plugin.doExecute(gzipRequest(compressed), chain(probe), null, ruleData).block();
+
+        assertArrayEquals(compressed, probe.bytes,
+                "a compressed request must reach the chain as the identical wire bytes");
+        assertEquals("gzip", probe.contentEncoding, "the encoding header still describes the forwarded bytes");
+        assertTrue(audits.isEmpty(), "the compressed body is never scanned");
+    }
+
+    @Test
+    public void testCompressedRequestIsRejectedWhenFailClosed() throws Exception {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setFailClosed(true);
+        cacheHandle(handle);
+        ShenyuPluginChain chain = chain();
+        PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
+        MockServerWebExchange exchange = gzipRequest(gzip(PLAIN_CHAT_BODY));
+
+        plugin.doExecute(exchange, chain, null, ruleData).block();
+
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("sensitive content detected"));
+    }
+
+    @Test
+    public void testCompressedRequestIsRejectedByTheResponseScopePrecheckWhenFailClosed() throws Exception {
+        // scope=response alone reads the request body only for the mode precheck, and the
+        // precheck cannot look into a compressed payload either
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setScope("response");
+        handle.setFailClosed(true);
+        cacheHandle(handle);
+        ShenyuPluginChain chain = chain();
+        PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
+        MockServerWebExchange exchange = gzipRequest(gzip(PLAIN_CHAT_BODY));
+
+        plugin.doExecute(exchange, chain, null, ruleData).block();
+
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testCompressedRequestIsForwardedWhenTheRuleOnlyScansTheResponse() throws Exception {
+        // the request body is not read on this path, so nothing can corrupt it
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setScope("response");
+        cacheHandle(handle);
+        ByteProbe probe = new ByteProbe();
+        byte[] compressed = gzip(PLAIN_CHAT_BODY);
+        PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
+
+        plugin.doExecute(gzipRequest(compressed), chain(probe), null, ruleData).block();
+
+        assertArrayEquals(compressed, probe.bytes);
+    }
+
+    @Test
+    public void testIdentityEncodingIsStillScanned() {
+        StepProbe probe = new StepProbe();
+        ShenyuPluginChain chain = chain(probe);
+        PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_ENCODING, "identity")
+                .body(CHAT_BODY));
+
+        plugin.doExecute(exchange, chain, null, ruleData).block();
+
+        assertTrue(probe.body.contains("<PHONE_CN>"), "an identity encoding is plain text: " + probe.body);
+    }
+
+    private static byte[] gzip(final String body) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzip = new GZIPOutputStream(out)) {
+            gzip.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * A compressed request delivered in several chunks, like a body that does
+     * not fit into a single network read.
+     */
+    private MockServerWebExchange gzipRequest(final byte[] compressed) {
+        DataBufferFactory factory = new DefaultDataBufferFactory();
+        int half = compressed.length / 2;
+        byte[] head = Arrays.copyOfRange(compressed, 0, half);
+        byte[] tail = Arrays.copyOfRange(compressed, half, compressed.length);
+        return MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .body(Flux.just(factory.wrap(head), factory.wrap(tail))));
+    }
+
     private ShenyuPluginChain chain() {
         ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any(ServerWebExchange.class))).thenReturn(Mono.empty());
@@ -230,6 +340,13 @@ public final class PiiDetectionRequestFlowTest {
     }
 
     private ShenyuPluginChain chain(final StepProbe probe) {
+        ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
+        when(chain.execute(any(ServerWebExchange.class)))
+                .thenAnswer(invocation -> probe.capture(invocation.getArgument(0)));
+        return chain;
+    }
+
+    private ShenyuPluginChain chain(final ByteProbe probe) {
         ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any(ServerWebExchange.class)))
                 .thenAnswer(invocation -> probe.capture(invocation.getArgument(0)));
@@ -246,6 +363,32 @@ public final class PiiDetectionRequestFlowTest {
         return MockServerWebExchange.from(MockServerHttpRequest.post("/test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body));
+    }
+
+    /**
+     * Captures the bytes the chain would forward, for a payload that must not be
+     * decoded as text.
+     */
+    private static final class ByteProbe {
+
+        private byte[] bytes = new byte[0];
+
+        private String contentEncoding;
+
+        private Mono<Void> capture(final ServerWebExchange exchange) {
+            this.contentEncoding = exchange.getRequest().getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
+            this.bytes = exchange.getRequest().getBody()
+                    .map(buffer -> {
+                        byte[] chunk = new byte[buffer.readableByteCount()];
+                        buffer.read(chunk);
+                        DataBufferUtils.release(buffer);
+                        return chunk;
+                    })
+                    .collect(ByteArrayOutputStream::new, (out, chunk) -> out.write(chunk, 0, chunk.length))
+                    .map(ByteArrayOutputStream::toByteArray)
+                    .block();
+            return Mono.empty();
+        }
     }
 
     private static final class StepProbe {
