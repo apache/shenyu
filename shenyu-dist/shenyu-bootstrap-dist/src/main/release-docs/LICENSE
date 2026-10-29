@@ -266,7 +266,7 @@ The text of each license is the standard Apache 2.0 license.
     curator-recipes 5.7.0:  https://github.com/apache/curator, Apache 2.0
     curator-x-discovery 4.3.0:  https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery, Apache 2.0
 	dubbo 3.2.14: https://github.com/apache/dubbo, Apache 2.0
-    error_prone_annotations 2.18.0: https://github.com/google/error-prone, Apache 2.0
+    error_prone_annotations 2.41.0: https://github.com/google/error-prone, Apache 2.0
     fury-core 0.4.1: https://mvnrepository.com/artifact/org.apache.fury/fury-core, Apache 2.0
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1: https://github.com/google/guava, Apache 2.0
@@ -283,7 +283,7 @@ The text of each license is the standard Apache 2.0 license.
     grpc-rls 1.53.0 https://github.com/grpc/grpc, Apache 2.0
     grpc-servlet-jakarta 1.53.0 https://github.com/grpc/grpc, Apache 2.0
     grpc-auth 1.53.0: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.53.0: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-core 1.65.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-grpclb 1.53.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-netty 1.65.1: https://github.com/grpc/grpc, Apache 2.0
@@ -329,7 +329,8 @@ The text of each license is the standard Apache 2.0 license.
     jsonschema-module-swagger-2 4.37.0: https://github.com/victools/jsonschema-generator, Apache 2.0
     jakarta.validation-api 2.0.1: http://beanvalidation.org, Apache 2.0
     javapoet 1.8.0: https://github.com/square/javapoet, Apache 2.0
-    javassist 3.29.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
+    javassist 3.30.2-GA: https://github.com/jboss-javassist/javassist, Apache 2.0
+    jctools-core 4.0.3: https://github.com/JCTools/JCTools, Apache 2.0
     jboss-logging 3.5.3.Final: http://www.jboss.org, Apache 2.0
     jetcd-api 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
     jetcd-common 0.7.3: https://github.com/etcd-io/jetcd, Apache 2.0
@@ -635,7 +636,7 @@ The text of each license is the standard Apache 2.0 license.
     spring-ai-retry 1.1.8: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-template-st 1.1.8: https://github.com/spring-projects/spring-ai, Apache 2.0
     fastjson 1.2.76: https://github.com/alibaba/fastjson, Apache 2
-    error_prone_annotations 2.5.1: http://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
+    error_prone_annotations 2.41.0: http://www.apache.org/licenses/LICENSE-2.0.txt, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -782,11 +783,11 @@ Public Domain licenses
 Bouncy Castle licenses
 ========================================================================
 
-    bcprov-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
+    bcprov-jdk18on 1.85: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on, Bouncy Castle
     bcutil-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk18on, Bouncy Castle
     bcpkix-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on, Bouncy Castle
     bcprov-ext-jdk18on 1.78: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-ext-jdk18on, Bouncy Castle
-    bcprov-jdk18on 1.84: https://github.com/bcgit/bc-java, Bouncy Castle
+    bcprov-jdk18on 1.85: https://github.com/bcgit/bc-java, Bouncy Castle
 
 ========================================================================
 EDL License

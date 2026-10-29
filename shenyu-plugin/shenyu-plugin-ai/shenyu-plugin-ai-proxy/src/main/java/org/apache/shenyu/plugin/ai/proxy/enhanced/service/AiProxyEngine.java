@@ -44,9 +44,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -68,6 +72,8 @@ public final class AiProxyEngine {
 
     private final AiProxyRetryProperties retryProperties;
 
+    private final AiProxyAttemptListener attemptListener;
+
     public AiProxyEngine(
             final AiProxyProtocolFactory protocols,
             final AiProxyProviderFactory providers,
@@ -84,11 +90,30 @@ public final class AiProxyEngine {
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                          final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
                          final AiProxyRetryProperties retryProperties) {
+        this(protocols, providers, routeResolver, transport, retryProperties, event -> {
+        });
+    }
+
+    /**
+     * Create an AI proxy engine with retry policy integration.
+     *
+     * @param protocols protocol registry
+     * @param providers provider registry
+     * @param routeResolver protocol routing resolver
+     * @param transport upstream transport
+     * @param retryProperties retry properties
+     * @param attemptListener bounded attempt observer
+     */
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
+                         final AiProxyRetryProperties retryProperties,
+                         final AiProxyAttemptListener attemptListener) {
         this.aiProxyProtocolFactory = Objects.requireNonNull(protocols, "protocols must not be null");
         this.aiProxyProviderFactory = Objects.requireNonNull(providers, "providers must not be null");
         this.aiProtocolRouteResolver = Objects.requireNonNull(routeResolver, "routeResolver must not be null");
         this.aiProxyTransport = Objects.requireNonNull(transport, "transport must not be null");
         this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
+        this.attemptListener = Objects.requireNonNull(attemptListener, "attemptListener must not be null");
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
@@ -111,6 +136,8 @@ public final class AiProxyEngine {
                               final Optional<AiCommonConfig> fallbackConfig,
                               final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
         return Mono.defer(() -> {
+            long deadlineNanos = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
+            String invocationId = UUID.randomUUID().toString();
             PreparedExchange primary = prepare(requestBody, new AiCommonConfig(primaryConfig));
             Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                 AiCommonConfig copy = new AiCommonConfig(config);
@@ -120,7 +147,14 @@ public final class AiProxyEngine {
                 return copy;
             });
             final int maxRetries = retryProperties.maxRetries(primary.stream());
-            return attempt(requestBody, primary, fallback, maxRetries, maxRetries, responseConsumer, new AtomicBoolean());
+            final boolean fallbackProviderDeclaredReplaySafe = fallback
+                    .map(config -> aiProxyProviderFactory.getProvider(providerName(config))
+                            .capabilities().isReplaySafe(primary.operation()))
+                    .orElse(false);
+            Execution execution = new Execution(requestBody, responseConsumer, new AtomicBoolean(),
+                    new AtomicInteger(), invocationId, deadlineNanos);
+            return attempt(execution, primary, fallback, maxRetries, maxRetries,
+                    AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
         });
     }
 
@@ -135,53 +169,182 @@ public final class AiProxyEngine {
         return prepare(requestBody, config).request();
     }
 
-    private Mono<Void> attempt(final String requestBody, final PreparedExchange prepared,
+    private Mono<Void> attempt(final Execution execution, final PreparedExchange prepared,
                                final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
-                               final Function<AiUpstreamResponse, Mono<Void>> consumer, final AtomicBoolean emitted) {
+                               final AiProxyAttemptEvent.Phase phase,
+                               final boolean fallbackProviderDeclaredReplaySafe) {
+        final int currentAttempt = execution.attemptIndex().getAndIncrement();
+        long deadlineStartNanos = System.nanoTime();
+        long remainingNanos = execution.deadlineNanos() - deadlineStartNanos;
+        if (remainingNanos <= 0L) {
+            emit(execution.invocationId(), currentAttempt, phase,
+                    AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
+            return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                    "AI proxy request deadline exceeded before attempt", null));
+        }
         return Mono.defer(() -> aiProxyTransport.execute(prepared.request()))
-                .flatMap(response -> {
-                    int status = response.getStatusCode();
-                    if (status >= 400) {
-                        final AiProxyRetryPolicy.Decision decision =
-                                RETRY_POLICY.decideStatus(status, retriesRemaining, fallback.isPresent());
-                        if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
-                            return consumeResponse(response, consumer, emitted);
-                        }
-                        return response.getBody().then(Mono.error(new UpstreamStatusFailure(status)));
-                    }
-                    AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
-                    return consumeResponse(adapted, consumer, emitted);
-                })
-                .onErrorResume(error -> {
-                    final AiProxyRetryPolicy.Decision decision;
-                    if (emitted.get()) {
-                        return Mono.error(error);
-                    }
-                    if (error instanceof AiTransportException transportException) {
-                        decision = RETRY_POLICY.decideTransport(
-                                transportException.getKind(),
-                                retriesRemaining,
-                                fallback.isPresent());
-                    } else if (error instanceof UpstreamStatusFailure statusFailure) {
-                        decision = RETRY_POLICY.decideStatus(
-                                statusFailure.status,
-                                retriesRemaining,
-                                fallback.isPresent());
-                    } else {
-                        return Mono.error(error);
-                    }
-                    if (decision == AiProxyRetryPolicy.Decision.RETRY) {
-                        final int retryIndex = maxRetries - retriesRemaining;
-                        final Duration delay = retryProperties.retryDelay(prepared.stream(), retryIndex);
-                        return Mono.delay(delay).then(attempt(
-                                requestBody, prepared, fallback, maxRetries, retriesRemaining - 1, consumer, emitted));
-                    }
-                    if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
-                        return Mono.defer(() -> attempt(
-                                requestBody, prepare(requestBody, fallback.get()), Optional.empty(), 0, 0, consumer, emitted));
-                    }
-                    return Mono.error(error);
-                });
+                .flatMap(response -> handleResponse(response, prepared, fallback, retriesRemaining,
+                        execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe))
+                .timeout(Duration.ofNanos(Math.max(1L, remainingNanos - elapsedSince(deadlineStartNanos))),
+                        Mono.error(new AiTransportException(
+                                AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                                "AI proxy request deadline exceeded", null)))
+                .onErrorResume(error -> resumeAttempt(error, prepared, fallback, maxRetries,
+                        retriesRemaining, execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe));
+    }
+
+    private Mono<Void> handleResponse(final AiUpstreamResponse response, final PreparedExchange prepared,
+                                      final Optional<AiCommonConfig> fallback, final int retriesRemaining,
+                                      final Execution execution, final int currentAttempt,
+                                      final AiProxyAttemptEvent.Phase phase,
+                                      final boolean fallbackProviderDeclaredReplaySafe) {
+        return Mono.defer(() -> {
+            int status = response.getStatusCode();
+            if (status >= 400) {
+                return handleStatusFailure(response, prepared, fallback, retriesRemaining,
+                        execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
+            }
+            AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
+            return consumeResponse(adapted, execution.responseConsumer(), execution.emitted())
+                    .doOnSuccess(ignored -> emit(execution.invocationId(), currentAttempt, phase,
+                            AiProxyAttemptEvent.Reason.COMPLETED, null));
+        });
+    }
+
+    private Mono<Void> resumeAttempt(final Throwable error, final PreparedExchange prepared,
+                                     final Optional<AiCommonConfig> fallback, final int maxRetries,
+                                     final int retriesRemaining,
+                                     final Execution execution,
+                                     final int currentAttempt, final AiProxyAttemptEvent.Phase phase,
+                                     final boolean fallbackProviderDeclaredReplaySafe) {
+        return Mono.defer(() -> {
+            final AiProxyRetryPolicy.Decision decision;
+            final Map<String, List<String>> responseHeaders;
+            if (execution.emitted().get()) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.OUTPUT_COMMITTED, null);
+                return Mono.error(error);
+            }
+            if (error instanceof AiTransportException transportException) {
+                responseHeaders = Map.of();
+                decision = RETRY_POLICY.decideTransport(new AiProxyRetryPolicy.FailureContext(
+                        transportException.getKind(), null, Map.of(), retriesRemaining,
+                        fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
+                        retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(),
+                        fallbackProviderDeclaredReplaySafe));
+            } else if (error instanceof UpstreamStatusFailure statusFailure) {
+                responseHeaders = statusFailure.headers;
+                decision = RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
+                        null, statusFailure.status, statusFailure.headers, retriesRemaining,
+                        fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
+                        retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(),
+                        fallbackProviderDeclaredReplaySafe));
+            } else {
+                return Mono.error(error);
+            }
+            if (decision == AiProxyRetryPolicy.Decision.RETRY) {
+                return retry(error, prepared, fallback, maxRetries, retriesRemaining,
+                        currentAttempt, execution, phase,
+                        fallbackProviderDeclaredReplaySafe, responseHeaders);
+            }
+            if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
+                return fallback(error, prepared, fallback, currentAttempt, execution, phase, responseHeaders);
+            }
+            if (decision == AiProxyRetryPolicy.Decision.PROPAGATE_ERROR
+                    && error instanceof AiTransportException) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.NON_RETRYABLE_TRANSPORT, null);
+            }
+            return Mono.error(error);
+        });
+    }
+
+    private Mono<Void> retry(final Throwable error, final PreparedExchange prepared,
+                             final Optional<AiCommonConfig> fallback, final int maxRetries,
+                             final int retriesRemaining, final int currentAttempt,
+                             final Execution execution,
+                             final AiProxyAttemptEvent.Phase phase, final boolean fallbackProviderDeclaredReplaySafe,
+                             final Map<String, List<String>> responseHeaders) {
+        return Mono.defer(() -> {
+            final int retryIndex = maxRetries - retriesRemaining;
+            final Duration retryAfter = AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties);
+            if (AiProxyRetryPolicy.hasRetryAfter(responseHeaders)
+                    && !retryProperties.acceptsRetryAfter(retryAfter)) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.REPLAY_BLOCKED, null);
+                return Mono.error(error);
+            }
+            Duration delay = retryProperties.retryDelay(prepared.stream(), retryIndex, System.nanoTime());
+            if (Objects.nonNull(retryAfter) && retryAfter.compareTo(delay) > 0) {
+                delay = retryAfter;
+            }
+            Duration remaining = Duration.ofNanos(execution.deadlineNanos() - System.nanoTime());
+            if (remaining.isNegative() || remaining.isZero() || delay.compareTo(remaining) >= 0) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, retryAfter);
+                return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                        "AI proxy request deadline exceeded before retry", error));
+            }
+            emit(execution.invocationId(), currentAttempt, phase,
+                    error instanceof AiTransportException
+                            ? AiProxyAttemptEvent.Reason.RETRY_TRANSPORT : AiProxyAttemptEvent.Reason.RETRY_STATUS,
+                    retryAfter);
+            return Mono.delay(delay).then(attempt(execution, prepared, fallback, maxRetries,
+                    retriesRemaining - 1, phase, fallbackProviderDeclaredReplaySafe));
+        });
+    }
+
+    private Mono<Void> fallback(final Throwable error, final PreparedExchange prepared,
+                                final Optional<AiCommonConfig> fallback,
+                                final int currentAttempt, final Execution execution,
+                                final AiProxyAttemptEvent.Phase phase,
+                                final Map<String, List<String>> responseHeaders) {
+        return Mono.defer(() -> {
+            Duration remaining = Duration.ofNanos(execution.deadlineNanos() - System.nanoTime());
+            if (remaining.isNegative() || remaining.isZero()) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED,
+                        AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
+                return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                        "AI proxy request deadline exceeded before fallback", error));
+            }
+            emit(execution.invocationId(), currentAttempt, phase,
+                    error instanceof AiTransportException
+                            ? AiProxyAttemptEvent.Reason.FALLBACK_TRANSPORT : AiProxyAttemptEvent.Reason.FALLBACK_STATUS,
+                    AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
+            return attempt(execution, prepare(execution.requestBody(), fallback.get()),
+                    Optional.empty(), 0, 0, AiProxyAttemptEvent.Phase.FALLBACK, false);
+        });
+    }
+
+    private Mono<Void> handleStatusFailure(final AiUpstreamResponse response, final PreparedExchange prepared,
+                                           final Optional<AiCommonConfig> fallback, final int retriesRemaining,
+                                           final Execution execution,
+                                           final int currentAttempt,
+                                           final AiProxyAttemptEvent.Phase phase,
+                                           final boolean fallbackProviderDeclaredReplaySafe) {
+        final AiProxyRetryPolicy.Decision decision =
+                RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
+                        null, response.getStatusCode(), response.getHeaders(), retriesRemaining,
+                        fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
+                        retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(),
+                        fallbackProviderDeclaredReplaySafe));
+        if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
+            emit(execution.invocationId(), currentAttempt, phase,
+                    AiProxyAttemptEvent.Reason.NON_RETRYABLE_RESPONSE, null);
+            return consumeResponse(response, execution.responseConsumer(), execution.emitted());
+        }
+        return response.getBody().then(Mono.error(new UpstreamStatusFailure(
+                response.getStatusCode(), response.getHeaders())));
+    }
+
+    private void emit(final String invocationId, final int attemptIndex, final AiProxyAttemptEvent.Phase phase,
+                      final AiProxyAttemptEvent.Reason reason, final Duration retryAfter) {
+        try {
+            attemptListener.onAttempt(new AiProxyAttemptEvent(invocationId, attemptIndex, phase, reason, retryAfter));
+        } catch (RuntimeException ignored) {
+            // Observation must never change the AI request outcome.
+        }
     }
 
     private Mono<Void> consumeResponse(
@@ -234,8 +397,7 @@ public final class AiProxyEngine {
             throw new ShenyuException("Request body does not match AI protocol: " + protocol.name());
         }
         ShenyuAiRequest decoded = applyModelOverride(protocol.decodeRequest(upstreamBody, payload), protocol, config);
-        AiProxyProvider provider = aiProxyProviderFactory.getProvider(
-                Objects.isNull(config.getProvider()) || config.getProvider().isBlank() ? "openai" : config.getProvider());
+        AiProxyProvider provider = aiProxyProviderFactory.getProvider(providerName(config));
         boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
         AiProtocolRoute route = aiProtocolRouteResolver.resolve(
                 decoded, provider.capabilities().protocols(), stream);
@@ -267,8 +429,12 @@ public final class AiProxyEngine {
             AiResponseAdapter responseAdapter = response -> protocol.encodeResponse(
                     route.conversion().responseAdapter().adapt(
                             preparedRequest.responseAdapter().adapt(response)), stream);
+            boolean providerDeclaredReplaySafe = provider.capabilities()
+                    .isReplaySafe(providerRequest.getOperation());
             return new PreparedExchange(preparedRequest.request(), responseAdapter,
-                    route.clientProtocol(), route.targetProtocol(), stream);
+                    route.clientProtocol(), route.targetProtocol(), stream,
+                    AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
+                    providerDeclaredReplaySafe);
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
@@ -286,12 +452,43 @@ public final class AiProxyEngine {
         return protocol.decodeRequest(effectivePayload.toString(), effectivePayload);
     }
 
+    private String providerName(final AiCommonConfig config) {
+        return Objects.isNull(config.getProvider()) || config.getProvider().isBlank()
+                ? "openai" : config.getProvider();
+    }
+
+    private long elapsedSince(final long startNanos) {
+        return System.nanoTime() - startNanos;
+    }
+
+    /**
+     * Mutable state shared by the primary and fallback phases of one logical request.
+     *
+     * @param requestBody original client request body
+     * @param responseConsumer client response boundary
+     * @param emitted whether response bytes have reached the client
+     * @param attemptIndex attempt sequence shared by primary and fallback
+     * @param invocationId opaque logical invocation identifier
+     * @param deadlineNanos absolute shared request deadline
+     */
+    private record Execution(
+            String requestBody,
+            Function<AiUpstreamResponse, Mono<Void>> responseConsumer,
+            AtomicBoolean emitted,
+            AtomicInteger attemptIndex,
+            String invocationId,
+            long deadlineNanos) {
+    }
+
     private record PreparedExchange(
             AiUpstreamRequest request,
             AiResponseAdapter responseAdapter,
             String clientProtocol,
             String targetProtocol,
-            boolean stream) {
+            boolean stream,
+            boolean conservativeReplaySafe,
+            ShenyuAiRequest.Operation operation,
+            boolean providerDeclaredReplaySafe) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {
@@ -300,9 +497,12 @@ public final class AiProxyEngine {
 
         private final int status;
 
-        private UpstreamStatusFailure(final int status) {
+        private final Map<String, List<String>> headers;
+
+        private UpstreamStatusFailure(final int status, final Map<String, List<String>> headers) {
             super("AI upstream returned HTTP " + status);
             this.status = status;
+            this.headers = Objects.requireNonNull(headers, "headers must not be null");
         }
     }
 }

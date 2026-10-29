@@ -105,7 +105,8 @@ public record OpenAiProviderOptions(Authentication authentication, String creden
                 OpenAiResponses.NAME, responsesBinding("/v1/responses"));
         AiProviderCapabilities chat = AiProviderCapabilities.chat();
         AiProviderCapabilities capabilities = new AiProviderCapabilities(bindings,
-                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION, ShenyuAiRequest.Operation.RESPONSE), chat.features());
+                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION, ShenyuAiRequest.Operation.RESPONSE), chat.features(),
+                chat.replaySafety());
         return new OpenAiProviderOptions(Authentication.HEADER, "Authorization", "Bearer ", Map.of(), Map.of(), Map.of(),
                 JsonNodeFactory.instance.objectNode(), capabilities, null);
     }
@@ -132,7 +133,8 @@ public record OpenAiProviderOptions(Authentication authentication, String creden
         AiProviderCapabilities all = AiProviderCapabilities.chat();
         return new OpenAiProviderOptions("/chat/completions", Authentication.HEADER, "Authorization", "Bearer ",
                 Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(),
-                new AiProviderCapabilities(all.protocolBindings(), all.operations(), features), ProviderProfile.deepSeekChat())
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), features, all.replaySafety()),
+                ProviderProfile.deepSeekChat())
                 .withRequestTransformer(OpenAiChat.NAME, tokenFieldTransformer("max_tokens"));
     }
 
