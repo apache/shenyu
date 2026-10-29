@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
+import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -146,5 +147,42 @@ public final class ShiroRealmTest {
                 + ".Qlpf6FdKAffgceukbi2BQYdPVf71d4Nwy0YQlkiTQFc");
         AuthenticationInfo info = shiroRealm.doGetAuthenticationInfo(token);
         assertNotNull(info);
+    }
+
+    @Test
+    public void testDoGetAuthenticationInfoRejectsRevokedToken() {
+        final AuthenticationToken token = mock(AuthenticationToken.class);
+        final DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);
+        when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+        when(dashboardUserVO.getEnabled()).thenReturn(true);
+        when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
+        when(token.getCredentials()).thenReturn(JwtUtils.generateToken("userName", SECRETKEY, "clientId", 1L, 3600L));
+
+        // the token matches the account's current version
+        when(dashboardUserVO.getTokenVersion()).thenReturn(1L);
+        assertNotNull(shiroRealm.doGetAuthenticationInfo(token));
+
+        // a password change or an explicit revocation bumps the stored version
+        when(dashboardUserVO.getTokenVersion()).thenReturn(2L);
+        AuthenticationException revoked = assertThrows(AuthenticationException.class,
+                () -> shiroRealm.doGetAuthenticationInfo(token));
+        assertNotNull(revoked);
+    }
+
+    @Test
+    public void testDoGetAuthenticationInfoAcceptsLegacyTokenUntilRevoked() {
+        final AuthenticationToken token = mock(AuthenticationToken.class);
+        final DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);
+        when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+        when(dashboardUserVO.getEnabled()).thenReturn(true);
+        when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
+        // tokens issued before token versioning carry no version claim
+        when(token.getCredentials()).thenReturn(JwtUtils.generateToken("userName", SECRETKEY, "clientId", 3600L));
+
+        when(dashboardUserVO.getTokenVersion()).thenReturn(JwtUtils.LEGACY_TOKEN_VERSION);
+        assertNotNull(shiroRealm.doGetAuthenticationInfo(token));
+
+        when(dashboardUserVO.getTokenVersion()).thenReturn(1L);
+        assertThrows(AuthenticationException.class, () -> shiroRealm.doGetAuthenticationInfo(token));
     }
 }

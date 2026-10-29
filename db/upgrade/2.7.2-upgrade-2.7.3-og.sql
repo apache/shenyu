@@ -44,3 +44,7 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers, including long Authorization values.
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
+
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE public.dashboard_user ADD COLUMN token_version int4 NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.dashboard_user.token_version IS 'token version used to revoke issued JWTs';

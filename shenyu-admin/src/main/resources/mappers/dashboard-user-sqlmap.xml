@@ -27,6 +27,7 @@
         <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="client_id" jdbcType="VARCHAR" property="clientId"/>
+        <result column="token_version" jdbcType="BIGINT" property="tokenVersion"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -37,7 +38,8 @@
         password,
         role,
         enabled,
-        client_id
+        client_id,
+        token_version
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -151,6 +153,9 @@
             <if test="clientId != null">
                 client_id,
             </if>
+            <if test="tokenVersion != null">
+                token_version,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -174,6 +179,9 @@
             </if>
             <if test="clientId != null">
                 #{clientId, jdbcType=VARCHAR},
+            </if>
+            <if test="tokenVersion != null">
+                #{tokenVersion, jdbcType=BIGINT},
             </if>
         </trim>
     </insert>
@@ -214,6 +222,9 @@
             </if>
             <if test="clientId != null">
                 client_id = #{clientId, jdbcType=VARCHAR},
+            </if>
+            <if test="tokenVersion != null">
+                token_version = #{tokenVersion, jdbcType=BIGINT},
             </if>
         </set>
          WHERE id = #{id, jdbcType=VARCHAR}

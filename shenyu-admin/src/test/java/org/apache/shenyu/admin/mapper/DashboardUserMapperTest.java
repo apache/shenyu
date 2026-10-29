@@ -136,6 +136,27 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     @Test
+    public void testTokenVersionRoundTrip() {
+        DashboardUserDO record = buildDashboardUserDO();
+        int count = dashboardUserMapper.insertSelective(record);
+        assertThat(count, comparesEqualTo(1));
+
+        // a newly created account starts at the legacy version
+        assertEquals(0L, dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        DashboardUserDO update = DashboardUserDO.builder()
+                .id(record.getId())
+                .tokenVersion(2L)
+                .build();
+        int result = dashboardUserMapper.updateSelective(update);
+        assertThat(result, comparesEqualTo(1));
+        assertEquals(2L, dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        int delete = dashboardUserMapper.delete(record.getId());
+        assertEquals(1, delete);
+    }
+
+    @Test
     public void testDelete() {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);

@@ -192,6 +192,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         final DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
         if (StringUtils.isBlank(dashboardUserDO.getPassword())) {
             dashboardUserDO.setPassword(before.getPassword());
+        } else {
+            // an administrative password reset revokes tokens issued with the previous credential
+            dashboardUserDO.setTokenVersion(nextTokenVersion(before));
         }
         final int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
@@ -313,7 +316,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                         dashboardUserMapper.updateSelective(userDO);
                     }
                     return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), jwtProperties.getSecretKey(),
-                            clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
+                            clientId, Optional.ofNullable(finalDashboardUserVO.getTokenVersion()).orElse(JwtUtils.LEGACY_TOKEN_VERSION),
+                            jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
     }
@@ -370,11 +374,36 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         dashboardUserModifyPasswordDTO.setPassword(passwordHashService.encode(dashboardUserModifyPasswordDTO.getPassword()));
 
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
+        // a password change revokes tokens issued with the previous credential
+        dashboardUserDO.setTokenVersion(nextTokenVersion(before));
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
             publisher.onUpdated(dashboardUserDO, before);
         }
         return updateCount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int revokeTokens(final String id) {
+        // mandatory: This function can only be used by the admin user
+        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        DashboardUserDO before = dashboardUserMapper.selectById(id);
+        Assert.notNull(before, "current user is not found");
+        DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                .id(id)
+                .tokenVersion(nextTokenVersion(before))
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
+        if (updateCount > 0) {
+            publisher.onUpdated(dashboardUserDO, before);
+        }
+        return updateCount;
+    }
+
+    private static long nextTokenVersion(final DashboardUserDO before) {
+        return Objects.isNull(before.getTokenVersion()) ? 1L : before.getTokenVersion() + 1L;
     }
 
     @Override

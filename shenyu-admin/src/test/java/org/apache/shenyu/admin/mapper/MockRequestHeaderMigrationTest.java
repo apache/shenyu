@@ -72,6 +72,7 @@ public final class MockRequestHeaderMigrationTest {
 
             statement.execute("CREATE TABLE selector (loged INT)");
             statement.execute("CREATE TABLE rule (loged INT)");
+            statement.execute("CREATE TABLE dashboard_user (id VARCHAR(128))");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
             new ResourceDatabasePopulator(new FileSystemResource(upgradeScript())).execute(dataSource);
