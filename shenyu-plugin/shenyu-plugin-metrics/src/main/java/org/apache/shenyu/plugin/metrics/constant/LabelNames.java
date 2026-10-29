@@ -22,6 +22,30 @@ package org.apache.shenyu.plugin.metrics.constant;
  */
 public final class LabelNames {
 
+    /** Remote catalog discovery attempts over active instance lifetimes. */
+    public static final String AGENT_MCP_CATALOG_REFRESH_TOTAL = "shenyu_agent_mcp_catalog_refresh_total";
+
+    /** Failed current remote catalog discovery attempts. */
+    public static final String AGENT_MCP_CATALOG_FAILURES_TOTAL = "shenyu_agent_mcp_catalog_failures_total";
+
+    /** Successful discovery after failures in the same configuration. */
+    public static final String AGENT_MCP_CATALOG_RECOVERIES_TOTAL = "shenyu_agent_mcp_catalog_recoveries_total";
+
+    /** Active catalogs whose configuration contains remote targets. */
+    public static final String AGENT_MCP_CATALOG_CONFIGURED = "shenyu_agent_mcp_catalog_configured";
+
+    /** Active catalogs currently publishing remote directories. */
+    public static final String AGENT_MCP_CATALOG_AVAILABLE = "shenyu_agent_mcp_catalog_available";
+
+    /** Active catalogs with a current validation or refresh failure. */
+    public static final String AGENT_MCP_CATALOG_FAILURE_ACTIVE = "shenyu_agent_mcp_catalog_failure_active";
+
+    /** Largest bounded consecutive failure streak among active catalogs. */
+    public static final String AGENT_MCP_CATALOG_CONSECUTIVE_FAILURES = "shenyu_agent_mcp_catalog_consecutive_failures";
+
+    /** Largest age since the current configuration last published, or -1 before success. */
+    public static final String AGENT_MCP_CATALOG_LAST_SUCCESS_AGE_SECONDS = "shenyu_agent_mcp_catalog_last_success_age_seconds";
+
     /** Records accepted at the logging queue admission boundary, not backend deliveries. */
     public static final String LOGGING_QUEUE_ACCEPTED_TOTAL = "shenyu_logging_queue_accepted_total";
 
