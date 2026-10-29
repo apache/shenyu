@@ -424,6 +424,66 @@ public final class DiscoveryServiceImplTest {
         verify(discoveryProcessor, never()).createDiscovery(any(DiscoveryDO.class));
     }
 
+
+    @Test
+    public void testUpdatedDiscoveryRetainsPluginForOrdinarySelector() {
+        final DiscoveryDO stored = new DiscoveryDO();
+        stored.setId("discovery-1");
+        stored.setDiscoveryType("zookeeper");
+        stored.setPluginName("divide");
+        stored.setDiscoveryLevel("plugin");
+        stored.setServerList("old-host:2181");
+        stored.setProps("{}");
+        stored.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(discoveryMapper.selectById("discovery-1")).thenAnswer(invocation -> copy(stored));
+        when(discoveryMapper.updateSelective(any(DiscoveryDO.class))).thenAnswer(invocation -> {
+            final DiscoveryDO arg = invocation.getArgument(0);
+            if (Objects.nonNull(arg.getServerList())) {
+                stored.setServerList(arg.getServerList());
+            }
+            if (Objects.nonNull(arg.getProps())) {
+                stored.setProps(arg.getProps());
+            }
+            if (Objects.nonNull(arg.getDiscoveryType())) {
+                stored.setDiscoveryType(arg.getDiscoveryType());
+            }
+            return 1;
+        });
+
+        final DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setName("d");
+        dto.setPluginName("divide");
+        dto.setType("zookeeper");
+        dto.setLevel("plugin");
+        dto.setServerList("new-host:2181");
+        dto.setProps("{}");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+
+        // ordinary selector binding: discovery_rel.selector_id (no proxy selector row)
+        final SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        selector.setSelectorName("orders");
+        selector.setPluginId("plugin-1");
+        selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        given(selectorMapper.selectByDiscoveryId("discovery-1")).willReturn(Collections.singletonList(selector));
+        final DiscoveryHandlerDO handlerRow = DiscoveryHandlerDO.builder()
+                .id("handler-1").discoveryId("discovery-1").listenerNode("/shenyu/discovery/order").build();
+        given(discoveryHandlerMapper.selectByDiscoveryId("discovery-1")).willReturn(Collections.singletonList(handlerRow));
+        given(discoveryHandlerMapper.selectBySelectorId("selector-1")).willReturn(handlerRow);
+        given(proxySelectorMapper.selectByDiscoveryId("discovery-1")).willReturn(Collections.emptyList());
+
+        discoveryService.createOrUpdate(dto);
+
+        // the re-bound ordinary selector must receive a synthesized DTO carrying the
+        // discovery's plugin name — a null would break registry delivery downstream
+        final org.mockito.ArgumentCaptor<ProxySelectorDTO> dtoCaptor =
+                org.mockito.ArgumentCaptor.forClass(ProxySelectorDTO.class);
+        verify(discoveryProcessor).createProxySelector(any(DiscoveryHandlerDTO.class), dtoCaptor.capture());
+        assertEquals("divide", dtoCaptor.getValue().getPluginName());
+    }
+
     @Test
     public void testTypeCreateUpdateAndDiscoveryLookup() {
         assertEquals(org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum.types(), discoveryService.typeEnums());
@@ -655,6 +715,8 @@ public final class DiscoveryServiceImplTest {
         snapshot.setId(source.getId());
         snapshot.setDiscoveryName(source.getDiscoveryName());
         snapshot.setDiscoveryType(source.getDiscoveryType());
+        snapshot.setPluginName(source.getPluginName());
+        snapshot.setDiscoveryLevel(source.getDiscoveryLevel());
         snapshot.setServerList(source.getServerList());
         snapshot.setProps(source.getProps());
         snapshot.setNamespaceId(source.getNamespaceId());

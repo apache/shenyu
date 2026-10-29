@@ -301,6 +301,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                     .id(after.getId())
                     .discoveryName(effective(after.getDiscoveryName(), before.getDiscoveryName()))
                     .discoveryType(effective(after.getDiscoveryType(), before.getDiscoveryType()))
+                    .pluginName(effective(after.getPluginName(), before.getPluginName()))
+                    .discoveryLevel(effective(after.getDiscoveryLevel(), before.getDiscoveryLevel()))
                     .serverList(effective(after.getServerList(), before.getServerList()))
                     .props(effective(after.getProps(), before.getProps()))
                     .namespaceId(effective(after.getNamespaceId(), before.getNamespaceId()))
