@@ -152,9 +152,12 @@ public class CachePluginDataHandler implements PluginDataHandler {
      * close the cache if you need.
      */
     private void closeCacheIfNeed() {
-        ICache lastCache = CacheUtils.getCache();
-        ApplicationConfigCache.getInstance().invalidateAll();
+        final ICache lastCache = CacheUtils.getCache();
+        // Retire the published backend and config before close callbacks, so re-enable can rebuild them.
+        Singleton.INST.remove(ICache.class);
+        Singleton.INST.remove(CacheConfig.class);
         Singleton.INST.single(ResponseSingleFlight.class, ResponseSingleFlight.disabled());
+        ApplicationConfigCache.getInstance().invalidateAll();
         this.closeCache(lastCache);
     }
 
