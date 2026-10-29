@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.apache.shenyu.plugin.base.circuitbreaker.ShenyuLocalRejectException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -104,9 +105,13 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration,
                            final int retryTimes, final Duration backoff, final Predicate<Throwable> retryFilter) {
         final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
-        Mono<R> result = clientResponse;
+        // a gateway-local rejection (e.g. the request-body limit) is not an upstream
+        // failure: failover must not consume a retry on it and the exhausted-retries
+        // mapping must not replace it with a 503 that would count toward the breaker
+        final Predicate<Throwable> retryable = th -> !(th instanceof ShenyuLocalRejectException) && retryFilter.test(th);
+        Mono<R> result = clientResponse.onErrorResume(ShenyuLocalRejectException.class, th -> Mono.error(th));
         for (int i = 0; i < retryTimes; i++) {
-            result = result.onErrorResume(retryFilter, th -> backoff.isZero()
+            result = result.onErrorResume(retryable, th -> backoff.isZero()
                     ? resend(exchange, duration, exclude)
                     : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
         }

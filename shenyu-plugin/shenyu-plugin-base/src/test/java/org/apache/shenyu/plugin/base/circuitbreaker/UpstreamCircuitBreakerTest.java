@@ -49,6 +49,27 @@ public final class UpstreamCircuitBreakerTest {
     private static final String KEY = "selector:http://127.0.0.1:9090";
 
 
+
+    @Test
+    public void failoverLocalRejectOnHealthyUpstreamDoesNotOpenBreaker() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8082").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-failover", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // FAILOVER with a single admitted upstream: every attempt fails with the
+            // gateway-local marker before reaching the network — must not count
+            for (int i = 0; i < 6; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
+                        .expectError(ShenyuLocalRejectException.class)
+                        .verify();
+            }
+            assertTrue(breaker.isRequestAllowed(key), "failover-erased local rejections must not open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
+    }
+
     @Test
     public void localRejectDoesNotRecordUpstreamFailure() {
         final Upstream upstream = Upstream.builder().url("http://localhost:8080").build();
