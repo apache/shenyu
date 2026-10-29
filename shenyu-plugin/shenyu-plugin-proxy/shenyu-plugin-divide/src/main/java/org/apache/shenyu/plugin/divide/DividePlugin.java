@@ -70,6 +70,7 @@ import reactor.core.publisher.SignalType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.lang.NonNull;
 import org.apache.shenyu.plugin.base.circuitbreaker.ShenyuLocalRejectException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
