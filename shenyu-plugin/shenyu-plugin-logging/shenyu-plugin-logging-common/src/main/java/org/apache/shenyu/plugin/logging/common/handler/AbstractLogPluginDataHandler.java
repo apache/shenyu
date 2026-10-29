@@ -95,7 +95,10 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
         final Class<T> globalLogConfigClass = (Class<T>) actualTypeArguments[0];
-        LOG.info("handler {} Plugin data:  {}", pluginNamed(), GsonUtils.getGson().toJson(pluginData));
+        LOG.info("handler {} plugin data: id={}, enabled={}, namespace={}", pluginNamed(),
+                Objects.isNull(pluginData) ? null : pluginData.getId(),
+                Objects.isNull(pluginData) ? null : pluginData.getEnabled(),
+                Objects.isNull(pluginData) ? null : pluginData.getNamespaceId());
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             T globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), globalLogConfigClass);
             T exist = Singleton.INST.get(globalLogConfigClass);
@@ -128,7 +131,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
         final Class<C> genericApiConfigClass = (Class<C>) actualTypeArguments[1];
-        LOG.info("handler {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
+        LOG.info("handler {} selector data: id={}, plugin={}", pluginNamed(), selectorData.getId(), selectorData.getPluginName());
         String handleJson = selectorData.getHandle();
         if (StringUtils.isEmpty(handleJson) || EMPTY_JSON.equals(handleJson.trim())) {
             // a cleared handle must drop the stale selector override so sampling falls back to the global config
@@ -144,7 +147,7 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        LOG.info("handler remove {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
+        LOG.info("handler remove {} selector data: id={}, plugin={}", pluginNamed(), selectorData.getId(), selectorData.getPluginName());
         SELECT_API_CONFIG_MAP.remove(selectorData.getId());
     }
 

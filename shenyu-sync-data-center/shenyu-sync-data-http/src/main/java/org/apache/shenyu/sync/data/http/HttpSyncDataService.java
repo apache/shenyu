@@ -37,6 +37,7 @@ import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.BoundServerPort;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.common.utils.ThreadUtils;
@@ -209,7 +210,9 @@ public class HttpSyncDataService implements SyncDataService {
         // update local cache
         boolean updated = this.updateCacheWithJson(json);
         if (updated) {
-            LOG.debug("get latest configs: [{}]", json);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("get latest configs, server: [{}], size: {}, md5: {}", server, json.length(), DigestUtils.md5Hex(json));
+            }
             return;
         }
         // not updated. it is likely that the current config server has not been updated yet. wait a moment.
@@ -267,7 +270,7 @@ public class HttpSyncDataService implements SyncDataService {
             ResponseBody responseBody = response.body();
             Assert.notNull(responseBody, "Resolve response body failed.");
             String json = responseBody.string();
-            LOG.info("listener result: [{}]", json);
+            LOG.info("listener result, server: [{}], size: {} chars", server, json.length());
             JsonElement responseFromServer = GsonUtils.getGson().fromJson(json, JsonElement.class);
             if (Objects.isNull(responseFromServer) || responseFromServer.isJsonNull()) {
                 return;

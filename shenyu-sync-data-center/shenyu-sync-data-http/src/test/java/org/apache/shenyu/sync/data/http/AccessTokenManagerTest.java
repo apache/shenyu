@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.sync.data.http;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.google.common.collect.Lists;
@@ -47,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -130,6 +133,25 @@ public class AccessTokenManagerTest {
     public void testLogin() {
         accessTokenManager.login(Lists.newArrayList(httpConfig.getUrl().split(",")));
         assertEquals(this.accessToken, accessTokenManager.getAccessToken());
+    }
+
+    @Test
+    public void testLoginDoesNotLogAccessToken() {
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(AccessTokenManager.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            // the constructor performs the initial login, so attach the capture before constructing it
+            new AccessTokenManager(new OkHttpClient(), httpConfig);
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("fake-admin-token"), "the access token must not be logged");
+            assertTrue(logs.contains("login success"));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
     }
 
     @Test
@@ -362,8 +384,8 @@ public class AccessTokenManagerTest {
     // mock configs fetch api response
     private String mockLoginResponseJson() {
         Map<String, Object> data = new HashMap<>();
-        data.put("token", "token");
-        this.accessToken = "token";
+        data.put("token", "fake-admin-token");
+        this.accessToken = "fake-admin-token";
         data.put("expiredTime", 24 * 60 * 60 * 1000);
         Map<String, Object> result = new HashMap<>();
         result.put("data", data);

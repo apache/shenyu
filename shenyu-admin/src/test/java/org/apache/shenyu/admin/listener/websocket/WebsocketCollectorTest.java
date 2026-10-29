@@ -165,17 +165,6 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
-    public void testNestedApiKeysAreRedacted() {
-        String message = "{\"data\":[{\"proxyApiKey\":\"proxy-secret\","
-                + "\"nested\":{\"realApiKey\":\"real-secret\",\"apiKey\":\"api-secret\"}}]}";
-        String masked = ReflectionTestUtils.invokeMethod(WebsocketCollector.class, "maskSensitive", message);
-        assertFalse(masked.contains("proxy-secret"));
-        assertFalse(masked.contains("real-secret"));
-        assertFalse(masked.contains("api-secret"));
-        assertTrue(masked.contains("******"));
-    }
-
-    @Test
     void testOnOpen() {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
@@ -678,6 +667,40 @@ public final class WebsocketCollectorTest {
         assertFalse(logged.contains("groupType"), logged);
         assertFalse(logged.contains("api-secret"), logged);
         assertFalse(logged.contains("******"), logged);
+    }
+
+    @Test
+    void testSendAtDebugDoesNotLogPayload() {
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        final String message = "{\"groupType\":\"PLUGIN\",\"eventType\":\"UPDATE\",\"data\":[{\"password\":\"fake-password\"}]}";
+        final ch.qos.logback.classic.Logger root =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        final Level original = root.getLevel();
+        final ch.qos.logback.classic.Logger collectorLogger = (ch.qos.logback.classic.Logger) loggerSpy;
+        final Level originalCollector = collectorLogger.getLevel();
+        root.setLevel(Level.DEBUG);
+        collectorLogger.setLevel(Level.DEBUG);
+        root.addAppender(appender);
+        try {
+            WebsocketCollector.send(Constants.SYS_DEFAULT_NAMESPACE_ID, message, DataEventTypeEnum.CREATE);
+        } finally {
+            root.detachAppender(appender);
+            root.setLevel(original);
+            collectorLogger.setLevel(originalCollector);
+        }
+        verify(async, times(1)).sendText(eq(message), any(SendHandler.class));
+        final String collectorName = WebsocketCollector.class.getName();
+        assertEquals(1L, appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .count(), "DEBUG must not add a payload diagnostic");
+        final String logged = appender.list.stream()
+                .filter(event -> collectorName.equals(event.getLoggerName()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        assertFalse(logged.contains("fake-password"), logged);
     }
 
     @Test

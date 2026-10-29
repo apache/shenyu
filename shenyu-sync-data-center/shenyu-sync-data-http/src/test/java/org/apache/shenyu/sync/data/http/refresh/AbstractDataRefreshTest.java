@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.sync.data.http.refresh;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -24,9 +27,11 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -95,6 +100,32 @@ public final class AbstractDataRefreshTest {
         assertFalse(dataRefresh.refresh(new JsonObject()));
         assertFalse(dataRefresh.refreshed);
         assertSame(original, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
+    }
+
+    @Test
+    public void refreshLogDoesNotExposeConfigurationData() {
+        StubDataRefresh dataRefresh = new StubDataRefresh();
+        dataRefresh.parsed = config("md5-old", 100L);
+        assertTrue(dataRefresh.refresh(new JsonObject()));
+
+        PluginData pluginData = PluginData.builder().name("plugin").config("{\"password\":\"fake-password\"}").build();
+        ConfigData<PluginData> latest = new ConfigData<>("md5-new", 200L, Collections.singletonList(pluginData));
+        dataRefresh.parsed = latest;
+
+        Logger logger = (Logger) LoggerFactory.getLogger(AbstractDataRefresh.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            assertTrue(dataRefresh.refresh(new JsonObject()));
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("fake-password"), "the refreshed ConfigData payload must not be logged");
+            assertTrue(logs.contains("md5-new"));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
     }
 
     @Test

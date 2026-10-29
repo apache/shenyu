@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.LogCapture;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +110,48 @@ public final class CommonPluginDataSubscriberTest {
         commonPluginDataSubscriber.onSubscribe(pluginData);
         assertNotNull(baseDataCache.obtainPluginData(pluginData.getName()));
         assertEquals(pluginData, baseDataCache.obtainPluginData(pluginData.getName()));
+    }
+
+    @Test
+    public void testOnSubscribeDoesNotLogPluginConfigSecrets() {
+        PluginData pluginData = PluginData.builder().id("plugin-id").name("divide")
+                .config("{\"password\":\"fake-password\"}").enabled(true).namespaceId("namespace-id").build();
+
+        try (LogCapture capture = LogCapture.attach(CommonPluginDataSubscriber.class)) {
+            commonPluginDataSubscriber.onSubscribe(pluginData);
+            String logs = String.join("\n", capture.messages());
+            assertFalse(logs.contains("fake-password"), "plugin configuration credentials must not be logged");
+            assertTrue(logs.contains("divide"), "the bounded subscription log must keep the plugin name");
+            assertTrue(logs.contains("namespace-id"), "the bounded subscription log must keep the namespace");
+        }
+    }
+
+    @Test
+    public void testSubscribeLogDoesNotAccessPluginConfig() {
+        PluginData pluginData = mock(PluginData.class);
+        when(pluginData.getName()).thenReturn("unregistered-plugin");
+        when(pluginData.getId()).thenReturn("plugin-id");
+
+        try (LogCapture capture = LogCapture.attach(CommonPluginDataSubscriber.class)) {
+            commonPluginDataSubscriber.onSubscribe(pluginData);
+            assertFalse(capture.messages().isEmpty());
+        }
+        verify(pluginData, never()).getConfig();
+        clearCaches();
+    }
+
+    @Test
+    public void testSubscribeErrorDoesNotLogClassData() {
+        PluginData pluginData = PluginData.builder().id("plugin-id").name("divide")
+                .config("{\"password\":\"fake-password\"}").enabled(true).namespaceId("namespace-id").build();
+        doThrow(new IllegalStateException("boom")).when(handler).handlerPlugin(pluginData);
+
+        try (LogCapture capture = LogCapture.attach(CommonPluginDataSubscriber.class)) {
+            commonPluginDataSubscriber.onSubscribe(pluginData);
+            String logs = String.join("\n", capture.messages());
+            assertFalse(logs.contains("fake-password"), "the error fallback must not serialize the configuration DTO");
+            assertTrue(logs.contains("PluginData"), "the error fallback must keep the bounded data class");
+        }
     }
 
     @Test

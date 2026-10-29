@@ -30,7 +30,6 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,11 +105,8 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 }
                 final int size = event.getSource() instanceof java.util.Collection
                         ? ((java.util.Collection<?>) event.getSource()).size() : 1;
-                LOG.info("received DataChangedEvent, group={}, size={}, type={}",
-                        event.getGroupKey(), size, event.getEventType());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("received DataChangedEvent payload: {}", JsonUtils.toJson(event));
-                }
+                LOG.info("received DataChangedEvent, group={}, namespace={}, size={}, type={}",
+                        event.getGroupKey(), event.getNamespaceId(), size, event.getEventType());
                 switch (event.getGroupKey()) {
                     case APP_AUTH:
                         listener.onAppAuthChanged((List<AppAuthData>) event.getSource(),

@@ -139,7 +139,6 @@ public class AccessTokenManager {
                 return false;
             }
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
-            LOG.info("login success: {} ", tokenJson);
             Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
             if (Objects.isNull(tokenMap)) {
                 LOG.warn("get token from server : [{}] returned null data", server);
@@ -155,6 +154,7 @@ public class AccessTokenManager {
                 LOG.warn("get token from server : [{}] missing/invalid expired time", server);
                 return false;
             }
+            LOG.info("login success, server: [{}], tokenIssued: true, expiredTime: {}", server, expiredTime);
             this.accessToken = (String) token;
             this.tokenExpiredTime = ((Number) expiredTime).longValue();
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
