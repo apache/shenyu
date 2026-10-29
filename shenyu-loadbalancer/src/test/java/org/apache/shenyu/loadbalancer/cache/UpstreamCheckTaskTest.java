@@ -39,8 +39,8 @@ import java.util.concurrent.TimeoutException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -313,45 +313,142 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.triggerRemoveAll(selectorId);
     }
 
+    /**
+     * A configuration update must not wait for a health round: with a probe deliberately pending,
+     * an update for another selector has to complete immediately (#8139). While the round held the
+     * configuration lock across its probe wait, this update blocked until the probe finished.
+     */
     @Test
-    @Timeout(10)
-    public void testConfigurationUpdateWaitsForHealthCheck() throws Exception {
-        UpstreamCheckTask task = new UpstreamCheckTask(50000);
-        ExecutorService checks = Executors.newSingleThreadExecutor();
-        ExecutorService updates = Executors.newFixedThreadPool(2);
-        CountDownLatch releaseCheck = new CountDownLatch(1);
-        CountDownLatch updateStarted = new CountDownLatch(1);
-        Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+    @Timeout(20)
+    public void configurationUpdateDoesNotWaitForPendingProbe() throws Exception {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        final ExecutorService checks = Executors.newSingleThreadExecutor();
+        final ExecutorService rounds = Executors.newSingleThreadExecutor();
+        final ExecutorService updates = Executors.newSingleThreadExecutor();
+        final CountDownLatch releaseProbe = new CountDownLatch(1);
+        final Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
         executor.setAccessible(true);
         executor.set(task, checks);
-        Upstream removed = Upstream.builder().protocol("http://").url("removed:8080").healthCheckEnabled(false).build();
-        task.putToMap(task.getUnhealthyUpstream(), "selector", removed);
+        task.triggerAddOne("selector-a", Upstream.builder().protocol("http://").url("probed:8080").build());
         try {
-            // Hold the worker so healthCheck waits for its result while owning the lock.
+            // Hold the only probe worker so the round has to wait for its probe.
             checks.submit(() -> {
-                releaseCheck.await();
+                releaseProbe.await();
                 return null;
             });
-            final Future<?> healthCheck = updates.submit(task);
+            final Future<?> round = rounds.submit(task);
             Awaitility.await().atMost(3, TimeUnit.SECONDS).untilTrue(task.getCheckStarted());
-            Future<?> configurationUpdate = updates.submit(() -> {
-                updateStarted.countDown();
-                task.withLock(() -> {
-                    task.getHealthyUpstream().remove("selector");
-                    task.getUnhealthyUpstream().remove("selector");
-                });
-            });
-            assertTrue(updateStarted.await(3, TimeUnit.SECONDS));
-            assertThrows(TimeoutException.class, () -> configurationUpdate.get(100, TimeUnit.MILLISECONDS));
 
-            releaseCheck.countDown();
-            healthCheck.get(3, TimeUnit.SECONDS);
-            configurationUpdate.get(3, TimeUnit.SECONDS);
-            assertFalse(task.getHealthyUpstream().containsKey("selector"));
-            assertFalse(task.getUnhealthyUpstream().containsKey("selector"));
+            final long start = System.nanoTime();
+            // withLock is what UpstreamCacheManager.submit and removeByKey take.
+            final Future<?> update = updates.submit(() -> task.withLock(() ->
+                    task.putToMap(task.getHealthyUpstream(), "selector-b",
+                            Upstream.builder().protocol("http://").url("unrelated:8080").build())));
+            try {
+                update.get(3, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                fail("the configuration update blocked behind a pending probe of another selector");
+            }
+            final long updateMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+            assertTrue(updateMillis < 3000L,
+                    "the configuration update waited " + updateMillis + "ms for a probe of another selector");
+
+            releaseProbe.countDown();
+            round.get(5, TimeUnit.SECONDS);
         } finally {
-            releaseCheck.countDown();
+            releaseProbe.countDown();
+            rounds.shutdownNow();
             updates.shutdownNow();
+            checks.shutdownNow();
+        }
+    }
+
+    /**
+     * A probe that is still in flight when its selector is removed must not put the endpoint back
+     * into a health pool: the removal stays authoritative and the late result is discarded (#8139).
+     */
+    @Test
+    @Timeout(20)
+    public void lateProbeResultDoesNotReintroduceRemovedUpstream() throws Exception {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        final ExecutorService checks = Executors.newSingleThreadExecutor();
+        final ExecutorService rounds = Executors.newSingleThreadExecutor();
+        final CountDownLatch releaseProbe = new CountDownLatch(1);
+        final Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+        executor.setAccessible(true);
+        executor.set(task, checks);
+        // The probe of this unreachable endpoint fails, which would move it to the unhealthy pool.
+        final Upstream removed = Upstream.builder().protocol("http://").url("removed:8080").build();
+        removed.setHealthy(true);
+        task.triggerAddOne("selector", removed);
+        try {
+            checks.submit(() -> {
+                releaseProbe.await();
+                return null;
+            });
+            final Future<?> round = rounds.submit(task);
+            Awaitility.await().atMost(3, TimeUnit.SECONDS).untilTrue(task.getCheckStarted());
+
+            task.triggerRemoveAll("selector");
+
+            releaseProbe.countDown();
+            round.get(5, TimeUnit.SECONDS);
+
+            assertFalse(task.getHealthyUpstream().getOrDefault("selector", List.of()).contains(removed),
+                    "a removed upstream must not return to the healthy pool");
+            assertFalse(task.getUnhealthyUpstream().getOrDefault("selector", List.of()).contains(removed),
+                    "a removed upstream must not be reintroduced into the unhealthy pool");
+        } finally {
+            releaseProbe.countDown();
+            rounds.shutdownNow();
+            checks.shutdownNow();
+        }
+    }
+
+    /**
+     * A stale probe result must not undo a replacement: the endpoint that was registered while the
+     * probe was in flight keeps serving, and the replaced instance stays out of every pool (#8139).
+     */
+    @Test
+    @Timeout(20)
+    public void lateProbeResultDoesNotOverrideReplacement() throws Exception {
+        final UpstreamCheckTask task = new UpstreamCheckTask(50000);
+        final ExecutorService checks = Executors.newSingleThreadExecutor();
+        final ExecutorService rounds = Executors.newSingleThreadExecutor();
+        final CountDownLatch releaseProbe = new CountDownLatch(1);
+        final Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+        executor.setAccessible(true);
+        executor.set(task, checks);
+        final Upstream original = Upstream.builder().protocol("http://").url("replaced:8080").build();
+        original.setHealthy(true);
+        task.triggerAddOne("selector", original);
+        final Upstream replacement = Upstream.builder().protocol("http://").url("replaced:8080").build();
+        replacement.setHealthy(true);
+        try {
+            checks.submit(() -> {
+                releaseProbe.await();
+                return null;
+            });
+            final Future<?> round = rounds.submit(task);
+            Awaitility.await().atMost(3, TimeUnit.SECONDS).untilTrue(task.getCheckStarted());
+
+            task.triggerRemoveOne("selector", original);
+            task.triggerAddOne("selector", replacement);
+
+            releaseProbe.countDown();
+            round.get(5, TimeUnit.SECONDS);
+
+            final List<Upstream> healthy = task.getHealthyUpstream().getOrDefault("selector", List.of());
+            assertTrue(healthy.stream().anyMatch(upstream -> upstream == replacement),
+                    "the replacement must stay in the healthy pool");
+            assertFalse(healthy.stream().anyMatch(upstream -> upstream == original),
+                    "the replaced instance must not stay in the healthy pool");
+            assertFalse(task.getUnhealthyUpstream().getOrDefault("selector", List.of())
+                            .stream().anyMatch(upstream -> upstream == original),
+                    "the replaced instance must not be moved to the unhealthy pool by a stale probe");
+        } finally {
+            releaseProbe.countDown();
+            rounds.shutdownNow();
             checks.shutdownNow();
         }
     }
@@ -509,8 +606,8 @@ public class UpstreamCheckTaskTest {
         final UpstreamCheckTask task = new UpstreamCheckTask(50000);
         final Field futuresField = UpstreamCheckTask.class.getDeclaredField("futures");
         futuresField.setAccessible(true);
-        final List<CompletableFuture<UpstreamWithSelectorId>> futures =
-                (List<CompletableFuture<UpstreamWithSelectorId>>) futuresField.get(task);
+        final List<CompletableFuture<UpstreamCheckTask.ProbeResult>> futures =
+                (List<CompletableFuture<UpstreamCheckTask.ProbeResult>>) futuresField.get(task);
 
         final String selectorId = "future-skip";
         final Upstream recovered = Upstream.builder().url("").healthCheckEnabled(false).build();
@@ -518,7 +615,8 @@ public class UpstreamCheckTaskTest {
         futures.add(CompletableFuture.supplyAsync(() -> {
             throw new IllegalStateException("probe setup failed");
         }));
-        futures.add(CompletableFuture.completedFuture(new UpstreamWithSelectorId(selectorId, recovered)));
+        futures.add(CompletableFuture.completedFuture(
+                UpstreamCheckTask.ProbeResult.notProbed(selectorId, 0L, recovered)));
 
         task.run();
 

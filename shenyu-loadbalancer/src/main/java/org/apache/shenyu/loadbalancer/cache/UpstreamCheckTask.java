@@ -28,6 +28,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,9 +60,18 @@ public final class UpstreamCheckTask implements Runnable {
 
     private final Object lock = new Object();
 
+    /**
+     * Version of each selector's configured upstream set. Every configuration-driven mutation
+     * bumps the version of its selector. A round captures the versions it probed and applies a
+     * result only while the version is unchanged, so a probe that was in flight while the
+     * configuration changed can never reintroduce a removed, drained or replaced target (#8139).
+     * Guarded by {@link #lock}.
+     */
+    private final Map<String, Long> selectorVersions = Maps.newHashMap();
+
     private final AtomicBoolean checkStarted = new AtomicBoolean(false);
 
-    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
+    private final List<CompletableFuture<ProbeResult>> futures = Lists.newArrayList();
 
     private final int checkInterval;
 
@@ -183,35 +193,37 @@ public final class UpstreamCheckTask implements Runnable {
         int submitted = 0;
         int pendingAtWait = 0;
         try {
-            /*
-             * If there is no synchronized. when check is done and all upstream check result is in the futures list.
-             * In the same time, triggerRemoveAll() called before waitFinish(), there will be dirty data stay in map.
-             */
-            synchronized (lock) {
-                if (tryStartHealthCheck()) {
-                    try {
-                        submitted = doHealthCheck(maxEndpointLatencyMillis);
-                        pendingAtWait = countPendingFutures();
-                        waitFinish();
-                    } finally {
-                        // A round aborted between submit and wait (for example an executor rejection)
-                        // must not leak its futures into the next round, where they would be awaited
-                        // and applied a second time.
-                        futures.clear();
-                    }
+            if (tryStartHealthCheck()) {
+                try {
+                    submitted = doHealthCheck(maxEndpointLatencyMillis);
+                    pendingAtWait = countPendingFutures();
+                    /*
+                     * The probe wait deliberately runs without the lock. Holding it across network
+                     * probes made every configuration update, for any selector, wait for a whole
+                     * round to finish (#8139). Stale results are fenced instead: each probe carries
+                     * the selector version it was submitted under, and applyResults() drops the
+                     * results of a selector whose configuration changed in the meantime, so a
+                     * removal, draining or replacement stays authoritative.
+                     */
+                    applyResults(waitFinish());
+                } finally {
+                    // A round aborted between submit and wait (for example an executor rejection)
+                    // must not leak its futures into the next round, where they would be awaited
+                    // and applied a second time.
+                    futures.clear();
+                    finishHealthCheck();
                 }
             }
         } catch (Exception e) {
             LOG.error("[Health Check] Meet problem: ", e);
         } finally {
-            finishHealthCheck();
             recordRoundMetrics(startNanos, submitted, pendingAtWait, maxEndpointLatencyMillis.get());
         }
     }
 
     private int countPendingFutures() {
         int pending = 0;
-        for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
+        for (CompletableFuture<ProbeResult> future : futures) {
             if (!future.isDone()) {
                 pending++;
             }
@@ -273,31 +285,51 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     private int doHealthCheck(final AtomicLong maxEndpointLatencyMillis) {
-        return check(healthyUpstream, maxEndpointLatencyMillis) + check(unhealthyUpstream, maxEndpointLatencyMillis);
-    }
-
-    private int check(final Map<String, List<Upstream>> map, final AtomicLong maxEndpointLatencyMillis) {
         int submitted = 0;
-        for (Map.Entry<String, List<Upstream>> entry : map.entrySet()) {
-            String key = entry.getKey();
-            List<Upstream> value = entry.getValue();
-            for (Upstream upstream : value) {
-                futures.add(submitCheck(key, upstream, maxEndpointLatencyMillis));
+        for (SelectorSnapshot snapshot : captureSnapshot()) {
+            for (Upstream upstream : snapshot.upstreams) {
+                futures.add(submitCheck(snapshot.selectorId, snapshot.version, upstream, maxEndpointLatencyMillis));
                 submitted++;
             }
         }
         return submitted;
     }
 
-    private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream,
-                                         final AtomicLong maxEndpointLatencyMillis) {
-        if (!upstream.isHealthCheckEnabled()) {
-            if (!upstream.isHealthy()) {
-                upstream.setHealthy(true);
-                upstream.setLastHealthTimestamp(System.currentTimeMillis());
-            }
-            return new UpstreamWithSelectorId(selectorId, upstream);
+    /**
+     * Capture the selectors and endpoints to probe, together with the configuration version each
+     * selector is probed under. The two maps and the versions are read under the lock, so a round
+     * never mixes a probe list with a version that does not describe it.
+     *
+     * @return one entry per selector and pool, holding a copy-on-write view of its endpoints
+     */
+    private List<SelectorSnapshot> captureSnapshot() {
+        synchronized (lock) {
+            final List<SelectorSnapshot> snapshot = new ArrayList<>(healthyUpstream.size() + unhealthyUpstream.size());
+            appendSnapshot(snapshot, healthyUpstream);
+            appendSnapshot(snapshot, unhealthyUpstream);
+            return snapshot;
         }
+    }
+
+    private void appendSnapshot(final List<SelectorSnapshot> snapshot, final Map<String, List<Upstream>> map) {
+        for (Map.Entry<String, List<Upstream>> entry : map.entrySet()) {
+            snapshot.add(new SelectorSnapshot(entry.getKey(), versionOf(entry.getKey()), entry.getValue()));
+        }
+    }
+
+    /**
+     * Probe one endpoint. A probe only measures reachability: it never writes health state, because
+     * the state transition has to happen under the lock and only while the selector's configuration
+     * is still the one the probe was submitted for (#8139).
+     *
+     * @param selectorId selectorId
+     * @param version configuration version the probe was submitted under
+     * @param upstream upstream to probe
+     * @param maxEndpointLatencyMillis per-round latency accumulator
+     * @return the probe result
+     */
+    private ProbeResult probe(final String selectorId, final long version, final Upstream upstream,
+                              final AtomicLong maxEndpointLatencyMillis) {
         final long probeStart = System.nanoTime();
         boolean pass;
         try {
@@ -314,34 +346,7 @@ public final class UpstreamCheckTask implements Runnable {
             maxEndpointLatencyMillis.accumulateAndGet(latencyMillis, Math::max);
             totalEndpointLatencyMillis.addAndGet(latencyMillis);
         }
-        if (pass) {
-            if (upstream.isHealthy()) {
-                upstream.setLastHealthTimestamp(System.currentTimeMillis());
-            } else {
-                long now = System.currentTimeMillis();
-                long interval = now - upstream.getLastUnhealthyTimestamp();
-                if (interval >= (long) checkInterval * healthyThreshold) {
-                    upstream.setHealthy(true);
-                    upstream.setLastHealthTimestamp(now);
-                    LOG.info("[Health Check] Selector [{}] upstream {} health check passed, server is back online.",
-                            selectorId, upstream.getUrl());
-                }
-            }
-        } else {
-            if (!upstream.isHealthy()) {
-                upstream.setLastUnhealthyTimestamp(System.currentTimeMillis());
-            } else {
-                long now = System.currentTimeMillis();
-                long interval = now - upstream.getLastHealthTimestamp();
-                if (interval >= (long) checkInterval * unhealthyThreshold) {
-                    upstream.setHealthy(false);
-                    upstream.setLastUnhealthyTimestamp(now);
-                    LOG.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
-                            selectorId, upstream.getUrl());
-                }
-            }
-        }
-        return new UpstreamWithSelectorId(selectorId, upstream);
+        return new ProbeResult(selectorId, version, upstream, pass, true);
     }
 
     /**
@@ -352,15 +357,23 @@ public final class UpstreamCheckTask implements Runnable {
      * Ordinary unsuccessful probes are unaffected: they return {@code false} from the URL check
      * rather than throwing.
      *
+     * <p>An endpoint with health checking disabled needs no probe at all, so it is carried as an
+     * already-completed result and applied under the lock like any other.
+     *
      * @param selectorId selectorId
+     * @param version configuration version the probe is submitted under
      * @param upstream upstream to probe
      * @param maxEndpointLatencyMillis per-round latency accumulator
      * @return the probe future, never completing exceptionally
      */
-    private CompletableFuture<UpstreamWithSelectorId> submitCheck(final String selectorId, final Upstream upstream,
-                                                                  final AtomicLong maxEndpointLatencyMillis) {
+    private CompletableFuture<ProbeResult> submitCheck(final String selectorId, final long version,
+                                                       final Upstream upstream,
+                                                       final AtomicLong maxEndpointLatencyMillis) {
+        if (!upstream.isHealthCheckEnabled()) {
+            return CompletableFuture.completedFuture(ProbeResult.notProbed(selectorId, version, upstream));
+        }
         return CompletableFuture
-                .supplyAsync(() -> check(selectorId, upstream, maxEndpointLatencyMillis), executor)
+                .supplyAsync(() -> probe(selectorId, version, upstream, maxEndpointLatencyMillis), executor)
                 .exceptionally(ex -> {
                     LOG.error("[Health Check] Selector [{}] upstream {} health check failed to complete.",
                             selectorId, upstream.getUrl(), ex);
@@ -373,40 +386,108 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     /**
-     * Apply the results of the current round.
+     * Await the results of the current round without holding the lock.
      *
-     * <p>Each future is awaited on its own, so one failed or cancelled probe no longer hides the
+     * <p>Each future is awaited on its own, so one failed or cancelled probe does not hide the
      * results of the others, and the caller always clears the round bookkeeping afterwards.
+     *
+     * @return the completed probe results, in submission order
      */
-    private void waitFinish() {
-        for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
-            final UpstreamWithSelectorId entity;
+    private List<ProbeResult> waitFinish() {
+        final List<ProbeResult> results = new ArrayList<>(futures.size());
+        for (CompletableFuture<ProbeResult> future : futures) {
+            final ProbeResult result;
             try {
-                entity = future.get();
+                result = future.get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOG.warn("[Health Check] Interrupted while awaiting probe results, abandoning this round.");
-                return;
+                return results;
             } catch (CancellationException | ExecutionException e) {
                 // Probes complete with null instead of exceptionally, so this only covers a future
                 // that was cancelled or rejected before running. Skip it and keep applying the rest.
                 LOG.error("[Health Check] A probe did not complete, skipping its result for this round.", e);
                 continue;
             }
-            if (Objects.nonNull(entity)) {
-                putEntityToMap(entity);
+            if (Objects.nonNull(result)) {
+                results.add(result);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Apply the results of a round under the lock, dropping the ones whose selector changed while
+     * they were in flight.
+     *
+     * <p>A configuration update reconciles the pools itself, based on the state it found, so
+     * applying a result captured before that update could reintroduce a removed or drained target,
+     * or override a replacement. Such results are discarded and the next round probes the new
+     * configuration. Holding the lock here is bounded by the number of results: no network work
+     * happens inside it.
+     *
+     * @param results the completed probe results
+     */
+    private void applyResults(final List<ProbeResult> results) {
+        if (results.isEmpty()) {
+            return;
+        }
+        synchronized (lock) {
+            for (ProbeResult result : results) {
+                if (versionOf(result.selectorId) != result.version) {
+                    LOG.debug("[Health Check] Selector [{}] changed while its probe was in flight, "
+                            + "discarding the result for {}.", result.selectorId, result.upstream.getUrl());
+                    continue;
+                }
+                applyResult(result);
             }
         }
     }
 
-    private void putEntityToMap(final UpstreamWithSelectorId entity) {
-        Upstream upstream = entity.getUpstream();
-        if (upstream.isHealthy()) {
-            putToMap(healthyUpstream, entity.getSelectorId(), upstream);
-            removeFromMap(unhealthyUpstream, entity.getSelectorId(), upstream);
+    private void applyResult(final ProbeResult result) {
+        final Upstream upstream = result.upstream;
+        if (!result.probed) {
+            if (!upstream.isHealthy()) {
+                upstream.setHealthy(true);
+                upstream.setLastHealthTimestamp(System.currentTimeMillis());
+            }
+        } else if (result.pass) {
+            if (upstream.isHealthy()) {
+                upstream.setLastHealthTimestamp(System.currentTimeMillis());
+            } else {
+                long now = System.currentTimeMillis();
+                long interval = now - upstream.getLastUnhealthyTimestamp();
+                if (interval >= (long) checkInterval * healthyThreshold) {
+                    upstream.setHealthy(true);
+                    upstream.setLastHealthTimestamp(now);
+                    LOG.info("[Health Check] Selector [{}] upstream {} health check passed, server is back online.",
+                            result.selectorId, upstream.getUrl());
+                }
+            }
         } else {
-            putToMap(unhealthyUpstream, entity.getSelectorId(), upstream);
-            removeFromMap(healthyUpstream, entity.getSelectorId(), upstream);
+            if (!upstream.isHealthy()) {
+                upstream.setLastUnhealthyTimestamp(System.currentTimeMillis());
+            } else {
+                long now = System.currentTimeMillis();
+                long interval = now - upstream.getLastHealthTimestamp();
+                if (interval >= (long) checkInterval * unhealthyThreshold) {
+                    upstream.setHealthy(false);
+                    upstream.setLastUnhealthyTimestamp(now);
+                    LOG.info("[Health Check] Selector [{}] upstream {} health check failed, server is offline.",
+                            result.selectorId, upstream.getUrl());
+                }
+            }
+        }
+        putEntityToMap(result.selectorId, upstream);
+    }
+
+    private void putEntityToMap(final String selectorId, final Upstream upstream) {
+        if (upstream.isHealthy()) {
+            applyToMap(healthyUpstream, selectorId, upstream);
+            applyRemoveFromMap(unhealthyUpstream, selectorId, upstream);
+        } else {
+            applyToMap(unhealthyUpstream, selectorId, upstream);
+            applyRemoveFromMap(healthyUpstream, selectorId, upstream);
         }
     }
 
@@ -421,7 +502,10 @@ public final class UpstreamCheckTask implements Runnable {
      * @param upstream upstream
      */
     public void triggerAddOne(final String selectorId, final Upstream upstream) {
-        putToMap(healthyUpstream, selectorId, upstream);
+        synchronized (lock) {
+            bumpVersion(selectorId);
+            applyToMap(healthyUpstream, selectorId, upstream);
+        }
     }
 
     /**
@@ -431,12 +515,18 @@ public final class UpstreamCheckTask implements Runnable {
      * @param upstream upstream
      */
     public void triggerRemoveOne(final String selectorId, final Upstream upstream) {
-        removeFromMap(healthyUpstream, selectorId, upstream);
-        removeFromMap(unhealthyUpstream, selectorId, upstream);
+        synchronized (lock) {
+            bumpVersion(selectorId);
+            applyRemoveFromMap(healthyUpstream, selectorId, upstream);
+            applyRemoveFromMap(unhealthyUpstream, selectorId, upstream);
+        }
     }
 
     /**
      * Put upstream to specified map (for preserving health status).
+     *
+     * <p>This is a configuration-driven mutation, so it invalidates any probe of the selector that
+     * is still in flight.
      *
      * @param map the map to put upstream
      * @param selectorId the selector id
@@ -444,15 +534,16 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> new CopyOnWriteArrayList<>());
-            if (!list.contains(upstream)) {
-                list.add(upstream);
-            }
+            bumpVersion(selectorId);
+            applyToMap(map, selectorId, upstream);
         }
     }
 
     /**
      * Remove upstream from specified map.
+     *
+     * <p>This is a configuration-driven mutation, so it invalidates any probe of the selector that
+     * is still in flight.
      *
      * @param map the map to remove upstream from
      * @param selectorId the selector id
@@ -460,15 +551,46 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = map.get(selectorId);
-            if (CollectionUtils.isNotEmpty(list)) {
-                list.remove(upstream);
-            }
+            bumpVersion(selectorId);
+            applyRemoveFromMap(map, selectorId, upstream);
         }
     }
-    
+
+    private void applyToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
+        List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> new CopyOnWriteArrayList<>());
+        if (!list.contains(upstream)) {
+            list.add(upstream);
+        }
+    }
+
+    private void applyRemoveFromMap(final Map<String, List<Upstream>> map, final String selectorId,
+                                    final Upstream upstream) {
+        List<Upstream> list = map.get(selectorId);
+        if (CollectionUtils.isNotEmpty(list)) {
+            list.remove(upstream);
+        }
+    }
+
+    /**
+     * The configuration version of a selector, used to fence stale probe results. Callers must hold
+     * {@link #lock}.
+     *
+     * @param selectorId the selector id
+     * @return the current version, zero for a selector that was never updated
+     */
+    private long versionOf(final String selectorId) {
+        return selectorVersions.getOrDefault(selectorId, 0L);
+    }
+
+    private void bumpVersion(final String selectorId) {
+        selectorVersions.merge(selectorId, 1L, Long::sum);
+    }
+
     /**
      * Run a configuration update atomically with respect to health checks.
+     *
+     * <p>The lock is only held for the update itself: a health round no longer holds it while
+     * waiting for probes, so this call does not wait for network I/O (#8139).
      *
      * @param action configuration update
      */
@@ -485,6 +607,7 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public void triggerRemoveAll(final String selectorId) {
         synchronized (lock) {
+            bumpVersion(selectorId);
             healthyUpstream.remove(selectorId);
             unhealthyUpstream.remove(selectorId);
         }
@@ -545,7 +668,7 @@ public final class UpstreamCheckTask implements Runnable {
 
     /**
      * Duration of the most recent health-check round in milliseconds, measured with
-     * {@link System#nanoTime()} around the whole synchronized section (submit + wait).
+     * {@link System#nanoTime()} around the whole round (snapshot, submit, wait and apply).
      * Zero until the first round completes.
      *
      * <p>Note: a round that could not start (because another was still in flight) is still recorded,
@@ -636,5 +759,55 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public long getTotalEndpointLatencyMillis() {
         return totalEndpointLatencyMillis.get();
+    }
+
+    /**
+     * The endpoints of one selector, captured for a round together with the configuration version
+     * they are probed under.
+     */
+    private static final class SelectorSnapshot {
+
+        private final String selectorId;
+
+        private final long version;
+
+        private final List<Upstream> upstreams;
+
+        private SelectorSnapshot(final String selectorId, final long version, final List<Upstream> upstreams) {
+            this.selectorId = selectorId;
+            this.version = version;
+            this.upstreams = upstreams;
+        }
+    }
+
+    /**
+     * One probe result awaiting application: the probed endpoint, whether the probe passed, and the
+     * selector version captured when the probe was submitted. A result whose version no longer
+     * matches the selector is discarded instead of applied.
+     */
+    static final class ProbeResult {
+
+        private final String selectorId;
+
+        private final long version;
+
+        private final Upstream upstream;
+
+        private final boolean pass;
+
+        private final boolean probed;
+
+        ProbeResult(final String selectorId, final long version, final Upstream upstream,
+                    final boolean pass, final boolean probed) {
+            this.selectorId = selectorId;
+            this.version = version;
+            this.upstream = upstream;
+            this.pass = pass;
+            this.probed = probed;
+        }
+
+        static ProbeResult notProbed(final String selectorId, final long version, final Upstream upstream) {
+            return new ProbeResult(selectorId, version, upstream, true, false);
+        }
     }
 }
