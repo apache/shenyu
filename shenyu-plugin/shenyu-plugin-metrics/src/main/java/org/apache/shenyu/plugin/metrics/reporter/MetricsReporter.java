@@ -42,6 +42,9 @@ public final class MetricsReporter {
     public static void register(final MetricsRegister metricsRegister) {
         MetricsReporter.metricsRegister = metricsRegister;
         MetricsReporter.registerCounter(LabelNames.REQUEST_TOTAL, "shenyu request total count");
+        MetricsReporter.registerCounter(LabelNames.AI_TOKEN_BUDGET_EVENTS_TOTAL, new String[]{"event"}, "AI token reservation budget events");
+        MetricsReporter.registerCounter(LabelNames.AI_TOKEN_RESERVED_TOKENS_TOTAL, "Estimated completion tokens in acknowledged AI reservations");
+        MetricsReporter.registerCounter(LabelNames.AI_TOKEN_ACTUAL_TOKENS_TOTAL, "Reliable reported AI completion tokens independent of settlement success");
         MetricsReporter.registerCounter(LabelNames.REQUEST_TYPE_TOTAL, new String[]{"type"}, "shenyu http request type total count");
         MetricsReporter.registerCounter(LabelNames.REQUEST_THROW_TOTAL, "shenyu request error total count");
         MetricsReporter.registerHistogram(LabelNames.EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");

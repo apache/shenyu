@@ -52,7 +52,7 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
     public static final Supplier<CommonHandleCache<String, AiTokenLimiterHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
     
     private static final Logger LOG = LoggerFactory.getLogger(AiTokenLimiterPluginHandler.class);
-    
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
@@ -120,10 +120,11 @@ public class AiTokenLimiterPluginHandler implements PluginDataHandler {
             if (Objects.isNull(rateLimiterHandle.getKeyName())) {
                 rateLimiterHandle.setKeyName(defaultHandle.getKeyName());
             }
+            rateLimiterHandle.validateReservationSettings();
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
         });
     }
-    
+
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));

@@ -422,6 +422,80 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testAiTokenReservationCreateRejectsMissingEstimateBeforeWrite() {
+        mockAiTokenLimiterPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"reservationEnabled\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAiTokenReservationUpdateRejectsOversizedEstimateBeforeWrite() {
+        mockAiTokenLimiterPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("123");
+        ruleDTO.setHandle("{\"reservationEnabled\":true,\"reservationTokens\":101}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testAiTokenReservationCreateAcceptsValidEstimate() {
+        mockAiTokenLimiterPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"reservationEnabled\":true,\"reservationTokens\":20}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAiTokenReservationDisabledRuleDoesNotRequireEstimate() {
+        mockAiTokenLimiterPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"reservationEnabled\":false}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAiTokenReservationImportRejectsMissingEstimateBeforeWrite() {
+        mockAiTokenLimiterPlugin();
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"reservationEnabled\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(ruleDTO)));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testAiTokenReservationNamespaceImportValidatesMappedSelectorBeforeWrite() {
+        mockAiTokenLimiterPlugin();
+        given(ruleMapper.selectAllByNamespaceId(SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.emptyList());
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("source-selector", "456");
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setSelectorId("source-selector");
+        ruleDTO.setHandle("{\"reservationEnabled\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(ruleDTO), context));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    private void mockAiTokenLimiterPlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name(PluginEnum.AI_TOKEN_LIMITER.getName()).build());
+    }
+
+    @Test
     public void testListAllWithSelectorNull() {
         mockFindSelectorIsNull();
         checkListAll(0);

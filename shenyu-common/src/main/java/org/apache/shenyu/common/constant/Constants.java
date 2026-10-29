@@ -939,6 +939,9 @@ public interface Constants {
      */
     String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
 
+    /** Callback for bounded AI token budget events and token amounts. */
+    String METRICS_AI_TOKEN_BUDGET = "metricsAiTokenBudget";
+
     /**
      * Optional callback for the initial Canary routing observation.
      */

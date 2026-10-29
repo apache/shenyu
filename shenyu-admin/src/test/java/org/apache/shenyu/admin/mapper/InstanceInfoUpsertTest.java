@@ -94,9 +94,12 @@ public final class InstanceInfoUpsertTest {
         transactionManager = new DataSourceTransactionManager(dataSource);
         try (InputStream schema = Resources.getResourceAsStream("sql-script/h2/schema.sql")) {
             String sql = new String(schema.readAllBytes(), StandardCharsets.UTF_8);
-            Matcher table = Pattern.compile("(?is)CREATE TABLE IF NOT EXISTS instance_info\\s*\\(.*?\\);").matcher(sql);
-            assertTrue(table.find());
-            jdbc.execute(table.group());
+            // The complete upgrade also seeds rule metadata; use its real table definitions.
+            for (String tableName : List.of("instance_info", "plugin_handle", "shenyu_dict")) {
+                Matcher table = Pattern.compile("(?is)CREATE TABLE IF NOT EXISTS `?" + tableName + "`?\\s*\\(.*?\\);").matcher(sql);
+                assertTrue(table.find(), "Missing H2 schema table: " + tableName);
+                jdbc.execute(table.group());
+            }
         }
         Configuration configuration = new Configuration(new Environment("test", new SpringManagedTransactionFactory(), dataSource));
         configuration.setMapUnderscoreToCamelCase(true);

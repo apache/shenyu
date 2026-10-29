@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Objects;
 import java.sql.Connection;
 import java.sql.Statement;
@@ -74,6 +75,12 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE rule (loged INT)");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
+            // Execute the complete upgrade, including metadata seeds, against actual table definitions.
+            for (String tableName : List.of("plugin_handle", "shenyu_dict")) {
+                Matcher metadataTable = Pattern.compile("(?is)CREATE TABLE IF NOT EXISTS `" + tableName + "`\\s*\\(.*?\\);").matcher(schema);
+                assertTrue(metadataTable.find(), "Missing H2 schema table: " + tableName);
+                statement.execute(metadataTable.group());
+            }
             new ResourceDatabasePopulator(new FileSystemResource(upgradeScript())).execute(dataSource);
 
             MockRequestRecordDO restored = mapper.queryById("legacy");
