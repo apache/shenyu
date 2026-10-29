@@ -71,6 +71,7 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -121,6 +122,23 @@ class RequestBodyAggregationCancellationTest {
         assertTrue(sourceSubscribed.get(), "the aggregation should subscribe to the request body");
         subscription.dispose();
         assertTrue(sourceCancelled.get(), "logical cancellation should cancel the request body publisher");
+    }
+
+    @Test
+    void doesNotAggregateBodyWithoutRetry() {
+        final NettyDataBuffer chunk = pooledBuffer("abc");
+        final RecordingPlugin plugin = new RecordingPlugin(attempt -> Mono.just("success"));
+        final ServerWebExchange exchange = createExchange(Flux.just(chunk), 30000L);
+        exchange.getAttributes().put(Constants.HTTP_RETRY, 0);
+
+        StepVerifier.create(plugin.execute(exchange, chain))
+                .expectComplete()
+                .verify(VERIFY_TIMEOUT);
+
+        assertEquals(Collections.singletonList("abc"), plugin.getCapturedBodies());
+        assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
+                "body must not be aggregated when retry is disabled");
+        awaitRefCnt(chunk, 0);
     }
 
     @Test
