@@ -8,6 +8,8 @@ Every event has schema version `1`, a logical request id, selector/rule ids, con
 
 Trusted tenant and subject are included when a server-side identity adapter resolves them. No prompt, arguments, response body, credential, raw API key, header map, or trace id is stored. W3C trace ids are correlation-only when used by tracing, never identity.
 
+Target is optional metadata. The bridge omits caller-supplied targets that are blank, longer than 256 characters, padded with whitespace, or contain control characters. It preserves the logical rejection record and its trusted identity, outcome and status; it does not truncate an invalid target into another tool name. Valid targets remain unchanged, and direct audit-event builders retain strict metadata validation.
+
 Policy version identifies the admission contract (`tool-grant-intersection-v1`, `agent-ai-admission-v1`, `key-auth-admission-v1` or `agent-rule-admission-v1`), not a revision of an external identity provider's policy. Configuration version is the captured node-local Agent Gateway rule generation. Standalone AI Proxy and rejected invalid configuration have no such generation and explicitly report `unknown`; no fingerprint of credential-bearing configuration is emitted.
 
 ## Outcomes
@@ -37,4 +39,4 @@ AI traffic inside Agent Gateway uses the inherited immutable trusted tenant/subj
 
 ## Integration baseline
 
-This candidate integrates the request/terminal contracts from PR #7860 and runtime governance from PR #7921. It is not an independent publishable patch until those dependencies are merged and the audit delta is rebuilt on the resulting master. The earlier independent prototype's identity interface, completion logic and custom queue are not used.
+The request/terminal contracts from PR #7860 are now on master. This candidate still integrates runtime governance from PR #7921; the audit delta must be reviewed against the resulting master after that prerequisite merges. The earlier independent prototype's identity interface, completion logic and custom queue are not used.

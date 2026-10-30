@@ -101,6 +101,40 @@ class AgentMcpTerminalObservationTest {
         assertTrue(events.get(0).getSubject().isEmpty());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"missing", "long", " padded", "padded ", "control\nname", "delete-control"})
+    void deniedToolCallsPreserveLogicalAuditForInvalidTargetMetadata(final String input) {
+        String target = "long".equals(input) ? "x".repeat(257) : "delete-control".equals(input) ? Character.toString(127) : input;
+        List<AgentInvocationAuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        AtomicInteger calls = new AtomicInteger();
+        AgentMcpTerminalObserver observer = AgentInvocationAuditBridge.mcp(null, events::add);
+        JsonObject request = JsonParser.parseString(body("tools/call")).getAsJsonObject();
+        request.getAsJsonObject("params").addProperty("name", target);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/agent")
+                .contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.ACCEPT, "application/json, text/event-stream")
+                .header("MCP-Protocol-Version", AgentMcpRequestParser.VERSION)
+                .header("Mcp-Method", "tools/call").header("Mcp-Name", target).body(request.toString()));
+        StepVerifier.create(handler(Mono.fromSupplier(() -> {
+            calls.incrementAndGet();
+            return new JsonObject();
+        }), ignored -> Mono.just(new AgentMcpIdentity("tenant", "subject", Set.of("read"), Set.of())), observer)
+                .handle(exchange, config("json", 30000), traffic, 7)).verifyComplete();
+        boolean parsed = "missing".equals(input) || "long".equals(input);
+        int status = parsed ? 403 : 400;
+        assertEquals(status, exchange.getResponse().getStatusCode().value());
+        assertEquals(0, calls.get());
+        assertEquals(1, events.size());
+        AgentInvocationAuditEvent event = events.get(0);
+        assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, event.getRecordType());
+        assertEquals(AgentInvocationAuditEvent.Decision.REJECTED, event.getDecision());
+        assertEquals("REJECTED", event.getOutcome());
+        assertEquals("gateway-id", event.getRequestId());
+        assertEquals("tenant", event.getTenant().orElseThrow());
+        assertEquals("subject", event.getSubject().orElseThrow());
+        assertEquals(status, event.getHttpStatus().orElseThrow());
+        assertEquals("missing".equals(input) ? java.util.Optional.of(target) : java.util.Optional.empty(), event.getTarget());
+    }
+
     @Test
     void runtimeMetricsWorkWithoutAnApplicationObserverBeforeParsing() {
         AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);

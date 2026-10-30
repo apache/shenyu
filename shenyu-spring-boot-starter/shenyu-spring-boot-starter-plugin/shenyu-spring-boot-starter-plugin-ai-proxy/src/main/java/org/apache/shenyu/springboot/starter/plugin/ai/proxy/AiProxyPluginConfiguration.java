@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
@@ -269,7 +270,7 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public OpenAiCompatible deepSeekProvider() {
-        return new OpenAiCompatible("DeepSeek");
+        return new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek());
     }
 
     /**

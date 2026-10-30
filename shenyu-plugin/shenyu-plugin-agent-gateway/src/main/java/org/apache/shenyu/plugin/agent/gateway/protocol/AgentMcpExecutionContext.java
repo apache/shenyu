@@ -143,6 +143,15 @@ public final class AgentMcpExecutionContext {
                 Set.of(), Set.of(), httpTools, httpInvoker, tenant, attemptListener);
     }
 
+    public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources,
+                                    final Set<String> resourceGrants, final AgentGatewayHttpToolConfig httpTools,
+                                    final AgentHttpToolInvoker httpInvoker, final String tenant) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                ruleResources, resourceGrants, httpTools, httpInvoker, tenant, null);
+    }
+
     /**
      * Fully populated request-local context.
      * @param requestId trusted request identity

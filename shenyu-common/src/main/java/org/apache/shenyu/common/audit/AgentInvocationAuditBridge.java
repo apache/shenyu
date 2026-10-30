@@ -94,7 +94,7 @@ public final class AgentInvocationAuditBridge {
                              final Integer status, final long elapsed, final Integer attempt) {
         AgentInvocationAuditEvent.Builder builder = Objects.isNull(attempt) ? AgentInvocationAuditEvent.logical() : AgentInvocationAuditEvent.attempt(attempt);
         sink.record(builder.requestId(context.getRequestId()).tenant(context.getTenant()).subject(context.getSubject()).apiKeyId(context.getApiKeyId())
-                .selectorId(context.getSelectorId()).ruleId(context.getRuleId()).target(context.getTarget())
+                .selectorId(context.getSelectorId()).ruleId(context.getRuleId()).target(auditTarget(context.getTarget()))
                 .configurationVersion(Objects.isNull(context.getConfigurationVersion()) ? "unknown" : context.getConfigurationVersion().toString())
                 .policyVersion("mcp".equals(context.getTrafficType()) ? "tool-grant-intersection-v1" : "agent-ai-admission-v1")
                 .decision("REJECTED".equals(outcome) || "RATE_LIMITED".equals(outcome)
@@ -103,6 +103,15 @@ public final class AgentInvocationAuditBridge {
                 .reason("CANCELLED".equals(outcome) ? "DOWNSTREAM_CANCELLED" : "TIMEOUT".equals(outcome) ? "DEADLINE_EXCEEDED"
                         : "TOOL_ERROR".equals(outcome) ? "TOOL_REPORTED_ERROR" : Objects.isNull(status) ? "NO_RESPONSE" : "HTTP_" + status)
                 .httpStatus(status).elapsedMillis(elapsed).build());
+    }
+
+    private static String auditTarget(final String value) {
+        // Caller-supplied optional metadata must not suppress a rejection audit.
+        try {
+            return AgentInvocationAuditEvent.nullableText(value, "target");
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private static void safely(final Runnable action) {

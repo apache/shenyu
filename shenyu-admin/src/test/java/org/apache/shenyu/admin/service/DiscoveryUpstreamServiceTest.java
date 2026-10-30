@@ -205,6 +205,56 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testMarkNotReadyMergesPropsAndLeavesStatusUntouched() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markNotReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        verify(discoveryUpstreamMapper, never()).updateStatusByUrl(anyString(), anyString(), org.mockito.ArgumentMatchers.anyInt());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        assertEquals(Boolean.TRUE, merged.get("notReady"));
+        assertEquals("20", merged.get("warmup"));
+    }
+
+    @Test
+    public void testMarkReadyReleasesBothMarkers() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"draining\":true,\"notReady\":true,\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        Assertions.assertNull(merged.get("draining"));
+        Assertions.assertNull(merged.get("notReady"));
+        assertEquals("20", merged.get("warmup"));
+    }
+
+    @Test
+    public void testReadinessMarkersIgnoreUnknownHandlerOrUrl() {
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(null);
+        discoveryUpstreamService.markNotReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+        discoveryUpstreamService.markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
+        verify(discoveryUpstreamMapper, never()).updatePropsByUrl(anyString(), anyString(), anyString());
+    }
+
+    @Test
     public void testHeartbeatDoesNotTouchDrainingProps() {
         // the drain marker lives in props; the heartbeat path only flips the status column,
         // so a draining instance must stay excluded even though it keeps beating (#8042)

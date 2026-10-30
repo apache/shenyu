@@ -26,10 +26,12 @@ Omitting the object or supplying an empty object selects these defaults. Admin a
 - `global*` bounds all concurrent local and remote tool executions and their waiting work.
 - `local*` bounds startup and request-local HTTP tool providers together.
 - `remote*` is applied independently for each configured remote MCP server name.
-- Queued work uses the request's absolute deadline. Time spent waiting counts against execution time.
-- Queue overflow returns HTTP `429` and JSON-RPC `-32026`; an expired queued request returns HTTP `504` and `-32026`.
+- Admission checks the absolute request deadline before granting each global/local/remote permit, before reporting queue overflow, and immediately before subscribing to execution. An already-expired request never executes its provider, even with free capacity. Time spent waiting counts against execution time.
+- Queue overflow returns HTTP `429` and JSON-RPC `-32026`; an expired request returns HTTP `504` and `-32026`.
 - Every success, business error, gateway error, cancellation, timeout, configuration withdrawal and shutdown releases each acquired permit once.
 - Existing byte limits, transport concurrency, catalog generation leases and no-retry behavior remain in force.
+
+Configuration reload preserves active and queued accounting. All scope limits are installed before newly available slots are drained. Reload draining, terminal release and shutdown follow the same controller-promotion-monitor then scope-monitor order, including synchronous completion of promoted actions. Remote scope collections are copied under their registry monitor before callbacks or snapshot reads acquire scope monitors.
 
 ## Metrics
 

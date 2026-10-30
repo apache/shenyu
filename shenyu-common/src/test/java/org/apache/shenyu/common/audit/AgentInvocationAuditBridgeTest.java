@@ -98,4 +98,32 @@ class AgentInvocationAuditBridgeTest {
         return new AgentRequestContext(id, "llm", "selector", "rule").withIdentity("tenant-" + id, "subject-" + id)
                 .withApiKeyId("key-id-" + id).withConfigurationVersion(7);
     }
+
+    @Test
+    void invalidOptionalTargetsCannotSuppressLogicalOrAttemptAudits() {
+        for (String target : List.of("x".repeat(257), " padded", "padded ", "control\nname", Character.toString(127), "", " ")) {
+            List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
+            AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add),
+                    context("rejected").withTarget(target, "chat", null));
+            AiRequestObservation.Attempt attempt = observation.startAttempt(observation.getContext(), AiAttemptEvent.Kind.PRIMARY, "openai", "chat", false);
+            attempt.status(403);
+            attempt.finish(SignalType.ON_COMPLETE, null);
+            observation.finish(SignalType.ON_COMPLETE, 403);
+            assertEquals(2, records.size());
+            assertTrue(records.stream().allMatch(event -> event.getTarget().isEmpty()
+                    && event.getDecision() == AgentInvocationAuditEvent.Decision.REJECTED
+                    && event.getHttpStatus().orElseThrow() == 403));
+        }
+    }
+
+    @Test
+    void validBoundaryTargetIsPreserved() {
+        List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
+        String target = "x".repeat(256);
+        AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add),
+                context("one").withTarget(target, "chat", null));
+        observation.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(target, records.get(0).getTarget().orElseThrow());
+    }
+
 }

@@ -21,6 +21,8 @@ import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import org.apache.shenyu.common.metrics.AgentAdmissionMetrics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Objects;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -401,6 +403,92 @@ class AgentResourceAdmissionTest {
     void rejectInvalidConfigurationBeforeControllerCreation() {
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(0, 0, 1, 0, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(1, 0, 1, 0, 33, 0));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void expiredDeadlineNeverExecutesWithFreeOrFullCapacity(final boolean remote) {
+        controller = new AgentResourceAdmission(new AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0));
+        AtomicInteger calls = new AtomicInteger();
+        Instant expired = Instant.now().minusSeconds(1);
+        Mono<Integer> rejected = remote ? controller.withRemote("orders", expired, Mono.fromCallable(calls::incrementAndGet))
+                : controller.withLocal(expired, Mono.fromCallable(calls::incrementAndGet));
+        StepVerifier.create(rejected).expectErrorMatches(error -> error instanceof AgentResourceAdmission.AgentAdmissionException
+                && ((AgentResourceAdmission.AgentAdmissionException) error).isTimeout()).verify(Duration.ofSeconds(2));
+        assertEquals(0, calls.get());
+        assertTrue(controller.snapshot().stream().allMatch(state -> state.inFlight() == 0 && state.queued() == 0));
+
+        Sinks.Empty<Void> active = Sinks.empty();
+        reactor.core.Disposable running = controller.withLocal(Instant.now().plusSeconds(30), active.asMono()).subscribe();
+        try {
+            StepVerifier.create(rejected).expectErrorMatches(error -> error instanceof AgentResourceAdmission.AgentAdmissionException
+                    && ((AgentResourceAdmission.AgentAdmissionException) error).isTimeout()).verify(Duration.ofSeconds(2));
+            assertEquals(0, calls.get());
+        } finally {
+            running.dispose();
+        }
+        StepVerifier.create(controller.withLocal(Instant.now().plusSeconds(30), Mono.just("ok"))).expectNext("ok").verifyComplete();
+        assertTrue(controller.snapshot().stream().allMatch(state -> state.inFlight() == 0 && state.queued() == 0));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"global", "local", "remote"})
+    void reloadPromotionAndActiveCompletionUseConsistentLockOrder(final String scope) throws Exception {
+        boolean global = "global".equals(scope);
+        boolean remote = "remote".equals(scope);
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new AgentGatewayAdmissionConfig(global ? 1 : 4, 4, 1, 4, 1, 4));
+        ExecutorService executor = Executors.newFixedThreadPool(2, task -> {
+            Thread thread = new Thread(task, "admission-reload-regression");
+            thread.setDaemon(true);
+            return thread;
+        });
+        Sinks.Empty<Void> active = Sinks.empty();
+        CountDownLatch promoted = new CountDownLatch(1);
+        CountDownLatch continuePromotion = new CountDownLatch(1);
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        AtomicReference<Thread> completionThread = new AtomicReference<>();
+        Instant deadline = Instant.now().plusSeconds(30);
+        boolean completed = false;
+        try {
+            (remote ? admission.withRemote("orders", deadline, active.asMono()) : admission.withLocal(deadline, active.asMono()))
+                    .subscribe(ignored -> { }, failure::set);
+            Mono<Void> action = Mono.fromRunnable(() -> {
+                promoted.countDown();
+                try {
+                    assertTrue(continuePromotion.await(5, TimeUnit.SECONDS));
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(error);
+                }
+            });
+            (remote ? admission.withRemote("orders", deadline, action) : admission.withLocal(deadline, action))
+                    .subscribe(ignored -> { }, failure::set);
+            AgentAdmissionMetrics.Scope queuedScope = global ? AgentAdmissionMetrics.Scope.GLOBAL
+                    : remote ? AgentAdmissionMetrics.Scope.REMOTE : AgentAdmissionMetrics.Scope.LOCAL;
+            awaitQueued(admission, queuedScope, 1);
+            final Future<?> reload = executor.submit(() -> admission.replace(AgentMcpResourceAdmission.create(
+                    new AgentGatewayAdmissionConfig(4, 4, 4, 4, 4, 4))));
+            assertTrue(promoted.await(5, TimeUnit.SECONDS));
+            final Future<?> completion = executor.submit(() -> {
+                completionThread.set(Thread.currentThread());
+                active.tryEmitEmpty();
+            });
+            org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(5)).until(() -> Objects.nonNull(completionThread.get())
+                    && completionThread.get().getState() == Thread.State.BLOCKED);
+            continuePromotion.countDown();
+            reload.get(5, TimeUnit.SECONDS);
+            completion.get(5, TimeUnit.SECONDS);
+            assertNull(failure.get());
+            assertTrue(admission.snapshot().stream().allMatch(state -> state.inFlight() == 0 && state.queued() == 0));
+            completed = true;
+        } finally {
+            continuePromotion.countDown();
+            executor.shutdownNow();
+            if (completed) {
+                admission.close();
+            }
+        }
     }
 
     private static void await(final AgentResourceAdmission controller, final AgentAdmissionMetrics.Scope scope, final int expected) throws InterruptedException {

@@ -91,7 +91,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
                     .timeout(Duration.between(Instant.now(), deadline))
                     .onErrorMap(java.util.concurrent.TimeoutException.class,
                             error -> AgentAdmissionException.deadline())
-                    .then(action)
+                    .then(Mono.defer(() -> Instant.now().isBefore(deadline) ? action : Mono.error(AgentAdmissionException.deadline())))
                     .doFinally(signal -> scope.release(acquired.wait));
         });
     }
@@ -99,11 +99,6 @@ public final class AgentResourceAdmission implements AutoCloseable {
     private Scope remote(final String name) {
         if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
             throw new IllegalArgumentException("Invalid remote admission scope");
-        }
-        for (Scope scope : remotes) {
-            if (scope.name.equals(name)) {
-                return scope;
-            }
         }
         synchronized (remotes) {
             for (Scope scope : remotes) {
@@ -125,8 +120,14 @@ public final class AgentResourceAdmission implements AutoCloseable {
         List<AgentAdmissionMetrics.Snapshot> result = new ArrayList<>();
         result.add(global.snapshot(AgentAdmissionMetrics.Scope.GLOBAL));
         result.add(local.snapshot(AgentAdmissionMetrics.Scope.LOCAL));
-        remotes.forEach(scope -> result.add(scope.snapshot(AgentAdmissionMetrics.Scope.REMOTE)));
+        remoteScopes().forEach(scope -> result.add(scope.snapshot(AgentAdmissionMetrics.Scope.REMOTE)));
         return result;
+    }
+
+    private List<Scope> remoteScopes() {
+        synchronized (remotes) {
+            return List.copyOf(remotes);
+        }
     }
 
     /**
@@ -156,10 +157,12 @@ public final class AgentResourceAdmission implements AutoCloseable {
                 local.installLimits(replacementConfig.localInFlight(), replacementConfig.localQueued());
                 remotes.forEach(scope -> scope.installLimits(replacementConfig.remoteInFlight(), replacementConfig.remoteQueued()));
             }
+            // Completion can synchronously release a promoted request: retain the
+            // same promotionLock -> scope lock order used by release and close.
+            global.promote();
+            local.promote();
+            remoteScopes().forEach(Scope::promote);
         }
-        global.promote();
-        local.promote();
-        remotes.forEach(Scope::promote);
     }
 
     /**
@@ -172,11 +175,13 @@ public final class AgentResourceAdmission implements AutoCloseable {
 
     /** Stop new work and cancel queued waiters; terminal executions still release once. */
     public void close() {
-        closed = true;
-        registration.close();
-        global.close();
-        local.close();
-        remotes.forEach(Scope::close);
+        synchronized (promotionLock) {
+            closed = true;
+            registration.close();
+            global.close();
+            local.close();
+            remoteScopes().forEach(Scope::close);
+        }
     }
 
     /** Explicit resource-limit rejection, distinguishable from provider failures. */
@@ -268,6 +273,10 @@ public final class AgentResourceAdmission implements AutoCloseable {
                     rejected.incrementAndGet();
                     return AcquireResult.reject(AgentAdmissionException.closed());
                 }
+                if (!Instant.now().isBefore(deadline)) {
+                    rejected.incrementAndGet();
+                    return AcquireResult.reject(AgentAdmissionException.deadline());
+                }
                 if (inFlight < inFlightLimit) {
                     inFlight++;
                     return AcquireResult.admitted(new Wait(this, null));
@@ -275,10 +284,6 @@ public final class AgentResourceAdmission implements AutoCloseable {
                 if (queued >= queueLimit) {
                     rejected.incrementAndGet();
                     return AcquireResult.reject(AgentAdmissionException.overloaded());
-                }
-                if (!Instant.now().isBefore(deadline)) {
-                    rejected.incrementAndGet();
-                    return AcquireResult.reject(AgentAdmissionException.deadline());
                 }
                 Waiter waiter = new Waiter(deadline);
                 waiting.addLast(waiter);
