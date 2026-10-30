@@ -34,6 +34,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.register.common.exception.HttpResponseException;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -43,6 +44,7 @@ import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +59,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.LongSupplier;
 
 public class HeartbeatListener {
 
@@ -67,6 +70,8 @@ public class HeartbeatListener {
     private static final int CHECK_PERIOD = 5;
 
     private static final int MAX_BEAT_THREADS = 8;
+
+    private static final long MAX_LOGIN_RETRY_DELAY_SECONDS = 60L;
 
     private static final String HEARTBEAT_TIMEOUT_MS = "heartbeatTimeoutMs";
 
@@ -87,6 +92,11 @@ public class HeartbeatListener {
     private final Map<String, AtomicBoolean> inFlight = new ConcurrentHashMap<>();
 
     private final ShenyuConfig shenyuConfig;
+
+    private final LongSupplier nanoTime;
+
+    // Heartbeat workers update retry state independently for each Admin.
+    private final Map<String, LoginRetry> loginRetries = new ConcurrentHashMap<>();
 
     private String username;
 
@@ -109,15 +119,28 @@ public class HeartbeatListener {
     private volatile boolean closed;
 
     public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig) {
-        this(config, shenyuConfig, null, null);
+        this(config, shenyuConfig, null, null, System::nanoTime);
+    }
+
+    HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig, final LongSupplier nanoTime) {
+        this(config, shenyuConfig, null, null, nanoTime);
     }
 
     public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config,
                              final ShenyuConfig shenyuConfig,
                              final ExecutorService beatExecutor,
                              final BeatSender beatSender) {
+        this(config, shenyuConfig, beatExecutor, beatSender, System::nanoTime);
+    }
+
+    HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config,
+                      final ShenyuConfig shenyuConfig,
+                      final ExecutorService beatExecutor,
+                      final BeatSender beatSender,
+                      final LongSupplier nanoTime) {
         this.executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-task", false));
         this.shenyuConfig = shenyuConfig;
+        this.nanoTime = nanoTime;
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.config = config;
@@ -153,8 +176,15 @@ public class HeartbeatListener {
                     public @Nullable String load(@NonNull final String server) {
                         try {
                             Optional<?> login = HeartbeatListener.this.beatSender.login(username, password, server.concat(Constants.LOGIN_PATH));
-                            return login.map(String::valueOf).orElse(null);
+                            String token = login.map(String::valueOf).orElse(null);
+                            if (StringUtils.isBlank(token)) {
+                                deferLogin(server);
+                                LOG.warn("Login admin url :{} returned no access token, will retry with backoff.", server);
+                                return null;
+                            }
+                            return token;
                         } catch (Exception e) {
+                            deferLogin(server);
                             LOG.error("Login admin url :{} is fail, will retry. cause: {} ", server, e.getMessage());
                             return null;
                         }
@@ -274,16 +304,56 @@ public class HeartbeatListener {
 
     private void sendHeartbeatToServer(final String server, final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         String concat = server.concat(Constants.BEAT_URI_PATH);
+        LoginRetry retry = loginRetries.get(server);
+        String token = null;
         try {
-            String token = this.accessToken.get(server);
+            token = getAccessToken(server);
             if (StringUtils.isBlank(token)) {
-                throw new NullPointerException("accessToken is null");
+                return;
             }
             beatSender.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), concat, Constants.HEARTBEAT, token);
+            if (Objects.nonNull(retry)) {
+                loginRetries.remove(server, retry);
+            }
+        } catch (HttpResponseException e) {
+            if (e.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED && Objects.nonNull(token)) {
+                invalidateRejectedToken(server, token);
+            }
+            LOG.error("HeartBeat admin url :{} returned HTTP {}, will retry.", server, e.getStatusCode());
         } catch (Exception e) {
             LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
             // This is a periodic reporter, not a failback registration: retry on the next tick.
         }
+    }
+
+    private void invalidateRejectedToken(final String server, final String token) {
+        accessToken.asMap().computeIfPresent(server, (key, cached) -> {
+            // A timed-out request must not invalidate a token already refreshed by another worker.
+            if (!Objects.equals(cached, token)) {
+                return cached;
+            }
+            deferLogin(server);
+            return null;
+        });
+    }
+
+    private String getAccessToken(final String server) {
+        String cached = accessToken.getIfPresent(server);
+        if (StringUtils.isNotBlank(cached)) {
+            return cached;
+        }
+        LoginRetry retry = loginRetries.get(server);
+        if (Objects.nonNull(retry) && nanoTime.getAsLong() - retry.retryAtNanos < 0) {
+            return null;
+        }
+        return accessToken.get(server);
+    }
+
+    private void deferLogin(final String server) {
+        loginRetries.compute(server, (key, previous) -> {
+            long delaySeconds = Objects.isNull(previous) ? CHECK_PERIOD : Math.min(previous.delaySeconds * 2, MAX_LOGIN_RETRY_DELAY_SECONDS);
+            return new LoginRetry(delaySeconds, nanoTime.getAsLong() + TimeUnit.SECONDS.toNanos(delaySeconds));
+        });
     }
 
     @EventListener(ContextClosedEvent.class)
@@ -342,6 +412,18 @@ public class HeartbeatListener {
         @Override
         public void doHeartBeat(final String json, final String url, final String type, final String token) throws Exception {
             RegisterUtils.doHeartBeat(json, url, type, token);
+        }
+    }
+
+    private static final class LoginRetry {
+
+        private final long delaySeconds;
+
+        private final long retryAtNanos;
+
+        private LoginRetry(final long delaySeconds, final long retryAtNanos) {
+            this.delaySeconds = delaySeconds;
+            this.retryAtNanos = retryAtNanos;
         }
     }
 }

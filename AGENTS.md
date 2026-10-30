@@ -4,31 +4,49 @@ This file provides guidance to AI Coding CLI when working with code in this repo
 
 ## Project
 
-Apache ShenYu — a reactive API gateway for microservices. Java 17, Maven multi-module build (root `pom.xml`, version `2.7.2-SNAPSHOT`). Use the wrapper `./mvnw`, not a local `mvn`.
+Apache ShenYu — a reactive API gateway for microservices. Java 17, Maven multi-module build. Read the root `pom.xml` for the current project version and build configuration. Use the wrapper `./mvnw`, not a local `mvn`.
 
 ## Commands
 
 ```bash
-# Full build (checkstyle + RAT license check run automatically at validate phase)
+# Install the default reactor without running tests (test sources are still compiled)
+# Checkstyle runs at validate; RAT runs at verify
 ./mvnw clean install -DskipTests
 
-# Faster build of one module and its dependencies
+# Faster local build of one module and its dependencies
+# Skips test execution, Javadoc, RAT and coverage; Checkstyle still runs
 ./mvnw -pl shenyu-admin -am clean install -DskipTests -Dmaven.javadoc.skip=true -Drat.skip=true -Djacoco.skip=true
 
-# Run all tests in a module
-./mvnw test -pl shenyu-common
+# Run tests in a module and its reactor dependencies
+./mvnw -pl shenyu-common -am test
 
-# Run a single test class / method (surefire)
-./mvnw test -pl shenyu-common -Dtest=GsonUtilsTest
-./mvnw test -pl shenyu-common -Dtest='GsonUtilsTest#testToJson'
+# Run a single test class / method, allowing dependency modules with no match
+./mvnw -pl shenyu-common -am test -Dtest=GsonUtilsTest -Dsurefire.failIfNoSpecifiedTests=false
+./mvnw -pl shenyu-common -am test -Dtest='GsonUtilsTest#testToJson' -Dsurefire.failIfNoSpecifiedTests=false
 
 # Checkstyle only
 ./mvnw checkstyle:check
+
+# License headers only
+./mvnw apache-rat:check
 ```
 
-- **Checkstyle is enforced on every build** (validate phase). Config: `script/shenyu_checkstyle.xml`. It is strict (javadoc, import order, final parameters); match the style of surrounding files.
-- **Apache RAT** enforces license headers: every new source file needs the Apache 2.0 header (`script/checkstyle-header.txt`).
-- Distribution packages / Docker images: `make build-admin`, `make build-bootstrap`, `make build-all-image` (see `Makefile`; builds via `shenyu-dist/*`).
+- `-am` includes reactor dependencies such as `shenyu-register-protocol`, so tests do not depend on previously installed ShenYu artifacts. A `-Dtest` selector applies to every selected module; with `-Dsurefire.failIfNoSpecifiedTests=false`, confirm that the intended class or method actually ran in Surefire's output.
+- **Checkstyle** runs at `validate` in lifecycle builds. Config: `script/shenyu_checkstyle.xml`. It is strict (javadoc, import order, final parameters); match surrounding files. `-DskipTests` does not skip it; `-Dcheckstyle.skip=true` explicitly does.
+- **Apache RAT** runs at `verify`, which `test` and `package` do not reach. New source files need the Apache 2.0 header (`script/checkstyle-header.txt`). `-DskipTests` does not skip RAT; `-Drat.skip=true` explicitly does. Run required checks before submitting a PR.
+- Distribution packages: `make build-admin`, `make build-bootstrap` (see `Makefile`; builds via `shenyu-dist/*`). For image targets, override the Makefile's independent `VERSION` default with the root project version:
+
+```bash
+SHENYU_VERSION="$(./mvnw -q -N -DforceStdout help:evaluate -Dexpression=project.version)" &&
+make build-all-image VERSION="$SHENYU_VERSION"
+```
+
+## Working principles
+
+- **Think before coding.** Inspect relevant source, configuration, tests and current issue/PR state. State assumptions and tradeoffs affecting behavior, compatibility or scope; investigate repository evidence and ask only when material ambiguity blocks a correct decision. Make routine reversible decisions autonomously; use a short plan with observable checks for multi-step work.
+- **Simplicity first.** Reuse existing plugin, SPI, configuration and observability mechanisms. Choose the smallest complete solution by behavior and maintenance cost. Avoid speculative options; a requested extension contract may start with one implementation when justified by a concrete use case. Retain handling for invalid input, network failures, cancellation, reload races and resource ownership.
+- **Surgical changes.** Follow surrounding style, remove code made unused by your change and leave unrelated cleanup out. Preserve public SPI, plugin names, configuration defaults and supported legacy behavior unless the task changes them. Trace affected plugin/selector/rule contracts through shared DTOs, Admin persistence/validation/events, sync, gateway consumers and starters; coordinate necessary changes and tests. Check maintained SQL dialects and upgrade paths when persistence or seed metadata changes.
+- **Goal-driven execution.** Define observable success; prefer a reproducing regression test for bugs and preserve externally observable behavior in refactors. Start with Maven-wrapper checks of affected modules/dependencies, then broaden according to risk and repository/CI requirements. Distinguish behavior tests from compilation or `-DskipTests` builds. For reactive changes, check affected subscription, completion/error/cancellation/backpressure and buffer/resource lifetimes. Verify cancellation follows resource ownership, including the original upstream call where applicable; headers, body completion and WebSocket session termination are distinct boundaries. Use factual/link/configuration checks for documentation changes. Report checks, results and material checks not run; existing Checkstyle, RAT/license and contribution requirements still apply.
 
 ## Architecture
 

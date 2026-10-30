@@ -34,6 +34,8 @@
             <excludes>
                 <!-- github ignore -->
                 <exclude>**/.github/**</exclude>
+                <!-- Bundled GitHub Actions are CI tooling, not release sources. -->
+                <exclude>actions/**</exclude>
                 <exclude>.travis.yml</exclude>
                 
                 <!-- maven ignore -->

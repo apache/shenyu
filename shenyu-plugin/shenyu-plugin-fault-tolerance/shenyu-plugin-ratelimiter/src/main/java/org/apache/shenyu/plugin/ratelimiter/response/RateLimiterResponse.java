@@ -33,6 +33,8 @@ public class RateLimiterResponse implements Serializable {
 
     private final List<String> keys;
 
+    private final boolean backendFailure;
+
     /**
      * Instantiates a new Rate limiter response.
      *
@@ -41,9 +43,22 @@ public class RateLimiterResponse implements Serializable {
      * @param keys the redis keys
      */
     public RateLimiterResponse(final boolean allowed, final long tokensRemaining, final List<String> keys) {
+        this(allowed, tokensRemaining, keys, false);
+    }
+
+    /**
+     * Instantiates a new Rate limiter response.
+     *
+     * @param allowed         the allowed
+     * @param tokensRemaining the tokens remaining
+     * @param keys the redis keys
+     * @param backendFailure whether the Redis backend failed
+     */
+    public RateLimiterResponse(final boolean allowed, final long tokensRemaining, final List<String> keys, final boolean backendFailure) {
         this.allowed = allowed;
         this.tokensRemaining = tokensRemaining;
         this.keys = keys;
+        this.backendFailure = backendFailure;
     }
 
     /**
@@ -74,8 +89,17 @@ public class RateLimiterResponse implements Serializable {
         return keys;
     }
 
+    /**
+     * whether the Redis backend failed while resolving the decision.
+     *
+     * @return true when the decision came from the backend-failure fallback
+     */
+    public boolean isBackendFailure() {
+        return backendFailure;
+    }
+
     @Override
     public String toString() {
-        return "Response{" + "allowed=" + allowed + ", tokensRemaining=" + tokensRemaining + '}';
+        return "Response{" + "allowed=" + allowed + ", tokensRemaining=" + tokensRemaining + ", backendFailure=" + backendFailure + '}';
     }
 }

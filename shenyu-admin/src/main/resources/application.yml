@@ -62,6 +62,11 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      # probeMode: central (default) keeps the existing admin-side upstream health checks.
+      # local disables admin-side probing so probe results never globally affect upstream
+      # health; it requires shenyu.upstreamCheck.enabled=true on every bootstrap instance.
+      # Switching to local does not re-enable upstreams disabled before the switch.
+      probeMode: central
       zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
@@ -131,9 +136,17 @@ shenyu:
     # Please replace this with your own secure key in production.
     # secret-key: "your-secret-key-here"
     expired-seconds: 86400000
+  instance-retention:
+    # Opt in to bound the records kept for expired instances. Only instances that stay in the
+    # DELETED state longer than ttl are removed from memory and from the database; an instance
+    # that heartbeats again before cleanup runs is kept. Cleanup runs on the master Admin only.
+    enabled: false
+    ttl: 7d
   cluster:
     # Same high-entropy node-only credential on every Admin. Missing credentials fail closed.
     # Use HTTPS (schema: https) or a trusted TLS service mesh to protect the credential in transit.
+    # schema also selects the advertised master transport: http -> ws, https -> wss.
+    # A wss gateway refuses a plaintext ws advertisement unless it explicitly opts in.
     event-secret: ${SHENYU_CLUSTER_EVENT_SECRET:}
     enabled: false
     type: jdbc
