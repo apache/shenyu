@@ -146,6 +146,30 @@ jobs:
           mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
           echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
           echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
+      - name: Ensure Maven wrapper JAR
+        shell: bash
+        run: |
+          wrapper_jar=.mvn/wrapper/maven-wrapper.jar
+          wrapper_main=org/apache/maven/wrapper/MavenWrapperMain.class
+          if [[ -r "$wrapper_jar" ]] && jar tf "$wrapper_jar" | grep -Fx "$wrapper_main" > /dev/null; then
+            exit 0
+          fi
+
+          wrapper_url="$(awk -F= '$1 == "wrapperUrl" { print substr($0, index($0, "=") + 1); exit }' .mvn/wrapper/maven-wrapper.properties)"
+          if [[ -z "$wrapper_url" ]]; then
+            echo "Could not find wrapperUrl in .mvn/wrapper/maven-wrapper.properties."
+            exit 1
+          fi
+
+          wrapper_tmp="$(mktemp .mvn/wrapper/maven-wrapper.jar.XXXXXX)"
+          trap 'rm -f "$wrapper_tmp"' EXIT
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            --output "$wrapper_tmp" "$wrapper_url"
+          if ! jar tf "$wrapper_tmp" | grep -Fx "$wrapper_main" > /dev/null; then
+            echo "Downloaded Maven wrapper JAR does not contain $wrapper_main."
+            exit 1
+          fi
+          mv "$wrapper_tmp" "$wrapper_jar"
       - name: Pre-pull docker base images
         shell: bash
         run: |
