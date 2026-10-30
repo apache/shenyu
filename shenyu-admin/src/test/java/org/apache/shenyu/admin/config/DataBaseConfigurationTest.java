@@ -17,11 +17,19 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * The TestCase for DataBaseConfiguration.
@@ -38,5 +46,25 @@ public final class DataBaseConfigurationTest {
         assertEquals(dataBaseProperties.getDialect(), dialect);
         assertEquals(dataBaseProperties.getInitScript(), initScript);
         assertEquals(dataBaseProperties.getInitEnable(), true);
+    }
+
+    @Test
+    public void databaseIdUsesConfiguredDialectWhenProductNameIsPostgreSQL() throws Exception {
+        final DataSource dataSource = mock(DataSource.class);
+        final DatabaseIdProvider provider = new DataBaseConfiguration().databaseIdProvider("OpenGauss");
+        assertEquals("opengauss", provider.getDatabaseId(dataSource));
+        verifyNoInteractions(dataSource);
+    }
+
+    @Test
+    public void blankDialectFallsBackToJdbcProductName() throws Exception {
+        final DataSource dataSource = mock(DataSource.class);
+        final Connection connection = mock(Connection.class);
+        final DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.getMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenReturn("PostgreSQL");
+        final DatabaseIdProvider provider = new DataBaseConfiguration().databaseIdProvider(" ");
+        assertEquals("postgresql", provider.getDatabaseId(dataSource));
     }
 }

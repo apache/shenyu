@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -47,7 +48,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,8 +70,6 @@ import static org.mockito.Mockito.when;
  * default-off behavior (#8037).
  */
 class DivideStickySessionAffinityTest {
-
-    private static final String COOKIE_NAME = "Shenyu-Route";
 
     private final StickySessionAffinity affinity = new StickySessionAffinity();
 
@@ -382,6 +383,105 @@ class DivideStickySessionAffinityTest {
         }
     }
 
+    /**
+     * The default storage of a binding is scoped to its rule, so rules served
+     * under the same host write different browser cookies (#8136).
+     */
+    @Test
+    public void defaultCookieNameIsScopedToTheRule() {
+        final StickySessionConfig first = new StickySessionConfig();
+        final StickySessionConfig second = new StickySessionConfig();
+        final String firstName = affinity.cookieName("rule-a", first);
+        final String secondName = affinity.cookieName("rule-b", second);
+        assertNotEquals(firstName, secondName, "rules must not share the default binding storage");
+        assertTrue(firstName.startsWith(StickySessionConfig.DEFAULT_COOKIE_NAME + "-"),
+                "the derived name must stay recognizable");
+        assertEquals(firstName, affinity.cookieName("rule-a", new StickySessionConfig()),
+                "the derived name must be stable for the same rule");
+        assertFalse(affinity.cookieName("a b|rule", new StickySessionConfig()).matches(".*[\\s|].*"),
+                "an arbitrary rule id must not leak into the cookie name");
+        // rules stored before the fix persist the default name explicitly; they must be scoped too
+        first.setCookieName(StickySessionConfig.DEFAULT_COOKIE_NAME);
+        assertEquals(firstName, affinity.cookieName("rule-a", first),
+                "the default base name must still derive a rule-scoped name");
+
+        // any other configured name is used verbatim: rules may still opt into one shared cookie
+        first.setCookieName("shared");
+        second.setCookieName("shared");
+        assertEquals("shared", affinity.cookieName("rule-a", first));
+        assertEquals("shared", affinity.cookieName("rule-b", second));
+    }
+
+    /**
+     * Interleaved traffic of two rules on one host retains each rule's own
+     * binding: the second rule must not overwrite the first one's cookie, under
+     * either failure policy (#8136).
+     */
+    @Test
+    public void interleavedRulesKeepTheirOwnBindings() {
+        final SelectorData selectorB = new SelectorData();
+        selectorB.setId("sticky-selector-b");
+        final RuleData ruleB = new RuleData();
+        ruleB.setId("sticky-rule-b");
+        ruleB.setSelectorId(selectorB.getId());
+        ruleB.setHandle(GsonUtils.getGson().toJson(new DivideRuleHandle()));
+        new DividePluginDataHandler().handlerRule(ruleB);
+        final DivideRuleHandle handleB = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleB));
+        final StickySessionConfig stickyB = new StickySessionConfig();
+        stickyB.setEnabled(true);
+        stickyB.setSecrets(List.of("current-secret"));
+        handleB.setSticky(stickyB);
+        final List<Upstream> poolA = List.of(upstream("a1:8080"), upstream("a2:8080"));
+        final List<Upstream> poolB = List.of(upstream("b1:8080"), upstream("b2:8080"));
+        try {
+            try (MockedStatic<UpstreamCacheManager> cache = cache(selector.getId(), poolA, selectorB.getId(), poolB)) {
+                for (final String policy : List.of("REBIND", "STRICT")) {
+                    sticky.setOnUnavailable(policy);
+                    stickyB.setOnUnavailable(policy);
+                    final Map<String, String> jar = new HashMap<>();
+                    final String targetA = visit(rule, selector, jar);
+                    final String targetB = visit(ruleB, selectorB, jar);
+                    assertEquals(2, jar.size(), policy + ": each rule must own one binding cookie");
+                    for (int i = 0; i < 2; i++) {
+                        assertEquals(targetA, visit(rule, selector, jar),
+                                policy + ": rule A must keep its binding after rule B is visited");
+                        assertEquals(targetB, visit(ruleB, selectorB, jar),
+                                policy + ": rule B must keep its binding after rule A is visited");
+                    }
+                    jar.clear();
+                }
+            }
+        } finally {
+            new DividePluginDataHandler().removeRule(ruleB);
+        }
+    }
+
+    /**
+     * Sends one request through the plugin with the browser cookie jar and
+     * folds the response cookies back into it, then returns the chosen domain.
+     */
+    private String visit(final RuleData visited, final SelectorData visitedSelector, final Map<String, String> jar) {
+        final MockServerHttpRequest.BodyBuilder request = MockServerHttpRequest.post("/test");
+        jar.forEach((name, value) -> request.cookie(new HttpCookie(name, value)));
+        final ServerWebExchange exchange = MockServerWebExchange.from(request);
+        exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        StepVerifier.create(plugin.doExecute(exchange, current -> Mono.empty(), visitedSelector, visited)).verifyComplete();
+        final List<String> setCookies = exchange.getResponse().getHeaders().get(HttpHeaders.SET_COOKIE);
+        if (Objects.nonNull(setCookies)) {
+            for (final String setCookie : setCookies) {
+                jar.put(setCookie.substring(0, setCookie.indexOf('=')), cookieValue(setCookie));
+            }
+        }
+        final String domain = exchange.getAttribute(Constants.HTTP_DOMAIN);
+        assertNotNull(domain, "every visit must be routed");
+        return domain;
+    }
+
+    /** The cookie name the default configuration derives for this rule. */
+    private String cookieName() {
+        return affinity.cookieName(rule.getId(), sticky);
+    }
+
     private String boundCookie(final Upstream upstream) {
         final ServerWebExchange writing = exchange(null, null);
         affinity.writeCookie(writing, rule.getId(), upstream, sticky);
@@ -399,14 +499,29 @@ class DivideStickySessionAffinityTest {
     }
 
     private MockedStatic<UpstreamCacheManager> cache(final List<Upstream> upstreams) {
+        return cache(selector.getId(), upstreams);
+    }
+
+    private MockedStatic<UpstreamCacheManager> cache(final String selectorId, final List<Upstream> upstreams) {
+        final MockedStatic<UpstreamCacheManager> cache = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
         final UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
         // the cache contract hands filter() a mutable, request-owned snapshot
-        final List<Upstream> mutable = new java.util.ArrayList<>(upstreams);
-        when(manager.findAllUpstreamListBySelectorId(selector.getId())).thenReturn(mutable);
+        when(manager.findAllUpstreamListBySelectorId(selectorId)).thenReturn(new ArrayList<>(upstreams));
         final List<Upstream> gray = upstreams.stream().filter(Upstream::isGray).toList();
-        when(manager.findUpstreamListBySelectorId(selector.getId())).thenReturn(
-                gray.isEmpty() ? new java.util.ArrayList<>(upstreams) : new java.util.ArrayList<>(gray));
+        when(manager.findUpstreamListBySelectorId(selectorId)).thenReturn(
+                gray.isEmpty() ? new ArrayList<>(upstreams) : new ArrayList<>(gray));
+        cache.when(UpstreamCacheManager::getInstance).thenReturn(manager);
+        return cache;
+    }
+
+    private MockedStatic<UpstreamCacheManager> cache(final String firstSelectorId, final List<Upstream> first,
+                                                     final String secondSelectorId, final List<Upstream> second) {
         final MockedStatic<UpstreamCacheManager> cache = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
+        final UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
+        when(manager.findAllUpstreamListBySelectorId(firstSelectorId)).thenReturn(new ArrayList<>(first));
+        when(manager.findUpstreamListBySelectorId(firstSelectorId)).thenReturn(new ArrayList<>(first));
+        when(manager.findAllUpstreamListBySelectorId(secondSelectorId)).thenReturn(new ArrayList<>(second));
+        when(manager.findUpstreamListBySelectorId(secondSelectorId)).thenReturn(new ArrayList<>(second));
         cache.when(UpstreamCacheManager::getInstance).thenReturn(manager);
         return cache;
     }
@@ -419,7 +534,7 @@ class DivideStickySessionAffinityTest {
             request.header(Constants.SPECIFY_DOMAIN, domain);
         }
         if (Objects.nonNull(cookieValue)) {
-            request.cookie(new org.springframework.http.HttpCookie(COOKIE_NAME, cookieValue));
+            request.cookie(new org.springframework.http.HttpCookie(cookieName(), cookieValue));
         }
         final ServerWebExchange exchange = MockServerWebExchange.from(request);
         exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());

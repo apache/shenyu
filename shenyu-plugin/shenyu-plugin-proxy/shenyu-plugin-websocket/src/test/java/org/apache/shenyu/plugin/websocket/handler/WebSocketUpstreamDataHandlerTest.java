@@ -36,6 +36,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -122,6 +124,39 @@ public class WebSocketUpstreamDataHandlerTest {
         Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
         assertEquals(20, upstream.getWarmup());
         assertFalse(upstream.isHealthCheckEnabled());
+    }
+
+    /**
+     * Not-ready instances must not be selectable until an explicit ready sync.
+     */
+    @Test
+    public void notReadyUpstreamIsNotSelectable() {
+        DiscoveryUpstreamData notReady = DiscoveryUpstreamData.builder()
+                .url("mock-not-ready")
+                .status(0)
+                .weight(10)
+                .props("{\"notReady\":true}")
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(notReady));
+
+        webSocketUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        List<Upstream> excluded = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertTrue(Objects.isNull(excluded) || excluded.isEmpty());
+
+        DiscoveryUpstreamData ready = DiscoveryUpstreamData.builder()
+                .url("mock-not-ready")
+                .status(0)
+                .weight(10)
+                .props("{}")
+                .dateCreated(new Timestamp(System.currentTimeMillis()))
+                .build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(ready));
+
+        webSocketUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        assertEquals(1, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
     }
 
     /**

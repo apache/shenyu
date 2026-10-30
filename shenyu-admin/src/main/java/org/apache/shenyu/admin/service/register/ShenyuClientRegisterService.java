@@ -106,6 +106,30 @@ public interface ShenyuClientRegisterService {
     default String draining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return Constants.SUCCESS;
     }
+
+    /**
+     * not-ready: the instances stay registered but are not ready to receive new work.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @param namespaceId the namespace id
+     * @return the string
+     */
+    default String notReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return Constants.SUCCESS;
+    }
+
+    /**
+     * ready: the instances may receive new work again, releasing a previous drain.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @param namespaceId the namespace id
+     * @return the string
+     */
+    default String ready(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return Constants.SUCCESS;
+    }
     
     /**
      * Register context path.

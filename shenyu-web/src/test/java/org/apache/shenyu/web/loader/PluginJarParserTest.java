@@ -29,6 +29,8 @@ import java.util.jar.JarOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for {@link PluginJarParser}.
@@ -66,5 +68,30 @@ public final class PluginJarParserTest {
             jar.finish();
             return output.toByteArray();
         }
+    }
+
+    @Test
+    public void shouldStoreInnerClassesInClassMap() throws IOException {
+        final byte[] outerClass = {1, 2, 3};
+        final byte[] innerClass = {4, 5, 6};
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (JarOutputStream jarOutput = new JarOutputStream(output)) {
+            writeEntry(jarOutput, "META-INF/maven/test/plugin/pom.properties",
+                    "groupId=test\nartifactId=plugin\nversion=1\n".getBytes(StandardCharsets.UTF_8));
+            writeEntry(jarOutput, "sample/Outer.class", outerClass);
+            writeEntry(jarOutput, "sample/Outer$Inner.class", innerClass);
+        }
+
+        PluginJarParser.PluginJar pluginJar = PluginJarParser.parseJar(output.toByteArray());
+
+        assertArrayEquals(outerClass, pluginJar.getClazzMap().get("sample.Outer"));
+        assertArrayEquals(innerClass, pluginJar.getClazzMap().get("sample.Outer$Inner"));
+        assertTrue(pluginJar.getResourceMap().isEmpty());
+    }
+
+    private void writeEntry(final JarOutputStream jarOutput, final String name, final byte[] content) throws IOException {
+        jarOutput.putNextEntry(new JarEntry(name));
+        jarOutput.write(content);
+        jarOutput.closeEntry();
     }
 }
