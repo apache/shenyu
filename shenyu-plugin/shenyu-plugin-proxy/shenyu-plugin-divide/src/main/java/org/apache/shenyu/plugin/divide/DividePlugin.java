@@ -69,6 +69,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -335,7 +336,22 @@ public class DividePlugin extends AbstractShenyuPlugin {
             long beginTime = System.currentTimeMillis();
             response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
         }
-        return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
+        if (probe) {
+            return response;
+        }
+        // when retries are possible, every attempt records its own outcome: the initial
+        // attempt through the initial breaker key published for the HTTP client, each
+        // failover target through the retry strategy. Attributing the whole downstream
+        // chain (retries and body write-back included) to the initial upstream would let
+        // a successful failover credit the failed upstream and never open its breaker
+        // (#8156). Without retries the chain has a single attempt, so the terminal
+        // recording stays here.
+        final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        if (retryTimes > 0) {
+            exchange.getAttributes().put(UpstreamCircuitBreaker.INITIAL_BREAKER_KEY, breakerKey);
+            return response;
+        }
+        return UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
     }
 
     /**
