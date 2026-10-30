@@ -605,6 +605,28 @@ public final class HttpRouteParserTest {
     }
 
     /**
+     * A cross-namespace backendRef WITHOUT a ReferenceGrant must stay ResolvedRefs=False/RefNotPermitted:
+     * the reason moved off the parentRef path, it did not disappear.
+     */
+    @Test
+    public void testCrossNamespaceBackendRefWithoutGrantIsRefNotPermitted() {
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+
+        DynamicKubernetesObject httpRoute = buildHTTPRoute(NAMESPACE, "test-route",
+                NAMESPACE, "shenyu-gateway", SERVICE_NAME, SERVICE_PORT,
+                "/api/**", "PathPrefix", null, null);
+        JsonObject backendRef = httpRoute.getRaw().getAsJsonObject("spec")
+                .getAsJsonArray("rules").get(0).getAsJsonObject()
+                .getAsJsonArray("backendRefs").get(0).getAsJsonObject();
+        backendRef.addProperty("namespace", "other-ns");
+
+        ShenyuMemoryConfig config = parser.parse(httpRoute, List.of());
+
+        Assertions.assertFalse(config.isAllBackendsResolved());
+        Assertions.assertEquals("RefNotPermitted", config.getUnresolvedReason());
+    }
+
+    /**
      * Build a ReferenceGrant allowing an HTTPRoute from {@code fromNamespace} to
      * reference a Service (core group, group="") in {@code namespace}, optionally
      * restricted to {@code toName}.

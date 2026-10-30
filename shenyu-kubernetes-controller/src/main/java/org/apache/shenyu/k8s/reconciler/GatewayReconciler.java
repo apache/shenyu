@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -340,17 +341,20 @@ public class GatewayReconciler implements Reconciler {
         for (JsonObject listener : listeners) {
             boolean protocolOk = ListenerSupport.isSupportedProtocol(listener);
             Long port = ListenerSupport.portOf(listener);
-            boolean portOk = Objects.nonNull(port) && port == servedPort;
-            boolean usable = protocolOk && portOk;
+            boolean usable = ListenerSupport.isServable(listener, servedPort);
             anyUsableListener |= usable;
 
             JsonObject listenerStatus = new JsonObject();
             listenerStatus.addProperty("name", ListenerSupport.nameOf(listener));
-            JsonObject kind = new JsonObject();
-            kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
-            kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+            // supportedKinds is protocol-scoped too: advertising HTTPRoute for a TLS/TCP listener would
+            // contradict the NotAllowedByListeners verdict the route reconciler reports for it.
             JsonArray supportedKinds = new JsonArray();
-            supportedKinds.add(kind);
+            if (ListenerSupport.supportsHttpRoute(listener)) {
+                JsonObject kind = new JsonObject();
+                kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
+                kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+                supportedKinds.add(kind);
+            }
             listenerStatus.add("supportedKinds", supportedKinds);
             Set<String> listenerRoutes = cache.getRoutesByListener(namespace, name, ListenerSupport.nameOf(listener));
             listenerStatus.addProperty("attachedRoutes", Objects.isNull(listenerRoutes) ? 0 : listenerRoutes.size());
@@ -414,12 +418,43 @@ public class GatewayReconciler implements Reconciler {
             if (Objects.isNull(existingListener)
                     || !Objects.equals(JsonFields.getLong(existingListener, "attachedRoutes"),
                     JsonFields.getLong(desiredListener, "attachedRoutes"))
+                    || !supportedKindsMatch(JsonFields.getJsonArray(existingListener, "supportedKinds"),
+                    JsonFields.getJsonArray(desiredListener, "supportedKinds"))
                     || !conditionsMatch(JsonFields.getJsonArray(existingListener, "conditions"),
                     desiredListener.getAsJsonArray("conditions"))) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Whether the advertised route kinds are the same set, ignoring order. supportedKinds became
+     * variable when listeners stopped advertising HTTPRoute on protocols that cannot carry it, and a
+     * missing listener status would otherwise be treated as matching (the patch is skipped instead).
+     *
+     * @param existing the kinds currently in status.listeners[].supportedKinds
+     * @param desired the kinds this reconcile computed
+     * @return true if both arrays hold the same group/kind pairs
+     */
+    private boolean supportedKindsMatch(final JsonArray existing, final JsonArray desired) {
+        if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() != desired.size()) {
+            return false;
+        }
+        List<String> existingKinds = routeKindsOf(existing);
+        return existingKinds.containsAll(routeKindsOf(desired));
+    }
+
+    private List<String> routeKindsOf(final JsonArray kinds) {
+        List<String> result = new ArrayList<>();
+        for (JsonElement element : kinds) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject kind = element.getAsJsonObject();
+            result.add(JsonFields.getString(kind, "group") + "/" + JsonFields.getString(kind, "kind"));
+        }
+        return result;
     }
 
     private JsonObject findListenerStatus(final JsonArray listeners, final String name) {
