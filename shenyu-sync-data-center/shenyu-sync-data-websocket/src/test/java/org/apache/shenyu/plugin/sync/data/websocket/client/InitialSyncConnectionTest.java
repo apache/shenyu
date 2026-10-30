@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -40,12 +44,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Exercises initial synchronization over a real socket, with deferred subscriber application.
@@ -102,11 +108,47 @@ class InitialSyncConnectionTest {
         }
     }
 
+    @Test
+    void testStructuredInitialSyncOverSocket() throws Exception {
+        TestServer server = new TestServer();
+        server.start();
+        assertTrue(server.started.await(5, TimeUnit.SECONDS));
+        AtomicBoolean ready = new AtomicBoolean();
+        PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
+        ShenyuWebsocketClient client = null;
+        try {
+            client = new ShenyuWebsocketClient(URI.create("ws://127.0.0.1:" + server.getPort()), Collections.emptyMap(), subscriber,
+                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                    "default", 9195, ready);
+            assertEquals(DataEventTypeEnum.RUNNING_MODE.name(), server.messages.poll(5, TimeUnit.SECONDS));
+            String capability = server.messages.poll(5, TimeUnit.SECONDS);
+            assertEquals(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, capability);
+            String request = server.requests.poll(5, TimeUnit.SECONDS);
+            assertNotNull(request);
+            assertTrue(request.startsWith(WebsocketSyncFrame.REQUEST_PREFIX));
+            String id = request.substring(WebsocketSyncFrame.REQUEST_PREFIX.length());
+            JsonObject payload = JsonParser.parseString(
+                    "{\"groupType\":\"PLUGIN\",\"eventType\":\"MYSELF\",\"data\":[{\"id\":\"divide\",\"name\":\"divide\",\"enabled\":true}]}")
+                    .getAsJsonObject();
+            server.connection.send(GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2(id, 0, payload)));
+            server.connection.send(GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2(id, 1, null)));
+            await().atMost(Duration.ofSeconds(5)).untilTrue(ready);
+            verify(subscriber).onPluginRefresh(any());
+        } finally {
+            if (Objects.nonNull(client)) {
+                client.nowClose();
+            }
+            server.stop(1000);
+        }
+    }
+
     private static final class TestServer extends WebSocketServer {
 
         private final CountDownLatch started = new CountDownLatch(1);
 
         private final BlockingQueue<String> requests = new LinkedBlockingQueue<>();
+
+        private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
         private volatile WebSocket connection;
 
@@ -125,6 +167,7 @@ class InitialSyncConnectionTest {
 
         @Override
         public void onMessage(final WebSocket socket, final String message) {
+            messages.add(message);
             if (message.startsWith(WebsocketSyncFrame.REQUEST_PREFIX)) {
                 requests.add(message);
             }

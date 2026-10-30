@@ -26,6 +26,12 @@ public final class WebsocketSyncFrame {
 
     public static final String EVENT_TYPE = "INITIAL_SYNC_V1";
 
+    /**
+     * Capability announced by a gateway that can read {@link WebsocketSyncFrameV2} frames.
+     * Admin nodes that predate the capability ignore the message and answer with V1 frames.
+     */
+    public static final String STRUCTURED_SYNC_CAPABILITY = "MYSELF_SYNC_V2";
+
     private final String eventType = EVENT_TYPE;
 
     private final String requestId;
