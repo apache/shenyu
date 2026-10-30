@@ -159,8 +159,8 @@ public final class AgentToolRegistry {
      * @param name tool name
      * @param allowedTools effective permissions
      * @param input request-local invocation factory
-     * @param onAttempt nonblocking callback before provider execution
-     * @param executionWrapper admission or lifecycle boundary around one execution
+     * @param onAttempt nonblocking callback when the admitted execution is subscribed
+     * @param executionWrapper admission or lifecycle boundary around notification and provider execution
      * @return request-local result
      */
     public Mono<JsonObject> invoke(final String name, final Set<String> allowedTools,
@@ -184,8 +184,10 @@ public final class AgentToolRegistry {
             } catch (IllegalArgumentException error) {
                 throw new AgentToolArgumentException(error);
             }
-            onAttempt.run();
-            return executionWrapper.apply(provider.invoke(invocation))
+            return executionWrapper.apply(Mono.defer(() -> {
+                onAttempt.run();
+                return provider.invoke(invocation);
+            }))
                     .switchIfEmpty(Mono.error(new IllegalStateException("Tool completed without a result")))
                     .map(JsonObject::deepCopy);
         });

@@ -29,6 +29,7 @@ Omitting the object or supplying an empty object selects these defaults. Admin a
 - Admission checks the absolute request deadline before granting each global/local/remote permit, before reporting queue overflow, and immediately before subscribing to execution. An already-expired request never executes its provider, even with free capacity. Time spent waiting counts against execution time.
 - Queue overflow returns HTTP `429` and JSON-RPC `-32026`; an expired request returns HTTP `504` and `-32026`.
 - Every success, business error, gateway error, cancellation, timeout, configuration withdrawal and shutdown releases each acquired permit once.
+- Local validation runs before resource admission. The execution-attempt callback and provider invocation run only when the admitted action is subscribed. Overload, queue timeout and cancellation before admission produce no execution-attempt audit record; their logical terminal record remains available.
 - Existing byte limits, transport concurrency, catalog generation leases and no-retry behavior remain in force.
 
 Configuration reload preserves active and queued accounting. All scope limits are installed before newly available slots are drained. Reload draining, terminal release and shutdown follow the same controller-promotion-monitor then scope-monitor order, including synchronous completion of promoted actions. Remote scope collections are copied under their registry monitor before callbacks or snapshot reads acquire scope monitors.

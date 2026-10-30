@@ -18,7 +18,11 @@
 package org.apache.shenyu.plugin.agent.gateway.tool;
 
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentResourceAdmission;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -26,6 +30,7 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +52,49 @@ class AgentToolRegistryTest {
     void shouldRejectDuplicateNames() {
         AgentToolProvider tool = tool(input -> Mono.just(input.getArguments()));
         assertThrows(IllegalArgumentException.class, () -> new AgentToolRegistry(List.of(tool, tool)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"global", "local", "timeout", "cancel"})
+    void admissionRejectionMustNotRecordAnExecutionAttempt(final String scenario) {
+        AtomicInteger attempts = new AtomicInteger();
+        AtomicInteger invocations = new AtomicInteger();
+        AtomicInteger subscriptions = new AtomicInteger();
+        AgentToolRegistry registry = registry(input -> {
+            invocations.incrementAndGet();
+            return Mono.fromSupplier(() -> {
+                subscriptions.incrementAndGet();
+                return input.getArguments();
+            });
+        });
+        boolean queued = "timeout".equals(scenario) || "cancel".equals(scenario);
+        try (AgentResourceAdmission admission = new AgentResourceAdmission(
+                new AgentGatewayAdmissionConfig("local".equals(scenario) ? 2 : 1, queued ? 1 : 0, 1, 0, 1, 0))) {
+            reactor.core.Disposable active = admission.withLocal(Instant.now().plusSeconds(30), Mono.never()).subscribe();
+            try {
+                Instant deadline = Instant.now().plusMillis("timeout".equals(scenario) ? 150 : 30000);
+                Mono<JsonObject> execution = registry.invoke("order_status", Set.of("order_status"), () -> invocation("A"), attempts::incrementAndGet,
+                        action -> admission.withLocal(deadline, action));
+                if ("cancel".equals(scenario)) {
+                    StepVerifier.create(execution).then(() -> assertTrue(admission.snapshot().stream().anyMatch(state -> state.queued() == 1)))
+                            .thenCancel().verify(Duration.ofSeconds(5));
+                } else {
+                    StepVerifier.create(execution).expectErrorMatches(error -> error instanceof AgentResourceAdmission.AgentAdmissionException
+                            && ((AgentResourceAdmission.AgentAdmissionException) error).isTimeout() == queued).verify(Duration.ofSeconds(5));
+                }
+                assertEquals(0, attempts.get());
+                assertEquals(0, invocations.get());
+                assertEquals(0, subscriptions.get());
+            } finally {
+                active.dispose();
+            }
+            StepVerifier.create(registry.invoke("order_status", Set.of("order_status"), () -> invocation("A"), attempts::incrementAndGet,
+                    execution -> admission.withLocal(Instant.now().plusSeconds(30), execution))).expectNextCount(1).verifyComplete();
+            assertEquals(1, attempts.get());
+            assertEquals(1, invocations.get());
+            assertEquals(1, subscriptions.get());
+            assertTrue(admission.snapshot().stream().allMatch(state -> state.inFlight() == 0 && state.queued() == 0));
+        }
     }
 
     @Test

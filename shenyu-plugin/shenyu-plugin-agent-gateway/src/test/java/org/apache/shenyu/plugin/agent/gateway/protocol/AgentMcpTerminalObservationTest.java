@@ -23,6 +23,7 @@ import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
 import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
@@ -99,6 +100,42 @@ class AgentMcpTerminalObservationTest {
         assertEquals(1, events.size());
         assertEquals("REJECTED", events.get(0).getOutcome());
         assertTrue(events.get(0).getSubject().isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"global", "local", "timeout"})
+    void localAdmissionRejectionOnlyProducesLogicalAudit(final String scenario) {
+        boolean queued = "timeout".equals(scenario);
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new AgentGatewayAdmissionConfig("local".equals(scenario) ? 2 : 1, queued ? 1 : 0, 1, 0, 1, 0));
+        reactor.core.Disposable active = admission.withLocal(java.time.Instant.now().plusSeconds(30), Mono.never()).subscribe();
+        AtomicInteger calls = new AtomicInteger();
+        List<AgentInvocationAuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        AgentMcpHttpHandler handler = new AgentMcpHttpHandler(dispatcher(Mono.fromSupplier(() -> {
+            calls.incrementAndGet();
+            return new JsonObject();
+        }), admission), identity(), null, AgentInvocationAuditBridge.mcp(null, events::add));
+        try {
+            MockServerWebExchange rejected = exchange("tools/call");
+            StepVerifier.create(handler.handle(rejected, config("json", queued ? 150 : 30000), traffic, 7))
+                    .verifyComplete();
+            assertEquals(queued ? 504 : 429, rejected.getResponse().getStatusCode().value());
+            assertEquals(0, calls.get());
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(1, events.size()));
+            assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, events.get(0).getRecordType());
+            assertEquals(queued ? "TIMEOUT" : "REJECTED", events.get(0).getOutcome());
+            active.dispose();
+            events.clear();
+            StepVerifier.create(handler.handle(exchange("tools/call"), config("json", 30000), traffic, 7)).verifyComplete();
+            assertEquals(1, calls.get());
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(2, events.size()));
+            assertEquals(List.of(AgentInvocationAuditEvent.RecordType.ATTEMPT, AgentInvocationAuditEvent.RecordType.LOGICAL),
+                    events.stream().map(AgentInvocationAuditEvent::getRecordType).toList());
+            assertTrue(events.stream().allMatch(event -> "SUCCESS".equals(event.getOutcome())));
+        } finally {
+            active.dispose();
+            admission.close();
+        }
     }
 
     @ParameterizedTest
@@ -556,13 +593,17 @@ class AgentMcpTerminalObservationTest {
     }
 
     private AgentMcpDispatcher dispatcher(final Mono<JsonObject> action) {
+        return dispatcher(action, AgentMcpResourceAdmission.NOOP);
+    }
+
+    private AgentMcpDispatcher dispatcher(final Mono<JsonObject> action, final AgentMcpResourceAdmission admission) {
         AgentToolProvider tool = mock(AgentToolProvider.class);
         when(tool.getName()).thenReturn("read");
         when(tool.getDescription()).thenReturn("Read test data");
         when(tool.getInputSchema()).thenReturn(JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject());
         when(tool.getRequiredClientCapabilities()).thenReturn(new JsonObject());
         when(tool.invoke(any())).thenReturn(action);
-        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(tool)), "test", "1");
+        return new AgentMcpDispatcher(new AgentToolRegistry(List.of(tool)), "test", "1", null, admission);
     }
 
     private AgentMcpSecurityResolver identity() {
