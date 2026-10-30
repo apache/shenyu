@@ -110,6 +110,14 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
         return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
     }
 
+    @Override
+    // Scheduled bulk delete: deliberately outside any transaction so it does not pin a long-lived
+    // transaction/undo for the whole maintenance cycle. Do not switch it to REQUIRES_NEW.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public int deleteExpired(final long cutoff) {
+        return instanceInfoMapper.deleteExpired(cutoff);
+    }
+
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {
         if (instanceInfoDOList.isEmpty()) {
             return List.of();

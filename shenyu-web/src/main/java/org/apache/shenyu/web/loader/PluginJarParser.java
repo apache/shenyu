@@ -63,7 +63,7 @@ public class PluginJarParser {
                     }
                     continue;
                 }
-                if (!jarEntry.isDirectory() && entryName.endsWith(".class") && !entryName.contains("$")) {
+                if (!jarEntry.isDirectory() && entryName.endsWith(".class")) {
                     String className = jarEntry.getName().substring(0, entryName.length() - 6).replaceAll("/", ".");
                     pluginJar.clazzMap.put(className, getClassByteArray(jarInputStream));
                 } else {

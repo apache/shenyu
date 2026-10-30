@@ -146,10 +146,63 @@ public final class FileSizeFilterTest {
         Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, webExchange.getResponse().getStatusCode());
+        Assertions.assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, webExchange.getResponse().getStatusCode());
         // the body must not be buffered in full: the codec aborts as soon as the limit is exceeded
         Assertions.assertTrue(consumedBuffers[0] < bufferCount,
                 "expected the oversized body to be rejected before being buffered in full, consumed buffers: " + consumedBuffers[0]);
         verify(webFilterChain, never()).filter(any());
+    }
+
+    @Test
+    public void testFilterRejectsMultipartRequestWhenMaxSizeIsNotPositive() {
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("http://localhost:8080")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body("test"));
+
+        WebFilterChain webFilterChain = mock(WebFilterChain.class);
+        when(webFilterChain.filter(any())).thenReturn(Mono.empty());
+
+        Mono<Void> voidMono = new FileSizeFilter(0).filter(webExchange, webFilterChain);
+        StepVerifier.create(voidMono).expectSubscription().verifyComplete();
+
+        Assertions.assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, webExchange.getResponse().getStatusCode());
+        verify(webFilterChain, never()).filter(any());
+    }
+
+    @Test
+    public void testFilterForwardsMultipartRequestWithinLimit() {
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("http://localhost:8080")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .contentLength(4)
+                .body("test"));
+
+        WebFilterChain webFilterChain = mock(WebFilterChain.class);
+        when(webFilterChain.filter(any())).thenReturn(Mono.empty());
+
+        Mono<Void> voidMono = new FileSizeFilter(1).filter(webExchange, webFilterChain);
+        StepVerifier.create(voidMono).expectSubscription().verifyComplete();
+
+        Assertions.assertNull(webExchange.getResponse().getStatusCode());
+        verify(webFilterChain).filter(any());
+    }
+
+    @Test
+    public void testFilterForwardsNonMultipartRequest() {
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .post("http://localhost:8080")
+                .contentType(MediaType.TEXT_PLAIN)
+                .contentLength(4)
+                .body("test"));
+
+        WebFilterChain webFilterChain = mock(WebFilterChain.class);
+        when(webFilterChain.filter(any())).thenReturn(Mono.empty());
+
+        Mono<Void> voidMono = new FileSizeFilter(1).filter(webExchange, webFilterChain);
+        StepVerifier.create(voidMono).expectSubscription().verifyComplete();
+
+        Assertions.assertNull(webExchange.getResponse().getStatusCode());
+        verify(webFilterChain).filter(any());
     }
 }

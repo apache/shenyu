@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
@@ -38,6 +39,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
@@ -172,8 +174,16 @@ public final class AppAuthServiceTest {
         AppAuthDTO appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
         List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
         appAuthDTO.setAuthParamList(authParamDTOList);
+        AuthPathDTO firstPath = buildAuthPathDTO();
+        AuthPathDTO secondPath = buildAuthPathDTO();
+        secondPath.setAppName("secondAppName");
+        secondPath.setPath("/second");
+        appAuthDTO.setAuthPathList(List.of(firstPath, secondPath));
         ShenyuAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+        verify(authPathMapper).batchSave(argThat(paths -> paths.size() == 2
+                && "testAppName".equals(paths.get(0).getAppName())
+                && "secondAppName".equals(paths.get(1).getAppName())));
         verify(appAuthMapper).updateSelective(any(AppAuthDO.class));
         verify(appAuthMapper, never()).update(any(AppAuthDO.class));
     }
@@ -361,13 +371,31 @@ public final class AppAuthServiceTest {
     }
 
     @Test
-    public void testListByPage() {
+    public void testListByPage() throws Exception {
         given(this.appAuthMapper.countByQuery(any())).willReturn(1);
         given(this.appAuthMapper.selectByQuery(any())).willReturn(Collections.singletonList(appAuthDO));
         AppAuthQuery appAuthQuery = new AppAuthQuery();
         appAuthQuery.setPageParameter(new PageParameter());
-        CommonPager<AppAuthVO> appAuthVOCommonPager = this.appAuthService.listByPage(appAuthQuery);
-        assertEquals(1, appAuthVOCommonPager.getDataList().size());
+        CommonPager<AppAuthListVO> appAuthListVOCommonPager = this.appAuthService.listByPage(appAuthQuery);
+        assertEquals(1, appAuthListVOCommonPager.getDataList().size());
+        AppAuthListVO appAuthListVO = appAuthListVOCommonPager.getDataList().get(0);
+        assertEquals(AppAuthListVO.class, appAuthListVO.getClass());
+        assertEquals(appAuthDO.getAppKey(), appAuthListVO.getAppKey());
+        assertEquals(appAuthDO.getNamespaceId(), appAuthListVO.getNamespaceId());
+        String json = new ObjectMapper().writeValueAsString(appAuthListVOCommonPager);
+        Assertions.assertFalse(json.contains("appSecret"));
+        Assertions.assertFalse(json.contains(appAuthDO.getAppSecret()));
+    }
+
+    @Test
+    public void testSearchByCondition() throws Exception {
+        given(this.appAuthMapper.selectByCondition(any())).willReturn(Collections.singletonList(appAuthDO));
+        List<AppAuthListVO> appAuthListVOList = this.appAuthService.searchByCondition(new AppAuthQuery());
+        assertEquals(1, appAuthListVOList.size());
+        assertEquals(AppAuthListVO.class, appAuthListVOList.get(0).getClass());
+        String json = new ObjectMapper().writeValueAsString(appAuthListVOList);
+        Assertions.assertFalse(json.contains("appSecret"));
+        Assertions.assertFalse(json.contains(appAuthDO.getAppSecret()));
     }
 
     @Test

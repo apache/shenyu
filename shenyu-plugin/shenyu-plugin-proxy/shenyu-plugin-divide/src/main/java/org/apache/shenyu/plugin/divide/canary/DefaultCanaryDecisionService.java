@@ -37,6 +37,9 @@ import java.util.Objects;
  */
 public class DefaultCanaryDecisionService implements CanaryDecisionService {
 
+    // Reuse only the digest per thread; keep request references out of this cache.
+    private static final ThreadLocal<MessageDigest> SHA256 = ThreadLocal.withInitial(DefaultCanaryDecisionService::newMessageDigest);
+
     @Override
     public CanaryDecision decide(final ServerWebExchange exchange, final String ruleId, final CanaryConfig config) {
         Objects.requireNonNull(config, "Canary configuration is required");
@@ -84,11 +87,17 @@ public class DefaultCanaryDecisionService implements CanaryDecisionService {
      */
     int hashToBucket(final String ruleId, final String key) {
         Objects.requireNonNull(ruleId, "Canary rule identifier is required");
+        MessageDigest digest = SHA256.get();
+        // Also discard partial input if an earlier invocation failed before digest().
+        digest.reset();
+        updateField(digest, ruleId);
+        updateField(digest, key);
+        return (int) (Integer.toUnsignedLong(ByteBuffer.wrap(digest.digest()).getInt()) % 10000);
+    }
+
+    private static MessageDigest newMessageDigest() {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            updateField(digest, ruleId);
-            updateField(digest, key);
-            return (int) (Integer.toUnsignedLong(ByteBuffer.wrap(digest.digest()).getInt()) % 10000);
+            return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("SHA-256 is unavailable", ex);
         }

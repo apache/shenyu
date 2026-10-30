@@ -22,6 +22,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -164,5 +166,58 @@ public class MetricsPluginTest {
         ServerWebExchange result = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost" + path).build());
         result.getAttributes().put(Constants.CONTEXT, shenyuContext);
         return result;
+    }
+
+    @Test
+    void governanceMetricsUseTheExistingPrometheusRegistryWithoutIdentityLabels() {
+        MetricsReporter.clean();
+        CollectorRegistry.defaultRegistry.clear();
+        MetricsReporter.register(new PrometheusMetricsRegister());
+        try {
+            AgentRuntimeMetrics metrics = MetricsReporter.agentRuntimeMetrics();
+            metrics.started(AgentRuntimeMetrics.Traffic.MCP);
+            metrics.started(AgentRuntimeMetrics.Traffic.MCP);
+            Assertions.assertEquals(2.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_INFLIGHT,
+                    new String[]{"traffic"}, new String[]{"mcp"}));
+            metrics.finished(AgentRuntimeMetrics.Traffic.MCP, AgentRuntimeMetrics.Outcome.REJECTED, AgentRuntimeMetrics.Reason.AUTHENTICATION, 7);
+            metrics.finished(AgentRuntimeMetrics.Traffic.MCP, AgentRuntimeMetrics.Outcome.CANCELLED, AgentRuntimeMetrics.Reason.NONE, 9);
+            Assertions.assertEquals(0.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_INFLIGHT,
+                    new String[]{"traffic"}, new String[]{"mcp"}));
+            Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_TOTAL,
+                    new String[]{"traffic", "outcome", "reason"}, new String[]{"mcp", "rejected", "authentication"}));
+            Assertions.assertEquals(7.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUEST_LATENCY + "_sum",
+                    new String[]{"traffic", "outcome"}, new String[]{"mcp", "rejected"}));
+            metrics.attempt(AiAttemptEvent.Kind.RETRY, AgentRuntimeMetrics.Outcome.TIMEOUT, 5);
+            Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_AI_ATTEMPTS_TOTAL,
+                    new String[]{"kind", "outcome"}, new String[]{"retry", "timeout"}));
+            metrics.catalog(false);
+            metrics.catalog(true);
+            Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL,
+                    new String[]{"state"}, new String[]{"unavailable"}));
+            Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL,
+                    new String[]{"state"}, new String[]{"available"}));
+        } finally {
+            MetricsReporter.clean();
+            CollectorRegistry.defaultRegistry.clear();
+        }
+    }
+
+    @Test
+    void outstandingRequestDoesNotDecrementAReplacementRegistry() {
+        MetricsRegister first = Mockito.mock(MetricsRegister.class);
+        MetricsRegister replacement = Mockito.mock(MetricsRegister.class);
+        try {
+            MetricsReporter.register(first);
+            AgentRuntimeMetrics active = MetricsReporter.agentRuntimeMetrics();
+            active.started(AgentRuntimeMetrics.Traffic.LLM);
+            MetricsReporter.clean();
+            Assertions.assertSame(AgentRuntimeMetrics.NOOP, MetricsReporter.agentRuntimeMetrics());
+            MetricsReporter.register(replacement);
+            active.finished(AgentRuntimeMetrics.Traffic.LLM, AgentRuntimeMetrics.Outcome.CANCELLED, AgentRuntimeMetrics.Reason.NONE, 0);
+            Mockito.verify(first, Mockito.never()).gaugeDecrement(ArgumentMatchers.any(), ArgumentMatchers.any());
+            Mockito.verify(replacement, Mockito.never()).gaugeDecrement(ArgumentMatchers.any(), ArgumentMatchers.any());
+        } finally {
+            MetricsReporter.clean();
+        }
     }
 }

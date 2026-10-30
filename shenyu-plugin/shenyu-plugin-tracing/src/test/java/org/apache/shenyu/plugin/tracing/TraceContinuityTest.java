@@ -70,6 +70,8 @@ public class TraceContinuityTest {
 
     private static final String BAGGAGE = "baggage";
 
+    private static final long TEST_HTTP_TIMEOUT = 30_000L;
+
     private final TraceContextExtractor extractor = new TraceContextExtractor();
 
     private final AtomicReference<List<String>> receivedTraceParents = new AtomicReference<>();
@@ -183,6 +185,7 @@ public class TraceContinuityTest {
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, TEST_HTTP_TIMEOUT);
         exchange.getAttributes().put(Constants.HTTP_URI,
                 URI.create("http://127.0.0.1:" + upstream.getAddress().getPort() + PATH));
         return exchange;

@@ -153,6 +153,26 @@ public interface DiscoveryUpstreamService {
     void markDrainingBySelectorIdAndUrl(String selectorId, String url, boolean draining);
 
     /**
+     * Merge a not-ready marker into the props of the upstream matching the selector
+     * and url. Idempotent: the marker is written, never derived from status, so a
+     * heartbeat-driven status flip cannot clear it.
+     *
+     * @param selectorId selectorId
+     * @param url        url
+     * @param notReady   true to mark not ready, false to release the marker
+     */
+    void markNotReadyBySelectorIdAndUrl(String selectorId, String url, boolean notReady);
+
+    /**
+     * Release both admission markers (draining and not-ready) from the upstream
+     * matching the selector and url. Idempotent.
+     *
+     * @param selectorId selectorId
+     * @param url        url
+     */
+    void markReadyBySelectorIdAndUrl(String selectorId, String url);
+
+    /**
      * Import the discoveryUpstream data list.
      *
      * @param discoveryUpstreamList the discoveryUpstream data
