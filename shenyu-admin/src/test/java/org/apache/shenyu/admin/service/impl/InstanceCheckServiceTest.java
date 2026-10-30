@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
@@ -39,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +65,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -79,11 +83,14 @@ public final class InstanceCheckServiceTest {
     @Mock
     private InstanceInfoService instanceInfoService;
 
+    @Mock
+    private InstanceRetentionProperties instanceRetentionProperties;
+
     private InstanceInfoVO vo;
 
     @BeforeEach
     void setUp() {
-        instanceCheckService = new InstanceCheckService(instanceInfoService);
+        instanceCheckService = new InstanceCheckService(instanceInfoService, instanceRetentionProperties);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
     }
 
@@ -765,6 +772,93 @@ public final class InstanceCheckServiceTest {
                 .orElseThrow()
                 .getData();
         return history.get(history.size() - 1);
+    }
+
+    @Test
+    void testRetentionCleanupDisabledByDefault() {
+        InstanceBeatInfoDTO dto = buildDTO("5.5.5.5", "8085", "http", "nsE");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        cached.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofDays(30).toMillis());
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
+        verify(instanceInfoService, never()).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testRetentionCleanupRemovesOnlyExpiredDeletedInstances() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        InstanceBeatInfoDTO expiredDTO = buildDTO("6.6.6.6", "8086", "http", "nsF");
+        InstanceBeatInfoDTO freshDeletedDTO = buildDTO("7.7.7.7", "8087", "http", "nsF");
+        InstanceBeatInfoDTO onlineDTO = buildDTO("8.8.8.8", "8088", "http", "nsF");
+        instanceCheckService.handleBeatInfo(expiredDTO);
+        instanceCheckService.handleBeatInfo(freshDeletedDTO);
+        instanceCheckService.handleBeatInfo(onlineDTO);
+        InstanceInfoVO expired = instanceCheckService.getInstanceHealthBeatInfo(expiredDTO);
+        expired.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        expired.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+        InstanceInfoVO freshDeleted = instanceCheckService.getInstanceHealthBeatInfo(freshDeletedDTO);
+        freshDeleted.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo(expiredDTO));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(freshDeletedDTO));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(onlineDTO));
+        verify(instanceInfoService).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testRetentionCleanupKeepsRenewedIdentity() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        InstanceBeatInfoDTO dto = buildDTO("9.9.9.9", "8089", "http", "nsG");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        cached.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+
+        // the instance heartbeats again before the cleanup cycle runs, so its cached record is kept
+        instanceCheckService.handleBeatInfo(dto);
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
+    }
+
+    @Test
+    void testRetentionCleanupRemovesLegacyRowsWithoutHeartbeat() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofDays(7));
+        InstanceInfoVO legacy = buildVO("11.0.0.1", "8090", "http", "nsH");
+        legacy.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        legacy.setLastHeartBeatTime(0L);
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(legacy));
+        instanceCheckService.fetchInstanceData();
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo("11.0.0.1:8090@http#nsH"));
+        verify(instanceInfoService).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testDatabaseSweepIsThrottledToConfiguredInterval() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofDays(7));
+
+        instanceCheckService.purgeExpiredInstances();
+        instanceCheckService.purgeExpiredInstances();
+        verify(instanceInfoService, times(1)).deleteExpired(anyLong());
+
+        // the database sweep runs again only after the cleanup interval has elapsed
+        ReflectionTestUtils.setField(instanceCheckService, "lastDbCleanupTime",
+                System.currentTimeMillis() - Duration.ofHours(2).toMillis());
+        instanceCheckService.purgeExpiredInstances();
+        verify(instanceInfoService, times(2)).deleteExpired(anyLong());
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
