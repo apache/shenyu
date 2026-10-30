@@ -112,7 +112,7 @@ Consequences that the rest of this document depends on:
 | `spec.listeners[].port` | Must equal the data-plane port. Otherwise → listener `Accepted=False`, `PortUnavailable`. |
 | `spec.listeners[].hostname` | Honoured; intersected with `HTTPRoute.spec.hostnames`. Exact names and `*.` suffix wildcards, which match one or more leading labels (`*.example.com` matches `a.example.com` and `a.b.example.com`). |
 | `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default) and `All`. `Selector` → attachment through that listener is denied with route `Accepted=False`, `UnsupportedValue`; the listener's own status stays `Accepted=True`, so the listener status alone does not show the problem. |
-| `spec.listeners[].allowedRoutes.kinds` | Honoured; absent means "all protocol-matching kinds", i.e. HTTPRoute. |
+| `spec.listeners[].allowedRoutes.kinds` | Honoured; absent means "all protocol-matching kinds". HTTPRoute only matches `HTTP` and `HTTPS` listeners, so a `TLS`/`TCP`/`UDP` listener permits no HTTPRoute whether or not `kinds` is declared. |
 | `spec.listeners[].tls` | Not supported (no TLS listener). Ignored for HTTP listeners. |
 | `spec.addresses` | **Ignored** — the controller does not bind the requested address (see §5.2). |
 | `spec.infrastructure` | **Ignored** — no labels/annotations are propagated to generated resources, and `parametersRef` is not read. |
@@ -363,7 +363,9 @@ other's answer:
 - When a served listener denies but an unserved listener's policy and hostname would accept the
   route, the reason is `UnsupportedValue`: the route is blocked by what this controller can serve,
   and `NotAllowedByListeners` — "the Gateway has no Listener whose `allowedRoutes` criteria permit
-  the route" — would be false for that Gateway.
+  the route" — would be false for that Gateway. "Would accept" requires a listener protocol that can
+  attach an HTTPRoute (`HTTP` or `HTTPS`): a `TLS`/`TCP` listener permits no HTTPRoute, so it can
+  never mask a served listener's denial.
 - When no served listener reached any verdict, the unserved listeners' denials are reported, so a
   policy or hostname denial behind a listener on an unmapped port (all of them, under the current
   port model, §7.1) still surfaces as such.
@@ -381,11 +383,13 @@ listener permits the route.
 
 Every route rejection path listed in §5.1 now has a unit test asserting its reason: route-level
 `filters`, missing Gateway, unmatched `sectionName`, unmatched `port`, a `sectionName` and `port` that
-only match different listeners, namespace denial (served and unserved listener), kind denial,
-hostname mismatch, `from=Selector`, an unserved listener that would have accepted the route, the
-reason priority between two served listeners denying differently, a served listener accepting over
-another one denying, a rejected parentRef reported next to an accepted one, config cleanup when every
-parent rejects, and the patch that corrects a route already reported with the old reason.
+only match different listeners, namespace denial (served and unserved listener), kind denial, a
+protocol-incompatible listener that must not override a served denial, a Gateway whose only listener
+cannot attach an HTTPRoute, hostname mismatch, `from=Selector`, an unserved listener that would have
+accepted the route, the reason priority between two served listeners denying differently, a served
+listener accepting over another one denying, a rejected parentRef reported next to an accepted one,
+config cleanup when every parent rejects, and the patch that corrects a route already reported with
+the old reason.
 `HttpRouteParserTest` pins the other half of the move: a cross-namespace `backendRef` without a
 ReferenceGrant still reports `ResolvedRefs=False` / `RefNotPermitted`.
 

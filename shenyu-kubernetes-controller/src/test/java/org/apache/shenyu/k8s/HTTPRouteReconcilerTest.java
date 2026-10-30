@@ -578,6 +578,96 @@ public final class HTTPRouteReconcilerTest {
     }
 
     /**
+     * A protocol-incompatible listener can never accept an HTTPRoute, so it must not be treated as the
+     * listener that "permits" the route: a TCP listener allowing all namespaces must not turn the
+     * serving HTTP listener's namespace denial into UnsupportedValue.
+     */
+    @Test
+    public void testTcpListenerCannotOverrideHttpNamespaceDenial() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister,
+                new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("gatewayNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("gatewayNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+        JsonObject tcpListener = new JsonObject();
+        tcpListener.addProperty("name", "tcp");
+        tcpListener.addProperty("protocol", "TCP");
+        tcpListener.addProperty("port", 9000);
+        JsonObject tcpNamespaces = new JsonObject();
+        tcpNamespaces.addProperty("from", "All");
+        JsonObject tcpAllowedRoutes = new JsonObject();
+        tcpAllowedRoutes.add("namespaces", tcpNamespaces);
+        tcpListener.add("allowedRoutes", tcpAllowedRoutes);
+        gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").add(tcpListener);
+
+        final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        final DynamicKubernetesObject httpRoute = buildHTTPRoute("routeNamespace", "test-route",
+                "gatewayNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("routeNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        ApiClient apiClient = mockApiClientCapturingStatusPatch(bodyCaptor);
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+
+        Result result = httpRouteReconciler.reconcile(new Request("routeNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any());
+        assertRejectedWith(bodyCaptor.getValue(), "NotAllowedByListeners");
+    }
+
+    /**
+     * A listener whose protocol cannot attach an HTTPRoute permits no HTTPRoute even when no
+     * allowedRoutes.kinds is declared: a Gateway with only a TLS listener is a kind denial, not a
+     * controller-capability limit.
+     */
+    @Test
+    public void testProtocolIncompatibleListenerPermitsNoHttpRoute() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister,
+                new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+        // the Gateway serves only TLS, and declares no allowedRoutes.kinds
+        JsonObject tlsListener = gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").get(0).getAsJsonObject();
+        tlsListener.addProperty("protocol", "TLS");
+        tlsListener.addProperty("port", 443);
+
+        final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        ApiClient apiClient = mockApiClientCapturingStatusPatch(bodyCaptor);
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+
+        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository, never()).saveOrUpdateSelectorData(any());
+        assertRejectedWith(bodyCaptor.getValue(), "NotAllowedByListeners");
+    }
+
+    /**
      * A listener whose allowedRoutes.kinds excludes HTTPRoute permits no HTTP route, which the
      * spec reports as Accepted=False/NotAllowedByListeners.
      */

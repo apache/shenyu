@@ -142,6 +142,19 @@ public final class ListenerSupport {
     }
 
     /**
+     * Whether HTTPRoute is a protocol-matching kind for this listener: it attaches to HTTP and HTTPS
+     * listeners, never to TLS/TCP/UDP ones.
+     *
+     * @param listener the listener object
+     * @return true if an HTTPRoute may attach to this listener's protocol
+     */
+    public static boolean supportsHttpRoute(final JsonObject listener) {
+        String protocol = protocolOf(listener);
+        return GatewayApiConstants.PROTOCOL_HTTP.equals(protocol)
+                || GatewayApiConstants.PROTOCOL_HTTPS.equals(protocol);
+    }
+
+    /**
      * Spec default is Same, from=All allows all; from=Selector is unimplemented and denies (widening would break isolation).
      *
      * @param listener the listener object
@@ -174,12 +187,17 @@ public final class ListenerSupport {
     }
 
     /**
-     * Absent kinds means all protocol-matching kinds, i.e. HTTPRoute for HTTP.
+     * Absent kinds means all protocol-matching kinds; HTTPRoute itself only matches HTTP and HTTPS.
      *
      * @param listener the listener object
      * @return true if HTTPRoute is permitted
      */
     public static boolean allowsKind(final JsonObject listener) {
+        // Kinds are protocol-scoped: a TLS/TCP/UDP listener can never attach an HTTPRoute, so it permits
+        // none, whether or not allowedRoutes.kinds is declared.
+        if (!supportsHttpRoute(listener)) {
+            return false;
+        }
         JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
         JsonArray kinds = JsonFields.getJsonArray(allowedRoutes, "kinds");
         if (Objects.isNull(kinds) || kinds.size() == 0) {

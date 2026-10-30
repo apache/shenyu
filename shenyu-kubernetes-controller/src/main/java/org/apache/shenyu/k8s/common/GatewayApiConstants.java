@@ -87,6 +87,9 @@ public final class GatewayApiConstants {
     /** The only listener protocol this controller serves. */
     public static final String PROTOCOL_HTTP = "HTTP";
 
+    /** HTTPS listeners are not served, but an HTTPRoute is a protocol-matching kind for them. */
+    public static final String PROTOCOL_HTTPS = "HTTPS";
+
     public static final String SHENYU_CONTROLLER_NAME = "gateway.shenyu.apache.org/shenyu-controller";
 
     /** Wording shared by every Accepted=True message this controller writes; used to recognize ShenYu's own status payload on resources whose conditions carry no controllerName. */
