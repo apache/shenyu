@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.WebsocketData;
@@ -40,6 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -56,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -144,6 +150,36 @@ public class ShenyuWebsocketClientTest {
         String json = GsonUtils.getInstance().toJson(websocketData);
         shenyuWebsocketClient.onMessage(json);
         verify(pluginDataSubscriber).onPluginRefresh(any());
+    }
+
+    @Test
+    void testOnMessageDoesNotLogRawFrame() {
+        List<PluginData> list = new ArrayList<>(1);
+        list.add(PluginData.builder().enabled(true).name("shenyu-plugin-grpc").id("shenyu-plugin-grpc")
+                .config("{\"password\":\"fake-password\"}").build());
+        WebsocketData<PluginData> data = new WebsocketData<>();
+        data.setEventType(DataEventTypeEnum.UPDATE.name());
+        data.setGroupType(ConfigGroupEnum.PLUGIN.name());
+        data.setData(list);
+        String json = GsonUtils.getInstance().toJson(data);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ShenyuWebsocketClient.class);
+        Level previous = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            shenyuWebsocketClient.onMessage(json);
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("fake-password"), "the raw websocket frame must not be logged");
+            assertTrue(logs.contains("received config message"));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+            logger.setLevel(previous);
+        }
     }
 
     @Test

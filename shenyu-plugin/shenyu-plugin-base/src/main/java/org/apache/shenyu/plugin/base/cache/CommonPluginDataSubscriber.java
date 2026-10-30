@@ -27,7 +27,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -131,7 +130,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
-        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());
+        LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, enabled: {}, namespace: {}]",
+                pluginData.getId(), pluginData.getName(), pluginData.getEnabled(), pluginData.getNamespaceId());
         subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     
@@ -357,7 +357,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (InitialSyncApplication.isActive()) {
                 throw new IllegalStateException("Initial configuration application failed", e);
             }
-            LOG.error("subscribe data handler error, classData: {}, dataType: {}", JsonUtils.toJson(classData), dataType, e);
+            LOG.error("subscribe data handler error, dataClass: {}, dataType: {}",
+                    Objects.isNull(classData) ? null : classData.getClass().getSimpleName(), dataType, e);
         }
     }
     
@@ -508,7 +509,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (InitialSyncApplication.isActive()) {
                 throw new IllegalStateException("Initial configuration application failed", e);
             }
-            LOG.error("snapshot handler error, classData: {}", JsonUtils.toJson(data), e);
+            LOG.error("snapshot handler error, dataClass: {}", data.getClass().getSimpleName(), e);
         }
     }
 

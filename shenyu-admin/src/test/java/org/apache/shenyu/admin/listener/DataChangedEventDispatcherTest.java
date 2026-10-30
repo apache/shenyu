@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.listener;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
@@ -24,10 +28,12 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,9 +55,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -168,6 +176,34 @@ public final class DataChangedEventDispatcherTest {
         verify(nacosDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
         verify(websocketDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
         verify(zookeeperDataChangedListener, times(1)).onAppAuthChanged(anyList(), any(), any());
+    }
+
+    @Test
+    public void onApplicationEventDoesNotLogPayload() {
+        when(clusterProperties.isEnabled()).thenReturn(true);
+        when(shenyuClusterSelectMasterService.isMaster()).thenReturn(true);
+        PluginData pluginData = PluginData.builder().id("plugin-id").name("plugin-name")
+                .config("{\"password\":\"fake-password\"}").build();
+        DataChangedEvent event = new DataChangedEvent(ConfigGroupEnum.PLUGIN, null,
+                new ArrayList<>(Collections.singletonList(pluginData)));
+
+        Logger logger = (Logger) LoggerFactory.getLogger(DataChangedEventDispatcher.class);
+        Level previous = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            dataChangedEventDispatcher.onApplicationEvent(event);
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("fake-password"), "the data change payload must not be logged");
+            assertTrue(logs.contains(ConfigGroupEnum.PLUGIN.name()));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+            logger.setLevel(previous);
+        }
     }
 
     /**

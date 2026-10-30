@@ -118,7 +118,8 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
                 LOG.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
                 return oldVal;
             }
-            LOG.info("update {} config: {}", groupEnum, newVal);
+            LOG.info("update {} config: md5={}, lastModifyTime={}, size={}", groupEnum, newVal.getMd5(),
+                    newVal.getLastModifyTime(), Objects.isNull(newVal.getData()) ? 0 : newVal.getData().size());
             holder.result = true;
             return newVal;
         });

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * <p>The appender is detached and stopped when the instance is closed, so a
  * capture never leaks into subsequent tests running in the same JVM.
  */
-final class LogCapture implements AutoCloseable {
+public final class LogCapture implements AutoCloseable {
 
     private final Logger logger;
 
@@ -53,7 +53,7 @@ final class LogCapture implements AutoCloseable {
      * @param type the class whose logger should be captured
      * @return the capture, to be used as a try-with-resources resource
      */
-    static LogCapture attach(final Class<?> type) {
+    public static LogCapture attach(final Class<?> type) {
         Logger logger = (Logger) LoggerFactory.getLogger(type);
         return new LogCapture(logger);
     }
@@ -63,9 +63,20 @@ final class LogCapture implements AutoCloseable {
      *
      * @return the INFO messages
      */
-    List<String> infoMessages() {
+    public List<String> infoMessages() {
         return appender.list.stream()
                 .filter(event -> Level.INFO.equals(event.getLevel()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * All formatted messages captured at any level.
+     *
+     * @return the formatted messages
+     */
+    public List<String> messages() {
+        return appender.list.stream()
                 .map(ILoggingEvent::getFormattedMessage)
                 .collect(Collectors.toList());
     }

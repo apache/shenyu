@@ -62,8 +62,9 @@ public class AiProxyApiKeyDataHandler extends AbstractDataHandler<ProxyApiKeyDat
         }
         LOG.info("[AiProxySync] DataHandler UPDATE, subscribers={}, items={}", subscribers.size(), dataList.size());
         for (ProxyApiKeyData data : dataList) {
-            LOG.info("[AiProxySync] onSubscribe proxyKey={}, enabled={}",
-                    Objects.isNull(data) ? null : data.getProxyApiKey(),
+            LOG.info("[AiProxySync] onSubscribe selectorId={}, namespaceId={}, enabled={}",
+                    Objects.isNull(data) ? null : data.getSelectorId(),
+                    Objects.isNull(data) ? null : data.getNamespaceId(),
                     Objects.isNull(data) ? null : data.getEnabled());
             for (AiProxyApiKeyDataSubscriber s : subscribers) {
                 s.onSubscribe(data);

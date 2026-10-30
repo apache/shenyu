@@ -17,17 +17,24 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -83,6 +90,31 @@ public final class AiProxyApiKeyDataHandlerTest {
 
         apiKeyDataList.forEach(data ->
                 subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(data)));
+    }
+
+    @Test
+    public void testDoUpdateDoesNotLogProxyKey() {
+        ProxyApiKeyData apiKeyData = ProxyApiKeyData.builder()
+                .proxyApiKey("proxy-key-secret")
+                .namespaceId("namespace-id")
+                .selectorId("selector-id")
+                .enabled(true)
+                .build();
+
+        Logger logger = (Logger) LoggerFactory.getLogger(AiProxyApiKeyDataHandler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            dataHandler.doUpdate(Collections.singletonList(apiKeyData));
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("proxy-key-secret"), "the proxy API key must not be logged");
+            assertTrue(logs.contains("selector-id"));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
     }
 
     @Test

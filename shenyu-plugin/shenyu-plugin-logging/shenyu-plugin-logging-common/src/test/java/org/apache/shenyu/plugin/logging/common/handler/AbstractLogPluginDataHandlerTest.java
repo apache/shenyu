@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.common.handler;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
@@ -24,12 +28,18 @@ import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link AbstractLogPluginDataHandler}.
@@ -82,6 +92,41 @@ public final class AbstractLogPluginDataHandlerTest {
         assertNotNull(config);
         assertEquals("1", config.getSampleRate());
         assertTrue(AbstractLogPluginDataHandler.getSelectApiConfigMap().containsKey(SELECTOR_ID));
+    }
+
+    @Test
+    public void testHandlerLogsDoNotExposeConfigurationSecrets() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext(logger.getLoggerContext());
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            PluginData pluginData = PluginData.builder().id("plugin-id").name("logging-mock").enabled(false)
+                    .namespaceId("namespace-id").config("{\"password\":\"fake-password\"}").build();
+            handler.handlerPlugin(pluginData);
+            handler.handlerSelector(buildSelector("{\"password\":\"fake-password\",\"sampleRate\":\"1\"}"));
+
+            String logs = appender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.joining("\n"));
+            assertFalse(logs.contains("fake-password"), "plugin and selector configuration credentials must not be logged");
+            assertTrue(logs.contains("logging-mock"));
+            assertTrue(logs.contains(SELECTOR_ID));
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+    }
+
+    @Test
+    public void testDisabledPluginLogDoesNotSerializeConfiguration() {
+        PluginData pluginData = mock(PluginData.class);
+        when(pluginData.getId()).thenReturn("plugin-id");
+        when(pluginData.getEnabled()).thenReturn(false);
+        when(pluginData.getNamespaceId()).thenReturn("namespace-id");
+
+        handler.handlerPlugin(pluginData);
+
+        verify(pluginData, never()).getConfig();
     }
 
     private SelectorData buildSelector(final String handle) {

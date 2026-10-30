@@ -325,14 +325,9 @@ public class WebsocketCollector {
             throw new ShenyuException("namespaceId can not be null");
         }
         if (LOG.isInfoEnabled()) {
-            // Log bounded delivery metadata instead of reparsing, redacting and re-serializing the whole
-            // payload on the publisher thread. The group/eventType/item count are already logged by the
-            // publisher (WebsocketDataChangedListener); the full redacted payload stays opt-in at DEBUG.
+            // Log bounded delivery metadata instead of the credential-bearing payload.
             LOG.info("websocket send message to namespaceId: {}, eventType: {}, size: {} chars",
                     namespaceId, type, message.length());
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("websocket send message to namespaceId: {}, payload: {}", namespaceId, maskSensitive(message));
         }
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
@@ -491,41 +486,6 @@ public class WebsocketCollector {
         }
     }
     
-    private static String maskSensitive(final String json) {
-        if (Objects.isNull(json)) {
-            return null;
-        }
-        try {
-            Map<String, Object> map = JsonUtils.jsonToMap(json);
-            if (Objects.nonNull(map)) {
-                redactSensitive(map);
-                return JsonUtils.toJson(map);
-            }
-            return "[unparseable websocket payload]";
-        } catch (Exception e) {
-            return "[unparseable websocket payload]";
-        }
-    }
-
-    private static void redactSensitive(final Object value) {
-        if (value instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) value;
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (entry.getKey() instanceof String
-                        && ("apiKey".equals(entry.getKey()) || "realApiKey".equals(entry.getKey())
-                        || "proxyApiKey".equals(entry.getKey()))) {
-                    ((Map<Object, Object>) map).put(entry.getKey(), "******");
-                } else {
-                    redactSensitive(entry.getValue());
-                }
-            }
-        } else if (value instanceof List) {
-            for (Object item : (List<?>) value) {
-                redactSensitive(item);
-            }
-        }
-    }
-
     /**
      * Adjust the per-message send timeout, intended for tests.
      *
