@@ -191,7 +191,6 @@ public final class DashboardUserServiceTest {
         PageParameter pageParameter = new PageParameter();
         dashboardUserQuery.setPageParameter(pageParameter);
 
-        given(dashboardUserMapper.countByQuery(eq(dashboardUserQuery))).willReturn(1);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
         given(dashboardUserMapper.selectByQuery(eq(dashboardUserQuery))).willReturn(Collections.singletonList(dashboardUserDO));
 
@@ -199,7 +198,6 @@ public final class DashboardUserServiceTest {
         assertThat(commonPager.getDataList()).isNotNull().isNotEmpty();
         assertEquals(1, commonPager.getDataList().size());
         assertEquals(TEST_ID, commonPager.getDataList().get(0).getId());
-        verify(dashboardUserMapper).countByQuery(eq(dashboardUserQuery));
         verify(dashboardUserMapper).selectByQuery(eq(dashboardUserQuery));
     }
 
