@@ -22,6 +22,20 @@ package org.apache.shenyu.plugin.metrics.constant;
  */
 public final class LabelNames {
 
+    public static final String AGENT_REQUESTS_TOTAL = "shenyu_agent_requests_total";
+
+    public static final String AGENT_REQUEST_LATENCY = "shenyu_agent_request_latency_millis";
+
+    public static final String AGENT_REQUESTS_INFLIGHT = "shenyu_agent_requests_inflight";
+
+    public static final String AGENT_AI_ATTEMPTS_TOTAL = "shenyu_agent_ai_attempts_total";
+
+    public static final String AGENT_AI_ATTEMPT_LATENCY = "shenyu_agent_ai_attempt_latency_millis";
+
+    public static final String AGENT_CATALOG_OBSERVATIONS_TOTAL = "shenyu_agent_catalog_observations_total";
+
+    public static final String AUTHENTICATION_REJECTIONS_TOTAL = "shenyu_authentication_rejections_total";
+
     /** Records accepted at the logging queue admission boundary, not backend deliveries. */
     public static final String LOGGING_QUEUE_ACCEPTED_TOTAL = "shenyu_logging_queue_accepted_total";
 

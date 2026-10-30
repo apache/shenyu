@@ -118,7 +118,7 @@ class AppAuthResultTest {
     void revokedRecordReturnsNoCredentials() throws Exception {
         final AppAuthResultVO created = txService.apply("svc-a", applyRequest(), "hash-r");
         final AppAuthRequestDO record = requestMapper.selectByKey("svc-a", "ns-demo", "req-result");
-        requestMapper.markRevoked(record.getId(), "drill-revoke");
+        requestMapper.markRevoked(record.getId(), "drill-revoke", "REVOKED");
 
         final AppAuthResultVO vo = txService.result("svc-a", query());
 
@@ -165,7 +165,7 @@ class AppAuthResultTest {
         ghost.setRequestId("req-result");
         ghost.setState("CREATED");
         requestMapper.reserveIfAbsent(ghost);
-        requestMapper.completeCreated("ghost-1", "auth-nowhere");
+        requestMapper.completeCreated("ghost-1", "auth-nowhere", "CREATED");
 
         assertThrows(ShenyuAdminException.class, () -> txService.result("svc-a", query()));
     }

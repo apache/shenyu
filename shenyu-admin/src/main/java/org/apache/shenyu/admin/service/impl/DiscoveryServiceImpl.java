@@ -36,6 +36,7 @@ import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
@@ -272,7 +273,88 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .namespaceId(discoveryDTO.getNamespaceId())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO) > 0 ? DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO) : null;
+        // snapshot the pre-update row so the runtime refresh can compare before against
+        // after; updateSelective skips null DTO fields, so null means "leave unchanged"
+        final DiscoveryDO existing = discoveryMapper.selectById(discoveryDTO.getId());
+        if (discoveryMapper.updateSelective(discoveryDO) <= 0) {
+            return null;
+        }
+        refreshRuntimeRepository(existing, discoveryDO);
+        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryDO);
+    }
+
+    /**
+     * The cached runtime repository is created once per discovery id and never re-read its
+     * configuration, so a persisted server-list/props/type change must replace it; a
+     * name-only change keeps the live repository untouched.
+     */
+    private void refreshRuntimeRepository(final DiscoveryDO before, final DiscoveryDO after) {
+        if (Objects.isNull(before)) {
+            return;
+        }
+        final boolean configChanged = !Objects.equals(before.getServerList(), effective(after.getServerList(), before.getServerList()))
+                || !Objects.equals(before.getProps(), effective(after.getProps(), before.getProps()))
+                || !Objects.equals(before.getDiscoveryType(), effective(after.getDiscoveryType(), before.getDiscoveryType()));
+        if (configChanged) {
+            discoveryProcessorHolder.chooseProcessor(before.getDiscoveryType()).removeDiscovery(before);
+            final DiscoveryDO effectiveAfter = DiscoveryDO.builder()
+                    .id(after.getId())
+                    .discoveryName(effective(after.getDiscoveryName(), before.getDiscoveryName()))
+                    .discoveryType(effective(after.getDiscoveryType(), before.getDiscoveryType()))
+                    .pluginName(effective(after.getPluginName(), before.getPluginName()))
+                    .discoveryLevel(effective(after.getDiscoveryLevel(), before.getDiscoveryLevel()))
+                    .serverList(effective(after.getServerList(), before.getServerList()))
+                    .props(effective(after.getProps(), before.getProps()))
+                    .namespaceId(effective(after.getNamespaceId(), before.getNamespaceId()))
+                    .dateCreated(before.getDateCreated())
+                    .dateUpdated(after.getDateUpdated())
+                    .build();
+            final DiscoveryProcessor replacement = discoveryProcessorHolder.chooseProcessor(effectiveAfter.getDiscoveryType());
+            replacement.createDiscovery(effectiveAfter);
+            // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per selector by
+            // createProxySelector, so re-bind every selector attached to this discovery or
+            // existing routes would stop receiving registry updates. Both relation kinds
+            // must be restored (see syncData): proxy-selector relations and ordinary
+            // selector relations synthesized into a ProxySelectorDTO
+            proxySelectorMapper.selectByDiscoveryId(effectiveAfter.getId()).forEach(proxySelector -> {
+                final DiscoveryHandlerDO handler = discoveryHandlerMapper.selectByProxySelectorId(proxySelector.getId());
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelector));
+            });
+            for (SelectorDO selector : selectorMapper.selectByDiscoveryId(effectiveAfter.getId())) {
+                final DiscoveryHandlerDO handler = discoveryHandlerMapper.selectBySelectorId(selector.getId());
+                if (Objects.isNull(handler)) {
+                    continue;
+                }
+                final ProxySelectorDTO synthesized = new ProxySelectorDTO();
+                synthesized.setPluginName(effectiveAfter.getPluginName());
+                synthesized.setName(selector.getSelectorName());
+                synthesized.setId(selector.getId());
+                synthesized.setNamespaceId(selector.getNamespaceId());
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler), synthesized);
+            }
+            // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per proxy selector by
+            // createProxySelector, so re-bind every selector attached to this discovery
+            // or existing routes would stop receiving registry updates
+            for (DiscoveryHandlerDO handler : discoveryHandlerMapper.selectByDiscoveryId(effectiveAfter.getId())) {
+                final ProxySelectorDO proxySelector = proxySelectorMapper.selectByHandlerId(handler.getId());
+                if (Objects.isNull(proxySelector)) {
+                    continue;
+                }
+                replacement.createProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(handler),
+                        DiscoveryTransfer.INSTANCE.mapToDTO(proxySelector));
+            }
+            // createDiscovery only initializes the repository and resets the listener-key
+            // cache; the watchInstances subscriptions are installed per proxy selector by
+            // createProxySelector, so re-bind every selector attached to this discovery
+            // or existing routes would stop receiving registry updates
+
+        }
+    }
+
+    private static String effective(final String value, final String fallback) {
+        return Objects.isNull(value) ? fallback : value;
     }
 
     public void syncData(final List<DiscoveryDO> discoveryDOS) {
