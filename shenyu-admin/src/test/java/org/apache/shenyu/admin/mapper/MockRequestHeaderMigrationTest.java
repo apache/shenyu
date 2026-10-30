@@ -75,6 +75,14 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE dashboard_user (id VARCHAR(128))");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
+            statement.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
+            statement.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");
+            statement.execute("CREATE TABLE plugin_handle (id VARCHAR(128) PRIMARY KEY, plugin_id VARCHAR(128), field VARCHAR(100),"
+                    + " label VARCHAR(100), data_type INT, type INT, sort INT, ext_obj VARCHAR(2048),"
+                    + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            statement.execute("CREATE TABLE shenyu_dict (id VARCHAR(128) PRIMARY KEY, type VARCHAR(100), dict_code VARCHAR(100),"
+                    + " dict_name VARCHAR(100), dict_value VARCHAR(2048), `desc` VARCHAR(255), sort INT, enabled INT,"
+                    + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             new ResourceDatabasePopulator(new FileSystemResource(upgradeScript())).execute(dataSource);
 
             MockRequestRecordDO restored = mapper.queryById("legacy");

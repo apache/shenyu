@@ -72,8 +72,11 @@ cp "$base/rust-discovery-handler/target/wasm32-wasip1/release/rust_discovery_han
   "$base/resources/org.apache.shenyu.plugin.wasm.base.handler.AbstractWasmDiscoveryHandlerTest\$TestWasmPluginDiscoveryHandler.wasm"
 ```
 
-The exact compiler versions of the legacy binaries were not recorded. Rebuilds
-may differ byte-for-byte; run the Java tests to verify the rebuilt artifacts.
+The checked-in binaries' WebAssembly `producers` sections identify Rust 1.95.0
+for the plugin, plugin-data and metadata guests, and Rust 1.90.0 for the discovery
+guest. Rebuilds may differ byte-for-byte; run the Java tests to verify the rebuilt
+artifacts. Runtime copyright and license texts for both versions are included in
+the repository's root `licenses` directory and referenced by the root `LICENSE`.
 
 ## Rebuild the existing TinyGo fixtures
 
@@ -89,6 +92,10 @@ make -C shenyu-plugin/shenyu-plugin-wasm-base/src/test/go-discovery-handler buil
 These Makefiles build with `-target wasm-unknown -opt=2 -no-debug -panic=trap`
 and copy the result to its Java resource name. The test helper and examples are
 TinyGo fixtures; they do not certify arbitrary standard Go runtimes.
+The checked-in discovery guest identifies TinyGo 0.43.0; the other TinyGo guests,
+including the legacy discovery guest, identify TinyGo 0.41.1. Their runtime,
+Go standard-library and LLVM license texts are in
+`licenses/LICENSE-wasm-fixtures.txt` at the repository root.
 
 # WASM discovery callbacks
 
@@ -135,8 +142,9 @@ module's `wasm-concurrent` family. It checks every `wasm-*` fixture directory in
 both modules byte-for-byte, including `wasm-bridge` when present, without
 modifying the committed files. It then compiles the five Rust guests for
 `wasm32-wasip1` and runs the WASM Java suites against them. Original resource
-bytes are restored even if a build or test fails. Legacy Rust compiler versions were not recorded, so
-Rust reproduction is checked by behavior rather than exact binary identity.
+bytes are restored even if a build or test fails. The checked-in guests contain
+Rust 1.90.0 and 1.95.0 producer records, so Rust reproduction with the CI-pinned
+version is checked by behavior rather than exact binary identity.
 The existing TinyGo guests run in the same suites. Use `--wat-only` or
 `--rust-only` for a scoped local run. Maven-only builds still use committed guests.
 

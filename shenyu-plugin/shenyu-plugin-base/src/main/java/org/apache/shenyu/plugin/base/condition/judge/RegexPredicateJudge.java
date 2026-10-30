@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.spi.Join;
-
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.re2j.Pattern;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.spi.Join;
 
 /**
  * Regex predicate judge.
@@ -28,8 +30,13 @@ import com.google.re2j.Pattern;
 @Join
 public class RegexPredicateJudge implements PredicateJudge {
 
+    private static final Cache<String, Pattern> PATTERN_CACHE = Caffeine.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build();
+
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue().trim(), realData);
+        String expression = conditionData.getParamValue().trim();
+        return PATTERN_CACHE.get(expression, Pattern::compile).matches(realData);
     }
 }

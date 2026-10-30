@@ -18,6 +18,13 @@
 ALTER TABLE selector RENAME COLUMN loged TO logged;
 ALTER TABLE rule RENAME COLUMN loged TO logged;
 
+-- Move Agent Gateway ahead of the AI governance chain for existing installs.
+-- Preserve deliberate custom orders: only the old default sort value changes.
+UPDATE plugin SET sort = 169 WHERE name = 'agentGateway' AND sort = 198;
+UPDATE namespace_plugin_rel SET sort = 169
+WHERE sort = 198
+  AND plugin_id IN (SELECT id FROM plugin WHERE name = 'agentGateway');
+
 -- Stop all Admin writers and back up instance_info before this one-time migration.
 -- Retain the latest heartbeat, then latest update/create timestamp, then greatest id.
 -- Rows upgraded from 2.7.1 have heartbeat 0 and are ordered by timestamps and id.
@@ -46,3 +53,10 @@ ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
 
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0;
+-- Add the opt-in rate limiter backend-failure policy selector.
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`)
+VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`)
+VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1);

@@ -41,6 +41,7 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthParamVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -102,9 +103,9 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
+    public List<AppAuthListVO> searchByCondition(final AppAuthQuery condition) {
         final List<AppAuthDO> appAuthDOS = appAuthMapper.selectByCondition(condition);
-        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToVO).toList();
+        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToListVO).toList();
     }
 
     @Override
@@ -465,7 +466,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
         for (AppAuthRequestDO record : lifecycleRecords) {
             if (!"REVOKED".equals(record.getState())) {
-                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete");
+                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete", "REVOKED");
             }
         }
         List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
@@ -596,12 +597,12 @@ public class AppAuthServiceImpl implements AppAuthService {
      * @return {@linkplain CommonPager}
      */
     @Override
-    public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
+    public CommonPager<AppAuthListVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
                 () -> appAuthMapper.countByQuery(appAuthQuery),
                 () -> appAuthMapper.selectByQuery(appAuthQuery)
                         .stream()
-                        .map(AppAuthTransfer.INSTANCE::mapToVO)
+                        .map(AppAuthTransfer.INSTANCE::mapToListVO)
                         .collect(Collectors.toList()));
     }
 

@@ -26,6 +26,14 @@
     <artifactId>shenyu-common</artifactId>
 
     <dependencies>
+        <!-- Guava no longer provides the concurrency annotations used by this module. -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
