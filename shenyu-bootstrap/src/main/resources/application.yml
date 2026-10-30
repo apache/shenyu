@@ -237,6 +237,11 @@ shenyu:
       urls: ws://localhost:9095/websocket
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigin: ws://localhost:9195
+      # Advertised cluster master origins trusted besides the configured seed origins.
+      # Entries: host, host:port, or ws(s)://host:port. A host without a port trusts any port.
+      trusted-master-hosts:
+      # Explicitly allow a wss connection to follow a plaintext ws advertised master.
+      allow-insecure-master-redirect: false
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080
