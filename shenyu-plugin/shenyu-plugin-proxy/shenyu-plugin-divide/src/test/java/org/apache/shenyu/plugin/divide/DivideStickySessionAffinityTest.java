@@ -325,6 +325,29 @@ class DivideStickySessionAffinityTest {
     }
 
     /**
+     * A shortestResponse binding hit skips selection, which reserves inflight, while Divide still
+     * releases that reservation when the attempt ends.
+     */
+    @Test
+    public void shortestResponseBindingHitKeepsAccounting() {
+        handle.setLoadBalance("shortestResponse");
+        final Upstream bound = upstream("b:8080");
+        final Upstream other = upstream("a:8080");
+        final String cookie = boundCookie(bound);
+        final long baseline = bound.getInflight().get();
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(other, bound))) {
+            final ServerWebExchange exchange = exchange(null, cookie);
+            StepVerifier.create(plugin.doExecute(exchange, current -> {
+                assertEquals(baseline + 1, bound.getInflight().get(),
+                        "a shortestResponse binding hit must reserve the attempt like selection does");
+                return Mono.empty();
+            }, selector, rule)).verifyComplete();
+            assertEquals(baseline, bound.getInflight().get(),
+                    "shortestResponse inflight must return to baseline on completion");
+        }
+    }
+
+    /**
      * Broken configurations disable affinity instead of producing unusable cookies.
      */
     @Test

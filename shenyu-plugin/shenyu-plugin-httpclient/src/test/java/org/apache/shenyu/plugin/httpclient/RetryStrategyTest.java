@@ -286,6 +286,68 @@ public class RetryStrategyTest {
     }
 
     @Test
+    void testFailoverReleasesShortestResponseInflight() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "shortestResponse");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7973-retry");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standbyA = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        Upstream standbyB = Upstream.builder().protocol("http://").url("localhost:8082").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7973-retry")).thenReturn(Arrays.asList(failed, standbyA, standbyB));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        final long baselineA = standbyA.getInflight().get();
+        final long baselineB = standbyB.getInflight().get();
+        AtomicLong inflightDuringResend = new AtomicLong();
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.defer(() -> {
+            inflightDuringResend.set(standbyA.getInflight().get() + standbyB.getInflight().get());
+            return Mono.just("success");
+        }));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // doSelect increments the chosen standby, and this completion releases it exactly once
+        assertEquals(baselineA + baselineB + 1, inflightDuringResend.get());
+        assertEquals(baselineA, standbyA.getInflight().get());
+        assertEquals(baselineB, standbyB.getInflight().get());
+    }
+
+    @Test
+    void testFailoverReleasesShortestResponseInflightOnSingletonRetry() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "shortestResponse");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7973-retry-single");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream onlyStandby = Upstream.builder().protocol("http://").url("localhost:8083").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7973-retry-single")).thenReturn(Arrays.asList(failed, onlyStandby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        final long baseline = onlyStandby.getInflight().get();
+        AtomicLong inflightDuringResend = new AtomicLong();
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.defer(() -> {
+            inflightDuringResend.set(onlyStandby.getInflight().get());
+            return Mono.just("success");
+        }));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        assertEquals(baseline + 1, inflightDuringResend.get());
+        assertEquals(baseline, onlyStandby.getInflight().get());
+    }
+
+    @Test
     void testFailoverWithMissingUpstreamList() {
         AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
         DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(httpClientPlugin);
