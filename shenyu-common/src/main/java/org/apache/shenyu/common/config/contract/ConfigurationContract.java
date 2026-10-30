@@ -71,14 +71,21 @@ public record ConfigurationContract(String plugin, ConfigurationScope scope, Str
      * @param minimum optional inclusive numeric lower bound
      * @param maximum optional inclusive numeric upper bound
      * @param values optional closed string enumeration (never inferred for SPI names)
+     * @param description field meaning and compatibility notes
      */
     public record Field(Type type, boolean required, boolean nullable, String effectiveDefault, String unit,
-                        boolean sensitive, Long minimum, Long maximum, List<String> values) {
+                        boolean sensitive, Long minimum, Long maximum, List<String> values, String description) {
+
+        public Field(final Type type, final boolean required, final boolean nullable, final String effectiveDefault, final String unit,
+                     final boolean sensitive, final Long minimum, final Long maximum, final List<String> values) {
+            this(type, required, nullable, effectiveDefault, unit, sensitive, minimum, maximum, values, "");
+        }
 
         public Field {
             Objects.requireNonNull(type);
             unit = Objects.requireNonNullElse(unit, "");
             values = List.copyOf(values);
+            description = Objects.requireNonNullElse(description, "");
             if (values.size() > 64 || Objects.nonNull(minimum) && Objects.nonNull(maximum) && minimum > maximum) {
                 throw new IllegalArgumentException("Invalid configuration field constraints");
             }
