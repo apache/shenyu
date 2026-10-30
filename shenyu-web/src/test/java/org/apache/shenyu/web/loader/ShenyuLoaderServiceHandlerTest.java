@@ -17,9 +17,13 @@
 
 package org.apache.shenyu.web.loader;
 
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.implementation.FixedValue;
+import net.bytebuddy.implementation.StubMethod;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -29,12 +33,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.Consumer;
 
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -114,21 +125,59 @@ public final class ShenyuLoaderServiceHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testExtDirectoryRemovalDetachesHandler() throws ReflectiveOperationException {
-        PluginDataHandler previous = handler();
-        activate(previous);
-        ShenyuExtPathPluginJarLoader.ExtPluginLoadResult loadResult = mock(ShenyuExtPathPluginJarLoader.ExtPluginLoadResult.class);
-        when(loadResult.getRemovedPluginNames()).thenReturn(Set.of(PLUGIN_NAME));
-        when(loadResult.getPluginJars()).thenReturn(List.of());
+        try (GenericApplicationContext context = new GenericApplicationContext()) {
+            context.refresh();
+            SpringBeanUtils.getInstance().setApplicationContext(context);
+            ShenyuConfig config = new ShenyuConfig();
+            config.getExtPlugin().setEnabled(false);
+            webHandler = new ShenyuWebHandler(List.of(), null, config);
+            service = new ShenyuLoaderService(webHandler, subscriber, config);
+            ShenyuPluginClassLoader removed = createLoader("Removed", PLUGIN_NAME);
+            ShenyuPluginClassLoader retained = createLoader("Retained", "retained-handler-test");
+            try {
+                activateResults(removed.loadUploadedJarPlugins());
+                activateResults(retained.loadUploadedJarPlugins());
+                final ShenyuPlugin retainedPlugin = webHandler.getPlugins().stream()
+                        .filter(plugin -> "retained-handler-test".equals(plugin.named())).findFirst().orElseThrow();
+                Map<String, PluginDataHandler> handlers = (Map<String, PluginDataHandler>) ReflectionTestUtils.getField(subscriber, "handlerMap");
+                final PluginDataHandler retainedHandler = handlers.get("retained-handler-test");
+                ShenyuExtPathPluginJarLoader.ExtPluginLoadResult loadResult = mock(ShenyuExtPathPluginJarLoader.ExtPluginLoadResult.class);
+                when(loadResult.getPluginJars()).thenReturn(List.of());
 
-        try (MockedStatic<ShenyuExtPathPluginJarLoader> loader = mockStatic(ShenyuExtPathPluginJarLoader.class)) {
-            loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any())).thenReturn(loadResult);
-            service.loadExtOrUploadPlugins(null);
+                try (MockedStatic<ShenyuExtPathPluginJarLoader> loader = mockStatic(ShenyuExtPathPluginJarLoader.class)) {
+                    loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any(), any())).thenAnswer(invocation -> {
+                        Consumer<ShenyuPluginClassLoader> deactivate = invocation.getArgument(1);
+                        deactivate.accept(removed);
+                        return loadResult;
+                    });
+                    service.loadExtOrUploadPlugins(null);
+                }
+
+                assertEquals(List.of(retainedPlugin), webHandler.getPlugins());
+                assertFalse(handlers.containsKey(PLUGIN_NAME));
+                assertSame(retainedHandler, handlers.get("retained-handler-test"));
+            } finally {
+                removed.close();
+                retained.close();
+            }
         }
-        subscriber.onSubscribe(pluginData);
+    }
 
-        verify(webHandler).removeExtPlugins(Set.of(PLUGIN_NAME));
-        verify(previous, never()).handlerPlugin(any());
+    private ShenyuPluginClassLoader createLoader(final String prefix, final String pluginName) {
+        String pluginClass = "fixture.directory." + prefix + "Plugin";
+        byte[] pluginBytes = new ByteBuddy().subclass(Object.class).name(pluginClass).implement(ShenyuPlugin.class)
+                .method(named("named")).intercept(FixedValue.value(pluginName))
+                .method(named("getOrder")).intercept(FixedValue.value(1))
+                .method(named("execute")).intercept(StubMethod.INSTANCE).make().getBytes();
+        String handlerClass = "fixture.directory." + prefix + "Handler";
+        byte[] handlerBytes = new ByteBuddy().subclass(Object.class).name(handlerClass).implement(PluginDataHandler.class)
+                .method(named("pluginNamed")).intercept(FixedValue.value(pluginName)).make().getBytes();
+        PluginJarParser.PluginJar jar = new PluginJarParser.PluginJar();
+        jar.setAbsolutePath(prefix);
+        jar.setClazzMap(Map.of(pluginClass, pluginBytes, handlerClass, handlerBytes));
+        return new ShenyuPluginClassLoader(jar);
     }
 
     private PluginDataHandler handler() {
@@ -144,8 +193,12 @@ public final class ShenyuLoaderServiceHandlerTest {
         pluginResult.setShenyuPlugin(plugin);
         ShenyuLoaderResult handlerResult = new ShenyuLoaderResult();
         handlerResult.setPluginDataHandler(handler);
+        activateResults(List.of(pluginResult, handlerResult));
+    }
+
+    private void activateResults(final List<ShenyuLoaderResult> results) throws ReflectiveOperationException {
         Method method = ShenyuLoaderService.class.getDeclaredMethod("loaderPlugins", List.class);
         method.setAccessible(true);
-        method.invoke(service, List.of(pluginResult, handlerResult));
+        method.invoke(service, results);
     }
 }
