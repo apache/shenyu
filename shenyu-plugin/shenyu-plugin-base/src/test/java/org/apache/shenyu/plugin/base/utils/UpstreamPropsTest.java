@@ -63,6 +63,15 @@ class UpstreamPropsTest {
     }
 
     @Test
+    void testReadyDefaultsToTrueAndParsesBothSpellings() {
+        assertTrue(UpstreamProps.parse(null).isReady());
+        assertTrue(UpstreamProps.parse("{\"warmup\":\"20\"}").isReady());
+        assertFalse(UpstreamProps.parse("{\"notReady\":\"true\"}").isReady());
+        assertFalse(UpstreamProps.parse("{\"notReady\":true}").isReady());
+        assertTrue(UpstreamProps.parse("{\"notReady\":\"false\"}").isReady());
+    }
+
+    @Test
     void testToMapReturnsCopyOfAllProps() {
         final UpstreamProps props = UpstreamProps.parse("{\"warmup\":\"20\",\"az\":\"az1\"}");
         final Map<String, String> map = props.toMap();
