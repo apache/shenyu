@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
@@ -41,6 +42,7 @@ import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -59,6 +61,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -298,6 +302,66 @@ public final class DashboardUserServiceTest {
                 new org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO(TEST_ID, TEST_USER_NAME, "newPassword", "oldPassword")));
         verify(dashboardUserMapper).updateSelective(argThat(user ->
                 TEST_ID.equals(user.getId()) && "bcrypt-new-password".equals(user.getPassword())));
+    }
+
+    @Test
+    public void testModifyPasswordBumpsTokenVersion() {
+        DashboardUserDO before = createDashboardUserDO();
+        before.setTokenVersion(3L);
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(before);
+        given(passwordHashService.matches("oldPassword", TEST_PASSWORD)).willReturn(true);
+        given(passwordHashService.encode("newPassword")).willReturn("bcrypt-new-password");
+        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+
+        assertEquals(1, dashboardUserService.modifyPassword(
+                new org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO(TEST_ID, TEST_USER_NAME, "newPassword", "oldPassword")));
+
+        // the version moves in SQL, never as a value computed from a possibly stale read
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
+        ArgumentCaptor<DashboardUserDO> captor = ArgumentCaptor.forClass(DashboardUserDO.class);
+        verify(dashboardUserMapper).updateSelective(captor.capture());
+        assertNull(captor.getValue().getTokenVersion());
+    }
+
+    @Test
+    public void testAdministrativePasswordResetBumpsTokenVersion() {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
+        DashboardUserDO before = createDashboardUserDO();
+        before.setTokenVersion(2L);
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(before);
+        given(passwordHashService.isBcryptHash("newPassword")).willReturn(true);
+        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+
+        DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
+                .id(TEST_ID).userName(TEST_USER_NAME).password("newPassword").enabled(true).build();
+        assertEquals(1, dashboardUserService.update(dashboardUserDTO));
+
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
+    }
+
+    @Test
+    public void testRevokeTokensBumpsTokenVersion() {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
+        DashboardUserDO before = createDashboardUserDO();
+        before.setTokenVersion(0L);
+        DashboardUserDO after = createDashboardUserDO();
+        after.setTokenVersion(1L);
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(before, after);
+        given(dashboardUserMapper.incrementTokenVersion(eq(TEST_ID), any(Timestamp.class))).willReturn(1);
+
+        assertEquals(1, dashboardUserService.revokeTokens(TEST_ID));
+
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
+        // no absolute version write: a delayed revoke cannot reuse a stale value
+        verify(dashboardUserMapper, never()).updateSelective(any(DashboardUserDO.class));
+        // the audit event carries the stored row, not a partially populated one
+        verify(publisher).onUpdated(eq(after), eq(before));
+    }
+
+    @Test
+    public void testRevokeTokensRequiresAdmin() {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("2").userName("editor").build());
+        assertThrows(ValidFailException.class, () -> dashboardUserService.revokeTokens(TEST_ID));
     }
 
     private DashboardUserDO createDashboardUserDO() {
