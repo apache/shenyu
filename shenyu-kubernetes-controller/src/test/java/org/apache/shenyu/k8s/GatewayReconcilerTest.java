@@ -37,8 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -147,7 +147,8 @@ public final class GatewayReconcilerTest {
         final ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
         final RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
         final RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
-        ApiClient apiClient = mockApiClientWithStatusPatch();
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getAuthentications()).thenReturn(Map.of());
         ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
         when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
                 .thenReturn(mock(okhttp3.Call.class));
@@ -282,11 +283,11 @@ public final class GatewayReconcilerTest {
         JsonArray listeners = gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners");
         // HTTP listener on a port the data plane does not serve
         listeners.get(0).getAsJsonObject().addProperty("port", 80);
-        JsonObject httpsListener = new JsonObject();
-        httpsListener.addProperty("name", "https");
-        httpsListener.addProperty("protocol", "HTTPS");
-        httpsListener.addProperty("port", 443);
-        listeners.add(httpsListener);
+        JsonObject tlsListener = new JsonObject();
+        tlsListener.addProperty("name", "tls");
+        tlsListener.addProperty("protocol", "TLS");
+        tlsListener.addProperty("port", 443);
+        listeners.add(tlsListener);
 
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
         when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
@@ -319,13 +320,17 @@ public final class GatewayReconcilerTest {
             JsonObject listenerStatus = element.getAsJsonObject();
             String name = listenerStatus.get("name").getAsString();
             JsonObject accepted = listenerStatus.getAsJsonArray("conditions").get(0).getAsJsonObject();
+            JsonArray supportedKinds = listenerStatus.getAsJsonArray("supportedKinds");
             Assertions.assertEquals("False", accepted.get("status").getAsString());
             if ("http".equals(name)) {
                 Assertions.assertEquals("PortUnavailable", accepted.get("reason").getAsString(),
                         "an HTTP listener on an unserved port must report PortUnavailable");
+                Assertions.assertEquals(1, supportedKinds.size(), "an HTTP listener supports HTTPRoute");
             } else {
                 Assertions.assertEquals("UnsupportedProtocol", accepted.get("reason").getAsString(),
                         "a non-HTTP listener must report UnsupportedProtocol");
+                Assertions.assertEquals(0, supportedKinds.size(),
+                        "a TLS listener cannot carry an HTTPRoute, so it must not advertise the kind");
             }
         }
     }

@@ -293,7 +293,9 @@ public class HTTPRouteReconciler implements Reconciler {
             if (ListenerSupport.isServable(listener, servedPort) != served) {
                 continue;
             }
-            if (ListenerSupport.usesUnsupportedFrom(listener)) {
+            // Only a listener that could attach an HTTPRoute makes its allowedRoutes values relevant:
+            // a TLS/TCP listener's from=Selector must not outrank a real policy denial.
+            if (ListenerSupport.supportsHttpRoute(listener) && ListenerSupport.usesUnsupportedFrom(listener)) {
                 verdicts.reject(GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
                         "allowedRoutes with from=Selector is not supported by the ShenYu controller", 0);
                 continue;

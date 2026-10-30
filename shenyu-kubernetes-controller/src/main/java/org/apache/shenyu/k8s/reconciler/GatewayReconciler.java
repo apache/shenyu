@@ -345,11 +345,15 @@ public class GatewayReconciler implements Reconciler {
 
             JsonObject listenerStatus = new JsonObject();
             listenerStatus.addProperty("name", ListenerSupport.nameOf(listener));
-            JsonObject kind = new JsonObject();
-            kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
-            kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+            // supportedKinds is protocol-scoped too: advertising HTTPRoute for a TLS/TCP listener would
+            // contradict the NotAllowedByListeners verdict the route reconciler reports for it.
             JsonArray supportedKinds = new JsonArray();
-            supportedKinds.add(kind);
+            if (ListenerSupport.supportsHttpRoute(listener)) {
+                JsonObject kind = new JsonObject();
+                kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
+                kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+                supportedKinds.add(kind);
+            }
             listenerStatus.add("supportedKinds", supportedKinds);
             Set<String> listenerRoutes = cache.getRoutesByListener(namespace, name, ListenerSupport.nameOf(listener));
             listenerStatus.addProperty("attachedRoutes", Objects.isNull(listenerRoutes) ? 0 : listenerRoutes.size());

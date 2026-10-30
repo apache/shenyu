@@ -102,12 +102,18 @@ public final class ListenerSupport {
         return isSupportedProtocol(listener) && servesPort(listener, servedPort);
     }
 
+    /**
+     * Listener name.
+     *
+     * @param listener the listener object
+     * @return the name, or null when absent
+     */
     public static String nameOf(final JsonObject listener) {
         return JsonFields.getString(listener, "name");
     }
 
     /**
-     * Listener protocol; defaults to HTTP per the spec.
+     * Listener protocol; absent in a schema-invalid or foreign object is read as plain HTTP.
      *
      * @param listener the listener object
      * @return the protocol, never null
@@ -117,6 +123,12 @@ public final class ListenerSupport {
         return Objects.isNull(protocol) ? GatewayApiConstants.PROTOCOL_HTTP : protocol;
     }
 
+    /**
+     * Listener hostname.
+     *
+     * @param listener the listener object
+     * @return the hostname, or null when the listener matches any host
+     */
     public static String hostnameOf(final JsonObject listener) {
         return JsonFields.getString(listener, "hostname");
     }
@@ -193,8 +205,7 @@ public final class ListenerSupport {
      * @return true if HTTPRoute is permitted
      */
     public static boolean allowsKind(final JsonObject listener) {
-        // Kinds are protocol-scoped: a TLS/TCP/UDP listener can never attach an HTTPRoute, so it permits
-        // none, whether or not allowedRoutes.kinds is declared.
+        // Kinds are protocol-scoped: a TLS/TCP/UDP listener permits no HTTPRoute, declared kinds or not.
         if (!supportsHttpRoute(listener)) {
             return false;
         }

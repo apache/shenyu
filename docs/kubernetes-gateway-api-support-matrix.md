@@ -117,7 +117,7 @@ Consequences that the rest of this document depends on:
 | `spec.addresses` | **Ignored** — the controller does not bind the requested address (see §5.2). |
 | `spec.infrastructure` | **Ignored** — no labels/annotations are propagated to generated resources, and `parametersRef` is not read. |
 | `status.addresses` | **Not written** (gap, see §7.9). |
-| `status.listeners[]` | Written: `name`, `supportedKinds=[HTTPRoute]`, `attachedRoutes`, `conditions[Accepted,Programmed]`. |
+| `status.listeners[]` | Written: `name`, `supportedKinds`, `attachedRoutes`, `conditions[Accepted,Programmed]`. `supportedKinds` is `[HTTPRoute]` only for `HTTP`/`HTTPS` listeners and empty for `TLS`/`TCP`/`UDP`, matching which listeners can actually carry the route. |
 | `status.conditions` | `Accepted` and `Programmed`. `Programmed=False` with `ListenersNotValid` when no listener is usable. |
 
 `attachedRoutes` counts only routes actually bound to that listener, so it is accurate after
@@ -360,12 +360,12 @@ other's answer:
   veto another one.
 - A denial by a served listener is reported before a denial by a listener this controller cannot
   serve, because the served one is where the route would actually be programmed.
-- When a served listener denies but an unserved listener's policy and hostname would accept the
-  route, the reason is `UnsupportedValue`: the route is blocked by what this controller can serve,
-  and `NotAllowedByListeners` — "the Gateway has no Listener whose `allowedRoutes` criteria permit
-  the route" — would be false for that Gateway. "Would accept" requires a listener protocol that can
-  attach an HTTPRoute (`HTTP` or `HTTPS`): a `TLS`/`TCP` listener permits no HTTPRoute, so it can
-  never mask a served listener's denial.
+- When a served listener denies but an unserved listener's `allowedRoutes` criteria (namespaces and
+  kinds) and hostname would accept the route, the reason is `UnsupportedValue`: the route is blocked
+  by what this controller can serve, and `NotAllowedByListeners` — "the Gateway has no Listener whose
+  `allowedRoutes` criteria permit the route" — would be false for that Gateway. "Would accept"
+  requires a listener protocol that can attach an HTTPRoute (`HTTP` or `HTTPS`): a `TLS`/`TCP`
+  listener permits no HTTPRoute, so neither its policy nor its `from=Selector` can mask a denial.
 - When no served listener reached any verdict, the unserved listeners' denials are reported, so a
   policy or hostname denial behind a listener on an unmapped port (all of them, under the current
   port model, §7.1) still surfaces as such.
@@ -385,13 +385,16 @@ Every route rejection path listed in §5.1 now has a unit test asserting its rea
 `filters`, missing Gateway, unmatched `sectionName`, unmatched `port`, a `sectionName` and `port` that
 only match different listeners, namespace denial (served and unserved listener), kind denial, a
 protocol-incompatible listener that must not override a served denial, a Gateway whose only listener
-cannot attach an HTTPRoute, hostname mismatch, `from=Selector`, an unserved listener that would have
-accepted the route, the reason priority between two served listeners denying differently, a served
-listener accepting over another one denying, a rejected parentRef reported next to an accepted one,
-config cleanup when every parent rejects, and the patch that corrects a route already reported with
-the old reason.
-`HttpRouteParserTest` pins the other half of the move: a cross-namespace `backendRef` without a
-ReferenceGrant still reports `ResolvedRefs=False` / `RefNotPermitted`.
+cannot attach an HTTPRoute, `from=Selector` on a protocol-incompatible listener, hostname mismatch,
+`from=Selector` on an HTTP listener, an unserved listener that would have accepted the route, a
+port-only capability limit, the reason priority between two served listeners denying differently, a
+served listener accepting over another one denying, a rejected parentRef reported next to an accepted
+one, config cleanup when every parent rejects, and the patch that corrects a route already reported
+with the old reason.
+`ListenerSupportTest` pins the protocol/kind matrix those paths rest on (which protocols can carry an
+HTTPRoute, and how a declared, empty or absent `allowedRoutes.kinds` is read), and `HttpRouteParserTest`
+pins the other half of the move: a cross-namespace `backendRef` without a ReferenceGrant still reports
+`ResolvedRefs=False` / `RefNotPermitted`.
 
 ### 7.5 Backends are resolved only from `Endpoints` *(blocks conformance)*
 
@@ -498,7 +501,7 @@ kubectl apply -f shenyu-examples/shenyu-examples-http/k8s/gateway-api.yml
 
 Unit-level coverage for the claims in §3–§5 lives in
 `shenyu-kubernetes-controller/src/test/java/org/apache/shenyu/k8s/` (reconcilers, parsers,
-`GatewayApiCrdVerifierTest`, `GatewayApiCrdVersionsTest`).
+`common/ListenerSupportTest`, `common/GatewayApiCrdVerifierTest`, `common/GatewayApiCrdVersionsTest`).
 
 ## 9. Maintenance rules
 
