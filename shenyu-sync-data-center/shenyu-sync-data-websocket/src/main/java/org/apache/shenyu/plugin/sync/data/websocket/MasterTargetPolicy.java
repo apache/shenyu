@@ -162,8 +162,16 @@ final class MasterTargetPolicy {
         private final int port;
 
         private Origin(final String host, final int port) {
-            this.host = host.toLowerCase(Locale.ROOT);
+            this.host = normalizeHost(host);
             this.port = port;
+        }
+
+        private static String normalizeHost(final String host) {
+            final String normalized = host.toLowerCase(Locale.ROOT);
+            if (normalized.length() > 1 && normalized.charAt(0) == '[' && normalized.charAt(normalized.length() - 1) == ']') {
+                return normalized.substring(1, normalized.length() - 1);
+            }
+            return normalized;
         }
 
         private String getHost() {

@@ -81,6 +81,20 @@ final class MasterTargetPolicyTest {
     }
 
     @Test
+    void ipv6TrustedHostsNormalizeBrackets() {
+        final URI master = URI.create("wss://[2001:db8::1]:9095/websocket");
+        final URI current = URI.create("wss://seed:9095/websocket");
+        assertTrue(MasterTargetPolicy.isTrustedMaster(master, current, Collections.emptyList(),
+                Collections.emptyList(), List.of("[2001:db8::1]"), false));
+        assertTrue(MasterTargetPolicy.isTrustedMaster(master, current, Collections.emptyList(),
+                Collections.emptyList(), List.of("[2001:db8::1]:9095"), false));
+        assertTrue(MasterTargetPolicy.isTrustedMaster(master, current, Collections.emptyList(),
+                Collections.emptyList(), List.of("wss://[2001:db8::1]:9095/websocket"), false));
+        assertFalse(MasterTargetPolicy.isTrustedMaster(master, current, Collections.emptyList(),
+                Collections.emptyList(), List.of("[2001:db8::2]"), false));
+    }
+
+    @Test
     void connectedClientOriginIsTrusted() {
         assertTrue(MasterTargetPolicy.isTrustedMaster(URI.create("ws://master:9095/websocket"), CURRENT,
                 List.of(URI.create("ws://master:9095/websocket")), Collections.emptyList(), Collections.emptyList(), false));
