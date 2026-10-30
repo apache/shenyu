@@ -149,7 +149,8 @@ class RegistrationProtocolCompatibilityTest {
     @Test
     void preservesMissingOptionalFieldDefaults() throws Exception {
         mvc.perform(post(RegistrationProtocol.META_PATH).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"appName\":\"legacy\",\"path\":\"/legacy\",\"rpcType\":\"http\"}"))
+                        .content("{\"appName\":\"legacy\",\"contextPath\":\"/legacy\",\"path\":\"/legacy\","
+                                + "\"rpcType\":\"http\",\"ruleName\":\"legacy\",\"host\":\"127.0.0.1\"}"))
                 .andExpect(status().isOk()).andExpect(content().string("success"));
         ArgumentCaptor<MetaDataRegisterDTO> captured = ArgumentCaptor.forClass(MetaDataRegisterDTO.class);
         verify(publisher).publish(captured.capture());
