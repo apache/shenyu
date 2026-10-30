@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,7 +103,7 @@ public class AppAuthTransactionService {
         candidate.setRequestId(request.getRequestId());
         candidate.setRequestHash(requestHash);
         candidate.setState(STATE_CREATED);
-        requestMapper.reserveIfAbsent(candidate);
+        reserveIfAbsent(candidate);
 
         final AppAuthRequestDO locked = requestMapper.selectByKeyForUpdate(
                 callerKey, request.getNamespaceId(), request.getRequestId());
@@ -150,7 +151,7 @@ public class AppAuthTransactionService {
             authPathMapper.batchSave(paths);
         }
 
-        final int completed = requestMapper.completeCreated(candidate.getId(), auth.getId());
+        final int completed = requestMapper.completeCreated(candidate.getId(), auth.getId(), STATE_CREATED);
         if (completed != 1) {
             throw new ShenyuAdminException("Apply failed: association backfill matched no row");
         }
@@ -218,7 +219,7 @@ public class AppAuthTransactionService {
         candidate.setRequestHash(null);
         candidate.setAuthId(null);
         candidate.setState(STATE_REVOKED);
-        requestMapper.reserveIfAbsent(candidate);
+        reserveIfAbsent(candidate);
 
         final AppAuthRequestDO locked = requestMapper.selectByKeyForUpdate(
                 callerKey, request.getNamespaceId(), request.getRequestId());
@@ -242,7 +243,7 @@ public class AppAuthTransactionService {
         }
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
-        requestMapper.markRevoked(locked.getId(), request.getReason());
+        requestMapper.markRevoked(locked.getId(), request.getReason(), STATE_REVOKED);
         registerAfterCommitDeleteEvent(deletedAuths);
         return revokedResult(request);
     }
@@ -337,6 +338,22 @@ public class AppAuthTransactionService {
         } catch (Exception e) {
             LOG.error("APP_AUTH_SYNC_FAILED: update event authId={}, errorType={}",
                     auth.getId(), e.getClass().getName());
+        }
+    }
+
+    /**
+     * Insert the reservation. A concurrent insert of the same unique key (Oracle MERGE can raise ORA-00001)
+     * is not a failure: the following lock reads the winning row and the existing validation decides replay,
+     * conflict, or revoke. Other database errors still roll the transaction back.
+     *
+     * @param candidate reservation candidate
+     */
+    private void reserveIfAbsent(final AppAuthRequestDO candidate) {
+        try {
+            requestMapper.reserveIfAbsent(candidate);
+        } catch (DuplicateKeyException ex) {
+            LOG.debug("APP_AUTH_RESERVE: unique key already inserted, callerKey={}, namespaceId={}, requestId={}",
+                    candidate.getCallerKey(), candidate.getNamespaceId(), candidate.getRequestId());
         }
     }
 

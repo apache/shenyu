@@ -466,7 +466,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
         for (AppAuthRequestDO record : lifecycleRecords) {
             if (!"REVOKED".equals(record.getState())) {
-                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete");
+                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete", "REVOKED");
             }
         }
         List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
