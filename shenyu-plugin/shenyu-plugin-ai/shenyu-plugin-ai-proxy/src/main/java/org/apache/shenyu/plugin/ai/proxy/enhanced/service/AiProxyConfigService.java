@@ -17,15 +17,20 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -34,7 +39,9 @@ import java.util.Optional;
  */
 public class AiProxyConfigService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AiProxyConfigService.class);
+    private static final ObjectMapper REQUEST_MAPPER = new ObjectMapper()
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 
     private static final String FALLBACK_CONFIG = "fallbackConfig";
 
@@ -81,43 +88,108 @@ public class AiProxyConfigService {
     }
 
     /**
-     * Resolves the dynamic fallback configuration from the request body.
+     * Resolve a request without selector authorization. Request-selected fallback is disabled.
      *
-     * @param primaryConfig the primary config to use as a base for supplementation
-     * @param requestBody   the request body
-     * @return an Optional containing the final fallback AiCommonConfig
+     * @param primaryConfig primary configuration
+     * @param requestBody request body
+     * @return empty when no fallback is requested
      */
-    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig,
-            final String requestBody) {
-        return extractDynamicFallbackConfig(requestBody)
-                .map(dynamicConfig -> {
-                    LOG.info("Resolved dynamic fallback config: {}", dynamicConfig);
-                    return new AiCommonConfig(primaryConfig).mergeWith(dynamicConfig);
-                });
+    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig, final String requestBody) {
+        return resolveDynamicFallbackConfig(primaryConfig, null, requestBody);
     }
 
     /**
-     * Resolves the admin-configured fallback from the selector handle.
+     * Resolve a request-selected target from this selector's trusted configuration.
+     * Request bodies may name a target, but may not supply upstream configuration.
      *
-     * @param primaryConfig the primary config to use as a base for supplementation
-     * @param handle        the selector handle
-     * @return an Optional containing the final fallback AiCommonConfig
+     * @param primaryConfig primary configuration, including any resolved proxy credential
+     * @param handle selector-owned authorization and target definitions
+     * @param requestBody request body
+     * @return selected, credential-bound fallback, or empty when none was requested
      */
-    public Optional<AiCommonConfig> resolveAdminFallbackConfig(final AiCommonConfig primaryConfig,
-            final AiProxyHandle handle) {
-        return Optional.ofNullable(handle)
-                .map(AiProxyHandle::getFallbackConfig)
-                .map(fallback -> {
-                    AiCommonConfig config = new AiCommonConfig();
-                    config.setProvider(fallback.getProvider());
-                    config.setModel(fallback.getModel());
-                    config.setApiKey(fallback.getApiKey());
-                    config.setBaseUrl(fallback.getBaseUrl());
-                    config.setTemperature(fallback.getTemperature());
-                    config.setMaxTokens(fallback.getMaxTokens());
-                    LOG.info("Resolved admin fallback config: {}", config);
-                    return new AiCommonConfig(primaryConfig).mergeWith(config);
-                });
+    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig,
+                                                              final AiProxyHandle handle, final String requestBody) {
+        JsonNode root = requestObject(requestBody);
+        if (Objects.isNull(root) || !root.has(FALLBACK_CONFIG)) {
+            return Optional.empty();
+        }
+        if (Objects.isNull(handle) || !Boolean.TRUE.equals(handle.getDynamicFallbackEnabled())) {
+            throw new ShenyuException("Request-selected AI fallback is disabled");
+        }
+        JsonNode selection = root.get(FALLBACK_CONFIG);
+        if (!selection.isObject() || selection.size() != 1 || !selection.has("target")
+                || !selection.get("target").isTextual() || !selection.get("target").asText().matches("[A-Za-z0-9][A-Za-z0-9._-]{0,63}")) {
+            throw new ShenyuException("AI fallback must contain only a managed target reference");
+        }
+        AiProxyHandle.FallbackConfig target = Objects.isNull(handle.getFallbackTargets()) ? null
+                : handle.getFallbackTargets().get(selection.get("target").asText());
+        if (Objects.isNull(target)) {
+            throw new ShenyuException("AI fallback target is not authorized for this selector");
+        }
+        return Optional.of(bindFallback(primaryConfig, target));
+    }
+
+    /**
+     * Resolve an administrator-configured fallback without implicitly moving credentials.
+     *
+     * @param primaryConfig primary configuration
+     * @param handle selector configuration
+     * @return credential-bound fallback, or empty
+     */
+    public Optional<AiCommonConfig> resolveAdminFallbackConfig(final AiCommonConfig primaryConfig, final AiProxyHandle handle) {
+        return Optional.ofNullable(handle).map(AiProxyHandle::getFallbackConfig)
+                .map(fallback -> bindFallback(primaryConfig, fallback));
+    }
+
+    private JsonNode requestObject(final String requestBody) {
+        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
+            return null;
+        }
+        final JsonNode root;
+        try {
+            root = REQUEST_MAPPER.readTree(requestBody);
+        } catch (JsonProcessingException e) {
+            throw new ShenyuException("AI request body must be a valid JSON object");
+        }
+        if (Objects.isNull(root) || !root.isObject()) {
+            throw new ShenyuException("AI request body must be a valid JSON object");
+        }
+        return root;
+    }
+
+    private AiCommonConfig bindFallback(final AiCommonConfig primary, final AiProxyHandle.FallbackConfig target) {
+        AiCommonConfig overlay = new AiCommonConfig();
+        overlay.setProvider(target.getProvider());
+        overlay.setModel(target.getModel());
+        overlay.setApiKey(target.getApiKey());
+        overlay.setBaseUrl(target.getBaseUrl());
+        overlay.setTemperature(target.getTemperature());
+        overlay.setMaxTokens(target.getMaxTokens());
+        AiCommonConfig resolved = new AiCommonConfig(primary).mergeWith(overlay);
+        UpstreamIdentity identity = identity(resolved);
+        if (Objects.isNull(target.getApiKey()) && !identity.equals(identity(primary))) {
+            throw new ShenyuException("AI fallback to a different upstream requires its own credential");
+        }
+        return resolved;
+    }
+
+    private UpstreamIdentity identity(final AiCommonConfig config) {
+        if (Objects.isNull(config.getProvider()) || config.getProvider().isBlank() || Objects.isNull(config.getBaseUrl())) {
+            throw new ShenyuException("AI fallback requires an explicit upstream identity");
+        }
+        final URI uri;
+        try {
+            uri = URI.create(config.getBaseUrl());
+        } catch (IllegalArgumentException e) {
+            throw new ShenyuException("AI fallback requires a valid HTTP(S) endpoint");
+        }
+        if (!("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
+                || Objects.isNull(uri.getHost()) || Objects.nonNull(uri.getRawUserInfo())
+                || Objects.nonNull(uri.getRawQuery()) || Objects.nonNull(uri.getRawFragment()) || uri.getPort() == 0 || uri.getPort() > 65535) {
+            throw new ShenyuException("AI fallback requires a valid HTTP(S) endpoint");
+        }
+        int port = uri.getPort() < 0 ? ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80) : uri.getPort();
+        return new UpstreamIdentity(config.getProvider(), uri.getScheme().toLowerCase(Locale.ROOT), uri.getHost().toLowerCase(Locale.ROOT), port, uri.getRawPath());
     }
 
     /**
@@ -149,24 +221,7 @@ public class AiProxyConfigService {
         return requestBody;
     }
 
-    private Optional<AiCommonConfig> extractDynamicFallbackConfig(final String requestBody) {
-        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
-            return Optional.empty();
-        }
-        JsonNode jsonNode = JsonUtils.toJsonNode(requestBody);
-        if (jsonNode.has(FALLBACK_CONFIG)) {
-            AiProxyHandle.FallbackConfig fallbackConfig = JsonUtils.jsonToObject(
-                    jsonNode.get(FALLBACK_CONFIG).toString(), AiProxyHandle.FallbackConfig.class);
-            AiCommonConfig config = new AiCommonConfig();
-            config.setProvider(fallbackConfig.getProvider());
-            config.setModel(fallbackConfig.getModel());
-            config.setApiKey(fallbackConfig.getApiKey());
-            config.setBaseUrl(fallbackConfig.getBaseUrl());
-            config.setTemperature(fallbackConfig.getTemperature());
-            config.setMaxTokens(fallbackConfig.getMaxTokens());
-            return Optional.of(config);
-        }
-        return Optional.empty();
+    private record UpstreamIdentity(String provider, String scheme, String host, int port, String path) {
     }
 
 }
