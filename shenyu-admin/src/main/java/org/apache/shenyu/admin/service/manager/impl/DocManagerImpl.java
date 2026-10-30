@@ -58,11 +58,6 @@ public class DocManagerImpl implements DocManager {
 
     private static final String API_DOC_VERSION = "v0.01";
 
-    /**
-     * The constant HTTP.
-     */
-    private static final String HTTP = "http://";
-
     private static final DocParser SWAGGER_DOC_PARSER = new SwaggerDocParser();
 
     @Resource
@@ -161,7 +156,7 @@ public class DocManagerImpl implements DocManager {
         ext.setParameterTypes("");
         ext.setRpcExt(null);
         ext.setAddPrefixed(false);
-        ext.setProtocol(HTTP);
+        ext.setProtocol(instance.getScheme() + "://");
         return GsonUtils.getInstance().toJson(ext);
     }
 }
