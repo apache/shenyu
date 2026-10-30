@@ -73,9 +73,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -172,10 +172,14 @@ class AiProxyPluginTest {
     @Test
     void testExecuteWithValidProxyApiKey() {
         handle.setProxyEnabled("true");
-        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-valid")
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().id("internal-id").selectorId(SELECTOR_ID).proxyApiKey("proxy-valid")
                 .realApiKey("real-key").enabled(true).build());
         exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-valid").body(REQUEST_BODY));
-        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "ok"))))).verifyComplete();
+        List<org.apache.shenyu.common.audit.AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "ok")),
+                org.apache.shenyu.common.audit.AgentInvocationAuditBridge.ai(null, audits::add)))).verifyComplete();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(2, audits.size()));
+        assertTrue(audits.stream().allMatch(event -> event.getApiKeyId().orElseThrow().equals("internal-id")));
         assertEquals(List.of("Bearer real-key"), requests.get(0).getHeaders().get("Authorization"));
         assertFalse(requests.get(0).getHeaders().containsKey(Constants.X_API_KEY));
         assertEquals("primary-key", handle.getApiKey());

@@ -31,10 +31,12 @@ import java.util.Objects;
 import java.util.Set;
 
 /** Strict, secret-free configuration shared by Admin and gateway. */
-public record AgentGatewayAggregationConfig(String revision, List<Server> servers) {
+public record AgentGatewayAggregationConfig(String revision, List<Server> servers, AgentGatewayAdmissionConfig admission) {
 
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+    private static final AgentGatewayAdmissionConfig DEFAULT_ADMISSION = AgentGatewayAdmissionConfig.parse(null);
 
     public AgentGatewayAggregationConfig {
         if (Objects.isNull(revision) || !revision.matches("[A-Za-z0-9_-]{1,48}")) {
@@ -53,7 +55,7 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
      */
     public static AgentGatewayAggregationConfig parsePluginConfig(final String source) {
         if (Objects.isNull(source) || source.isBlank()) {
-            return new AgentGatewayAggregationConfig("empty", List.of());
+            return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
         }
         if (source.getBytes(StandardCharsets.UTF_8).length > 16384) {
             throw new IllegalArgumentException("Aggregation configuration byte limit");
@@ -64,9 +66,18 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 throw new IllegalArgumentException("Expected plugin configuration object");
             }
             if (root.isEmpty()) {
-                return new AgentGatewayAggregationConfig("empty", List.of());
+                return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
             }
-            fields(root, Set.of("aggregation"));
+            boolean hasAggregation = root.has("aggregation");
+            Set<String> pluginFields = new HashSet<>(hasAggregation ? Set.of("aggregation") : Set.of());
+            if (root.has("admission")) {
+                pluginFields.add("admission");
+            }
+            fields(root, pluginFields);
+            if (!hasAggregation) {
+                return new AgentGatewayAggregationConfig("empty", List.of(),
+                        AgentGatewayAdmissionConfig.parse(root.get("admission")));
+            }
             JsonNode aggregation = root.get("aggregation");
             fields(aggregation, Set.of("revision", "servers"));
             if (!aggregation.path("servers").isArray()) {
@@ -78,7 +89,8 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
                         text(server, "credentialRef"), text(server, "credentialVersion")));
             }
-            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
+            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers,
+                    AgentGatewayAdmissionConfig.parse(root.get("admission")));
         } catch (Exception error) {
             // Do not include raw config or a parse exception which could contain a supplied secret.
             throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");

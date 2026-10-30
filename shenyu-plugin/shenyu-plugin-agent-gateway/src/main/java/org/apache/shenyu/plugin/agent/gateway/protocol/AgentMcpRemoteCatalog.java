@@ -36,6 +36,14 @@ public interface AgentMcpRemoteCatalog {
      */
     Mono<ObjectNode> withSnapshot(Function<Snapshot, Mono<ObjectNode>> operation);
 
+    /** Return the closeable request-admission controller owned by this catalog.
+     * @return controller implementation
+     */
+    default AgentMcpResourceAdmission admission() {
+        return AgentMcpResourceAdmission.NOOP;
+    }
+
+
     /** Distinguishes an unavailable catalog from unexpected gateway failures. */
     final class CatalogUnavailableException extends IllegalStateException {
 

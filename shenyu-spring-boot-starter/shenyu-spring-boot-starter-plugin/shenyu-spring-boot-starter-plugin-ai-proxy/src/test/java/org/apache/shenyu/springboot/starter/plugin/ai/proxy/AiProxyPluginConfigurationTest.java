@@ -75,6 +75,17 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
+    void managedAuditCanCoexistWithExistingObserverInAiOnlyDeployment() {
+        contextRunner.withConfiguration(AutoConfigurations.of(
+                org.apache.shenyu.springboot.starter.agent.audit.AgentInvocationAuditConfiguration.class))
+                .withPropertyValues("shenyu.plugins.agent.audit.enabled=true")
+                .withBean(AiCallObserver.class, () -> event -> { })
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed()
+                        .hasSingleBean(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.class)
+                        .hasSingleBean(AiProxyPlugin.class));
+    }
+
+    @Test
     void createsTheMigratedPluginAndAllExistingProviderIdentifiers() {
         new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class).run(context -> {
             org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class).hasSingleBean(AiProxyEngine.class)

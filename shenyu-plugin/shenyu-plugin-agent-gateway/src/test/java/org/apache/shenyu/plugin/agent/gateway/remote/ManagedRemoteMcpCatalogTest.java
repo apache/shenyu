@@ -21,6 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -44,6 +49,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManagedRemoteMcpCatalogTest {
+
+    @Test
+    void catalogMetricsDescribeAcquisitionNotBusinessOutcome() {
+        AgentRuntimeMetrics metrics = org.mockito.Mockito.mock(AgentRuntimeMetrics.class);
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(), Set.of(), reference -> {
+            throw new IllegalStateException("No credentials expected");
+        });
+        try {
+            StepVerifier.create(catalog.withSnapshot(snapshot -> Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException()))
+                    .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics)))
+                    .expectError(AgentMcpRemoteCatalog.CatalogUnavailableException.class).verify();
+            org.mockito.Mockito.verify(metrics).catalog(true);
+            org.mockito.Mockito.verify(metrics, org.mockito.Mockito.never()).catalog(false);
+            catalog.close();
+            StepVerifier.create(catalog.withSnapshot(snapshot -> Mono.just(new ObjectMapper().createObjectNode()))
+                    .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics)))
+                    .expectError(AgentMcpRemoteCatalog.CatalogUnavailableException.class).verify();
+            org.mockito.Mockito.verify(metrics).catalog(false);
+        } finally {
+            catalog.close();
+        }
+    }
 
     @Test
     void newerFencedEventClearsOnlyTheSupersededFailureDiagnostic() throws Exception {
@@ -78,6 +105,29 @@ class ManagedRemoteMcpCatalogTest {
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
+        }
+    }
+
+    @Test
+    void validConfigurationReplacesAdmissionLimitsAfterCredentialResolution() throws InterruptedException {
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16));
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(URI.create("https://192.0.2.10:443/mcp")), Set.of(), target ->
+                new RemoteServerBinding.Credential(target, "fixed-test-token"), admission, false);
+        try {
+            assertEquals(128, catalog.admissionConfig().globalInFlight());
+            catalog.accept(event(true, configWithAdmission(16, 8, 4)));
+            admission.replace(AgentMcpResourceAdmission.create(
+                    new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(16, 32, 16, 8, 8, 4)));
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
+            assertEquals(16, catalog.admissionConfig().globalInFlight());
+            assertEquals(8, catalog.admissionConfig().remoteInFlight());
+            assertEquals(4, catalog.admissionConfig().remoteQueued());
+            assertEquals(16, admission.snapshot().stream()
+                    .filter(state -> state.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.GLOBAL)
+                    .findFirst().orElseThrow().inFlightLimit());
+        } finally {
+            catalog.close();
         }
     }
 
@@ -258,6 +308,12 @@ class ManagedRemoteMcpCatalogTest {
     private static String config() {
         return "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\","
                 + "\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}]}}";
+    }
+
+    private static String configWithAdmission(final int global, final int remoteInFlight, final int remoteQueued) {
+        return "{\"aggregation\":{\"revision\":\"admission\",\"servers\":[]},\"admission\":{"
+                + "\"globalInFlight\":" + global + ",\"globalQueued\":32,\"localInFlight\":16,"
+                + "\"localQueued\":8,\"remoteInFlight\":" + remoteInFlight + ",\"remoteQueued\":" + remoteQueued + "}}";
     }
 
     private static void await(final BooleanSupplier condition) throws InterruptedException {
