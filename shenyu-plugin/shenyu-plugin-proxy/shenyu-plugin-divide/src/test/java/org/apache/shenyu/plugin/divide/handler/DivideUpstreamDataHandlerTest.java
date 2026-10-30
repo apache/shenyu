@@ -319,6 +319,17 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(2, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
     }
 
+    @Test
+    public void testNotReadyUpstreamIsNotSelectable() {
+        publish(List.of(instance("sibling:8080", "{}"), instance("starting:8080", "{\"notReady\":true}")));
+        List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, upstreams.size());
+        assertEquals("sibling:8080", upstreams.get(0).getUrl());
+        // readiness travels through props into the loadbalancer entity, not through status
+        publish(List.of(instance("sibling:8080", "{}"), instance("starting:8080", "{}")));
+        assertEquals(2, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
+    }
+
     private DiscoveryUpstreamData instance(final String url, final String props) {
         return DiscoveryUpstreamData.builder().protocol("http://").url(url).status(0).props(props).build();
     }

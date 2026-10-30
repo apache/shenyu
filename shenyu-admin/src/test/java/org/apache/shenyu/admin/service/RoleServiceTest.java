@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.RoleDO;
@@ -30,6 +31,7 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.impl.RoleServiceImpl;
 import org.apache.shenyu.admin.service.publish.RoleEventPublisher;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,9 +51,11 @@ import java.util.stream.Collectors;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +81,9 @@ public class RoleServiceTest {
 
     @Mock
     private ResourceMapper resourceMapper;
+
+    @Mock
+    private UserRoleMapper userRoleMapper;
 
     @Test
     public void testCreateOrUpdate() {
@@ -132,8 +139,28 @@ public class RoleServiceTest {
     @Test
     public void testDelete() {
         List<String> ids = Arrays.asList("1", "2");
+        List<RoleDO> roles = Arrays.asList(RoleDO.builder().id("1").roleName("role-1").build(),
+                RoleDO.builder().id("2").roleName("role-2").build());
+        given(roleMapper.selectByIds(ids)).willReturn(roles);
+        given(roleMapper.delete(ids)).willReturn(2);
+
         roleService.delete(ids);
+
+        verify(userRoleMapper).deleteByRoleIdList(ids);
         verify(roleMapper, times(1)).delete(ids);
+        verify(publisher).onDeleted(roles);
+    }
+
+    @Test
+    public void testDeleteRejectsSuperRole() {
+        List<String> ids = Collections.singletonList(AdminConstants.ROLE_SUPER_ID);
+        given(roleMapper.selectByIds(ids)).willReturn(Collections.singletonList(
+                RoleDO.builder().id(AdminConstants.ROLE_SUPER_ID).roleName("super").build()));
+
+        assertThrows(IllegalArgumentException.class, () -> roleService.delete(ids));
+
+        verify(userRoleMapper, never()).deleteByRoleIdList(ids);
+        verify(roleMapper, never()).delete(ids);
     }
 
     @Test
