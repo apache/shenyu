@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -78,6 +79,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     // free-form props key carrying the draining admission marker (#8042)
     private static final String DRAINING_PROP_KEY = "draining";
+
+    // free-form props key carrying the not-ready admission marker (#8042)
+    private static final String NOT_READY_PROP_KEY = "notReady";
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -361,6 +365,25 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void markDrainingBySelectorIdAndUrl(final String selectorId, final String url, final boolean draining) {
+        updateUpstreamProps(selectorId, url, props -> props.put(DRAINING_PROP_KEY, draining));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markNotReadyBySelectorIdAndUrl(final String selectorId, final String url, final boolean notReady) {
+        updateUpstreamProps(selectorId, url, props -> props.put(NOT_READY_PROP_KEY, notReady));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markReadyBySelectorIdAndUrl(final String selectorId, final String url) {
+        updateUpstreamProps(selectorId, url, props -> {
+            props.remove(DRAINING_PROP_KEY);
+            props.remove(NOT_READY_PROP_KEY);
+        });
+    }
+
+    private void updateUpstreamProps(final String selectorId, final String url, final Consumer<Map<String, Object>> mutation) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.isNull(discoveryHandlerDO)) {
             return;
@@ -371,7 +394,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         Map<String, Object> props = !StringUtils.hasLength(upstream.getProps())
                 ? new LinkedHashMap<>() : GsonUtils.getInstance().convertToMap(upstream.getProps());
-        props.put(DRAINING_PROP_KEY, draining);
+        mutation.accept(props);
         discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, GsonUtils.getInstance().toJson(props));
     }
 
