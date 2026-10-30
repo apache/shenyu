@@ -139,7 +139,7 @@ public final class RegistryServiceImplTest {
     @Test
     public void testListByPageWithResultsAndFindMappings() {
         RegistryQuery query = new RegistryQuery();
-        // The pagination aspect supplies the SQL total before the service maps the selected rows.
+        // The service must preserve pagination metadata supplied in the query.
         final PageParameter page = new PageParameter(2, 1, 3);
         query.setPageParameter(page);
         RegistryDO registry = RegistryDO.builder().id("id").registryId("r1").build();
