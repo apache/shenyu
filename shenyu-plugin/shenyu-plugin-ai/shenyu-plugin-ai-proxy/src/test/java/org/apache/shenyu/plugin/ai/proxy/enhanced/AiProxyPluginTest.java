@@ -327,6 +327,15 @@ class AiProxyPluginTest {
     }
 
     @Test
+    void mapsOversizedRequestBeforeCommitmentToPayloadTooLarge() {
+        AiTransportException failure = new AiTransportException(
+                AiTransportException.Kind.REQUEST_TOO_LARGE, "request too large", null);
+        StepVerifier.create(execute(plugin(request -> Mono.error(failure)))).verifyComplete();
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
+        assertEquals(1, requests.size());
+    }
+
+    @Test
     void wrappedTimeoutKeepsTimeoutClassificationBeforeRecovery() {
         final List<AiTerminalEvent> events = new ArrayList<>();
         final AiProxyPlugin plugin = plugin(request -> Mono.error(new ShenyuException(new TimeoutException("upstream deadline"))), events::add);
