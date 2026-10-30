@@ -60,6 +60,7 @@ import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValida
 import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
 import org.apache.shenyu.common.config.contract.ConfigurationScope;
 import org.apache.shenyu.common.config.contract.ConfigurationValidation;
+import org.apache.shenyu.common.config.contract.ConfigurationValidationException;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -261,11 +262,16 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
             return;
         }
+        validateRegisteredHandle(plugin.getName(), handle);
         try {
             DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
             if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
-                CanaryConfigValidator.validateExtensions(divide.getCanary(),
-                        name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
+                try {
+                    CanaryConfigValidator.validateExtensions(divide.getCanary(),
+                            name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
+                } catch (IllegalArgumentException error) {
+                    throw ConfigurationValidationException.bindingUnavailable("divide", ConfigurationScope.RULE, "canary");
+                }
             }
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
@@ -480,10 +486,13 @@ public class RuleServiceImpl implements RuleService {
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
         }
-        ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate(plugin.getName(), ConfigurationScope.RULE, "1", handle);
+        validateRegisteredHandle(plugin.getName(), handle);
+    }
+
+    private void validateRegisteredHandle(final String plugin, final String handle) {
+        ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate(plugin, ConfigurationScope.RULE, "1", handle);
         if (validation.status() == ConfigurationValidation.Status.INVALID) {
-            throw new ShenyuAdminException("Invalid rule configuration: " + plugin.getName() + " " + validation.violations().get(0).path()
-                    + " " + validation.violations().get(0).code());
+            throw new ShenyuAdminException(new ConfigurationValidationException(validation).getMessage());
         }
     }
     

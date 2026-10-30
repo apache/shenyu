@@ -15,3 +15,4 @@
 
 org.apache.shenyu.common.config.contract.AgentGatewayPluginContract
 org.apache.shenyu.common.config.contract.RewriteRuleContract
+org.apache.shenyu.common.config.contract.DivideRuleContract

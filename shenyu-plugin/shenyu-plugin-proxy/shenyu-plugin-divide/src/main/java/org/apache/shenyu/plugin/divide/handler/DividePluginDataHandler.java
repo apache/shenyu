@@ -18,6 +18,10 @@
 package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
+import org.apache.shenyu.common.config.contract.ConfigurationValidationException;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
@@ -66,10 +70,18 @@ public class DividePluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate("divide", ConfigurationScope.RULE, "1", s);
+            if (validation.status() == ConfigurationValidation.Status.INVALID) {
+                throw new ConfigurationValidationException(validation);
+            }
             DivideRuleHandle divideRuleHandle = CanaryConfigValidator.parseHandle(s);
             if (Objects.nonNull(divideRuleHandle.getCanary())) {
-                CanaryConfigValidator.validateExtensions(divideRuleHandle.getCanary(),
-                        ParameterDataFactory::newInstance, PredicateJudgeFactory::newInstance);
+                try {
+                    CanaryConfigValidator.validateExtensions(divideRuleHandle.getCanary(),
+                            ParameterDataFactory::newInstance, PredicateJudgeFactory::newInstance);
+                } catch (RuntimeException error) {
+                    throw ConfigurationValidationException.bindingUnavailable("divide", ConfigurationScope.RULE, "canary");
+                }
             }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
             // the update is also need to clean, but there is no way to
