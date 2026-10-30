@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.metrics.AiCallObserver;
+
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.common.dto.PluginData;
@@ -63,6 +65,16 @@ class AiProxyPluginConfigurationTest {
                     AiProxyPluginConfiguration.class));
 
     @Test
+    void acceptsOneApplicationObserverAndRejectsAmbiguousSinks() {
+        final AiCallObserver first = event -> { };
+        final AiCallObserver second = event -> { };
+        contextRunner.withBean("firstSink", AiCallObserver.class, () -> first)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class));
+        contextRunner.withBean("firstSink", AiCallObserver.class, () -> first).withBean("secondSink", AiCallObserver.class, () -> second)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
     void createsTheMigratedPluginAndAllExistingProviderIdentifiers() {
         new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class).run(context -> {
             org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class).hasSingleBean(AiProxyEngine.class)
@@ -73,7 +85,15 @@ class AiProxyPluginConfigurationTest {
             org.junit.jupiter.api.Assertions.assertTrue(context.getBean(AiProtocolConverterFactory.class)
                     .supports(OpenAiResponses.NAME, OpenAiChat.NAME));
             assertSame(context.getBean(OpenAiResponses.class), context.getBean(AiProxyProtocolFactory.class).getProtocol(OpenAiResponses.NAME));
-            for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
+            AiProxyProvider openAi = factory.getProvider("OpenAI");
+            assertEquals("openai", openAi.name());
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiResponses.NAME));
+            AiProxyProvider deepSeek = factory.getProvider("DeepSeek");
+            assertEquals("deepseek", deepSeek.name().toLowerCase(java.util.Locale.ROOT));
+            org.junit.jupiter.api.Assertions.assertTrue(deepSeek.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertFalse(deepSeek.supports(OpenAiResponses.NAME));
+            for (String provider : List.of("ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
                 assertEquals(provider.toLowerCase(java.util.Locale.ROOT), factory.getProvider(provider).name().toLowerCase(java.util.Locale.ROOT));
                 org.junit.jupiter.api.Assertions.assertTrue(factory.getProvider(provider).supports(OpenAiChat.NAME));
                 org.junit.jupiter.api.Assertions.assertFalse(factory.getProvider(provider).supports(OpenAiResponses.NAME));

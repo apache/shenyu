@@ -62,6 +62,11 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      # probeMode: central (default) keeps the existing admin-side upstream health checks.
+      # local disables admin-side probing so probe results never globally affect upstream
+      # health; it requires shenyu.upstreamCheck.enabled=true on every bootstrap instance.
+      # Switching to local does not re-enable upstreams disabled before the switch.
+      probeMode: central
       zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10

@@ -42,6 +42,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,6 +66,10 @@ import java.util.stream.Collectors;
 public class MetaDataServiceImpl implements MetaDataService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetaDataServiceImpl.class);
+
+    private static final String CREATE_PERMISSION = "system:meta:add";
+
+    private static final String UPDATE_PERMISSION = "system:meta:edit";
 
     private final MetaDataMapper metaDataMapper;
 
@@ -93,6 +98,8 @@ public class MetaDataServiceImpl implements MetaDataService {
             eventType = DataEventTypeEnum.CREATE;
         } else {
             metaDataDO.setId(exist.getId());
+            // the update sql keeps the stored enabled status, so the event must carry it too
+            metaDataDO.setEnabled(exist.getEnabled());
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
@@ -104,7 +111,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
-        if (StringUtils.isBlank(metaDataDTO.getId())) {
+        final boolean create = StringUtils.isBlank(metaDataDTO.getId());
+        SecurityUtils.getSubject().checkPermission(create ? CREATE_PERMISSION : UPDATE_PERMISSION);
+        if (create) {
             create(metaDataDTO);
             return ShenyuResultMessage.CREATE_SUCCESS;
         }

@@ -111,7 +111,7 @@ class SelectorRegistrationConcurrencyTest {
         SelectorServiceImpl target = new SelectorServiceImpl(selectors, mock(SelectorConditionMapper.class), plugins,
                 mock(ApplicationEventPublisher.class), mock(DiscoveryMapper.class), mock(DiscoveryHandlerMapper.class),
                 mock(DiscoveryRelMapper.class), mock(DiscoveryUpstreamMapper.class), mock(DiscoveryProcessorHolder.class),
-                mock(SelectorEventPublisher.class));
+                mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class));
         ProxyFactory proxy = new ProxyFactory(target);
         proxy.addAdvice(new TransactionInterceptor(transactions, new AnnotationTransactionAttributeSource()));
         return (SelectorService) proxy.getProxy();

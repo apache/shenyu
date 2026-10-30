@@ -72,6 +72,19 @@ public class StickySessionConfig {
     private String onUnavailable = "REBIND";
 
     /**
+     * Optional deterministic key for hash-based selection. Absent configuration
+     * keeps the plain load-balancing behavior; when configured, a request that
+     * carries the key is mapped onto the candidate set by the consistent hash
+     * ring instead of the load-balancing algorithm. This is key hashing, not an
+     * explicit binding: no cookie is written for the key itself, while an active
+     * binding still records the chosen target for new sessions. The mapping
+     * re-applies from the live candidate set whenever no binding is present.
+     * The key applies only while the enclosing configuration is active — enabled
+     * with binding secrets, a cookie name and a positive lifetime (#8037).
+     */
+    private DeterministicKeyConfig key;
+
+    /**
      * Whether affinity is enabled.
      *
      * @return enabled
@@ -159,5 +172,23 @@ public class StickySessionConfig {
      */
     public void setOnUnavailable(final String onUnavailable) {
         this.onUnavailable = onUnavailable;
+    }
+
+    /**
+     * Get the optional deterministic key configuration.
+     *
+     * @return the key configuration, or null when not configured
+     */
+    public DeterministicKeyConfig getKey() {
+        return key;
+    }
+
+    /**
+     * Set the deterministic key configuration.
+     *
+     * @param key the key configuration
+     */
+    public void setKey(final DeterministicKeyConfig key) {
+        this.key = key;
     }
 }

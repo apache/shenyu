@@ -22,7 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
+import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
@@ -62,6 +64,8 @@ public final class AgentMcpHttpHandler {
 
     private final AgentMcpCallTracer tracer;
 
+    private final AgentMcpTerminalObserver terminalObserver;
+
     private final AgentMcpRequestParser parser = new AgentMcpRequestParser();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -71,9 +75,15 @@ public final class AgentMcpHttpHandler {
     }
 
     public AgentMcpHttpHandler(final AgentMcpDispatcher dispatcher, final AgentMcpSecurityResolver securityResolver, final AgentMcpCallTracer tracer) {
+        this(dispatcher, securityResolver, tracer, null);
+    }
+
+    public AgentMcpHttpHandler(final AgentMcpDispatcher dispatcher, final AgentMcpSecurityResolver securityResolver,
+                              final AgentMcpCallTracer tracer, final AgentMcpTerminalObserver terminalObserver) {
         this.dispatcher = Objects.requireNonNull(dispatcher, "dispatcher");
         this.securityResolver = Objects.requireNonNull(securityResolver, "securityResolver");
         this.tracer = tracer;
+        this.terminalObserver = terminalObserver;
     }
 
     /**
@@ -102,6 +112,8 @@ public final class AgentMcpHttpHandler {
     public Mono<Void> handle(final ServerWebExchange exchange, final AgentGatewayMcpConfig config,
                              final AgentTrafficContext traffic, final long configurationVersion, final AgentHttpToolInvoker httpInvoker) {
         return Mono.deferContextual(parentContext -> {
+            final AgentMcpTerminalObservation terminal = Objects.isNull(terminalObserver) ? null
+                    : new AgentMcpTerminalObservation(terminalObserver, traffic, configurationVersion);
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
             Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
             final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null,
@@ -110,29 +122,59 @@ public final class AgentMcpHttpHandler {
             return Mono.fromRunnable(() -> preflight(exchange, config))
                     .then(Mono.defer(() -> securityResolver.resolve(exchange))
                             .switchIfEmpty(Mono.error(failure(401, "Trusted identity is required", null))))
+                    .doOnNext(identity -> {
+                        if (Objects.nonNull(terminal)) {
+                            terminal.identified(identity.getTenant().orElse(null), identity.getSubject());
+                        }
+                    })
                     .flatMap(identity -> read(exchange, config).map(body -> parser.parse(body, exchange.getRequest().getHeaders(), config.getMaxRequestBytes()))
                             .flatMap(request -> {
                                 rpcId.set(request.getId());
+                                if (Objects.nonNull(terminal)) {
+                                    terminal.parsed(request);
+                                }
                                 observation.parsed(request);
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
                                         traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters(),
                                         config.getAllowedResources(), identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
                                         identity.getTenant().orElse(null)))
-                                        .contextWrite(observation::traceContext);
+                                        .contextWrite(observation::traceContext)
+                                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
+                                                traffic.toRequestContext(configurationVersion).withIdentity(identity.getTenant().orElse(null), identity.getSubject())
+                                                        .withTarget("tools/call".equals(request.getMethod()) ? request.getParams().path("name").textValue() : null,
+                                                                request.getMethod(), AgentMcpRequestParser.VERSION)));
                             }))
                     .flatMap(response -> {
                         observation.response(response);
+                        if (Objects.nonNull(terminal)) {
+                            terminal.response(response.path("result").path("isError").asBoolean(false));
+                        }
                         return write(exchange, response, config, "sse".equals(config.getResponseMode()), 200);
                     })
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
                     .onErrorResume(error -> {
                         observation.failure(error);
-                        return handleFailure(exchange, config, rpcId.get(), error);
+                        recordFailure(terminal, error);
+                        return handleFailure(exchange, config, rpcId.get(), error, terminal);
                     })
                     // Recovery writes can fail independently of the execution error classified above.
-                    .doOnError(observation::failure)
-                    .doFinally(observation::finish);
+                    .doOnError(error -> {
+                        observation.failure(error);
+                        recordFailure(terminal, error);
+                    })
+                    .doFinally(signal -> {
+                        observation.finish(signal);
+                        if (Objects.nonNull(terminal)) {
+                            terminal.finish(signal, Objects.isNull(exchange.getResponse().getStatusCode()) ? null : exchange.getResponse().getStatusCode().value());
+                        }
+                    });
         });
+    }
+
+    private void recordFailure(final AgentMcpTerminalObservation terminal, final Throwable error) {
+        if (Objects.nonNull(terminal)) {
+            terminal.failure(error, error instanceof TransportFailure ? ((TransportFailure) error).status : null);
+        }
     }
 
     private void preflight(final ServerWebExchange exchange, final AgentGatewayMcpConfig config) {
@@ -195,7 +237,8 @@ public final class AgentMcpHttpHandler {
                 }).defaultIfEmpty(new byte[0]);
     }
 
-    private Mono<Void> handleFailure(final ServerWebExchange exchange, final AgentGatewayMcpConfig config, final JsonNode id, final Throwable error) {
+    private Mono<Void> handleFailure(final ServerWebExchange exchange, final AgentGatewayMcpConfig config, final JsonNode id,
+                                     final Throwable error, final AgentMcpTerminalObservation terminal) {
         if (exchange.getResponse().isCommitted()) {
             return Mono.error(error);
         }
@@ -222,6 +265,7 @@ public final class AgentMcpHttpHandler {
         // Execution is already terminated. Bound the best-effort terminal error write too.
         return write(exchange, response, config, false, status)
                 .onErrorResume(writeFailure -> {
+                    recordFailure(terminal, writeFailure);
                     if (exchange.getResponse().isCommitted()) {
                         return Mono.error(writeFailure);
                     }

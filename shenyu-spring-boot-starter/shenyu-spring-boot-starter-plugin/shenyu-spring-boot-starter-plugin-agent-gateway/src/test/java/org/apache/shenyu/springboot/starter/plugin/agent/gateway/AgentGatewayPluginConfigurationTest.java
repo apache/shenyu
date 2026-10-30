@@ -62,6 +62,19 @@ class AgentGatewayPluginConfigurationTest {
             .withUserConfiguration(AgentGatewayPluginConfiguration.class);
 
     @Test
+    void llmIdentityIsOptInAndRequiresOneAuthority() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.llm.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        AgentMcpSecurityResolver resolver = ignored -> Mono.empty();
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.security.llm.enabled=true")
+                .withBean(AgentMcpSecurityResolver.class, () -> resolver)
+                .run(context -> assertEquals(resolver, ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "llmSecurityResolver")));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentMcpSecurityResolver.class, () -> resolver)
+                .run(context -> assertTrue(java.util.Objects.isNull(ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "llmSecurityResolver"))));
+    }
+
+    @Test
     void shouldKeepPluginUnassembledByDefault() {
         contextRunner.run(context -> {
             assertFalse(context.containsBean("agentGatewayPlugin"));

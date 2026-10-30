@@ -80,6 +80,8 @@ public class AiProxyConfigService {
             handleConfig.setMaxTokens(handle.getMaxTokens());
             handleConfig.setStream(handle.getStream());
             handleConfig.setProtocol(handle.getProtocol());
+            handleConfig.setRequestBodyOverrides(handle.getRequestBodyOverrides());
+            handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
             primaryConfig.mergeWith(handleConfig);
         }
         return primaryConfig;

@@ -46,6 +46,11 @@ public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
     }
 
     @Override
+    protected void doScopedRefresh(final List<SelectorData> dataList) {
+        pluginDataSubscriber.refreshSelectorDataScoped(dataList);
+    }
+
+    @Override
     protected void doSnapshot(final List<SelectorData> dataList, final String namespaceId) {
         if (dataList.stream().anyMatch(data -> !namespaceId.equals(data.getNamespaceId()))) {
             throw new IllegalArgumentException("Snapshot row namespace does not match the connection");

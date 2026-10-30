@@ -84,6 +84,10 @@ public class AiProxyHandle {
      */
     private String protocol = "openai-chat";
 
+    private Map<String, Map<String, Object>> requestBodyOverrides;
+
+    private Boolean requestBodyForceOverride;
+
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
 
@@ -284,6 +288,42 @@ public class AiProxyHandle {
     }
 
     /**
+     * Get request-body patches keyed by native target protocol.
+     *
+     * @return request-body patches
+     */
+    public Map<String, Map<String, Object>> getRequestBodyOverrides() {
+        return requestBodyOverrides;
+    }
+
+    /**
+     * Set request-body patches keyed by native target protocol.
+     *
+     * @param requestBodyOverrides request-body patches
+     */
+    public void setRequestBodyOverrides(final Map<String, Map<String, Object>> requestBodyOverrides) {
+        this.requestBodyOverrides = requestBodyOverrides;
+    }
+
+    /**
+     * Get whether configured request-body values overwrite existing values.
+     *
+     * @return force-override flag
+     */
+    public Boolean getRequestBodyForceOverride() {
+        return requestBodyForceOverride;
+    }
+
+    /**
+     * Set whether configured request-body values overwrite existing values.
+     *
+     * @param requestBodyForceOverride force-override flag
+     */
+    public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
+        this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
      * Normalize this handle by assembling nested FallbackConfig from flat fields when enabled.
      *
      * @return this handle after normalization
@@ -390,12 +430,15 @@ public class AiProxyHandle {
                 && Objects.equals(fallbackConfig, that.fallbackConfig)
                 && Objects.equals(dynamicFallbackEnabled, that.dynamicFallbackEnabled)
                 && Objects.equals(fallbackTargets, that.fallbackTargets)
+                && Objects.equals(requestBodyOverrides, that.requestBodyOverrides)
+                && Objects.equals(requestBodyForceOverride, that.requestBodyForceOverride)
                 && Objects.equals(proxyEnabled, that.proxyEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig, dynamicFallbackEnabled, fallbackTargets, proxyEnabled);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig,
+                requestBodyOverrides, requestBodyForceOverride, dynamicFallbackEnabled, fallbackTargets, proxyEnabled);
     }
 
     @Override
@@ -411,6 +454,9 @@ public class AiProxyHandle {
                 + ", fallbackConfig=" + fallbackConfig
                 + ", dynamicFallbackEnabled=" + dynamicFallbackEnabled
                 + ", fallbackTargetCount=" + (Objects.isNull(fallbackTargets) ? 0 : fallbackTargets.size())
+                + ", requestBodyOverrideProtocols="
+                + (Objects.isNull(requestBodyOverrides) ? null : requestBodyOverrides.keySet())
+                + ", requestBodyForceOverride=" + requestBodyForceOverride
                 + ", proxyEnabled=" + proxyEnabled
                 + '}';
     }
