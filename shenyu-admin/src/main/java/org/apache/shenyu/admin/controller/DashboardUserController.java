@@ -154,23 +154,28 @@ public class DashboardUserController {
     /**
      * modify dashboard user password.
      *
-     * @param id                             primary key.
+     * <p>A self-service change is authorized against the authenticated
+     * account alone: the path id must be the caller's own immutable user id,
+     * and nothing in the caller-controlled body can widen that. Resetting
+     * another account's password is the separate, permission-guarded
+     * {@link #updateDashboardUser(String, DashboardUserDTO)} operation.</p>
+     *
+     * @param id                             primary key, must be the authenticated user id.
      * @param dashboardUserModifyPasswordDTO dashboard user.
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/modify-password/{id}")
-    public ShenyuAdminResult modifyPassword(@PathVariable("id")
-                                            @Existed(provider = DashboardUserMapper.class,
-                                                    message = "user is not found") final String id,
+    public ShenyuAdminResult modifyPassword(@PathVariable("id") final String id,
                                             @Valid @RequestBody final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
         if (Objects.isNull(userInfo)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
         }
-        dashboardUserModifyPasswordDTO.setId(id);
-        if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserModifyPasswordDTO.getUserName())) {
+        // reject before the target account is read: the body is caller-controlled, the user id is not
+        if (!Objects.equals(userInfo.getUserId(), id)) {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
         }
+        dashboardUserModifyPasswordDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
     }
     
