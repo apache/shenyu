@@ -57,6 +57,9 @@ ALTER TABLE mock_request_record RENAME COLUMN header_clob TO header;
 ALTER TABLE mock_request_record MODIFY header DEFAULT EMPTY_CLOB() NOT NULL;
 COMMENT ON COLUMN mock_request_record.header IS 'the request param in header';
 
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE dashboard_user ADD token_version NUMBER(10) DEFAULT 0 NOT NULL;
+COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke issued JWTs';
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');

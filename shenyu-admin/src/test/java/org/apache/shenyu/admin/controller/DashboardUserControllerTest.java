@@ -203,6 +203,18 @@ public final class DashboardUserControllerTest {
     }
 
     @Test
+    public void revokeTokens() throws Exception {
+        final String url = "/dashboardUser/revoke/2";
+        given(dashboardUserService.revokeTokens("2")).willReturn(1);
+        mockMvc.perform(put(url))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.data", is(1)));
+        verify(dashboardUserService).revokeTokens("2");
+    }
+
+    @Test
     public void modifyPassword() throws Exception {
         final String url = "/dashboardUser/modify-password/2";
         UserInfo userInfo = UserInfo.builder().userId("2").userName("admin").build();
