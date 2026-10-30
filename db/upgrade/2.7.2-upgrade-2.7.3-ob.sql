@@ -18,6 +18,13 @@
 ALTER TABLE `selector` RENAME COLUMN `loged` TO `logged`;
 ALTER TABLE `rule` RENAME COLUMN `loged` TO `logged`;
 
+-- Move Agent Gateway ahead of the AI governance chain for existing installs.
+-- Preserve deliberate custom orders: only the old default sort value changes.
+UPDATE `plugin` SET `sort` = 169 WHERE `name` = 'agentGateway' AND `sort` = 198;
+UPDATE `namespace_plugin_rel` SET `sort` = 169
+WHERE `sort` = 198
+  AND `plugin_id` IN (SELECT `id` FROM `plugin` WHERE `name` = 'agentGateway');
+
 -- Stop all Admin writers and back up instance_info before this one-time migration.
 -- Retain the latest heartbeat, then latest update/create timestamp, then greatest id.
 -- Rows upgraded from 2.7.1 have heartbeat 0 and are ordered by timestamps and id.

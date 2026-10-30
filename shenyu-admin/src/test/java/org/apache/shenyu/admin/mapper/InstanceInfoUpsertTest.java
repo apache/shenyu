@@ -206,6 +206,8 @@ public final class InstanceInfoUpsertTest {
         jdbc.execute("CREATE TABLE selector (loged INT)");
         jdbc.execute("CREATE TABLE rule (loged INT)");
         jdbc.execute("CREATE TABLE mock_request_record (header VARCHAR(1024))");
+        jdbc.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
+        jdbc.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");
         insertLegacy("old-heartbeat", "ns", 100, "2026-01-03 00:00:00");
         insertLegacy("latest-heartbeat", "ns", 200, "2026-01-01 00:00:00");
         insertLegacy("tie-a", "ns-tie", 0, "2026-01-01 00:00:00");
