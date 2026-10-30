@@ -170,6 +170,28 @@ public final class ShiroRealmTest {
     }
 
     @Test
+    public void testPasswordChangeInvalidatesOldTokenAndAcceptsFreshLogin() {
+        final DashboardUserVO dashboardUserVO = new DashboardUserVO();
+        dashboardUserVO.setUserName("userName");
+        dashboardUserVO.setEnabled(true);
+        dashboardUserVO.setTokenVersion(0L);
+        when(dashboardUserService.findByUserName(any())).thenReturn(dashboardUserVO);
+        when(jwtProperties.getSecretKey()).thenReturn(SECRETKEY);
+
+        String oldToken = JwtUtils.generateToken("userName", SECRETKEY, "clientId", 0L, 3600L);
+        assertNotNull(shiroRealm.doGetAuthenticationInfo(new BearerToken(oldToken)));
+
+        // a password change moves the account to the next version
+        dashboardUserVO.setTokenVersion(1L);
+        assertThrows(AuthenticationException.class,
+                () -> shiroRealm.doGetAuthenticationInfo(new BearerToken(oldToken)));
+
+        // a fresh login issues a token carrying the current version
+        String freshToken = JwtUtils.generateToken("userName", SECRETKEY, "clientId", 1L, 3600L);
+        assertNotNull(shiroRealm.doGetAuthenticationInfo(new BearerToken(freshToken)));
+    }
+
+    @Test
     public void testDoGetAuthenticationInfoAcceptsLegacyTokenUntilRevoked() {
         final AuthenticationToken token = mock(AuthenticationToken.class);
         final DashboardUserVO dashboardUserVO = mock(DashboardUserVO.class);

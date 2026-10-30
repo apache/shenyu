@@ -107,6 +107,8 @@
         </if>
     </sql>
 
+    <!-- token_version is intentionally omitted: a new row takes the column default (0),
+         and only incrementTokenVersion or updateSelective may move the version. -->
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
         INSERT INTO dashboard_user
                     (id,
@@ -186,6 +188,8 @@
         </trim>
     </insert>
 
+    <!-- token_version is intentionally omitted: a full update must not reset the revocation
+         state; use incrementTokenVersion to revoke issued tokens. -->
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
          UPDATE dashboard_user
             SET
@@ -197,6 +201,15 @@
                 enabled = #{enabled, jdbcType=TINYINT},
                 client_id = #{clientId, jdbcType=VARCHAR}
           WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <!-- Increment in SQL: concurrent password changes and revocations must not overwrite
+         each other with a stale read-modify-write value. -->
+    <update id="incrementTokenVersion">
+        UPDATE dashboard_user
+           SET token_version = token_version + 1,
+               date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">

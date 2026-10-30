@@ -294,7 +294,6 @@ public class DashboardUserVO implements Serializable {
                 && Objects.equals(password, that.password)
                 && Objects.equals(role, that.role)
                 && Objects.equals(enabled, that.enabled)
-                && Objects.equals(clientId, that.clientId)
                 && Objects.equals(tokenVersion, that.tokenVersion)
                 && Objects.equals(dateCreated, that.dateCreated)
                 && Objects.equals(dateUpdated, that.dateUpdated);
@@ -302,6 +301,6 @@ public class DashboardUserVO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userName, password, role, enabled, clientId, tokenVersion, dateCreated, dateUpdated);
+        return Objects.hash(id, userName, password, role, enabled, tokenVersion, dateCreated, dateUpdated);
     }
 }

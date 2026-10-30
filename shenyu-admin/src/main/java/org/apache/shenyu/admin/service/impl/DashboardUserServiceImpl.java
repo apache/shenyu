@@ -170,6 +170,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final DashboardUserDTO dashboardUserDTO) {
         // mandatory: This function can only be used by the admin user
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
@@ -190,14 +191,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
         final DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
-        if (StringUtils.isBlank(dashboardUserDO.getPassword())) {
+        final boolean passwordReset = StringUtils.isNotBlank(dashboardUserDO.getPassword());
+        if (!passwordReset) {
             dashboardUserDO.setPassword(before.getPassword());
-        } else {
-            // an administrative password reset revokes tokens issued with the previous credential
-            dashboardUserDO.setTokenVersion(nextTokenVersion(before));
         }
         final int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
+            if (passwordReset) {
+                // an administrative password reset revokes tokens issued with the previous credential
+                dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
+            }
             publisher.onUpdated(dashboardUserDO, before);
         }
         return updateCount;
@@ -365,6 +368,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int modifyPassword(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserModifyPasswordDTO.getId());
         Assert.notNull(before, "current user is not found");
@@ -374,10 +378,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         dashboardUserModifyPasswordDTO.setPassword(passwordHashService.encode(dashboardUserModifyPasswordDTO.getPassword()));
 
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
-        // a password change revokes tokens issued with the previous credential
-        dashboardUserDO.setTokenVersion(nextTokenVersion(before));
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
+            // a password change revokes tokens issued with the previous credential
+            dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
             publisher.onUpdated(dashboardUserDO, before);
         }
         return updateCount;
@@ -390,20 +394,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
         DashboardUserDO before = dashboardUserMapper.selectById(id);
         Assert.notNull(before, "current user is not found");
-        DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
-                .id(id)
-                .tokenVersion(nextTokenVersion(before))
-                .dateUpdated(new Timestamp(System.currentTimeMillis()))
-                .build();
-        int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
+        int updateCount = dashboardUserMapper.incrementTokenVersion(id, new Timestamp(System.currentTimeMillis()));
         if (updateCount > 0) {
-            publisher.onUpdated(dashboardUserDO, before);
+            // publish the stored row so the audit context carries the account fields
+            DashboardUserDO after = dashboardUserMapper.selectById(id);
+            if (Objects.nonNull(after)) {
+                publisher.onUpdated(after, before);
+            }
         }
         return updateCount;
-    }
-
-    private static long nextTokenVersion(final DashboardUserDO before) {
-        return Objects.isNull(before.getTokenVersion()) ? 1L : before.getTokenVersion() + 1L;
     }
 
     @Override

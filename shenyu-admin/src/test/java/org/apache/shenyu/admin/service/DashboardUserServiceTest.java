@@ -61,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -315,10 +316,11 @@ public final class DashboardUserServiceTest {
         assertEquals(1, dashboardUserService.modifyPassword(
                 new org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO(TEST_ID, TEST_USER_NAME, "newPassword", "oldPassword")));
 
+        // the version moves in SQL, never as a value computed from a possibly stale read
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
         ArgumentCaptor<DashboardUserDO> captor = ArgumentCaptor.forClass(DashboardUserDO.class);
         verify(dashboardUserMapper).updateSelective(captor.capture());
-        // the credential changed, so tokens issued with the old version must stop being accepted
-        assertEquals(4L, captor.getValue().getTokenVersion());
+        assertNull(captor.getValue().getTokenVersion());
     }
 
     @Test
@@ -334,9 +336,7 @@ public final class DashboardUserServiceTest {
                 .id(TEST_ID).userName(TEST_USER_NAME).password("newPassword").enabled(true).build();
         assertEquals(1, dashboardUserService.update(dashboardUserDTO));
 
-        ArgumentCaptor<DashboardUserDO> captor = ArgumentCaptor.forClass(DashboardUserDO.class);
-        verify(dashboardUserMapper).updateSelective(captor.capture());
-        assertEquals(3L, captor.getValue().getTokenVersion());
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
     }
 
     @Test
@@ -344,16 +344,18 @@ public final class DashboardUserServiceTest {
         SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
         DashboardUserDO before = createDashboardUserDO();
         before.setTokenVersion(0L);
-        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(before);
-        given(dashboardUserMapper.updateSelective(any(DashboardUserDO.class))).willReturn(1);
+        DashboardUserDO after = createDashboardUserDO();
+        after.setTokenVersion(1L);
+        given(dashboardUserMapper.selectById(TEST_ID)).willReturn(before, after);
+        given(dashboardUserMapper.incrementTokenVersion(eq(TEST_ID), any(Timestamp.class))).willReturn(1);
 
         assertEquals(1, dashboardUserService.revokeTokens(TEST_ID));
 
-        ArgumentCaptor<DashboardUserDO> captor = ArgumentCaptor.forClass(DashboardUserDO.class);
-        verify(dashboardUserMapper).updateSelective(captor.capture());
-        assertEquals(TEST_ID, captor.getValue().getId());
-        assertEquals(1L, captor.getValue().getTokenVersion());
-        verify(publisher).onUpdated(any(DashboardUserDO.class), any(DashboardUserDO.class));
+        verify(dashboardUserMapper).incrementTokenVersion(eq(TEST_ID), any(Timestamp.class));
+        // no absolute version write: a delayed revoke cannot reuse a stale value
+        verify(dashboardUserMapper, never()).updateSelective(any(DashboardUserDO.class));
+        // the audit event carries the stored row, not a partially populated one
+        verify(publisher).onUpdated(eq(after), eq(before));
     }
 
     @Test

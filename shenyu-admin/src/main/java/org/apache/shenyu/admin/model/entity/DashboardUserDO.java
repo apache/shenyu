@@ -276,14 +276,13 @@ public final class DashboardUserDO extends BaseDO {
                 && Objects.equals(password, that.password)
                 && Objects.equals(role, that.role)
                 && Objects.equals(enabled, that.enabled)
-                && Objects.equals(clientId, that.clientId)
                 && Objects.equals(tokenVersion, that.tokenVersion)
                 && Objects.equals(roles, that.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), userName, password, role, enabled, clientId, tokenVersion, roles);
+        return Objects.hash(super.hashCode(), userName, password, role, enabled, tokenVersion, roles);
     }
 
     public static final class DashboardUserDOBuilder {
