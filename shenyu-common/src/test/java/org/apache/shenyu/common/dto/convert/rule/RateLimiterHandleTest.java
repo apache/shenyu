@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,6 +55,14 @@ public class RateLimiterHandleTest {
     @Test
     public void testBackendFailurePolicyDefaultsToAllow() {
         RateLimiterHandle handle = new RateLimiterHandle();
+
+        assertThat(handle.getBackendFailurePolicy(), is(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW));
+        assertThat(handle.isRejectOnBackendFailure(), is(false));
+    }
+
+    @Test
+    public void testBackendFailurePolicyDefaultsToAllowWhenOmittedFromJson() {
+        RateLimiterHandle handle = GsonUtils.getGson().fromJson("{}", RateLimiterHandle.class);
 
         assertThat(handle.getBackendFailurePolicy(), is(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW));
         assertThat(handle.isRejectOnBackendFailure(), is(false));
