@@ -176,7 +176,7 @@ public final class AgentInvocationAuditEvent {
         return Objects.requireNonNull(result, name);
     }
 
-    private static String nullableText(final String value, final String name) {
+    static String nullableText(final String value, final String name) {
         if (Objects.isNull(value)) {
             return null;
         }
