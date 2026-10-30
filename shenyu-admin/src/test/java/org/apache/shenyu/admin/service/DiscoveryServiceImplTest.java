@@ -37,6 +37,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.impl.DiscoveryServiceImpl;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
@@ -107,12 +108,16 @@ public final class DiscoveryServiceImplTest {
     @Mock
     private PlatformTransactionManager transactionManager;
 
+    @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
     private DiscoveryServiceImpl discoveryService;
 
     @BeforeEach
     public void setUp() {
         discoveryService = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, discoveryRelMapper,
-                discoveryHandlerMapper, selectorService, selectorMapper, discoveryProcessorHolder, transactionManager);
+                discoveryHandlerMapper, selectorService, selectorMapper, discoveryProcessorHolder,
+                registrationFencingGuard, transactionManager);
         given(discoveryProcessorHolder.chooseProcessor(anyString())).willReturn(discoveryProcessor);
     }
 

@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -73,13 +74,27 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
     /**
      * DefaultDiscoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
     public AbstractDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+        this(discoveryUpstreamMapper, null);
+    }
+
+    /**
+     * Create a discovery processor with the shared selector write guard.
+     *
+     * @param discoveryUpstreamMapper discovery upstream mapper
+     * @param registrationFencingGuard selector write guard
+     */
+    public AbstractDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                      final RegistrationFencingGuard registrationFencingGuard) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.registrationFencingGuard = registrationFencingGuard;
         this.discoveryServiceCache = new ConcurrentHashMap<>();
         this.dataChangedEventListenerCache = new ConcurrentHashMap<>();
     }
@@ -171,6 +186,9 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
 
     @Override
     public void fetchAll(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertSelectorWriteAllowed(proxySelectorDTO.getId());
+        }
         String discoveryId = discoveryHandlerDTO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
             ShenyuInstanceRegisterRepository shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
@@ -248,7 +266,7 @@ public abstract class AbstractDiscoveryProcessor implements DiscoveryProcessor, 
         discoverySyncData.setNamespaceId(proxySelectorDTO.getNamespaceId());
         discoverySyncData.setDiscoveryHandlerId(discoveryHandlerDTO.getId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap), discoverySyncData, discoveryHandlerDTO.getDiscoveryId());
+                new CustomDiscoveryUpstreamParser(customMap), discoverySyncData, discoveryHandlerDTO.getDiscoveryId(), registrationFencingGuard);
     }
 
     /**

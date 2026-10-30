@@ -32,6 +32,8 @@ import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingContext;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -52,27 +54,34 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.protocol.RegistrationFencingAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.function.Supplier;
+import java.util.function.BiConsumer;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * Abstract strategy.
  */
-public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
+public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService
+        implements ShenyuClientRegisterService, FencedRegisterService {
     
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
     
@@ -118,6 +127,18 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     @Resource
     private InstanceInfoReportEventPublisher publisher;
 
+    @Resource
+    private RegistrationFencingGuard registrationFencingGuard;
+
+    /**
+     * Registration writes need one database transaction so the selector row
+     * lock held by the fencing guard covers the subsequent handle and
+     * discovery updates. The field is optional in unit tests that instantiate
+     * the service without a Spring transaction manager.
+     */
+    @Resource
+    private PlatformTransactionManager transactionManager;
+
     /**
      * Selector handler string.
      *
@@ -160,6 +181,11 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String namespaceId = StringUtils.defaultIfEmpty(dto.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         this.checkNamespacePluginRel(namespaceId, pluginName);
+        // Shared service metadata may not rewrite a selector that a boot session protects.
+        if (StringUtils.isNotBlank(dto.getContextPath()) || StringUtils.isNotBlank(dto.getAppName())) {
+            registrationFencingGuard.assertMetadataWriteAllowed(
+                    ContextPathUtils.buildContextPath(dto.getContextPath(), dto.getAppName()), pluginName, namespaceId);
+        }
         dto.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = selectorHandler(dto);
@@ -194,11 +220,16 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Override
     public String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return executeRegistrationTransaction(() -> doRegisterURIInTransaction(selectorName, uriList, namespaceId));
+    }
+
+    private String doRegisterURIInTransaction(final String selectorName, final List<URIRegisterDTO> uriList,
+                                              final String namespaceId) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         LOG.info("selector info params: selectorName: {}, pluginName: {}, namespaceId: {}, selectorDO info: {}.",
                 selectorName, pluginName, namespaceId, selectorDO);
         if (Objects.isNull(selectorDO)) {
@@ -211,18 +242,18 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         List<URIRegisterDTO> validUriList = uriList.stream()
                 .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
                 .collect(Collectors.toList());
+        validUriList.forEach(uri -> registrationFencingGuard.assertLegacyUriWrite(selectorDO.getId(), uri.getHost(), uri.getPort()));
         String handler = buildHandle(validUriList, selectorDO);
         if (Objects.nonNull(handler)) {
             selectorDO.setHandle(handler);
             SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
             selectorData.setHandle(handler);
             // update db
-            selectorService.updateSelective(selectorDO);
+            selectorService.updateSelectiveForRegistration(selectorDO);
+            // publish change event.
         }
-        // the registration-owned readiness reset runs whether or not the selector handle
-        // changed: a duplicate registration of an unchanged endpoint takes the buildHandle
-        // null path, and a restarted client that never sends an explicit READY would stay
-        // excluded by its persisted markers forever otherwise (#8042)
+        // A new fenced session must re-claim an existing address and clear a prior drain,
+        // even when the selector handle is otherwise unchanged.
         doDiscoveryLocal(selectorDO, pluginName, validUriList);
         return ShenyuResultMessage.SUCCESS;
     }
@@ -242,11 +273,16 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     
     @Override
     public String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return executeRegistrationTransaction(() -> doHeartbeatInTransaction(selectorName, uriList, namespaceId));
+    }
+
+    private String doHeartbeatInTransaction(final String selectorName, final List<URIRegisterDTO> uriList,
+                                            final String namespaceId) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException("doHeartbeat Failed to execute,wait to retry.");
         }
@@ -257,6 +293,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         // discovery publish change event.
         String selectorId = selectorDO.getId();
+        validUriList.forEach(uri -> registrationFencingGuard.assertLegacyUriWrite(selectorId, uri.getHost(), uri.getPort()));
         // change live node status to TRUE
         validUriList.forEach(uriRegisterDTO -> {
             DiscoveryUpstreamDTO discoveryUpstreamDTO = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
@@ -265,15 +302,17 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                     uriRegisterDTO.getNamespaceId());
 
             try {
-                // publish instance info event
-                InstanceInfoReportEvent instanceInfoReportEvent = new InstanceInfoReportEvent(
-                        uriRegisterDTO.getHost(),
-                        String.valueOf(uriRegisterDTO.getPort()),
-                        InstanceTypeConstants.CLIENT_INSTANCE_TYPE,
-                        uriRegisterDTO.getInstanceInfo(),
-                        uriRegisterDTO.getNamespaceId()
-                );
-                publisher.publish(instanceInfoReportEvent);
+                // Fenced heartbeats do not update the address-only diagnostic stream.
+                if (Objects.isNull(RegistrationFencingContext.current())) {
+                    InstanceInfoReportEvent instanceInfoReportEvent = new InstanceInfoReportEvent(
+                            uriRegisterDTO.getHost(),
+                            String.valueOf(uriRegisterDTO.getPort()),
+                            InstanceTypeConstants.CLIENT_INSTANCE_TYPE,
+                            uriRegisterDTO.getInstanceInfo(),
+                            uriRegisterDTO.getNamespaceId()
+                    );
+                    publisher.publish(instanceInfoReportEvent);
+                }
             } catch (Exception e) {
                 LOG.error("publish instance info error", e);
             }
@@ -296,8 +335,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     
     @Override
     public String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
-        return updateAdmission(selectorName, uriList, namespaceId, "doDraining",
-                (selectorId, url) -> discoveryUpstreamService.markDrainingBySelectorIdAndUrl(selectorId, url, true));
+        return executeRegistrationTransaction(() -> doDrainingInTransaction(selectorName, uriList, namespaceId));
     }
 
     @Override
@@ -308,18 +346,23 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public String doReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
-        return updateAdmission(selectorName, uriList, namespaceId, "doReady",
-                (selectorId, url) -> discoveryUpstreamService.markReadyBySelectorIdAndUrl(selectorId, url));
+        return updateAdmission(selectorName, uriList, namespaceId, "doReady", discoveryUpstreamService::markReadyBySelectorIdAndUrl);
     }
 
     private String updateAdmission(final String selectorName, final List<URIRegisterDTO> uriList,
                                    final String namespaceId, final String action,
                                    final BiConsumer<String, String> marker) {
+        return executeRegistrationTransaction(() -> updateAdmissionInTransaction(selectorName, uriList, namespaceId, action, marker));
+    }
+
+    private String updateAdmissionInTransaction(final String selectorName, final List<URIRegisterDTO> uriList,
+                                                final String namespaceId, final String action,
+                                                final BiConsumer<String, String> marker) {
         if (CollectionUtils.isEmpty(uriList)) {
             return "";
         }
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             throw new ShenyuException(action + " Failed to execute, wait to retry.");
         }
@@ -328,12 +371,40 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             return null;
         }
         String selectorId = selectorDO.getId();
-        // admission markers travel in props, not in status: heartbeats keep flipping status
-        // back to enabled, and an excluded instance must stay excluded regardless (#8042)
+        assertLegacyUriWrite(selectorId, validUriList);
         validUriList.forEach(uriRegisterDTO -> {
             String url = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
                     uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), uriRegisterDTO.getNamespaceId()).getUrl();
             marker.accept(selectorId, url);
+        });
+        DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getSelectorName(), pluginName, namespaceId);
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(discoverySyncData)));
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    private String doDrainingInTransaction(final String selectorName, final List<URIRegisterDTO> uriList,
+                                           final String namespaceId) {
+        if (CollectionUtils.isEmpty(uriList)) {
+            return "";
+        }
+        String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
+        if (Objects.isNull(selectorDO)) {
+            throw new ShenyuException("doDraining Failed to execute, wait to retry.");
+        }
+        List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).toList();
+        if (CollectionUtils.isEmpty(validUriList)) {
+            return null;
+        }
+        String selectorId = selectorDO.getId();
+        validUriList.forEach(uri -> registrationFencingGuard.assertLegacyUriWrite(selectorId, uri.getHost(), uri.getPort()));
+        // the marker travels in props, not in status: heartbeats keep flipping status
+        // back to enabled, and a draining instance must stay excluded regardless (#8042)
+        validUriList.forEach(uriRegisterDTO -> {
+            String url = CommonUpstreamUtils.buildDefaultDiscoveryUpstreamDTO(uriRegisterDTO.getHost(),
+                    uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), uriRegisterDTO.getNamespaceId()).getUrl();
+            discoveryUpstreamService.markDrainingBySelectorIdAndUrl(selectorId, url, true);
         });
         DiscoverySyncData discoverySyncData = fetch(selectorId, selectorDO.getSelectorName(), pluginName, namespaceId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
@@ -347,8 +418,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                     uriRegisterDTO.getPort(), uriRegisterDTO.getProtocol(), selectorDO.getNamespaceId());
             discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamService.nativeCreateOrUpdate(discoveryUpstreamDTO);
-            // a fresh registration claims the identity and starts ready: it releases both
-            // the drain and the not-ready marker, while heartbeats alone can never do so (#8042)
+            // a fresh registration claims the identity: a restart releases the drain,
+            // while heartbeats alone can never do so (#8042)
             discoveryUpstreamService.markReadyBySelectorIdAndUrl(selectorDO.getId(), discoveryUpstreamDTO.getUrl());
         }
         DiscoverySyncData discoverySyncData = fetch(selectorDO.getId(), selectorDO.getSelectorName(), pluginName, selectorDO.getNamespaceId());
@@ -368,6 +439,65 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     protected void removeDiscoveryUpstream(final String selectorId, final String url) {
         discoveryUpstreamService.deleteBySelectorIdAndUrl(selectorId, url);
+    }
+
+    /**
+     * Guard a legacy URI writer in a concrete registration implementation.
+     *
+     * @param selectorId selector id
+     * @param uriList URI payload
+     */
+    protected void assertLegacyUriWrite(final String selectorId, final List<URIRegisterDTO> uriList) {
+        uriList.stream().filter(uri -> Objects.nonNull(uri.getPort()) && StringUtils.isNotBlank(uri.getHost()))
+                .forEach(uri -> registrationFencingGuard.assertLegacyUriWrite(selectorId, uri.getHost(), uri.getPort()));
+    }
+
+    /**
+     * Gets the shared registration fencing guard.
+     *
+     * @return fencing guard
+     */
+    protected RegistrationFencingGuard getRegistrationFencingGuard() {
+        return registrationFencingGuard;
+    }
+
+    /**
+     * Execute one registration lifecycle operation in a database transaction.
+     * Existing fenced calls join their outer mutation transaction.
+     *
+     * @param action operation
+     * @param <T> result type
+     * @return operation result
+     */
+    protected final <T> T executeRegistrationTransaction(final Supplier<T> action) {
+        if (Objects.isNull(transactionManager) || TransactionSynchronizationManager.isActualTransactionActive()) {
+            return action.get();
+        }
+        return new TransactionTemplate(transactionManager).execute(status -> action.get());
+    }
+
+    @Override
+    public String registerURIWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                             final String namespaceId) {
+        return doRegisterURI(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String heartbeatWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                           final String namespaceId) {
+        return doHeartbeat(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String drainingWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                          final String namespaceId) {
+        return doDraining(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String offlineWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                         final String namespaceId) {
+        return offline(selectorName, uriList, namespaceId);
     }
 
     /**
@@ -435,8 +565,42 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected <T extends CommonUpstream> void syncUpstreamStatus(final List<T> existList, final List<T> diffStatusList) {
         for (T changed : diffStatusList) {
-            existList.stream().filter(exist -> exist.equals(changed))
+            existList.stream().filter(exist -> sameUpstreamIdentity(exist, changed))
                     .forEach(exist -> exist.setStatus(changed.isStatus()));
+        }
+    }
+
+    /**
+     * Compare selector members by the canonical endpoint identity. This keeps
+     * a historical IPv6 spelling in a selector handle from becoming a second
+     * member when a later request uses the canonical spelling.
+     *
+     * @param left first member
+     * @param right second member
+     * @return whether both members represent the same registered endpoint
+     */
+    protected boolean sameUpstreamIdentity(final CommonUpstream left, final CommonUpstream right) {
+        if (Objects.isNull(left) || Objects.isNull(right)
+                || !Objects.equals(left.getNamespaceId(), right.getNamespaceId())) {
+            return false;
+        }
+        return Objects.equals(canonicalUpstreamEndpoint(left.getUpstreamUrl()), canonicalUpstreamEndpoint(right.getUpstreamUrl()))
+                && Objects.equals(canonicalUpstreamProtocol(left.getProtocol()), canonicalUpstreamProtocol(right.getProtocol()));
+    }
+
+    private String canonicalUpstreamEndpoint(final String endpoint) {
+        try {
+            return RegistrationFencingAddress.canonicalEndpoint(endpoint);
+        } catch (IllegalArgumentException exception) {
+            return endpoint;
+        }
+    }
+
+    private String canonicalUpstreamProtocol(final String protocol) {
+        try {
+            return RegistrationFencingAddress.canonicalProtocol(protocol);
+        } catch (IllegalArgumentException exception) {
+            return protocol;
         }
     }
 

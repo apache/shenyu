@@ -57,9 +57,39 @@ ALTER TABLE mock_request_record RENAME COLUMN header_clob TO header;
 ALTER TABLE mock_request_record MODIFY header DEFAULT EMPTY_CLOB() NOT NULL;
 COMMENT ON COLUMN mock_request_record.header IS 'the request param in header';
 
+
+CREATE TABLE registration_fencing_target (
+    id varchar2(128) NOT NULL,
+    date_created timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    domain_id varchar2(128) NOT NULL,
+    namespace_id varchar2(64) NOT NULL,
+    selector_id varchar2(128) NOT NULL,
+    plugin_id varchar2(128) NOT NULL,
+    protocol varchar2(32) NOT NULL,
+    host varchar2(255) NOT NULL,
+    port number(10) NOT NULL,
+    principal_id varchar2(128) NOT NULL,
+    enabled number(3) NOT NULL,
+    state varchar2(16) NOT NULL,
+    generation number(19) NOT NULL,
+    owner_startup_id varchar2(64),
+    session_id varchar2(128),
+    last_sequence number(19) NOT NULL,
+    last_payload clob,
+    last_result clob,
+    last_request_id varchar2(64),
+    last_request_payload clob,
+    retired_startups clob,
+    CONSTRAINT registration_fencing_target_pk PRIMARY KEY (id),
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX idx_registration_fencing_target_address ON registration_fencing_target (namespace_id, host, port);
+
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD token_version NUMBER(10) DEFAULT 0 NOT NULL;
 COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke issued JWTs';
+
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');

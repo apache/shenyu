@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.discovery.APDiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,11 +38,13 @@ public class DiscoveryConfiguration {
      * discoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param registrationFencingGuard selector write guard
      * @return DiscoveryProcessor
      */
     @Bean("DefaultDiscoveryProcessor")
-    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
-        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
+    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                        final RegistrationFencingGuard registrationFencingGuard) {
+        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper, registrationFencingGuard);
     }
 
     /**
@@ -59,11 +62,13 @@ public class DiscoveryConfiguration {
      * discoveryLocalProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param registrationFencingGuard selector write guard
      * @return DiscoveryProcessor
      */
     @Bean("APDiscoveryProcessor")
-    public DiscoveryProcessor discoveryAPProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
-        return new APDiscoveryProcessor(discoveryUpstreamMapper);
+    public DiscoveryProcessor discoveryAPProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                   final RegistrationFencingGuard registrationFencingGuard) {
+        return new APDiscoveryProcessor(discoveryUpstreamMapper, registrationFencingGuard);
     }
 
     /**

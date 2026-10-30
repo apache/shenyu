@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
@@ -778,7 +779,8 @@ public final class HttpLongPollingDataChangedListenerTest {
     @Test
     public void documentationReproduceFalseOfflineTimeoutBeforeFix() throws Exception {
         InstanceInfoService instanceInfoService = Mockito.mock(InstanceInfoService.class);
-        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService, new InstanceRetentionProperties());
+        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService, Mockito.mock(RegistrationFencingGuard.class),
+                new InstanceRetentionProperties());
 
         Mockito.doAnswer(invocation -> {
             InstanceInfoReportEvent event = invocation.getArgument(0);
@@ -830,7 +832,8 @@ public final class HttpLongPollingDataChangedListenerTest {
     @Test
     public void testHeldLongPollingRefreshesLiveness() throws Exception {
         InstanceInfoService instanceInfoService = Mockito.mock(InstanceInfoService.class);
-        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService, new InstanceRetentionProperties());
+        InstanceCheckService instanceCheckService = new InstanceCheckService(instanceInfoService, Mockito.mock(RegistrationFencingGuard.class),
+                new InstanceRetentionProperties());
 
         Mockito.doAnswer(invocation -> {
             InstanceInfoReportEvent event = invocation.getArgument(0);

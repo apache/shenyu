@@ -142,6 +142,17 @@ public interface DiscoveryUpstreamService {
     void changeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
 
     /**
+     * Update the upstream status unless the address is protected by registration fencing.
+     * The protection check and update share one transaction and selector lock.
+     *
+     * @param selectorId selectorId
+     * @param url upstream URL
+     * @param enabled enabled
+     * @return whether the update was allowed
+     */
+    boolean tryChangeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
+
+    /**
      * Merge a draining marker into the props of the upstream matching the selector
      * and url. Idempotent: the marker is written, never derived from status, so a
      * heartbeat-driven status flip cannot cancel it.

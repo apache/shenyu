@@ -3560,3 +3560,30 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);
+CREATE TABLE registration_fencing_target (
+    id varchar2(128) NOT NULL,
+    date_created timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    domain_id varchar2(128) NOT NULL,
+    namespace_id varchar2(64) NOT NULL,
+    selector_id varchar2(128) NOT NULL,
+    plugin_id varchar2(128) NOT NULL,
+    protocol varchar2(32) NOT NULL,
+    host varchar2(255) NOT NULL,
+    port number(10) NOT NULL,
+    principal_id varchar2(128) NOT NULL,
+    enabled number(3) NOT NULL,
+    state varchar2(16) NOT NULL,
+    generation number(19) NOT NULL,
+    owner_startup_id varchar2(64),
+    session_id varchar2(128),
+    last_sequence number(19) NOT NULL,
+    last_payload clob,
+    last_result clob,
+    last_request_id varchar2(64),
+    last_request_payload clob,
+    retired_startups clob,
+    CONSTRAINT registration_fencing_target_pk PRIMARY KEY (id),
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX idx_registration_fencing_target_address ON registration_fencing_target (namespace_id, host, port);
