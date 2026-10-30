@@ -27,7 +27,6 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -126,10 +125,17 @@ public final class UpstreamCacheManager {
     }
 
     /**
-     * Find upstream list by selector id list.
+     * Find upstream list by selector id.
+     *
+     * <p>Returns the read-only snapshot published by the health-check task on
+     * configuration and health-state updates, so the request path does not copy
+     * the healthy list per lookup. Legacy gray-exclusive selectors instead get a
+     * filtered view narrowed to their gray upstreams. Callers must not mutate the
+     * returned list either way; elements keep the same shared-instance semantics
+     * as before.</p>
      *
      * @param selectorId the selector id
-     * @return the list
+     * @return the healthy upstreams for the selector, or null when it has no entry
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
         List<Upstream> upstreamList = findAllUpstreamListBySelectorId(selectorId);
@@ -143,12 +149,16 @@ public final class UpstreamCacheManager {
      * Find all healthy upstreams for rules that select their own label partition.
      * The regular lookup retains the legacy gray-exclusive policy, including for failover.
      *
+     * <p>Returns the same read-only snapshot that backs
+     * {@link #findUpstreamListBySelectorId} before gray narrowing, so the canary
+     * path also avoids a per-request copy. Callers must not mutate the returned
+     * list; elements keep the same shared-instance semantics as before.</p>
+     *
      * @param selectorId selector identifier
-     * @return a snapshot of all healthy upstreams, or null when the selector has no healthy pool
+     * @return a read-only snapshot of all healthy upstreams, or null when the selector has no healthy pool
      */
     public List<Upstream> findAllUpstreamListBySelectorId(final String selectorId) {
-        List<Upstream> upstreamList = task.getHealthyUpstream().get(selectorId);
-        return Objects.isNull(upstreamList) ? null : new ArrayList<>(upstreamList);
+        return task.getHealthySnapshot(selectorId);
     }
 
     /**
