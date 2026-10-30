@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -50,6 +51,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
@@ -285,13 +287,23 @@ public class AgentGatewayPluginConfiguration {
 
         /**
          * Use the explicitly supplied application telemetry, never a second SDK or global singleton.
-         * @param telemetry application-owned telemetry
+         * @param telemetry optional application-owned telemetry (takes precedence)
+         * @param gatewayTracer optional tracer owned by the ShenYu tracing starter
          * @return request-local tracing bridge
          */
         @Bean
         @ConditionalOnMissingBean(AgentMcpCallTracer.class)
-        AgentMcpCallTracer agentGatewayCallTracer(final OpenTelemetry telemetry) {
-            return new OpenTelemetryAgentMcpCallTracer(telemetry);
+        AgentMcpCallTracer agentGatewayCallTracer(final ObjectProvider<OpenTelemetry> telemetry,
+                                                  @Qualifier("tracingTracer") final ObjectProvider<io.opentelemetry.api.trace.Tracer> gatewayTracer) {
+            OpenTelemetry application = telemetry.getIfAvailable();
+            if (Objects.nonNull(application)) {
+                return new OpenTelemetryAgentMcpCallTracer(application);
+            }
+            io.opentelemetry.api.trace.Tracer shared = gatewayTracer.getIfAvailable();
+            if (Objects.isNull(shared)) {
+                throw new IllegalStateException("Enabled MCP tracing requires application OpenTelemetry, tracingTracer, or a custom AgentMcpCallTracer");
+            }
+            return new OpenTelemetryAgentMcpCallTracer(shared);
         }
     }
 }

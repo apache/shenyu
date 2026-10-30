@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
@@ -112,8 +113,10 @@ public final class AgentMcpHttpHandler {
     public Mono<Void> handle(final ServerWebExchange exchange, final AgentGatewayMcpConfig config,
                              final AgentTrafficContext traffic, final long configurationVersion, final AgentHttpToolInvoker httpInvoker) {
         return Mono.deferContextual(parentContext -> {
-            final AgentMcpTerminalObservation terminal = Objects.isNull(terminalObserver) ? null
-                    : new AgentMcpTerminalObservation(terminalObserver, traffic, configurationVersion);
+            Object runtimeCallback = exchange.getAttribute(AgentRuntimeMetrics.KEY);
+            final AgentRuntimeMetrics metrics = runtimeCallback instanceof AgentRuntimeMetrics value ? value : AgentRuntimeMetrics.NOOP;
+            final AgentMcpTerminalObservation terminal = Objects.isNull(terminalObserver) && metrics == AgentRuntimeMetrics.NOOP ? null
+                    : new AgentMcpTerminalObservation(terminalObserver, traffic, configurationVersion, metrics);
             final Instant deadline = Instant.now().plusMillis(config.getTimeoutMs());
             Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
             final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null,
@@ -139,6 +142,7 @@ public final class AgentMcpHttpHandler {
                                         config.getAllowedResources(), identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
                                         identity.getTenant().orElse(null)))
                                         .contextWrite(observation::traceContext)
+                                        .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics))
                                         .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
                                                 traffic.toRequestContext(configurationVersion).withIdentity(identity.getTenant().orElse(null), identity.getSubject())
                                                         .withTarget("tools/call".equals(request.getMethod()) ? request.getParams().path("name").textValue() : null,

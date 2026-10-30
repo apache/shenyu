@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
@@ -92,8 +93,10 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         return Mono.deferContextual(view -> {
             AiRequestObservation inherited = view.getOrDefault(AiRequestObservation.REACTOR_KEY, null);
+            Object callback = exchange.getAttribute(AgentRuntimeMetrics.KEY);
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
-                    : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()));
+                    : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
+                            callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
             return executeRequest(exchange, selector)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))

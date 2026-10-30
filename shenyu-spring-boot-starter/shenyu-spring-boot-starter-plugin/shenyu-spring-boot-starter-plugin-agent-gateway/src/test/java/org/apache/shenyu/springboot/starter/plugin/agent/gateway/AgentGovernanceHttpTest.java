@@ -35,6 +35,11 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.common.metrics.AiUsage;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
+import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
+import org.apache.shenyu.plugin.metrics.constant.LabelNames;
+import io.prometheus.client.CollectorRegistry;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
@@ -108,6 +113,19 @@ import static org.mockito.Mockito.when;
  */
 class AgentGovernanceHttpTest {
 
+    @Test
+    void invalidKeyIsCountedBeforeAgentRoutingWithoutCreatingALogicalAiCall() {
+        try (Fixture fixture = new Fixture(false, false)) {
+            fixture.request("wrong").expectBody().consumeWith(ignored -> { });
+            assertEquals(0, fixture.upstreamCalls.get());
+            assertEquals(0, fixture.terminals.size());
+            assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL,
+                    new String[]{"source", "reason"}, new String[]{"key_auth", "credential_rejected"}));
+            assertNull(CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_TOTAL,
+                    new String[]{"traffic", "outcome", "reason"}, new String[]{"llm", "rejected", "authentication"}));
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void keyAuthToLimiterToProxyHasOneTerminalAndOneBodySubscription(final boolean stream) {
@@ -137,6 +155,12 @@ class AgentGovernanceHttpTest {
             assertEquals("12345678901234567890123456789012", span.getTraceId());
             assertEquals("1234567890123456", span.getParentSpanId());
             assertEquals("00-" + span.getTraceId() + "-" + span.getSpanId() + "-01", fixture.outboundParent.get());
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(0.0, CollectorRegistry.defaultRegistry.getSampleValue(
+                    LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, new String[]{"llm"})));
+            assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_TOTAL,
+                    new String[]{"traffic", "outcome", "reason"}, new String[]{"llm", "success", "none"}));
+            assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_AI_ATTEMPTS_TOTAL,
+                    new String[]{"kind", "outcome"}, new String[]{"primary", "success"}));
         }
     }
 
@@ -150,6 +174,10 @@ class AgentGovernanceHttpTest {
             assertEquals("tenant", event.context().getTenant());
             assertEquals(0, event.attemptCount());
             assertEquals(AiUsage.UNKNOWN, event.usage());
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(
+                    LabelNames.AGENT_REQUESTS_TOTAL, new String[]{"traffic", "outcome", "reason"}, new String[]{"llm", "rate_limited", "resource_limit"})));
+            assertNull(CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_AI_ATTEMPTS_TOTAL,
+                    new String[]{"kind", "outcome"}, new String[]{"primary", "success"}));
             assertEquals(1, fixture.bodySubscriptions.get());
             assertEquals(0, fixture.upstreamCalls.get());
             assertTrue(fixture.attempts.isEmpty());
@@ -276,8 +304,12 @@ class AgentGovernanceHttpTest {
             TracingPlugin tracing = new TracingPlugin(telemetry.getTracer("governance-fixture"));
             handler = new ShenyuWebHandler(List.of(proxy, limiter, prompt, agent, key, tracing), mock(ShenyuLoaderService.class), config);
             handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, BaseDataCache.getInstance().obtainPluginData(agent.named())));
+            MetricsReporter.clean();
+            CollectorRegistry.defaultRegistry.clear();
+            MetricsReporter.register(new PrometheusMetricsRegister());
             gateway = HttpServer.create().host("127.0.0.1").port(0).runOn(loops).handle(new ReactorHttpHandlerAdapter(
                     WebHttpHandlerBuilder.webHandler(exchange -> {
+                        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, MetricsReporter.agentRuntimeMetrics());
                         org.springframework.http.server.reactive.ServerHttpRequestDecorator request = new org.springframework.http.server.reactive.ServerHttpRequestDecorator(exchange.getRequest()) {
                             @Override
                             public Flux<DataBuffer> getBody() {
@@ -308,8 +340,12 @@ class AgentGovernanceHttpTest {
         }
 
         private WebTestClient.ResponseSpec request() {
+            return request("fixture-key");
+        }
+
+        private WebTestClient.ResponseSpec request(final String key) {
             return WebTestClient.bindToServer().baseUrl("http://127.0.0.1:" + gateway.port()).responseTimeout(Duration.ofSeconds(20)).build()
-                    .post().uri("/chat").header("X-Api-Key", "fixture-key").header("X-Tenant-Id", "forged").header("X-Subject", "forged")
+                    .post().uri("/chat").header("X-Api-Key", key).header("X-Tenant-Id", "forged").header("X-Subject", "forged")
                     .header("traceparent", "00-12345678901234567890123456789012-1234567890123456-01").header("baggage", "private=never-forward")
                     .header("Content-Type", "application/json").bodyValue("{\"messages\":[{\"role\":\"user\",\"content\":\"private\"}],\"stream\":" + stream + "}").exchange();
         }
@@ -320,6 +356,8 @@ class AgentGovernanceHttpTest {
             upstream.disposeNow(Duration.ofSeconds(10));
             loops.disposeLater().block(Duration.ofSeconds(10));
             telemetry.close();
+            MetricsReporter.clean();
+            CollectorRegistry.defaultRegistry.clear();
             BaseDataCache cache = BaseDataCache.getInstance();
             for (String name : List.of("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy")) {
                 cache.removeRuleDataBySelectorId("governance-" + name);

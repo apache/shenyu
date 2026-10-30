@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalEvent;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,10 @@ final class AgentMcpTerminalObservation {
     private static final Logger LOG = LoggerFactory.getLogger(AgentMcpTerminalObservation.class);
 
     private final AgentMcpTerminalObserver observer;
+
+    private final AgentRuntimeMetrics metrics;
+
+    private AgentRuntimeMetrics.Reason reason = AgentRuntimeMetrics.Reason.NONE;
 
     private final AgentTrafficContext traffic;
 
@@ -62,9 +67,16 @@ final class AgentMcpTerminalObservation {
     private boolean completed;
 
     AgentMcpTerminalObservation(final AgentMcpTerminalObserver observer, final AgentTrafficContext traffic, final long configurationVersion) {
+        this(observer, traffic, configurationVersion, AgentRuntimeMetrics.NOOP);
+    }
+
+    AgentMcpTerminalObservation(final AgentMcpTerminalObserver observer, final AgentTrafficContext traffic, final long configurationVersion,
+                               final AgentRuntimeMetrics metrics) {
         this.observer = observer;
         this.traffic = traffic;
         this.configurationVersion = configurationVersion;
+        this.metrics = metrics;
+        AgentRuntimeMetrics.safely(() -> metrics.started(AgentRuntimeMetrics.Traffic.MCP));
     }
 
     synchronized void identified(final String value) {
@@ -103,6 +115,17 @@ final class AgentMcpTerminalObservation {
         if (error instanceof AgentMcpProtocolException) {
             status = ((AgentMcpProtocolException) error).getHttpStatus();
         }
+        if (Objects.equals(status, 401)) {
+            reason = AgentRuntimeMetrics.Reason.AUTHENTICATION;
+        } else if (Objects.equals(status, 403)) {
+            reason = Objects.isNull(method) ? AgentRuntimeMetrics.Reason.PROTOCOL : AgentRuntimeMetrics.Reason.AUTHORIZATION;
+        } else if (error instanceof DataBufferLimitException || Objects.equals(status, 413) || Objects.equals(status, 429)) {
+            reason = AgentRuntimeMetrics.Reason.RESOURCE_LIMIT;
+        } else if (error.getCause() instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
+            reason = AgentRuntimeMetrics.Reason.CATALOG_UNAVAILABLE;
+        } else {
+            reason = Objects.nonNull(status) && status < 500 ? AgentRuntimeMetrics.Reason.PROTOCOL : AgentRuntimeMetrics.Reason.OTHER;
+        }
         if (error instanceof TimeoutException || Objects.equals(status, 504)) {
             outcome = Outcome.TIMEOUT;
         } else if (error instanceof DataBufferLimitException || Objects.nonNull(status) && status < 500) {
@@ -123,8 +146,13 @@ final class AgentMcpTerminalObservation {
                     .withTarget(requestedTool, method, protocolVersion), signal == SignalType.CANCEL ? Outcome.CANCELLED : outcome,
                     TimeUnit.NANOSECONDS.toMillis(Math.max(0, System.nanoTime() - started)), status);
         }
+        AgentRuntimeMetrics.safely(() -> metrics.finished(AgentRuntimeMetrics.Traffic.MCP,
+                event.getOutcome() == Outcome.SERVER_ERROR ? AgentRuntimeMetrics.Outcome.ERROR : AgentRuntimeMetrics.Outcome.valueOf(event.getOutcome().name()),
+                reason, event.getElapsedMillis()));
         try {
-            observer.record(event);
+            if (Objects.nonNull(observer)) {
+                observer.record(event);
+            }
         } catch (RuntimeException error) {
             // Callback messages may contain sensitive application data.
             LOG.debug("MCP terminal event callback failed");
