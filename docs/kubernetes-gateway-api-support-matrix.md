@@ -213,10 +213,10 @@ Unsupported input falls into three classes. The classification is deliberate and
 | Route-level `filters` | Route config removed entirely, `Accepted=False` / `UnsupportedValue`. |
 | Non-Service `backendRef`, missing Service/Endpoints, denied cross-namespace reference | Only that backend is dropped; its declared weight becomes a fail-target (`127.0.0.1:1`, connection refused) so the invalid share fails instead of silently re-flowing onto healthy backends. `ResolvedRefs=False` with `InvalidKind` / `BackendNotFound` / `RefNotPermitted`. |
 | Listener with unsupported protocol or port | Listener `Accepted=False` with `UnsupportedProtocol` / `PortUnavailable`. The route's own reason follows the precedence in §7.4: an accepting served listener first, then `UnsupportedValue` when only an unserved listener would accept the route, then the served listener's denial, then the unserved listener's denial. |
-| Route denied by listener policy (namespace or kind) | Route not attached, `Accepted=False` / `NotAllowedByListeners`. |
+| Route denied by listener policy (namespace or kind) | Route not attached, `Accepted=False` / `NotAllowedByListeners`, when the denying listener can attach an HTTPRoute; a `TLS`/`TCP` listener denies the route by kind regardless of its `allowedRoutes` (§7.4). |
 | Route hostnames not intersecting a listener hostname | Route not attached, `Accepted=False` / `NoMatchingListenerHostname`. |
-| Route whose `sectionName`/`port` matches no listener, or whose Gateway does not exist | Route not attached, `Accepted=False` / `NoMatchingParent`. |
-| `allowedRoutes.from=Selector` | Route not attached, `Accepted=False` / `UnsupportedValue`; the listener status is unaffected (§3.2). |
+| Route whose `sectionName`/`port` matches no listener, or whose Gateway does not exist | Route not attached, `Accepted=False` / `NoMatchingParent`. Reporting a missing parent Gateway with this reason is a ShenYu extension of the definition (it names ports and sectionNames only), documented in §7.4. |
+| `allowedRoutes.from=Selector` | Route not attached, `Accepted=False` / `UnsupportedValue` when the listener can attach an HTTPRoute; on a `TLS`/`TCP` listener it is a plain kind denial instead. The listener status is unaffected (§3.2). |
 
 In all three cases the request either fails or reaches nothing: routing is never broadened, and
 never silently redirected to a backend the author did not ask for.
@@ -286,8 +286,8 @@ including `HTTPRouteMatching`, `HTTPRouteExactPathMatching`, `HTTPRouteHeaderMat
 `HTTPRouteMatchingAcrossRoutes`, `HTTPRouteWeight`, `HTTPRouteCrossNamespace`,
 `HTTPRouteReferenceGrant`, `HTTPRouteObservedGenerationBump` and the invalid-input tests. Most of
 those ShenYu already implements per §3. The following **core** tests failed before this document
-was written. The four rejection-reason assertions are now correct, but the tests themselves still
-run against a Gateway whose declared port the suite dials, so they remain blocked until §7.1 lands:
+was written. The four rejection-reason assertions are now correct, but the fixture Gateways still
+cannot be `Programmed` under the port model, so the tests remain blocked until §7.1 lands:
 
 | Core test | Blocked by / status |
 | --- | --- |
@@ -351,7 +351,9 @@ The v1.5.1 API reference is explicit:
 
 ShenYu used to report `RefNotPermitted` for the first case and `UnsupportedValue` for the second.
 `HTTPRouteReconciler#evaluateListeners` now reports the specified reasons, and `RefNotPermitted` is
-left to `ResolvedRefs` where it belongs.
+left to `ResolvedRefs` where it belongs. One deliberate extension: a `parentRef` naming a Gateway
+that does not exist is also reported as `NoMatchingParent`, because no other spec reason describes a
+parent that resolves to nothing, and reporting nothing would leave the route silently unacknowledged.
 
 Listeners are evaluated in two tiers and the verdicts are merged, so neither tier can hide the
 other's answer:

@@ -29,6 +29,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
+import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.reconciler.GatewayReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
@@ -43,6 +44,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -189,6 +191,7 @@ public final class GatewayReconcilerTest {
         JsonObject listenerStatus = new JsonObject();
         listenerStatus.addProperty("name", "http");
         listenerStatus.addProperty("attachedRoutes", 0);
+        listenerStatus.add("supportedKinds", httpRouteKinds());
         listenerStatus.add("conditions", buildConditions("True", "True"));
         JsonArray listeners = new JsonArray();
         listeners.add(listenerStatus);
@@ -326,6 +329,10 @@ public final class GatewayReconcilerTest {
                 Assertions.assertEquals("PortUnavailable", accepted.get("reason").getAsString(),
                         "an HTTP listener on an unserved port must report PortUnavailable");
                 Assertions.assertEquals(1, supportedKinds.size(), "an HTTP listener supports HTTPRoute");
+                Assertions.assertEquals(GatewayApiConstants.GATEWAY_API_GROUP,
+                        supportedKinds.get(0).getAsJsonObject().get("group").getAsString());
+                Assertions.assertEquals(GatewayApiConstants.HTTP_ROUTE_KIND,
+                        supportedKinds.get(0).getAsJsonObject().get("kind").getAsString());
             } else {
                 Assertions.assertEquals("UnsupportedProtocol", accepted.get("reason").getAsString(),
                         "a non-HTTP listener must report UnsupportedProtocol");
@@ -333,6 +340,56 @@ public final class GatewayReconcilerTest {
                         "a TLS listener cannot carry an HTTPRoute, so it must not advertise the kind");
             }
         }
+    }
+
+    /**
+     * supportedKinds became variable in this change, so a Gateway statused by an older release (which
+     * advertised HTTPRoute for every listener) must be patched once: without that comparison the stale
+     * value would satisfy the match and the listener would keep claiming a kind it cannot carry.
+     */
+    @Test
+    public void testStaleSupportedKindsAreCorrected() throws Exception {
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        JsonObject listener = gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").get(0).getAsJsonObject();
+        listener.addProperty("protocol", "TLS");
+        listener.addProperty("port", 443);
+
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        RateLimitingQueue<Request> httpRouteWorkQueue = mock(RateLimitingQueue.class);
+        RateLimitingQueue<Request> gatewayClassWorkQueue = mock(RateLimitingQueue.class);
+        ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getAuthentications()).thenReturn(Map.of());
+        when(apiClient.buildCall(any(), any(), any(), any(), bodyCaptor.capture(), any(), any(), any(), any(), any()))
+                .thenReturn(mock(okhttp3.Call.class));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        GatewayReconciler gatewayReconciler = new GatewayReconciler(gatewayInformer, gatewayClassInformer,
+                httpRouteInformer, shenyuCacheRepository, httpRouteWorkQueue, gatewayClassWorkQueue, apiClient, 9195);
+
+        gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
+        Assertions.assertEquals(0, ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status")
+                .getAsJsonArray("listeners").get(0).getAsJsonObject().getAsJsonArray("supportedKinds").size());
+
+        // replay the status the previous release wrote: the same everything, but HTTPRoute advertised on a TLS listener
+        JsonObject staleStatus = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status");
+        staleStatus.getAsJsonArray("listeners").get(0).getAsJsonObject().add("supportedKinds", httpRouteKinds());
+        gateway.getRaw().add("status", staleStatus);
+        gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
+
+        verify(apiClient, times(2)).execute(any(okhttp3.Call.class));
+        JsonArray correctedKinds = ((JsonObject) bodyCaptor.getAllValues().get(1)).getAsJsonObject("status")
+                .getAsJsonArray("listeners").get(0).getAsJsonObject().getAsJsonArray("supportedKinds");
+        Assertions.assertEquals(0, correctedKinds.size(), "the stale HTTPRoute kind must be dropped by a patch");
     }
 
     private JsonArray buildConditions(final String acceptedStatus, final String programmedStatus) {
@@ -346,6 +403,16 @@ public final class GatewayReconcilerTest {
         conditions.add(accepted);
         conditions.add(programmed);
         return conditions;
+    }
+
+    /** The single supported route kind this controller advertises for listeners that can carry it. */
+    private JsonArray httpRouteKinds() {
+        JsonObject kind = new JsonObject();
+        kind.addProperty("group", GatewayApiConstants.GATEWAY_API_GROUP);
+        kind.addProperty("kind", GatewayApiConstants.HTTP_ROUTE_KIND);
+        JsonArray kinds = new JsonArray();
+        kinds.add(kind);
+        return kinds;
     }
 
     /**

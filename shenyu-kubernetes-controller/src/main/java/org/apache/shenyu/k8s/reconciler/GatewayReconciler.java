@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -417,12 +418,43 @@ public class GatewayReconciler implements Reconciler {
             if (Objects.isNull(existingListener)
                     || !Objects.equals(JsonFields.getLong(existingListener, "attachedRoutes"),
                     JsonFields.getLong(desiredListener, "attachedRoutes"))
+                    || !supportedKindsMatch(JsonFields.getJsonArray(existingListener, "supportedKinds"),
+                    JsonFields.getJsonArray(desiredListener, "supportedKinds"))
                     || !conditionsMatch(JsonFields.getJsonArray(existingListener, "conditions"),
                     desiredListener.getAsJsonArray("conditions"))) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Whether the advertised route kinds are the same set, ignoring order. supportedKinds became
+     * variable when listeners stopped advertising HTTPRoute on protocols that cannot carry it, and a
+     * missing listener status would otherwise be treated as matching (the patch is skipped instead).
+     *
+     * @param existing the kinds currently in status.listeners[].supportedKinds
+     * @param desired the kinds this reconcile computed
+     * @return true if both arrays hold the same group/kind pairs
+     */
+    private boolean supportedKindsMatch(final JsonArray existing, final JsonArray desired) {
+        if (Objects.isNull(existing) || Objects.isNull(desired) || existing.size() != desired.size()) {
+            return false;
+        }
+        List<String> existingKinds = routeKindsOf(existing);
+        return existingKinds.containsAll(routeKindsOf(desired));
+    }
+
+    private List<String> routeKindsOf(final JsonArray kinds) {
+        List<String> result = new ArrayList<>();
+        for (JsonElement element : kinds) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject kind = element.getAsJsonObject();
+            result.add(JsonFields.getString(kind, "group") + "/" + JsonFields.getString(kind, "kind"));
+        }
+        return result;
     }
 
     private JsonObject findListenerStatus(final JsonArray listeners, final String name) {

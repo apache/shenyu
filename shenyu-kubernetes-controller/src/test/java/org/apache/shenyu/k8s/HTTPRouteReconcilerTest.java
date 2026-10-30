@@ -671,8 +671,8 @@ public final class HTTPRouteReconcilerTest {
     }
 
     /**
-     * A TLS/TCP listener's allowedRoutes values are irrelevant because it can never attach an HTTPRoute:
-     * its from=Selector must not outrank a real policy denial reported by an HTTP listener.
+     * A TLS/TCP listener's allowedRoutes values are irrelevant because it can never attach an
+     * HTTPRoute: its from=Selector is a kind denial, not an unsupported value the route can act on.
      */
     @Test
     public void testSelectorOnProtocolIncompatibleListenerReportsKindDenial() throws Exception {
@@ -683,10 +683,11 @@ public final class HTTPRouteReconcilerTest {
 
         SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
         Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
-        DynamicKubernetesObject gateway = buildGatewayOnPort("gatewayNamespace", "shenyu-gateway", "shenyu", 80);
+        DynamicKubernetesObject gateway = buildGateway("gatewayNamespace", "shenyu-gateway", "shenyu");
         when(gatewayIndexer.getByKey("gatewayNamespace/shenyu-gateway")).thenReturn(gateway);
         when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
-        JsonObject tcpListener = new JsonObject();
+        // the Gateway's only listener speaks TCP and declares the unsupported from=Selector
+        JsonObject tcpListener = gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").get(0).getAsJsonObject();
         tcpListener.addProperty("name", "tcp");
         tcpListener.addProperty("protocol", "TCP");
         tcpListener.addProperty("port", 9000);
@@ -695,7 +696,6 @@ public final class HTTPRouteReconcilerTest {
         JsonObject tcpAllowedRoutes = new JsonObject();
         tcpAllowedRoutes.add("namespaces", selectorNamespaces);
         tcpListener.add("allowedRoutes", tcpAllowedRoutes);
-        gateway.getRaw().getAsJsonObject("spec").getAsJsonArray("listeners").add(tcpListener);
 
         final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
