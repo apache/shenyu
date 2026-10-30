@@ -26,6 +26,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,6 +36,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,6 +49,9 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     private static final String POOL_ACQUIRE_TIMEOUT_EXCEPTION_NAME =
             "reactor.netty.internal.shaded.reactor.pool.PoolAcquireTimeoutException";
+
+    private static final boolean OTEL_AVAILABLE = ClassUtils.isPresent(
+            "io.opentelemetry.api.trace.Span", WebClientAiProxyTransport.class.getClassLoader());
 
     private final WebClient webClient;
 
@@ -76,7 +81,11 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
      * @param properties transport properties
      */
     public WebClientAiProxyTransport(final WebClient webClient, final AiProxyTransportProperties properties) {
-        this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
+        this.webClient = Objects.requireNonNull(webClient, "webClient must not be null").mutate().defaultHeaders(headers -> {
+            headers.remove("traceparent");
+            headers.remove("tracestate");
+            headers.remove("baggage");
+        }).build();
         Objects.requireNonNull(properties, "properties must not be null");
         this.responseHeaderTimeout = AiProxyTransportProperties.requirePositive(
                 properties.getResponseHeaderTimeout(), "responseHeaderTimeout");
@@ -92,10 +101,10 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     @Override
     public Mono<AiUpstreamResponse> execute(final AiUpstreamRequest request) {
-        return Mono.defer(() -> exchange(request));
+        return Mono.deferContextual(context -> exchange(request, OTEL_AVAILABLE ? AiOutboundTraceContext.headers(context) : Map.of()));
     }
 
-    private Mono<AiUpstreamResponse> exchange(final AiUpstreamRequest request) {
+    private Mono<AiUpstreamResponse> exchange(final AiUpstreamRequest request, final Map<String, String> trace) {
         if (exceedsMaxRequestBytes(request)) {
             return Mono.error(new AiTransportException(
                     AiTransportException.Kind.REQUEST_TOO_LARGE,
@@ -107,6 +116,11 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                 .uri(request.getUri())
                 .headers(headers -> {
                     request.getHeaders().forEach(headers::put);
+                    // Never forward configured or client-carried stale telemetry.
+                    headers.remove("traceparent");
+                    headers.remove("tracestate");
+                    headers.remove("baggage");
+                    trace.forEach(headers::set);
                 });
         WebClient.RequestHeadersSpec<?> headersSpec = bodySpec;
         if (Objects.nonNull(request.getBody()) && request.getBody().length > 0) {
