@@ -18,6 +18,7 @@
 package org.apache.shenyu.e2e.client.gateway;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -26,6 +27,7 @@ import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
 import org.apache.shenyu.e2e.client.BaseClient;
 import org.apache.shenyu.e2e.common.RequestLogConsumer;
 import org.apache.shenyu.e2e.model.data.MetaData;
+import org.apache.shenyu.e2e.model.data.PluginData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 import org.java_websocket.client.WebSocketClient;
@@ -182,9 +184,11 @@ public class GatewayClient extends BaseClient {
             if (CollectionUtils.isEmpty(list)) {
                 continue;
             }
-            String json = MAPPER.writeValueAsString(list.get(0));
-            SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
-            selectorDataList.add(selectorData);
+            for (Object item : list) {
+                String json = MAPPER.writeValueAsString(item);
+                SelectorCacheData selectorData = MAPPER.readValue(json, SelectorCacheData.class);
+                selectorDataList.add(selectorData);
+            }
         }
         return selectorDataList;
     }
@@ -218,6 +222,15 @@ public class GatewayClient extends BaseClient {
         ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/plugins", HttpMethod.GET, null, List.class);
         List body = response.getBody();
         return (Map<String, Integer>) body.get(0);
+    }
+
+    /**
+     * Get the plugin configurations applied to the gateway.
+     * @return plugin configurations keyed by gateway cache key
+     */
+    public Map<String, PluginData> getPluginCache() {
+        ResponseEntity<List> response = TEMPLATE.exchange(baseUrl + "/actuator/pluginData", HttpMethod.GET, null, List.class);
+        return MAPPER.convertValue(response.getBody().get(0), new TypeReference<Map<String, PluginData>>() { });
     }
 
     /**

@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.e2e.model.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Plugin Data.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PluginData {
     
     /**
@@ -49,5 +51,71 @@ public class PluginData {
      * enabled.
      */
     private Boolean enabled;
+
+    private String namespaceId;
+
+    /**
+     * Get plugin name.
+     * @return plugin name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set plugin name.
+     * @param name plugin name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Get plugin configuration.
+     * @return plugin configuration
+     */
+    public String getConfig() {
+        return config;
+    }
+
+    /**
+     * Set plugin configuration.
+     * @param config plugin configuration
+     */
+    public void setConfig(final String config) {
+        this.config = config;
+    }
+
+    /**
+     * Get enabled state.
+     * @return enabled state
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Set enabled state.
+     * @param enabled enabled state
+     */
+    public void setEnabled(final Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Get namespace identifier.
+     * @return namespace identifier
+     */
+    public String getNamespaceId() {
+        return namespaceId;
+    }
+
+    /**
+     * Set namespace identifier.
+     * @param namespaceId namespace identifier
+     */
+    public void setNamespaceId(final String namespaceId) {
+        this.namespaceId = namespaceId;
+    }
     
 }

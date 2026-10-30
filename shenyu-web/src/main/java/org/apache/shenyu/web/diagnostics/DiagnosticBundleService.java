@@ -46,15 +46,19 @@ import java.util.concurrent.TimeoutException;
  * <p>Each collector runs on a worker thread with its own time and size budget. A collector that
  * times out, is cancelled or throws becomes a {@link SectionStatus#FAILED} section instead of
  * failing the whole bundle, and exhausting the total budget marks the remaining sections
- * {@link SectionStatus#SKIPPED}. Simultaneous bundle jobs are limited; when the limit is reached
- * the request degrades to an overload bundle that says so honestly rather than queueing behind
- * gateway traffic.</p>
+ * {@link SectionStatus#SKIPPED}. The per-section budget and the wait for its result are both
+ * capped by the remaining total collection time, so a section started near the total deadline
+ * cannot extend collection by another full section timeout. Simultaneous bundle jobs are
+ * limited; when the limit is reached the request degrades to an overload bundle that says so
+ * honestly rather than queueing behind gateway traffic.</p>
  */
 public final class DiagnosticBundleService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiagnosticBundleService.class);
 
     private static final String UNKNOWN = "unknown";
+
+    private static final String TOTAL_BUDGET_EXHAUSTED = "total budget exhausted";
 
     private final List<SectionCollector> collectors;
 
@@ -124,18 +128,19 @@ public final class DiagnosticBundleService {
     private DiagnosticSection runCollector(final ExecutorService executor, final SectionCollector collector, final long deadlineNanos) {
         String name = collector.name();
         long observedAt = System.currentTimeMillis();
-        if (System.nanoTime() - deadlineNanos >= 0) {
-            return DiagnosticSection.of(name, SectionStatus.SKIPPED, observedAt, 0L, "total budget exhausted");
+        long sectionBudgetMs = sectionBudgetMs(deadlineNanos);
+        if (sectionBudgetMs <= 0L) {
+            return DiagnosticSection.of(name, SectionStatus.SKIPPED, observedAt, 0L, TOTAL_BUDGET_EXHAUSTED);
         }
-        DiagnosticBudget budget = new DiagnosticBudget(properties.getSectionTimeoutMs(), properties.getMaxSectionBytes());
+        DiagnosticBudget budget = new DiagnosticBudget(sectionBudgetMs, properties.getMaxSectionBytes());
         long startNanos = System.nanoTime();
         Future<DiagnosticSection> future = executor.submit(() -> collector.collect(budget));
         try {
-            return capSection(future.get(properties.getSectionTimeoutMs(), TimeUnit.MILLISECONDS), startNanos);
+            return capSection(future.get(sectionBudgetMs, TimeUnit.MILLISECONDS), startNanos);
         } catch (TimeoutException ex) {
             budget.cancel();
             future.cancel(true);
-            return DiagnosticSection.of(name, SectionStatus.FAILED, observedAt, elapsedMs(startNanos), "section timeout");
+            return DiagnosticSection.of(name, SectionStatus.FAILED, observedAt, elapsedMs(startNanos), timeoutReason(deadlineNanos));
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             budget.cancel();
@@ -146,6 +151,40 @@ public final class DiagnosticBundleService {
         }
     }
 
+    /**
+     * Effective budget for one collector: the smaller of the section timeout and the remaining
+     * total collection time. A positive sub-millisecond remainder rounds up to one millisecond so
+     * it can neither expire before the collector starts nor be mistaken for an unbounded wait.
+     *
+     * @param deadlineNanos the monotonic total deadline
+     * @return the budget in milliseconds, or zero when the total budget is already exhausted
+     */
+    private long sectionBudgetMs(final long deadlineNanos) {
+        long remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0L) {
+            return 0L;
+        }
+        long budgetNanos = Math.min(TimeUnit.MILLISECONDS.toNanos(properties.getSectionTimeoutMs()), remainingNanos);
+        long budgetMs = TimeUnit.NANOSECONDS.toMillis(budgetNanos);
+        if (TimeUnit.MILLISECONDS.toNanos(budgetMs) < budgetNanos) {
+            // round a partial millisecond up: rounding down would return control slightly before
+            // the total deadline and misreport a capped section as a plain section timeout
+            budgetMs++;
+        }
+        return Math.max(1L, budgetMs);
+    }
+
+    /**
+     * Reason for a section that exhausted its capped budget: distinguish the total deadline from
+     * the per-section timeout so a consumer can tell what actually limited collection.
+     *
+     * @param deadlineNanos the monotonic total deadline
+     * @return the short reason
+     */
+    private String timeoutReason(final long deadlineNanos) {
+        return deadlineNanos - System.nanoTime() <= 0L ? TOTAL_BUDGET_EXHAUSTED : "section timeout";
+    }
+
     private DiagnosticSection capSection(final DiagnosticSection section, final long startNanos) {
         long durationMs = elapsedMs(startNanos);
         if (Objects.isNull(section)) {
@@ -153,7 +192,15 @@ public final class DiagnosticBundleService {
         }
         byte[] content = section.getContent();
         if (content.length > properties.getMaxSectionBytes()) {
-            byte[] capped = Arrays.copyOf(content, properties.getMaxSectionBytes());
+            // Cut on a character boundary: the cap is a byte count but the content is text, and a
+            // half-encoded character would make the archived entry undecodable. A cap below one
+            // whole character leaves no usable content, which is SKIPPED rather than empty OK.
+            int limit = Utf8Boundary.limit(content, properties.getMaxSectionBytes());
+            if (limit == 0) {
+                return DiagnosticSection.of(section.getName(), SectionStatus.SKIPPED,
+                        section.getObservedAtEpochMs(), durationMs, "section size cap");
+            }
+            byte[] capped = Arrays.copyOf(content, limit);
             return DiagnosticSection.truncated(section.getName(), section.getObservedAtEpochMs(), durationMs, capped, "section size cap");
         }
         return section;

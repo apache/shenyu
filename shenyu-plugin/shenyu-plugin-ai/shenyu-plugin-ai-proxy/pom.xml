@@ -20,12 +20,18 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin-ai</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-ai-proxy</artifactId>
 
     <dependencies>
+        <!-- Optional API only: no SDK, exporter, or tracing plugin dependency. -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Protocol conversion only; ShenYu retains transport and gateway policy. -->
         <dependency>
             <groupId>io.github.agentic-ai-java</groupId>
