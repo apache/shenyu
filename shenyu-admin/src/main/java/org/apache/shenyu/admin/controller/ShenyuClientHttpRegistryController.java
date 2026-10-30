@@ -94,6 +94,7 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping(RegistrationProtocol.META_PATH)
     @ResponseBody
     public String registerMetadata(@RequestBody @Valid final MetaDataRegisterDTO metaDataRegisterDTO) {
+        normalizeMetadata(metaDataRegisterDTO);
         if (Objects.isNull(metaDataRegisterDTO.getNamespaceId())) {
             metaDataRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -155,6 +156,7 @@ public class ShenyuClientHttpRegistryController {
     @PostMapping(RegistrationProtocol.MCP_TOOLS_PATH)
     @ResponseBody
     public String registerMcpTools(@RequestBody @Valid final McpToolsRegisterDTO mcpToolsRegisterDTO) {
+        normalizeMetadata(mcpToolsRegisterDTO.getMetaDataRegisterDTO());
         if (Objects.isNull(mcpToolsRegisterDTO.getNamespaceId())) {
             mcpToolsRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -182,6 +184,12 @@ public class ShenyuClientHttpRegistryController {
         NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
         if (Objects.isNull(namespaceVO)) {
             throw new IllegalArgumentException("namespaceId is not exist");
+        }
+    }
+
+    private void normalizeMetadata(final MetaDataRegisterDTO metadata) {
+        if (Objects.isNull(metadata.getRuleName()) || metadata.getRuleName().isEmpty()) {
+            metadata.setRuleName(metadata.getPath());
         }
     }
 }

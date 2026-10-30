@@ -58,18 +58,18 @@ public final class ShenyuClientRegistryValidator implements Validator {
 
     private void validateMetadata(final MetaDataRegisterDTO target, final Errors errors, final String prefix) {
         rejectIfBlank(errors, prefix + "appName", target.getAppName());
-        rejectIfBlank(errors, prefix + "contextPath", target.getContextPath());
         rejectIfBlank(errors, prefix + "path", target.getPath());
         rejectIfBlank(errors, prefix + "rpcType", target.getRpcType());
-        rejectIfBlank(errors, prefix + "ruleName", target.getRuleName());
-        rejectIfBlank(errors, prefix + "host", target.getHost());
+        rejectIfPresentBlank(errors, prefix + "contextPath", target.getContextPath());
+        rejectIfPresentBlank(errors, prefix + "ruleName", target.getRuleName());
+        rejectIfPresentBlank(errors, prefix + "host", target.getHost());
     }
 
     private void validateUri(final URIRegisterDTO target, final Errors errors) {
         rejectIfBlank(errors, "appName", target.getAppName());
-        rejectIfBlank(errors, "contextPath", target.getContextPath());
         rejectIfBlank(errors, "rpcType", target.getRpcType());
-        rejectIfBlank(errors, "host", target.getHost());
+        rejectIfPresentBlank(errors, "contextPath", target.getContextPath());
+        rejectIfPresentBlank(errors, "host", target.getHost());
     }
 
     private void validateApiDoc(final ApiDocRegisterDTO target, final Errors errors) {
@@ -98,6 +98,12 @@ public final class ShenyuClientRegistryValidator implements Validator {
 
     private void rejectIfBlank(final Errors errors, final String field, final String value) {
         if (Objects.isNull(value) || value.chars().allMatch(Character::isWhitespace)) {
+            errors.rejectValue(field, "NotBlank", "must not be blank");
+        }
+    }
+
+    private void rejectIfPresentBlank(final Errors errors, final String field, final String value) {
+        if (Objects.nonNull(value) && !value.isEmpty() && value.chars().allMatch(Character::isWhitespace)) {
             errors.rejectValue(field, "NotBlank", "must not be blank");
         }
     }

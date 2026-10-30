@@ -53,7 +53,13 @@ field types, authentication behavior, and success bodies are part of v1.
 
 Admin validates the six HTTP registration request bodies before publishing
 registration events. Required strings must be non-null and contain at least one
-non-whitespace character; required objects and integers must be non-null.
+non-whitespace character; required objects and integers must be non-null. For
+compatibility with existing clients, metadata (including nested MCP metadata)
+accepts missing, null or empty `contextPath`, `ruleName`, and `host`. URI and
+offline requests accept missing, null or empty `contextPath` and `host`.
+Whitespace-only values for these compatibility fields are rejected. Admin
+defaults a missing, null or empty metadata `ruleName` to `path`. API-doc requests
+still require a non-blank `contextPath`.
 Validation failures return HTTP 400. These checks live in Admin; the protocol DTOs
 remain JDK-only and carry no validation framework annotations. An HTTP success
 still acknowledges enqueueing, not completion of registration.
@@ -64,8 +70,10 @@ No fields are designated deprecated in this initial contract.
 
 ### Metadata
 
-- Required: `appName`, `contextPath`, `path`, `rpcType`, `ruleName`, and `host`
-  (strings). RPC-specific integrations additionally need `serviceName`,
+- Required: `appName`, `path`, and `rpcType` (strings). `contextPath`, `ruleName`,
+  and `host` are compatibility fields; empty values are accepted, while
+  whitespace-only values are rejected. A missing or empty `ruleName` defaults
+  to `path` in Admin. RPC-specific integrations additionally need `serviceName`,
   `methodName`, `parameterTypes`, and `rpcExt` (all strings). `rpcExt` is JSON
   encoded **inside a string**.
 - Optional strings: `pathDesc`, `namespaceId`. `port` is an integer;
@@ -79,7 +87,9 @@ No fields are designated deprecated in this initial contract.
 
 ### URI and offline lifecycle
 
-- Required: `appName`, `contextPath`, `rpcType`, and `host` (strings).
+- Required: `appName` and `rpcType` (strings). `contextPath` and `host` are
+  compatibility fields; empty values are accepted, while whitespace-only
+  values are rejected.
   `port` (integer) is needed by the upstream service but is not checked by HTTP
   request validation. `protocol` is a string such as `http://`; it is distinct
   from the registration protocol version.
