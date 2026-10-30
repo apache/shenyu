@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingException;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -57,6 +58,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
@@ -74,6 +78,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -119,6 +124,14 @@ public class UpstreamCheckService {
     private final SelectorHandleConverterFactor converterFactor;
 
     private final DiscoveryUpstreamService discoveryUpstreamService;
+
+    /**
+     * The selector row lock must cover the final discovery snapshot and selector
+     * handle write. The field is optional for the lightweight unit tests that
+     * construct this service without a Spring transaction manager.
+     */
+    @jakarta.annotation.Resource
+    private PlatformTransactionManager transactionManager;
 
     private ScheduledThreadPoolExecutor executor;
 
@@ -376,12 +389,13 @@ public class UpstreamCheckService {
         ZOMBIE_SET.remove(zombieUpstream);
         String selectorId = zombieUpstream.getSelectorId();
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
+        boolean originalStatus = commonUpstream.isStatus();
         if (!commonUpstream.isHealthCheckEnabled()) {
             commonUpstream.setTimestamp(System.currentTimeMillis());
             commonUpstream.setStatus(true);
             List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
             this.submitJust(selectorId, commonUpstream);
-            updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
+            reconcileZombie(selectorId, zombieUpstream, commonUpstream, old, originalStatus);
             return;
         }
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
@@ -392,7 +406,7 @@ public class UpstreamCheckService {
             List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
             // fix https://github.com/apache/shenyu/issues/5311
             this.submitJust(selectorId, commonUpstream);
-            updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
+            reconcileZombie(selectorId, zombieUpstream, commonUpstream, old, originalStatus);
         } else {
             LOG.error("check zombie upstream the url={} is fail", commonUpstream.getUpstreamUrl());
             if (zombieUpstream.getZombieCheckTimes() > NumberUtils.INTEGER_ZERO) {
@@ -402,9 +416,23 @@ public class UpstreamCheckService {
         }
     }
 
+    private void reconcileZombie(final String selectorId, final ZombieUpstream zombieUpstream,
+                                 final CommonUpstream commonUpstream, final List<CommonUpstream> old,
+                                 final boolean originalStatus) {
+        List<CommonUpstream> updated = UPSTREAM_MAP.get(selectorId);
+        boolean rejected = updateHandler(selectorId, old, updated, updated, Sets.newHashSet(),
+                Collections.singletonMap(commonUpstream.getUpstreamUrl(), originalStatus));
+        if (rejected) {
+            ZOMBIE_SET.add(zombieUpstream);
+        }
+    }
+
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
         final List<CommonUpstream> checkedUpstreams = new ArrayList<>(upstreamList);
+        final Map<String, Boolean> originalStatuses = checkedUpstreams.stream()
+                .collect(Collectors.toMap(CommonUpstream::getUpstreamUrl, CommonUpstream::isStatus, (left, right) -> left));
         final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(checkedUpstreams.size());
+        final Set<String> fencedRejectedUrls = Sets.newConcurrentHashSet();
         for (CommonUpstream commonUpstream : checkedUpstreams) {
             checkFutures.add(CompletableFuture.supplyAsync(() -> {
                 if (!commonUpstream.isHealthCheckEnabled()) {
@@ -425,14 +453,24 @@ public class UpstreamCheckService {
                     }
                     return commonUpstream;
                 } else {
+                    LOG.info("change unlive selectorId={}|url={}", selectorId, commonUpstream.getUpstreamUrl());
+                    if (!discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(selectorId, commonUpstream.getUpstreamUrl(), Boolean.FALSE)) {
+                        fencedRejectedUrls.add(commonUpstream.getUpstreamUrl());
+                        return commonUpstream;
+                    }
                     commonUpstream.setStatus(false);
                     ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
-                    LOG.info("change unlive selectorId={}|url={}", selectorId, commonUpstream.getUpstreamUrl());
-                    discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, commonUpstream.getUpstreamUrl(), Boolean.FALSE);
                     LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
                 }
                 return null;
             }, invokeExecutor).exceptionally(ex -> {
+                if (unwrapFencingException(ex)) {
+                    // A rejected probe is not a successful probe. Preserve the
+                    // previous in-memory state and let reconciliation retain
+                    // the persisted route without issuing another write.
+                    fencedRejectedUrls.add(commonUpstream.getUpstreamUrl());
+                    return commonUpstream;
+                }
                 LOG.error("An exception occurred during the check of url {}: ", commonUpstream.getUpstreamUrl(), ex);
                 return null;
             }));
@@ -443,7 +481,7 @@ public class UpstreamCheckService {
                     .map(CompletableFuture::join)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-            updateHandler(selectorId, checkedUpstreams, successList, upstreamList);
+            updateHandler(selectorId, checkedUpstreams, successList, upstreamList, fencedRejectedUrls, originalStatuses);
         }));
     }
 
@@ -453,34 +491,90 @@ public class UpstreamCheckService {
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList,
                                final List<CommonUpstream> successList, final List<CommonUpstream> expectedUpstreams) {
+        updateHandler(selectorId, upstreamList, successList, expectedUpstreams, Sets.newHashSet());
+    }
+
+    private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList,
+                               final List<CommonUpstream> successList, final List<CommonUpstream> expectedUpstreams,
+                               final Set<String> fencedRejectedUrls) {
+        updateHandler(selectorId, upstreamList, successList, expectedUpstreams, fencedRejectedUrls, Collections.emptyMap());
+    }
+
+    private boolean updateHandler(final String selectorId, final List<CommonUpstream> upstreamList,
+                                  final List<CommonUpstream> successList, final List<CommonUpstream> expectedUpstreams,
+                                  final Set<String> fencedRejectedUrls, final Map<String, Boolean> originalStatuses) {
         //No node changes, including zombie node resurrection and live node death
         if (successList.size() == upstreamList.size() && PENDING_SYNC.isEmpty()) {
-            return;
+            return false;
         }
         // Serialize discovery replacement with publication, without holding a ConcurrentHashMap bin lock during I/O.
         Lock lock = UPSTREAM_UPDATE_LOCKS.get(selectorId);
         lock.lock();
         try {
-            List<CommonUpstream> current = UPSTREAM_MAP.get(selectorId);
-            // A registry replacement or removal supersedes an in-flight health check.
-            if (Objects.nonNull(expectedUpstreams) && current != expectedUpstreams) {
-                return;
-            }
-            removePendingSync(successList);
-            List<CommonUpstream> alive = new ArrayList<>(successList);
-            if (Objects.nonNull(expectedUpstreams)) {
-                current.stream().filter(upstream -> upstreamList.stream().noneMatch(checkedUpstream ->
-                        checkedUpstream.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
-                        .filter(CommonUpstream::isStatus).forEach(alive::add);
-            }
-            Set<String> checkedFailedUrls = upstreamList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
-            successList.forEach(upstream -> checkedFailedUrls.remove(upstream.getUpstreamUrl()));
-            List<CommonUpstream> reconciled = updateSelectorHandler(selectorId, alive, checkedFailedUrls);
-            // A registration can update the cache during publication; retain it for its queued update.
-            UPSTREAM_MAP.compute(selectorId, (key, latest) -> latest == current
-                    ? (reconciled.isEmpty() ? null : toThreadSafeList(reconciled)) : latest);
+            return executeUpdateTransaction(() -> updateHandlerInTransaction(selectorId, upstreamList, successList,
+                    expectedUpstreams, fencedRejectedUrls, originalStatuses));
         } finally {
             lock.unlock();
+        }
+    }
+
+    private boolean updateHandlerInTransaction(final String selectorId, final List<CommonUpstream> upstreamList,
+                                               final List<CommonUpstream> successList,
+                                               final List<CommonUpstream> expectedUpstreams,
+                                               final Set<String> fencedRejectedUrls,
+                                               final Map<String, Boolean> originalStatuses) {
+        List<CommonUpstream> current = UPSTREAM_MAP.get(selectorId);
+        // A registry replacement or removal supersedes an in-flight health check.
+        if (Objects.nonNull(expectedUpstreams) && current != expectedUpstreams) {
+            return false;
+        }
+        removePendingSync(successList);
+        List<CommonUpstream> alive = buildAliveList(upstreamList, successList, expectedUpstreams, current);
+        Set<String> checkedFailedUrls = upstreamList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
+        successList.forEach(upstream -> checkedFailedUrls.remove(upstream.getUpstreamUrl()));
+        fencedRejectedUrls.forEach(checkedFailedUrls::remove);
+        List<CommonUpstream> reconciled = updateSelectorHandler(selectorId, alive, checkedFailedUrls, fencedRejectedUrls);
+        restoreRejectedStatuses(upstreamList, successList, fencedRejectedUrls, originalStatuses);
+        // A registration can update the cache during publication; retain it for its queued update.
+        UPSTREAM_MAP.compute(selectorId, (key, latest) -> latest == current
+                ? (reconciled.isEmpty() ? null : toThreadSafeList(reconciled)) : latest);
+        return !fencedRejectedUrls.isEmpty();
+    }
+
+    private List<CommonUpstream> buildAliveList(final List<CommonUpstream> upstreamList,
+                                                final List<CommonUpstream> successList,
+                                                final List<CommonUpstream> expectedUpstreams,
+                                                final List<CommonUpstream> current) {
+        List<CommonUpstream> alive = new ArrayList<>(successList);
+        if (Objects.nonNull(expectedUpstreams)) {
+            current.stream().filter(upstream -> upstreamList.stream().noneMatch(checkedUpstream ->
+                    checkedUpstream.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                    .filter(CommonUpstream::isStatus).forEach(alive::add);
+        }
+        return alive;
+    }
+
+    private void restoreRejectedStatuses(final List<CommonUpstream> upstreamList,
+                                         final List<CommonUpstream> successList,
+                                         final Set<String> fencedRejectedUrls,
+                                         final Map<String, Boolean> originalStatuses) {
+        upstreamList.stream().filter(upstream -> fencedRejectedUrls.contains(upstream.getUpstreamUrl()))
+                .forEach(upstream -> restoreStatus(upstream, originalStatuses));
+        successList.stream().filter(upstream -> fencedRejectedUrls.contains(upstream.getUpstreamUrl()))
+                .forEach(upstream -> restoreStatus(upstream, originalStatuses));
+    }
+
+    private <T> T executeUpdateTransaction(final Supplier<T> action) {
+        if (Objects.isNull(transactionManager) || TransactionSynchronizationManager.isActualTransactionActive()) {
+            return action.get();
+        }
+        return new TransactionTemplate(transactionManager).execute(status -> action.get());
+    }
+
+    private void restoreStatus(final CommonUpstream upstream, final Map<String, Boolean> originalStatuses) {
+        Boolean original = originalStatuses.get(upstream.getUpstreamUrl());
+        if (Objects.nonNull(original)) {
+            upstream.setStatus(original);
         }
     }
 
@@ -494,16 +588,20 @@ public class UpstreamCheckService {
     }
 
     private List<CommonUpstream> updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList, final Set<String> checkedFailedUrls) {
+        return updateSelectorHandler(selectorId, aliveList, checkedFailedUrls, Sets.newHashSet());
+    }
+
+    private List<CommonUpstream> updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList,
+                                                       final Set<String> checkedFailedUrls,
+                                                       final Set<String> fencedRejectedUrls) {
         if (localMode) {
-            // Local probe mode: every statement below reconciles admin probe results into
-            // persisted or routing state (db status, selector handle, selector/discovery events),
-            // so there is nothing else to do once probing is disabled. The probe pipeline
-            // entries are gated already, making this unreachable today; this guard keeps the
-            // write side safe against any future caller and returns the alive list unchanged
-            // for the caller's cache bookkeeping.
+            // Local probe mode must not reconcile admin probe results into persisted or routing state.
             return aliveList;
         }
-        SelectorDO selectorDO = selectorMapper.selectById(selectorId);
+        // The caller holds the selector transaction for the complete snapshot,
+        // status reconciliation and selector handle write. Direct unit-test
+        // calls without a transaction use the ordinary read path.
+        SelectorDO selectorDO = selectSelectorForUpdate(selectorId);
         if (Objects.isNull(selectorDO)) {
             return aliveList;
         }
@@ -513,26 +611,20 @@ public class UpstreamCheckService {
             return aliveList;
         }
 
-        List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
-        if (CollectionUtils.isEmpty(discoveryUpstreamDataList) && !discoveryUpstreamService.hasDiscoveryHandler(selectorId)) {
-            // Legacy registrations without discovery records still use their checked upstreams.
-            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
-        }
-        Set<String> aliveUrls = aliveList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
-        discoveryUpstreamDataList.stream().filter(upstream -> aliveUrls.contains(upstream.getUrl())).forEach(upstream -> {
-            LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
-            discoveryUpstreamService.changeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE);
-            upstream.setStatus(NumberUtils.INTEGER_ZERO);
-        });
-        // Unchecked instances retain their persisted status; a stale check is not a full discovery snapshot.
-        discoveryUpstreamDataList = discoveryUpstreamDataList.stream()
-                .filter(upstream -> upstream.getStatus() == 0 && !checkedFailedUrls.contains(upstream.getUrl())).collect(Collectors.toList());
+        boolean hasDiscoveryHandler = discoveryUpstreamService.hasDiscoveryHandler(selectorId);
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = loadDiscoverySnapshot(selectorId, aliveList, hasDiscoveryHandler);
+        Set<String> changedUrls = Sets.newHashSet();
+        discoveryUpstreamDataList = reconcileDiscoverySnapshot(selectorId, aliveList, checkedFailedUrls,
+                fencedRejectedUrls, hasDiscoveryHandler, discoveryUpstreamDataList, changedUrls);
         List<CommonUpstream> currentAlive = discoveryUpstreamDataList.stream().map(upstream -> {
             CommonUpstream common = aliveList.stream().filter(alive -> alive.getUpstreamUrl().equals(upstream.getUrl())).findFirst()
                     .orElseGet(() -> DiscoveryTransfer.INSTANCE.mapToCommonUpstream(upstream));
             common.setStatus(true);
             return common;
         }).collect(Collectors.toList());
+        if (!fencedRejectedUrls.isEmpty() && checkedFailedUrls.isEmpty() && changedUrls.isEmpty()) {
+            return currentAlive;
+        }
         String pluginName = pluginDO.getName();
         String handler = converterFactor.newInstance(pluginName).handler(selectorDO.getHandle(), currentAlive);
         selectorDO.setHandle(handler);
@@ -543,7 +635,7 @@ public class UpstreamCheckService {
         SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginName, conditionDataList);
         selectorData.setHandle(handler);
 
-        // publish change event.
+        // DataChangedEventDispatcher delays delivery until this transaction commits.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
 
         // publish discovery change event.
@@ -556,6 +648,80 @@ public class UpstreamCheckService {
         LOG.debug("UpstreamCacheManager update selectorId={}|json={}", selectorId, GsonUtils.getGson().toJson(discoverySyncData));
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData)));
         return currentAlive;
+    }
+
+    private List<DiscoveryUpstreamData> loadDiscoverySnapshot(final String selectorId,
+                                                              final List<CommonUpstream> aliveList,
+                                                              final boolean hasDiscoveryHandler) {
+        List<DiscoveryUpstreamData> snapshot = discoveryUpstreamService.findBySelectorId(selectorId);
+        if (CollectionUtils.isEmpty(snapshot) && !hasDiscoveryHandler) {
+            // Legacy registrations without discovery records still use their checked upstreams.
+            return aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+        }
+        return snapshot;
+    }
+
+    private List<DiscoveryUpstreamData> reconcileDiscoverySnapshot(final String selectorId,
+                                                                   final List<CommonUpstream> aliveList,
+                                                                   final Set<String> checkedFailedUrls,
+                                                                   final Set<String> fencedRejectedUrls,
+                                                                   final boolean hasDiscoveryHandler,
+                                                                   final List<DiscoveryUpstreamData> snapshot,
+                                                                   final Set<String> changedUrls) {
+        Set<String> aliveUrls = aliveList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
+        for (DiscoveryUpstreamData upstream : snapshot) {
+            if (aliveUrls.contains(upstream.getUrl()) && !fencedRejectedUrls.contains(upstream.getUrl())
+                    && updateDiscoveryStatus(selectorId, upstream, aliveList, fencedRejectedUrls)) {
+                changedUrls.add(upstream.getUrl());
+            }
+        }
+        List<DiscoveryUpstreamData> finalSnapshot = hasDiscoveryHandler && TransactionSynchronizationManager.isActualTransactionActive()
+                ? discoveryUpstreamService.findBySelectorId(selectorId)
+                : snapshot;
+        return finalSnapshot.stream()
+                .filter(upstream -> upstream.getStatus() == 0 && !checkedFailedUrls.contains(upstream.getUrl()))
+                .collect(Collectors.toList());
+    }
+
+    private boolean updateDiscoveryStatus(final String selectorId, final DiscoveryUpstreamData upstream,
+                                          final List<CommonUpstream> aliveList,
+                                          final Set<String> fencedRejectedUrls) {
+        LOG.info("change alive selectorId={}|url={}", selectorId, upstream.getUrl());
+        boolean statusChanged = upstream.getStatus() != 0;
+        if (discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(selectorId, upstream.getUrl(), Boolean.TRUE)) {
+            upstream.setStatus(NumberUtils.INTEGER_ZERO);
+            return statusChanged;
+        } else {
+            LOG.debug("Skip protected upstream status update selectorId={}, url={}", selectorId, upstream.getUrl());
+            fencedRejectedUrls.add(upstream.getUrl());
+            restoreRejectedStatus(upstream, aliveList);
+            return false;
+        }
+    }
+
+    private SelectorDO selectSelectorForUpdate(final String selectorId) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            return selectorMapper.selectByIdForUpdate(selectorId);
+        }
+        return selectorMapper.selectById(selectorId);
+    }
+
+    private void restoreRejectedStatus(final DiscoveryUpstreamData discoveryUpstream,
+                                       final List<CommonUpstream> aliveList) {
+        boolean healthy = discoveryUpstream.getStatus() == 0;
+        aliveList.stream().filter(upstream -> Objects.equals(discoveryUpstream.getUrl(), upstream.getUpstreamUrl()))
+                .forEach(upstream -> upstream.setStatus(healthy));
+    }
+
+    private boolean unwrapFencingException(final Throwable throwable) {
+        Throwable current = throwable;
+        while (Objects.nonNull(current)) {
+            if (current instanceof RegistrationFencingException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     /**

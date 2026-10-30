@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.RegistrationFencingTargetMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.RegistrationFencingTargetDO">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="date_created" property="dateCreated" jdbcType="TIMESTAMP"/>
+        <result column="date_updated" property="dateUpdated" jdbcType="TIMESTAMP"/>
+        <result column="domain_id" property="domainId" jdbcType="VARCHAR"/>
+        <result column="namespace_id" property="namespaceId" jdbcType="VARCHAR"/>
+        <result column="selector_id" property="selectorId" jdbcType="VARCHAR"/>
+        <result column="plugin_id" property="pluginId" jdbcType="VARCHAR"/>
+        <result column="protocol" property="protocol" jdbcType="VARCHAR"/>
+        <result column="host" property="host" jdbcType="VARCHAR"/>
+        <result column="port" property="port" jdbcType="INTEGER"/>
+        <result column="principal_id" property="principalId" jdbcType="VARCHAR"/>
+        <result column="enabled" property="enabled" jdbcType="TINYINT"/>
+        <result column="state" property="state" jdbcType="VARCHAR"/>
+        <result column="generation" property="generation" jdbcType="BIGINT"/>
+        <result column="owner_startup_id" property="ownerStartupId" jdbcType="VARCHAR"/>
+        <result column="session_id" property="sessionId" jdbcType="VARCHAR"/>
+        <result column="last_sequence" property="lastSequence" jdbcType="BIGINT"/>
+        <result column="last_payload" property="lastPayload" jdbcType="LONGVARCHAR"/>
+        <result column="last_result" property="lastResult" jdbcType="LONGVARCHAR"/>
+        <result column="last_request_id" property="lastRequestId" jdbcType="VARCHAR"/>
+        <result column="last_request_payload" property="lastRequestPayload" jdbcType="LONGVARCHAR"/>
+        <result column="retired_startups" property="retiredStartups" jdbcType="LONGVARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, date_created, date_updated, domain_id, namespace_id, selector_id, plugin_id, protocol,
+        host, port, principal_id, enabled, state, generation, owner_startup_id, session_id,
+        last_sequence, last_payload, last_result, last_request_id, last_request_payload, retired_startups
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target WHERE id = #{id}
+    </select>
+
+    <select id="selectByIdForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target WHERE id = #{id} FOR UPDATE
+    </select>
+
+    <select id="selectBySessionId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target
+        WHERE domain_id = #{domainId} AND session_id = #{sessionId}
+    </select>
+
+    <select id="selectBySelectorAddress" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target
+        WHERE selector_id = #{selectorId} AND host = #{host} AND port = #{port}
+    </select>
+
+    <select id="selectBySelectorId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target WHERE selector_id = #{selectorId}
+    </select>
+
+    <select id="selectByNamespaceAddress" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target
+        WHERE namespace_id = #{namespaceId} AND host = #{host} AND port = #{port}
+    </select>
+
+    <select id="selectByNamespaceId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target
+        WHERE namespace_id = #{namespaceId}
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RegistrationFencingTargetDO">
+        INSERT INTO registration_fencing_target
+        (id, date_created, date_updated, domain_id, namespace_id, selector_id, plugin_id, protocol,
+         host, port, principal_id, enabled, state, generation, owner_startup_id, session_id,
+         last_sequence, last_payload, last_result, last_request_id, last_request_payload, retired_startups)
+        VALUES
+        (#{id}, #{dateCreated}, #{dateUpdated}, #{domainId}, #{namespaceId}, #{selectorId}, #{pluginId}, #{protocol},
+         #{host}, #{port}, #{principalId}, #{enabled}, #{state}, #{generation}, #{ownerStartupId}, #{sessionId},
+         #{lastSequence}, #{lastPayload}, #{lastResult}, #{lastRequestId}, #{lastRequestPayload}, #{retiredStartups})
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.RegistrationFencingTargetDO">
+        UPDATE registration_fencing_target
+        SET date_updated = #{dateUpdated}, domain_id = #{domainId}, namespace_id = #{namespaceId},
+            selector_id = #{selectorId}, plugin_id = #{pluginId}, protocol = #{protocol}, host = #{host},
+            port = #{port}, principal_id = #{principalId}, enabled = #{enabled}, state = #{state},
+            generation = #{generation}, owner_startup_id = #{ownerStartupId}, session_id = #{sessionId},
+            last_sequence = #{lastSequence}, last_payload = #{lastPayload}, last_result = #{lastResult},
+            last_request_id = #{lastRequestId}, last_request_payload = #{lastRequestPayload}, retired_startups = #{retiredStartups}
+        WHERE id = #{id}
+    </update>
+</mapper>

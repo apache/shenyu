@@ -51,8 +51,37 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers.
 ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
 
+CREATE TABLE IF NOT EXISTS registration_fencing_target (
+    id VARCHAR(128) NOT NULL PRIMARY KEY,
+    date_created TIMESTAMP NOT NULL,
+    date_updated TIMESTAMP NOT NULL,
+    domain_id VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(64) NOT NULL,
+    selector_id VARCHAR(128) NOT NULL,
+    plugin_id VARCHAR(128) NOT NULL,
+    protocol VARCHAR(32) NOT NULL,
+    host VARCHAR(255) NOT NULL,
+    port INTEGER NOT NULL,
+    principal_id VARCHAR(128) NOT NULL,
+    enabled TINYINT NOT NULL,
+    state VARCHAR(16) NOT NULL,
+    generation BIGINT NOT NULL,
+    owner_startup_id VARCHAR(64),
+    session_id VARCHAR(128),
+    last_sequence BIGINT NOT NULL,
+    last_payload CLOB,
+    last_result CLOB,
+    last_request_id VARCHAR(64),
+    last_request_payload CLOB,
+    retired_startups CLOB,
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON registration_fencing_target (namespace_id, host, port);
+
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0;
+
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');

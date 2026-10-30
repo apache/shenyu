@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -121,6 +122,9 @@ public final class DiscoveryUpstreamServiceTest {
     @Mock
     private DiscoveryProcessor discoveryProcessor;
 
+    @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
     @BeforeEach
     public void setUp() {
 
@@ -131,7 +135,8 @@ public final class DiscoveryUpstreamServiceTest {
                 discoveryRelMapper,
                 selectorMapper,
                 pluginMapper,
-                discoveryProcessorHolder
+                discoveryProcessorHolder,
+                registrationFencingGuard
         );
     }
 
@@ -261,6 +266,11 @@ public final class DiscoveryUpstreamServiceTest {
         final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
         handler.setId("handler-1");
         when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
 
         discoveryUpstreamService.changeStatusBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", Boolean.TRUE);
 
@@ -269,8 +279,98 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     @Test
+    public void testHealthStatusUpdateCanBeRejectedWithoutWritingProtectedAddress() {
+        when(registrationFencingGuard.isSelectorAddressProtected("selector-1", "127.0.0.1:8080")).thenReturn(true);
+
+        Assertions.assertFalse(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", Boolean.FALSE));
+
+        verify(registrationFencingGuard).isSelectorAddressProtected("selector-1", "127.0.0.1:8080");
+        verifyNoInteractions(discoveryHandlerMapper, discoveryUpstreamMapper);
+    }
+
+    @Test
+    public void testHealthStatusUpdateWritesWhenAddressIsNotProtected() {
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(registrationFencingGuard.isSelectorAddressProtected("selector-1", "127.0.0.1:8080")).thenReturn(false);
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        Assertions.assertTrue(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", Boolean.FALSE));
+
+        verify(discoveryUpstreamMapper).updateStatusByUrl("handler-1", "127.0.0.1:8080", 1);
+    }
+
+    @Test
+    public void testDeleteFindsHistoricalIpv6EndpointByCanonicalAddress() {
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("[2001:0DB8:0:0:0:0:0:1]:8080");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "2001:db8::1:8080")).thenReturn(null);
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.singletonList(upstream));
+
+        discoveryUpstreamService.deleteBySelectorIdAndUrl("selector-1", "2001:db8::1:8080");
+
+        verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("upstream-1"));
+        verify(discoveryUpstreamMapper, never()).deleteByUrl(anyString(), anyString());
+    }
+
+    @Test
+    public void testStatusUpdateFindsHistoricalIpv6EndpointByCanonicalAddress() {
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("[2001:0DB8:0:0:0:0:0:1]:8080");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "2001:db8::1:8080")).thenReturn(null);
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.singletonList(upstream));
+
+        discoveryUpstreamService.changeStatusBySelectorIdAndUrl("selector-1", "2001:db8::1:8080", Boolean.TRUE);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals("upstream-1", captor.getValue().getId());
+        assertEquals(0, captor.getValue().getUpstreamStatus());
+    }
+
+    @Test
+    public void testDrainUpdateFindsHistoricalIpv6EndpointByCanonicalAddress() {
+        DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setId("upstream-1");
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("[2001:0DB8:0:0:0:0:0:1]:8080");
+        upstream.setProps("{\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "2001:db8::1:8080")).thenReturn(null);
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.singletonList(upstream));
+
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-1", "2001:db8::1:8080", true);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals("upstream-1", captor.getValue().getId());
+        Map<String, Object> props = GsonUtils.getInstance().convertToMap(captor.getValue().getProps());
+        assertEquals(Boolean.TRUE, props.get("draining"));
+        assertEquals("20", props.get("warmup"));
+    }
+
+    @Test
     public void testCreateOrUpdate() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
+        DiscoveryUpstreamDO existing = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
         when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(buildSelectorDO());
         when(discoveryHandlerMapper.selectById(any())).thenReturn(buildDiscoveryHandlerDO());
         when(pluginMapper.selectById(any())).thenReturn(buildPluginDO());
@@ -283,15 +383,24 @@ public final class DiscoveryUpstreamServiceTest {
     @Test
     public void testNativeCreateOrUpdate() {
         when(discoveryUpstreamMapper.insert(any())).thenReturn(1);
+        DiscoveryUpstreamDO existing = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.updateSelectiveForHandler(any(), eq("123"))).thenReturn(1);
         testNativeCreate();
         testNativeUpdate();
     }
 
     @Test
     public void testDelete() {
+        DiscoveryUpstreamDO existing = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
+        configureSync();
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
+        verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("123"));
     }
 
 
@@ -301,6 +410,7 @@ public final class DiscoveryUpstreamServiceTest {
         upstream.setId("upstream-1");
         upstream.setDiscoveryHandlerId("handler-1");
         when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         // fetchAll dependencies for handler-1
         when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(Collections.emptyList());
@@ -666,7 +776,9 @@ public final class DiscoveryUpstreamServiceTest {
     public void testSingleUpdateReplacesPropsAndSynchronizesLabels(final String props) {
         AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(existingLabeledUpstream());
         configureSync();
-        when(discoveryUpstreamMapper.update(any())).thenAnswer(invocation -> {
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.updateForHandler(any(), eq("123"))).thenAnswer(invocation -> {
             stored.set(invocation.getArgument(0));
             return 1;
         });
@@ -681,6 +793,54 @@ public final class DiscoveryUpstreamServiceTest {
         assertEquals(stored.get().getProps(), synced.getValue().get(0).getProps());
         when(discoveryHandlerMapper.selectBySelectorId("selector_1")).thenReturn(buildDiscoveryHandlerDO());
         assertEquals(stored.get().getProps(), discoveryUpstreamService.findBySelectorId("selector_1").get(0).getProps());
+    }
+
+    @Test
+    public void testUpdateRefreshesSourceAndDestinationHandlersWhenOwnerChanges() {
+        AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(buildDiscoveryUpstreamDO("upstream-1", "source-handler", "localhost:8080"));
+        configureSync();
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.updateForHandler(any(), eq("source-handler"))).thenAnswer(invocation -> {
+            stored.set(invocation.getArgument(0));
+            return 1;
+        });
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("source-handler")).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("destination-handler")).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        DiscoveryUpstreamDTO update = buildDiscoveryUpstreamDTO("upstream-1", "destination-handler", "localhost:8081");
+        update.setProtocol("http://");
+        update.setProps("{}");
+
+        discoveryUpstreamService.createOrUpdate(update);
+
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(discoveryProcessor, times(2)).changeUpstream(any(), synced.capture());
+        assertEquals(Collections.emptyList(), synced.getAllValues().get(0));
+        assertEquals("localhost:8081", synced.getAllValues().get(1).get(0).getUrl());
+    }
+
+    @Test
+    public void testBatchUpdateRefreshesSourceAndDestinationHandlersWhenOwnerChanges() {
+        AtomicReference<DiscoveryUpstreamDO> stored = new AtomicReference<>(buildDiscoveryUpstreamDO("upstream-1", "source-handler", "localhost:8080"));
+        configureSync();
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(stored.get()));
+        when(discoveryUpstreamMapper.updateForHandler(any(), eq("source-handler"))).thenAnswer(invocation -> {
+            stored.set(invocation.getArgument(0));
+            return 1;
+        });
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("source-handler")).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("destination-handler")).thenAnswer(invocation -> Collections.singletonList(stored.get()));
+        DiscoveryUpstreamDTO update = buildDiscoveryUpstreamDTO("upstream-1", "destination-handler", "localhost:8081");
+        update.setProtocol("http://");
+        update.setProps("{}");
+
+        discoveryUpstreamService.createOrUpdateBatch(Collections.singletonList(update));
+
+        ArgumentCaptor<List<DiscoveryUpstreamDTO>> synced = ArgumentCaptor.forClass(List.class);
+        verify(discoveryProcessor, times(2)).changeUpstream(any(), synced.capture());
+        assertEquals(Collections.emptyList(), synced.getAllValues().get(0));
+        assertEquals("localhost:8081", synced.getAllValues().get(1).get(0).getUrl());
     }
 
     @ParameterizedTest
@@ -743,9 +903,13 @@ public final class DiscoveryUpstreamServiceTest {
     public void testNativeUpdateReplacesSubmittedProps() {
         DiscoveryUpstreamDTO dto = buildDiscoveryUpstreamDTO("123");
         dto.setProps("{\"warmup\":20}");
+        DiscoveryUpstreamDO existing = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
+        when(discoveryUpstreamMapper.updateSelectiveForHandler(any(), eq("123"))).thenReturn(1);
         discoveryUpstreamService.nativeCreateOrUpdate(dto);
         ArgumentCaptor<DiscoveryUpstreamDO> saved = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
-        verify(discoveryUpstreamMapper).updateSelective(saved.capture());
+        verify(discoveryUpstreamMapper).updateSelectiveForHandler(saved.capture(), eq("123"));
         assertEquals(dto.getProps(), saved.getValue().getProps());
     }
 
@@ -765,7 +929,9 @@ public final class DiscoveryUpstreamServiceTest {
         assertThrows(ShenyuAdminException.class, () -> discoveryUpstreamService.createOrUpdate(dto));
         verify(discoveryUpstreamMapper, never()).insert(any());
         verify(discoveryUpstreamMapper, never()).update(any());
+        verify(discoveryUpstreamMapper, never()).updateForHandler(any(), anyString());
         verify(discoveryUpstreamMapper, never()).updateSelective(any());
+        verify(discoveryUpstreamMapper, never()).updateSelectiveForHandler(any(), anyString());
         verify(discoveryUpstreamMapper, never()).deleteByDiscoveryHandlerId(any());
         verifyNoInteractions(discoveryProcessor, discoveryProcessorHolder);
     }
@@ -787,7 +953,7 @@ public final class DiscoveryUpstreamServiceTest {
     }
 
     private void testUpdate() {
-        when(discoveryUpstreamMapper.update(any())).thenReturn(1);
+        when(discoveryUpstreamMapper.updateForHandler(any(), eq("123"))).thenReturn(1);
         DiscoveryUpstreamDTO discoveryUpstreamDTO = buildDiscoveryUpstreamDTO("123");
         discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO);
     }

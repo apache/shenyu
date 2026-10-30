@@ -3011,3 +3011,30 @@ INSERT INTO "public"."permission" VALUES ('1953048313980117951', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+CREATE TABLE IF NOT EXISTS "public"."registration_fencing_target" (
+    "id" varchar(128) NOT NULL PRIMARY KEY,
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "domain_id" varchar(128) NOT NULL,
+    "namespace_id" varchar(64) NOT NULL,
+    "selector_id" varchar(128) NOT NULL,
+    "plugin_id" varchar(128) NOT NULL,
+    "protocol" varchar(32) NOT NULL,
+    "host" varchar(255) NOT NULL,
+    "port" integer NOT NULL,
+    "principal_id" varchar(128) NOT NULL,
+    "enabled" smallint NOT NULL,
+    "state" varchar(16) NOT NULL,
+    "generation" bigint NOT NULL,
+    "owner_startup_id" varchar(64),
+    "session_id" varchar(128),
+    "last_sequence" bigint NOT NULL,
+    "last_payload" text,
+    "last_result" text,
+    "last_request_id" varchar(64),
+    "last_request_payload" text,
+    "retired_startups" text,
+    CONSTRAINT "uk_registration_fencing_target_address" UNIQUE ("selector_id", "host", "port")
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON "public"."registration_fencing_target" ("namespace_id", "host", "port");

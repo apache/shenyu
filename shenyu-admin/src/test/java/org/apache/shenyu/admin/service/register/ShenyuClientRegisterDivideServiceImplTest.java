@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
@@ -115,6 +116,9 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
     @Mock
     private DiscoveryService discoveryService;
+
+    @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
 
     @BeforeEach
     public void setUp() {
@@ -256,7 +260,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     @Test
     public void testDoHeartbeatCentralModeWritesAliveStatus() {
         SelectorDO selectorDO = SelectorDO.builder().id("s1").selectorName("selector-central").build();
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(anyString(), anyString(), anyString())).thenReturn(selectorDO);
         when(discoveryUpstreamService.findBySelectorId("s1")).thenReturn(new ArrayList<>());
 
         String result = shenyuClientRegisterDivideService.doHeartbeat("selector-central", buildHeartbeatUriList(), Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -274,7 +278,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     @Test
     public void testDoHeartbeatCentralModeRevivesDisabledUpstreamAsLegacy() {
         SelectorDO selectorDO = SelectorDO.builder().id("s1").selectorName("selector-central").build();
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(anyString(), anyString(), anyString())).thenReturn(selectorDO);
         when(discoveryUpstreamService.findBySelectorId("s1")).thenReturn(buildDisabledUpstreamDataList());
 
         String result = shenyuClientRegisterDivideService.doHeartbeat("selector-central", buildHeartbeatUriList(), Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -292,7 +296,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     public void testDoHeartbeatLocalModeSkipsStatusWriteBack() {
         when(upstreamCheckService.isLocalMode()).thenReturn(true);
         SelectorDO selectorDO = SelectorDO.builder().id("s1").selectorName("selector-local").build();
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(anyString(), anyString(), anyString())).thenReturn(selectorDO);
         when(discoveryUpstreamService.findBySelectorId("s1")).thenReturn(new ArrayList<>());
 
         String result = shenyuClientRegisterDivideService.doHeartbeat("selector-local", buildHeartbeatUriList(), Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -312,7 +316,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     public void testDoHeartbeatLocalModeDoesNotReviveDisabledUpstream() {
         when(upstreamCheckService.isLocalMode()).thenReturn(true);
         SelectorDO selectorDO = SelectorDO.builder().id("s1").selectorName("selector-local").build();
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(anyString(), anyString(), anyString())).thenReturn(selectorDO);
         when(discoveryUpstreamService.findBySelectorId("s1")).thenReturn(buildDisabledUpstreamDataList());
 
         String result = shenyuClientRegisterDivideService.doHeartbeat("selector-local", buildHeartbeatUriList(), Constants.SYS_DEFAULT_NAMESPACE_ID);
@@ -349,7 +353,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
         assertEquals(ShenyuResultMessage.SUCCESS, result);
         ArgumentCaptor<SelectorDO> captor = ArgumentCaptor.forClass(SelectorDO.class);
-        verify(selectorService).updateSelective(captor.capture());
+        verify(selectorService).updateSelectiveForRegistration(captor.capture());
         List<DivideUpstream> persisted = GsonUtils.getInstance().fromCurrentList(captor.getValue().getHandle(), DivideUpstream.class);
         assertEquals(1, persisted.size());
         assertTrue(persisted.get(0).isStatus());
@@ -377,7 +381,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
         assertEquals(ShenyuResultMessage.SUCCESS, result);
         ArgumentCaptor<SelectorDO> captor = ArgumentCaptor.forClass(SelectorDO.class);
-        verify(selectorService).updateSelective(captor.capture());
+        verify(selectorService).updateSelectiveForRegistration(captor.capture());
         List<DivideUpstream> persisted = GsonUtils.getInstance().fromCurrentList(captor.getValue().getHandle(), DivideUpstream.class);
         assertEquals(1, persisted.size());
         assertTrue(persisted.get(0).isStatus());
@@ -402,7 +406,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
         assertEquals(ShenyuResultMessage.SUCCESS, result);
         ArgumentCaptor<SelectorDO> captor = ArgumentCaptor.forClass(SelectorDO.class);
-        verify(selectorService).updateSelective(captor.capture());
+        verify(selectorService).updateSelectiveForRegistration(captor.capture());
         List<DivideUpstream> persisted = GsonUtils.getInstance().fromCurrentList(captor.getValue().getHandle(), DivideUpstream.class);
         assertEquals(1, persisted.size());
         assertEquals("localhost:8080", persisted.get(0).getUpstreamUrl());
@@ -432,7 +436,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
 
         assertEquals(ShenyuResultMessage.SUCCESS, result);
         ArgumentCaptor<SelectorDO> captor = ArgumentCaptor.forClass(SelectorDO.class);
-        verify(selectorService).updateSelective(captor.capture());
+        verify(selectorService).updateSelectiveForRegistration(captor.capture());
         List<DivideUpstream> persisted = GsonUtils.getInstance().fromCurrentList(captor.getValue().getHandle(), DivideUpstream.class);
         assertEquals(2, persisted.size());
         assertTrue(persisted.stream().allMatch(upstream -> "localhost:8080".equals(upstream.getUpstreamUrl())));
@@ -457,7 +461,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
     }
 
     private void stubDoRegisterURIPath(final SelectorDO selectorDO) {
-        when(selectorService.findByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(anyString(), anyString(), anyString())).thenReturn(selectorDO);
         when(pluginMapper.selectByName(anyString())).thenReturn(PluginDO.builder().id("p1").name("divide").build());
         when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId(anyString(), anyString())).thenReturn(new NamespacePluginVO());
         when(selectorService.buildByNameAndPluginNameAndNamespaceId(anyString(), anyString(), anyString())).thenReturn(new SelectorData());

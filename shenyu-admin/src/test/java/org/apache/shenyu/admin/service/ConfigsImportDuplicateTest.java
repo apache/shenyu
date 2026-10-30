@@ -55,6 +55,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.service.impl.DiscoveryServiceImpl;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
@@ -132,7 +133,8 @@ public final class ConfigsImportDuplicateTest {
     public void testSelectorsDeduplicateAfterPluginRemapping(final boolean existing) {
         final SelectorServiceImpl service = new SelectorServiceImpl(selectorMapper, mock(SelectorConditionMapper.class), pluginMapper,
                 mock(ApplicationEventPublisher.class), discoveryMapper, mock(DiscoveryHandlerMapper.class), mock(DiscoveryRelMapper.class),
-                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class));
+                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class),
+                mock(RegistrationFencingGuard.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getPluginTemplateIdMapping().put("source", "target");
         context.getPluginTemplateIdMapping().put("alias", "target");
@@ -267,7 +269,8 @@ public final class ConfigsImportDuplicateTest {
         final DiscoveryProcessor processor = mock(DiscoveryProcessor.class);
         final DiscoveryHandlerMapper handlerMapper = mock(DiscoveryHandlerMapper.class);
         final DiscoveryServiceImpl service = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, mock(DiscoveryRelMapper.class),
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, mock(SelectorService.class), selectorMapper, holder,
+                mock(RegistrationFencingGuard.class), mock(PlatformTransactionManager.class));
         when(holder.chooseProcessor("local")).thenReturn(processor);
         when(discoveryMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(existing
                 ? Collections.singletonList(DiscoveryDO.builder().pluginName("divide").discoveryName("same").build()) : Collections.emptyList());
@@ -286,7 +289,8 @@ public final class ConfigsImportDuplicateTest {
     @ValueSource(booleans = {false, true})
     public void testUpstreamsDeduplicateAfterHandlerRemapping(final boolean existing) {
         final DiscoveryUpstreamServiceImpl service = new DiscoveryUpstreamServiceImpl(upstreamMapper, mock(DiscoveryHandlerMapper.class), proxySelectorMapper,
-                discoveryMapper, mock(DiscoveryRelMapper.class), selectorMapper, pluginMapper, mock(DiscoveryProcessorHolder.class));
+                discoveryMapper, mock(DiscoveryRelMapper.class), selectorMapper, pluginMapper, mock(DiscoveryProcessorHolder.class),
+                mock(RegistrationFencingGuard.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getDiscoveryHandlerIdMapping().put("source", "target");
         context.getDiscoveryHandlerIdMapping().put("alias", "target");
@@ -330,9 +334,10 @@ public final class ConfigsImportDuplicateTest {
         final DiscoveryHandlerMapper handlerMapper = mock(DiscoveryHandlerMapper.class);
         final DiscoveryRelMapper relMapper = mock(DiscoveryRelMapper.class);
         final DiscoveryServiceImpl discoveries = new DiscoveryServiceImpl(discoveryMapper, proxySelectorMapper, relMapper,
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, mock(SelectorService.class), selectorMapper, holder,
+                mock(RegistrationFencingGuard.class), mock(PlatformTransactionManager.class));
         final DiscoveryUpstreamServiceImpl upstreams = new DiscoveryUpstreamServiceImpl(upstreamMapper, handlerMapper, proxySelectorMapper,
-                discoveryMapper, relMapper, selectorMapper, pluginMapper, holder);
+                discoveryMapper, relMapper, selectorMapper, pluginMapper, holder, mock(RegistrationFencingGuard.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         final DiscoveryDTO first = discovery("divide", "same");
         first.getDiscoveryHandler().setId("first-handler");

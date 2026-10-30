@@ -48,6 +48,12 @@ def workflow_python_blocks():
 
 
 class NativeSqlMatrixTest(unittest.TestCase):
+    def test_workflow_queues_duplicate_runs_instead_of_canceling_scope_detection(self):
+        workflow = (ROOT / ".github/workflows/native-sql-matrix.yml").read_text(encoding="utf-8")
+        match = re.search(r"(?m)^\s+cancel-in-progress:\s*(\w+)\s*$", workflow)
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), "false")
+
     def test_aggregate_gate_rejects_any_failed_canceled_or_missing_sql_result(self):
         block = workflow_python_blocks()[-1]
         base = {"SCOPE_RESULT": "success", "RUNNER_RESULT": "success", "REQUIRED": "true",

@@ -50,8 +50,37 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE mock_request_record MODIFY COLUMN header TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header';
 
+CREATE TABLE IF NOT EXISTS `registration_fencing_target` (
+    `id` varchar(128) NOT NULL,
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    `domain_id` varchar(128) NOT NULL,
+    `namespace_id` varchar(64) NOT NULL,
+    `selector_id` varchar(128) NOT NULL,
+    `plugin_id` varchar(128) NOT NULL,
+    `protocol` varchar(32) NOT NULL,
+    `host` varchar(255) NOT NULL,
+    `port` int NOT NULL,
+    `principal_id` varchar(128) NOT NULL,
+    `enabled` tinyint NOT NULL,
+    `state` varchar(16) NOT NULL,
+    `generation` bigint NOT NULL,
+    `owner_startup_id` varchar(64) DEFAULT NULL,
+    `session_id` varchar(128) DEFAULT NULL,
+    `last_sequence` bigint NOT NULL,
+    `last_payload` text,
+    `last_result` text,
+    `last_request_id` varchar(64) DEFAULT NULL,
+    `last_request_payload` text,
+    `retired_startups` text,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_registration_fencing_target_address` (`selector_id`, `host`, `port`),
+    KEY `idx_registration_fencing_target_address` (`namespace_id`, `host`, `port`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0 COMMENT 'token version used to revoke issued JWTs';
+
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');
