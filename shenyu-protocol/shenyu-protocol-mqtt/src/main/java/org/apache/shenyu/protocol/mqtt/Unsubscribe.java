@@ -51,9 +51,14 @@ public class Unsubscribe extends MessageType {
         Channel channel = ctx.channel();
         Singleton.INST.get(SubscribeRepository.class).remove(topics, channel);
         String clientId = Singleton.INST.get(ChannelRepository.class).get(channel);
-        MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
-        if (Objects.nonNull(session)) {
-            topics.forEach(session::removeTopic);
+        // Same as SUBSCRIBE: an unregistered channel has no client id, and the
+        // session index rejects a null key. The topics are still unsubscribed and
+        // acknowledged, the session bookkeeping is just skipped.
+        if (Objects.nonNull(clientId)) {
+            MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+            if (Objects.nonNull(session)) {
+                topics.forEach(session::removeTopic);
+            }
         }
         int packetId = msg.variableHeader().messageId();
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);

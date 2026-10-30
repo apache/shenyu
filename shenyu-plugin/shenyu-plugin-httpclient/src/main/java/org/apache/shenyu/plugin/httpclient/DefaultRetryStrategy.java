@@ -27,6 +27,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -109,7 +111,29 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     ? resend(exchange, duration, exclude)
                     : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
         }
-        return result.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        return mapFailoverErrors(result);
+    }
+
+    /**
+     * Retry eligible failures on another upstream using the supplied backoff policy.
+     *
+     * @param clientResponse original request response
+     * @param exchange current exchange
+     * @param duration timeout per request
+     * @param retry retry policy
+     * @return response after failover
+     */
+    Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration, final Retry retry) {
+        return mapFailoverErrors(Mono.defer(() -> {
+            final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
+            final AtomicBoolean firstAttempt = new AtomicBoolean(true);
+            return Mono.defer(() -> firstAttempt.compareAndSet(true, false) ? clientResponse : resend(exchange, duration, exclude))
+                    .retryWhen(retry);
+        }));
+    }
+
+    private Mono<R> mapFailoverErrors(final Mono<R> response) {
+        return response.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
     }
@@ -119,8 +143,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                            final Set<URI> exclude) {
         final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
         final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
-        //always query the latest available list
-        final List<Upstream> availableUpstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        // Refresh health/topology without losing the request's resolved label partition.
+        final UpstreamRoutingContext routing = exchange.getAttribute(UpstreamRoutingContext.ATTRIBUTE);
+        final List<Upstream> availableUpstreamList = Objects.isNull(routing)
+                ? UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+                : routing.filter(selectorId, UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selectorId));
         if (Objects.isNull(availableUpstreamList)) {
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
@@ -151,16 +178,23 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         // in order not to affect the next retry call, newUri needs to be excluded
         exclude.add(newUri);
         final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-        Mono<R> resend = httpClientPlugin
+        Mono<R> retryResponse = httpClientPlugin
                 .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
-        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
-            // Least active compares outstanding requests, so this attempt stays reserved until it terminates.
+        if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
+            // Selecting the retry upstream above goes through the load balancer, which increments the P2C
+            // inflight counter of the newly picked upstream. Divide's completion callback only captures the
+            // initially selected upstream, so release this attempt's increment to keep P2C accounting paired
+            // across success, failure and cancellation of the failover. See #7975.
+            retryResponse = retryResponse.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+        } else if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(loadBalance)) {
+            // Least active compares outstanding requests but does not reserve on select, so this attempt
+            // stays reserved until it terminates. See #7986.
             upstream.getInflight().incrementAndGet();
-            resend = resend.doFinally(signalType -> upstream.getInflight().decrementAndGet());
+            retryResponse = retryResponse.doFinally(signalType -> upstream.getInflight().decrementAndGet());
         }
-        return UpstreamCircuitBreaker.recordOutcome(resend, breakerKey);
+        return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey);
     }
 
     private boolean isSameUpstream(final URI first, final URI second) {

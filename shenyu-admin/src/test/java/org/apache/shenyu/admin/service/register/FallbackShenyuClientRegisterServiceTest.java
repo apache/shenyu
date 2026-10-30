@@ -82,6 +82,19 @@ class FallbackShenyuClientRegisterServiceTest {
     }
 
     @Test
+    public void testReadinessDelegation() {
+        MockFallbackShenyuClientRegisterService mockService = new MockFallbackShenyuClientRegisterService();
+        List<URIRegisterDTO> uriList = Collections.singletonList(new URIRegisterDTO());
+
+        assertEquals("doNotReady", mockService.notReady("Selector_Name", uriList, SYS_DEFAULT_NAMESPACE_ID));
+        assertEquals("doReady", mockService.ready("Selector_Name", uriList, SYS_DEFAULT_NAMESPACE_ID));
+
+        MockFallbackShenyuClientRegisterServiceException mockExceptionService = new MockFallbackShenyuClientRegisterServiceException();
+        assertThrows(ShenyuException.class, () -> mockExceptionService.notReady("Selector_Name", uriList, SYS_DEFAULT_NAMESPACE_ID));
+        assertThrows(ShenyuException.class, () -> mockExceptionService.ready("Selector_Name", uriList, SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+    @Test
     public void testRpcType() {
 
         MockFallbackShenyuClientRegisterService mockService = new MockFallbackShenyuClientRegisterService();
@@ -122,6 +135,21 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
+        String doNotReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
+        String doReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "ok";
+        }
+
+        @Override
         public String rpcType() {
             return "grpc";
         }
@@ -151,6 +179,21 @@ class FallbackShenyuClientRegisterServiceTest {
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             return "doHeartbeat";
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "doDraining";
+        }
+
+        @Override
+        String doNotReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "doNotReady";
+        }
+
+        @Override
+        String doReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            return "doReady";
         }
         
         @Override
@@ -183,6 +226,21 @@ class FallbackShenyuClientRegisterServiceTest {
         
         @Override
         String doHeartbeat(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
+        }
+
+        @Override
+        String doDraining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
+        }
+
+        @Override
+        String doNotReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+            throw new ShenyuException("Exception");
+        }
+
+        @Override
+        String doReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
             throw new ShenyuException("Exception");
         }
         

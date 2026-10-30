@@ -18,16 +18,20 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiObservationSupport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
@@ -71,17 +75,59 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private final AiProxyPluginHandler aiProxyPluginHandler;
 
+    private final AiCallObserver observer;
+
     public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine, final AiProxyPluginHandler aiProxyPluginHandler) {
+        this(aiProxyConfigService, aiProxyEngine, aiProxyPluginHandler, null);
+    }
+
+    public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine,
+                         final AiProxyPluginHandler aiProxyPluginHandler, final AiCallObserver observer) {
         this.aiProxyConfigService = aiProxyConfigService;
         this.aiProxyEngine = aiProxyEngine;
         this.aiProxyPluginHandler = aiProxyPluginHandler;
+        this.observer = observer;
     }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        return Mono.deferContextual(view -> {
+            AiRequestObservation inherited = view.getOrDefault(AiRequestObservation.REACTOR_KEY, null);
+            AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
+                    : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()));
+            return executeRequest(exchange, selector)
+                    .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
+                    .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
+                    .doFinally(signal -> {
+                        if (Objects.isNull(inherited)) {
+                            HttpStatusCode status = exchange.getResponse().getStatusCode();
+                            observation.finish(signal, Objects.isNull(status) ? null : status.value());
+                        }
+                    }).contextWrite(context -> context.put(AiRequestObservation.REACTOR_KEY, observation)
+                            .put(AgentRequestContext.REACTOR_KEY, observation.getContext()));
+        });
+    }
+
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+            final String realApiKey;
+            if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
+                String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
+                realApiKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                        : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                if (Objects.isNull(realApiKey)) {
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return exchange.getResponse().setComplete();
+                }
+            } else {
+                realApiKey = null;
+            }
+            AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
+            if (Objects.nonNull(realApiKey)) {
+                config.setApiKey(realApiKey);
+            }
             return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
                     .switchIfEmpty(Mono.error(new ShenyuException("AI request body must not be empty")))
                     .flatMap(buffer -> {
@@ -91,22 +137,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         } finally {
                             DataBufferUtils.release(buffer);
                         }
-                        AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
-                        if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
-                            String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
-                            String realKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
-                                    : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
-                            if (Objects.isNull(realKey)) {
-                                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                return exchange.getResponse().setComplete();
-                            }
-                            config.setApiKey(realKey);
-                        }
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response));
                     });
-        }).onErrorResume(error -> handleFailure(exchange.getResponse(), error));
+        });
     }
 
     private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream) {

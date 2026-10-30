@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -185,16 +186,21 @@ public final class UpstreamCacheManager {
         LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
+        Predicate<Upstream> admitted = upstream -> !upstream.isDraining() && upstream.isReady();
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
-                .collect(Collectors.partitioningBy(Upstream::isStatus));
+                .collect(Collectors.partitioningBy(upstream -> upstream.isStatus() && admitted.test(upstream)));
         final List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
-        final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false);
+        final List<Upstream> excludedUpstreamList = actualUpstreamList.stream()
+                .filter(admitted.negate()).collect(Collectors.toList());
+        final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false).stream()
+                .filter(admitted).collect(Collectors.toList());
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
         removeStaleUpstreams(selectorId, actualUpstreamList, existUpstreamList);
         updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
+        processExcludedUpstreams(selectorId, excludedUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
@@ -238,6 +244,8 @@ public final class UpstreamCacheManager {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
                 cached.setLabels(upstream.getLabels());
                 cached.setGray(upstream.isGray());
+                cached.setDraining(upstream.isDraining());
+                cached.setReady(upstream.isReady());
             }
         });
     }
@@ -268,6 +276,13 @@ public final class UpstreamCacheManager {
                 task.putToMap(task.getUnhealthyUpstream(), selectorId, offlineUp);
             }
         });
+    }
+
+    private void processExcludedUpstreams(final String selectorId, final List<Upstream> excludedUpstreamList) {
+        // A draining or not-ready upstream leaves both health pools, so no new selection
+        // returns it and no probe can restore it; it stays in the configured set, and a
+        // later sync without the marker re-admits it through the regular paths (#8042).
+        excludedUpstreamList.forEach(excludedUp -> task.triggerRemoveOne(selectorId, excludedUp));
     }
 
     private void processValidUpstreams(final String selectorId, final List<Upstream> validUpstreamList,

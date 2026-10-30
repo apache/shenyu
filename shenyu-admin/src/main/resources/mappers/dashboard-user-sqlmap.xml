@@ -55,14 +55,6 @@
         limit 1
     </select>
 
-    <select id="findByQuery" resultMap="BaseResultMap">
-        SELECT
-            <include refid="Base_Column_List"/>
-          FROM dashboard_user
-         WHERE user_name = #{userName, jdbcType=VARCHAR}
-           AND password = #{password, jdbcType=VARCHAR}
-    </select>
-
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
             resultMap="BaseResultMap">
         SELECT

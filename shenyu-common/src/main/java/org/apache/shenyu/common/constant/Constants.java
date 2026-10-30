@@ -25,6 +25,16 @@ import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 public interface Constants {
 
     /**
+     * Per-connection Discovery wire capability advertised during the WebSocket handshake.
+     */
+    String X_SHENYU_DISCOVERY_PAYLOAD = "X-Shenyu-Discovery-Payload";
+
+    /**
+     * Version one of the compact Discovery projection.
+     */
+    String COMPACT_DISCOVERY_PAYLOAD_V1 = "compact-v1";
+
+    /**
      * The constant Apache SHENYU.
      */
     String SHENYU = "shenyu";
@@ -143,6 +153,11 @@ public interface Constants {
      * divide online selector id.
      */
     String DIVIDE_SELECTOR_ID = "divideSelectorId";
+
+    /**
+     * Request-scoped Canary routing observation, independent of retry state.
+     */
+    String SHENYU_CANARY_CONTEXT = "shenyu.canary.context";
 
     /**
      * Original response Content-Type attribute name.
@@ -537,6 +552,22 @@ public interface Constants {
     String SCHEDULED_TIME_VALUE = "10";
 
     /**
+     * probe mode.
+     */
+    String PROBE_MODE = "probeMode";
+
+    /**
+     * default probe mode value, the admin probes upstreams centrally.
+     */
+    String DEFAULT_PROBE_MODE_VALUE = "central";
+
+    /**
+     * local probe mode value, the admin never penalizes upstreams on its own
+     * probe results and bootstrap-local health checking decides routing eligibility.
+     */
+    String LOCAL_PROBE_MODE_VALUE = "local";
+
+    /**
      * default headerMaxSize value.
      */
     int HEADER_MAX_SIZE = 10240;
@@ -575,6 +606,16 @@ public interface Constants {
      * dubbo load balance from meta data.
      */
     String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
+
+    /**
+     * Marks the logical upstream the gray load balance selected for the current dubbo
+     * attempt. The value is the selected upstream's {@code UpstreamIdentity#hashKey()},
+     * so the consumer-side inflight filter can keep the provider's outstanding count
+     * current without wrapping the invoker (a wrapper would break Dubbo's already-tried
+     * bookkeeping, see #8132). The attachment is local bookkeeping and is removed before
+     * the call reaches the provider.
+     */
+    String DUBBO_INFLIGHT_UPSTREAM_IDENTITY = "shenyuDubboInflightUpstreamIdentity";
 
     /**
      * dubbo serialization protobuf.
@@ -907,6 +948,11 @@ public interface Constants {
      * Optional server-installed MCP terminal observation callback.
      */
     String METRICS_AGENT_MCP_CALL = "metricsAgentMcpCall";
+
+    /**
+     * Optional callback for the initial Canary routing observation.
+     */
+    String METRICS_CANARY = "metricsCanary";
 
     /**
      * The constant shenyu namespace id.

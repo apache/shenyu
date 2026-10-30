@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.metrics.AiCallObserver;
+
 import org.apache.shenyu.plugin.ai.common.spring.ai.registry.AiModelFactoryRegistry;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.common.dto.PluginData;
@@ -37,6 +39,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.junit.jupiter.api.Test;
@@ -62,6 +65,16 @@ class AiProxyPluginConfigurationTest {
                     AiProxyPluginConfiguration.class));
 
     @Test
+    void acceptsOneApplicationObserverAndRejectsAmbiguousSinks() {
+        final AiCallObserver first = event -> { };
+        final AiCallObserver second = event -> { };
+        contextRunner.withBean("firstSink", AiCallObserver.class, () -> first)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class));
+        contextRunner.withBean("firstSink", AiCallObserver.class, () -> first).withBean("secondSink", AiCallObserver.class, () -> second)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
     void createsTheMigratedPluginAndAllExistingProviderIdentifiers() {
         new ApplicationContextRunner().withUserConfiguration(AiProxyPluginConfiguration.class).run(context -> {
             org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class).hasSingleBean(AiProxyEngine.class)
@@ -72,7 +85,15 @@ class AiProxyPluginConfigurationTest {
             org.junit.jupiter.api.Assertions.assertTrue(context.getBean(AiProtocolConverterFactory.class)
                     .supports(OpenAiResponses.NAME, OpenAiChat.NAME));
             assertSame(context.getBean(OpenAiResponses.class), context.getBean(AiProxyProtocolFactory.class).getProtocol(OpenAiResponses.NAME));
-            for (String provider : List.of("OpenAI", "DeepSeek", "ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
+            AiProxyProvider openAi = factory.getProvider("OpenAI");
+            assertEquals("openai", openAi.name());
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertTrue(openAi.supports(OpenAiResponses.NAME));
+            AiProxyProvider deepSeek = factory.getProvider("DeepSeek");
+            assertEquals("deepseek", deepSeek.name().toLowerCase(java.util.Locale.ROOT));
+            org.junit.jupiter.api.Assertions.assertTrue(deepSeek.supports(OpenAiChat.NAME));
+            org.junit.jupiter.api.Assertions.assertFalse(deepSeek.supports(OpenAiResponses.NAME));
+            for (String provider : List.of("ALiYun", "OpenAPI", "Moonshot", "OpenAICompatible")) {
                 assertEquals(provider.toLowerCase(java.util.Locale.ROOT), factory.getProvider(provider).name().toLowerCase(java.util.Locale.ROOT));
                 org.junit.jupiter.api.Assertions.assertTrue(factory.getProvider(provider).supports(OpenAiChat.NAME));
                 org.junit.jupiter.api.Assertions.assertFalse(factory.getProvider(provider).supports(OpenAiResponses.NAME));
@@ -145,6 +166,16 @@ class AiProxyPluginConfigurationTest {
             assertEquals(3, properties.getMaxRetries());
             assertEquals(1, properties.getStreamingMaxRetries());
             assertEquals(Duration.ofSeconds(1), properties.getInitialBackoff());
+            assertEquals(Duration.ofSeconds(30), properties.getMaxBackoff());
+            assertEquals(0.2d, properties.getJitterFraction());
+            assertEquals(Duration.ofSeconds(60), properties.getMaxRetryAfter());
+            assertEquals(Duration.ofMinutes(5), properties.getRequestDeadline());
+            assertEquals(AiProxyRetryProperties.ReplayMode.CONSERVATIVE,
+                    properties.getReplay().getResponseStatus());
+            assertEquals(AiProxyRetryProperties.ReplayMode.CONSERVATIVE,
+                    properties.getReplay().getDefiniteTransport());
+            assertEquals(AiProxyRetryProperties.ReplayMode.CONSERVATIVE,
+                    properties.getReplay().getAmbiguousTransport());
         });
     }
 
@@ -154,12 +185,33 @@ class AiProxyPluginConfigurationTest {
                 .withPropertyValues(
                         "shenyu.plugins.ai.proxy.retry.max-retries=2",
                         "shenyu.plugins.ai.proxy.retry.streaming-max-retries=0",
-                        "shenyu.plugins.ai.proxy.retry.initial-backoff=500ms")
+                        "shenyu.plugins.ai.proxy.retry.initial-backoff=500ms",
+                        "shenyu.plugins.ai.proxy.retry.max-backoff=7s",
+                        "shenyu.plugins.ai.proxy.retry.jitter-fraction=0.15",
+                        "shenyu.plugins.ai.proxy.retry.max-retry-after=8s",
+                        "shenyu.plugins.ai.proxy.retry.request-deadline=2m",
+                        "shenyu.plugins.ai.proxy.retry.replay.response-status=never",
+                        "shenyu.plugins.ai.proxy.retry.replay.definite-transport=provider-declared",
+                        "shenyu.plugins.ai.proxy.retry.replay.ambiguous-transport=provider-declared",
+                        "shenyu.plugins.ai.proxy.retry.replay.operations[CHAT_COMPLETION]=provider-declared")
                 .run(context -> {
                     final AiProxyRetryProperties properties = context.getBean(AiProxyRetryProperties.class);
                     assertEquals(2, properties.getMaxRetries());
                     assertEquals(0, properties.getStreamingMaxRetries());
                     assertEquals(Duration.ofMillis(500), properties.getInitialBackoff());
+                    assertEquals(Duration.ofSeconds(7), properties.getMaxBackoff());
+                    assertEquals(0.15d, properties.getJitterFraction());
+                    assertEquals(Duration.ofSeconds(8), properties.getMaxRetryAfter());
+                    assertEquals(Duration.ofMinutes(2), properties.getRequestDeadline());
+                    assertEquals(AiProxyRetryProperties.ReplayMode.NEVER,
+                            properties.getReplay().getResponseStatus());
+                    assertEquals(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED,
+                            properties.getReplay().getDefiniteTransport());
+                    assertEquals(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED,
+                            properties.getReplay().getAmbiguousTransport());
+                    assertEquals(java.util.Map.of(ShenyuAiRequest.Operation.CHAT_COMPLETION.name(),
+                            AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED),
+                            properties.getReplay().getOperations());
                 });
     }
 
@@ -170,7 +222,11 @@ class AiProxyPluginConfigurationTest {
                 "max-retries=31",
                 "streaming-max-retries=-1",
                 "streaming-max-retries=31",
-                "initial-backoff=-1s")) {
+                "initial-backoff=-1s",
+                "max-backoff=-1s",
+                "jitter-fraction=1.1",
+                "max-retry-after=-1s",
+                "request-deadline=0s")) {
             contextRunner
                     .withPropertyValues("shenyu.plugins.ai.proxy.retry." + property)
                     .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());

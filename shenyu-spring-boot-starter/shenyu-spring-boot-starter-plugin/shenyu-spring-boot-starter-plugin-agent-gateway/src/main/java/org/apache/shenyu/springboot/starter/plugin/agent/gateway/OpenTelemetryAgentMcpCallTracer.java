@@ -22,12 +22,16 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import reactor.util.context.Context;
 import reactor.util.context.ContextView;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -43,7 +47,10 @@ final class OpenTelemetryAgentMcpCallTracer implements AgentMcpCallTracer {
 
     @Override
     public Trace start(final ContextView parentContext) {
-        Object value = parentContext.getOrDefault(io.opentelemetry.context.Context.class, null);
+        Object value = parentContext.getOrDefault(AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY, null);
+        if (!(value instanceof io.opentelemetry.context.Context gateway) || !Span.fromContext(gateway).getSpanContext().isValid()) {
+            value = parentContext.getOrDefault(io.opentelemetry.context.Context.class, null);
+        }
         io.opentelemetry.context.Context parent = io.opentelemetry.context.Context.root();
         if (value instanceof io.opentelemetry.context.Context context) {
             // Keep only the parent span identity, never baggage or unrelated application data.
@@ -51,11 +58,15 @@ final class OpenTelemetryAgentMcpCallTracer implements AgentMcpCallTracer {
         }
         Span span = tracer.spanBuilder("shenyu.agent_gateway.tools.call").setSpanKind(SpanKind.INTERNAL).setParent(parent).startSpan();
         io.opentelemetry.context.Context execution = io.opentelemetry.context.Context.root().with(span);
+        Map<String, String> carrier = new HashMap<>();
+        // Deliberately do not use application propagators, which may include baggage or other headers.
+        W3CTraceContextPropagator.getInstance().inject(execution, carrier, Map::put);
+        Map<String, String> headers = AgentTraceContext.headers(carrier);
         AtomicBoolean ended = new AtomicBoolean();
         return new Trace() {
             @Override
             public Context attach(final Context context) {
-                return context.put(io.opentelemetry.context.Context.class, execution);
+                return context.put(io.opentelemetry.context.Context.class, execution).put(AgentTraceContext.HEADERS_KEY, headers);
             }
 
             @Override

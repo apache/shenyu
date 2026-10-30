@@ -20,11 +20,18 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.metrics.AiAttemptEvent;
+import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AiCallOutcome;
+import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
@@ -44,12 +51,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
@@ -58,9 +68,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -177,10 +191,63 @@ class AiProxyPluginTest {
     }
 
     @Test
-    void missingProxyKeyIsUnauthorized() {
+    void invalidProxyKeyRejectsBeforeReadingRequestBody() {
         handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "invalid")
+                .body(body.flux(REQUEST_BODY)));
         StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
         assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void disabledProxyKeyRejectsBeforeReadingRequestBody() {
+        handle.setProxyEnabled("true");
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-disabled")
+                .realApiKey("real-key").enabled(false).build());
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-disabled")
+                .body(body.flux(REQUEST_BODY)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void missingProxyKeyIsUnauthorizedBeforeReadingRequestBody() {
+        handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(body.flux(REQUEST_BODY)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void invalidProxyKeyRejectsOversizedBodyWithoutAggregatingIt() {
+        handle.setProxyEnabled("true");
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "invalid")
+                .body(body.flux("x".repeat(5 * 1024 * 1024 + 1))));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test
+    void validProxyKeyStillEnforcesBodyLimit() {
+        handle.setProxyEnabled("true");
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-valid")
+                .realApiKey("real-key").enabled(true).build());
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-valid")
+                .body("x".repeat(5 * 1024 * 1024 + 1)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
         assertTrue(requests.isEmpty());
     }
 
@@ -260,6 +327,15 @@ class AiProxyPluginTest {
     }
 
     @Test
+    void wrappedTimeoutKeepsTimeoutClassificationBeforeRecovery() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.error(new ShenyuException(new TimeoutException("upstream deadline"))), events::add);
+        StepVerifier.create(execute(plugin)).verifyComplete();
+        assertEquals(HttpStatus.BAD_REQUEST, exchange.getResponse().getStatusCode());
+        assertEquals(AiCallOutcome.TIMEOUT, events.get(0).outcome());
+    }
+
+    @Test
     void filtersHopHeadersAndPreservesEndToEndHeaders() {
         AiProxyPlugin plugin = plugin(request -> Mono.just(new AiUpstreamResponse(200, Map.of("Connection", List.of("X-Hop"),
                 "X-Hop", List.of("remove"), "Transfer-Encoding", List.of("chunked"), "X-End", List.of("keep")), Flux.just(bytes("ok")))));
@@ -277,14 +353,104 @@ class AiProxyPluginTest {
         assertEquals(PluginEnum.AI_PROXY.getName(), plugin.named());
     }
 
+    @Test
+    void standaloneSubscriptionsRemainAnonymousAndCannotRestoreExchangeIdentity() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.just(response(200, "{}")), events::add);
+        final Mono<Void> execution = Mono.defer(() -> {
+            // Each HTTP request owns its response; a committed response cannot be written twice.
+            final MockServerWebExchange current = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(REQUEST_BODY));
+            current.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                    new AgentRequestContext("forged", "llm", null, null).withIdentity("forged-tenant", "forged-subject"));
+            return plugin.doExecute(current, ignored -> Mono.empty(), selector, rule);
+        });
+        execution.block();
+        execution.block();
+        assertEquals(2, events.size());
+        assertNull(events.get(0).context().getTenant());
+        assertNull(events.get(0).context().getSubject());
+        assertNull(events.get(1).context().getTenant());
+        assertNull(events.get(1).context().getSubject());
+        assertNotEquals("forged", events.get(0).context().getRequestId());
+        assertNotEquals(events.get(0).context().getRequestId(), events.get(1).context().getRequestId());
+    }
+
+    @Test
+    void gatewayStateIsReusedWithoutDoubleTerminalEmission() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiRequestObservation owner = new AiRequestObservation(events::add,
+                new AgentRequestContext("gateway", "llm", "selector", "rule").withIdentity("tenant", "subject"));
+        execute(plugin(request -> Mono.just(response(200, "{}")), event -> {
+            throw new AssertionError("proxy must not publish a second logical event");
+        })).contextWrite(context -> context.put(AiRequestObservation.REACTOR_KEY, owner)).block();
+        assertTrue(events.isEmpty());
+        owner.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(1, events.size());
+        assertEquals("subject", events.get(0).context().getSubject());
+        assertEquals(1, events.get(0).attemptCount());
+    }
+
+    @Test
+    void preExecutionApiKeyRejectionHasZeroAttempts() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        handle.setProxyEnabled("true");
+        execute(plugin(request -> Mono.error(new AssertionError("must not call upstream")), events::add)).block();
+        assertEquals(1, events.size());
+        assertEquals(401, events.get(0).httpStatus());
+        assertEquals(0, events.get(0).attemptCount());
+        assertEquals(AiCallOutcome.REJECTED, events.get(0).outcome());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {200, 400, 401, 429, 504})
+    void responseWriteFailureOverridesSuccessfulOrErrorHttpStatus(final int status) {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final List<AiAttemptEvent> attempts = new ArrayList<>();
+        final AiCallObserver observer = new AiCallObserver() {
+            @Override
+            public void record(final AiTerminalEvent event) {
+                events.add(event);
+            }
+
+            @Override
+            public void recordAttempt(final AiAttemptEvent event) {
+                attempts.add(event);
+            }
+        };
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(DataBufferUtils::release).then(Mono.error(new IllegalStateException("write failed"))));
+        StepVerifier.withVirtualTime(() -> execute(plugin(request -> Mono.just(response(status, "{}")), observer)))
+                .thenAwait(Duration.ofSeconds(1)).expectError(IllegalStateException.class).verify();
+        assertEquals(1, events.size());
+        assertEquals(AiCallOutcome.ERROR, events.get(0).outcome());
+        assertEquals(status, events.get(0).httpStatus());
+        assertEquals(AiCallOutcome.ERROR, attempts.get(attempts.size() - 1).outcome());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {200, 400, 429, 504})
+    void cancellationOfResponseWriteWinsOverAssignedStatus(final int status) {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AtomicBoolean writing = new AtomicBoolean();
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(DataBufferUtils::release).then(Mono.<Void>never())
+                .doOnSubscribe(ignored -> writing.set(true)));
+        StepVerifier.withVirtualTime(() -> execute(plugin(request -> Mono.just(response(status, "{}")), events::add)))
+                .thenAwait(Duration.ofSeconds(1)).then(() -> assertTrue(writing.get())).thenCancel().verify();
+        assertEquals(1, events.size());
+        assertEquals(AiCallOutcome.CANCELLED, events.get(0).outcome());
+    }
+
     private AiProxyPlugin plugin(final AiProxyTransport transport) {
+        return plugin(transport, null);
+    }
+
+    private AiProxyPlugin plugin(final AiProxyTransport transport, final AiCallObserver observer) {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolRouteResolver(), request -> {
                     requests.add(request);
                     return transport.execute(request);
-                }, Duration.ZERO);
-        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
+                }, Duration.ZERO, observer);
+        return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, observer);
     }
 
     private Mono<Void> execute(final AiProxyPlugin plugin) {
@@ -299,6 +465,12 @@ class AiProxyPluginTest {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
+    private void assertBodyNotSubscribed(final BodyProbe body) {
+        assertEquals(0, body.subscriptions.get());
+        assertEquals(0, body.reads.get());
+        assertEquals(0, body.cancellations.get());
+    }
+
     private AiProxyHandle.FallbackConfig fallback(final String prefix) {
         AiProxyHandle.FallbackConfig config = new AiProxyHandle.FallbackConfig();
         config.setProvider("DeepSeek");
@@ -310,5 +482,21 @@ class AiProxyPluginTest {
 
     private AiTransportException failure() {
         return new AiTransportException(AiTransportException.Kind.IO_FAILURE, "fixture failure", null);
+    }
+
+    private static final class BodyProbe {
+
+        private final AtomicInteger subscriptions = new AtomicInteger();
+
+        private final AtomicInteger reads = new AtomicInteger();
+
+        private final AtomicInteger cancellations = new AtomicInteger();
+
+        private Flux<DataBuffer> flux(final String body) {
+            return Flux.<DataBuffer>just(new DefaultDataBufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8)))
+                    .doOnSubscribe(subscription -> subscriptions.incrementAndGet())
+                    .doOnNext(buffer -> reads.incrementAndGet())
+                    .doOnCancel(cancellations::incrementAndGet);
+        }
     }
 }

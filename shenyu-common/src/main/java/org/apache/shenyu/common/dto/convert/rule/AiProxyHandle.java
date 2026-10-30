@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert.rule;
 
 import org.apache.shenyu.common.enums.AiModelProviderEnum;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -70,6 +71,10 @@ public class AiProxyHandle {
      * AI protocol identifier.
      */
     private String protocol = "openai-chat";
+
+    private Map<String, Map<String, Object>> requestBodyOverrides;
+
+    private Boolean requestBodyForceOverride;
 
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
@@ -271,6 +276,42 @@ public class AiProxyHandle {
     }
 
     /**
+     * Get request-body patches keyed by native target protocol.
+     *
+     * @return request-body patches
+     */
+    public Map<String, Map<String, Object>> getRequestBodyOverrides() {
+        return requestBodyOverrides;
+    }
+
+    /**
+     * Set request-body patches keyed by native target protocol.
+     *
+     * @param requestBodyOverrides request-body patches
+     */
+    public void setRequestBodyOverrides(final Map<String, Map<String, Object>> requestBodyOverrides) {
+        this.requestBodyOverrides = requestBodyOverrides;
+    }
+
+    /**
+     * Get whether configured request-body values overwrite existing values.
+     *
+     * @return force-override flag
+     */
+    public Boolean getRequestBodyForceOverride() {
+        return requestBodyForceOverride;
+    }
+
+    /**
+     * Set whether configured request-body values overwrite existing values.
+     *
+     * @param requestBodyForceOverride force-override flag
+     */
+    public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
+        this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
      * Normalize this handle by assembling nested FallbackConfig from flat fields when enabled.
      *
      * @return this handle after normalization
@@ -339,12 +380,15 @@ public class AiProxyHandle {
                 && Objects.equals(maxTokens, that.maxTokens)
                 && Objects.equals(stream, that.stream)
                 && Objects.equals(fallbackConfig, that.fallbackConfig)
+                && Objects.equals(requestBodyOverrides, that.requestBodyOverrides)
+                && Objects.equals(requestBodyForceOverride, that.requestBodyForceOverride)
                 && Objects.equals(proxyEnabled, that.proxyEnabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig, proxyEnabled);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig,
+                requestBodyOverrides, requestBodyForceOverride, proxyEnabled);
     }
 
     @Override
@@ -358,6 +402,9 @@ public class AiProxyHandle {
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream
                 + ", fallbackConfig=" + fallbackConfig
+                + ", requestBodyOverrideProtocols="
+                + (Objects.isNull(requestBodyOverrides) ? null : requestBodyOverrides.keySet())
+                + ", requestBodyForceOverride=" + requestBodyForceOverride
                 + ", proxyEnabled=" + proxyEnabled
                 + '}';
     }

@@ -18,6 +18,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.exception.ValidFailException;
@@ -31,6 +32,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -95,6 +98,51 @@ public class TagUpdateTransactionTest extends AbstractSpringIntegrationTest {
         assertEquals(1, tagService.update(update("new-name")));
         assertEquals("new-name", jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-parent'", String.class));
         assertNotEquals("{}", childExt());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"tagDesc\":\"new-desc\"}", "{\"name\":\"new-name\"}",
+            "{\"parentTagId\":\"update-parent-2\"}", "{\"parentTagId\":\"0\"}",
+            "{\"tagDesc\":\"\"}", "{}", "{\"name\":null,\"tagDesc\":null}"})
+    public void testPartialJsonUpdatePreservesDescendantAncestry(final String json) throws Exception {
+        jdbcTemplate.update("UPDATE tag SET tag_desc = 'old-desc', ext = '{\"refreshTime\":7}' WHERE id = 'update-child'");
+        jdbcTemplate.update("UPDATE tag SET ext = '{\"refreshTime\":8}' WHERE id = 'update-grandchild'");
+        jdbcTemplate.update("INSERT INTO tag (id, tag_name, tag_desc, parent_tag_id, ext) VALUES ('update-leaf', 'leaf', '', 'update-grandchild', '{}')");
+        try {
+            TagDTO dto = new ObjectMapper().readValue(json, TagDTO.class);
+            dto.setId("update-child");
+            assertEquals(1, tagService.update(dto));
+            String expectedName = Objects.isNull(dto.getTagName()) ? "child" : dto.getTagName();
+            String expectedDesc = Objects.isNull(dto.getTagDesc()) ? "old-desc" : dto.getTagDesc();
+            String expectedParent = Objects.isNull(dto.getParentTagId()) ? "update-parent" : dto.getParentTagId();
+            assertEquals(expectedName, jdbcTemplate.queryForObject("SELECT tag_name FROM tag WHERE id = 'update-child'", String.class));
+            assertEquals(expectedDesc, jdbcTemplate.queryForObject("SELECT tag_desc FROM tag WHERE id = 'update-child'", String.class));
+            assertEquals(expectedParent, jdbcTemplate.queryForObject("SELECT parent_tag_id FROM tag WHERE id = 'update-child'", String.class));
+            TagDO.TagExt child = readExt("update-child");
+            assertEquals(7L, child.getRefreshTime());
+            TagDO.TagExt grandchild = readExt("update-grandchild");
+            assertEquals(8L, grandchild.getRefreshTime());
+            assertAncestor(grandchild.getParent(), expectedName, expectedDesc, expectedParent);
+            assertAncestor(readExt("update-leaf").getParent().getParent(), expectedName, expectedDesc, expectedParent);
+        } finally {
+            jdbcTemplate.update("DELETE FROM tag WHERE id = 'update-leaf'");
+        }
+    }
+
+    private void assertAncestor(final TagDO.TagExt ancestor, final String name, final String desc, final String parentId) {
+        assertEquals("update-child", ancestor.getId());
+        assertEquals(name, ancestor.getName());
+        assertEquals(desc, ancestor.getDesc());
+        if ("0".equals(parentId)) {
+            assertNull(ancestor.getParent());
+        } else {
+            assertEquals(parentId, ancestor.getParent().getId());
+            assertEquals("update-parent".equals(parentId) ? "old" : "parent2", ancestor.getParent().getName());
+        }
+    }
+
+    private TagDO.TagExt readExt(final String id) {
+        return GsonUtils.getInstance().fromJson(jdbcTemplate.queryForObject("SELECT ext FROM tag WHERE id = ?", String.class, id), TagDO.TagExt.class);
     }
 
     @Test

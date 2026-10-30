@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import io.netty.channel.ChannelOption;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
@@ -31,7 +32,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
@@ -41,6 +44,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProp
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -68,17 +72,18 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyConfigService the aiProxyConfigService
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
+     * @param observers optional application terminal sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler);
+                aiProxyPluginHandler, observer(observers));
     }
 
     /**
@@ -113,7 +118,9 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyProviderFactory provider factory
      * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
+     * @param observers optional application terminal sink
      * @param retryProperties        retry properties
+     * @param attemptListener        optional attempt listener
      * @return the AI proxy engine
      */
     @Bean
@@ -121,9 +128,21 @@ public class AiProxyPluginConfiguration {
                                        final AiProxyProviderFactory aiProxyProviderFactory,
                                        final AiProtocolRouteResolver aiProtocolRouteResolver,
                                        final AiProxyTransport aiProxyTransport,
-                                       final AiProxyRetryProperties retryProperties) {
+                                       final ObjectProvider<AiCallObserver> observers,
+                                       final AiProxyRetryProperties retryProperties,
+                                       final ObjectProvider<AiProxyAttemptListener> attemptListener) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, retryProperties);
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties,
+                observer(observers), attemptListener.getIfAvailable(() -> event -> {
+                }));
+    }
+
+    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
+        List<AiCallObserver> candidates = provider.stream().toList();
+        if (candidates.size() > 1) {
+            throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
+        }
+        return candidates.isEmpty() ? null : candidates.get(0);
     }
 
     /**
@@ -246,7 +265,7 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public OpenAiCompatible deepSeekProvider() {
-        return new OpenAiCompatible("DeepSeek");
+        return new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek());
     }
 
     /**

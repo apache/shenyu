@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
 import org.slf4j.Logger;
@@ -55,7 +56,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    private final RemoteCatalogLifecycle lifecycle = new RemoteCatalogLifecycle(3);
+    private final RemoteCatalogLifecycle lifecycle;
 
     private final Set<URI> allowedEndpoints;
 
@@ -82,6 +83,12 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param credentials trusted credentials value
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
+        this(allowedEndpoints, localNames, credentials, false);
+    }
+
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
+                                    final boolean resourcesEnabled) {
+        lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
         this.allowedEndpoints = Set.copyOf(allowedEndpoints);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
@@ -225,6 +232,17 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         }
 
         @Override
+        public Map<String, ObjectNode> resourceDefinitions() {
+            return directory.resources().definitions();
+        }
+
+        @Override
+        public Mono<ObjectNode> readResource(final String uri, final AgentMcpExecutionContext context) {
+            return directory.resources().read(uri, context.getAllowedResources())
+                    .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", context.getDeadline()))));
+        }
+
+        @Override
         public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
             Map<String, Object> values;
             try {
@@ -234,7 +252,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             }
             return directory
                 .callRaw(name, context.getRuleTools(), context.getAllowedTools(), values)
-                .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("subject", context.getSubject(), "deadline", context.getDeadline()))));
+                .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of(
+                        "subject", context.getSubject(), "deadline", context.getDeadline(),
+                        AgentTraceContext.HEADERS_KEY, AgentTraceContext.headers(value.getOrDefault(AgentTraceContext.HEADERS_KEY, null))))));
         }
     }
 }

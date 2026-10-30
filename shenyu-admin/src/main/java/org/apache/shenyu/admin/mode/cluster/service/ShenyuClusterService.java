@@ -76,10 +76,18 @@ public class ShenyuClusterService implements ShenyuRunningModeService {
     public void startSelectMasterTask(final String host, final String port, final String contextPath) {
         LOG.info("starting select master task");
         // schedule task selectPeriod seconds
-        executorService.scheduleAtFixedRate(() -> doSelectMaster(host, port, contextPath),
+        executorService.scheduleAtFixedRate(() -> doSelectMasterSafely(host, port, contextPath),
                 0,
                 clusterProperties.getSelectPeriod(),
                 TimeUnit.SECONDS);
+    }
+
+    private void doSelectMasterSafely(final String host, final String port, final String contextPath) {
+        try {
+            doSelectMaster(host, port, contextPath);
+        } catch (Exception e) {
+            LOG.error("select master task failed, will retry on the next period", e);
+        }
     }
     
     private void doSelectMaster(final String host, final String port, final String contextPath) {

@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -248,5 +249,39 @@ public final class ShenyuClusterServiceTest {
             Thread.sleep(50L);
         }
         assertTrue(attempts.get() >= expected, "election attempt did not happen in time");
+    }
+
+    @Test
+    public void testMasterSelectionContinuesAfterFailure() throws InterruptedException {
+        ClusterSelectMasterService localSelectMasterService = mock(ClusterSelectMasterService.class);
+        UpstreamCheckService localUpstreamCheckService = mock(UpstreamCheckService.class);
+        InstanceCheckService localInstanceCheckService = mock(InstanceCheckService.class);
+        ScaleLifecycleService localScaleLifecycleService = mock(ScaleLifecycleService.class);
+        ClusterProperties clusterProperties = new ClusterProperties();
+        clusterProperties.setSelectPeriod(1L);
+        ShenyuClusterService localClusterService = new ShenyuClusterService(localSelectMasterService, localUpstreamCheckService,
+                localInstanceCheckService, localScaleLifecycleService, clusterProperties);
+        AtomicInteger attempts = new AtomicInteger();
+        CountDownLatch attemptsFinished = new CountDownLatch(2);
+        when(localSelectMasterService.selectMaster("127.0.0.1", "9195", "/shenyu")).thenAnswer(invocation -> {
+            attemptsFinished.countDown();
+            if (attempts.incrementAndGet() == 1) {
+                throw new IllegalStateException("temporary lock failure");
+            }
+            return false;
+        });
+
+        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionTestUtils.getField(localClusterService, "executorService");
+        try {
+            localClusterService.startSelectMasterTask("127.0.0.1", "9195", "/shenyu");
+
+            assertTrue(attemptsFinished.await(5, TimeUnit.SECONDS));
+            verify(localSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
+            verify(localSelectMasterService, never()).releaseMaster();
+            verify(localUpstreamCheckService, never()).close();
+            verify(localInstanceCheckService, never()).close();
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 }

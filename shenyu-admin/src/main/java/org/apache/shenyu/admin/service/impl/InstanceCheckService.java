@@ -32,20 +32,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * This is the client check service.
@@ -59,6 +61,8 @@ public class InstanceCheckService {
 
     private ScheduledThreadPoolExecutor executor;
 
+    private ScheduledThreadPoolExecutor syncExecutor;
+
     private final int scheduledTime;
 
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
@@ -71,6 +75,12 @@ public class InstanceCheckService {
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
 
+    private final ReentrantLock syncLock = new ReentrantLock();
+
+    private final Map<String, Map<Integer, Deque<Long>>> namespaceStateHistoryMap;
+
+    private final Object historyLock = new Object();
+
     public InstanceCheckService(final InstanceInfoService instanceInfoService) {
         this.scheduledTime = 10;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
@@ -78,16 +88,28 @@ public class InstanceCheckService {
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
         this.stateHistoryMap = new ConcurrentHashMap<>();
+        this.namespaceStateHistoryMap = new HashMap<>();
     }
 
     /**
      * Set up.
      */
     public void setup() {
+        closeExecutors();
         this.fetchInstanceData();
         executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-heartbeat-task", false));
         executor.scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(this::syncDB, 40, scheduledTime, TimeUnit.SECONDS);
+        syncExecutor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-instance-db-sync-task", false));
+        syncExecutor.scheduleWithFixedDelay(this::syncDBSafely, 40, scheduledTime, TimeUnit.SECONDS);
+    }
+
+    private void closeExecutors() {
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
+        if (Objects.nonNull(syncExecutor)) {
+            syncExecutor.shutdown();
+        }
     }
 
     /**
@@ -100,7 +122,9 @@ public class InstanceCheckService {
                 instanceInfoVO.setInstanceState(InstanceStatusEnum.DELETED.getCode());
             }
             String instanceKey = getInstanceKey(instanceInfoVO);
-            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
+            // a persisted observation is older than any heartbeat already accepted in the live map
+            // (heartbeat time is not persisted), so only fill identities that have no live entry
+            instanceHealthBeatInfo.putIfAbsent(instanceKey, instanceInfoVO);
         });
     }
 
@@ -120,13 +144,22 @@ public class InstanceCheckService {
         return instanceHealthBeatInfo.get(instanceKey);
     }
 
-    public void handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public boolean handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        // every in-repo producer defaults a blank namespace, so treat it as the default namespace
+        // rather than an incomplete identity (review feedback on #7776)
+        instanceBeatInfoDTO.setNamespaceId(StringUtils.defaultIfBlank(instanceBeatInfoDTO.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID));
+        if (isBlankIdentity(instanceBeatInfoDTO)) {
+            LOG.warn("ignored heartbeat report with incomplete identity: ip:{}, port:{}, type:{}, namespace:{}",
+                    instanceBeatInfoDTO.getInstanceIp(), instanceBeatInfoDTO.getInstancePort(),
+                    instanceBeatInfoDTO.getInstanceType(), instanceBeatInfoDTO.getNamespaceId());
+            return false;
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
-                instanceInfoVO.setInstanceInfo(instanceBeatInfoDTO.getInstanceInfo());
+                instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             }
         } else {
             InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
@@ -139,6 +172,13 @@ public class InstanceCheckService {
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
+        return true;
+    }
+
+    private boolean isBlankIdentity(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        return StringUtils.isBlank(instanceBeatInfoDTO.getInstanceIp())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstancePort())
+                || StringUtils.isBlank(instanceBeatInfoDTO.getInstanceType());
     }
 
     private void scheduled() {
@@ -175,9 +215,66 @@ public class InstanceCheckService {
     }
 
     public void syncDB() {
-        instanceHealthBeatInfo.values().forEach(vo -> {
-            instanceInfoService.createOrUpdate(vo);
-        });
+        syncDB(0, TimeUnit.MILLISECONDS);
+    }
+
+    public boolean syncDB(final long timeout, final TimeUnit unit) {
+        boolean locked = false;
+        try {
+            locked = timeout > 0 ? syncLock.tryLock(timeout, unit) : syncLock.tryLock();
+            if (!locked) {
+                LOG.info("instance syncDB is already running, skip");
+                return false;
+            }
+            doSyncDB();
+            return true;
+        } catch (InterruptedException e) {
+            LOG.warn("syncDB lock acquisition interrupted", e);
+            Thread.currentThread().interrupt();
+            return false;
+        } finally {
+            if (locked) {
+                syncLock.unlock();
+            }
+        }
+    }
+
+    private void doSyncDB() {
+        try {
+            List<InstanceInfoVO> snapshot = new ArrayList<>(instanceHealthBeatInfo.values());
+            for (InstanceInfoVO vo : snapshot) {
+                try {
+                    instanceInfoService.createOrUpdate(copyInstanceInfoVO(vo));
+                } catch (Exception e) {
+                    LOG.error("sync instance db error, ip: {}, port: {}", vo.getInstanceIp(), vo.getInstancePort(), e);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("sync instance info to db error", e);
+        }
+    }
+
+    private InstanceInfoVO copyInstanceInfoVO(final InstanceInfoVO vo) {
+        InstanceInfoVO copy = new InstanceInfoVO();
+        copy.setId(vo.getId());
+        copy.setInstanceIp(vo.getInstanceIp());
+        copy.setInstancePort(vo.getInstancePort());
+        copy.setInstanceType(vo.getInstanceType());
+        copy.setInstanceInfo(vo.getInstanceInfo());
+        copy.setNamespaceId(vo.getNamespaceId());
+        copy.setInstanceState(vo.getInstanceState());
+        copy.setDateCreated(vo.getDateCreated());
+        copy.setDateUpdated(vo.getDateUpdated());
+        copy.setLastHeartBeatTime(vo.getLastHeartBeatTime());
+        return copy;
+    }
+
+    private void syncDBSafely() {
+        try {
+            syncDB();
+        } catch (Exception e) {
+            LOG.error("sync instance info to database error", e);
+        }
     }
 
     /**
@@ -185,10 +282,13 @@ public class InstanceCheckService {
      */
     @PreDestroy
     public void close() {
-        syncDB();
-        instanceHealthBeatInfo.clear();
-        if (Objects.nonNull(executor)) {
-            executor.shutdown();
+        try {
+            closeExecutors();
+            if (!syncDB(5, TimeUnit.SECONDS)) {
+                LOG.warn("timed out waiting for instance db sync lock during shutdown, skipping final sync");
+            }
+        } finally {
+            instanceHealthBeatInfo.clear();
         }
     }
 
@@ -214,11 +314,41 @@ public class InstanceCheckService {
     }
 
     private void collectStateData() {
-        if (!CollectionUtils.isEmpty(instanceHealthBeatInfo)) {
-            Map<Integer, Long> pieData = instanceHealthBeatInfo.values().stream()
-                    .filter(instance -> Objects.nonNull(instance.getInstanceState()))
-                    .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
-            updateStateHistory(pieData);
+        final List<InstanceInfoVO> instances =
+                new ArrayList<>(instanceHealthBeatInfo.values());
+
+        final Map<Integer, Long> globalCounts = new HashMap<>();
+        final Map<String, Map<Integer, Long>> namespaceCounts = new HashMap<>();
+
+        for (InstanceInfoVO instance : instances) {
+            final String namespaceId = instance.getNamespaceId();
+            Map<Integer, Long> counts = null;
+
+            if (StringUtils.isNotBlank(namespaceId)) {
+                counts = namespaceCounts.computeIfAbsent(
+                        namespaceId, key -> new HashMap<>());
+            }
+
+            final Integer state = instance.getInstanceState();
+            if (Objects.nonNull(state)) {
+                globalCounts.merge(state, 1L, Long::sum);
+                if (Objects.nonNull(counts)) {
+                    counts.merge(state, 1L, Long::sum);
+                }
+            }
+        }
+
+        synchronized (historyLock) {
+            updateStateHistory(stateHistoryMap, globalCounts);
+
+            namespaceStateHistoryMap.keySet().retainAll(namespaceCounts.keySet());
+
+            namespaceCounts.forEach((namespaceId, counts) -> {
+                final Map<Integer, Deque<Long>> history =
+                        namespaceStateHistoryMap.computeIfAbsent(
+                                namespaceId, key -> new HashMap<>());
+                updateStateHistory(history, counts);
+            });
         }
     }
 
@@ -231,19 +361,31 @@ public class InstanceCheckService {
         Map<Integer, Long> pieData = instanceInfoVOS.stream()
                 .filter(instance -> Objects.nonNull(instance.getInstanceState()))
                 .collect(Collectors.groupingBy(InstanceInfoVO::getInstanceState, Collectors.counting()));
-        List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
-        for (Integer state : Arrays.asList(0, 1, 2)) {
-            Deque<Long> queue = stateHistoryMap.getOrDefault(state, new ArrayDeque<>(MAX_HISTORY_SIZE));
-            List<Long> data = new ArrayList<>(queue);
-            while (data.size() < MAX_HISTORY_SIZE) {
-                data.add(0, 0L);
+        final List<InstanceDataVisualLineVO> lineList = new ArrayList<>();
+
+        synchronized (historyLock) {
+            final Map<Integer, Deque<Long>> history =
+                    StringUtils.isBlank(namespaceId)
+                            ? stateHistoryMap
+                            : namespaceStateHistoryMap.get(namespaceId);
+
+            for (Integer state : Arrays.asList(0, 1, 2)) {
+                final Deque<Long> queue =
+                        Objects.isNull(history) ? null : history.get(state);
+
+                final List<Long> data = Objects.isNull(queue)
+                        ? new ArrayList<>(MAX_HISTORY_SIZE)
+                        : new ArrayList<>(queue);
+
+                while (data.size() < MAX_HISTORY_SIZE) {
+                    data.add(0, 0L);
+                }
+
+                lineList.add(new InstanceDataVisualLineVO(
+                        InstanceStatusEnum.getNameByCode(state), data));
             }
-            InstanceDataVisualLineVO dto = new InstanceDataVisualLineVO(
-                    InstanceStatusEnum.getNameByCode(state),
-                    data
-            );
-            lineList.add(dto);
         }
+
         List<InstanceDataVisualVO.Entry> pieDataList = pieData.entrySet().stream()
                 .map(entry -> {
                     Integer stateCode = entry.getKey();
@@ -256,21 +398,18 @@ public class InstanceCheckService {
         return instanceDataVisualVO;
     }
 
-    private void updateStateHistory(final Map<Integer, Long> currentData) {
-        ensureStateQueues();
+    private void updateStateHistory(final Map<Integer, Deque<Long>> history,
+                                    final Map<Integer, Long> currentData) {
         for (Integer state : Arrays.asList(0, 1, 2)) {
-            Long count = currentData.getOrDefault(state, 0L);
-            Deque<Long> queue = stateHistoryMap.get(state);
-            queue.addLast(count);
+            final Deque<Long> queue = history.computeIfAbsent(
+                    state, key -> new ArrayDeque<>(MAX_HISTORY_SIZE));
+
+            queue.addLast(currentData.getOrDefault(state, 0L));
+
             while (queue.size() > MAX_HISTORY_SIZE) {
                 queue.removeFirst();
             }
         }
     }
 
-    private void ensureStateQueues() {
-        for (Integer state : Arrays.asList(0, 1, 2)) {
-            stateHistoryMap.putIfAbsent(state, new ConcurrentLinkedDeque<>());
-        }
-    }
 }
