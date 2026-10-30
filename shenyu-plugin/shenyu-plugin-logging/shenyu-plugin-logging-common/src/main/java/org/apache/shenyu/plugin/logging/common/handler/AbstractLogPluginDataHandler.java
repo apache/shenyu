@@ -102,7 +102,9 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
             if (Objects.isNull(globalLogConfig)) {
                 return;
             }
-            if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
+            // Singleton retains the configuration after disable, while the map tracks
+            // the active lifecycle. Reinitialize when the active marker is absent.
+            if (Objects.isNull(exist) || !globalLogConfig.equals(exist) || !PLUGIN_GLOBAL_CONFIG_MAP.containsKey(pluginData.getId())) {
                 // no data, init client
                 this.doRefreshConfig(globalLogConfig);
                 logCollector().start();
@@ -113,9 +115,10 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         } else {
             try {
                 logCollector().close();
-                PLUGIN_GLOBAL_CONFIG_MAP.remove(pluginData.getId());
             } catch (Exception e) {
                 LOG.error("{} close log collector error", this.getClass().getSimpleName(), e);
+            } finally {
+                PLUGIN_GLOBAL_CONFIG_MAP.remove(pluginData.getId());
             }
         }
     }

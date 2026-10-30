@@ -190,4 +190,18 @@
         </where>
     </select>
 
+    <select databaseId="oracle" id="selectByQuery" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM detail
+        <where>
+            <if test="valueDesc != null">
+                and value_desc = #{valueDesc, jdbcType=VARCHAR}
+            </if>
+            <if test="fieldValue != null">
+                and DBMS_LOB.COMPARE(field_value, #{fieldValue, jdbcType=VARCHAR}) = 0
+            </if>
+        </where>
+    </select>
+
 </mapper>
