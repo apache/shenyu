@@ -26,7 +26,10 @@ permissions:
 
 concurrency:
   group: native-sql-matrix-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Keep duplicate pull-request events queued so the required aggregate job
+  # can observe a completed scope result instead of reporting a cancellation
+  # as "Scope detection failed".
+  cancel-in-progress: false
 
 jobs:
   scope:
