@@ -288,6 +288,9 @@ class AgentGatewayPluginTest {
     @Test
     void shouldRejectInvalidHandleBeforeCallingDownstream() {
         ServerWebExchange exchange = newExchange();
+        java.util.List<org.apache.shenyu.common.audit.AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();
+        exchange.getAttributes().put(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE,
+                (org.apache.shenyu.common.audit.AgentInvocationAuditObserver) audits::add);
         AtomicReference<Integer> calls = new AtomicReference<>(0);
         RuleData invalidRule = RuleData.builder()
                 .id("rule-1")
@@ -301,6 +304,9 @@ class AgentGatewayPluginTest {
         }, selector(), invalidRule)).verifyComplete();
 
         assertEquals(0, calls.get());
+        assertEquals(1, audits.size());
+        assertEquals("INVALID_CONFIGURATION", audits.get(0).getReason());
+        assertTrue(audits.get(0).getSubject().isEmpty());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
         assertNotNull(AgentGatewayPluginDataHandler.CACHED_HANDLE.get().obtainHandle("selector-1_rule-1"));
         assertTrue(!AgentGatewayPluginDataHandler.CACHED_HANDLE.get()

@@ -42,7 +42,11 @@ final class OpenTelemetryAgentMcpCallTracer implements AgentMcpCallTracer {
     private final Tracer tracer;
 
     OpenTelemetryAgentMcpCallTracer(final OpenTelemetry telemetry) {
-        tracer = telemetry.getTracer("org.apache.shenyu.agent.gateway");
+        this(telemetry.getTracer("org.apache.shenyu.agent.gateway"));
+    }
+
+    OpenTelemetryAgentMcpCallTracer(final Tracer tracer) {
+        this.tracer = java.util.Objects.requireNonNull(tracer, "tracer");
     }
 
     @Override

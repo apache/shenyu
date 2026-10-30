@@ -35,6 +35,8 @@ public final class AiRequestObservation {
 
     private final AiCallObserver observer;
 
+    private final AgentRuntimeMetrics metrics;
+
     private final long started = System.nanoTime();
 
     private AgentRequestContext context;
@@ -50,8 +52,14 @@ public final class AiRequestObservation {
     private boolean completed;
 
     public AiRequestObservation(final AiCallObserver observer, final AgentRequestContext context) {
+        this(observer, context, AgentRuntimeMetrics.NOOP);
+    }
+
+    public AiRequestObservation(final AiCallObserver observer, final AgentRequestContext context, final AgentRuntimeMetrics metrics) {
         this.observer = observer;
         this.context = Objects.requireNonNull(context, "context");
+        this.metrics = Objects.requireNonNull(metrics, "metrics");
+        AgentRuntimeMetrics.safely(() -> metrics.started(AgentRuntimeMetrics.Traffic.LLM));
     }
 
     public synchronized AgentRequestContext getContext() {
@@ -137,6 +145,8 @@ public final class AiRequestObservation {
             terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage);
         }
         recordAttempt(attemptEvent);
+        AgentRuntimeMetrics.safely(() -> metrics.finished(AgentRuntimeMetrics.Traffic.LLM,
+                AgentRuntimeMetrics.Outcome.valueOf(terminalEvent.outcome().name()), reason(terminalEvent.httpStatus()), terminalEvent.elapsedMillis()));
         if (Objects.nonNull(observer)) {
             try {
                 observer.record(terminalEvent);
@@ -147,6 +157,9 @@ public final class AiRequestObservation {
     }
 
     private void recordAttempt(final AiAttemptEvent event) {
+        if (Objects.nonNull(event)) {
+            AgentRuntimeMetrics.safely(() -> metrics.attempt(event.kind(), AgentRuntimeMetrics.Outcome.valueOf(event.outcome().name()), event.elapsedMillis()));
+        }
         if (Objects.nonNull(observer) && Objects.nonNull(event)) {
             try {
                 observer.recordAttempt(event);
@@ -154,6 +167,19 @@ public final class AiRequestObservation {
                 // Observation must not change retry, cancellation or response delivery.
             }
         }
+    }
+
+    private static AgentRuntimeMetrics.Reason reason(final Integer status) {
+        if (Objects.equals(status, 401)) {
+            return AgentRuntimeMetrics.Reason.AUTHENTICATION;
+        }
+        if (Objects.equals(status, 403)) {
+            return AgentRuntimeMetrics.Reason.AUTHORIZATION;
+        }
+        if (Objects.equals(status, 413) || Objects.equals(status, 429)) {
+            return AgentRuntimeMetrics.Reason.RESOURCE_LIMIT;
+        }
+        return AgentRuntimeMetrics.Reason.NONE;
     }
 
     /**

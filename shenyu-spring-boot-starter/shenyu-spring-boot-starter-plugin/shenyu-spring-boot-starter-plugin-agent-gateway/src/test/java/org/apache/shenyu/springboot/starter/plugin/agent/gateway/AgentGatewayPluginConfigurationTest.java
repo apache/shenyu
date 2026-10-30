@@ -83,6 +83,19 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
+    void managedAuditPreservesExistingTerminalObservers() {
+        contextRunner.withUserConfiguration(org.apache.shenyu.springboot.starter.agent.audit.AgentInvocationAuditConfiguration.class)
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.audit.enabled=true")
+                .withBean(org.apache.shenyu.common.metrics.AiCallObserver.class, () -> event -> { })
+                .withBean(org.apache.shenyu.common.metrics.AgentMcpTerminalObserver.class, () -> event -> { })
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    assertEquals(1, context.getBeansOfType(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.class).size());
+                    assertTrue(context.containsBean("agentGatewayPlugin"));
+                });
+    }
+
+    @Test
     void tracingIsOffByDefaultEvenWithApplicationTelemetry() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
                 .withBean(OpenTelemetry.class, OpenTelemetry::noop)
@@ -104,6 +117,31 @@ class AgentGatewayPluginConfigurationTest {
     void enabledTracingRequiresApplicationTelemetry() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
                 .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void tracingReusesOnlyTheExplicitlyNamedGatewayTracer() {
+        io.opentelemetry.api.trace.Tracer shared = OpenTelemetry.noop().getTracer("gateway");
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean("tracingTracer", io.opentelemetry.api.trace.Tracer.class, () -> shared)
+                .run(context -> {
+                    assertEquals(shared, ReflectionTestUtils.getField(context.getBean(AgentMcpCallTracer.class), "tracer"));
+                    assertTrue(context.getBeansOfType(OpenTelemetry.class).isEmpty());
+                });
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean("unrelatedTracer", io.opentelemetry.api.trace.Tracer.class, () -> shared)
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void explicitApplicationTelemetryWinsOverGatewayTracer() {
+        OpenTelemetry telemetry = mock(OpenTelemetry.class);
+        io.opentelemetry.api.trace.Tracer application = mock(io.opentelemetry.api.trace.Tracer.class);
+        when(telemetry.getTracer("org.apache.shenyu.agent.gateway")).thenReturn(application);
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                .withBean(OpenTelemetry.class, () -> telemetry)
+                .withBean("tracingTracer", io.opentelemetry.api.trace.Tracer.class, () -> OpenTelemetry.noop().getTracer("gateway"))
+                .run(context -> assertEquals(application, ReflectionTestUtils.getField(context.getBean(AgentMcpCallTracer.class), "tracer")));
     }
 
     @Test
