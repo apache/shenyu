@@ -82,6 +82,16 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     public String draining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return doDraining(selectorName, uriList, namespaceId);
     }
+
+    @Override
+    public String notReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doNotReady(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String ready(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doReady(selectorName, uriList, namespaceId);
+    }
     
     private void addFallback(final String key, final FallbackHolder holder) {
         FallbackHolder oldObj = fallsRegisters.get(key);
@@ -140,6 +150,27 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     abstract String doDraining(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Not ready: mark the instances so gateways stop selecting them for new work
+     * until an explicit ready event.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @param namespaceId  the namespace id
+     * @return the string
+     */
+    abstract String doNotReady(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Ready: release the not-ready and draining markers so new work is admitted again.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @param namespaceId  the namespace id
+     * @return the string
+     */
+    abstract String doReady(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.

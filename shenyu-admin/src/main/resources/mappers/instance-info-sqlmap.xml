@@ -95,7 +95,7 @@
         FROM instance_info
         WHERE namespace_id = #{namespaceId}
         <if test="instanceIp != null and instanceIp != ''">
-            AND instance_ip like CONCAT('%', #{instanceIp}, '%')
+            AND instance_ip like CONCAT(CONCAT('%', #{instanceIp}), '%')
         </if>
         <if test="instancePort != null and instancePort != ''">
             AND instance_port = #{instancePort}
@@ -186,6 +186,13 @@
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM instance_info
         WHERE id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <!-- instance_state = 0 is the DELETED state, see org.apache.shenyu.common.enums.InstanceStatusEnum. -->
+    <delete id="deleteExpired">
+        DELETE FROM instance_info
+        WHERE instance_state = 0
+          AND last_heart_beat_time &lt; #{cutoff, jdbcType=BIGINT}
     </delete>
 
 </mapper>

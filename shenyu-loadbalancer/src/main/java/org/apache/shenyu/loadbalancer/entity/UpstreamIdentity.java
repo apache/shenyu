@@ -58,6 +58,17 @@ public final class UpstreamIdentity {
     }
 
     /**
+     * A marker serialization that preserves the complete logical identity —
+     * protocol, address, group and version — even when the hash ring key
+     * collapses to the bare address for targets without a group or version.
+     *
+     * @return the full identity marker
+     */
+    public String markerKey() {
+        return GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version});
+    }
+
+    /**
      * Get the least active key, preserving the domain key for targets without a group or version.
      *
      * @return the least active key

@@ -45,8 +45,10 @@ import java.util.function.Consumer;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -127,52 +129,49 @@ public final class ShenyuLoaderServiceHandlerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testExtDirectoryRemovalDetachesHandler() throws ReflectiveOperationException {
-        try (GenericApplicationContext context = new GenericApplicationContext()) {
+        try (GenericApplicationContext context = new GenericApplicationContext();
+                ShenyuPluginClassLoader removed = createLoader("Removed", PLUGIN_NAME);
+                ShenyuPluginClassLoader retained = createLoader("Retained", "retained-handler-test")) {
             context.refresh();
             SpringBeanUtils.getInstance().setApplicationContext(context);
             ShenyuConfig config = new ShenyuConfig();
             config.getExtPlugin().setEnabled(false);
             webHandler = new ShenyuWebHandler(List.of(), null, config);
             service = new ShenyuLoaderService(webHandler, subscriber, config);
-            ShenyuPluginClassLoader removed = createLoader("Removed", PLUGIN_NAME);
-            ShenyuPluginClassLoader retained = createLoader("Retained", "retained-handler-test");
-            try {
-                activateResults(removed.loadUploadedJarPlugins());
-                activateResults(retained.loadUploadedJarPlugins());
-                final ShenyuPlugin retainedPlugin = webHandler.getPlugins().stream()
-                        .filter(plugin -> "retained-handler-test".equals(plugin.named())).findFirst().orElseThrow();
-                Map<String, PluginDataHandler> handlers = (Map<String, PluginDataHandler>) ReflectionTestUtils.getField(subscriber, "handlerMap");
-                final PluginDataHandler retainedHandler = handlers.get("retained-handler-test");
-                ShenyuExtPathPluginJarLoader.ExtPluginLoadResult loadResult = mock(ShenyuExtPathPluginJarLoader.ExtPluginLoadResult.class);
-                when(loadResult.getPluginJars()).thenReturn(List.of());
+            activateResults(removed.loadUploadedJarPlugins());
+            activateResults(retained.loadUploadedJarPlugins());
+            final ShenyuPlugin retainedPlugin = webHandler.getPlugins().stream()
+                    .filter(plugin -> "retained-handler-test".equals(plugin.named())).findFirst().orElseThrow();
+            Map<String, PluginDataHandler> handlers = (Map<String, PluginDataHandler>) ReflectionTestUtils.getField(subscriber, "handlerMap");
+            final PluginDataHandler retainedHandler = handlers.get("retained-handler-test");
+            assertNotNull(retainedHandler);
+            assertTrue(handlers.containsKey(PLUGIN_NAME));
+            ShenyuExtPathPluginJarLoader.ExtPluginLoadResult loadResult = mock(ShenyuExtPathPluginJarLoader.ExtPluginLoadResult.class);
+            when(loadResult.getPluginJars()).thenReturn(List.of());
 
-                try (MockedStatic<ShenyuExtPathPluginJarLoader> loader = mockStatic(ShenyuExtPathPluginJarLoader.class)) {
-                    loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any(), any())).thenAnswer(invocation -> {
-                        Consumer<ShenyuPluginClassLoader> deactivate = invocation.getArgument(1);
-                        deactivate.accept(removed);
-                        return loadResult;
-                    });
-                    service.loadExtOrUploadPlugins(null);
-                }
-
-                assertEquals(List.of(retainedPlugin), webHandler.getPlugins());
-                assertFalse(handlers.containsKey(PLUGIN_NAME));
-                assertSame(retainedHandler, handlers.get("retained-handler-test"));
-            } finally {
-                removed.close();
-                retained.close();
+            try (MockedStatic<ShenyuExtPathPluginJarLoader> loader = mockStatic(ShenyuExtPathPluginJarLoader.class)) {
+                loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any(), any())).thenAnswer(invocation -> {
+                    Consumer<ShenyuPluginClassLoader> deactivate = invocation.getArgument(1);
+                    deactivate.accept(removed);
+                    return loadResult;
+                });
+                service.loadExtOrUploadPlugins(null);
             }
+
+            assertEquals(List.of(retainedPlugin), webHandler.getPlugins());
+            assertFalse(handlers.containsKey(PLUGIN_NAME));
+            assertSame(retainedHandler, handlers.get("retained-handler-test"));
         }
     }
 
     private ShenyuPluginClassLoader createLoader(final String prefix, final String pluginName) {
         String pluginClass = "fixture.directory." + prefix + "Plugin";
-        byte[] pluginBytes = new ByteBuddy().subclass(Object.class).name(pluginClass).implement(ShenyuPlugin.class)
+        final byte[] pluginBytes = new ByteBuddy().subclass(Object.class).name(pluginClass).implement(ShenyuPlugin.class)
                 .method(named("named")).intercept(FixedValue.value(pluginName))
                 .method(named("getOrder")).intercept(FixedValue.value(1))
                 .method(named("execute")).intercept(StubMethod.INSTANCE).make().getBytes();
         String handlerClass = "fixture.directory." + prefix + "Handler";
-        byte[] handlerBytes = new ByteBuddy().subclass(Object.class).name(handlerClass).implement(PluginDataHandler.class)
+        final byte[] handlerBytes = new ByteBuddy().subclass(Object.class).name(handlerClass).implement(PluginDataHandler.class)
                 .method(named("pluginNamed")).intercept(FixedValue.value(pluginName)).make().getBytes();
         PluginJarParser.PluginJar jar = new PluginJarParser.PluginJar();
         jar.setAbsolutePath(prefix);
