@@ -208,6 +208,12 @@ public final class InstanceInfoUpsertTest {
         jdbc.execute("CREATE TABLE mock_request_record (header VARCHAR(1024))");
         jdbc.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
         jdbc.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");
+        jdbc.execute("CREATE TABLE plugin_handle (id VARCHAR(128) PRIMARY KEY, plugin_id VARCHAR(128), field VARCHAR(100),"
+                + " label VARCHAR(100), data_type INT, type INT, sort INT, ext_obj VARCHAR(2048),"
+                + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        jdbc.execute("CREATE TABLE shenyu_dict (id VARCHAR(128) PRIMARY KEY, type VARCHAR(100), dict_code VARCHAR(100),"
+                + " dict_name VARCHAR(100), dict_value VARCHAR(2048), `desc` VARCHAR(255), sort INT, enabled INT,"
+                + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         insertLegacy("old-heartbeat", "ns", 100, "2026-01-03 00:00:00");
         insertLegacy("latest-heartbeat", "ns", 200, "2026-01-01 00:00:00");
         insertLegacy("tie-a", "ns-tie", 0, "2026-01-01 00:00:00");

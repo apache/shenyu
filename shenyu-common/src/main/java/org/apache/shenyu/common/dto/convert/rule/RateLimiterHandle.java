@@ -27,6 +27,16 @@ import java.util.Objects;
 public class RateLimiterHandle {
 
     /**
+     * allow requests when the Redis backend fails.
+     */
+    public static final String BACKEND_FAILURE_POLICY_ALLOW = "ALLOW";
+
+    /**
+     * reject requests when the Redis backend fails.
+     */
+    public static final String BACKEND_FAILURE_POLICY_REJECT = "REJECT";
+
+    /**
      * algorithm name.
      */
     private String algorithmName;
@@ -56,6 +66,11 @@ public class RateLimiterHandle {
      * key resolver name.
      */
     private String keyResolverName;
+
+    /**
+     * policy applied when the Redis backend fails; ALLOW keeps the historical fail-open behavior.
+     */
+    private String backendFailurePolicy = BACKEND_FAILURE_POLICY_ALLOW;
     
     /**
      * New default instance rate limiter handle.
@@ -69,6 +84,7 @@ public class RateLimiterHandle {
         rateLimiterHandle.setBurstCapacity(100.0);
         rateLimiterHandle.setRequestCount(1.0);
         rateLimiterHandle.setLogged(false);
+        rateLimiterHandle.setBackendFailurePolicy(BACKEND_FAILURE_POLICY_ALLOW);
         return rateLimiterHandle;
     }
     
@@ -180,6 +196,33 @@ public class RateLimiterHandle {
         this.keyResolverName = keyResolverName;
     }
 
+    /**
+     * get backendFailurePolicy.
+     *
+     * @return backendFailurePolicy backend failure policy
+     */
+    public String getBackendFailurePolicy() {
+        return backendFailurePolicy;
+    }
+
+    /**
+     * set backendFailurePolicy.
+     *
+     * @param backendFailurePolicy backend failure policy
+     */
+    public void setBackendFailurePolicy(final String backendFailurePolicy) {
+        this.backendFailurePolicy = backendFailurePolicy;
+    }
+
+    /**
+     * whether a request must be rejected when the Redis backend fails.
+     *
+     * @return true when the configured policy is REJECT; missing or unknown values keep the legacy ALLOW behavior
+     */
+    public boolean isRejectOnBackendFailure() {
+        return BACKEND_FAILURE_POLICY_REJECT.equalsIgnoreCase(backendFailurePolicy);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -191,12 +234,13 @@ public class RateLimiterHandle {
         RateLimiterHandle that = (RateLimiterHandle) o;
         return Double.compare(that.replenishRate, replenishRate) == 0 && Double.compare(that.burstCapacity, burstCapacity) == 0
                 && Double.compare(that.requestCount, requestCount) == 0 && logged == that.logged
-                && Objects.equals(algorithmName, that.algorithmName) && Objects.equals(keyResolverName, that.keyResolverName);
+                && Objects.equals(algorithmName, that.algorithmName) && Objects.equals(keyResolverName, that.keyResolverName)
+                && Objects.equals(backendFailurePolicy, that.backendFailurePolicy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, logged, keyResolverName);
+        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, logged, keyResolverName, backendFailurePolicy);
     }
 
     @Override
@@ -215,6 +259,9 @@ public class RateLimiterHandle {
                 + logged
                 + ", keyResolverName='"
                 + keyResolverName
+                + '\''
+                + ", backendFailurePolicy='"
+                + backendFailurePolicy
                 + '\''
                 + '}';
     }
