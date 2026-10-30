@@ -81,7 +81,7 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             jdbcTemplate.update("INSERT INTO mock_request_record (id, api_id, host, port, url) VALUES (?, 'page-test', 'localhost', 80, '/')", id);
         }
         for (String table : List.of("app_auth", "dashboard_user", "registry_config", "instance_info", "mock_request_record")) {
-            jdbcTemplate.update("UPDATE " + table + " SET date_created = '2026-01-01 00:00:00' WHERE id LIKE 'page-test-%'");
+            jdbcTemplate.update("UPDATE " + table + " SET date_created = '2026-01-01 00:00:00', date_updated = '2026-01-01 00:00:00' WHERE id LIKE 'page-test-%'");
         }
         assertPages(page -> {
             AppAuthQuery query = new AppAuthQuery();
@@ -107,7 +107,7 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             query.setApiId("page-test");
             query.setPageParameter(new PageParameter(page, 1));
             return mockRequestRecordService.listByPage(query);
-        });
+        }, List.of("page-test-1", "page-test-0"));
     }
 
     @Test
@@ -132,6 +132,10 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
     }
 
     private void assertPages(final IntFunction<CommonPager<?>> query) {
+        assertPages(query, List.of("page-test-0", "page-test-1"));
+    }
+
+    private void assertPages(final IntFunction<CommonPager<?>> query, final List<String> expectedIds) {
         Set<Object> seen = new HashSet<>();
         for (int page = 1; page <= 3; page++) {
             CommonPager<?> result = query.apply(page);
@@ -139,11 +143,11 @@ class AdminListPaginationTest extends AbstractSpringIntegrationTest {
             assertEquals(page <= 2 ? 1 : 0, result.getDataList().size());
             for (Object row : result.getDataList()) {
                 Object id = new BeanWrapperImpl(row).getPropertyValue("id");
-                assertEquals("page-test-" + (page - 1), id);
+                assertEquals(expectedIds.get(page - 1), id);
                 assertTrue(seen.add(id), "Page boundaries must not repeat rows");
             }
             assertNull(PageHelper.getLocalPage());
         }
-        assertEquals(Set.of("page-test-0", "page-test-1"), seen);
+        assertEquals(Set.copyOf(expectedIds), seen);
     }
 }

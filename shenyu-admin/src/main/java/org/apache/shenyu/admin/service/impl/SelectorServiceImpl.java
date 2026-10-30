@@ -63,6 +63,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
@@ -133,6 +134,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final DataPermissionChecker dataPermissionChecker;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -142,7 +145,8 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
-                               final SelectorEventPublisher selectorEventPublisher) {
+                               final SelectorEventPublisher selectorEventPublisher,
+                               final DataPermissionChecker dataPermissionChecker) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -153,6 +157,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
+        this.dataPermissionChecker = dataPermissionChecker;
     }
 
     @Override
@@ -383,8 +388,18 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorVO findById(final String id) {
+        final String namespaceId = selectorMapper.selectNamespaceIdById(id);
+        if (Objects.isNull(namespaceId)) {
+            return null;
+        }
+        // Detail reads must apply the same data scope as the paged list queries, before loading configuration.
+        dataPermissionChecker.requireSelectorReadable(id, namespaceId);
+        final SelectorDO selectorDO = selectorMapper.selectById(id);
+        if (Objects.isNull(selectorDO)) {
+            return null;
+        }
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorDO, conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
         if (Objects.nonNull(discoveryHandlerDO)) {
             selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));

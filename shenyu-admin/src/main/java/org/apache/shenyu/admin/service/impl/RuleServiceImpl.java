@@ -49,6 +49,7 @@ import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
@@ -103,18 +104,22 @@ public class RuleServiceImpl implements RuleService {
 
     private final ShenyuDictMapper shenyuDictMapper;
 
+    private final DataPermissionChecker dataPermissionChecker;
+
     public RuleServiceImpl(final RuleMapper ruleMapper,
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
                            final RuleEventPublisher ruleEventPublisher,
-                           final ShenyuDictMapper shenyuDictMapper) {
+                           final ShenyuDictMapper shenyuDictMapper,
+                           final DataPermissionChecker dataPermissionChecker) {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
         this.ruleEventPublisher = ruleEventPublisher;
         this.shenyuDictMapper = shenyuDictMapper;
+        this.dataPermissionChecker = dataPermissionChecker;
     }
 
     @Override
@@ -282,7 +287,17 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public RuleVO findById(final String id) {
-        return RuleVO.buildRuleVO(ruleMapper.selectById(id),
+        final String namespaceId = ruleMapper.selectNamespaceIdById(id);
+        if (Objects.isNull(namespaceId)) {
+            return null;
+        }
+        // Detail reads must apply the same data scope as the paged list queries, before loading configuration.
+        dataPermissionChecker.requireRuleReadable(id, namespaceId);
+        final RuleDO ruleDO = ruleMapper.selectById(id);
+        if (Objects.isNull(ruleDO)) {
+            return null;
+        }
+        return RuleVO.buildRuleVO(ruleDO,
                 map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
 

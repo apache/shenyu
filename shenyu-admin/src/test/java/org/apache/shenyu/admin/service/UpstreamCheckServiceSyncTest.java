@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent
 import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -413,6 +414,102 @@ class UpstreamCheckServiceSyncTest {
         Map<String, List<CommonUpstream>> upstreams = (Map<String, List<CommonUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
         assertTrue(upstreams.get(SELECTOR_ID).get(0).isStatus());
         org.junit.jupiter.api.Assertions.assertFalse(upstreams.get(SELECTOR_ID).get(1).isStatus());
+    }
+
+    /**
+     * Central probe mode (the default): a successful admin probe keeps the legacy behavior and
+     * revives the upstream in the db status, the persisted selector handle and the published
+     * events, see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testCentralModeProbeSuccessWritesBackAliveAsLegacy() throws Exception {
+        try (ServerSocket healthy = new ServerSocket(0)) {
+            String aliveUrl = "127.0.0.1:" + healthy.getLocalPort();
+            DiscoveryUpstreamData disabled = DiscoveryUpstreamData.builder().url(aliveUrl).protocol("http://").status(1)
+                    .dateCreated(new Timestamp(1)).build();
+            when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(disabled)));
+            CommonUpstream recovered = DivideUpstream.builder().upstreamUrl(aliveUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+            service.replace(SELECTOR_ID, List.of(recovered));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+            verify(discoveryUpstreamService).changeStatusBySelectorIdAndUrl(SELECTOR_ID, aliveUrl, Boolean.TRUE);
+            ArgumentCaptor<SelectorDO> selector = ArgumentCaptor.forClass(SelectorDO.class);
+            verify(selectorMapper).updateSelective(selector.capture());
+            List<DivideUpstream> handle = GsonUtils.getInstance().fromCurrentList(selector.getValue().getHandle(), DivideUpstream.class);
+            assertEquals(1, handle.size());
+            assertEquals(aliveUrl, handle.get(0).getUpstreamUrl());
+            assertTrue(handle.get(0).isStatus());
+            DiscoverySyncData snapshot = publishedSnapshot();
+            assertEquals(1, snapshot.getUpstreamDataList().size());
+            assertEquals(aliveUrl, snapshot.getUpstreamDataList().get(0).getUrl());
+            assertEquals(0, snapshot.getUpstreamDataList().get(0).getStatus());
+        }
+    }
+
+    /**
+     * Local probe mode: the scheduled check entry is inert, so a probe success can never reach
+     * the write-back of updateSelectorHandler; the explicitly disabled discovery row, the selector
+     * handle and the published events all stay untouched,
+     * see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testLocalModeScheduledCheckDoesNotReviveDisabledUpstream() throws Exception {
+        service = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        try (Socket crashed = new Socket()) {
+            crashed.bind(new InetSocketAddress("127.0.0.1", 0));
+            String deadUrl = "127.0.0.1:" + crashed.getLocalPort();
+            CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(deadUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            service.replace(SELECTOR_ID, List.of(upstream));
+
+            ReflectionTestUtils.invokeMethod(service, "doCheck");
+
+            verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(any(), any(), any());
+            verify(selectorMapper, never()).updateSelective(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+    }
+
+    /**
+     * Local probe mode: even when the probe-execution path below the scheduled entry is exercised
+     * directly and the probe really succeeds, the defensive write-side gate in updateSelectorHandler
+     * keeps the explicitly disabled upstream disabled in the db and the selector handle, and no
+     * selector/discovery event is published, see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testLocalModeCheckPipelineDoesNotReviveDisabledUpstream() throws Exception {
+        service = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        try (ServerSocket healthy = new ServerSocket(0)) {
+            String aliveUrl = "127.0.0.1:" + healthy.getLocalPort();
+            DiscoveryUpstreamData disabled = DiscoveryUpstreamData.builder().url(aliveUrl).protocol("http://").status(1).build();
+            lenient().when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(disabled)));
+            CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(aliveUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+            service.replace(SELECTOR_ID, List.of(upstream));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+            verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(any(), any(), any());
+            verify(selectorMapper, never()).updateSelective(any());
+            verify(eventPublisher, never()).publishEvent(any());
+            assertEquals(1, disabled.getStatus());
+        }
+    }
+
+    private UpstreamCheckService buildServiceWithProbeMode(final String probeMode) {
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setRegisterType("http");
+        config.getProps().setProperty(Constants.IS_CHECKED, "true");
+        config.getProps().setProperty(Constants.PROBE_MODE, probeMode);
+        SelectorHandleConverterFactor converters = new SelectorHandleConverterFactor(
+                Collections.singletonMap(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter()));
+        return new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                config, converters, discoveryUpstreamService);
     }
 
     private DiscoverySyncData publishedSnapshot() {

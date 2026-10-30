@@ -54,16 +54,25 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.NamespaceIDUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 public class NamespaceServiceImpl implements NamespaceService {
+
+    private static final String CREATE_PERMISSION = "system:namespace:add";
+
+    private static final String UPDATE_PERMISSION = "system:namespace:edit";
+
+    private static final String DELETE_PERMISSION = "system:namespace:delete";
 
     private final NamespaceMapper namespaceMapper;
 
@@ -111,8 +120,9 @@ public class NamespaceServiceImpl implements NamespaceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public NamespaceVO createOrUpdate(final NamespaceDTO namespaceDTO) {
-        return StringUtils.isBlank(namespaceDTO.getId())
-                ? this.create(namespaceDTO) : this.update(namespaceDTO);
+        final boolean create = StringUtils.isBlank(namespaceDTO.getId());
+        SecurityUtils.getSubject().checkPermission(create ? CREATE_PERMISSION : UPDATE_PERMISSION);
+        return create ? this.create(namespaceDTO) : this.update(namespaceDTO);
     }
 
     @Override
@@ -142,6 +152,7 @@ public class NamespaceServiceImpl implements NamespaceService {
 
     @Override
     public String delete(final List<String> ids) {
+        SecurityUtils.getSubject().checkPermission(DELETE_PERMISSION);
         if (ids.contains(Constants.DEFAULT_NAMESPACE_PRIMARY_KEY)) {
             throw new ShenyuAdminException(AdminConstants.SYS_DEFAULT_NAMESPACE_ID_DELETE);
         }
@@ -149,6 +160,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (CollectionUtils.isEmpty(namespaceIdList)) {
             throw new ShenyuAdminException(AdminConstants.SYS_NAMESPACE_ID_NOT_EXIST);
         }
+        requireNamespaceMembership(namespaceIdList);
         List<RuleDO> ruleDOList = ruleMapper.selectAllByNamespaceIds(namespaceIdList);
         if (CollectionUtils.isNotEmpty(ruleDOList)) {
             throw new ShenyuAdminException("rule exist under those namespace!");
@@ -221,6 +233,12 @@ public class NamespaceServiceImpl implements NamespaceService {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String namespaceId = StringUtils.defaultString(namespaceDTO.getNamespaceId(), NamespaceIDUtils.getInstance().generateNamespaceID());
+        // The namespace table only makes the primary key unique. Reusing an existing namespace_id
+        // would insert a second row for that namespace and let NamespaceCreatedEvent grant the caller
+        // membership in it, which would then pass the update/delete membership guard.
+        if (Objects.nonNull(namespaceMapper.selectByNamespaceId(namespaceId))) {
+            throw new ShenyuAdminException("namespace id already exist: " + namespaceId);
+        }
         NamespaceDO namespaceDO = NamespaceDO.builder()
                 .id(id)
                 .namespaceId(namespaceId)
@@ -240,6 +258,7 @@ public class NamespaceServiceImpl implements NamespaceService {
         if (Objects.isNull(namespaceDTO) || Objects.isNull(namespaceDTO.getNamespaceId())) {
             throw new ShenyuAdminException("namespace is not exist");
         }
+        requireNamespaceMembership(namespaceDTO.getNamespaceId());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         NamespaceDO namespaceDO = NamespaceDO.builder()
                 .namespaceId(namespaceDTO.getNamespaceId())
@@ -249,5 +268,36 @@ public class NamespaceServiceImpl implements NamespaceService {
                 .build();
         return namespaceMapper.updateSelective(namespaceDO) > 0
                 ? NamespaceTransfer.INSTANCE.mapToVo(namespaceDO) : null;
+    }
+
+    /**
+     * Require membership of the target namespace for the current user.
+     *
+     * @param namespaceId target namespace id
+     */
+    private void requireNamespaceMembership(final String namespaceId) {
+        requireNamespaceMembership(Collections.singletonList(namespaceId));
+    }
+
+    /**
+     * Require membership of every target namespace for the current user.
+     *
+     * <p>The global administrator is explicitly authorized for every namespace. Any other caller
+     * needs a namespace-user relation, so holding an action permission alone never reaches a
+     * namespace the caller does not belong to.
+     *
+     * @param namespaceIds target namespace ids
+     */
+    private void requireNamespaceMembership(final List<String> namespaceIds) {
+        if (SessionUtil.isAdmin()) {
+            return;
+        }
+        final List<String> memberNamespaceIds = Objects.requireNonNullElse(
+                namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId()), Collections.emptyList());
+        for (String namespaceId : namespaceIds) {
+            if (!memberNamespaceIds.contains(namespaceId)) {
+                throw new UnauthorizedException("Current user is not a member of namespace " + namespaceId);
+            }
+        }
     }
 }
