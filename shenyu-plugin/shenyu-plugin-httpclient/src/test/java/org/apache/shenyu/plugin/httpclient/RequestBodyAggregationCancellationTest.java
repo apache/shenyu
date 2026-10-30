@@ -68,6 +68,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.context.Context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -138,6 +139,36 @@ class RequestBodyAggregationCancellationTest {
         assertEquals(Collections.singletonList("abc"), plugin.getCapturedBodies());
         assertNull(exchange.getAttribute(Constants.CACHED_REQUEST_BODY),
                 "body must not be aggregated when retry is disabled");
+        awaitRefCnt(chunk, 0);
+    }
+
+    @Test
+    void preservesSubscriberContextWhenRetryIsEnabled() {
+        assertSubscriberContextVisible(1);
+    }
+
+    @Test
+    void preservesSubscriberContextWhenRetryIsDisabled() {
+        assertSubscriberContextVisible(0);
+    }
+
+    private void assertSubscriberContextVisible(final int retryTimes) {
+        final AtomicReference<String> observedContext = new AtomicReference<>();
+        final NettyDataBuffer chunk = pooledBuffer("abc");
+        final Flux<DataBuffer> body = Flux.deferContextual(contextView -> {
+            observedContext.set(contextView.get("review-body-context"));
+            return Flux.just(chunk);
+        });
+        final RecordingPlugin plugin = new RecordingPlugin(attempt -> Mono.just("success"));
+        final ServerWebExchange exchange = createExchange(body, 30000L);
+        exchange.getAttributes().put(Constants.HTTP_RETRY, retryTimes);
+
+        StepVerifier.create(plugin.execute(exchange, chain)
+                        .contextWrite(Context.of("review-body-context", "tenant-A")))
+                .expectComplete()
+                .verify(VERIFY_TIMEOUT);
+
+        assertEquals("tenant-A", observedContext.get());
         awaitRefCnt(chunk, 0);
     }
 

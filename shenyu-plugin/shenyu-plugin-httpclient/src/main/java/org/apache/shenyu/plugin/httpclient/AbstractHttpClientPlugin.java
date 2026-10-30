@@ -64,6 +64,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.util.context.ContextView;
 
 
 /**
@@ -344,8 +345,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
 
         Flux<DataBuffer> asFlux(final ServerWebExchange exchange) {
-            return Mono.defer(() -> {
-                start();
+            return Mono.deferContextual(contextView -> {
+                start(contextView);
                 return body.asMono();
             }).flatMapMany(bytes -> {
                 if (bytes.length == 0) {
@@ -367,11 +368,12 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             }
         }
 
-        private void start() {
+        private void start(final ContextView contextView) {
             if (!started.compareAndSet(false, true)) {
                 return;
             }
-            final Disposable current = aggregation.subscribe(body::tryEmitValue, body::tryEmitError);
+            final Disposable current = aggregation.contextWrite(contextView)
+                    .subscribe(body::tryEmitValue, body::tryEmitError);
             subscription.set(current);
             if (disposed.get()) {
                 current.dispose();
