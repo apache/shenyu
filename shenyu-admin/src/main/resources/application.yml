@@ -139,6 +139,8 @@ shenyu:
   cluster:
     # Same high-entropy node-only credential on every Admin. Missing credentials fail closed.
     # Use HTTPS (schema: https) or a trusted TLS service mesh to protect the credential in transit.
+    # schema also selects the advertised master transport: http -> ws, https -> wss.
+    # A wss gateway refuses a plaintext ws advertisement unless it explicitly opts in.
     event-secret: ${SHENYU_CLUSTER_EVENT_SECRET:}
     enabled: false
     type: jdbc
