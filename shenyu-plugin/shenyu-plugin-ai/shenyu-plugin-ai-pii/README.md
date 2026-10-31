@@ -33,7 +33,10 @@ extraction and configurable actions.
   `file` part (a textual `file_data`, base64 decoded for scanning and re encoded after a
   redaction) is extracted too, and so are the `arguments` of a tool call
   (`tool_calls[].function.arguments`, the legacy `function_call.arguments`, and the
-  `arguments` of a responses `function_call` item). Binary content — an `image_url`,
+  `arguments` of a responses `function_call` item). The arguments are parsed as JSON and
+  each decoded string value is scanned, so an identifier hidden behind JSON escaping is
+  still caught, then the argument object is re-serialized after a redaction. Binary
+  content — an `image_url`,
   `input_audio`, a base64 `document` source and a non textual `file_data` — is left out of
   scope, since it cannot be meaningfully regex scanned; tool definitions and other nontext
   members are never reported. The extraction containers and text member types are

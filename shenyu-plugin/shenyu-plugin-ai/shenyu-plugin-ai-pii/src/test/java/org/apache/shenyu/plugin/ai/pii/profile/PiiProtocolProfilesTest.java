@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.pii.profile;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -171,9 +172,10 @@ public final class PiiProtocolProfilesTest {
                 + "\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}]}");
         assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(root).id());
         List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        // the arguments are parsed, so the slot is the decoded value, not the raw JSON member
         assertEquals(1, slots.size());
-        assertEquals("{\"phone\":\"13800138000\"}", slots.get(0).text());
-        slots.get(0).replace("{\"phone\":\"<PHONE_CN>\"}");
+        assertEquals("13800138000", slots.get(0).text());
+        slots.get(0).replace("<PHONE_CN>");
         assertEquals("{\"phone\":\"<PHONE_CN>\"}",
                 root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
                         .get("tool_calls").getAsJsonArray().get(0).getAsJsonObject()
@@ -238,7 +240,66 @@ public final class PiiProtocolProfilesTest {
         assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(root).id());
         List<PiiTextSlot> slots = new OpenAiResponsesProfile().responseSlots(root);
         assertEquals(1, slots.size());
-        assertEquals("{\"email\":\"a@b.com\"}", slots.get(0).text());
+        assertEquals("a@b.com", slots.get(0).text());
+        slots.get(0).replace("<EMAIL>");
+        assertEquals("{\"email\":\"<EMAIL>\"}",
+                root.get("output").getAsJsonArray().get(0).getAsJsonObject().get("arguments").getAsString());
+    }
+
+    @Test
+    public void testNestedToolCallArgumentValuesAreEachScanned() {
+        // the arguments document nests string values in an object and an array; each decoded
+        // value is its own slot and a redaction is written back into the shared document, so
+        // the structure and the untouched sibling value survive
+        JsonObject user = new JsonObject();
+        user.addProperty("email", "a@b.com");
+        JsonArray cc = new JsonArray();
+        cc.add("13800138000");
+        cc.add("x");
+        JsonObject args = new JsonObject();
+        args.add("user", user);
+        args.add("cc", cc);
+        JsonObject function = new JsonObject();
+        function.addProperty("name", "lookup");
+        function.addProperty("arguments", args.toString());
+        JsonObject call = new JsonObject();
+        call.addProperty("type", "function");
+        call.add("function", function);
+        JsonArray toolCalls = new JsonArray();
+        toolCalls.add(call);
+        JsonObject message = new JsonObject();
+        message.addProperty("role", "assistant");
+        message.add("tool_calls", toolCalls);
+        JsonArray messages = new JsonArray();
+        messages.add(message);
+        JsonObject root = new JsonObject();
+        root.add("messages", messages);
+
+        List<PiiTextSlot> slots = new OpenAiChatProfile().requestSlots(root);
+        assertEquals(3, slots.size());
+        assertEquals("a@b.com", slots.get(0).text());
+        assertEquals("13800138000", slots.get(1).text());
+        assertEquals("x", slots.get(2).text());
+        slots.get(0).replace("<EMAIL>");
+        slots.get(1).replace("<PHONE_CN>");
+        assertEquals("{\"user\":{\"email\":\"<EMAIL>\"},\"cc\":[\"<PHONE_CN>\",\"x\"]}",
+                function.get("arguments").getAsString());
+    }
+
+    @Test
+    public void testMalformedToolCallArgumentsAreUnsupported() {
+        // a non blank arguments member that is not parseable JSON cannot have its decoded
+        // values scanned, so it is malformed and follows the failure policy instead of leaking
+        assertNull(PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"assistant\",\"content\":null,"
+                + "\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"f\",\"arguments\":\"{\"}}]}]}")));
+        assertNull(PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"assistant\","
+                + "\"function_call\":{\"name\":\"f\",\"arguments\":\"}\"}}]}")));
+        assertNull(PiiProtocolProfiles.selectResponse(parse("{\"output\":[{\"type\":\"function_call\","
+                + "\"name\":\"f\",\"arguments\":\"{\"}]}")));
+        // a blank arguments member carries no text and stays a supported, textless call
+        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"assistant\","
+                + "\"content\":null,\"tool_calls\":[{\"type\":\"function\",\"function\":{\"name\":\"f\","
+                + "\"arguments\":\"\"}}]}]}")).id());
     }
 
     @Test

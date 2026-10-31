@@ -31,8 +31,9 @@ import java.util.Objects;
  * part lives in {@code source.data} when the source is text, and the text of a
  * {@code file} part lives in a textual base64 {@code file_data}; binary
  * document sources, images and audio are left out of scope. The arguments of a
- * tool call are extracted as a text slot too, so identifiers embedded in a
- * function call are scanned instead of passed through unredacted.
+ * tool call are a serialized JSON document, so they are parsed and their decoded
+ * string values are extracted, which scans an identifier hidden behind JSON
+ * escaping instead of passing it through unredacted; see {@link ToolCallArguments}.
  */
 final class PiiContentParts {
 
@@ -81,13 +82,13 @@ final class PiiContentParts {
                 }
                 JsonElement function = call.getAsJsonObject().get("function");
                 if (Objects.nonNull(function) && function.isJsonObject()) {
-                    addIfPresent(slots, PiiTextSlot.ofMember(function.getAsJsonObject(), "arguments"));
+                    ToolCallArguments.collectSlots(function.getAsJsonObject(), "arguments", slots);
                 }
             }
         }
         JsonElement functionCall = message.get("function_call");
         if (Objects.nonNull(functionCall) && functionCall.isJsonObject()) {
-            addIfPresent(slots, PiiTextSlot.ofMember(functionCall.getAsJsonObject(), "arguments"));
+            ToolCallArguments.collectSlots(functionCall.getAsJsonObject(), "arguments", slots);
         }
     }
 
@@ -101,7 +102,7 @@ final class PiiContentParts {
      */
     static void collectFunctionCallArguments(final JsonObject item, final List<PiiTextSlot> slots) {
         if ("function_call".equals(stringMember(item, "type"))) {
-            addIfPresent(slots, PiiTextSlot.ofMember(item, "arguments"));
+            ToolCallArguments.collectSlots(item, "arguments", slots);
         }
     }
 

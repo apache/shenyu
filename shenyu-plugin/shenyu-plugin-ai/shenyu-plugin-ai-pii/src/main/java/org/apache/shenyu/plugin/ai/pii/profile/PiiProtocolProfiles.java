@@ -26,8 +26,9 @@ import java.util.Objects;
  * The known protocol profiles. Selection validates the containers and text
  * members used by extraction, not the complete provider schema. Malformed
  * extraction shapes are unsupported modes and follow the rule's failure policy;
- * a textual base64 {@code file_data} that cannot be decoded is malformed rather
- * than silently skipped, so it cannot leak under a fail closed rule. A valid
+ * a textual base64 {@code file_data} that cannot be decoded and a tool call
+ * {@code arguments} that is not parseable JSON are malformed rather than
+ * silently skipped, so neither can leak under a fail closed rule. A valid
  * message with no scannable text, such as an image only message, is not a
  * malformed payload.
  */
@@ -102,6 +103,9 @@ public final class PiiProtocolProfiles {
     }
 
     private static boolean validMessage(final JsonObject message) {
+        if (!validCallArguments(message)) {
+            return false;
+        }
         JsonElement content = message.get("content");
         if (Objects.nonNull(content) && !content.isJsonNull()) {
             return validContent(content);
@@ -111,6 +115,31 @@ public final class PiiProtocolProfiles {
         return Objects.nonNull(calls) && calls.isJsonArray()
                 || Objects.nonNull(function) && function.isJsonObject()
                 || isString(message.get("refusal"));
+    }
+
+    /**
+     * A tool call argument list is malformed when it is a non blank string that is
+     * not parseable JSON: its decoded values are claimed to be scanned, so passing
+     * them through silently would leak an identifier hidden behind the escaping.
+     * An absent or blank argument list carries no text and stays valid.
+     */
+    private static boolean validCallArguments(final JsonObject message) {
+        JsonElement calls = message.get("tool_calls");
+        if (Objects.nonNull(calls) && calls.isJsonArray()) {
+            for (JsonElement call : calls.getAsJsonArray()) {
+                if (!call.isJsonObject()) {
+                    continue;
+                }
+                JsonElement function = call.getAsJsonObject().get("function");
+                if (Objects.nonNull(function) && function.isJsonObject()
+                        && ToolCallArguments.isMalformed(function.getAsJsonObject().get("arguments"))) {
+                    return false;
+                }
+            }
+        }
+        JsonElement functionCall = message.get("function_call");
+        return !(Objects.nonNull(functionCall) && functionCall.isJsonObject()
+                && ToolCallArguments.isMalformed(functionCall.getAsJsonObject().get("arguments")));
     }
 
     private static boolean validItems(final JsonElement items) {
@@ -127,6 +156,10 @@ public final class PiiProtocolProfiles {
                 return false;
             }
             if (!validContent(object.get("content")) || !validTextMember(object)) {
+                return false;
+            }
+            if (Objects.nonNull(type) && "function_call".equals(type.getAsString())
+                    && ToolCallArguments.isMalformed(object.get("arguments"))) {
                 return false;
             }
             if ((Objects.isNull(type) || "message".equals(type.getAsString()))
