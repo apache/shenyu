@@ -21,22 +21,28 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
+
+import io.micrometer.core.instrument.Metrics;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Configuration;
 
 import reactor.netty.http.client.HttpClient;
@@ -60,8 +66,9 @@ public class HttpClientPluginConfigurationTest {
                 .withBean(ServerProperties.class);
     }
 
-    @Test
-    public void testHttpClientProperties() {
+    @ParameterizedTest
+    @ValueSource(strings = {"max-pending-acquires", "pending-acquire-max-count"})
+    public void testHttpClientProperties(final String queueProperty) {
         applicationContextRunner
                 .withPropertyValues(
                         "debug=true",
@@ -70,7 +77,7 @@ public class HttpClientPluginConfigurationTest {
                         "shenyu.httpclient.pool.name=proxy",
                         "shenyu.httpclient.pool.maxConnections=1",
                         "shenyu.httpclient.pool.acquireTimeout=45000",
-                        "shenyu.httpclient.pool.maxPendingAcquires=100",
+                        "shenyu.httpclient.pool." + queueProperty + "=7",
                         "shenyu.httpclient.proxy.host=http://localhost",
                         "shenyu.httpclient.proxy.port=18848",
                         "shenyu.httpclient.proxy.username=itmiwang",
@@ -90,7 +97,8 @@ public class HttpClientPluginConfigurationTest {
                     assertThat(properties.getPool().getName(), is("proxy"));
                     assertThat(properties.getPool().getMaxConnections(), is(1));
                     assertThat(properties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
-                    assertThat(properties.getPool().getMaxPendingAcquires(), is(100));
+                    assertThat(properties.getPool().getPendingAcquireMaxCount(), is(7));
+                    assertThat(properties.getPool().getMaxPendingAcquires(), is(7));
                     assertThat(properties.getProxy().getHost(), is("http://localhost"));
                     assertThat(properties.getProxy().getPort(), is(18848));
                     assertThat(properties.getProxy().getUsername(), is("itmiwang"));
@@ -104,6 +112,39 @@ public class HttpClientPluginConfigurationTest {
     }
 
     @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    void elasticStartupWarnsWithEffectiveDefaultQueue(final CapturedOutput output) {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setType(HttpClientProperties.Pool.PoolType.ELASTIC);
+        properties.getPool().setMaxConnections(3);
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        HttpClient client = factory.createInstance();
+        try {
+            org.junit.jupiter.api.Assertions.assertTrue(output.getOut().contains("ELASTIC no longer implies unbounded capacity"));
+            org.junit.jupiter.api.Assertions.assertTrue(output.getOut().contains("maxConnections=3, pendingAcquireMaxCount=6, acquireTimeout=3000ms"));
+        } finally {
+            factory.destroyInstance(client);
+        }
+    }
+
+    @Test
+    void metricsEnabledWithoutMicrometerFailsWithConfigurationMessage() {
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(new FilteredClassLoader("io.micrometer"));
+        try {
+            HttpClientProperties properties = new HttpClientProperties();
+            HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+            HttpClient client = factory.createInstance();
+            factory.destroyInstance(client);
+            properties.getPool().setMetrics(true);
+            IllegalStateException failure = assertThrows(IllegalStateException.class, factory::createInstance);
+            assertThat(failure.getMessage(), is("pool.metrics requires micrometer-core on the classpath"));
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
+    }
+
+    @Test
     public void testFixedConnectionPoolUsesBoundedPendingQueue() {
         HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
         Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
@@ -113,7 +154,53 @@ public class HttpClientPluginConfigurationTest {
 
         verify(builder).maxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
         verify(builder).pendingAcquireTimeout(Duration.ofMillis(3000L));
-        verify(builder, never()).pendingAcquireMaxCount(anyInt());
+        verify(builder).pendingAcquireMaxCount(2 * ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+    }
+
+    @Test
+    void explicitQueueLimitAndLegacyUnboundedOptIn() {
+        HttpClientProperties properties = new HttpClientProperties();
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        properties.getPool().setPendingAcquireMaxCount(3);
+        factory.buildFixedConnectionPool(properties.getPool(), builder);
+        verify(builder).pendingAcquireMaxCount(3);
+        properties.getPool().setPendingAcquireMaxCount(-1);
+        factory.buildElasticConnectionPool(builder);
+        verify(builder).pendingAcquireMaxCount(-1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -2, Integer.MIN_VALUE})
+    void invalidQueueCountsAreRejected(final int count) {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setPendingAcquireMaxCount(count);
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        assertThrows(IllegalArgumentException.class, () -> factory.buildFixedConnectionPool(properties.getPool(), ConnectionProvider.builder("test")));
+        assertThrows(IllegalArgumentException.class, () -> factory.buildElasticConnectionPool(ConnectionProvider.builder("test")));
+    }
+
+    @Test
+    void derivedQueueLimitDoesNotOverflow() {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setMaxConnections(Integer.MAX_VALUE);
+        Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
+        new HttpClientFactory(properties, null, new ServerProperties()).buildFixedConnectionPool(properties.getPool(), builder);
+        verify(builder).pendingAcquireMaxCount(Integer.MAX_VALUE);
+    }
+
+    @Test
+    void metricsAreOptInAndDisabledPoolStillBypassesLimits() {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setName("metrics-disabled");
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        HttpClient client = factory.createInstance();
+        assertThat(Metrics.globalRegistry.find("shenyu.httpclient.pool.acquire").tag("name", "metrics-disabled").timers().isEmpty(), is(true));
+        client.configuration().connectionProvider().dispose();
+        properties.getPool().setType(HttpClientProperties.Pool.PoolType.DISABLED);
+        properties.getPool().setMaxConnections(0);
+        properties.getPool().setPendingAcquireMaxCount(0);
+        assertNotNull(factory.createInstance());
     }
 
     @Test
@@ -143,14 +230,16 @@ public class HttpClientPluginConfigurationTest {
     @Test
     public void testElasticConnectionPoolExplicitMaxPendingAcquires() {
         HttpClientProperties.Pool pool = new HttpClientProperties.Pool();
+        pool.setMaxConnections(7);
+        pool.setAcquireTimeout(321L);
         pool.setMaxPendingAcquires(50);
         Builder builder = mock(Builder.class, Answers.RETURNS_SELF);
         HttpClientFactory factory = new HttpClientFactory(new HttpClientProperties(), null, new ServerProperties());
 
         factory.buildElasticConnectionPool(pool, builder);
 
-        verify(builder).maxConnections(Integer.MAX_VALUE);
-        verify(builder).pendingAcquireTimeout(Duration.ofMillis(0));
+        verify(builder).maxConnections(7);
+        verify(builder).pendingAcquireTimeout(Duration.ofMillis(321L));
         verify(builder).pendingAcquireMaxCount(50);
     }
 
