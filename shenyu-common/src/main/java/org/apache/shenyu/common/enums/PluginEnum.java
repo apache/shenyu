@@ -296,7 +296,7 @@ public enum PluginEnum {
     /**
      * Agent gateway plugin enum.
      */
-    AGENT_GATEWAY(198, 0, "agentGateway"),
+    AGENT_GATEWAY(169, 0, "agentGateway"),
 
     /**
      * Ai-token-limiter plugin enum.

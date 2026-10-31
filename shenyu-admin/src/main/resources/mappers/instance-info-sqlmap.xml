@@ -103,6 +103,7 @@
         <if test="instanceType != null and instanceType != ''">
             AND instance_type = #{instanceType}
         </if>
+        ORDER BY date_created DESC, id ASC
     </select>
     
     <select id="selectById" resultType="org.apache.shenyu.admin.model.entity.InstanceInfoDO">
@@ -186,6 +187,13 @@
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM instance_info
         WHERE id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <!-- instance_state = 0 is the DELETED state, see org.apache.shenyu.common.enums.InstanceStatusEnum. -->
+    <delete id="deleteExpired">
+        DELETE FROM instance_info
+        WHERE instance_state = 0
+          AND last_heart_beat_time &lt; #{cutoff, jdbcType=BIGINT}
     </delete>
 
 </mapper>

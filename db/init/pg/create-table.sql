@@ -173,6 +173,7 @@ CREATE TABLE "public"."dashboard_user" (
   "role" int4 NOT NULL,
   "enabled" int2 NOT NULL,
   "client_id" varchar(32) COLLATE "pg_catalog"."default",
+  "token_version" int4 NOT NULL DEFAULT 0,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -182,13 +183,14 @@ COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
 COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."dashboard_user"."token_version" IS 'token version used to revoke issued JWTs';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."dashboard_user" ("id", "user_name", "password", "role", "enabled", "client_id", "date_created", "date_updated") VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 -- ----------------------------
 -- Table structure for data_permission
@@ -1000,6 +1002,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136291', '2', 'model'
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136292', '6', 'register', 'register', 2, 3, 1, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136293', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136294', '4', 'keyResolverName', 'keyResolverName', 3, 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136295', '5', 'upstreamHost', 'host', 2, 1, 0, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136296', '5', 'protocol', 'protocol', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"http://","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902775136297', '5', 'upstreamUrl', 'ip:port', 2, 1, 1, '{"required":"1","placeholder":"","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -1895,6 +1898,8 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107817', 'paramType', '
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107818', 'paramType', 'PARAM_TYPE', 'req_method', 'req_method', 'req_method', 7, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107819', 'keyResolverName', 'WHOLE_KEY_RESOLVER', 'whole', 'WHOLE_KEY_RESOLVER', 'Rate limit by all request', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107820', 'keyResolverName', 'REMOTE_ADDRESS_KEY_RESOLVER', 'remoteAddress', 'REMOTE_ADDRESS_KEY_RESOLVER', 'Rate limit by remote address', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107821', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'open', 'true', '', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107822', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'close', 'false', '', 2, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107823', 'paramType', 'PARAM_TYPE', 'domain', 'domain', 'domain', 8, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
@@ -2751,7 +2756,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737581', 'preRole', 'RO
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737582', 'postRole', 'ROLE_TYPE_SYSTEM', 'SYSTEM', 'system', 'system', 0, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 INSERT INTO "public"."shenyu_dict" VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, '2024-02-07 14:31:49', '2024-02-07 14:31:49');
 
-INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 171, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
+INSERT INTO "public"."namespace_plugin_rel" ("id","namespace_id","plugin_id", "config", "sort", "enabled", "date_created", "date_updated") VALUES ('1801816010882822189','649330b6-c2d7-4edc-be8e-8a54df9eb385','52', NULL, 170, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 
 
 INSERT INTO "public"."resource" VALUES ('1844026099075534859', '1346775491550474240', 'aiTokenLimiter', 'aiTokenLimiter', '/plug/aiTokenLimiter', 'aiTokenLimiter', 1, 0, 'pic-center', 0, 0, '', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
@@ -2821,8 +2826,8 @@ INSERT INTO "public"."permission" VALUES ('1697146860569742759', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1697146860569742760', '1346358560427216896', '1844026099075564868', '2023-08-31 07:18:37', '2023-08-31 07:18:37');
 
 INSERT INTO "public"."plugin" VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, '2023-12-20 18:02:53', '2023-12-20 18:02:53', NULL);
-INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
-INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
+INSERT INTO "public"."plugin" VALUES ('68', 'agentGateway', NULL, 'Ai', 169, 0, '2026-09-19 00:00:00', '2026-09-19 00:00:00', NULL);
+INSERT INTO "public"."namespace_plugin_rel" VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 169, 0, '2026-09-19 00:00:00.000', '2026-09-19 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, '2022-05-25 18:02:53.000', '2022-05-25 18:02:53.000');
 INSERT INTO "public"."plugin_handle" VALUES ('1942847622591684608', '61', 'messageEndpoint', 'messageEndpoint', 2, 1, 0, '{"required":"0","defaultValue":"/message","rule":""}', '2025-07-09 07:25:44.249', '2025-07-09 07:25:44.249');
 INSERT INTO "public"."plugin_handle" VALUES ('1960000000000001000', '68', 'trafficType', 'trafficType', 2, 2, 0, '{"required":"1","defaultValue":"LLM","rule":""}', '2026-09-19 00:00:00', '2026-09-19 00:00:00');
