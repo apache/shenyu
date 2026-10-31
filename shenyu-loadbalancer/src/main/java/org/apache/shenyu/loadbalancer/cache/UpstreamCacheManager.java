@@ -165,6 +165,28 @@ public final class UpstreamCacheManager {
     }
 
     /**
+     * Submit discovery changes, preserving the cached instance when its protocol changes.
+     *
+     * @param selectorId the selector id
+     * @param upstreamList the discovery upstream changes
+     */
+    public void submitDiscovery(final String selectorId, final List<Upstream> upstreamList) {
+        task.withLock(() -> {
+            List<Upstream> cachedUpstreams = new ArrayList<>(task.getHealthyUpstream().getOrDefault(selectorId, List.of()));
+            cachedUpstreams.addAll(task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()));
+            upstreamList.stream().filter(Upstream::isStatus).forEach(upstream -> {
+                // Explicit additions/deletions and multiple protocols retain their protocol + URL identities.
+                long sameUrlChanges = upstreamList.stream().filter(change -> Objects.equals(change.getUrl(), upstream.getUrl())).count();
+                List<Upstream> sameUrlCached = cachedUpstreams.stream().filter(cached -> Objects.equals(cached.getUrl(), upstream.getUrl())).toList();
+                if (sameUrlChanges == 1 && sameUrlCached.size() == 1) {
+                    sameUrlCached.get(0).setProtocol(upstream.getProtocol());
+                }
+            });
+            doSubmit(selectorId, upstreamList);
+        });
+    }
+
+    /**
      * Submit .
      *
      * @param selectorId   the selector id
@@ -292,6 +314,7 @@ public final class UpstreamCacheManager {
         }
 
         updateExistingUpstreams(validUpstreamList, existUpstreamList);
+        updateExistingUpstreams(validUpstreamList, task.getUnhealthyUpstream().getOrDefault(selectorId, List.of()));
         addNewUpstreams(selectorId, validUpstreamList, existUpstreamList);
     }
 
@@ -303,6 +326,7 @@ public final class UpstreamCacheManager {
             Upstream matchedExistUp = existUpstreamMap.get(validUp.identity());
             if (Objects.nonNull(matchedExistUp)) {
                 matchedExistUp.setWeight(validUp.getWeight());
+                matchedExistUp.setWarmup(validUp.getWarmup());
                 matchedExistUp.setHealthCheckEnabled(validUp.isHealthCheckEnabled());
                 if (!matchedExistUp.isHealthCheckEnabled()) {
                     matchedExistUp.setHealthy(true);

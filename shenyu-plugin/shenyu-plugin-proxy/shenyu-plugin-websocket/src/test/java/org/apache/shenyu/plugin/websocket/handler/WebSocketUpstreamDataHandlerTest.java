@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -124,6 +125,27 @@ public class WebSocketUpstreamDataHandlerTest {
         Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
         assertEquals(20, upstream.getWarmup());
         assertFalse(upstream.isHealthCheckEnabled());
+    }
+
+    @Test
+    public void handlerDiscoveryUpdatesProtocolAndPropsTest() {
+        final DiscoveryUpstreamData original = DiscoveryUpstreamData.builder().url("mock-update:8080").protocol("ws://").status(0).weight(10)
+                .props("{\"warmup\":\"10\",\"healthCheckEnabled\":\"false\"}").build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(original));
+        webSocketUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        final Upstream cached = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").get(0);
+        final DiscoveryUpstreamData updated = DiscoveryUpstreamData.builder().url(original.getUrl()).protocol("wss://").status(0).weight(20)
+                .props("{\"warmup\":\"30\",\"healthCheckEnabled\":\"false\"}").build();
+        when(discoverySyncData.getUpstreamDataList()).thenReturn(List.of(updated));
+
+        webSocketUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+
+        final List<Upstream> after = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, after.size());
+        assertSame(cached, after.get(0));
+        assertEquals("wss://mock-update:8080", cached.buildDomain());
+        assertEquals(20, cached.getWeight());
+        assertEquals(30, cached.getWarmup());
     }
 
     /**
