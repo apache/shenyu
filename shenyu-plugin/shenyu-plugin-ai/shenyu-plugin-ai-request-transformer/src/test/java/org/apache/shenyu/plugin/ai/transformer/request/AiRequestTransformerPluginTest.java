@@ -36,6 +36,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
@@ -49,9 +52,12 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -79,7 +85,7 @@ class AiRequestTransformerPluginTest {
         aiModelFactoryRegistry = mock(AiModelFactoryRegistry.class);
         chatClientCache = mock(ChatClientCache.class);
         chain = mock(ShenyuPluginChain.class);
-        plugin = new AiRequestTransformerPlugin(HandlerStrategies.withDefaults().messageReaders(), aiModelFactoryRegistry);
+        plugin = new AiRequestTransformerPlugin(aiModelFactoryRegistry);
     }
 
     @Test
@@ -140,6 +146,148 @@ class AiRequestTransformerPluginTest {
         } finally {
             AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
         }
+    }
+
+    @Test
+    void testModelFailureProceedsWithoutTransformation() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("model-failure-rule-id");
+        rule.setSelectorId("test-selector-id");
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        ShenyuPluginChain readingChain = downstream -> DataBufferUtils.join(downstream.getRequest().getBody())
+                .doOnNext(buffer -> {
+                    downstreamBody.set(buffer.toString(StandardCharsets.UTF_8));
+                    DataBufferUtils.release(buffer);
+                }).then();
+
+        invokeWithModel(exchange, Flux.error(new IllegalStateException("model failure")), readingChain, rule,
+            result -> StepVerifier.create(result).verifyComplete());
+
+        assertEquals("{}", downstreamBody.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testOneShotRequestBodyIsReadOnceAndReplayed(final boolean modelFails) {
+        String original = "{\"original\":true}";
+        AtomicInteger subscriptions = new AtomicInteger();
+        Flux<DataBuffer> oneShotBody = Flux.defer(() -> subscriptions.getAndIncrement() == 0
+                ? Flux.just(new DefaultDataBufferFactory().wrap(original.getBytes(StandardCharsets.UTF_8)))
+                : Flux.error(new IllegalStateException("request body already consumed")));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body(oneShotBody));
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        ShenyuPluginChain readingChain = downstream -> DataBufferUtils.join(downstream.getRequest().getBody())
+                .doOnNext(buffer -> {
+                    downstreamBody.set(buffer.toString(StandardCharsets.UTF_8));
+                    DataBufferUtils.release(buffer);
+                }).then();
+        Flux<String> model = modelFails ? Flux.error(new IllegalStateException("model unavailable"))
+                : Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{\"transformed\":true}");
+        RuleData rule = new RuleData();
+        rule.setId("one-shot-body-rule-id");
+        rule.setSelectorId("test-selector-id");
+
+        invokeWithModel(exchange, model, readingChain, rule,
+            result -> StepVerifier.create(result).verifyComplete());
+
+        assertEquals(modelFails ? original : "{\"transformed\":true}", downstreamBody.get());
+        assertEquals(1, subscriptions.get());
+    }
+
+    @Test
+    void testEmptyRequestBodyIsReplacedByGeneratedBody() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).build());
+        RuleData rule = new RuleData();
+        rule.setId("empty-body-rule-id");
+        rule.setSelectorId("test-selector-id");
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        ShenyuPluginChain readingChain = downstream -> DataBufferUtils.join(downstream.getRequest().getBody())
+                .map(buffer -> {
+                    try {
+                        return buffer.toString(StandardCharsets.UTF_8);
+                    } finally {
+                        DataBufferUtils.release(buffer);
+                    }
+                })
+                .defaultIfEmpty("")
+                .doOnNext(downstreamBody::set).then();
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{\"generated\":true}"),
+            readingChain, rule, result -> StepVerifier.create(result).verifyComplete());
+
+        assertEquals("{\"generated\":true}", downstreamBody.get());
+    }
+
+    @Test
+    void testEmptyRequestBodyIsForwardedWhenTheModelFails() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).build());
+        RuleData rule = new RuleData();
+        rule.setId("empty-body-failure-rule-id");
+        rule.setSelectorId("test-selector-id");
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        ShenyuPluginChain readingChain = downstream -> DataBufferUtils.join(downstream.getRequest().getBody())
+                .map(buffer -> {
+                    try {
+                        return buffer.toString(StandardCharsets.UTF_8);
+                    } finally {
+                        DataBufferUtils.release(buffer);
+                    }
+                })
+                .defaultIfEmpty("")
+                .doOnNext(downstreamBody::set).then();
+
+        invokeWithModel(exchange, Flux.error(new IllegalStateException("model failure")), readingChain, rule,
+            result -> StepVerifier.create(result).verifyComplete());
+
+        assertEquals("", downstreamBody.get());
+    }
+
+    @Test
+    void testFormRequestBodyIsReplacedByGeneratedFormBody() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("a=1"));
+        RuleData rule = new RuleData();
+        rule.setId("form-body-rule-id");
+        rule.setSelectorId("test-selector-id");
+        AtomicReference<String> downstreamBody = new AtomicReference<>();
+        ShenyuPluginChain readingChain = downstream -> DataBufferUtils.join(downstream.getRequest().getBody())
+                .doOnNext(buffer -> {
+                    downstreamBody.set(buffer.toString(StandardCharsets.UTF_8));
+                    DataBufferUtils.release(buffer);
+                }).then();
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\n\n{\"b\":\"2\"}"),
+            readingChain, rule, result -> StepVerifier.create(result).verifyComplete());
+
+        assertEquals("b=2", downstreamBody.get());
+    }
+
+    @Test
+    void testOversizedDeclaredBodySkipsTransformationWithoutReadingIt() {
+        AtomicInteger subscriptions = new AtomicInteger();
+        Flux<DataBuffer> body = Flux.defer(() -> {
+            subscriptions.incrementAndGet();
+            return Flux.just(new DefaultDataBufferFactory().wrap(new byte[1]));
+        });
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(5 * 1024 * 1024 + 1))
+                .body(body));
+        RuleData rule = new RuleData();
+        rule.setId("oversized-body-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{}"), chain, rule,
+            result -> StepVerifier.create(result).verifyComplete());
+
+        verify(chain).execute(exchange);
+        assertEquals(0, subscriptions.get());
     }
 
     @Test
@@ -285,5 +433,37 @@ class AiRequestTransformerPluginTest {
         }
 
         return downstreamUri.get();
+    }
+
+    /**
+     * Runs the plugin with a mocked model answer and lets the caller subscribe to the result.
+     *
+     * @param exchange        the incoming request exchange
+     * @param model           the mocked model output stream
+     * @param downstreamChain the plugin chain invoked after the transformation
+     * @param rule            the rule that selects the cached AI handle
+     * @param assertion       subscribes to and asserts on the plugin result
+     */
+    private void invokeWithModel(final MockServerWebExchange exchange, final Flux<String> model,
+                                 final ShenyuPluginChain downstreamChain, final RuleData rule,
+                                 final Consumer<Mono<Void>> assertion) {
+        AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
+        handle.setProvider("TEST_PROVIDER");
+        handle.setBaseUrl("http://test.invalid");
+        handle.setApiKey("synthetic-audit-key");
+        handle.setModel("audit-model");
+
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(model);
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            assertion.accept(plugin.doExecute(exchange, downstreamChain, new SelectorData(), rule));
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
     }
 }
