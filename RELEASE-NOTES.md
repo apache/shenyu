@@ -41,6 +41,14 @@
   Metrics plugin and Prometheus endpoint; `shenyu_execute_latency_millis`
   retains its existing labels, unit and recording behavior.
 
+- The tracing plugin is registered in the admin control plane. It gains a
+  dashboard entry and a runtime switch on the plugin chain, while
+  `shenyu.tracing.*` keeps the service name, sampler, resource attributes and
+  OTLP endpoint. The migration inserts the plugin and the default-namespace
+  relation enabled, so tracing enabled through the property in 2.7.2 keeps
+  running after the upgrade; disabling the relation stops it at runtime without
+  a restart. (#7614)
+
 ### Behavior Changes
 
 - Agent Gateway's default order changes from 198 to 169. Matched MCP traffic now
