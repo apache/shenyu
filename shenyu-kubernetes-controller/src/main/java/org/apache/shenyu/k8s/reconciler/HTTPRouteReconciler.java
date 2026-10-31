@@ -128,8 +128,10 @@ public class HTTPRouteReconciler implements Reconciler {
 
             JsonObject metadata = JsonFields.getJsonObject(httpRoute.getRaw(), "metadata");
             ShenyuMemoryConfig config = processRouteDecisions(httpRoute, namespace, routeName,
-                    decisions, accepted, metadata, startTime);
+                    decisions, accepted, metadata);
             updateHTTPRouteStatus(httpRoute, decisions, config, namespace, routeName);
+            String outcome = (Objects.isNull(config) || config.isHasUnsupportedFilters()) ? "rejected" : "success";
+            K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", outcome, System.nanoTime() - startTime);
             return new Result(false);
         } catch (Throwable t) {
             K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", t.getClass().getSimpleName());
@@ -142,8 +144,7 @@ public class HTTPRouteReconciler implements Reconciler {
                                                     final String routeName,
                                                     final List<ParentDecision> decisions,
                                                     final List<ParentDecision> accepted,
-                                                    final JsonObject metadata,
-                                                    final long startTime) {
+                                                    final JsonObject metadata) {
         String uid = JsonFields.getString(metadata, "uid");
         Long generation = JsonFields.getLong(metadata, "generation");
         String resourceVersion = JsonFields.getString(metadata, "resourceVersion");
@@ -157,7 +158,6 @@ public class HTTPRouteReconciler implements Reconciler {
             K8sResourceCorrelationCache.getInstance().recordRejected("HTTPRoute", namespace, routeName, uid,
                     generation, resourceVersion, parentGateways, primaryRejection.reason, primaryRejection.message);
             K8sControllerMetrics.getInstance().recordRejectedRoute("HTTPRoute", primaryRejection.reason);
-            K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", "rejected", System.nanoTime() - startTime);
             return null;
         }
 
@@ -170,7 +170,6 @@ public class HTTPRouteReconciler implements Reconciler {
             K8sResourceCorrelationCache.getInstance().recordRejected("HTTPRoute", namespace, routeName, uid,
                     generation, resourceVersion, parentGateways, "UnsupportedFilters", "HTTPRoute contains unsupported filters");
             K8sControllerMetrics.getInstance().recordRejectedRoute("HTTPRoute", "UnsupportedFilters");
-            K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", "rejected", System.nanoTime() - startTime);
             return config;
         }
 
@@ -189,7 +188,6 @@ public class HTTPRouteReconciler implements Reconciler {
         List<String> ruleIds = ruleIdsOf(config);
         K8sResourceCorrelationCache.getInstance().recordAccepted("HTTPRoute", namespace, routeName, uid,
                 generation, resourceVersion, parentGateways, newSelectorIds, ruleIds);
-        K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", "success", System.nanoTime() - startTime);
         return config;
     }
 
@@ -670,6 +668,9 @@ public class HTTPRouteReconciler implements Reconciler {
             LOG.debug("Updated status of HTTPRoute {}/{}", namespace, routeName);
         } catch (ApiException e) {
             LOG.warn("Failed to update status of HTTPRoute {}/{}: {}", namespace, routeName, e.getMessage());
+            String errorType = e.getCode() > 0 ? "StatusPatch" + e.getCode() : "StatusPatchError";
+            K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", errorType);
+            K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", e.getClass().getSimpleName());
         }
     }
 
