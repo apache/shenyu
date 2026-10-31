@@ -131,6 +131,19 @@ public final class SensitiveWordPluginTest {
     }
 
     @Test
+    public void testFailClosedRejectsTheRequestWhenTheRedisTemplateIsNotInitialized() {
+        SensitiveWordPluginDataHandler.CACHED_HANDLE.get()
+                .cachedHandle(CacheKeyUtils.INST.getKey(ruleData), failClosedHandle());
+        SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get().removeHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
+        MockServerWebExchange exchange = exchange("a clean request");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .expectNextMatches(body -> body.contains("sensitive content detected"))
+                .verifyComplete();
+    }
+
+    @Test
     public void testPassThroughWhenTheBodyIsClean() {
         mockRedisDictionary("forbidden", "banned");
         StepVerifier.create(plugin.doExecute(exchange("a clean request"), chain, null, ruleData)).verifyComplete();

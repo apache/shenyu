@@ -89,7 +89,16 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
         ReactiveRedisTemplate<String, String> redisTemplate = SensitiveWordPluginDataHandler.REDIS_TEMPLATES.get()
                 .obtainHandle(SensitiveWordPluginDataHandler.PLUGIN_NAME);
         if (Objects.isNull(redisTemplate)) {
-            LOG.warn("sensitive word plugin: the redis template is not initialized, skip the sensitive word check");
+            // The scanner is unavailable before the first configuration sync: the failure policy of
+            // the rule applies here as well, so a fail-closed rule never lets an uninspected request
+            // through.
+            if (handle.isFailClosed()) {
+                LOG.warn("sensitive word plugin: the redis template is not initialized and failClosed is set,"
+                        + " the request is rejected");
+                return WebFluxResultUtils.failedResult(
+                        new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
+            }
+            LOG.warn("sensitive word plugin: the redis template is not initialized, the request is not scanned");
             return chain.execute(exchange);
         }
         // The declared size is checked before the body is buffered, so that an oversized body is
