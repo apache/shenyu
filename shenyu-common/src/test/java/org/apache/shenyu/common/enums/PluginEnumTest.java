@@ -94,6 +94,7 @@ public final class PluginEnumTest {
             "grpc, 310",
             "cryptorResponse, 410",
             "mock, 1",
+            "tracing, 0",
             "jwt, 30",
             "oauth2, 40",
             "casdoor, 40",

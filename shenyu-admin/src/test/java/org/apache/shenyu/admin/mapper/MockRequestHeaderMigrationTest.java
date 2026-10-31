@@ -75,8 +75,15 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE dashboard_user (id VARCHAR(128))");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
-            statement.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
-            statement.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");
+            statement.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), role VARCHAR(64), sort INT, enabled INT)");
+            statement.execute("CREATE TABLE namespace_plugin_rel (id VARCHAR(128), namespace_id VARCHAR(50), plugin_id VARCHAR(128),"
+                    + " config VARCHAR(2048), sort INT, enabled INT, date_created TIMESTAMP, date_updated TIMESTAMP)");
+            statement.execute("CREATE TABLE `resource` (id VARCHAR(128), parent_id VARCHAR(128), title VARCHAR(128),"
+                    + " name VARCHAR(128), url VARCHAR(256), component VARCHAR(128), resource_type INT, sort INT,"
+                    + " icon VARCHAR(64), is_leaf INT, is_route INT, perms VARCHAR(128), status INT,"
+                    + " date_created TIMESTAMP, date_updated TIMESTAMP)");
+            statement.execute("CREATE TABLE permission (id VARCHAR(128), object_id VARCHAR(128), resource_id VARCHAR(128),"
+                    + " date_created TIMESTAMP, date_updated TIMESTAMP)");
             statement.execute("CREATE TABLE plugin_handle (id VARCHAR(128) PRIMARY KEY, plugin_id VARCHAR(128), field VARCHAR(100),"
                     + " label VARCHAR(100), data_type INT, type INT, sort INT, ext_obj VARCHAR(2048),"
                     + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");

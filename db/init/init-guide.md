@@ -82,6 +82,22 @@ grants remain available, and the upstream removal of SOFA/TARS resources and the
 associated seeds is preserved. These are fresh-install defaults, not changes to
 existing databases; historical PostgreSQL and openGauss upgrade scripts are unchanged.
 
+### Tracing plugin seed
+
+Every initialization schema seeds the `tracing` plugin with sort `0`, the sort of
+`PluginEnum.TRACING`, together with its relation to the default namespace, the
+`/plug/tracing` menu entry, its nine button permissions and the admin grants.
+Sort `0` keeps it ahead of every other plugin row, which is where the plugin
+orders itself and where it already sat before it had a row.
+
+Both the plugin row and the relation are seeded **enabled**, which deviates from
+the rule that a newly registered plugin starts disabled. Tracing shipped in 2.7.2
+with no row, so a disabled seed would remove it from the chain of every existing
+installation on upgrade; the row also feeds the `enabled` and `sort` values of the
+relation that is created when a new namespace is added. The same deviation, with
+the same reasoning, is in the `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts, and the
+native SQL matrix requires a default-namespace relation for every seeded plugin.
+
 ## Maintaining the shared MySQL/OceanBase schema
 
 Update `mysql/schema.sql` for both engines. The native SQL matrix validates MySQL
