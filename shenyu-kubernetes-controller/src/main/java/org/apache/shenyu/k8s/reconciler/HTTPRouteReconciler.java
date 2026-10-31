@@ -29,7 +29,10 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.k8s.observability.K8sControllerMetrics;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.IngressConfiguration;
@@ -47,6 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Reconciler for HTTPRoute resources. Every parentRef is evaluated and reported in
@@ -91,54 +95,114 @@ public class HTTPRouteReconciler implements Reconciler {
 
     @Override
     public Result reconcile(final Request request) {
+        long startTime = System.nanoTime();
         String namespace = request.getNamespace();
         String routeName = request.getName();
         LOG.debug("Starting to reconcile HTTPRoute {}/{}", namespace, routeName);
 
-        DynamicKubernetesObject httpRoute = httpRouteLister.namespace(namespace).get(routeName);
-        if (Objects.isNull(httpRoute)) {
-            deleteConfig(namespace, routeName);
-            return new Result(false);
-        }
-
-        List<ParentDecision> decisions = evaluateParents(httpRoute);
-        if (decisions.isEmpty()) {
-            // Not attached to any ShenYu Gateway: drop config and our status entries.
-            deleteConfig(namespace, routeName);
-            removeShenyuParentStatus(httpRoute, namespace, routeName);
-            return new Result(false);
-        }
-
-        List<ParentDecision> accepted = new ArrayList<>();
-        for (ParentDecision decision : decisions) {
-            if (decision.accepted) {
-                accepted.add(decision);
-            }
-        }
-
-        ShenyuMemoryConfig config = null;
-        if (accepted.isEmpty()) {
-            // All ShenYu parents rejected the attachment: clean up but still report status.
-            deleteConfig(namespace, routeName);
-        } else {
-            config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
-            if (config.isHasUnsupportedFilters()) {
+        try {
+            DynamicKubernetesObject httpRoute = httpRouteLister.namespace(namespace).get(routeName);
+            if (Objects.isNull(httpRoute)) {
                 deleteConfig(namespace, routeName);
-            } else {
-                GatewayRouteCache cache = GatewayRouteCache.getInstance();
-                List<String> newSelectorIds = selectorIdsOf(config);
-                // read the previous snapshot before putRouteSelectors overwrites it
-                List<String> oldSelectorIds = Objects.requireNonNullElse(
-                        cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()), List.of());
-                applyConfig(config, namespace, routeName);
-                deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
-                cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), newSelectorIds);
-                rebindGateways(cache, namespace, routeName, accepted);
+                K8sResourceCorrelationCache.getInstance().recordDeleted("HTTPRoute", namespace, routeName);
+                K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", "deleted", System.nanoTime() - startTime);
+                return new Result(false);
             }
+
+            List<ParentDecision> decisions = evaluateParents(httpRoute);
+            if (decisions.isEmpty()) {
+                // Not attached to any ShenYu Gateway: drop config and our status entries.
+                deleteConfig(namespace, routeName);
+                removeShenyuParentStatus(httpRoute, namespace, routeName);
+                K8sResourceCorrelationCache.getInstance().recordDeleted("HTTPRoute", namespace, routeName);
+                K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", "ignored", System.nanoTime() - startTime);
+                return new Result(false);
+            }
+
+            List<ParentDecision> accepted = new ArrayList<>();
+            for (ParentDecision decision : decisions) {
+                if (decision.accepted) {
+                    accepted.add(decision);
+                }
+            }
+
+            JsonObject metadata = JsonFields.getJsonObject(httpRoute.getRaw(), "metadata");
+            ShenyuMemoryConfig config = processRouteDecisions(httpRoute, namespace, routeName,
+                    decisions, accepted, metadata);
+            updateHTTPRouteStatus(httpRoute, decisions, config, namespace, routeName);
+            String outcome = (Objects.isNull(config) || config.isHasUnsupportedFilters()) ? "rejected" : "success";
+            K8sControllerMetrics.getInstance().recordReconcile("HTTPRoute", outcome, System.nanoTime() - startTime);
+            return new Result(false);
+        } catch (Throwable t) {
+            K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", t.getClass().getSimpleName());
+            throw t;
+        }
+    }
+
+    private ShenyuMemoryConfig processRouteDecisions(final DynamicKubernetesObject httpRoute,
+                                                    final String namespace,
+                                                    final String routeName,
+                                                    final List<ParentDecision> decisions,
+                                                    final List<ParentDecision> accepted,
+                                                    final JsonObject metadata) {
+        String uid = JsonFields.getString(metadata, "uid");
+        Long generation = JsonFields.getLong(metadata, "generation");
+        String resourceVersion = JsonFields.getString(metadata, "resourceVersion");
+
+        if (accepted.isEmpty()) {
+            deleteConfig(namespace, routeName);
+            ParentDecision primaryRejection = decisions.get(0);
+            Set<String> parentGateways = decisions.stream()
+                    .map(d -> d.parentNamespace + "/" + d.parentName)
+                    .collect(Collectors.toSet());
+            K8sResourceCorrelationCache.getInstance().recordRejected("HTTPRoute", namespace, routeName, uid,
+                    generation, resourceVersion, parentGateways, primaryRejection.reason, primaryRejection.message);
+            K8sControllerMetrics.getInstance().recordRejectedRoute("HTTPRoute", primaryRejection.reason);
+            return null;
         }
 
-        updateHTTPRouteStatus(httpRoute, decisions, config, namespace, routeName);
-        return new Result(false);
+        ShenyuMemoryConfig config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
+        if (config.isHasUnsupportedFilters()) {
+            deleteConfig(namespace, routeName);
+            Set<String> parentGateways = accepted.stream()
+                    .map(d -> d.parentNamespace + "/" + d.parentName)
+                    .collect(Collectors.toSet());
+            K8sResourceCorrelationCache.getInstance().recordRejected("HTTPRoute", namespace, routeName, uid,
+                    generation, resourceVersion, parentGateways, "UnsupportedFilters", "HTTPRoute contains unsupported filters");
+            K8sControllerMetrics.getInstance().recordRejectedRoute("HTTPRoute", "UnsupportedFilters");
+            return config;
+        }
+
+        GatewayRouteCache cache = GatewayRouteCache.getInstance();
+        List<String> newSelectorIds = selectorIdsOf(config);
+        List<String> oldSelectorIds = Objects.requireNonNullElse(
+                cache.getRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName()), List.of());
+        applyConfig(config, namespace, routeName);
+        deleteStaleSelectors(namespace, routeName, oldSelectorIds, newSelectorIds);
+        cache.putRouteSelectors(namespace, routeName, PluginEnum.DIVIDE.getName(), newSelectorIds);
+        rebindGateways(cache, namespace, routeName, accepted);
+
+        Set<String> parentGateways = accepted.stream()
+                .map(d -> d.parentNamespace + "/" + d.parentName)
+                .collect(Collectors.toSet());
+        List<String> ruleIds = ruleIdsOf(config);
+        K8sResourceCorrelationCache.getInstance().recordAccepted("HTTPRoute", namespace, routeName, uid,
+                generation, resourceVersion, parentGateways, newSelectorIds, ruleIds);
+        return config;
+    }
+
+    private List<String> ruleIdsOf(final ShenyuMemoryConfig config) {
+        List<String> ids = new ArrayList<>();
+        if (Objects.nonNull(config) && Objects.nonNull(config.getRouteConfigList())) {
+            for (IngressConfiguration rc : config.getRouteConfigList()) {
+                if (CollectionUtils.isNotEmpty(rc.getRuleDataList())) {
+                    for (RuleData ruleData : rc.getRuleDataList()) {
+                        ids.add(ruleData.getId());
+                    }
+                }
+            }
+        }
+        return ids;
     }
 
     private List<String> selectorIdsOf(final ShenyuMemoryConfig config) {
@@ -604,6 +668,9 @@ public class HTTPRouteReconciler implements Reconciler {
             LOG.debug("Updated status of HTTPRoute {}/{}", namespace, routeName);
         } catch (ApiException e) {
             LOG.warn("Failed to update status of HTTPRoute {}/{}: {}", namespace, routeName, e.getMessage());
+            String errorType = e.getCode() > 0 ? "StatusPatch" + e.getCode() : "StatusPatchError";
+            K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", errorType);
+            K8sControllerMetrics.getInstance().recordReconcileError("HTTPRoute", e.getClass().getSimpleName());
         }
     }
 
