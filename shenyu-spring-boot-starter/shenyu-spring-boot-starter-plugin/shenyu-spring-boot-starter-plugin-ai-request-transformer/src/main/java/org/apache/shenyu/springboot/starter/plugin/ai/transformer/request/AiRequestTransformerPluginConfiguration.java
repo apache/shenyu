@@ -27,7 +27,6 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.codec.ServerCodecConfigurer;
 
 import java.util.List;
 
@@ -42,13 +41,12 @@ public class AiRequestTransformerPluginConfiguration {
     /**
      * Ai Request Transformer plugin.
      *
-     * @param configurer the configurer
      * @param aiModelFactoryList the aiModelFactoryList
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin aiRequestTransformerPlugin(final ServerCodecConfigurer configurer, final List<AiModelFactory> aiModelFactoryList) {
-        return new AiRequestTransformerPlugin(configurer.getReaders(), aiModelFactoryRegistry(aiModelFactoryList));
+    public ShenyuPlugin aiRequestTransformerPlugin(final List<AiModelFactory> aiModelFactoryList) {
+        return new AiRequestTransformerPlugin(aiModelFactoryRegistry(aiModelFactoryList));
     }
 
     /**
