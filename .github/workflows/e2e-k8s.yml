@@ -44,6 +44,7 @@ jobs:
       run_e2e_cases: ${{ steps.cases.outputs.run_e2e_cases }}
       storage_matrix: ${{ steps.cases.outputs.storage_matrix }}
       e2e_matrix: ${{ steps.cases.outputs.e2e_matrix }}
+      e2e_shards: ${{ steps.shards.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,7 +62,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             e2e:
-              - '{shenyu-e2e/**,**/e2e/**,shenyu-*/**,db/**,pom.xml,**/pom.xml,.github/workflows/e2e-k8s.yml,.github/scripts/*e2e-maven-repository*,.github/scripts/resolve-test-case-matrix*.sh,.github/scripts/**,actions/**}'
+              - '{shenyu-e2e/**,**/e2e/**,shenyu-*/**,db/**,pom.xml,**/pom.xml,.github/workflows/e2e-k8s.yml,.github/scripts/*e2e-maven-repository*,.github/scripts/resolve-test-case-matrix*.sh,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
@@ -80,6 +81,18 @@ jobs:
           CHANGED_FILES_JSON: ${{ steps.filter.outputs.e2e_files }}
           CI_CASE_MODE: e2e
         run: bash .github/scripts/resolve-test-case-matrix.sh
+
+      - name: Expand protocol and sync channel shards
+        id: shards
+        if: steps.cases.outputs.run_e2e_cases == 'true'
+        env:
+          E2E_MATRIX: ${{ steps.cases.outputs.e2e_matrix }}
+        run: |
+          matrix=$(jq -c '{include: [.include[] |
+            if ((.script | endswith("-sync-compose")) or .script == "e2e-logging-rocketmq-compose") then
+              . as $entry | ["websocket", "http", "zookeeper"][] | $entry + {sync: .}
+            else . + {sync: ""} end]}' <<< "$E2E_MATRIX")
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   build-docker-images:
     needs: changes
@@ -221,6 +234,7 @@ jobs:
   #          kubectl get events --all-namespaces
 
   e2e-case:
+    name: e2e-case (${{ matrix.script }}, ${{ matrix.sync || 'default' }})
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -229,7 +243,7 @@ jobs:
     #    if: (github.repository == 'apache/shenyu')
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.e2e_matrix || '{"include":[]}') }}
+      matrix: ${{ fromJSON(needs.changes.outputs.e2e_shards || '{"include":[]}') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -311,6 +325,8 @@ jobs:
       #          detached: true
 
       - name: Run E2E Tests
+        env:
+          SHENYU_E2E_SYNC: ${{ matrix.sync }}
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 

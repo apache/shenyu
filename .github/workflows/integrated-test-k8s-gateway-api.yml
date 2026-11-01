@@ -44,7 +44,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             k8s-gateway-api:
-              - '{shenyu-integrated-test-k8s-gateway-api*/**,shenyu-*/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test-k8s-gateway-api.yml,.github/scripts/**,actions/**}'
+              - '{shenyu-integrated-test-k8s-gateway-api*/**,shenyu-*/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test-k8s-gateway-api.yml,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
@@ -80,13 +80,13 @@ jobs:
         if: steps.filter.outputs.k8s-gateway-api == 'true'
         shell: bash
         run: |
-          ./mvnw -B clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+          ./mvnw -B -ntp -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
       - name: Build integrated tests
         if: steps.filter.outputs.k8s-gateway-api == 'true'
         shell: bash
         run: |
-          ./mvnw -B clean install -Pit -DskipTests -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
+          ./mvnw -B -ntp -T 1C clean install -Pit -DskipTests -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
 
       - name: Resolve required example projects
         if: steps.filter.outputs.k8s-gateway-api == 'true'
@@ -99,7 +99,7 @@ jobs:
         if: steps.filter.outputs.k8s-gateway-api == 'true'
         shell: bash
         run: |
-          ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${{ steps.examples.outputs.projects }}" -am -f ./shenyu-examples/pom.xml
+          ./mvnw -B -ntp -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${{ steps.examples.outputs.projects }}" -am -f ./shenyu-examples/pom.xml
 
       - name: Build k8s Cluster
         if: steps.filter.outputs.k8s-gateway-api == 'true'

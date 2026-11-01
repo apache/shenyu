@@ -49,7 +49,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             k8s-ingress:
-              - '{shenyu-integrated-test-k8s-ingress*/**,shenyu-*/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test-k8s-ingress.yml,.github/scripts/resolve-test-case-matrix.sh,.github/scripts/resolve-test-case-matrix-test.sh,.github/scripts/**,actions/**}'
+              - '{shenyu-integrated-test-k8s-ingress*/**,shenyu-*/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test-k8s-ingress.yml,.github/scripts/resolve-test-case-matrix.sh,.github/scripts/resolve-test-case-matrix-test.sh,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'

@@ -62,9 +62,9 @@ jobs:
       - name: Build opt-in assembly with Checkstyle and RAT
         run: |
           bash .github/scripts/test-minimal-http-routing.sh
-          ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http -am clean install -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
+          ./mvnw -B -ntp -T 1C -Pminimal-http -pl shenyu-bootstrap-http -am clean install -DskipTests -Dmaven.javadoc.skip=true -Djacoco.skip=true
       - name: Record resolved runtime dependencies
-        run: ./mvnw -B -Pminimal-http -pl shenyu-bootstrap-http dependency:list -DincludeScope=runtime -DoutputFile=target/runtime-dependencies.txt
+        run: ./mvnw -B -ntp -T 1C -Pminimal-http -pl shenyu-bootstrap-http dependency:list -DincludeScope=runtime -DoutputFile=target/runtime-dependencies.txt
       - name: Check harness and packaged routing
         env:
           SHENYU_VERSION: ${{ steps.version.outputs.version }}

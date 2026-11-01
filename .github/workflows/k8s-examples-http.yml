@@ -52,7 +52,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             k8s-examples:
-              - '{shenyu-examples/**,shenyu-*/**,pom.xml,**/pom.xml,.github/workflows/k8s-examples-http.yml,.github/scripts/**,actions/**}'
+              - '{shenyu-examples/**,shenyu-*/**,pom.xml,**/pom.xml,.github/workflows/k8s-examples-http.yml,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'

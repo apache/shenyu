@@ -19,10 +19,18 @@ set -euo pipefail
 
 group_roots="${GROUP_ROOTS:-}"
 modules=()
+excludes=()
 
 add_module() {
   local module="$1"
   local existing
+  local excluded
+
+  for excluded in ${excludes[@]+"${excludes[@]}"}; do
+    if [[ "${module}" == "${excluded}" || "${module}" == "${excluded}/"* ]]; then
+      return
+    fi
+  done
 
   for existing in "${modules[@]}"; do
     if [[ "${existing}" == "${module}" ]]; then
@@ -34,8 +42,20 @@ add_module() {
 }
 
 IFS=',' read -ra roots <<< "${group_roots}"
+# Move a slow subtree into its own shard without duplicating the remaining roots.
+for root in "${roots[@]}"; do
+  if [[ "${root}" == \!* ]]; then
+    excluded="${root#\!}"
+    if [[ ! -f "${excluded}/pom.xml" ]]; then
+      echo "Excluded Maven module root is missing: ${excluded}" >&2
+      exit 1
+    fi
+    excludes+=("${excluded}")
+  fi
+done
 for root in "${roots[@]}"; do
   [[ -n "${root}" ]] || continue
+  [[ "${root}" != \!* ]] || continue
 
   if [[ ! -f "${root}/pom.xml" ]]; then
     echo "Maven module root is missing: ${root}" >&2

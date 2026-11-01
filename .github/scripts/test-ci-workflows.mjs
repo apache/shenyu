@@ -45,7 +45,7 @@ for (const [name, workflow] of workflows) {
         for (const path of ['README.md', 'README_CN.md', 'docs/guide.md', 'shenyu-common/README.md', 'shenyu-common/docs/guide.txt']) {
           assert.equal(matches(path), false, path);
         }
-        for (const path of ['pom.xml', 'shenyu-common/src/main/java/Example.java', `.github/workflows/${name}`, 'actions/setup-java-with-retry/action.yml']) {
+        for (const path of ['mvnw', '.mvn/wrapper/maven-wrapper.properties', 'pom.xml', 'shenyu-common/src/main/java/Example.java', `.github/workflows/${name}`, 'actions/setup-java-with-retry/action.yml']) {
           assert.equal(matches(path), true, path);
         }
         assert.equal(matches('shenyu-common/src/test/resources/fixture.txt'), true);
@@ -84,4 +84,56 @@ test('the stable build gate includes every independent correctness check', () =>
   for (const name of ['agent_gateway_migrations', 'registry_dependencies', 'rat_check', 'check-license-header', 'test_group', 'compat_java21']) {
     assert.ok(gate.needs.includes(name), name);
   }
+});
+
+
+test('a slow starter subtree runs once in its own shard', () => {
+  const groups = workflows.get('ci.yml').jobs.test_group.strategy.matrix.include;
+  const agent = groups.find(group => group.name === 'starters-agent');
+  const rest = groups.find(group => group.name === 'starters');
+  const modules = execFileSync('bash', ['.github/scripts/expand-ci-module-roots.sh'], {
+    cwd: root, env: { ...process.env, GROUP_ROOTS: rest.modules }, encoding: 'utf8',
+  }).trim().split(',');
+  assert.ok(!modules.includes(agent.modules));
+  assert.ok(modules.includes('shenyu-spring-boot-starter'));
+  assert.throws(() => execFileSync('bash', ['.github/scripts/expand-ci-module-roots.sh'], {
+    cwd: root, env: { ...process.env, GROUP_ROOTS: 'shenyu-common,!does-not-exist' }, stdio: 'pipe',
+  }));
+});
+
+
+test('E2E protocol shards retain every sync channel and leave other scenarios intact', () => {
+  const step = workflows.get('e2e-k8s.yml').jobs.changes.steps.find(step => step.id === 'shards');
+  const original = { include: [
+    { script: 'e2e-grpc-sync-compose', case: 'grpc', example_projects: ':grpc' },
+    { script: 'e2e-apache-dubbo-sync-compose', case: 'dubbo', example_projects: ':dubbo' },
+    { script: 'e2e-logging-rocketmq-compose', case: 'logging', example_projects: ':http' },
+    { script: 'e2e-cluster-jdbc-compose', case: 'cluster', example_projects: ':http' },
+  ] };
+  const output = execFileSync('bash', ['-c', step.run], {
+    cwd: root, env: { ...process.env, E2E_MATRIX: JSON.stringify(original), GITHUB_OUTPUT: '/dev/stdout' }, encoding: 'utf8',
+  }).trim();
+  const shards = JSON.parse(output.slice('matrix='.length)).include;
+  assert.equal(shards.length, 10);
+  for (const entry of original.include) {
+    const selected = shards.filter(shard => shard.script === entry.script);
+    assert.deepEqual(selected.map(shard => shard.sync), entry.case === 'cluster' ? [''] : ['websocket', 'http', 'zookeeper']);
+    for (const shard of selected) {
+      assert.equal(shard.case, entry.case);
+      assert.equal(shard.example_projects, entry.example_projects);
+    }
+  }
+});
+
+test('manual E2E runs keep all sync channels and invalid selections fail', () => {
+  const command = 'source .github/scripts/select-e2e-sync.sh; printf "%s\\n" "${SYNC_ARRAY[@]}"';
+  for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
+    const actual = execFileSync('bash', ['-c', command], {
+      cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: channel }, encoding: 'utf8',
+    }).trim().split('\n');
+    assert.deepEqual(actual, channel ? [channel] : ['websocket', 'http', 'zookeeper']);
+  }
+  assert.throws(() => execFileSync('bash', ['-c', command], {
+    cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: 'unsupported' }, stdio: 'pipe',
+  }));
 });

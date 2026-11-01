@@ -17,6 +17,8 @@
 """Test the timing partition against completed, skipped and incomplete job records."""
 
 import importlib.util
+import io
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -62,6 +64,37 @@ class TimingsTest(unittest.TestCase):
         with patch.object(TIMINGS, "api", side_effect=[response, response]) as api:
             self.assertEqual(len(TIMINGS.collect("apache/shenyu", self.run)), 2)
             self.assertTrue(api.call_args.args[0].endswith("page=2"))
+
+
+    def test_api_success_and_backoff(self):
+        for error, delay in (("HTTP 429", 20), ("HTTP 503", 2), ("timed out", 2)):
+            with self.subTest(error=error), patch.object(TIMINGS.subprocess, "run", side_effect=[
+                    subprocess.CompletedProcess([], 1, "", error),
+                    subprocess.CompletedProcess([], 0, '{"ok": true}', "")]), patch.object(TIMINGS.time, "sleep") as sleep:
+                self.assertEqual(TIMINGS.api("path"), {"ok": True})
+                sleep.assert_called_once_with(delay)
+
+    def test_permanent_and_repeated_failures_stop(self):
+        for error, calls in (("HTTP 404", 1), ("HTTP 503", 2)):
+            with self.subTest(error=error), patch.object(TIMINGS.subprocess, "run", return_value=
+                    subprocess.CompletedProcess([], 1, "", error)) as run, patch.object(TIMINGS.time, "sleep"):
+                with self.assertRaisesRegex(RuntimeError, error):
+                    TIMINGS.api("path")
+                self.assertEqual(run.call_count, calls)
+
+    def test_cli_recent_runs_and_specific_runs(self):
+        for args in (("--limit", "50"), ("--run", "1")):
+            with self.subTest(args=args), patch.object(TIMINGS.sys, "argv", ["timings", *args]), \
+                    patch.object(TIMINGS, "api", return_value=self.run if args[0] == "--run" else {"workflow_runs": [self.run]}), \
+                    patch.object(TIMINGS, "collect", return_value=[TIMINGS.row(self.run, self.job, "apache/shenyu")]), \
+                    patch.object(TIMINGS.sys, "stdout", new_callable=io.StringIO) as output:
+                TIMINGS.main()
+                self.assertIn("preparation_seconds", output.getvalue())
+                self.assertIn("apache/shenyu", output.getvalue())
+
+    def test_skipped_steps_do_not_count(self):
+        self.job["steps"][1]["conclusion"] = "skipped"
+        self.assertEqual(TIMINGS.row(self.run, self.job, "apache/shenyu")["verification_seconds"], 0)
 
 
 if __name__ == "__main__":

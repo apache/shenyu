@@ -63,6 +63,7 @@ jobs:
           node --test .github/scripts/test-ci-workflows.mjs
           python3 -B .github/scripts/test-resolve-example-projects.py
           python3 -B .github/scripts/test-actions-timings.py
+          python3 -B .github/scripts/test-restore-shenyu-local-repo.py
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
       - name: Test Maven transfer retries
@@ -78,7 +79,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             code:
-              - '{shenyu-*/**,pom.xml,**/pom.xml,mvnw,mvnw.cmd,.mvn/**,.github/workflows/**,.github/scripts/**,.github/workflows/ci.yml,actions/**}'
+              - '**'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
@@ -194,13 +195,15 @@ jobs:
           ./mvnw -B -ntp -T 1C install -Prelease -DskipTests -DskipRemoteResources=true \
             -Djacoco.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true
 
-          mkdir -p /tmp/shenyu-m2/org/apache
-          cp -R "${HOME}/.m2/repository/org/apache/shenyu" /tmp/shenyu-m2/org/apache/shenyu
+          mkdir -p /tmp/shenyu-m2
+          tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
       - name: Upload ShenYu local Maven repository
         uses: actions/upload-artifact@v4
         with:
           name: shenyu-local-maven-repository
-          path: /tmp/shenyu-m2
+          path: /tmp/shenyu-m2/repository.tar.gz
+          compression-level: 0
+          if-no-files-found: error
           retention-days: 1
 
   test_group:
@@ -215,12 +218,20 @@ jobs:
         include:
           - name: core
             modules: shenyu-common,shenyu-spi,shenyu-disruptor,shenyu-protocol,shenyu-loadbalancer
-          - name: gateway
-            modules: shenyu-web,shenyu-bootstrap,shenyu-spring-boot-starter
-          - name: admin-sync
-            modules: shenyu-admin,shenyu-admin-listener,shenyu-sync-data-center
+          - name: gateway-runtime
+            modules: shenyu-web,shenyu-bootstrap
+          - name: starters
+            modules: shenyu-spring-boot-starter,!shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway
+          - name: starters-agent
+            modules: shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway
+          - name: admin
+            modules: shenyu-admin
+          - name: sync
+            modules: shenyu-admin-listener,shenyu-sync-data-center
           - name: plugin-base
-            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-logging,shenyu-plugin/shenyu-plugin-mock
+            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock
+          - name: plugin-logging
+            modules: shenyu-plugin/shenyu-plugin-logging
           - name: plugin-proxy
             modules: shenyu-plugin/shenyu-plugin-proxy,shenyu-plugin/shenyu-plugin-security,shenyu-plugin/shenyu-plugin-fault-tolerance
           - name: plugin-ai
@@ -245,12 +256,13 @@ jobs:
           path: /tmp/shenyu-m2
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      # The producer already checks main and test source style for the complete reactor.
       - name: Run Maven tests
         shell: bash
         run: |
           modules="$(GROUP_ROOTS="${{ matrix.modules }}" bash .github/scripts/expand-ci-module-roots.sh)"
           echo "Testing Maven modules: ${modules}"
-          ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true
+          ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true -Dcheckstyle.skip=true
       - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -268,12 +280,20 @@ jobs:
         include:
           - name: core
             modules: shenyu-common,shenyu-spi,shenyu-disruptor,shenyu-protocol,shenyu-loadbalancer
-          - name: gateway
-            modules: shenyu-web,shenyu-bootstrap,shenyu-spring-boot-starter
-          - name: admin-sync
-            modules: shenyu-admin,shenyu-admin-listener,shenyu-sync-data-center
+          - name: gateway-runtime
+            modules: shenyu-web,shenyu-bootstrap
+          - name: starters
+            modules: shenyu-spring-boot-starter,!shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway
+          - name: starters-agent
+            modules: shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway
+          - name: admin
+            modules: shenyu-admin
+          - name: sync
+            modules: shenyu-admin-listener,shenyu-sync-data-center
           - name: plugin-base
-            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-logging,shenyu-plugin/shenyu-plugin-mock
+            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock
+          - name: plugin-logging
+            modules: shenyu-plugin/shenyu-plugin-logging
           - name: plugin-proxy
             modules: shenyu-plugin/shenyu-plugin-proxy,shenyu-plugin/shenyu-plugin-security,shenyu-plugin/shenyu-plugin-fault-tolerance
           - name: plugin-ai
@@ -298,11 +318,12 @@ jobs:
           path: /tmp/shenyu-m2
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      # Reuse the producer's Checkstyle result; preserve all Java 21 test execution.
       - name: Run Java 21 compatibility tests
         shell: bash
         run: |
           modules="$(GROUP_ROOTS="${{ matrix.modules }}" bash .github/scripts/expand-ci-module-roots.sh)"
-          ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true -Djacoco.skip=true
+          ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true -Dcheckstyle.skip=true -Djacoco.skip=true
 
   check-license-header:
     name: check-license-header

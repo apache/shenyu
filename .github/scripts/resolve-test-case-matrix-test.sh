@@ -278,4 +278,8 @@ for infrastructure in \
   assert_file_output "e2e" "${infrastructure}" "run_e2e_cases" "true"
 done
 
+
+assert_file_output "k8s-examples-http" ".github/workflows/k8s-examples-http.yml" "run_k8s_examples" "true"
+assert_file_output "k8s-examples-http" "actions/setup-java-with-retry/action.yml" "run_k8s_examples" "true"
+assert_file_output "e2e" ".github/scripts/select-e2e-sync.sh" "run_e2e_cases" "true"
 echo "CI test routing tests passed"

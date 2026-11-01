@@ -59,7 +59,7 @@ jobs:
           predicate-quantifier: every
           filters: |
             integration:
-              - '{shenyu-integrated-test/**,shenyu-*/**,db/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test.yml,.github/scripts/**,actions/**}'
+              - '{shenyu-integrated-test/**,shenyu-*/**,db/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test.yml,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
