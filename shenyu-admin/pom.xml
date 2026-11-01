@@ -360,12 +360,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-eureka</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-kubernetes</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

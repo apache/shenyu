@@ -51,9 +51,9 @@ class RegistryClasspathTest {
     }
 
     @Test
-    void compatibilityStarterStillDiscoversItsOriginalProviders() {
+    void compatibilityStarterDiscoversRetainedProviders() {
         assertThat(ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getExtensionClasses1())
-                .containsKeys("zookeeper", "etcd", "nacos", "eureka", "kubernetes");
+                .containsKeys("zookeeper", "etcd", "nacos", "kubernetes");
     }
 
     @Test

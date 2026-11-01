@@ -2,6 +2,11 @@
 
 ### API Changes
 
+- The planned Eureka registry cutover retains the `eureka` type and transfers
+  `shenyu-registry-eureka` and its starter to plugin-store (#7596).
+  Merge requires compatible artifact publication and announced release/rollback
+  coordination. See [the migration guide](docs/plugin-store-eureka.md).
+
 - WASM loaders support opt-in startup execution deadlines and per-instance linear-memory
   ceilings. Defaults remain disabled. Timed execution owns bounded workers, propagates
   interruption and replaces interrupted instances after physical exit. See
