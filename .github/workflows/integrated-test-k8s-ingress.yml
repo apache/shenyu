@@ -17,55 +17,21 @@ name: it-k8s
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
   push:
     branches:
       - master
     paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
+      - '*.md'
+      - '**/README*.md'
+      - 'docs/**'
+      - '**/docs/**'
       - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   changes:
@@ -75,32 +41,26 @@ jobs:
       k8s_ingress: ${{ steps.cases.outputs.run_k8s_ingress }}
       k8s_ingress_matrix: ${{ steps.cases.outputs.k8s_ingress_matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./actions/paths-filter
         id: filter
         with:
           list-files: "json"
+          predicate-quantifier: every
           filters: |
             k8s-ingress:
-              - 'shenyu-integrated-test-k8s-ingress*/**'
-              - 'shenyu-*/**'
-              - 'pom.xml'
-              - '**/pom.xml'
-              - 'shenyu-examples/**'
-              - '!**/*.md'
-              - '!**/*.txt'
-              - '!resources/static/**'
+              - '{shenyu-integrated-test-k8s-ingress*/**,shenyu-*/**,pom.xml,**/pom.xml,shenyu-examples/**,.github/workflows/integrated-test-k8s-ingress.yml,.github/scripts/resolve-test-case-matrix.sh,.github/scripts/resolve-test-case-matrix-test.sh,.github/scripts/**,actions/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
-              - '!.github/**'
               - '!.github/ISSUE_TEMPLATE/**'
-              - '!.github/PULL_REQUEST_TEMPLATE'
-              - '.github/workflows/integrated-test-k8s-ingress.yml'
-              - '.github/scripts/resolve-test-case-matrix.sh'
-              - '.github/scripts/resolve-test-case-matrix-test.sh'
+              - '!*.md'
+              - '!**/README*.md'
+              - '!docs/**'
+              - '!**/docs/**'
+              - '!.github/PULL_REQUEST_TEMPLATE.md'
       - name: Resolve k8s ingress cases
         id: cases
         if: steps.filter.outputs['k8s-ingress'] == 'true'
@@ -116,16 +76,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'apache/shenyu' && needs.changes.outputs.k8s_ingress == 'true'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
       - name: Clean Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        run: bash .github/scripts/free-disk-space.sh
 
       - uses: ./actions/setup-java-with-retry
         with:
@@ -135,64 +91,37 @@ jobs:
           cache-dependency-path: |
             **/pom.xml
 
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.17.x
-
       - name: Test Dubbo deployment readiness script
         if: matrix.case == 'shenyu-integrated-test-k8s-ingress-apache-dubbo'
         run: bash ./shenyu-integrated-test/shenyu-integrated-test-k8s-ingress-apache-dubbo/script/build_k8s_cluster_test.sh
 
       - name: Install k8s
         run: |
-          go install sigs.k8s.io/kind@v0.14.0
+          curl --fail --location https://github.com/kubernetes-sigs/kind/releases/download/v0.14.0/kind-linux-amd64 -o "$RUNNER_TEMP/kind"
+          sudo install "$RUNNER_TEMP/kind" /usr/local/bin/kind
           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.24.14/bin/linux/amd64/kubectl && sudo install kubectl /usr/local/bin/kubectl
           kind create cluster --image=kindest/node:v1.21.1 --config=./shenyu-integrated-test/${{ matrix.case }}/deploy/kind-config.yaml
-
-      - name: Install mvnd
-        shell: bash
-        run: |
-          MVND_VERSION=1.0.6
-          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-          unzip -q mvnd.zip
-          mkdir -p $HOME/.local
-          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
 
       - name: Build with Maven
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build"
-            mvnd -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-          else
-            echo "Falling back to maven wrapper"
-            ./mvnw -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-          fi
+          ./mvnw -B -T 1C clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
       - name: Build integrated tests
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build integrated tests"
-            mvnd -B -T 1C clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
-          else
-            echo "Falling back to maven wrapper for integrated tests"
-            ./mvnw -B -T 1C clean install -Pit -DskipTests -am -f ./shenyu-integrated-test/pom.xml
-          fi
+          ./mvnw -B -T 1C clean install -Pit -DskipTests -pl :${{ matrix.case }} -am -f ./shenyu-integrated-test/pom.xml
+
+      - name: Resolve required example projects
+        id: examples
+        env:
+          INTEGRATION_CASE: ${{ matrix.case }}
+        run: echo "projects=$(python3 .github/scripts/resolve-example-projects.py "$INTEGRATION_CASE")" >> "$GITHUB_OUTPUT"
 
       - name: Build examples
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build examples"
-            mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-          else
-            echo "Falling back to maven wrapper for examples"
-            ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-          fi
+          ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${{ steps.examples.outputs.projects }}" -am -f ./shenyu-examples/pom.xml
 
       - name: Build k8s Cluster
         run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/build_k8s_cluster.sh
@@ -207,13 +136,7 @@ jobs:
         id: test
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for running tests"
-            mvnd -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          else
-            echo "Falling back to maven wrapper for tests"
-            ./mvnw -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
-          fi
+          ./mvnw -T 1C test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
 
       - name: Cluster Test after Healthcheck

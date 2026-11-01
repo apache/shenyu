@@ -312,6 +312,8 @@ map_direct_case_path() {
         ;;
     esac
   fi
+
+
 }
 
 map_domain_path() {
@@ -435,8 +437,18 @@ while IFS= read -r file; do
 
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
-      .github/workflows/integrated-test-k8s-ingress.yml)
+      .github/workflows/integrated-test-k8s-ingress.yml|.github/scripts/resolve-example-projects.py|actions/*)
         add_k8s_ingress_all
+        continue
+        ;;
+    esac
+  fi
+
+  # Changes to the workflow or shared preparation code must exercise the matrix.
+  if [[ "${mode}" == "integration" ]]; then
+    case "${file}" in
+      .github/workflows/integrated-test.yml|.github/scripts/resolve-example-projects.py|.github/scripts/resolve-test-case-matrix*|actions/*)
+        full_required=true
         continue
         ;;
     esac
