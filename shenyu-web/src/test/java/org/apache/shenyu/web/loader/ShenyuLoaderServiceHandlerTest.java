@@ -150,7 +150,7 @@ public final class ShenyuLoaderServiceHandlerTest {
             when(loadResult.getPluginJars()).thenReturn(List.of());
 
             try (MockedStatic<ShenyuExtPathPluginJarLoader> loader = mockStatic(ShenyuExtPathPluginJarLoader.class)) {
-                loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any(), any())).thenAnswer(invocation -> {
+                loader.when(() -> ShenyuExtPathPluginJarLoader.loadExtendPlugins(any(), any(), any())).thenAnswer(invocation -> {
                     Consumer<ShenyuPluginClassLoader> deactivate = invocation.getArgument(1);
                     deactivate.accept(removed);
                     return loadResult;
