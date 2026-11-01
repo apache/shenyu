@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
+
 import com.google.common.collect.Lists;
 import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.CollectionUtils;
@@ -170,6 +172,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final DashboardUserDTO dashboardUserDTO) {
         // mandatory: This function can only be used by the admin user
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
@@ -190,11 +193,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
         final DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
-        if (StringUtils.isBlank(dashboardUserDO.getPassword())) {
+        final boolean passwordReset = StringUtils.isNotBlank(dashboardUserDO.getPassword());
+        if (!passwordReset) {
             dashboardUserDO.setPassword(before.getPassword());
         }
         final int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
+            if (passwordReset) {
+                // an administrative password reset revokes tokens issued with the previous credential
+                dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
+            }
             publisher.onUpdated(dashboardUserDO, before);
         }
         return updateCount;
@@ -272,9 +280,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
-            () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
             () -> ListUtil.map(dashboardUserMapper.selectByQuery(dashboardUserQuery), DashboardUserVO::buildDashboardUserVO));
     }
 
@@ -313,7 +321,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                         dashboardUserMapper.updateSelective(userDO);
                     }
                     return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), jwtProperties.getSecretKey(),
-                            clientId, jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
+                            clientId, Optional.ofNullable(finalDashboardUserVO.getTokenVersion()).orElse(JwtUtils.LEGACY_TOKEN_VERSION),
+                            jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
     }
@@ -361,6 +370,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int modifyPassword(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserModifyPasswordDTO.getId());
         Assert.notNull(before, "current user is not found");
@@ -372,7 +382,27 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
+            // a password change revokes tokens issued with the previous credential
+            dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
             publisher.onUpdated(dashboardUserDO, before);
+        }
+        return updateCount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int revokeTokens(final String id) {
+        // mandatory: This function can only be used by the admin user
+        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        DashboardUserDO before = dashboardUserMapper.selectById(id);
+        Assert.notNull(before, "current user is not found");
+        int updateCount = dashboardUserMapper.incrementTokenVersion(id, new Timestamp(System.currentTimeMillis()));
+        if (updateCount > 0) {
+            // publish the stored row so the audit context carries the account fields
+            DashboardUserDO after = dashboardUserMapper.selectById(id);
+            if (Objects.nonNull(after)) {
+                publisher.onUpdated(after, before);
+            }
         }
         return updateCount;
     }

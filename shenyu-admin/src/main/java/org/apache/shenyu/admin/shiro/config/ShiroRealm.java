@@ -41,6 +41,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.apache.shenyu.common.constant.AdminConstants.ADMIN_NAME;
@@ -118,6 +119,13 @@ public class ShiroRealm extends AuthorizingRealm {
 
         if (!JwtUtils.verifyToken(token, jwtProperties.getSecretKey())) {
             throw new AuthenticationException("token is error.");
+        }
+        // a token issued before the last credential change or revocation carries a stale version
+        long tokenVersion = JwtUtils.getTokenVersion(token);
+        long currentTokenVersion = Optional.ofNullable(dashboardUserVO.getTokenVersion())
+                .orElse(JwtUtils.LEGACY_TOKEN_VERSION);
+        if (tokenVersion != currentTokenVersion) {
+            throw new AuthenticationException("token has been revoked.");
         }
 
         return new SimpleAuthenticationInfo(UserInfo.builder()
