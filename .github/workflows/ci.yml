@@ -342,7 +342,7 @@ jobs:
 
   requirement:
     name: build
-    if: github.repository == 'apache/shenyu' && always()
+    if: github.repository == 'apache/shenyu' && !cancelled()
     needs:
       - changes
       - rat_check

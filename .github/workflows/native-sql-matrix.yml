@@ -105,21 +105,21 @@ jobs:
           RESULTS: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
         run: python3 .github/scripts/native-sql-matrix.py --dialect "$DIALECT" --output "$RESULTS"
       - name: Upload results and database startup logs
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: sql-matrix-${{ matrix.dialect }}
           path: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
           if-no-files-found: warn
       - name: Remove this job's test containers
-        if: always()
+        if: ${{ !cancelled() }}
         env:
           DIALECT: ${{ matrix.dialect }}
         run: docker ps -aq --filter "name=^/shenyu-sql-${DIALECT}-" | xargs -r docker rm -f
 
   sql-matrix:
     name: sql-matrix
-    if: always()
+    if: ${{ !cancelled() }}
     needs: [scope, runner-tests, list-contract, native-sql]
     runs-on: ubuntu-latest
     env:

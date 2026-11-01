@@ -195,3 +195,12 @@ test('SQL scope excludes Admin and database documentation, keeping mixed code ch
     rmSync(temporary, { recursive: true, force: true });
   }
 });
+
+
+test('aggregate jobs still report failures but do not keep cancelled PR runs alive', () => {
+  for (const [workflow, job] of [['ci.yml', 'requirement'], ['e2e-k8s.yml', 'requirement'], ['native-sql-matrix.yml', 'sql-matrix']]) {
+    const condition = workflows.get(workflow).jobs[job].if;
+    assert.ok(condition.includes('!cancelled()'), workflow);
+    assert.ok(!condition.includes('always()'), workflow);
+  }
+});

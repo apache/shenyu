@@ -338,7 +338,7 @@ jobs:
 
   requirement:
     name: e2e
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs:
       - changes
       - build-docker-images
