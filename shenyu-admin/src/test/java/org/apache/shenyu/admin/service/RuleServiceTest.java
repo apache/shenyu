@@ -414,6 +414,23 @@ public final class RuleServiceTest {
                 .build());
     }
 
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"create", "update", "import"})
+    public void testAiProxyRuleGenerationContractAcceptsDefaultsAtWriteBoundaries(final String operation) {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("aiProxy").build());
+        exerciseRuleWriteFixture(true, "{\"generationOverrides\":{\"model\":\"fixture-model\",\"temperature\":null,\"stream\":false}}", operation);
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"create", "update", "import"})
+    public void testAiProxyRuleGenerationContractRejectsProtectedFieldsBeforeWrite(final String operation) {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("aiProxy").build());
+        ShenyuAdminException error = exerciseRuleWriteFixture(false, "{\"generationOverrides\":{\"apiKey\":\"FAKE_SECRET\"}}", operation);
+        assertTrue(!error.getMessage().contains("FAKE_SECRET"));
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("rewriteFixtures")
     public void testRewriteFixtureAtWriteBoundaries(final String name, final boolean accepted, final String source, final String operation) {

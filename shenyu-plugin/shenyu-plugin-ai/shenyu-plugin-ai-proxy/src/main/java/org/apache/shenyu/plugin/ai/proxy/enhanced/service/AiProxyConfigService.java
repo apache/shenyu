@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyRuleOverrides;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
@@ -57,6 +58,16 @@ public class AiProxyConfigService {
      * @return the primary AiCommonConfig
      */
     public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle) {
+        return resolvePrimaryConfig(handle, AiProxyRuleOverrides.NONE);
+    }
+
+    /**
+     * Resolve request-owned Plugin/Selector defaults, then the Rule's allowlisted generation defaults.
+     * @param handle Selector defaults
+     * @param rule published Rule defaults with explicit null clearing
+     * @return request-owned effective config, never a mutation of cached configuration
+     */
+    public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle, final AiProxyRuleOverrides rule) {
         final AiCommonConfig globalConfig = pluginHandler.getGlobalConfig();
         final AiCommonConfig primaryConfig = new AiCommonConfig();
 
@@ -76,6 +87,15 @@ public class AiProxyConfigService {
             handleConfig.setRequestBodyOverrides(handle.getRequestBodyOverrides());
             handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
             primaryConfig.mergeWith(handleConfig);
+        }
+        for (AiProxyRuleOverrides.Setting setting : rule.specified()) {
+            switch (setting) {
+                case MODEL -> primaryConfig.setModel(rule.model());
+                case TEMPERATURE -> primaryConfig.setTemperature(rule.temperature());
+                case MAX_TOKENS -> primaryConfig.setMaxTokens(rule.maxTokens());
+                case STREAM -> primaryConfig.setStream(rule.stream());
+                default -> throw new IllegalStateException("Unsupported Rule generation setting");
+            }
         }
         return primaryConfig;
     }

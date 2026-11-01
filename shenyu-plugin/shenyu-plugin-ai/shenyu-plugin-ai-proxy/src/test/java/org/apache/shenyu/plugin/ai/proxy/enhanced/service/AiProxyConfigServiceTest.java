@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyRuleOverrides;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
@@ -62,6 +63,52 @@ public class AiProxyConfigServiceTest {
 
         assertNotNull(result);
         assertEquals("global-model", result.getModel());
+    }
+
+    @Test
+    void ruleDefaultsAndExplicitClearingNeverChangeTheTargetOrCachedDefaults() {
+        AiCommonConfig global = new AiCommonConfig();
+        global.setModel("global-model");
+        global.setTemperature(0.5);
+        global.setMaxTokens(100);
+        global.setApiKey("FAKE_GLOBAL");
+        PluginData plugin = new PluginData();
+        plugin.setConfig(GsonUtils.getInstance().toJson(global));
+        pluginHandler.handlerPlugin(plugin);
+        AiProxyHandle selector = new AiProxyHandle();
+        selector.setProvider("OpenAI");
+        selector.setBaseUrl("https://fixture.invalid");
+        selector.setApiKey("FAKE_SELECTOR");
+        selector.setModel("selector-model");
+        var overrides = AiProxyRuleOverrides.parse("{\"generationOverrides\":{\"model\":\"rule-model\",\"temperature\":null}}");
+        AiCommonConfig result = configService.resolvePrimaryConfig(selector, overrides);
+        assertEquals("rule-model", result.getModel());
+        assertNull(result.getTemperature());
+        assertEquals(100, result.getMaxTokens());
+        assertEquals("OpenAI", result.getProvider());
+        assertEquals("https://fixture.invalid", result.getBaseUrl());
+        assertEquals("FAKE_SELECTOR", result.getApiKey());
+        assertEquals("selector-model", selector.getModel());
+        assertEquals("global-model", pluginHandler.getGlobalConfig().getModel());
+        result.setApiKey("request-owned");
+        assertEquals("FAKE_SELECTOR", configService.resolvePrimaryConfig(selector).getApiKey());
+        assertEquals("selector-model", configService.resolvePrimaryConfig(selector,
+                AiProxyRuleOverrides.parse("{\"provider\":\"ignored\",\"model\":\"legacy-unused\",\"apiKey\":\"ignored\"}")).getModel());
+    }
+
+    @Test
+    void concurrentConfigResolutionKeepsRequestAndCachedValuesIsolated() {
+        AiProxyHandle selector = new AiProxyHandle();
+        selector.setModel("selector");
+        var a = AiProxyRuleOverrides.parse("{\"generationOverrides\":{\"model\":\"a\",\"temperature\":0.1}}");
+        var b = AiProxyRuleOverrides.parse("{\"generationOverrides\":{\"model\":\"b\",\"temperature\":1.9}}");
+        java.util.stream.IntStream.range(0, 1000).parallel().forEach(index -> {
+            var override = index % 2 == 0 ? a : b;
+            AiCommonConfig resolved = configService.resolvePrimaryConfig(selector, override);
+            assertEquals(override.model(), resolved.getModel());
+            assertEquals(override.temperature(), resolved.getTemperature());
+        });
+        assertEquals("selector", selector.getModel());
     }
 
     @Test
