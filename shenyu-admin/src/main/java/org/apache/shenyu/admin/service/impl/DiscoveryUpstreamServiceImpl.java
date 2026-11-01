@@ -47,6 +47,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,12 +59,14 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -73,6 +76,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     // Keep IN lists below Oracle's 1000-expression limit and bound query payloads on all databases.
     private static final int BATCH_SIZE = 500;
+
+    // free-form props key carrying the draining admission marker (#8042)
+    private static final String DRAINING_PROP_KEY = "draining";
+
+    // free-form props key carrying the not-ready admission marker (#8042)
+    private static final String NOT_READY_PROP_KEY = "notReady";
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
@@ -351,6 +360,42 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (Objects.nonNull(discoveryHandlerDO)) {
             discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markDrainingBySelectorIdAndUrl(final String selectorId, final String url, final boolean draining) {
+        updateUpstreamProps(selectorId, url, props -> props.put(DRAINING_PROP_KEY, draining));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markNotReadyBySelectorIdAndUrl(final String selectorId, final String url, final boolean notReady) {
+        updateUpstreamProps(selectorId, url, props -> props.put(NOT_READY_PROP_KEY, notReady));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markReadyBySelectorIdAndUrl(final String selectorId, final String url) {
+        updateUpstreamProps(selectorId, url, props -> {
+            props.remove(DRAINING_PROP_KEY);
+            props.remove(NOT_READY_PROP_KEY);
+        });
+    }
+
+    private void updateUpstreamProps(final String selectorId, final String url, final Consumer<Map<String, Object>> mutation) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
+        if (Objects.isNull(discoveryHandlerDO)) {
+            return;
+        }
+        DiscoveryUpstreamDO upstream = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerDO.getId(), url);
+        if (Objects.isNull(upstream)) {
+            return;
+        }
+        Map<String, Object> props = !StringUtils.hasLength(upstream.getProps())
+                ? new LinkedHashMap<>() : GsonUtils.getInstance().convertToMap(upstream.getProps());
+        mutation.accept(props);
+        discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, GsonUtils.getInstance().toJson(props));
     }
 
     @Override

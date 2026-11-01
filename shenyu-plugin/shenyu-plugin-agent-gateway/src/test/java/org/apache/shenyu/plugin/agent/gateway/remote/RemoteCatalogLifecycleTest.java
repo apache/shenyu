@@ -65,7 +65,8 @@ class RemoteCatalogLifecycleTest {
         var after = manager.diagnosticsState();
         assertEquals(0L, before.currentVersion());
         assertEquals(1L, after.currentVersion());
-        assertEquals(Set.of("closed", "updating", "generations", "clients", "references", "currentVersion", "cleanupFailures"), after.toMap().keySet());
+        assertEquals(Set.of("closed", "updating", "generations", "clients", "references", "pending", "currentVersion", "cleanupFailures"), after.toMap().keySet());
+        assertEquals(0, after.pending());
         assertEquals(after.toMap(), manager.diagnostics());
         assertThrows(UnsupportedOperationException.class, () -> after.toMap().clear());
         manager.closeGracefully().block(WAIT);

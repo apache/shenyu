@@ -37,8 +37,10 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
+import org.apache.shenyu.admin.service.DataPermissionScope;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminDataPermissionTypeEnum;
 import org.springframework.context.event.EventListener;
@@ -101,6 +103,25 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         return getUserDataPermissionList(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
     }
     
+    /**
+     * Resolve the effective data permission scope of a dashboard caller.
+     *
+     * @param userId user id
+     * @param dataType data permission data type
+     * @return effective {@linkplain DataPermissionScope}
+     */
+    @Override
+    public DataPermissionScope getDataScope(final String userId, final Integer dataType) {
+        if (SessionUtil.isAdmin() && StringUtils.equals(userId, SessionUtil.visitorId())) {
+            return DataPermissionScope.unrestricted();
+        }
+        final List<String> dataIds = getUserDataPermissionList(userId).stream()
+                .filter(permission -> Objects.equals(permission.getDataType(), dataType))
+                .map(DataPermissionDO::getDataId)
+                .collect(Collectors.toList());
+        return DataPermissionScope.of(dataIds);
+    }
+
     /**
      * Create data permissions.
      *

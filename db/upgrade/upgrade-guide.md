@@ -4,6 +4,30 @@
 
 ## To Shenyu Users
 
+### API-debug request headers in 2.7.3
+
+Stop Admin writers and back up `mock_request_record` before applying the
+`2.7.2-upgrade-2.7.3-<dialect>.sql` migration. It changes `header` from
+`VARCHAR(1024)` to TEXT (MySQL/OceanBase/PostgreSQL/openGauss) or CLOB (Oracle),
+preserving existing rows and header contents. Oracle copies the value to a CLOB
+column before replacing the old column because a direct VARCHAR2-to-CLOB type
+change is not supported. Run the complete version migration once, then deploy
+the updated Admin.
+
+The `2.7.2-upgrade-2.7.3-h2.sql` migration includes the persistent-H2 change
+(fresh H2 databases create CLOB directly). The header-specific statement is:
+
+```sql
+ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
+```
+
+All Admin mapper insert paths store an absent header as an empty value. MySQL 5.7
+does not allow a literal default for TEXT, so the column has no default and Admin
+normalizes the value explicitly. Custom SQL writers must supply a header value. MySQL/OceanBase TEXT retains the
+native 65,535-byte limit. Oracle reads/writes use complete CLOB values and equality
+filters compare the whole value, including content beyond the first 4,000 characters.
+
+
 ### `loged` column renamed to `logged` in 2.7.3
 
 Running the `2.7.2-upgrade-2.7.3-<dialect>.sql` script is mandatory for every

@@ -45,6 +45,7 @@ import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -139,6 +141,131 @@ public final class DiscoveryUpstreamServiceTest {
 
         org.junit.jupiter.api.Assertions.assertTrue(discoveryUpstreamService.hasDiscoveryHandler("managed"));
         org.junit.jupiter.api.Assertions.assertFalse(discoveryUpstreamService.hasDiscoveryHandler("legacy"));
+    }
+
+    @Test
+    public void testMarkDrainingMergesPropsAndLeavesStatusUntouched() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        verify(discoveryUpstreamMapper, never()).updateStatusByUrl(anyString(), anyString(), org.mockito.ArgumentMatchers.anyInt());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        assertEquals(Boolean.TRUE, merged.get("draining"));
+        assertEquals("20", merged.get("warmup"));
+
+        // idempotent: an existing marker is overwritten with the same value, not duplicated
+        upstream.setProps(propsCaptor.getValue());
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+        verify(discoveryUpstreamMapper, times(2)).updatePropsByUrl(anyString(), anyString(), propsCaptor.capture());
+        assertEquals(Boolean.TRUE, GsonUtils.getInstance().convertToMap(propsCaptor.getValue()).get("draining"));
+    }
+
+    @Test
+    public void testMarkDrainingFalseReleasesTheMarker() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"draining\":true,\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", false);
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        assertEquals(Boolean.FALSE, merged.get("draining"));
+        assertEquals("20", merged.get("warmup"));
+    }
+
+    @Test
+    public void testMarkDrainingIgnoresUnknownHandlerOrUrl() {
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(null);
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+        verify(discoveryUpstreamMapper, never()).updatePropsByUrl(anyString(), anyString(), anyString());
+
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-2")).thenReturn(handler);
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(null);
+        discoveryUpstreamService.markDrainingBySelectorIdAndUrl("selector-2", "127.0.0.1:8080", true);
+        verify(discoveryUpstreamMapper, never()).updatePropsByUrl(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testMarkNotReadyMergesPropsAndLeavesStatusUntouched() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markNotReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        verify(discoveryUpstreamMapper, never()).updateStatusByUrl(anyString(), anyString(), org.mockito.ArgumentMatchers.anyInt());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        assertEquals(Boolean.TRUE, merged.get("notReady"));
+        assertEquals("20", merged.get("warmup"));
+    }
+
+    @Test
+    public void testMarkReadyReleasesBothMarkers() {
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+        final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
+        upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setUpstreamUrl("127.0.0.1:8080");
+        upstream.setProps("{\"draining\":true,\"notReady\":true,\"warmup\":\"20\"}");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("handler-1", "127.0.0.1:8080")).thenReturn(upstream);
+
+        discoveryUpstreamService.markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
+
+        final ArgumentCaptor<String> propsCaptor = ArgumentCaptor.forClass(String.class);
+        verify(discoveryUpstreamMapper).updatePropsByUrl(eq("handler-1"), eq("127.0.0.1:8080"), propsCaptor.capture());
+        final Map<String, Object> merged = GsonUtils.getInstance().convertToMap(propsCaptor.getValue());
+        Assertions.assertNull(merged.get("draining"));
+        Assertions.assertNull(merged.get("notReady"));
+        assertEquals("20", merged.get("warmup"));
+    }
+
+    @Test
+    public void testReadinessMarkersIgnoreUnknownHandlerOrUrl() {
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(null);
+        discoveryUpstreamService.markNotReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+        discoveryUpstreamService.markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
+        verify(discoveryUpstreamMapper, never()).updatePropsByUrl(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testHeartbeatDoesNotTouchDrainingProps() {
+        // the drain marker lives in props; the heartbeat path only flips the status column,
+        // so a draining instance must stay excluded even though it keeps beating (#8042)
+        final DiscoveryHandlerDO handler = new DiscoveryHandlerDO();
+        handler.setId("handler-1");
+        when(discoveryHandlerMapper.selectBySelectorId("selector-1")).thenReturn(handler);
+
+        discoveryUpstreamService.changeStatusBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", Boolean.TRUE);
+
+        verify(discoveryUpstreamMapper).updateStatusByUrl("handler-1", "127.0.0.1:8080", 0);
+        verify(discoveryUpstreamMapper, never()).updatePropsByUrl(anyString(), anyString(), anyString());
     }
 
     @Test

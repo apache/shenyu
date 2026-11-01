@@ -31,7 +31,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -43,10 +43,8 @@ import reactor.core.publisher.Sinks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +62,53 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AiTokenLimiterPluginTest {
 
     private static final String USAGE_EVENT = "data: {\"usage\":{\"completion_tokens\":12}}\n\n";
+
+    private static final String RESPONSES_COMPLETED_EVENT = "event: response.completed\n"
+            + "data: {\"type\":\"response.completed\",\"sequence_number\":4,\"response\":{\"id\":\"resp_1\",\"object\":\"response\","
+            + "\"status\":\"completed\",\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}}\n\n";
+
+    private static final String RESPONSES_BODY = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"completed\","
+            + "\"output\":[],\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15}}";
+
+    @Test
+    void testResponsesStreamEventRecordsOutputTokens() {
+        // Issue #7911: a Responses terminal event carries its usage inside the response object.
+        assertResponseUsage(RESPONSES_COMPLETED_EVENT, new byte[][] {RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8)},
+                false, false, 12L);
+    }
+
+    @Test
+    void testResponsesStreamEventAcrossBuffersRecordsOutputTokens() {
+        // Split inside the output_tokens key: neither buffer holds a complete event, so the streaming JSON-parse path
+        // finds nothing and the regex fallback over the accumulated SSE tail is what accounts the usage.
+        byte[] content = RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8);
+        int split = RESPONSES_COMPLETED_EVENT.indexOf("\"output_tokens\"");
+        byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
+        for (boolean flush : new boolean[] {false, true}) {
+            assertResponseUsage(RESPONSES_COMPLETED_EVENT, chunks, flush, false, 12L);
+        }
+    }
+
+    @Test
+    void testCompleteResponsesBodyRecordsOutputTokens() {
+        // A converted, non-streaming Responses body is not SSE framed: only the buffered fallback sees it.
+        byte[] content = RESPONSES_BODY.getBytes(StandardCharsets.UTF_8);
+        assertResponseUsage(RESPONSES_BODY, new byte[][] {content}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageIsNotReadFromMaxOutputTokens() {
+        // max_output_tokens is an echo of the request limit, never an accounted count.
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"max_output_tokens\":99,\"usage\":{\"input_tokens\":3,"
+                + "\"output_tokens\":12,\"total_tokens\":15}}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 12L);
+    }
+
+    @Test
+    void testResponsesUsageWithoutOutputTokensRecordsNothing() {
+        String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"incomplete\",\"max_output_tokens\":99}";
+        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 0L);
+    }
 
     @ParameterizedTest
     @CsvSource({"false, field", "true, field", "true, number"})
@@ -239,59 +284,14 @@ class AiTokenLimiterPluginTest {
     }
 
     @Test
-    void testRecordTokensUsageGivesTheCounterItsWindowWhenItIsCreated() throws Exception {
-        // Regression for #6649: the window is applied when the counter is created and never re-issued, otherwise a
-        // sustained traffic keeps pushing it forward and the token budget of the window is never reset.
+    void testRecordTokensUsageExecutesOneAtomicScriptWithStringArguments() {
         ReactiveRedisTemplate<String, String> redisTemplate = mockRedisTemplate();
-        ReactiveValueOperations<String, String> valueOperations = mockValueOperations();
-        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        Mockito.when(valueOperations.setIfAbsent("key", "0", Duration.ofSeconds(60L))).thenReturn(Mono.just(true));
-        Mockito.when(valueOperations.increment("key", 10L)).thenReturn(Mono.just(30L));
+        Mockito.when(redisTemplate.execute(Mockito.<RedisScript<Long>>any(), Mockito.eq(List.of("key")), Mockito.eq(List.of("10", "60"))))
+                .thenReturn(Flux.just(30L));
 
-        recordTokensUsage(new AiTokenLimiterPlugin(), redisTemplate, "key", 10L, 60L);
-
-        // the counter is created together with its window, and its value goes through the template's String value
-        // serializer, so it has to be a String (a Long would throw at runtime)
-        Mockito.verify(valueOperations).setIfAbsent("key", "0", Duration.ofSeconds(60L));
-        Mockito.verify(valueOperations).increment("key", 10L);
-        Mockito.verify(redisTemplate, Mockito.never()).getExpire(Mockito.anyString());
-        Mockito.verify(redisTemplate, Mockito.never()).expire(Mockito.anyString(), Mockito.any(Duration.class));
-    }
-
-    @Test
-    void testRecordTokensUsageKeepsTheWindowOfAnExistingCounter() throws Exception {
-        // An existing counter that already has a window keeps it: re-issuing the expiration would make the window
-        // slide forward on every request, which is the bug this change fixes.
-        ReactiveRedisTemplate<String, String> redisTemplate = mockRedisTemplate();
-        ReactiveValueOperations<String, String> valueOperations = mockValueOperations();
-        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        Mockito.when(valueOperations.setIfAbsent("key", "0", Duration.ofSeconds(60L))).thenReturn(Mono.just(false));
-        Mockito.when(redisTemplate.getExpire("key")).thenReturn(Mono.just(Duration.ofSeconds(30L)));
-        Mockito.when(valueOperations.increment("key", 10L)).thenReturn(Mono.just(30L));
-
-        recordTokensUsage(new AiTokenLimiterPlugin(), redisTemplate, "key", 10L, 60L);
-
-        Mockito.verify(redisTemplate).getExpire("key");
-        Mockito.verify(redisTemplate, Mockito.never()).expire(Mockito.anyString(), Mockito.any(Duration.class));
-        Mockito.verify(valueOperations).increment("key", 10L);
-    }
-
-    @Test
-    void testRecordTokensUsageGivesAWindowToACounterThatHasNone() throws Exception {
-        // A counter written by an earlier version, or by another path, can exist without an expiration: it is given
-        // one once, instead of on every increment.
-        ReactiveRedisTemplate<String, String> redisTemplate = mockRedisTemplate();
-        ReactiveValueOperations<String, String> valueOperations = mockValueOperations();
-        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        Mockito.when(valueOperations.setIfAbsent("key", "0", Duration.ofSeconds(60L))).thenReturn(Mono.just(false));
-        Mockito.when(redisTemplate.getExpire("key")).thenReturn(Mono.just(Duration.ofSeconds(-1L)));
-        Mockito.when(redisTemplate.expire("key", Duration.ofSeconds(60L))).thenReturn(Mono.just(true));
-        Mockito.when(valueOperations.increment("key", 10L)).thenReturn(Mono.just(30L));
-
-        recordTokensUsage(new AiTokenLimiterPlugin(), redisTemplate, "key", 10L, 60L);
-
-        Mockito.verify(redisTemplate).expire("key", Duration.ofSeconds(60L));
-        Mockito.verify(valueOperations).increment("key", 10L);
+        assertEquals(30L, new AiTokenLimiterPlugin().recordTokensUsage(redisTemplate, "key", 10L, 60L).block());
+        Mockito.verify(redisTemplate).execute(Mockito.<RedisScript<Long>>any(), Mockito.eq(List.of("key")), Mockito.eq(List.of("10", "60")));
+        Mockito.verifyNoMoreInteractions(redisTemplate);
     }
 
     @Test
@@ -306,6 +306,16 @@ class AiTokenLimiterPluginTest {
     }
 
     private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip) {
+        assertResponseUsage(expected, chunks, flush, gzip, 12L);
+    }
+
+    private void assertResponseUsage(final String expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
+        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, flush, gzip, expectedTokens);
+    }
+
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip,
+                                     final long expectedTokens) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
         exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
         if (gzip) {
@@ -318,7 +328,7 @@ class AiTokenLimiterPluginTest {
         Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
         completion.block();
 
-        assertEquals(List.of(12L), recorded);
+        assertEquals(List.of(expectedTokens), recorded);
         byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
@@ -329,21 +339,8 @@ class AiTokenLimiterPluginTest {
     }
 
     @SuppressWarnings("unchecked")
-    private ReactiveValueOperations<String, String> mockValueOperations() {
-        return Mockito.mock(ReactiveValueOperations.class);
-    }
-
-    @SuppressWarnings("unchecked")
     private ReactiveRedisTemplate<String, String> mockRedisTemplate() {
         return Mockito.mock(ReactiveRedisTemplate.class);
-    }
-
-    private void recordTokensUsage(final AiTokenLimiterPlugin plugin, final ReactiveRedisTemplate<String, String> redisTemplate,
-                                   final String cacheKey, final Long tokens, final Long windowSeconds) throws Exception {
-        Method method = AiTokenLimiterPlugin.class.getDeclaredMethod("recordTokensUsage",
-                ReactiveRedisTemplate.class, String.class, Long.class, Long.class);
-        method.setAccessible(true);
-        method.invoke(plugin, redisTemplate, cacheKey, tokens, windowSeconds);
     }
 
     private String buildSseContentWithTokens(final int tokens) {

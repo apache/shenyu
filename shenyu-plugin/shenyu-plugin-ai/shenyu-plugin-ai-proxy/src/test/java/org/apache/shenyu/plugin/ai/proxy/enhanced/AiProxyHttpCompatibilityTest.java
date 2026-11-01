@@ -21,15 +21,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
@@ -43,6 +46,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
@@ -54,6 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -89,7 +94,8 @@ class AiProxyHttpCompatibilityTest {
         try {
             MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses")
                     .body("{\"model\":\"client-alias\",\"input\":\"hi\",\"max_output_tokens\":12,\"stream\":" + stream + "}"));
-            StepVerifier.create(plugin(server, stream, OpenAiResponses.NAME).doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())).verifyComplete();
+            StepVerifier.create(plugin(server, stream, OpenAiResponses.NAME, "ChatOnly")
+                    .doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())).verifyComplete();
             JsonNode upstream = MAPPER.readTree(forwarded.get());
             assertEquals("model", upstream.get("model").asText());
             assertEquals("hi", upstream.at("/messages/0/content").asText());
@@ -117,6 +123,94 @@ class AiProxyHttpCompatibilityTest {
     }
 
     @Test
+    void proxyKeysRemainIsolatedAcrossSequentialAndConcurrentRequests() {
+        // The engine replaced cached ChatClient instances; keep isolation covered at the HTTP boundary.
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) ->
+                response.header("Content-Type", "application/json")
+                        .header("X-Upstream-Account", request.requestHeaders().get("Authorization"))
+                        .sendString(Flux.just(CHAT_REPLY))).bindNow(TIMEOUT);
+        final AiProxyPluginHandler handler = new AiProxyPluginHandler();
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setProvider("OpenAI");
+        handle.setBaseUrl("http://127.0.0.1:" + server.port());
+        handle.setApiKey("selector-default");
+        handle.setStream(false);
+        handle.setProxyEnabled("true");
+        handle.setProtocol(OpenAiChat.NAME);
+        handle.setModel("model");
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey("http-selector", Constants.DEFAULT_RULE), handle);
+        AiProxyPlugin plugin = plugin(handler);
+        for (String account : List.of("account-a", "account-b")) {
+            AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId("http-selector")
+                    .proxyApiKey("proxy-" + account).realApiKey(account).enabled(true).build());
+        }
+        try {
+            for (String account : List.of("account-a", "account-b", "account-a")) {
+                StepVerifier.create(executeForAccount(plugin, account)).verifyComplete();
+            }
+            StepVerifier.create(Flux.range(0, 32)
+                    .flatMap(index -> executeForAccount(plugin, index % 2 == 0 ? "account-a" : "account-b"), 8)
+                    .then()).expectComplete().verify(Duration.ofSeconds(15));
+            assertEquals("selector-default", handle.getApiKey());
+        } finally {
+            server.disposeNow(TIMEOUT);
+            for (String account : List.of("account-a", "account-b")) {
+                AiProxyApiKeyCache.getInstance().remove(ProxyApiKeyData.builder().selectorId("http-selector")
+                        .proxyApiKey("proxy-" + account).build());
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void unknownOrDisabledProxyKeysCannotUseTheSelectorCredential(final boolean disabled) {
+        AtomicBoolean called = new AtomicBoolean();
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
+            called.set(true);
+            return response.sendString(Mono.just(CHAT_REPLY));
+        }).bindNow(TIMEOUT);
+        final AiProxyPluginHandler handler = new AiProxyPluginHandler();
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setProvider("OpenAI");
+        handle.setBaseUrl("http://127.0.0.1:" + server.port());
+        handle.setApiKey("selector-default");
+        handle.setProxyEnabled("true");
+        handle.setStream(false);
+        handle.setProtocol(OpenAiChat.NAME);
+        handle.setModel("model");
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey("http-selector", Constants.DEFAULT_RULE), handle);
+        ProxyApiKeyData mapping = ProxyApiKeyData.builder().selectorId("http-selector")
+                .proxyApiKey("rejected-proxy-key").realApiKey("disabled-real-key").enabled(false).build();
+        if (disabled) {
+            AiProxyApiKeyCache.getInstance().cache(mapping);
+        }
+        try {
+            MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/chat")
+                    .header(Constants.X_API_KEY, mapping.getProxyApiKey())
+                    .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}"));
+            StepVerifier.create(plugin(handler).doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData()))
+                    .expectComplete().verify(TIMEOUT);
+            assertEquals(401, exchange.getResponse().getStatusCode().value());
+            assertTrue(!called.get(), "rejected proxy keys must not open an upstream connection");
+            assertEquals("selector-default", handle.getApiKey());
+        } finally {
+            AiProxyApiKeyCache.getInstance().remove(mapping);
+            server.disposeNow(TIMEOUT);
+        }
+    }
+
+    private Mono<Void> executeForAccount(final AiProxyPlugin plugin, final String account) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/chat")
+                .header(Constants.X_API_KEY, "proxy-" + account)
+                .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}"));
+        return plugin.doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())
+                .then(Mono.fromRunnable(() -> {
+                    assertEquals(200, exchange.getResponse().getStatusCode().value());
+                    assertEquals("Bearer " + account, exchange.getResponse().getHeaders().getFirst("X-Upstream-Account"));
+                }));
+    }
+
+    @Test
     void rejectsResponsesStateBeforeOpeningAnUpstreamConnection() {
         AtomicBoolean called = new AtomicBoolean();
         DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
@@ -126,7 +220,8 @@ class AiProxyHttpCompatibilityTest {
         try {
             MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses")
                     .body("{\"input\":\"hi\",\"previous_response_id\":\"resp_previous\"}"));
-            StepVerifier.create(plugin(server, false, OpenAiResponses.NAME).doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())).verifyComplete();
+            StepVerifier.create(plugin(server, false, OpenAiResponses.NAME, "ChatOnly")
+                    .doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData())).verifyComplete();
             assertEquals(400, exchange.getResponse().getStatusCode().value());
             assertTrue(!called.get());
         } finally {
@@ -177,7 +272,8 @@ class AiProxyHttpCompatibilityTest {
                 received.add(buffer.toString(StandardCharsets.UTF_8));
                 DataBufferUtils.release(buffer);
             }).then());
-            StepVerifier.create(plugin(server, true, OpenAiResponses.NAME).doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData()))
+            StepVerifier.create(plugin(server, true, OpenAiResponses.NAME, "ChatOnly")
+                    .doExecute(exchange, mock(ShenyuPluginChain.class), selector(), new RuleData()))
                     .then(() -> org.awaitility.Awaitility.await().atMost(TIMEOUT)
                             .until(() -> received.stream().anyMatch(event -> event.startsWith("event: response.output_text.delta\n"))))
                     .thenCancel().verify(TIMEOUT);
@@ -244,9 +340,13 @@ class AiProxyHttpCompatibilityTest {
     }
 
     private AiProxyPlugin plugin(final DisposableServer server, final boolean stream, final String protocol) {
+        return plugin(server, stream, protocol, "OpenAI");
+    }
+
+    private AiProxyPlugin plugin(final DisposableServer server, final boolean stream, final String protocol, final String provider) {
         final AiProxyPluginHandler handler = new AiProxyPluginHandler();
         AiProxyHandle handle = new AiProxyHandle();
-        handle.setProvider("OpenAI");
+        handle.setProvider(provider);
         handle.setBaseUrl("http://127.0.0.1:" + server.port());
         handle.setApiKey("real-key");
         handle.setStream(stream);
@@ -257,8 +357,9 @@ class AiProxyHttpCompatibilityTest {
     }
 
     private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("ChatOnly"))),
+                protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 

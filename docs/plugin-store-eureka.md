@@ -19,7 +19,7 @@ limitations under the License.
 
 Prepared cutover for apache/shenyu#7596. The receiving extension owns
 shenyu-registry-eureka and shenyu-spring-boot-starter-registry-eureka.
-The main-repository removal must remain a draft until compatible artifacts are
+The main-repository removal can be reviewed before publication, but must not merge until compatible artifacts are
 published and the complete Admin/gateway deployment gate below passes.
 Source preparation, local snapshot installation and this guide are not publication.
 

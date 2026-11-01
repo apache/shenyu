@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
@@ -163,7 +163,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
 
             // reset http status
             if (this.ruleHandle.getStatusCode() > 0) {
-                this.setStatusCode(HttpStatus.valueOf(this.ruleHandle.getStatusCode()));
+                this.setStatusCode(HttpStatusCode.valueOf(this.ruleHandle.getStatusCode()));
             }
 
             // reset http headers

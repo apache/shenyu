@@ -17,17 +17,23 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
-import io.netty.channel.ChannelOption;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
@@ -37,6 +43,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProp
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -44,7 +51,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
 
 import java.util.List;
 
@@ -64,17 +70,18 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyConfigService the aiProxyConfigService
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
+     * @param observers optional application terminal sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler);
+                aiProxyPluginHandler, observer(observers));
     }
 
     /**
@@ -107,16 +114,68 @@ public class AiProxyPluginConfiguration {
      *
      * @param aiProxyProtocolFactory protocol factory
      * @param aiProxyProviderFactory provider factory
+     * @param aiProtocolRouteResolver protocol route resolver
      * @param aiProxyTransport       transport
+     * @param observers optional application terminal sink
      * @param retryProperties        retry properties
+     * @param attemptListener        optional attempt listener
      * @return the AI proxy engine
      */
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
                                        final AiProxyProviderFactory aiProxyProviderFactory,
+                                       final AiProtocolRouteResolver aiProtocolRouteResolver,
                                        final AiProxyTransport aiProxyTransport,
-                                       final AiProxyRetryProperties retryProperties) {
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory, aiProxyTransport, retryProperties);
+                                       final ObjectProvider<AiCallObserver> observers,
+                                       final AiProxyRetryProperties retryProperties,
+                                       final ObjectProvider<AiProxyAttemptListener> attemptListener) {
+        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
+                aiProtocolRouteResolver, aiProxyTransport, retryProperties,
+                observer(observers), attemptListener.getIfAvailable(() -> event -> {
+                }));
+    }
+
+    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
+        List<AiCallObserver> candidates = provider.stream().toList();
+        if (candidates.size() > 1) {
+            throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
+        }
+        return candidates.isEmpty() ? null : candidates.get(0);
+    }
+
+    /**
+     * Responses-to-Chat protocol converter.
+     *
+     * @return the Responses-to-Chat protocol converter
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ConnectResponsesToChatConverter connectResponsesToChatConverter() {
+        return new ConnectResponsesToChatConverter();
+    }
+
+    /**
+     * AI protocol converter factory.
+     *
+     * @param converters protocol converters
+     * @return the AI protocol converter factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AiProtocolConverterFactory aiProtocolConverterFactory(final List<AiProtocolConverter> converters) {
+        return new AiProtocolConverterFactory(converters);
+    }
+
+    /**
+     * AI protocol route resolver.
+     *
+     * @param converterFactory protocol converter factory
+     * @return the AI protocol route resolver
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AiProtocolRouteResolver aiProtocolRouteResolver(final AiProtocolConverterFactory converterFactory) {
+        return new AiProtocolRouteResolver(converterFactory);
     }
 
     /**
@@ -172,20 +231,37 @@ public class AiProxyPluginConfiguration {
     }
 
     /**
-     * Ai proxy transport.
+     * Shared Reactor Netty resources for the default AI proxy transport.
      *
      * @param properties AI proxy transport properties
-     * @return the AI proxy transport
+     * @return shared AI proxy HTTP client resources
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean({AiProxyTransport.class, AiProxyHttpClientResources.class})
+    public AiProxyHttpClientResources aiProxyHttpClientResources(
+            final AiProxyTransportProperties properties) {
+        return new AiProxyHttpClientResources(properties);
+    }
+
+    /**
+     * Default AI proxy transport.
+     *
+     * @param resources shared AI proxy HTTP client resources
+     * @param properties AI proxy transport properties
+     * @return AI proxy transport
      */
     @Bean
     @ConditionalOnMissingBean(AiProxyTransport.class)
-    public AiProxyTransport aiProxyTransport(final AiProxyTransportProperties properties) {
-        final WebClient webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient(properties)))
+    public AiProxyTransport aiProxyTransport(
+            final AiProxyHttpClientResources resources,
+            final AiProxyTransportProperties properties) {
+        WebClient webClient = WebClient.builder()
+                .clientConnector(
+                        new ReactorClientHttpConnector(resources.getHttpClient()))
                 .build();
+
         return new WebClientAiProxyTransport(webClient, properties);
     }
-
 
     /**
      * Create the generic OpenAI-compatible provider profile.
@@ -204,7 +280,7 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public OpenAiCompatible deepSeekProvider() {
-        return new OpenAiCompatible("DeepSeek");
+        return new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek());
     }
 
     /**
@@ -257,17 +333,5 @@ public class AiProxyPluginConfiguration {
     @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.retry")
     public AiProxyRetryProperties aiProxyRetryProperties() {
         return new AiProxyRetryProperties();
-    }
-
-    HttpClient createHttpClient(final AiProxyTransportProperties properties) {
-        return HttpClient.create()
-                .option(
-                        ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                        connectTimeoutMillis(properties)
-                );
-    }
-
-    int connectTimeoutMillis(final AiProxyTransportProperties properties) {
-        return Math.toIntExact(properties.getConnectTimeout().toMillis());
     }
 }

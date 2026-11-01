@@ -30,6 +30,7 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
@@ -42,6 +43,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * abstract shenyu plugin please extends.
@@ -51,6 +53,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
     private static final String URI_CONDITION_TYPE = "uri";
+
+    private static final Set<String> PATH_ONLY_OPERATORS = Set.of("=", "equals", "contains", "startsWith", "endsWith",
+            "match", "regex", "exclude", "pathPattern", "isBlank");
 
     private ShenyuConfig.SelectorMatchCache selectorMatchConfig;
     
@@ -110,20 +115,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
-            //get last
-            RuleData rule = rules.get(rules.size() - 1);
+            RuleData rule = lastEnabledRule(rules);
+            if (Objects.isNull(rule)) {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
-        // lru map as L1 cache,the cache is enabled by default.
-        // if the L1 cache fails to hit, using L2 cache based on trie cache.
-        // if the L2 cache fails to hit, execute default strategy.
+        // consult the bounded per-path match cache first when it is enabled.
+        // on a cache miss, match the current rule list with the default strategy.
         RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, rules, path);
+            ruleData = defaultMatchRule(exchange, selectors, rules, path);
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
@@ -131,9 +137,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);
     }
+
+    private static RuleData lastEnabledRule(final List<RuleData> rules) {
+        for (int i = rules.size() - 1; i >= 0; i--) {
+            RuleData rule = rules.get(i);
+            if (Boolean.TRUE.equals(rule.getEnabled())) {
+                return rule;
+            }
+        }
+        return null;
+    }
     
     protected String getRawPath(final ServerWebExchange exchange) {
-        return exchange.getRequest().getURI().getRawPath();
+        return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
     
     private void initCacheConfig() {
@@ -292,13 +308,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
             // cache selector data
-            if (matchSelectorPair.getLeft()) {
+            if (matchSelectorPair.getLeft() && selectors.stream().filter(SelectorData::getEnabled)
+                    .allMatch(selector -> !Boolean.TRUE.equals(selector.getMatchRestful()) && pathOnlyConditions(selector.getConditionList()))) {
                 cacheSelectorData(path, selectorData);
             }
             return selectorData;
         } else {
-            // if not match selector, cache empty selector data.
-            if (matchSelectorPair.getLeft()) {
+            // A negative entry is keyed by (plugin, path), so it is only sound when every
+            // enabled candidate is decided by the path.
+            if (matchSelectorPair.getLeft() && pathOnlySelectorSet(selectors)) {
                 SelectorData emptySelectorData = SelectorData.builder().pluginName(named()).build();
                 cacheSelectorData(path, emptySelectorData);
             }
@@ -306,18 +324,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
+                                      final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
             // cache rule data
-            if (matchRulePair.getLeft()) {
+            if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
+                    .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
                 cacheRuleData(path, ruleData);
             }
             return ruleData;
         } else {
-            // if not match rule, cache empty rule data.
-            if (matchRulePair.getLeft()) {
+            // The rule cache key carries no selector id, so a negative entry additionally
+            // requires the whole selector set to be decided by the path.
+            if (matchRulePair.getLeft() && pathOnlySelectorSet(selectors) && pathOnlyRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }
@@ -325,6 +346,39 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
+    private boolean pathOnlyConditions(final List<ConditionData> conditions) {
+        // A path cache hit skips the entire candidate set, including candidates that did not
+        // match the warming request but could win for different request attributes.
+        // Time predicates and unknown SPI operators can depend on state outside the URI.
+        return CollectionUtils.isNotEmpty(conditions) && conditions.stream().allMatch(condition -> Objects.nonNull(condition)
+                && URI_CONDITION_TYPE.equals(condition.getParamType()) && Objects.nonNull(condition.getOperator())
+                && PATH_ONLY_OPERATORS.contains(condition.getOperator()));
+    }
+
+    private boolean pathOnlySelectorSet(final List<SelectorData> selectors) {
+        for (SelectorData selector : selectors) {
+            if (!Boolean.TRUE.equals(selector.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(selector.getMatchRestful()) || !pathOnlyConditions(selector.getConditionList())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean pathOnlyRuleSet(final List<RuleData> rules) {
+        for (RuleData rule : rules) {
+            if (!Boolean.TRUE.equals(rule.getEnabled())) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(rule.getMatchRestful()) || !pathOnlyConditions(rule.getConditionDataList())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * print selector log.
      * please don't delete this method or refactor {@linkplain org.apache.shenyu.plugin.base.AbstractShenyuPlugin#printLog}

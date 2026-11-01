@@ -75,6 +75,8 @@ jobs:
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
+      - name: Test E2E artifact reruns
+        run: node --test .github/scripts/retest-test.mjs
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -345,7 +347,7 @@ jobs:
         with:
           submodules: true
       - name: Check License Header
-        uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
+        uses: apache/skywalking-eyes@a196742f472feaffafea537ce5a2a4c3c53a8de4 # v0.9.0; supports REM headers in Windows batch files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

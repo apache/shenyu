@@ -26,6 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -71,6 +73,18 @@ public class AiProxyConfigServiceTest {
 
         assertNotNull(result);
         assertEquals("handle-model", result.getModel());
+    }
+
+    @Test
+    void testResolvePrimaryConfigCopiesProtocolRequestBodyOverrides() {
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setRequestBodyOverrides(Map.of("openai-chat", Map.of("reasoning_effort", "high")));
+        handle.setRequestBodyForceOverride(true);
+
+        AiCommonConfig result = configService.resolvePrimaryConfig(handle);
+
+        assertEquals("high", result.getRequestBodyOverrides().get("openai-chat").get("reasoning_effort"));
+        assertTrue(result.getRequestBodyForceOverride());
     }
 
     @Test

@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -68,7 +69,8 @@ class AiProxyProviderHttpTest {
         try {
             OpenAiProviderOptions options = new OpenAiProviderOptions("/generate", OpenAiProviderOptions.Authentication.HEADER, "api-key", "",
                     Map.of("X-Tenant", "tenant"), Map.of("api-version", "2026-01"), Map.of("alias", "native-model"),
-                    MAPPER.createObjectNode(), AiProviderCapabilities.chat(), null, "max_tokens");
+                    MAPPER.createObjectNode(), AiProviderCapabilities.chat(), null)
+                    .withRequestTransformer(OpenAiChat.NAME, (payload, context) -> payload);
             OpenAiCompatible provider = new OpenAiCompatible("custom", options);
             AiProxyEngine engine = engine(provider);
             AiCommonConfig config = config(server, "custom", OpenAiChat.NAME);
@@ -129,7 +131,8 @@ class AiProxyProviderHttpTest {
 
     private AiProxyEngine engine(final AiProxyProvider provider) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(provider)), new WebClientAiProxyTransport(WebClient.builder().build()));
+                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(),
+                new WebClientAiProxyTransport(WebClient.builder().build()));
     }
 
     private AiCommonConfig config(final DisposableServer server, final String provider, final String protocol) {

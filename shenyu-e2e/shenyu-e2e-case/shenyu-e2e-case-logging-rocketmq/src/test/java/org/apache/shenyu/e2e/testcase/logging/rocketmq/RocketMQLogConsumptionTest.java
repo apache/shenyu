@@ -19,37 +19,32 @@ package org.apache.shenyu.e2e.testcase.logging.rocketmq;
 
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.TopicConfig;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.ResponseCode;
+import org.apache.rocketmq.common.protocol.body.ClusterInfo;
+import org.apache.rocketmq.common.protocol.route.BrokerData;
+import org.apache.rocketmq.common.protocol.route.QueueData;
+import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RocketMQLogConsumptionTest {
 
     @Test
-    void rejectsNonTransientBrokerErrors() {
-        DefaultLitePullConsumer consumer = new DefaultLitePullConsumer("denied-log-fixture") {
-            @Override
-            public Collection<MessageQueue> fetchMessageQueues(final String topic) throws MQClientException {
-                throw new MQClientException(ResponseCode.NO_PERMISSION, "access denied");
-            }
-        };
-
-        MQClientException exception = assertThrows(MQClientException.class, () -> DividePluginCases.awaitRequestLog(consumer, "/current-request"));
-        assertEquals(ResponseCode.NO_PERMISSION, exception.getResponseCode());
-    }
-
-    @Test
-    void waitsForTopicCreationAndRejectsUnrelatedLogs() {
+    void preparesConsumerBeforeWaitingAndRejectsUnrelatedLogs() throws MQClientException {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicInteger polls = new AtomicInteger();
         AtomicInteger seeks = new AtomicInteger();
@@ -57,10 +52,8 @@ class RocketMQLogConsumptionTest {
         String endpoint = "/http/order/findById?id=23&e2e=current-request";
         DefaultLitePullConsumer consumer = new DefaultLitePullConsumer("log-fixture") {
             @Override
-            public Collection<MessageQueue> fetchMessageQueues(final String topic) throws MQClientException {
-                if (discoveries.incrementAndGet() == 1) {
-                    throw new MQClientException("topic route pending", new MQClientException(ResponseCode.TOPIC_NOT_EXIST, "topic is not published yet"));
-                }
+            public Collection<MessageQueue> fetchMessageQueues(final String topic) {
+                discoveries.incrementAndGet();
                 return List.of(queue);
             }
 
@@ -85,10 +78,57 @@ class RocketMQLogConsumptionTest {
             }
         };
 
+        DividePluginCases.prepareConsumer(consumer);
+        assertEquals(1, seeks.get());
         DividePluginCases.awaitRequestLog(consumer, endpoint);
 
-        assertEquals(2, discoveries.get());
+        assertEquals(1, discoveries.get());
         assertEquals(1, seeks.get());
         assertEquals(2, polls.get());
+    }
+
+    @Test
+    void createsTopicAfterBrokerRegistrationAndWaitsForItsRoute() throws Exception {
+        QueueData queue = new QueueData();
+        queue.setReadQueueNums(1);
+        queue.setWriteQueueNums(1);
+        TopicRouteData route = new TopicRouteData();
+        route.setQueueDatas(List.of(queue));
+        AtomicInteger registrations = new AtomicInteger();
+        AtomicInteger routes = new AtomicInteger();
+        AtomicBoolean created = new AtomicBoolean();
+        DefaultMQAdminExt admin = new DefaultMQAdminExt() {
+            @Override
+            public ClusterInfo examineBrokerClusterInfo() {
+                ClusterInfo info = new ClusterInfo();
+                info.setBrokerAddrTable(new HashMap<>());
+                if (registrations.incrementAndGet() > 1) {
+                    info.getBrokerAddrTable().put("broker", new BrokerData("DefaultCluster", "broker", new HashMap<>(Map.of(0L, "localhost:10911"))));
+                }
+                return info;
+            }
+
+            @Override
+            public void createAndUpdateTopicConfig(final String address, final TopicConfig config) {
+                assertTrue(registrations.get() > 1);
+                assertEquals("localhost:10911", address);
+                assertEquals("shenyu-access-logging", config.getTopicName());
+                created.set(true);
+            }
+
+            @Override
+            public TopicRouteData examineTopicRouteInfo(final String topic) throws MQClientException {
+                assertTrue(created.get());
+                if (routes.incrementAndGet() == 1) {
+                    throw new MQClientException(ResponseCode.TOPIC_NOT_EXIST, "route has not been published");
+                }
+                return route;
+            }
+        };
+
+        DividePluginCases.prepareTopic(admin);
+
+        assertEquals(2, registrations.get());
+        assertEquals(2, routes.get());
     }
 }

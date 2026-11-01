@@ -380,6 +380,16 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
     }
 
     /**
+     * Checks whether an SSE session is currently active.
+     *
+     * @param sessionId the session identifier
+     * @return true when the session exists
+     */
+    public boolean hasSession(final String sessionId) {
+        return Objects.nonNull(sessionId) && sessions.containsKey(sessionId);
+    }
+
+    /**
      * Creates a direct message handling result for writing to exchange response.
      * This bypasses the ServerResponse wrapper for direct response writing.
      *

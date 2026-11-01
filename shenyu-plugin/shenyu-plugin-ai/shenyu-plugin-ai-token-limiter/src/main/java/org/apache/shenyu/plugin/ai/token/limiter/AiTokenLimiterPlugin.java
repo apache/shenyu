@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -54,7 +54,7 @@ import reactor.util.annotation.NonNull;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,7 +71,26 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
     private static final String REDIS_KEY_PREFIX = "SHENYU:AI:TOKENLIMIT:";
 
-    private static final Pattern COMPLETION_TOKENS_PATTERN = Pattern.compile("\"completion_tokens\"\\s*:\\s*(\\d+)");
+    private static final RedisScript<Long> TOKEN_USAGE_SCRIPT = RedisScript.of(
+            "local ttl = redis.call('PTTL', KEYS[1])\n"
+                    + "if ttl == -2 then\n"
+                    + "  redis.call('SET', KEYS[1], '0', 'EX', ARGV[2])\n"
+                    + "elseif ttl == -1 then\n"
+                    + "  redis.call('EXPIRE', KEYS[1], ARGV[2])\n"
+                    + "end\n"
+                    + "return redis.call('INCRBY', KEYS[1], ARGV[1])", Long.class);
+
+    /**
+     * The envelope of an OpenAI Responses terminal event, which carries the usage of a response. Kept local because a
+     * bare {@code response} name in the shared {@link Constants} would read as an HTTP response.
+     */
+    private static final String RESPONSES_EVENT_OBJECT = "response";
+
+    /**
+     * Output tokens of the Chat and Responses protocols. The leading quote keeps {@code max_output_tokens}, a request
+     * echo, from being read as an accounted count.
+     */
+    private static final Pattern OUTPUT_TOKENS_PATTERN = Pattern.compile("\"(?:completion|output)_tokens\"\\s*:\\s*(\\d+)");
 
     private static final Pattern SSE_LINE_PATTERN = Pattern.compile("\\r?\\n");
 
@@ -100,7 +119,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 tokens -> recordTokensUsage(reactiveRedisTemplate,
                         cacheKey,
                         tokens,
-                        timeWindowSeconds));
+                        timeWindowSeconds).subscribe(unused -> { }, error -> LOG.error("Failed to record AI token usage", error)));
 
         // check if the request is allowed
         return isAllowed(reactiveRedisTemplate, cacheKey, tokenLimit)
@@ -171,19 +190,13 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return StringUtils.isBlank(key) ? "" : key;
     }
 
-    private void recordTokensUsage(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
-        // The counter is given its window when it is created: re-issuing the expiration after every increment would
-        // push the window forward, so a sustained traffic would never reset the token budget. An existing counter
-        // keeps the window it was created with; only one without any expiration (written by an earlier version or
-        // by another path) is given one, and just once.
-        final Duration window = Duration.ofSeconds(windowSeconds);
-        final ReactiveValueOperations<String, String> valueOperations = reactiveRedisTemplate.opsForValue();
-        valueOperations.setIfAbsent(cacheKey, "0", window)
-                .flatMap(created -> created ? Mono.just(Boolean.TRUE) : reactiveRedisTemplate.getExpire(cacheKey)
-                        .filter(timeToLive -> timeToLive.isNegative() || timeToLive.isZero())
-                        .flatMap(timeToLive -> reactiveRedisTemplate.expire(cacheKey, window)))
-                .then(valueOperations.increment(cacheKey, tokens))
-                .subscribe();
+    Mono<Long> recordTokensUsage(final ReactiveRedisTemplate<String, String> reactiveRedisTemplate, final String cacheKey, final Long tokens, final Long windowSeconds) {
+        if (windowSeconds <= 0) {
+            return Mono.error(new IllegalArgumentException("AI token accounting window must be positive"));
+        }
+        // Redis executes increment and expiry repair atomically. A live fixed window, including PTTL == 0,
+        // keeps its deadline; a new or legacy persistent counter receives an expiry in the same operation.
+        return reactiveRedisTemplate.execute(TOKEN_USAGE_SCRIPT, List.of(cacheKey), List.of(tokens.toString(), windowSeconds.toString())).single();
     }
 
     @Override
@@ -294,10 +307,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 }
                 try {
                     JsonNode node = MAPPER.readTree(payload);
-                    JsonNode usage = node.get(Constants.USAGE);
-                    if (Objects.nonNull(usage) && usage.has(Constants.COMPLETION_TOKENS)) {
-                        long c = usage.get(Constants.COMPLETION_TOKENS).asLong();
-                        tokensRecorder.accept(c);
+                    JsonNode usage = usageOf(node);
+                    JsonNode outputTokens = Objects.isNull(usage) ? null : outputTokensOf(usage);
+                    if (Objects.nonNull(outputTokens)) {
+                        tokensRecorder.accept(outputTokens.asLong());
                         streamingUsageRecorded.set(true);
                     }
                 } catch (Exception e) {
@@ -307,11 +320,42 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             writer.write(ByteBuffer.wrap(processedBytes));
         }
 
+        /**
+         * Locate the usage object of a payload: Chat payloads carry it at the root, while a Responses terminal event
+         * carries it inside its {@code response} object.
+         *
+         * @param node parsed payload of a stream event or a complete body
+         * @return the usage object, or null when the payload reports none
+         */
+        private JsonNode usageOf(final JsonNode node) {
+            JsonNode usage = node.get(Constants.USAGE);
+            if (Objects.isNull(usage)) {
+                // Chat never uses a top-level "response" field, so the fallback cannot shadow a Chat payload.
+                JsonNode responsesEvent = node.get(RESPONSES_EVENT_OBJECT);
+                usage = Objects.isNull(responsesEvent) ? null : responsesEvent.get(Constants.USAGE);
+            }
+            return Objects.nonNull(usage) && usage.isObject() ? usage : null;
+        }
+
+        /**
+         * Read the output tokens of a usage object under either protocol's field name.
+         *
+         * @param usage usage object of a Chat or Responses payload
+         * @return the reported output tokens, or null when the object has neither field
+         */
+        private JsonNode outputTokensOf(final JsonNode usage) {
+            if (usage.has(Constants.COMPLETION_TOKENS)) {
+                return usage.get(Constants.COMPLETION_TOKENS);
+            }
+            return usage.has(Constants.OUTPUT_TOKENS) ? usage.get(Constants.OUTPUT_TOKENS) : null;
+        }
+
         private long extractUsageTokensFromSse(final String sse) {
-            Matcher m = COMPLETION_TOKENS_PATTERN.matcher(sse);
+            // The usage of a body is reported once, at its end, so the last match of either field is the count.
+            Matcher matcher = OUTPUT_TOKENS_PATTERN.matcher(sse);
             long last = 0L;
-            while (m.find()) {
-                last = Long.parseLong(m.group(1));
+            while (matcher.find()) {
+                last = Long.parseLong(matcher.group(1));
             }
             return last;
         }

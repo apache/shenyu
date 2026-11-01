@@ -28,6 +28,7 @@ enum Status {
 message Address {
   string street = 1;
   string city = 2;
+  repeated string tags = 3;
 }
 
 message TestRequest {
