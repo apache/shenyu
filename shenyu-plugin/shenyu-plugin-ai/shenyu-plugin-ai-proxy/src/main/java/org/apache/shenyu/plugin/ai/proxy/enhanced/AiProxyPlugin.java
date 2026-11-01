@@ -97,7 +97,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector)
+            return executeRequest(exchange, selector, rule)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doFinally(signal -> {
@@ -110,7 +110,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -126,7 +126,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             } else {
                 realApiKey = null;
             }
-            AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
+            AiCommonConfig config = AiProxyConfigService.applyRuleOverrides(aiProxyConfigService.resolvePrimaryConfig(handle),
+                    aiProxyPluginHandler.getRuleOverrides(selector.getId(), rule.getId()));
             if (Objects.nonNull(realApiKey)) {
                 config.setApiKey(realApiKey);
             }

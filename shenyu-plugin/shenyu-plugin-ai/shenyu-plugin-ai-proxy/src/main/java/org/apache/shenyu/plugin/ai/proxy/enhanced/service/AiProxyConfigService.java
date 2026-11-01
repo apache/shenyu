@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyRuleOverrides;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
@@ -76,6 +77,39 @@ public class AiProxyConfigService {
             handleConfig.setRequestBodyOverrides(handle.getRequestBodyOverrides());
             handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
             primaryConfig.mergeWith(handleConfig);
+        }
+        return primaryConfig;
+    }
+
+    /**
+     * Preserve custom resolution of Plugin/Selector defaults before applying Rule fields.
+     * @param handle Selector defaults
+     * @param rule published Rule generation values
+     * @return effective configuration
+     */
+    public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle, final AiProxyRuleOverrides rule) {
+        return applyRuleOverrides(resolvePrimaryConfig(handle), rule);
+    }
+
+    /**
+     * Apply opt-in fields to a request-owned copy; legacy/custom resolvers keep their original entry point.
+     * @param resolved effective Plugin/Selector configuration
+     * @param rule immutable Rule values, or null from a legacy embedding
+     * @return unchanged legacy value when inactive, otherwise a request-owned copy
+     */
+    public static AiCommonConfig applyRuleOverrides(final AiCommonConfig resolved, final AiProxyRuleOverrides rule) {
+        if (Objects.isNull(rule) || rule.specified().isEmpty()) {
+            return resolved;
+        }
+        final AiCommonConfig primaryConfig = new AiCommonConfig(resolved);
+        for (AiProxyRuleOverrides.Setting setting : rule.specified()) {
+            switch (setting) {
+                case MODEL -> primaryConfig.setModel(rule.model());
+                case TEMPERATURE -> primaryConfig.setTemperature(rule.temperature());
+                case MAX_TOKENS -> primaryConfig.setMaxTokens(rule.maxTokens());
+                case STREAM -> primaryConfig.setStream(rule.stream());
+                default -> throw new IllegalStateException("Unsupported Rule generation setting");
+            }
         }
         return primaryConfig;
     }

@@ -75,6 +75,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -127,6 +129,78 @@ class AiProxyPluginTest {
         assertEquals("primary-model", forwarded.get("model").asText());
         assertEquals(42, forwarded.get("unknown").asInt());
         assertEquals("Hello", forwarded.get("messages").get(0).get("content").asText());
+    }
+
+    @Test
+    void ruleGenerationDefaultsAreAppliedThroughTheRealPluginAndEngine() throws Exception {
+        rule.setId("rule-generation");
+        rule.setSelectorId(SELECTOR_ID);
+        rule.setHandle("{\"generationOverrides\":{\"model\":\"rule-model\",\"temperature\":0.25,\"maxTokens\":12}}");
+        handler.handlerRule(rule);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(
+                "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"model\":\"client-model\",\"temperature\":1.5,\"max_tokens\":99}"));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "{}"))))).verifyComplete();
+        JsonNode outgoing = new ObjectMapper().readTree(requests.get(0).getBody());
+        assertEquals("rule-model", outgoing.get("model").asText());
+        assertEquals(0.25, outgoing.get("temperature").asDouble());
+        assertEquals(12, outgoing.get("max_completion_tokens").asInt());
+        assertEquals(List.of("Bearer primary-key"), requests.get(0).getHeaders().get("Authorization"));
+        assertEquals("primary-model", handle.getModel(), "cached Selector config is not request-owned");
+        assertEquals("rule-model", handler.getRuleOverrides(SELECTOR_ID, rule.getId()).model());
+    }
+
+    @Test
+    void ruleClearingRestoresRequestValuesAndExplicitClientGenerationFieldsStillWin() throws Exception {
+        rule.setId("rule-generation");
+        rule.setSelectorId(SELECTOR_ID);
+        rule.setHandle("{\"generationOverrides\":{\"model\":null,\"temperature\":null,\"maxTokens\":null,\"stream\":true}}");
+        handler.handlerRule(rule);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(
+                "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"model\":\"request-model\",\"temperature\":1.5,\"max_tokens\":99,\"stream\":false}"));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "{}"))))).verifyComplete();
+        JsonNode outgoing = new ObjectMapper().readTree(requests.get(0).getBody());
+        assertEquals("request-model", outgoing.get("model").asText());
+        assertEquals(1.5, outgoing.get("temperature").asDouble());
+        assertEquals(99, outgoing.get("max_completion_tokens").asInt());
+        assertFalse(outgoing.get("stream").asBoolean());
+    }
+
+    @Test
+    void ruleStreamDefaultIsUsedOnlyWhenClientOmitsItAndCanBeExplicitlyCleared() throws Exception {
+        handle.setStream(true);
+        rule.setId("rule-generation");
+        rule.setSelectorId(SELECTOR_ID);
+        rule.setHandle("{\"generationOverrides\":{\"stream\":true}}");
+        handler.handlerRule(rule);
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "data: [DONE]\n\n"))))).verifyComplete();
+        assertTrue(new ObjectMapper().readTree(requests.get(0).getBody()).get("stream").asBoolean());
+        rule.setHandle("{\"generationOverrides\":{\"stream\":null}}");
+        handler.handlerRule(rule);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(REQUEST_BODY));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "{}"))))).verifyComplete();
+        assertFalse(new ObjectMapper().readTree(requests.get(1).getBody()).path("stream").asBoolean());
+    }
+
+    @Test
+    void invalidRuleUpdatesRetainPriorStateAndRemovalCannotAffectAnotherSelector() {
+        rule.setId("rule-generation");
+        rule.setSelectorId(SELECTOR_ID);
+        rule.setHandle("{\"generationOverrides\":{\"model\":\"rule-model\"}}");
+        handler.handlerRule(rule);
+        var previous = handler.getRuleOverrides(SELECTOR_ID, rule.getId());
+        rule.setHandle("{\"generationOverrides\":{\"apiKey\":\"FAKE_SECRET\"}}");
+        assertThrows(IllegalArgumentException.class, () -> handler.handlerRule(rule));
+        assertSame(previous, handler.getRuleOverrides(SELECTOR_ID, rule.getId()));
+        assertTrue(handler.getRuleOverrides("another-selector", rule.getId()).specified().isEmpty());
+        handler.removeRule(rule);
+        assertTrue(handler.getRuleOverrides(SELECTOR_ID, rule.getId()).specified().isEmpty());
+        rule.setHandle("{\"generationOverrides\":{\"model\":\"new-model\"}}");
+        handler.handlerRule(rule);
+        handler.removeSelector(selector);
+        assertTrue(handler.getRuleOverrides(SELECTOR_ID, rule.getId()).specified().isEmpty());
+        handler.handlerRule(rule);
+        handler.removePlugin(new org.apache.shenyu.common.dto.PluginData());
+        assertTrue(handler.getRuleOverrides(SELECTOR_ID, rule.getId()).specified().isEmpty());
     }
 
     @ParameterizedTest
