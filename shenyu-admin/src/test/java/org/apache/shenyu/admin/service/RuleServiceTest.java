@@ -435,6 +435,10 @@ public final class RuleServiceTest {
     @MethodSource("rewriteFixtures")
     public void testRewriteFixtureAtWriteBoundaries(final String name, final boolean accepted, final String source, final String operation) {
         mockRewritePlugin();
+        exerciseRuleWriteFixture(accepted, source, operation);
+    }
+
+    private ShenyuAdminException exerciseRuleWriteFixture(final boolean accepted, final String source, final String operation) {
         RuleDTO candidate = buildRuleDTO("update".equals(operation) ? "123" : "");
         candidate.setHandle(source);
         given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
@@ -447,15 +451,18 @@ public final class RuleServiceTest {
             } else {
                 assertEquals(1, ruleService.createOrUpdate(candidate));
             }
+            return null;
         } else {
+            ShenyuAdminException error;
             if ("import".equals(operation)) {
-                assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(candidate)));
+                error = assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(candidate)));
             } else {
-                assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(candidate));
+                error = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(candidate));
             }
             verify(ruleMapper, never()).insertSelective(any());
             verify(ruleMapper, never()).updateSelective(any());
             verifyNoInteractions(ruleEventPublisher);
+            return error;
         }
     }
 
