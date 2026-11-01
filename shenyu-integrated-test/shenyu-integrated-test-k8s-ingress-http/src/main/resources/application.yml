@@ -78,13 +78,13 @@ management:
 
 shenyu:
   selectorMatchCache:
-    ## selector L1 cache
+    ## selector match cache
     cache:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
   ruleMatchCache:
-    ## rule L1 cache
+    ## rule match cache
     cache:
       enabled: true
       initialCapacity: 10000 # initial capacity in cache

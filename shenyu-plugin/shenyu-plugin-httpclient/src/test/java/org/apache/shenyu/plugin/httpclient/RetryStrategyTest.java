@@ -43,6 +43,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.test.scheduler.VirtualTimeScheduler;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -50,9 +51,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -192,6 +198,91 @@ public class RetryStrategyTest {
         ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
         verify(plugin).doRequest(eq(exchange), eq("GET"), uriCaptor.capture(), any());
         assertEquals(URI.create(standby.buildDomain() + "/test?mode=retry"), uriCaptor.getValue());
+    }
+
+    @Test
+    void testFailoverReleasesP2cInflightOnMultiCandidateRetry() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "p2c");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7975-multi");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standbyA = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        Upstream standbyB = Upstream.builder().protocol("http://").url("localhost:8082").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7975-multi")).thenReturn(Arrays.asList(failed, standbyA, standbyB));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
+        final long baselineA = standbyA.getInflight().get();
+        final long baselineB = standbyB.getInflight().get();
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // Two candidates remain after exclusion, so failover takes P2C's doSelect path and increments the
+        // picked standby. The retry completion cleanup must release that increment, otherwise repeated
+        // failovers inflate inflight on retry destinations and distort later load estimates. See #7975.
+        assertEquals(baselineA, standbyA.getInflight().get());
+        assertEquals(baselineB, standbyB.getInflight().get());
+    }
+
+    @Test
+    void testFailoverReleasesP2cInflightOnSingletonRetry() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "p2c");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7975-single");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream onlyStandby = Upstream.builder().protocol("http://").url("localhost:8083").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7975-single")).thenReturn(Arrays.asList(failed, onlyStandby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
+        final long baseline = onlyStandby.getInflight().get();
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // Only one candidate remains after exclusion, so P2C selection is short-circuited; the singleton
+        // increment paired by #7974 must still be released here, keeping inflight at its baseline instead
+        // of leaking on every singleton failover. See #7975.
+        assertEquals(baseline, onlyStandby.getInflight().get());
+    }
+
+    @Test
+    void testFailoverReservesAndReleasesLeastActiveAccounting() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
+        Upstream failed = Upstream.builder().url("localhost:8080").build();
+        Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        AtomicLong inflightDuringResend = new AtomicLong();
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.defer(() -> {
+            inflightDuringResend.set(standby.getInflight().get());
+            return Mono.just("success");
+        }));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                    exchange, Duration.ofSeconds(5), 2))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        // the attempt is counted while it runs and released once it terminates
+        assertEquals(2, inflightDuringResend.get());
+        assertEquals(1, standby.getInflight().get());
     }
 
     @Test
@@ -351,9 +442,9 @@ public class RetryStrategyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void testFixedFailoverWaitsBeforeSendingToStandby(final boolean serverError) {
-        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.GET, 1);
+    @CsvSource({"fixed, false", "fixed, true", "exponential, false", "exponential, true"})
+    void testBackoffFailoverWaitsBeforeSendingToStandby(final String type, final boolean serverError) {
+        ServerWebExchange exchange = createBackoffFailoverExchange(type, HttpMethod.GET, 1);
         URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
         URI standbyUri = URI.create("http://localhost:8081/test?mode=retry");
         Throwable failure = serverError ? new ShenyuUpstreamStatusException(503) : new ConnectException("connection refused");
@@ -362,39 +453,47 @@ public class RetryStrategyTest {
                 uri -> primaryUri.equals(uri) ? Mono.error(failure) : Mono.just("success"));
         Upstream standby = Upstream.builder().url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("fixed-failover")).thenReturn(Collections.singletonList(standby));
+        when(cacheManager.findUpstreamListBySelectorId(type + "-failover")).thenReturn(Collections.singletonList(standby));
 
         try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
             cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
             StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
-                    .thenAwait(Duration.ofMillis(1999))
+                    .thenAwait(Duration.ofMillis("fixed".equals(type) ? 1999 : 499))
                     .then(() -> {
                         assertEquals(Collections.singletonList(primaryUri), attempts);
                         verifyNoInteractions(cacheManager);
                     })
-                    .thenAwait(Duration.ofMillis(1))
+                    .thenAwait(Duration.ofMillis("fixed".equals(type) ? 1 : 251))
                     .verifyComplete();
         }
         assertEquals(Arrays.asList(primaryUri, standbyUri), attempts);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"POST", "GET"})
-    void testFixedFailoverPreservesRetryEligibility(final String method) {
-        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.valueOf(method), 1);
-        Throwable failure = "POST".equals(method) ? new ConnectException("connection refused") : new IllegalArgumentException("permanent failure");
+    @CsvSource({"fixed, POST, false", "fixed, PUT, true", "fixed, GET, false",
+        "exponential, POST, false", "exponential, POST, true", "exponential, PUT, false", "exponential, PUT, true", "exponential, GET, false"})
+    void testBackoffFailoverPreservesRetryEligibility(final String type, final String method, final boolean serverError) {
+        ServerWebExchange exchange = createBackoffFailoverExchange(type, HttpMethod.valueOf(method), 1);
+        Throwable failure = "GET".equals(method) ? new IllegalArgumentException("permanent failure")
+                : serverError ? new ShenyuUpstreamStatusException(503) : new ConnectException("connection refused");
         List<URI> attempts = new ArrayList<>();
         AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> Mono.error(failure));
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
 
-        StepVerifier.create(plugin.execute(exchange, ignored -> Mono.empty()))
-                .expectErrorMatches(error -> error == failure)
-                .verify();
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(plugin.execute(exchange, ignored -> Mono.empty()))
+                    .expectErrorMatches(error -> error == failure)
+                    .verify();
+        }
         assertEquals(Collections.singletonList(exchange.getAttribute(Constants.HTTP_URI)), attempts);
+        verifyNoInteractions(cacheManager);
     }
 
-    @Test
-    void testFixedFailoverRetriesAcrossDistinctUpstreams() {
-        ServerWebExchange exchange = createFixedFailoverExchange(HttpMethod.GET, 2);
+    @ParameterizedTest
+    @ValueSource(strings = {"fixed", "exponential"})
+    void testBackoffFailoverRetriesAcrossDistinctUpstreams(final String type) {
+        ServerWebExchange exchange = createBackoffFailoverExchange(type, HttpMethod.GET, 2);
         URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
         URI standbyUri = URI.create("http://localhost:8081/test?mode=retry");
         URI healthyUri = URI.create("http://localhost:8082/test?mode=retry");
@@ -406,7 +505,7 @@ public class RetryStrategyTest {
         Upstream standby = Upstream.builder().url("localhost:8081").build();
         Upstream healthy = Upstream.builder().url("localhost:8082").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("fixed-failover"))
+        when(cacheManager.findUpstreamListBySelectorId(type + "-failover"))
                 .thenReturn(Arrays.asList(primary, standby), Arrays.asList(primary, standby, healthy));
 
         try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
@@ -415,19 +514,169 @@ public class RetryStrategyTest {
                     .thenAwait(Duration.ofSeconds(4))
                     .verifyComplete();
         } finally {
-            UpstreamCircuitBreaker.getInstance().reset(UpstreamCircuitBreaker.buildKey("fixed-failover", standby));
+            UpstreamCircuitBreaker.getInstance().reset(UpstreamCircuitBreaker.buildKey(type + "-failover", standby));
         }
         assertEquals(Arrays.asList(primaryUri, standbyUri, healthyUri), attempts);
     }
 
-    private ServerWebExchange createFixedFailoverExchange(final HttpMethod method, final int retryTimes) {
+    @Test
+    void testExponentialFailoverPreservesBackoffAndLastFailureWhenRetriesAreExhausted() {
+        ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 6);
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "exponential-exhausted");
+        URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
+        List<URI> attempts = new ArrayList<>();
+        List<Long> attemptTimes = new ArrayList<>();
+        ShenyuUpstreamStatusException primaryFailure = new ShenyuUpstreamStatusException(503);
+        ConnectException failure = new ConnectException("last upstream failed");
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> {
+            attemptTimes.add(VirtualTimeScheduler.get().now(TimeUnit.MILLISECONDS));
+            return Mono.error(primaryUri.equals(uri) ? primaryFailure : failure);
+        });
+        List<Upstream> upstreams = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            upstreams.add(Upstream.builder().url("localhost:" + (8080 + i)).build());
+        }
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("exponential-exhausted")).thenReturn(upstreams);
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                    .thenAwait(Duration.ofMinutes(1))
+                    .expectErrorMatches(error -> error == failure)
+                    .verify(Duration.ofSeconds(5));
+        } finally {
+            upstreams.forEach(upstream -> UpstreamCircuitBreaker.getInstance()
+                    .reset(UpstreamCircuitBreaker.buildKey("exponential-exhausted", upstream)));
+        }
+        assertEquals(primaryUri, attempts.get(0));
+        assertEquals(7, attempts.size());
+        assertEquals(7, new HashSet<>(attempts).size());
+        long[] minimumDelays = {500, 500, 1000, 2000, 2500, 2500};
+        long[] maximumDelays = {750, 1500, 3000, 5000, 5000, 5000};
+        for (int i = 0; i < minimumDelays.length; i++) {
+            long delay = attemptTimes.get(i + 1) - attemptTimes.get(i);
+            assertTrue(delay >= minimumDelays[i] && delay <= maximumDelays[i], "Unexpected retry delay: " + delay);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"missing", "empty", "current"})
+    void testExponentialFailoverWithNoStandby(final String topology) {
+        ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 3);
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> Mono.error(new ConnectException("connection refused")));
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        List<Upstream> upstreams = "missing".equals(topology) ? null : "empty".equals(topology)
+                ? Collections.emptyList() : Collections.singletonList(Upstream.builder().url("localhost:8080").build());
+        when(cacheManager.findUpstreamListBySelectorId("exponential-failover")).thenReturn(upstreams);
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                    .thenAwait(Duration.ofMinutes(1))
+                    .expectErrorSatisfies(this::assertFailoverExhausted)
+                    .verify();
+        }
+        assertEquals(Collections.singletonList(exchange.getAttribute(Constants.HTTP_URI)), attempts);
+        verify(cacheManager).findUpstreamListBySelectorId("exponential-failover");
+    }
+
+    @Test
+    void testExponentialFailoverCancellationDuringBackoffDoesNotSelectStandby() {
+        ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 1);
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> Mono.error(new ConnectException("connection refused")));
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                    .thenAwait(Duration.ofMillis(499))
+                    .thenCancel()
+                    .verify();
+        }
+        assertEquals(Collections.singletonList(exchange.getAttribute(Constants.HTTP_URI)), attempts);
+        verifyNoInteractions(cacheManager);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testExponentialFailoverCancelsStandbyAndReleasesAccounting(final boolean timeout) {
+        ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 1);
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "exponential-cancel");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, timeout ? 100L : 10000L);
+        URI primaryUri = exchange.getAttribute(Constants.HTTP_URI);
+        Upstream standby = Upstream.builder().url("localhost:8081").build();
+        long baseline = standby.getInflight().get();
+        AtomicBoolean cancelled = new AtomicBoolean();
+        List<URI> attempts = new ArrayList<>();
+        AbstractHttpClientPlugin<String> plugin = recordingPlugin(attempts, uri -> primaryUri.equals(uri)
+                ? Mono.error(new ConnectException("connection refused")) : Mono.<String>never().doOnCancel(() -> cancelled.set(true)));
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("exponential-cancel")).thenReturn(Collections.singletonList(standby));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            if (timeout) {
+                StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                        .thenAwait(Duration.ofSeconds(1))
+                        .expectErrorSatisfies(error -> assertEquals(HttpStatus.GATEWAY_TIMEOUT,
+                                assertInstanceOf(ResponseStatusException.class, error).getStatusCode()))
+                        .verify();
+            } else {
+                StepVerifier.withVirtualTime(() -> plugin.execute(exchange, ignored -> Mono.empty()))
+                        .thenAwait(Duration.ofSeconds(1))
+                        .then(() -> assertEquals(baseline + 1, standby.getInflight().get()))
+                        .thenCancel()
+                        .verify();
+            }
+        } finally {
+            UpstreamCircuitBreaker.getInstance().reset(UpstreamCircuitBreaker.buildKey("exponential-cancel", standby));
+        }
+        assertEquals(2, attempts.size());
+        assertTrue(cancelled.get());
+        assertEquals(baseline, standby.getInflight().get());
+    }
+
+    @Test
+    void testExponentialFailoverResetsStateForEachSubscription() {
+        ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 1);
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
+        AtomicInteger primaryAttempts = new AtomicInteger();
+        Mono<String> primary = Mono.defer(() -> {
+            primaryAttempts.incrementAndGet();
+            return Mono.error(new ConnectException("connection refused"));
+        });
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("exponential-failover"))
+                .thenReturn(Collections.singletonList(Upstream.builder().url("localhost:8081").build()));
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.withVirtualTime(() -> {
+                Mono<String> response = new ExponentialRetryBackoffStrategy<>(plugin).execute(primary, exchange, Duration.ofSeconds(10), 1);
+                return response.concatWith(response);
+            })
+                    .thenAwait(Duration.ofSeconds(2))
+                    .expectNext("success", "success")
+                    .verifyComplete();
+        }
+        assertEquals(2, primaryAttempts.get());
+        verify(plugin, times(2)).doRequest(eq(exchange), eq("GET"), eq(URI.create("http://localhost:8081/test?mode=retry")), any());
+    }
+
+    private ServerWebExchange createBackoffFailoverExchange(final String type, final HttpMethod method, final int retryTimes) {
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry")
                 .mutate().request(request -> request.method(method)).build();
         exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
-        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, "fixed");
+        exchange.getAttributes().put(Constants.HTTP_RETRY_BACK_OFF_SPEC, type);
         exchange.getAttributes().put(Constants.HTTP_RETRY, retryTimes);
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 10000L);
-        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "fixed-failover");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, type + "-failover");
         return exchange;
     }
 

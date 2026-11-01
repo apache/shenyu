@@ -64,6 +64,8 @@ public class ScaleService {
 
     private final Clock clock;
 
+    private boolean active;
+
     private AppliedTarget appliedTarget;
 
     @Autowired
@@ -91,11 +93,32 @@ public class ScaleService {
     }
 
     /**
+     * Activate scaling and reconcile the currently effective policy.
+     */
+    public synchronized void start() {
+        active = true;
+        executeScaling();
+    }
+
+    /**
+     * Deactivate scaling and cancel all scaling tasks.
+     */
+    public synchronized void stop() {
+        active = false;
+        stopDynamicTask();
+        cancelWindowTasks();
+        appliedTarget = null;
+    }
+
+    /**
      * Reconcile the currently effective scaling policy.
      *
      * <p>This method is synchronized because startup, HTTP request, and scheduler threads may invoke it.</p>
      */
     public synchronized void executeScaling() {
+        if (!active) {
+            return;
+        }
         cancelWindowTasks();
         Instant now = clock.instant();
         scheduleFutureWindowActivation(now);

@@ -24,9 +24,11 @@ import org.apache.shenyu.admin.scale.scaler.KubernetesScaler;
 import org.apache.shenyu.admin.scale.scaler.dynamic.ScaleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Component
 public class ScaleObserver implements Observer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScaleObserver.class);
@@ -44,8 +46,8 @@ public class ScaleObserver implements Observer {
     public void update(final MetricData metricData, final ScaleRuleDO rule) {
         try {
             ScaleAction action = ruleEvaluator.evaluate(metricData, rule);
-            if (Objects.nonNull(action)) {
-                kubernetesScaler.scaleByAction(action);
+            if (Objects.nonNull(action) && !kubernetesScaler.scaleByAction(action)) {
+                LOG.warn("scale action {} was not applied to the deployment", action.getActionType());
             }
         } catch (Exception e) {
             LOG.error("update observer error. cause: {} ", e.getMessage());

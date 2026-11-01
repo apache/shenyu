@@ -104,6 +104,8 @@ public class UpstreamCheckService {
 
     private final boolean checked;
 
+    private final boolean localMode;
+
     private final Integer scheduledThreads;
 
     private final SelectorMapper selectorMapper;
@@ -151,6 +153,7 @@ public class UpstreamCheckService {
         this.discoveryUpstreamService = discoveryUpstreamService;
         Properties props = shenyuRegisterCenterConfig.getProps();
         this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
+        this.localMode = parseProbeMode(props.getProperty(Constants.PROBE_MODE, Constants.DEFAULT_PROBE_MODE_VALUE));
         this.scheduledThreads = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_THREADS, Constants.ZOMBIE_CHECK_THREADS_VALUE));
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
@@ -158,19 +161,45 @@ public class UpstreamCheckService {
         zombieRemovalTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_REMOVAL_TIMES, Constants.ZOMBIE_REMOVAL_TIMES_VALUE));
     }
 
+    private static boolean parseProbeMode(final String probeMode) {
+        if (Constants.LOCAL_PROBE_MODE_VALUE.equalsIgnoreCase(probeMode)) {
+            return true;
+        }
+        if (!Constants.DEFAULT_PROBE_MODE_VALUE.equalsIgnoreCase(probeMode)) {
+            LOG.warn("unknown probe mode [{}], fallback to [{}]", probeMode, Constants.DEFAULT_PROBE_MODE_VALUE);
+        }
+        return false;
+    }
+
+    /**
+     * Whether the local probe mode is enabled. In local mode the admin never gates
+     * registration nor removes upstreams based on its own reachability probes;
+     * bootstrap-local health checking decides routing eligibility.
+     *
+     * @return true if the local probe mode is enabled
+     */
+    public boolean isLocalMode() {
+        return localMode;
+    }
+
     /**
      * Set up.
      */
     public void setup() {
-        if (REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) && checked) {
-            LOG.info("setup upstream check task");
-            this.fetchUpstreamData();
-            executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
-            scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
-
-            ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
-            invokeExecutor = new ScheduledThreadPoolExecutor(this.scheduledThreads, requestFactory);
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return;
         }
+        if (localMode) {
+            LOG.info("skip upstream check task in local probe mode, upstream reachability is observed by each bootstrap locally");
+            return;
+        }
+        LOG.info("setup upstream check task");
+        this.fetchUpstreamData();
+        executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+
+        ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
+        invokeExecutor = new ScheduledThreadPoolExecutor(this.scheduledThreads, requestFactory);
     }
 
     /**
@@ -213,7 +242,7 @@ public class UpstreamCheckService {
      * @param commonUpstream the common upstream
      */
     public void submit(final String selectorId, final CommonUpstream commonUpstream) {
-        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked || localMode) {
             return;
         }
 
@@ -222,7 +251,7 @@ public class UpstreamCheckService {
     }
 
     private List<CommonUpstream> submitJust(final String selectorId, final CommonUpstream commonUpstream) {
-        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+        if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked || localMode) {
             return null;
         }
 
@@ -262,6 +291,11 @@ public class UpstreamCheckService {
      */
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         if (!REGISTER_TYPE_HTTP.equalsIgnoreCase(registerType) || !checked) {
+            return false;
+        }
+        if (localMode) {
+            // Local probe mode: the admin never probes, never zombifies and never blocks
+            // registration on its own reachability view, so the caller proceeds normally.
             return false;
         }
         if (!commonUpstream.isHealthCheckEnabled()) {
@@ -309,6 +343,11 @@ public class UpstreamCheckService {
     }
 
     private void doCheck() {
+        if (localMode) {
+            // Defensive guard: the scheduled task is never created in local mode,
+            // and the executors it relies on may not exist.
+            return;
+        }
         // check zombie
         if (!ZOMBIE_SET.isEmpty()) {
             ZOMBIE_SET.forEach(this::checkZombie);
@@ -455,6 +494,15 @@ public class UpstreamCheckService {
     }
 
     private List<CommonUpstream> updateSelectorHandler(final String selectorId, final List<CommonUpstream> aliveList, final Set<String> checkedFailedUrls) {
+        if (localMode) {
+            // Local probe mode: every statement below reconciles admin probe results into
+            // persisted or routing state (db status, selector handle, selector/discovery events),
+            // so there is nothing else to do once probing is disabled. The probe pipeline
+            // entries are gated already, making this unreachable today; this guard keeps the
+            // write side safe against any future caller and returns the alive list unchanged
+            // for the caller's cache bookkeeping.
+            return aliveList;
+        }
         SelectorDO selectorDO = selectorMapper.selectById(selectorId);
         if (Objects.isNull(selectorDO)) {
             return aliveList;

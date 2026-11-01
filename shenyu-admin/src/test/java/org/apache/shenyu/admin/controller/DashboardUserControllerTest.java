@@ -203,6 +203,18 @@ public final class DashboardUserControllerTest {
     }
 
     @Test
+    public void revokeTokens() throws Exception {
+        final String url = "/dashboardUser/revoke/2";
+        given(dashboardUserService.revokeTokens("2")).willReturn(1);
+        mockMvc.perform(put(url))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.data", is(1)));
+        verify(dashboardUserService).revokeTokens("2");
+    }
+
+    @Test
     public void modifyPassword() throws Exception {
         final String url = "/dashboardUser/modify-password/2";
         UserInfo userInfo = UserInfo.builder().userId("2").userName("admin").build();
@@ -228,5 +240,45 @@ public final class DashboardUserControllerTest {
                 .andDo(print())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR)));
 
+    }
+
+    @Test
+    public void modifyPasswordRejectsAnotherUserId() throws Exception {
+        bindPrincipal("2", "admin");
+        final String url = "/dashboardUser/modify-password/3";
+        // the body is caller-controlled, so none of its user names may widen the target
+        for (final String bodyUserName : Lists.newArrayList("admin", null, "editor")) {
+            final DashboardUserModifyPasswordDTO request =
+                    new DashboardUserModifyPasswordDTO(null, bodyUserName, "ShenYu=#.123", "editorOldPassword");
+            mockMvc.perform(put(url)
+                            .content(GsonUtils.getInstance().toJson(request))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR)));
+        }
+        // denied before the target account is loaded or its old password verified
+        verify(dashboardUserService, never()).modifyPassword(any());
+    }
+
+    @Test
+    public void modifyPasswordTargetsTheAuthenticatedUserId() throws Exception {
+        bindPrincipal("2", "admin");
+        given(dashboardUserService.modifyPassword(any())).willReturn(1);
+        final DashboardUserModifyPasswordDTO request =
+                new DashboardUserModifyPasswordDTO(null, "editor", "ShenYu=#.123", "ShenYu=#.123");
+        mockMvc.perform(put("/dashboardUser/modify-password/2")
+                        .content(GsonUtils.getInstance().toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.data", is(1)));
+        verify(dashboardUserService).modifyPassword(argThat(dto -> "2".equals(dto.getId())));
+    }
+
+    private void bindPrincipal(final String userId, final String userName) {
+        final SimplePrincipalMap principalMap = new SimplePrincipalMap();
+        principalMap.put("real", UserInfo.builder().userId(userId).userName(userName).build());
+        ThreadContext.bind(new DefaultSecurityManager());
+        ThreadContext.bind(new Subject.Builder().principals(principalMap).buildSubject());
     }
 }

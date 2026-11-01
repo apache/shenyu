@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -59,6 +60,12 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
+        if (StringUtils.isBlank(ruleData.getHandle())) {
+            // a cleared (null or blank) handle must evict the cached rule and
+            // its flow/degrade enforcement, not crash or go stale (#7914)
+            removeRule(ruleData);
+            return;
+        }
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
         sentinelHandle.checkData();
         String key = CacheKeyUtils.INST.getKey(ruleData);

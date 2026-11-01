@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
@@ -131,7 +132,7 @@ public final class ConfigsImportDuplicateTest {
     public void testSelectorsDeduplicateAfterPluginRemapping(final boolean existing) {
         final SelectorServiceImpl service = new SelectorServiceImpl(selectorMapper, mock(SelectorConditionMapper.class), pluginMapper,
                 mock(ApplicationEventPublisher.class), discoveryMapper, mock(DiscoveryHandlerMapper.class), mock(DiscoveryRelMapper.class),
-                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class));
+                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getPluginTemplateIdMapping().put("source", "target");
         context.getPluginTemplateIdMapping().put("alias", "target");
@@ -160,7 +161,8 @@ public final class ConfigsImportDuplicateTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     public void testRulesDeduplicateAfterSelectorRemapping(final boolean existing) {
-        final RuleServiceImpl service = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class), selectorMapper, pluginMapper, mock(RuleEventPublisher.class));
+        final RuleServiceImpl service = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class), selectorMapper, pluginMapper,
+                mock(RuleEventPublisher.class), dictMapper, mock(DataPermissionChecker.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getSelectorIdMapping().put("source", "target");
         context.getSelectorIdMapping().put("alias", "target");
@@ -203,7 +205,8 @@ public final class ConfigsImportDuplicateTest {
     @ValueSource(booleans = {false, true})
     public void testAuthDeduplicatesAppKeysAndChildRows(final boolean existing) {
         final AuthPathMapper pathMapper = mock(AuthPathMapper.class);
-        final AppAuthServiceImpl service = new AppAuthServiceImpl(appAuthMapper, mock(ApplicationEventPublisher.class), mock(AuthParamMapper.class), pathMapper);
+        final AppAuthServiceImpl service = new AppAuthServiceImpl(appAuthMapper,
+                mock(ApplicationEventPublisher.class), mock(AuthParamMapper.class), pathMapper, mock(AppAuthRequestMapper.class));
         when(appAuthMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(existing
                 ? Collections.singletonList(AppAuthDO.builder().appKey("same").build()) : Collections.emptyList());
         when(appAuthMapper.insertSelective(any())).thenReturn(1);

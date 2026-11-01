@@ -24,7 +24,7 @@ proposes transferring its registry, data-sync, Admin listener and gateway starte
 [plugin-store](https://github.com/apache/shenyu-plugin-store), extending [#7306](https://github.com/apache/shenyu/issues/7306).
 The separate deprecation PR publishes the advance notice and this guide while
 retaining all four modules for that release. No removal release has been selected.
-The separate removal PR is a draft and must not be merged in that deprecation release.
+The separate removal PR can be reviewed in advance and must not be merged in that deprecation release.
 
 | Stage | Required action |
 | --- | --- |

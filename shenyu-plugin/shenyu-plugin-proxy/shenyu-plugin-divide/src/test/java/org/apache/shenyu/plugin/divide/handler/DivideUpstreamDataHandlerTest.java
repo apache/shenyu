@@ -272,6 +272,64 @@ public class DivideUpstreamDataHandlerTest {
         assertEquals(17, original.getSucceeded().get());
     }
 
+    @Test
+    public void testLegacyGrayPolicyAndLiveFlagUpdates() {
+        DiscoveryUpstreamData gray = instance("gray:8080", "{\"gray\":true}");
+        DiscoveryUpstreamData ordinary = instance("ordinary:8080", "{}");
+        publish(List.of(gray, ordinary));
+        UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        assertEquals(List.of("gray:8080"), manager.findUpstreamListBySelectorId("handler").stream().map(Upstream::getUrl).toList());
+        assertEquals(2, manager.findAllUpstreamListBySelectorId("handler").size());
+        Upstream cached = manager.findUpstreamListBySelectorId("handler").get(0);
+        cached.getSucceeded().set(17);
+        gray.setProps("{}");
+        ordinary.setProps("{\"gray\":true}");
+        publish(List.of(gray, ordinary));
+        assertEquals(List.of("ordinary:8080"), manager.findUpstreamListBySelectorId("handler").stream().map(Upstream::getUrl).toList());
+        assertFalse(cached.isGray());
+        assertEquals(17, cached.getSucceeded().get());
+        ordinary.setProps("{}");
+        publish(List.of(gray, ordinary));
+        assertEquals(2, manager.findUpstreamListBySelectorId("handler").size());
+    }
+
+    @Test
+    public void testUnhealthyGrayDoesNotFallBackAndRemovalClearsGrayPolicy() {
+        DiscoveryUpstreamData gray = instance("gray:8080", "{\"gray\":true}");
+        gray.setStatus(1);
+        DiscoveryUpstreamData ordinary = instance("ordinary:8080", "{}");
+        publish(List.of(gray, ordinary));
+        UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        assertTrue(manager.findUpstreamListBySelectorId("handler").isEmpty());
+        assertEquals(List.of("ordinary:8080"), manager.findAllUpstreamListBySelectorId("handler").stream().map(Upstream::getUrl).toList());
+        publish(List.of());
+        assertNull(manager.findAllUpstreamListBySelectorId("handler"));
+        publish(List.of(ordinary));
+        assertEquals(1, manager.findUpstreamListBySelectorId("handler").size());
+    }
+
+    @Test
+    public void testDrainingUpstreamIsNotSelectable() {
+        publish(List.of(instance("sibling:8080", "{}"), instance("draining:8080", "{\"draining\":true}")));
+        List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, upstreams.size());
+        assertEquals("sibling:8080", upstreams.get(0).getUrl());
+        // draining travels through props into the loadbalancer entity, not through status
+        publish(List.of(instance("sibling:8080", "{}"), instance("draining:8080", "{}")));
+        assertEquals(2, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
+    }
+
+    @Test
+    public void testNotReadyUpstreamIsNotSelectable() {
+        publish(List.of(instance("sibling:8080", "{}"), instance("starting:8080", "{\"notReady\":true}")));
+        List<Upstream> upstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
+        assertEquals(1, upstreams.size());
+        assertEquals("sibling:8080", upstreams.get(0).getUrl());
+        // readiness travels through props into the loadbalancer entity, not through status
+        publish(List.of(instance("sibling:8080", "{}"), instance("starting:8080", "{}")));
+        assertEquals(2, UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").size());
+    }
+
     private DiscoveryUpstreamData instance(final String url, final String props) {
         return DiscoveryUpstreamData.builder().protocol("http://").url(url).status(0).props(props).build();
     }

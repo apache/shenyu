@@ -55,6 +55,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,6 +85,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -92,6 +94,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -152,6 +155,9 @@ public final class SelectorServiceTest {
     @Mock
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
+    @Mock
+    private DataPermissionChecker dataPermissionChecker;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
@@ -166,7 +172,7 @@ public final class SelectorServiceTest {
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
-                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher);
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, dataPermissionChecker);
     }
 
     @Test
@@ -281,6 +287,7 @@ public final class SelectorServiceTest {
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
+        given(this.selectorMapper.selectNamespaceIdById(eq("123"))).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         given(this.selectorMapper.selectById(eq("123"))).willReturn(selectorDO);
         SelectorVO selectorVO = this.selectorService.findById("123");
         assertNotNull(selectorDO);
@@ -288,6 +295,26 @@ public final class SelectorServiceTest {
 
         List<SelectorConditionVO> selectorConditions = selectorVO.getSelectorConditions();
         selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
+    }
+
+    @Test
+    public void testFindByIdReturnsNullForUnknownIdentifier() {
+        given(this.selectorMapper.selectNamespaceIdById("missing")).willReturn(null);
+        assertNull(this.selectorService.findById("missing"));
+        verifyNoInteractions(dataPermissionChecker, selectorConditionMapper);
+        verify(this.selectorMapper, never()).selectById("missing");
+    }
+
+    @Test
+    public void testFindByIdDeniedDoesNotReadSelectorConfiguration() {
+        given(this.selectorMapper.selectNamespaceIdById("denied")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
+        doThrow(new UnauthorizedException("denied")).when(dataPermissionChecker)
+                .requireSelectorReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
+
+        assertThrows(UnauthorizedException.class, () -> this.selectorService.findById("denied"));
+        verify(dataPermissionChecker).requireSelectorReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
+        verifyNoInteractions(selectorConditionMapper);
+        verify(this.selectorMapper, never()).selectById("denied");
     }
 
     @Test
@@ -332,7 +359,7 @@ public final class SelectorServiceTest {
         publishEvent();
 
         // Test the situation where the selector cannot be found based on the contextPath.
-        given(pluginMapper.selectByName("test")).willReturn(buildPluginDO());
+        given(pluginMapper.selectByNameForUpdate("test")).willReturn(buildPluginDO());
         assertNotNull(selectorService.registerDefault(buildMetaDataRegisterDTO(), "test", ""));
     }
 
