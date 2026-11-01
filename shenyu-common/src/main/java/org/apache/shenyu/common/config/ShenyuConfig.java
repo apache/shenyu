@@ -525,7 +525,9 @@ public class ShenyuConfig {
      * The type Ext plugin.
      */
     public static class ExtPlugin {
-        
+
+        private PluginArchiveLimits archiveLimits = new PluginArchiveLimits();
+
         private String path;
         
         private boolean enabled;
@@ -535,7 +537,23 @@ public class ShenyuConfig {
         private Integer scheduleTime = 300;
     
         private Integer scheduleDelay = 30;
-    
+
+        /**
+         * Get gateway loading budgets for both extension sources.
+         * @return archive limits
+         */
+        public PluginArchiveLimits getArchiveLimits() {
+            return archiveLimits;
+        }
+
+        /**
+         * Set gateway loading budgets.
+         * @param archiveLimits non-null archive limits
+         */
+        public void setArchiveLimits(final PluginArchiveLimits archiveLimits) {
+            this.archiveLimits = Objects.requireNonNull(archiveLimits, "archiveLimits");
+        }
+
         /**
          * Gets path.
          *
