@@ -56,10 +56,6 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.shenyu</groupId>
-                    <artifactId>shenyu-registry-etcd</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.shenyu</groupId>
                     <artifactId>shenyu-registry-nacos</artifactId>
                 </exclusion>
                 <exclusion>
