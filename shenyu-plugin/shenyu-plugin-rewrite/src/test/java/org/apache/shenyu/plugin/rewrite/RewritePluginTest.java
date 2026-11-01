@@ -41,9 +41,11 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -136,6 +138,47 @@ public final class RewritePluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
         assertEquals("/new/{id}", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void shouldNotThrowWhenReplacementReferencesMissingGroup() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$1\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertNull(exchange.getAttributes().get(Constants.REWRITE_URI));
+        verify(chain).execute(exchange);
+    }
+
+    @Test
+    public void shouldNotThrowWhenReplacementContainsBareDollar() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"test\",\"replace\":\"/v1/$$\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertNull(exchange.getAttributes().get(Constants.REWRITE_URI));
+        verify(chain).execute(exchange);
+    }
+
+    @Test
+    public void shouldNotThrowWhenPathVariableRequestIsShorterThanPattern() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"regex\":\"/shenyu/{id}\",\"replace\":\"/target/{id}\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        final ServerWebExchange shortExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/a").build());
+        shortExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+        when(chain.execute(shortExchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(shortExchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertNull(shortExchange.getAttributes().get(Constants.REWRITE_URI));
+        verify(chain).execute(shortExchange);
     }
 
     @Test

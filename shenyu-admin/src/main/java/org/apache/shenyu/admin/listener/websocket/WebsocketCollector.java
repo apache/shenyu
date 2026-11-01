@@ -53,6 +53,7 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +66,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * The type Websocket data changed listener.
@@ -322,7 +324,16 @@ public class WebsocketCollector {
         if (StringUtils.isBlank(namespaceId)) {
             throw new ShenyuException("namespaceId can not be null");
         }
-        LOG.info("websocket send message to namespaceId: {}, message: {}", namespaceId, maskSensitive(message));
+        if (LOG.isInfoEnabled()) {
+            // Log bounded delivery metadata instead of reparsing, redacting and re-serializing the whole
+            // payload on the publisher thread. The group/eventType/item count are already logged by the
+            // publisher (WebsocketDataChangedListener); the full redacted payload stays opt-in at DEBUG.
+            LOG.info("websocket send message to namespaceId: {}, eventType: {}, size: {} chars",
+                    namespaceId, type, message.length());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("websocket send message to namespaceId: {}, payload: {}", namespaceId, maskSensitive(message));
+        }
         if (DataEventTypeEnum.MYSELF == type) {
             Session session = (Session) ThreadLocalUtils.get(SESSION_KEY);
             if (Objects.nonNull(session)) {
@@ -348,6 +359,42 @@ public class WebsocketCollector {
         
     }
     
+    /**
+     * Deliver the Discovery representation accepted by each connection. Serialize each
+     * required variant at most once, without constructing an unused variant.
+     *
+     * @param namespaceId namespace identity
+     * @param legacyMessage full Discovery message
+     * @param compactMessage compact-v1 Discovery message
+     * @param type event type
+     */
+    public static void sendDiscovery(final String namespaceId, final Supplier<String> legacyMessage,
+                                     final Supplier<String> compactMessage, final DataEventTypeEnum type) {
+        if (StringUtils.isBlank(namespaceId)) {
+            throw new ShenyuException("namespaceId can not be null");
+        }
+        List<Session> recipients;
+        if (DataEventTypeEnum.MYSELF == type) {
+            Session target = (Session) ThreadLocalUtils.get(SESSION_KEY);
+            recipients = Objects.isNull(target) ? Collections.emptyList() : Collections.singletonList(target);
+        } else {
+            recipients = new ArrayList<>(NAMESPACE_SESSION_MAP.getOrDefault(namespaceId, Collections.emptySet()));
+        }
+        Map<Boolean, String> messages = Maps.newHashMap();
+        for (Session recipient : recipients) {
+            if (!recipient.isOpen()) {
+                removeSessionIndexes(recipient);
+                continue;
+            }
+            if (!namespaceId.equals(getNamespaceId(recipient))) {
+                continue;
+            }
+            boolean compact = Boolean.TRUE.equals(recipient.getUserProperties().get(Constants.X_SHENYU_DISCOVERY_PAYLOAD));
+            String message = messages.computeIfAbsent(compact, key -> key ? compactMessage.get() : legacyMessage.get());
+            sendMessageBySession(recipient, message);
+        }
+    }
+
     private void reportInstanceInfo(final String message, final Session session) {
         JsonObject infoMap;
         try {

@@ -75,6 +75,8 @@ jobs:
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
         run: bash shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-storage/compose/script/compose-script-test.sh
+      - name: Test E2E artifact reruns
+        run: node --test .github/scripts/retest-test.mjs
       - uses: ./actions/paths-filter
         id: filter
         with:
@@ -180,21 +182,6 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-      - name: Install mvnd
-        shell: bash
-        run: |
-          MVND_VERSION=1.0.6
-          curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-          unzip -q mvnd.zip
-          mkdir -p $HOME/.local
-          mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-          echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-          echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-
-      - name: Verify mvnd installation
-        shell: bash
-        run: mvnd --version || echo "mvnd version check failed, will use maven wrapper as fallback"
-
       - name: Build with Maven
         shell: bash
         run: |
@@ -206,13 +193,7 @@ jobs:
             MODULE_ARGS="-pl ${{ needs.changes.outputs.modules }} -am"
           fi
 
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build"
-            exec bash .github/scripts/maven-with-retry.sh mvnd ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
-          else
-            echo "Falling back to maven wrapper"
-            exec bash .github/scripts/maven-with-retry.sh ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
-          fi
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw ${MAVEN_ARGS} ${MODULE_ARGS} test ${TEST_ARGS}
 
   build_local_repo:
     needs: changes
@@ -366,7 +347,7 @@ jobs:
         with:
           submodules: true
       - name: Check License Header
-        uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
+        uses: apache/skywalking-eyes@a196742f472feaffafea537ce5a2a4c3c53a8de4 # v0.9.0; supports REM headers in Windows batch files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.wasm.api.loader;
 
 import com.dylibso.chicory.compiler.MachineFactoryCompiler;
 import com.dylibso.chicory.runtime.ExportFunction;
+import com.dylibso.chicory.runtime.ByteBufferMemory;
 import com.dylibso.chicory.runtime.HostFunction;
 import com.dylibso.chicory.runtime.ImportValues;
 import com.dylibso.chicory.runtime.Instance;
@@ -28,6 +29,8 @@ import com.dylibso.chicory.runtime.Store;
 import com.dylibso.chicory.wasm.Parser;
 import com.dylibso.chicory.wasm.WasmModule;
 import com.dylibso.chicory.wasm.types.FunctionType;
+import com.dylibso.chicory.wasm.types.MemoryLimits;
+import com.dylibso.chicory.wasm.types.ExternalType;
 import com.dylibso.chicory.wasm.types.ValType;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmException;
 import org.apache.shenyu.plugin.wasm.api.exception.ShenyuWasmInitException;
@@ -41,8 +44,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -96,6 +108,22 @@ public class WasmLoader implements AutoCloseable {
 
     private final int poolSize;
 
+    private final WasmExecutionLimits limits;
+
+    private final ThreadPoolExecutor executionExecutor;
+
+    private final Set<FutureTask<?>> activeTasks = ConcurrentHashMap.newKeySet();
+
+    private final ThreadLocal<AtomicBoolean> cancellation = new ThreadLocal<>();
+
+    private final Set<Instance> poisonedInstances = ConcurrentHashMap.newKeySet();
+
+    private WasmModule module;
+
+    private ImportValues importValues;
+
+    private Function<Instance, Machine> instanceMachineFactory;
+
     public WasmLoader() {
         this(null, null);
     }
@@ -131,6 +159,13 @@ public class WasmLoader implements AutoCloseable {
     public WasmLoader(final Class<?> wasmClass, final Consumer<Store> initializer, final int poolSize) {
         final Class<?> clazz = Objects.nonNull(wasmClass) ? wasmClass : this.getClass();
         this.wasmName = clazz.getName() + ".wasm";
+        this.limits = WasmExecutionLimits.fromSystemProperties(clazz);
+        this.executionExecutor = limits.getTimeoutMillis() > 0 || limits.getInitializationTimeoutMillis() > 0
+                ? new ThreadPoolExecutor(Math.max(1, poolSize), Math.max(1, poolSize), 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(Math.max(1, poolSize)), task -> {
+                    Thread worker = new Thread(task, "shenyu-wasm-" + clazz.getSimpleName());
+                    worker.setDaemon(true);
+                    return worker;
+                }) : null;
         try {
             // locate `.wasm` lib.
             URL resource = clazz.getClassLoader().getResource(wasmName);
@@ -163,34 +198,44 @@ public class WasmLoader implements AutoCloseable {
             try (var in = resource.openStream()) {
                 wasmBytes = in.readAllBytes();
             }
-            WasmModule module = Parser.parse(wasmBytes);
+            this.module = Parser.parse(wasmBytes);
+            if (limits.getMaxMemoryPages() > 0 && (module.importSection().count(ExternalType.MEMORY) > 0
+                    || module.memorySection().map(section -> section.memoryCount() > 1).orElse(false))) {
+                throw new ShenyuWasmInitException("A configured memory budget permits at most one module-owned memory");
+            }
 
-            final ImportValues importValues = store.toImportValues();
+            this.importValues = store.toImportValues();
             // Try the runtime compiler (factory shared by all pooled instances);
             // fall back to the interpreter if compilation or first instantiation fails.
             Function<Instance, Machine> machineFactory;
             Instance firstInstance;
             try {
-                machineFactory = compileMachineFactory(module);
+                machineFactory = runLimited(() -> compileMachineFactory(module), limits.getInitializationTimeoutMillis());
+                final Function<Instance, Machine> compiledFactory = machineFactory;
                 if (Objects.isNull(machineFactory)) {
-                    firstInstance = createInstance(module, importValues, null);
+                    firstInstance = runLimited(() -> createInstance(module, importValues, null), limits.getInitializationTimeoutMillis());
                     LOG.debug("Using interpreter for {}", wasmName);
                 } else {
-                    firstInstance = createInstance(module, importValues, machineFactory);
+                    firstInstance = runLimited(() -> createInstance(module, importValues, compiledFactory), limits.getInitializationTimeoutMillis());
                     LOG.debug("Using runtime compiler for {}", wasmName);
                 }
             } catch (LinkageError | RuntimeException compilerError) {
+                if (compilerError instanceof ShenyuWasmException) {
+                    throw compilerError;
+                }
                 LOG.warn("Runtime compiler unavailable, falling back to interpreter for {}: {}",
                         wasmName, compilerError.getMessage());
                 machineFactory = null;
-                firstInstance = createInstance(module, importValues, null);
+                firstInstance = runLimited(() -> createInstance(module, importValues, null), limits.getInitializationTimeoutMillis());
             }
+
+            this.instanceMachineFactory = machineFactory;
 
             final int size = Math.max(1, poolSize);
             final List<Instance> instances = new ArrayList<>(size);
             instances.add(firstInstance);
             for (int i = 1; i < size; i++) {
-                instances.add(createInstance(module, importValues, machineFactory));
+                instances.add(runLimited(() -> createInstance(module, importValues, instanceMachineFactory), limits.getInitializationTimeoutMillis()));
             }
             this.poolSize = size;
             this.primary = firstInstance;
@@ -198,12 +243,20 @@ public class WasmLoader implements AutoCloseable {
             // guest initialization runs after the execution mode is fixed,
             // so its failures are not retried as compiler failures
             for (Instance instance : instances) {
-                initialize(instance);
+                runLimited(() -> {
+                    initialize(instance);
+                    return null;
+                }, limits.getInitializationTimeoutMillis());
                 freeInstances.offer(instance);
             }
             this.ready = true;
         } catch (IOException e) {
+            close();
             throw new ShenyuWasmInitException(e);
+        } finally {
+            if (!ready) {
+                close();
+            }
         }
     }
 
@@ -223,14 +276,19 @@ public class WasmLoader implements AutoCloseable {
         Instance.Builder builder = Instance.builder(module)
                 .withImportValues(importValues)
                 .withStart(false);
+        if (limits.getMaxMemoryPages() > 0) {
+            builder.withMemoryFactory(declared -> {
+                int maximum = Math.min(declared.maximumPages(), limits.getMaxMemoryPages());
+                if (declared.initialPages() > maximum || declared.shared()) {
+                    throw new ShenyuWasmInitException("WASM initial/shared memory is incompatible with the configured memory budget");
+                }
+                return new ByteBufferMemory(new MemoryLimits(declared.initialPages(), maximum));
+            });
+        }
         if (Objects.nonNull(machineFactory)) {
             builder = builder.withMachineFactory(machineFactory);
         }
-        Instance instance = builder.build();
-        if (Objects.isNull(instance.memory())) {
-            throw new ShenyuWasmInitException("memory not available in wasm file: " + wasmName);
-        }
-        return instance;
+        return builder.build();
     }
 
     private void initialize(final Instance instance) {
@@ -384,7 +442,7 @@ public class WasmLoader implements AutoCloseable {
      */
     private Optional<ExportFunction> findWasmExtern(final String funcName) {
         if (findExport(primary, funcName).isPresent()) {
-            return Optional.of(args -> executeOnPool(funcName, args));
+            return Optional.of(args -> runLimited(() -> executeOnPool(funcName, args), limits.getTimeoutMillis()));
         }
         LOG.debug("WASM export function '{}' not found in {}", funcName, wasmName);
         return Optional.empty();
@@ -403,7 +461,22 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private long[] executeOnPool(final String funcName, final long[] args) {
-        final Instance lease = acquire(funcName);
+        Instance acquired = acquire(funcName);
+        if (poisonedInstances.contains(acquired)) {
+            boolean replaced = false;
+            try {
+                Instance replacement = createInstance(module, importValues, instanceMachineFactory);
+                initialize(replacement);
+                poisonedInstances.remove(acquired);
+                acquired = replacement;
+                replaced = true;
+            } finally {
+                if (!replaced) {
+                    release(acquired);
+                }
+            }
+        }
+        final Instance lease = acquired;
         Throwable failure = null;
         try {
             return executeBound(lease, lease.export(funcName), args);
@@ -412,6 +485,10 @@ public class WasmLoader implements AutoCloseable {
             failure = t;
             throw t;
         } finally {
+            AtomicBoolean cancelled = cancellation.get();
+            if (Objects.nonNull(cancelled) && (Objects.nonNull(failure) || cancelled.get() || Thread.currentThread().isInterrupted())) {
+                poisonedInstances.add(lease);
+            }
             try {
                 release(lease);
             } catch (final RuntimeException e) {
@@ -447,6 +524,9 @@ public class WasmLoader implements AutoCloseable {
     }
 
     private Instance acquire(final String funcName) {
+        if (closed.get()) {
+            throw new ShenyuWasmException("WASM loader is closed: " + wasmName);
+        }
         if (!ready) {
             // reached only from a host callback during construction (e.g. a nested
             // export call from _initialize): no initialized instance is free yet,
@@ -497,7 +577,7 @@ public class WasmLoader implements AutoCloseable {
      * memory, so there is no safe fallback and unbound callers fail fast.
      *
      * @return the WASM linear memory of the currently executing instance
-     * @throws IllegalStateException when no instance is executing on this thread
+     * @throws IllegalStateException when no instance is executing on this thread or the module has no memory
      */
     public Memory getMemory() {
         final Instance current = bindings.get().peek();
@@ -506,7 +586,11 @@ public class WasmLoader implements AutoCloseable {
                     "getMemory() called outside an exported call or host callback of " + wasmName
                             + "; pooled instances have per-instance memory");
         }
-        return current.memory();
+        Memory memory = current.memory();
+        if (Objects.isNull(memory)) {
+            throw new IllegalStateException("memory not available in wasm file: " + wasmName);
+        }
+        return memory;
     }
 
     /**
@@ -530,11 +614,73 @@ public class WasmLoader implements AutoCloseable {
     @Override
     public void close() {
         if (this.closed.compareAndSet(false, true)) {
-            // Chicory is a pure-Java runtime — Instance, Store, and WasmModule
-            // do not hold native resources and are managed by the JVM GC.
-            // No explicit cleanup is required. Add cleanup logic here if
-            // the underlying WASM runtime changes in the future.
+            activeTasks.forEach(task -> task.cancel(true));
+            if (Objects.nonNull(executionExecutor)) {
+                executionExecutor.shutdownNow();
+            }
+            // Guest execution is cooperative: interruption-ignoring host calls retain their
+            // bounded worker until physical exit. Never replace those threads on timeout.
             return;
+        }
+    }
+
+    /**
+     * Whether request execution should be offloaded from the reactive caller.
+     * @return true when an export deadline is configured
+     */
+    public boolean hasExecutionDeadline() {
+        return limits.getTimeoutMillis() > 0;
+    }
+
+    private <T> T runLimited(final Callable<T> task, final long timeoutMillis) {
+        if (closed.get()) {
+            throw new ShenyuWasmException("WASM loader is closed: " + wasmName);
+        }
+        if (timeoutMillis == 0 || Objects.nonNull(cancellation.get())) {
+            try {
+                return task.call();
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new ShenyuWasmException(e);
+            }
+        }
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        FutureTask<T> future = new FutureTask<>(() -> {
+            cancellation.set(cancelled);
+            try {
+                return task.call();
+            } finally {
+                cancellation.remove();
+            }
+        });
+        activeTasks.add(future);
+        try {
+            executionExecutor.execute(future);
+            return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            cancelled.set(true);
+            future.cancel(true);
+            executionExecutor.remove(future);
+            throw new ShenyuWasmException("WASM execution timed out after " + timeoutMillis + "ms: " + wasmName, e);
+        } catch (InterruptedException e) {
+            cancelled.set(true);
+            future.cancel(true);
+            executionExecutor.remove(future);
+            Thread.currentThread().interrupt();
+            throw new ShenyuWasmException("WASM execution interrupted: " + wasmName, e);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            }
+            if (e.getCause() instanceof Error) {
+                throw (Error) e.getCause();
+            }
+            throw new ShenyuWasmException(e.getCause());
+        } catch (RejectedExecutionException | CancellationException e) {
+            throw new ShenyuWasmException("WASM execution capacity exhausted or loader closed: " + wasmName, e);
+        } finally {
+            activeTasks.remove(future);
         }
     }
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,10 +27,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
@@ -40,6 +44,7 @@ import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
@@ -55,8 +60,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.util.context.ContextView;
 
 
 /**
@@ -65,6 +73,11 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractHttpClientPlugin.class);
+
+    /**
+     * Attribute key of the holder that owns the single request-body aggregation subscription.
+     */
+    private static final String CACHED_REQUEST_BODY_HOLDER = AbstractHttpClientPlugin.class.getName() + ".cachedRequestBodyHolder";
 
     /**
      * The propagator of the http protocol, null while tracing is not available.
@@ -88,20 +101,59 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         final Duration duration = Duration.ofMillis(timeout);
-        final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        // A probe must describe one attempt against its recovering target.
+        // Retrying it (including failover) could turn that target's failure into
+        // another target's success and incorrectly close the original breaker.
+        final int retryTimes = Boolean.TRUE.equals(exchange.getAttribute(UpstreamCircuitBreaker.HALF_OPEN_PROBE))
+                ? 0 : (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
         final String httpMethod = Objects.nonNull(exchange.getRequest().getMethod())
                 ? exchange.getRequest().getMethod().name() : "UNKNOWN";
         LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
-        final Flux<DataBuffer> requestBody = (retryTimes > 0 && isRequestBodyRequired(httpMethod))
+        final boolean cacheRequestBody = retryTimes > 0 && isRequestBodyRequired(httpMethod);
+        final Flux<DataBuffer> requestBody = cacheRequestBody
                 ? getCachedRequestBody(exchange)
                 : exchange.getRequest().getBody();
         final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
-        RetryStrategy<R> strategy;
-        String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC)).orElse(HttpRetryBackoffSpecEnum.getDefault());
-        HttpRetryBackoffSpecEnum spec = HttpRetryBackoffSpecEnum.acquireByName(retryStrategyType);
+        final Mono<R> retriedResponse = retryTimes <= 0
+                ? response
+                : executeWithRetry(response, exchange, duration, retryTimes);
+        final Mono<Void> result = retriedResponse
+                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
+                .onErrorMap(AbstractHttpClientPlugin::mapUpstreamTimeout)
+                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
+                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+        // The aggregation subscription intentionally outlives individual retry attempts: a timed out
+        // attempt must not discard the body that a later retry still needs. It is disposed when the
+        // logical request terminates, which also releases the buffers accumulated so far.
+        return cacheRequestBody ? result.doFinally(signalType -> disposeCachedRequestBody(exchange)) : result;
+    }
+
+    private static Throwable mapUpstreamTimeout(final Throwable throwable) {
+        for (Throwable cause : ExceptionUtils.getThrowableList(throwable)) {
+            // Retry strategies may already have assigned a status such as 408 or 503.
+            if (cause instanceof ResponseStatusException) {
+                return throwable;
+            }
+            if (cause instanceof TimeoutException || cause instanceof SocketTimeoutException
+                    || cause instanceof io.netty.channel.ConnectTimeoutException
+                    || cause instanceof io.netty.handler.timeout.TimeoutException) {
+                return new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
+                        StringUtils.defaultIfBlank(cause.getMessage(), "Upstream request timed out"), throwable);
+            }
+        }
+        return throwable;
+    }
+
+    private Mono<R> executeWithRetry(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
+        final RetryStrategy<R> strategy;
+        final String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC))
+                .orElse(HttpRetryBackoffSpecEnum.getDefault());
+        final HttpRetryBackoffSpecEnum spec = HttpRetryBackoffSpecEnum.acquireByName(retryStrategyType);
         switch (spec) {
             case EXPONENTIAL_BACKOFF:
                 strategy = new ExponentialRetryBackoffStrategy<>(this);
@@ -112,14 +164,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             default:
                 strategy = new DefaultRetryStrategy<>(this);
         }
-        Mono<R> retriedResponse = strategy.execute(response, exchange, duration, retryTimes);
-        return retriedResponse
-                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
-                .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
-                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                        "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
-                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+        return strategy.execute(response, exchange, duration, retryTimes);
     }
 
     /**
@@ -183,6 +228,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      *
      * <p>Idempotent: the cached Flux is stored in exchange attributes so that both
      * CURRENT (retryWhen) and FAILOVER (resend) paths share the same replayable instance.
+     * The aggregation subscription itself is owned by a holder which can be disposed when the
+     * logical request terminates, so that a cancelled request does not keep pooled buffers.
      *
      * @param exchange the server web exchange
      * @return a replayable Flux of DataBuffer
@@ -193,26 +240,28 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             return cached;
         }
         final int joinLimit = (int) Math.min(maxInMemorySize, Integer.MAX_VALUE);
-        cached = DataBufferUtils.join(exchange.getRequest().getBody(), joinLimit)
-                .map(dataBuffer -> {
-                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                    dataBuffer.read(bytes);
-                    DataBufferUtils.release(dataBuffer);
-                    return bytes;
-                })
-                .defaultIfEmpty(new byte[0])
-                .cache()
-                .flatMapMany(bytes -> Flux.defer(() -> {
-                    if (bytes.length == 0) {
-                        return Flux.empty();
-                    }
-                    // ServerHttpRequest has no bufferFactory() API in Spring; the response's
-                    // factory shares the same allocator, and NettyHttpClientPlugin.doRequest
-                    // requires NettyDataBuffer from it.
-                    return Flux.just(exchange.getResponse().bufferFactory().wrap(bytes));
-                }));
+        final CachedRequestBody cachedRequestBody = new CachedRequestBody(
+                DataBufferUtils.join(exchange.getRequest().getBody(), joinLimit)
+                        .map(AbstractHttpClientPlugin::readBytes)
+                        .defaultIfEmpty(new byte[0]));
+        cached = cachedRequestBody.asFlux(exchange);
         exchange.getAttributes().put(Constants.CACHED_REQUEST_BODY, cached);
+        exchange.getAttributes().put(CACHED_REQUEST_BODY_HOLDER, cachedRequestBody);
         return cached;
+    }
+
+    private static void disposeCachedRequestBody(final ServerWebExchange exchange) {
+        final CachedRequestBody cachedRequestBody = exchange.getAttribute(CACHED_REQUEST_BODY_HOLDER);
+        if (Objects.nonNull(cachedRequestBody)) {
+            cachedRequestBody.dispose();
+        }
+    }
+
+    private static byte[] readBytes(final DataBuffer dataBuffer) {
+        byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        DataBufferUtils.release(dataBuffer);
+        return bytes;
     }
 
 
@@ -269,6 +318,66 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + strategy);
+        }
+    }
+
+    /**
+     * Aggregates the request body once and replays the aggregated bytes to every retry.
+     *
+     * <p>Cancelling one subscriber only stops that replay; {@link #dispose()} cancels the
+     * aggregation subscription itself, which releases the pooled buffers accumulated by
+     * {@link DataBufferUtils#join}.
+     */
+    private static final class CachedRequestBody {
+
+        private final Mono<byte[]> aggregation;
+
+        private final Sinks.One<byte[]> body = Sinks.one();
+
+        private final AtomicReference<Disposable> subscription = new AtomicReference<>();
+
+        private final AtomicBoolean started = new AtomicBoolean();
+
+        private final AtomicBoolean disposed = new AtomicBoolean();
+
+        CachedRequestBody(final Mono<byte[]> aggregation) {
+            this.aggregation = aggregation;
+        }
+
+        Flux<DataBuffer> asFlux(final ServerWebExchange exchange) {
+            return Mono.deferContextual(contextView -> {
+                start(contextView);
+                return body.asMono();
+            }).flatMapMany(bytes -> {
+                if (bytes.length == 0) {
+                    return Flux.empty();
+                }
+                // ServerHttpRequest has no bufferFactory() API in Spring; the response's
+                // factory shares the same allocator, and NettyHttpClientPlugin.doRequest
+                // requires NettyDataBuffer from it.
+                return Flux.just(exchange.getResponse().bufferFactory().wrap(bytes));
+            });
+        }
+
+        void dispose() {
+            if (disposed.compareAndSet(false, true)) {
+                final Disposable current = subscription.get();
+                if (Objects.nonNull(current)) {
+                    current.dispose();
+                }
+            }
+        }
+
+        private void start(final ContextView contextView) {
+            if (!started.compareAndSet(false, true)) {
+                return;
+            }
+            final Disposable current = aggregation.contextWrite(contextView)
+                    .subscribe(body::tryEmitValue, body::tryEmitError);
+            subscription.set(current);
+            if (disposed.get()) {
+                current.dispose();
+            }
         }
     }
 }

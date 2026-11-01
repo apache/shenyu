@@ -109,10 +109,10 @@ public class LocalPluginController {
         final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
         final List<String> selectorIds = newSelectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
-        // remove selector and rule l1 cache
+        // remove selector and rule match cache
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
-        // remove rule trie cache
+        // remove rule data of the plugin's selectors
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }
@@ -412,8 +412,8 @@ public class LocalPluginController {
         if (Objects.isNull(ruleData.getEnabled())) {
             ruleData.setEnabled(true);
         }
-        if (Objects.isNull(ruleData.getLoged())) {
-            ruleData.setLoged(false);
+        if (Objects.isNull(ruleData.getLogged())) {
+            ruleData.setLogged(false);
         }
         if (Objects.isNull(ruleData.getMatchRestful())) {
             ruleData.setMatchRestful(false);

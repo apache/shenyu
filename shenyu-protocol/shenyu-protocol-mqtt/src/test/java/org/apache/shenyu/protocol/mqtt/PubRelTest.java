@@ -17,18 +17,23 @@
 
 package org.apache.shenyu.protocol.mqtt;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.protocol.mqtt.repositories.ChannelRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for PubRel.
@@ -38,6 +43,12 @@ public class PubRelTest {
     private static final int PACKET_ID = 12345;
 
     private final ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
+
+    @BeforeEach
+    public void setUp() {
+        Singleton.INST.single(ChannelRepository.class, new ChannelRepository());
+        when(ctx.channel()).thenReturn(mock(Channel.class));
+    }
 
     @Test
     public void testPubRelRespondsWithPubComp() {
@@ -51,5 +62,19 @@ public class PubRelTest {
         assertEquals(MqttMessageType.PUBCOMP, pubComp.fixedHeader().messageType());
         assertEquals(MqttQoS.AT_MOST_ONCE, pubComp.fixedHeader().qosLevel());
         assertEquals(PACKET_ID, ((MqttMessageIdVariableHeader) pubComp.variableHeader()).messageId());
+    }
+
+    /**
+     * A PUBREL for an unknown packet id is still answered with PUBCOMP (#7919).
+     */
+    @Test
+    public void testPubRelForUnknownPacketIdStillRespondsWithPubComp() {
+        MqttFixedHeader pubRelFixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0);
+        MqttMessage pubRel = new MqttMessage(pubRelFixedHeader, MqttMessageIdVariableHeader.from(PACKET_ID));
+        new PubRel().pubRel(ctx, pubRel);
+
+        ArgumentCaptor<MqttMessage> captor = ArgumentCaptor.forClass(MqttMessage.class);
+        verify(ctx).writeAndFlush(captor.capture());
+        assertEquals(MqttMessageType.PUBCOMP, captor.getValue().fixedHeader().messageType());
     }
 }

@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +40,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -72,6 +74,24 @@ public final class UpstreamCheckTask implements Runnable {
     private int healthyThreshold = 1;
 
     private int unhealthyThreshold = 1;
+
+    private volatile long lastRoundDurationMillis;
+
+    private volatile int lastRoundSubmittedChecks;
+
+    private volatile int lastRoundPendingChecks;
+
+    private volatile long lastRoundMaxEndpointLatencyMillis;
+
+    private volatile long lastRoundOldestHealthStateMillis;
+
+    private volatile long lastRoundCompletedAtMillis;
+
+    private final AtomicLong totalRounds = new AtomicLong();
+
+    private final AtomicLong totalSubmittedChecks = new AtomicLong();
+
+    private final AtomicLong totalEndpointLatencyMillis = new AtomicLong();
     
     /**
      * Instantiates a new Upstream check task.
@@ -156,6 +176,12 @@ public final class UpstreamCheckTask implements Runnable {
     }
 
     private void healthCheck() {
+        final long startNanos = System.nanoTime();
+        // Per-round scratch counters. maxEndpointLatencyMillis is mutated by the async probe
+        // tasks running on the executor, so it stays an AtomicLong captured by the lambdas.
+        final AtomicLong maxEndpointLatencyMillis = new AtomicLong();
+        int submitted = 0;
+        int pendingAtWait = 0;
         try {
             /*
              * If there is no synchronized. when check is done and all upstream check result is in the futures list.
@@ -163,34 +189,108 @@ public final class UpstreamCheckTask implements Runnable {
              */
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
-                    doHealthCheck();
-                    waitFinish();
+                    try {
+                        submitted = doHealthCheck(maxEndpointLatencyMillis);
+                        pendingAtWait = countPendingFutures();
+                        waitFinish();
+                    } finally {
+                        // A round aborted between submit and wait (for example an executor rejection)
+                        // must not leak its futures into the next round, where they would be awaited
+                        // and applied a second time.
+                        futures.clear();
+                    }
                 }
             }
         } catch (Exception e) {
             LOG.error("[Health Check] Meet problem: ", e);
         } finally {
             finishHealthCheck();
+            recordRoundMetrics(startNanos, submitted, pendingAtWait, maxEndpointLatencyMillis.get());
         }
     }
 
-    private void doHealthCheck() {
-        check(healthyUpstream);
-        check(unhealthyUpstream);
+    private int countPendingFutures() {
+        int pending = 0;
+        for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
+            if (!future.isDone()) {
+                pending++;
+            }
+        }
+        return pending;
     }
 
-    private void check(final Map<String, List<Upstream>> map) {
+    private void recordRoundMetrics(final long startNanos, final int submitted, final int pendingAtWait,
+                                    final long maxEndpointLatencyMillis) {
+        final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+        final long oldestHealthStateMillis = computeOldestHealthStateMillis();
+        final long completedAtMillis = System.currentTimeMillis();
+        this.lastRoundDurationMillis = durationMillis;
+        this.lastRoundSubmittedChecks = submitted;
+        this.lastRoundPendingChecks = pendingAtWait;
+        this.lastRoundMaxEndpointLatencyMillis = maxEndpointLatencyMillis;
+        this.lastRoundOldestHealthStateMillis = oldestHealthStateMillis;
+        this.lastRoundCompletedAtMillis = completedAtMillis;
+        totalRounds.incrementAndGet();
+        totalSubmittedChecks.addAndGet(submitted);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("[Health Check] round summary: durationMs={}, submitted={}, pendingAtWait={}, "
+                            + "maxEndpointLatencyMs={}, oldestHealthStateMs={}, healthySelectors={}, unhealthySelectors={}",
+                    durationMillis, submitted, pendingAtWait, maxEndpointLatencyMillis, oldestHealthStateMillis,
+                    healthyUpstream.size(), unhealthyUpstream.size());
+        }
+    }
+
+    private long computeOldestHealthStateMillis() {
+        final long now = System.currentTimeMillis();
+        long oldest = 0L;
+        for (List<Upstream> bucket : healthyUpstream.values()) {
+            for (Upstream upstream : bucket) {
+                // Skip never-measured upstreams: lastHealthTimestamp defaults to 0 for entries that
+                // were registered but not probed yet, or whose health check is disabled while already
+                // healthy. Without this guard now - 0 would report an epoch-sized (since 1970) age and
+                // permanently dominate the metric.
+                final long timestamp = upstream.getLastHealthTimestamp();
+                if (timestamp > 0) {
+                    final long age = now - timestamp;
+                    if (age > oldest) {
+                        oldest = age;
+                    }
+                }
+            }
+        }
+        for (List<Upstream> bucket : unhealthyUpstream.values()) {
+            for (Upstream upstream : bucket) {
+                final long timestamp = upstream.getLastUnhealthyTimestamp();
+                if (timestamp > 0) {
+                    final long age = now - timestamp;
+                    if (age > oldest) {
+                        oldest = age;
+                    }
+                }
+            }
+        }
+        return oldest;
+    }
+
+    private int doHealthCheck(final AtomicLong maxEndpointLatencyMillis) {
+        return check(healthyUpstream, maxEndpointLatencyMillis) + check(unhealthyUpstream, maxEndpointLatencyMillis);
+    }
+
+    private int check(final Map<String, List<Upstream>> map, final AtomicLong maxEndpointLatencyMillis) {
+        int submitted = 0;
         for (Map.Entry<String, List<Upstream>> entry : map.entrySet()) {
             String key = entry.getKey();
             List<Upstream> value = entry.getValue();
             for (Upstream upstream : value) {
-                CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> check(key, upstream), executor);
-                futures.add(future);
+                futures.add(submitCheck(key, upstream, maxEndpointLatencyMillis));
+                submitted++;
             }
         }
+        return submitted;
     }
 
-    private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream) {
+    private UpstreamWithSelectorId check(final String selectorId, final Upstream upstream,
+                                         final AtomicLong maxEndpointLatencyMillis) {
         if (!upstream.isHealthCheckEnabled()) {
             if (!upstream.isHealthy()) {
                 upstream.setHealthy(true);
@@ -198,7 +298,22 @@ public final class UpstreamCheckTask implements Runnable {
             }
             return new UpstreamWithSelectorId(selectorId, upstream);
         }
-        boolean pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
+        final long probeStart = System.nanoTime();
+        boolean pass;
+        try {
+            pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
+        } catch (RuntimeException e) {
+            // An unparsable upstream URL throws from the probe instead of returning false. Treat it
+            // as a failed probe so this endpoint can still leave the healthy pool; otherwise it would
+            // keep being selected while never producing a result.
+            LOG.error("[Health Check] Selector [{}] upstream {} could not be probed.",
+                    selectorId, upstream.getUrl(), e);
+            pass = false;
+        } finally {
+            final long latencyMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - probeStart);
+            maxEndpointLatencyMillis.accumulateAndGet(latencyMillis, Math::max);
+            totalEndpointLatencyMillis.addAndGet(latencyMillis);
+        }
         if (pass) {
             if (upstream.isHealthy()) {
                 upstream.setLastHealthTimestamp(System.currentTimeMillis());
@@ -229,17 +344,59 @@ public final class UpstreamCheckTask implements Runnable {
         return new UpstreamWithSelectorId(selectorId, upstream);
     }
 
+    /**
+     * Submit one probe so that its failure stays contained in its own future.
+     *
+     * <p>An exceptional probe completes with a {@code null} result instead of an exception, so the
+     * round can still apply every other probe result and can always clear its bookkeeping.
+     * Ordinary unsuccessful probes are unaffected: they return {@code false} from the URL check
+     * rather than throwing.
+     *
+     * @param selectorId selectorId
+     * @param upstream upstream to probe
+     * @param maxEndpointLatencyMillis per-round latency accumulator
+     * @return the probe future, never completing exceptionally
+     */
+    private CompletableFuture<UpstreamWithSelectorId> submitCheck(final String selectorId, final Upstream upstream,
+                                                                  final AtomicLong maxEndpointLatencyMillis) {
+        return CompletableFuture
+                .supplyAsync(() -> check(selectorId, upstream, maxEndpointLatencyMillis), executor)
+                .exceptionally(ex -> {
+                    LOG.error("[Health Check] Selector [{}] upstream {} health check failed to complete.",
+                            selectorId, upstream.getUrl(), ex);
+                    return null;
+                });
+    }
+
     private boolean tryStartHealthCheck() {
         return checkStarted.compareAndSet(false, true);
     }
 
-    private void waitFinish() throws ExecutionException, InterruptedException {
+    /**
+     * Apply the results of the current round.
+     *
+     * <p>Each future is awaited on its own, so one failed or cancelled probe no longer hides the
+     * results of the others, and the caller always clears the round bookkeeping afterwards.
+     */
+    private void waitFinish() {
         for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
-            UpstreamWithSelectorId entity = future.get();
-            putEntityToMap(entity);
+            final UpstreamWithSelectorId entity;
+            try {
+                entity = future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("[Health Check] Interrupted while awaiting probe results, abandoning this round.");
+                return;
+            } catch (CancellationException | ExecutionException e) {
+                // Probes complete with null instead of exceptionally, so this only covers a future
+                // that was cancelled or rejected before running. Skip it and keep applying the rest.
+                LOG.error("[Health Check] A probe did not complete, skipping its result for this round.", e);
+                continue;
+            }
+            if (Objects.nonNull(entity)) {
+                putEntityToMap(entity);
+            }
         }
-
-        futures.clear();
     }
 
     private void putEntityToMap(final UpstreamWithSelectorId entity) {
@@ -311,6 +468,17 @@ public final class UpstreamCheckTask implements Runnable {
     }
     
     /**
+     * Run a configuration update atomically with respect to health checks.
+     *
+     * @param action configuration update
+     */
+    void withLock(final Runnable action) {
+        synchronized (lock) {
+            action.run();
+        }
+    }
+
+    /**
      * Remove all upstream via selectorId.
      *
      * @param selectorId selectorId
@@ -373,5 +541,100 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public Map<String, List<Upstream>> getUnhealthyUpstream() {
         return unhealthyUpstream;
+    }
+
+    /**
+     * Duration of the most recent health-check round in milliseconds, measured with
+     * {@link System#nanoTime()} around the whole synchronized section (submit + wait).
+     * Zero until the first round completes.
+     *
+     * <p>Note: a round that could not start (because another was still in flight) is still recorded,
+     * so a {@code 0} duration together with {@code 0} from {@link #getLastRoundSubmittedChecks()}
+     * means "this round was skipped", not "the round was instant".
+     *
+     * @return last round duration in millis
+     */
+    public long getLastRoundDurationMillis() {
+        return lastRoundDurationMillis;
+    }
+
+    /**
+     * Number of endpoint probes submitted to the async executor during the most recent round.
+     * A {@code 0} value alongside a {@code 0} {@link #getLastRoundDurationMillis()} indicates the
+     * round was skipped because another round was already in flight, rather than an empty population.
+     *
+     * @return submitted probe count
+     */
+    public int getLastRoundSubmittedChecks() {
+        return lastRoundSubmittedChecks;
+    }
+
+    /**
+     * Number of submitted probes that were still pending when the round entered {@code waitFinish()}.
+     * A persistently high value indicates the executor is the bottleneck, not the endpoints.
+     *
+     * @return pending probe count at wait time
+     */
+    public int getLastRoundPendingChecks() {
+        return lastRoundPendingChecks;
+    }
+
+    /**
+     * Maximum single-endpoint probe latency observed during the most recent round, in milliseconds.
+     *
+     * @return max endpoint latency in millis
+     */
+    public long getLastRoundMaxEndpointLatencyMillis() {
+        return lastRoundMaxEndpointLatencyMillis;
+    }
+
+    /**
+     * Age of the oldest health-state timestamp across healthy and unhealthy buckets, in milliseconds.
+     * Grows when rounds fall behind the configured interval. Upstreams that have never been measured
+     * (unset {@code 0} timestamp, e.g. newly registered or health-check-disabled while already healthy)
+     * are skipped, so an all-unmeasured population reports {@code 0} rather than an epoch-sized age.
+     *
+     * @return oldest health-state age in millis
+     */
+    public long getLastRoundOldestHealthStateMillis() {
+        return lastRoundOldestHealthStateMillis;
+    }
+
+    /**
+     * Wall-clock timestamp at which the most recent round finished, in milliseconds since epoch.
+     *
+     * @return last round completion timestamp
+     */
+    public long getLastRoundCompletedAtMillis() {
+        return lastRoundCompletedAtMillis;
+    }
+
+    /**
+     * Total number of health-check rounds completed since this task was created.
+     *
+     * @return total rounds
+     */
+    public long getTotalRounds() {
+        return totalRounds.get();
+    }
+
+    /**
+     * Total number of endpoint probes submitted since this task was created.
+     *
+     * @return total submitted probes
+     */
+    public long getTotalSubmittedChecks() {
+        return totalSubmittedChecks.get();
+    }
+
+    /**
+     * Cumulative probe latency in milliseconds since this task was created. Divide by
+     * {@link #getTotalSubmittedChecks()} for an average; only probes with health-check
+     * enabled contribute.
+     *
+     * @return cumulative endpoint latency in millis
+     */
+    public long getTotalEndpointLatencyMillis() {
+        return totalEndpointLatencyMillis.get();
     }
 }

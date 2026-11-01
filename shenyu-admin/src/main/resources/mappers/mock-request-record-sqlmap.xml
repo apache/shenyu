@@ -25,7 +25,7 @@
         <result property="port" column="port" jdbcType="INTEGER"/>
         <result property="pathVariable" column="path_variable" jdbcType="VARCHAR"/>
         <result property="query" column="query" jdbcType="VARCHAR"/>
-        <result property="header" column="header" jdbcType="VARCHAR"/>
+        <result property="header" column="header" jdbcType="LONGVARCHAR"/>
         <result property="body" column="body" jdbcType="VARCHAR"/>
         <result property="dateCreated" column="date_created" jdbcType="TIMESTAMP"/>
         <result property="dateUpdated" column="date_updated" jdbcType="TIMESTAMP"/>
@@ -33,6 +33,29 @@
 
     <sql id="Base_Column_List">
         id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
+    </sql>
+
+    <!-- headerProperty is a fixed mapper include property, never request-supplied SQL. -->
+    <sql id="Header_Value">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                COALESCE(#{${headerProperty}, jdbcType=CLOB, typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}, EMPTY_CLOB())
+            </when>
+            <otherwise>
+                COALESCE(#{${headerProperty}, jdbcType=LONGVARCHAR}, '')
+            </otherwise>
+        </choose>
+    </sql>
+
+    <sql id="Header_Equals">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                DBMS_LOB.COMPARE(header, <include refid="Header_Value"/>) = 0
+            </when>
+            <otherwise>
+                header = <include refid="Header_Value"/>
+            </otherwise>
+        </choose>
     </sql>
 
     <select id="queryById" resultMap="MockRequestRecordMap">
@@ -61,9 +84,10 @@
               and  path_variable = #{pathVariable, jdbcType=VARCHAR}
             </if>
             <if test="header != null">
-              and  `header` = #{header, jdbcType=VARCHAR}
+              and <include refid="Header_Equals"><property name="headerProperty" value="header"/></include>
             </if>
         </where>
+        ORDER BY date_updated DESC, id DESC
     </select>
 
     <select id="queryAll" resultMap="MockRequestRecordMap">
@@ -93,10 +117,10 @@
                 and query = #{item.query}
             </if>
             <if test="item.header != null and item.header != ''">
-                and header = #{item.header}
+                and <include refid="Header_Equals"><property name="headerProperty" value="item.header"/></include>
             </if>
             <if test="item.body != null and item.body != ''">
-                and body = #{item.body}
+                and body = #{item.body, jdbcType=VARCHAR}
             </if>
             <if test="item.dateCreated != null">
                 and date_created = #{item.dateCreated}
@@ -133,10 +157,10 @@
                 and query = #{query}
             </if>
             <if test="header != null and header != ''">
-                and header = #{header}
+                and <include refid="Header_Equals"><property name="headerProperty" value="header"/></include>
             </if>
             <if test="body != null and body != ''">
-                and body = #{body}
+                and body = #{body, jdbcType=VARCHAR}
             </if>
             <if test="dateCreated != null">
                 and date_created = #{dateCreated}
@@ -161,7 +185,7 @@
         AND ROWNUM = 1
     </select>
 
-    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
         insert into mock_request_record(
             id,
             api_id,
@@ -183,8 +207,8 @@
             #{url},
             #{pathVariable},
             #{query},
-            #{header},
-            #{body},
+            <include refid="Header_Value"><property name="headerProperty" value="header"/></include>,
+            #{body, jdbcType=VARCHAR},
             #{dateCreated},
             #{dateUpdated}
         )
@@ -200,7 +224,7 @@
             url,
             <if test="pathVariable != null">path_variable,</if>
             <if test="query != null">query,</if>
-            <if test="header != null">header,</if>
+            header,
             <if test="body != null">body,</if>
             <if test="dateCreated != null">date_created,</if>
             <if test="dateUpdated != null">date_updated,</if>
@@ -213,7 +237,7 @@
             #{url,jdbcType=VARCHAR},
             <if test="pathVariable != null">#{pathVariable,jdbcType=VARCHAR},</if>
             <if test="query != null">#{query,jdbcType=VARCHAR},</if>
-            <if test="header != null">#{header,jdbcType=VARCHAR},</if>
+            <include refid="Header_Value"><property name="headerProperty" value="header"/></include>,
             <if test="body != null">#{body,jdbcType=VARCHAR},</if>
             <if test="dateCreated != null">#{dateCreated,jdbcType=TIMESTAMP},</if>
             <if test="dateUpdated != null">#{dateUpdated,jdbcType=TIMESTAMP},</if>
@@ -244,12 +268,25 @@
             #{item.url},
             #{item.pathVariable},
             #{item.query},
-            #{item.header},
-            #{item.body},
+            <include refid="Header_Value"><property name="headerProperty" value="item.header"/></include>,
+            #{item.body, jdbcType=VARCHAR},
             #{item.dateCreated},
             #{item.dateUpdated}
         )
         </foreach>
+    </insert>
+
+    <!-- Keep CLOB expressions intact and retain application-assigned row IDs. -->
+    <insert id="insertBatch" databaseId="oracle" useGeneratedKeys="false">
+        INSERT ALL
+        <foreach collection="list" item="item">
+            INTO mock_request_record (<include refid="Base_Column_List"/>)
+            VALUES (#{item.id}, #{item.apiId}, #{item.host}, #{item.port}, #{item.url},
+                #{item.pathVariable}, #{item.query},
+                <include refid="Header_Value"><property name="headerProperty" value="item.header"/></include>,
+                #{item.body, jdbcType=VARCHAR}, #{item.dateCreated}, #{item.dateUpdated})
+        </foreach>
+        SELECT 1 FROM dual
     </insert>
 
     <update id="update">
@@ -274,10 +311,10 @@
                 query = #{query},
             </if>
             <if test="header != null and header != ''">
-                header = #{header},
+                header = <include refid="Header_Value"><property name="headerProperty" value="header"/></include>,
             </if>
             <if test="body != null and body != ''">
-                body = #{body},
+                body = #{body, jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
                 date_created = #{dateCreated},

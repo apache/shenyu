@@ -168,6 +168,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @param namespaceId namespaceId.
      * @return SelectorDO
      */
+    // Requires a caller-owned transaction to retain the per-plugin registration lock.
     SelectorDO findByNameAndPluginNameAndNamespaceIdForUpdate(String name, String pluginName, String namespaceId);
 
     /**
@@ -200,7 +201,10 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     SelectorData buildByNameAndPluginNameAndNamespaceId(String name, String pluginName, String namespaceId);
 
     /**
-     * find page of selector by query.
+     * find page of selector by query with the caller's data permission.
+     * <p>This legacy path applies the same data scope semantics as the condition-based
+     * {@code searchByPage} path: a non-administrator with no grants sees no selector,
+     * while a global administrator is unrestricted.</p>
      *
      * @param selectorQuery {@linkplain SelectorQuery}
      * @return {@linkplain CommonPager}

@@ -21,6 +21,8 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
@@ -28,6 +30,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -37,6 +40,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -51,9 +55,13 @@ import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -78,13 +86,16 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -93,6 +104,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class RuleServiceTest {
+
+    @Mock
+    private ShenyuDictMapper shenyuDictMapper;
 
     @InjectMocks
     private RuleServiceImpl ruleService;
@@ -115,10 +129,13 @@ public final class RuleServiceTest {
     @Mock
     private RuleEventPublisher ruleEventPublisher;
 
+    @Mock
+    private DataPermissionChecker dataPermissionChecker;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher, shenyuDictMapper, dataPermissionChecker);
     }
 
     @Test
@@ -158,6 +175,7 @@ public final class RuleServiceTest {
     @Test
     public void testFindById() {
         RuleDO ruleDO = buildRuleDO("123");
+        given(this.ruleMapper.selectNamespaceIdById("123")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
@@ -166,6 +184,26 @@ public final class RuleServiceTest {
         final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
+    }
+
+    @Test
+    public void testFindByIdReturnsNullForUnknownIdentifier() {
+        given(this.ruleMapper.selectNamespaceIdById("missing")).willReturn(null);
+        assertNull(this.ruleService.findById("missing"));
+        verifyNoInteractions(dataPermissionChecker, ruleConditionMapper);
+        verify(this.ruleMapper, never()).selectById("missing");
+    }
+
+    @Test
+    public void testFindByIdDeniedDoesNotReadRuleConfiguration() {
+        given(this.ruleMapper.selectNamespaceIdById("denied")).willReturn(SYS_DEFAULT_NAMESPACE_ID);
+        doThrow(new UnauthorizedException("denied")).when(dataPermissionChecker)
+                .requireRuleReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
+
+        assertThrows(UnauthorizedException.class, () -> this.ruleService.findById("denied"));
+        verify(dataPermissionChecker).requireRuleReadable("denied", SYS_DEFAULT_NAMESPACE_ID);
+        verifyNoInteractions(ruleConditionMapper);
+        verify(this.ruleMapper, never()).selectById("denied");
     }
 
     @Test
@@ -319,6 +357,60 @@ public final class RuleServiceTest {
                 Collections.singletonList(buildRuleDTO(""))));
 
         verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testRewriteCreateRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/v1/$$\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testRewriteUpdateRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("123");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testRewriteCreateAcceptsApplicableHandle() {
+        mockRewritePlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"(test)\",\"replace\":\"/new/$1\"}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
+    public void testRewriteImportRejectsUnapplicableHandleBeforeWrite() {
+        mockRewritePlugin();
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"regex\":\"test\",\"replace\":\"/new/$x\"}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(ruleDTO)));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    private void mockRewritePlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
+                .id("789")
+                .name(PluginEnum.REWRITE.getName())
+                .build());
     }
 
     private void mockAgentGatewayPlugin() {
@@ -507,6 +599,152 @@ public final class RuleServiceTest {
         given(this.selectorMapper.selectByIdSet(Sets.newHashSet("456"))).willReturn(Collections.singletonList(selectorDO));
         given(this.pluginMapper.selectByIds(Lists.newArrayList("789"))).willReturn(Collections.singletonList(pluginDO));
         given(this.ruleConditionMapper.selectByRuleIdSet(Sets.newHashSet("123"))).willReturn(Collections.singletonList(buildRuleConditionDO()));
+    }
+
+    @Test
+    public void testCreateRejectsOverlappingCanaryLabelsBeforeSaving() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle("{\"canary\":{\"enabled\":false,\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"region\":\"east\"}}}");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsOverlappingCanaryLabelsBeforeSaving() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setHandle("{\"canary\":{\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"release\":\"canary\"}}}");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testSaveAllowsDisabledCanaryWithDisjointPools() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle("{\"canary\":{\"enabled\":false,\"canaryLabels\":{\"release\":\"canary\"},\"stableLabels\":{\"release\":\"stable\"}}}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"percentage\":101}", "{\"percentage\":20.5}", "{\"matchMode\":2}",
+        "{\"enabled\":true,\"percentage\":20}", "{\"stableLabels\":{\"release\":true}}", "{\"fallbackPolicy\":\"TYPO\"}",
+        "{\"stickyKey\":{\"paramType\":\"unregistered\"}}",
+        "{\"conditions\":[{\"paramType\":\"uri\",\"operator\":\"unregistered\",\"paramValue\":\"/\"}]}"})
+    public void testInvalidCanaryNeverWritesOrPublishes(final String patch) {
+        configureDivideSelector();
+        given(shenyuDictMapper.findByType("paramType")).willReturn(Collections.singletonList(dictionary("uri", true)));
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(canaryHandle(patch));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        dto.setId("123");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleMapper, never()).updateSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    @Test
+    public void testImportsValidateAllRulesBeforeInserting() {
+        configureDivideSelector();
+        RuleDTO valid = buildRuleDTO("");
+        valid.setHandle(canaryHandle("{}"));
+        RuleDTO invalid = buildRuleDTO("");
+        invalid.setHandle(canaryHandle("{\"percentage\":101}"));
+        List<RuleDTO> rules = Arrays.asList(valid, invalid);
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(rules));
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("456", "456");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(SYS_DEFAULT_NAMESPACE_ID, rules, context));
+        verify(ruleMapper, never()).insertSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    @Test
+    public void testRegistrationRejectsInvalidCanaryBeforePublishing() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(canaryHandle("{\"percentage\":101}"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.registerDefault(dto));
+        verify(ruleMapper, never()).insertSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    @Test
+    public void testEnabledDictionaryExtensionIsAcceptedAndDisabledOneRejected() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(canaryHandle("{\"enabled\":true,\"percentage\":20,\"stickyKey\":{\"paramType\":\"custom-source\"}}"));
+        given(shenyuDictMapper.findByType("paramType")).willReturn(Collections.singletonList(dictionary("custom-source", false)));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        verifyNoInteractions(ruleEventPublisher);
+        given(shenyuDictMapper.findByType("paramType")).willReturn(Collections.singletonList(dictionary("custom-source", true)));
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+        }
+    }
+
+    @Test
+    public void testSavingLegacyRulePreservesHandleWithoutCanary() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setHandle("{\"timeout\":5000,\"extension\":{\"value\":true}}");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        ArgumentCaptor<RuleDO> saved = ArgumentCaptor.forClass(RuleDO.class);
+        verify(ruleMapper).updateSelective(saved.capture());
+        assertEquals(dto.getHandle(), saved.getValue().getHandle());
+        verifyNoInteractions(shenyuDictMapper);
+    }
+
+    @Test
+    public void testCanaryFailoverNeverWritesOrPublishes() {
+        configureDivideSelector();
+        JsonObject handle = JsonParser.parseString(canaryHandle("{}")).getAsJsonObject();
+        handle.addProperty("retry", 2);
+        handle.addProperty("retryStrategy", "failover");
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(handle.toString());
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.registerDefault(dto));
+        dto.setId("123");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(dto)));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleMapper, never()).updateSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    private ShenyuDictDO dictionary(final String value, final boolean enabled) {
+        ShenyuDictDO dict = new ShenyuDictDO();
+        dict.setDictValue(value);
+        dict.setEnabled(enabled);
+        return dict;
+    }
+
+    private String canaryHandle(final String patch) {
+        JsonObject config = JsonParser.parseString("{\"stableLabels\":{\"release\":\"stable\"},\"canaryLabels\":{\"release\":\"canary\"}}")
+                .getAsJsonObject();
+        JsonParser.parseString(patch).getAsJsonObject().entrySet().forEach(entry -> config.add(entry.getKey(), entry.getValue()));
+        JsonObject handle = new JsonObject();
+        handle.add("canary", config);
+        return handle.toString();
+    }
+
+    private void configureDivideSelector() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("divide").build());
     }
 
     private void testRegisterCreate() {

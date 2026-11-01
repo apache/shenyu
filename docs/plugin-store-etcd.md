@@ -23,7 +23,7 @@ Infrastructure is etcd-specific; no retained core module imports it.
 
 ## Release gates
 
-The main removal PR must remain draft until dev-list consensus is recorded, an
+The main removal PR can enter code review, but must not merge until dev-list consensus is recorded, an
 advance deprecation notice has shipped in a core release, the full released
 deprecation cycle is complete, receiving builds and real-server/full-deployment
 tests pass, external artifacts are published, and a rollback window is announced.

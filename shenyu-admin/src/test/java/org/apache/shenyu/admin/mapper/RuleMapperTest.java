@@ -33,6 +33,7 @@ import java.util.Random;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for RuleMapper.
@@ -53,6 +54,17 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = ruleMapper.delete(ruleDO.getId());
         assertThat(delete, equalTo(1));
+    }
+
+    @Test
+    public void selectNamespaceIdById() {
+        RuleDO ruleDO = buildRuleDO();
+        assertThat(ruleMapper.insert(ruleDO), equalTo(1));
+
+        assertThat(ruleMapper.selectNamespaceIdById(ruleDO.getId()), equalTo(SYS_DEFAULT_NAMESPACE_ID));
+        assertNull(ruleMapper.selectNamespaceIdById("missing-rule"));
+
+        assertThat(ruleMapper.delete(ruleDO.getId()), equalTo(1));
     }
 
     @Test
@@ -233,6 +245,23 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
         assertThat(ruleMapper.countByQuery(query), equalTo(0));
     }
 
+    @Test
+    @Transactional
+    public void testEmptyPermissionFilterMatchesNothing() {
+        RuleDO ruleDO = buildRuleDO();
+        ruleMapper.insert(ruleDO);
+        RuleQuery query = new RuleQuery();
+        query.setSelectorId(ruleDO.getSelectorId());
+        query.setFilterIds(Collections.emptyList());
+
+        assertThat(ruleMapper.countByQuery(query), equalTo(0));
+        assertThat(ruleMapper.selectByQuery(query).size(), equalTo(0));
+
+        query.setFilterIds(null);
+        assertThat(ruleMapper.countByQuery(query), equalTo(1));
+        assertThat(ruleMapper.selectByQuery(query).size(), equalTo(1));
+    }
+
     private RuleDO buildRuleDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
@@ -241,7 +270,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
                 .ruleName("test-name-" + new Random().nextInt())
                 .enabled(true)
                 .handle("test-handle")
-                .loged(true)
+                .logged(true)
                 .matchMode(1)
                 .selectorId("test-selector-1")
                 .matchRestful(false)

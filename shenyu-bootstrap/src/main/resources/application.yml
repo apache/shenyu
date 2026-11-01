@@ -16,6 +16,11 @@
 server:
   port: 9195
   address: 0.0.0.0
+  reactive:
+    session:
+      cookie:
+        # Keep gateway sessions separate from backend SESSION cookies.
+        name: SHENYU_SESSION
   compression:
     enabled: true
     minResponseSize: 1MB # If the response data is greater than 1MB, enable compression.
@@ -82,14 +87,14 @@ management:
 shenyu:
   namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
   selectorMatchCache:
-    ## selector L1 cache
+    ## selector match cache
     cache:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
       ttl: 60000 # milliseconds after write; shorter TTL reduces stale reuse but increases matching work
   ruleMatchCache:
-    ## rule L1 cache
+    ## rule match cache
     cache:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
@@ -102,6 +107,8 @@ shenyu:
       selectCount: 1
       workerCount: 8
       accessLog: false
+      # Optional HTTP listener alongside server.ssl or SNI HTTPS; shares the gateway handler without redirecting.
+      # additionalHttpPort: 9196
       serverSocketChannel:
         soBackLog: 128
         soReuseAddr: true
@@ -158,10 +165,11 @@ shenyu:
 #    keepAlive: false
 #    maxInMemorySize: 1 #1mb
 #    pool:
-#      type: ELASTIC
-#      name: proxy
-#      maxConnections: 16
-#      acquireTimeout: 45000
+#      type: FIXED
+#      name: shenyu-proxy
+#      maxConnections: 500
+#      acquireTimeout: 3000
+#      maxPendingAcquires: 1000 # default is 2 * maxConnections if omitted
 #      maxIdleTime: 3000 # unit: ms
 #      maxLifeTime:  # unit: ms
 #      evictionInterval:  # unit: ms
@@ -222,11 +230,20 @@ shenyu:
   file:
     enabled: true
     maxSize : 10
+  # Standalone file mode (opt-in): see shenyu-spring-boot-starter-sync-data-file/README.md.
+  # It suppresses the shipped Admin WebSocket/heartbeat defaults and disables local writers.
+  # sync.file.enabled: true
+  # sync.file.path: /etc/shenyu/gateway.yaml
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
       token: ${SHENYU_SYNC_WEBSOCKET_TOKEN:}
       allowOrigin: ws://localhost:9195
+      # Advertised cluster master origins trusted besides the configured seed origins.
+      # Entries: host, host:port, or ws(s)://host:port. A host without a port trusts any port.
+      trusted-master-hosts:
+      # Explicitly allow a wss connection to follow a plaintext ws advertised master.
+      allow-insecure-master-redirect: false
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080
@@ -328,6 +345,13 @@ shenyu:
 #  plugins:
 #    ai:
 #      proxy:
+#        retry:
+#          # Maximum retries after the initial non-streaming request. Default: 3.
+#          max-retries: 3
+#          # Maximum retries before a streaming response emits its first chunk. Default: 1.
+#          streaming-max-retries: 1
+#          # Initial backoff for non-streaming retries. Subsequent delays double. Default: 1s.
+#          initial-backoff: 1s
 #        transport:
 #          # Maximum time allowed to establish a connection to the AI upstream.
 #          # Default: 30s.
@@ -341,9 +365,43 @@ shenyu:
 #          # Maximum duration of the entire upstream response body stream.
 #          # New chunks do not reset this limit. Default: 10m.
 #          total-stream-duration: 10m
+#          # Maximum bytes allowed in one upstream request body.
+#          # Zero means unlimited. Default: 0.
+#          max-request-bytes: 0
 #          # Maximum cumulative bytes read from one upstream response.
 #          # Zero means unlimited. Default: 0.
 #          max-response-bytes: 0
+#          pool:
+#            # Set to false to create a new connection for every upstream request.
+#            enabled: true
+#            # Reactor Netty ConnectionProvider name, useful in metrics and diagnostics.
+#            name: shenyu-ai-proxy
+#            # Maximum number of active connections maintained by the shared pool.
+#            max-connections: 30
+#            # Maximum number of requests waiting for a connection. -1 means unlimited.
+#            pending-acquire-max-count: 60
+#            # Maximum time a request may wait for a pooled connection.
+#            pending-acquire-timeout: 3s
+#            # Evict a connection after it has remained idle for this duration.
+#            max-idle-time: 60s
+#            # Evict a connection after this total lifetime, even if it is still reusable.
+#            max-life-time: 30m
+#            # Interval for background eviction of idle and expired connections.
+#            eviction-interval: 30s
+#            # Grace period for pending acquires when the gateway shuts down.
+#            graceful-dispose-timeout: 30s
+#          tls:
+#            # Keep enabled in production. Disabling verification trusts any upstream certificate.
+#            verify: true
+#          proxy:
+#            # HTTP forward proxy used for outbound AI upstream requests, including HTTPS CONNECT.
+#            enabled: false
+#            host: 127.0.0.1
+#            port: 8080
+#            username:
+#            password:
+#            # Java regular expression; matching upstream hosts bypass the proxy.
+#            non-proxy-hosts-pattern: "localhost|127\\..*"
 #    rate-limiter.enabled: false
   local:
     enabled: false

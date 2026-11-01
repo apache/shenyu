@@ -22,11 +22,15 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.RewriteHandleUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -37,14 +41,20 @@ public class RewritePluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, RewriteHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
+    private static final Logger LOG = LoggerFactory.getLogger(RewritePluginDataHandler.class);
+
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            if (StringUtils.isBlank(s)) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(handle -> {
+            if (StringUtils.isBlank(handle)) {
                 removeRule(ruleData);
                 return;
             }
-            RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(s, RewriteHandle.class);
+            final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
+            if (Objects.isNull(rewriteHandle) || !canRewrite(rewriteHandle, ruleData)) {
+                removeRule(ruleData);
+                return;
+            }
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rewriteHandle);
         });
     }
@@ -57,5 +67,23 @@ public class RewritePluginDataHandler implements PluginDataHandler {
     @Override
     public String pluginNamed() {
         return PluginEnum.REWRITE.getName();
+    }
+
+    /**
+     * Check whether the plugin can apply the rule handle, so that an unusable rule is
+     * rejected when it is published instead of failing every matching request.
+     *
+     * @param rewriteHandle the parsed rule handle
+     * @param ruleData the rule that owns the handle
+     * @return true when the plugin can apply the handle
+     */
+    private static boolean canRewrite(final RewriteHandle rewriteHandle, final RuleData ruleData) {
+        final String problem = RewriteHandleUtils.applicabilityProblem(rewriteHandle.getRegex(), rewriteHandle.getReplace());
+        if (Objects.isNull(problem)) {
+            return true;
+        }
+        LOG.error("invalid rewrite rule [{}] is ignored, regex: {}, replace: {}, reason: {}",
+                ruleData.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), problem);
+        return false;
     }
 }

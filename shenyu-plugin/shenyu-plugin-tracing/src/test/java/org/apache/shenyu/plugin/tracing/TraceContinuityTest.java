@@ -31,6 +31,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.tracing.extract.TraceContextExtractor;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -67,6 +69,8 @@ public class TraceContinuityTest {
     private static final String CLIENT_SPAN_ID = "00f067aa0ba902b7";
 
     private static final String BAGGAGE = "baggage";
+
+    private static final long TEST_HTTP_TIMEOUT = 30_000L;
 
     private final TraceContextExtractor extractor = new TraceContextExtractor();
 
@@ -181,6 +185,7 @@ public class TraceContinuityTest {
         ShenyuContext shenyuContext = new ShenyuContext();
         shenyuContext.setRpcType(RpcTypeEnum.HTTP.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, TEST_HTTP_TIMEOUT);
         exchange.getAttributes().put(Constants.HTTP_URI,
                 URI.create("http://127.0.0.1:" + upstream.getAddress().getPort() + PATH));
         return exchange;
@@ -199,6 +204,8 @@ public class TraceContinuityTest {
     }
 
     private SpanData onlyFinishedSpan() {
+        // doFinally can export the span after StepVerifier observes the request's completion.
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until(() -> !spanExporter.getFinishedSpanItems().isEmpty());
         List<SpanData> spans = spanExporter.getFinishedSpanItems();
         Assertions.assertEquals(1, spans.size());
         return spans.get(0);

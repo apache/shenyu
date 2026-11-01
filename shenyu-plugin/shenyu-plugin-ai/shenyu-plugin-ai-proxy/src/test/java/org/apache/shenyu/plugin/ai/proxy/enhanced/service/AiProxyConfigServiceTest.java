@@ -18,17 +18,22 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
-import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,17 +41,21 @@ public class AiProxyConfigServiceTest {
 
     private AiProxyConfigService configService;
 
+    private AiProxyPluginHandler pluginHandler;
+
     @BeforeEach
     void setUp() {
-        configService = new AiProxyConfigService();
-        // Note: Singleton has no public clear method, state is managed per test by re-singling.
+        pluginHandler = new AiProxyPluginHandler();
+        configService = new AiProxyConfigService(pluginHandler);
     }
 
     @Test
     void testResolvePrimaryConfigGlobalOnly() {
         AiCommonConfig globalConfig = new AiCommonConfig();
         globalConfig.setModel("global-model");
-        Singleton.INST.single(AiCommonConfig.class, globalConfig);
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig(GsonUtils.getInstance().toJson(globalConfig));
+        pluginHandler.handlerPlugin(pluginData);
 
         AiProxyHandle handle = new AiProxyHandle();
         AiCommonConfig result = configService.resolvePrimaryConfig(handle);
@@ -67,11 +76,25 @@ public class AiProxyConfigServiceTest {
     }
 
     @Test
+    void testResolvePrimaryConfigCopiesProtocolRequestBodyOverrides() {
+        AiProxyHandle handle = new AiProxyHandle();
+        handle.setRequestBodyOverrides(Map.of("openai-chat", Map.of("reasoning_effort", "high")));
+        handle.setRequestBodyForceOverride(true);
+
+        AiCommonConfig result = configService.resolvePrimaryConfig(handle);
+
+        assertEquals("high", result.getRequestBodyOverrides().get("openai-chat").get("reasoning_effort"));
+        assertTrue(result.getRequestBodyForceOverride());
+    }
+
+    @Test
     void testResolvePrimaryConfigMerge() {
         AiCommonConfig globalConfig = new AiCommonConfig();
         globalConfig.setProvider("global-provider");
         globalConfig.setModel("global-model");
-        Singleton.INST.single(AiCommonConfig.class, globalConfig);
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig(GsonUtils.getInstance().toJson(globalConfig));
+        pluginHandler.handlerPlugin(pluginData);
 
         AiProxyHandle handle = new AiProxyHandle();
         handle.setModel("handle-model");
@@ -219,5 +242,33 @@ public class AiProxyConfigServiceTest {
         String requestBody = "{}";
         String result = configService.extractPrompt(requestBody);
         assertEquals(requestBody, result);
+    }
+
+    @Test
+    void testConfigUpdatesReplaceDefaultsWithoutMutatingResolvedRequests() {
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig("{\"provider\":\"OpenAI\",\"apiKey\":\"first-key\",\"model\":\"first-model\"}");
+        pluginHandler.handlerPlugin(pluginData);
+        AiCommonConfig first = configService.resolvePrimaryConfig(null);
+        pluginData.setConfig("{\"provider\":\"OpenAI\",\"model\":\"second-model\"}");
+        pluginHandler.handlerPlugin(pluginData);
+        AiCommonConfig second = configService.resolvePrimaryConfig(null);
+        assertEquals("first-model", first.getModel());
+        assertEquals("first-key", first.getApiKey());
+        assertEquals("second-model", second.getModel());
+        assertNull(second.getApiKey());
+        pluginHandler.removePlugin(pluginData);
+        assertNull(configService.resolvePrimaryConfig(null).getProvider());
+        assertNull(configService.resolvePrimaryConfig(null).getModel());
+    }
+
+    @Test
+    void testRequestCredentialOverridesDoNotChangePluginDefaults() {
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig("{\"apiKey\":\"global-key\"}");
+        pluginHandler.handlerPlugin(pluginData);
+        AiCommonConfig resolved = configService.resolvePrimaryConfig(null);
+        resolved.setApiKey("per-request-key");
+        assertEquals("global-key", configService.resolvePrimaryConfig(null).getApiKey());
     }
 }

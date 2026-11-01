@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test Cases for SelectorMapper.
@@ -59,6 +61,17 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
         int delete = selectorMapper.delete(selectorDO.getId());
         assertEquals(1, delete);
+    }
+
+    @Test
+    public void testSelectNamespaceIdById() {
+        SelectorDO selectorDO = buildSelectorDO();
+        assertEquals(1, selectorMapper.insert(selectorDO));
+
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, selectorMapper.selectNamespaceIdById(selectorDO.getId()));
+        assertNull(selectorMapper.selectNamespaceIdById("missing-selector"));
+
+        assertEquals(1, selectorMapper.delete(selectorDO.getId()));
     }
 
     @Test
@@ -247,6 +260,22 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(0, selectorMapper.countByQuery(query));
     }
 
+    @Test
+    @Transactional
+    public void testEmptyPermissionFilterMatchesNothing() {
+        SelectorDO selectorDO = buildSelectorDO();
+        selectorMapper.insert(selectorDO);
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), null, new PageParameter(), SYS_DEFAULT_NAMESPACE_ID);
+        query.setFilterIds(Collections.emptyList());
+
+        assertEquals(0, selectorMapper.countByQuery(query));
+        assertEquals(0, selectorMapper.selectByQuery(query).size());
+
+        query.setFilterIds(null);
+        assertEquals(1, selectorMapper.countByQuery(query));
+        assertEquals(1, selectorMapper.selectByQuery(query).size());
+    }
+
     private SelectorDO buildSelectorDO() {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return SelectorDO.builder()
@@ -259,7 +288,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .selectorType(1)
                 .sortCode(1)
                 .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
+                .logged(Boolean.TRUE)
                 .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")

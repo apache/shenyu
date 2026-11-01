@@ -17,12 +17,24 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Objects;
 
 /**
  * this is rateLimiter plugin handle.
  */
 public class RateLimiterHandle {
+
+    /**
+     * allow requests when the Redis backend fails.
+     */
+    public static final String BACKEND_FAILURE_POLICY_ALLOW = "ALLOW";
+
+    /**
+     * reject requests when the Redis backend fails.
+     */
+    public static final String BACKEND_FAILURE_POLICY_REJECT = "REJECT";
 
     /**
      * algorithm name.
@@ -45,14 +57,20 @@ public class RateLimiterHandle {
     private double requestCount = 1.0;
 
     /**
-     * loged.
+     * logged.
      */
-    private boolean loged;
+    @SerializedName(value = "logged", alternate = "loged")
+    private boolean logged;
 
     /**
      * key resolver name.
      */
     private String keyResolverName;
+
+    /**
+     * policy applied when the Redis backend fails; ALLOW keeps the historical fail-open behavior.
+     */
+    private String backendFailurePolicy = BACKEND_FAILURE_POLICY_ALLOW;
     
     /**
      * New default instance rate limiter handle.
@@ -65,7 +83,8 @@ public class RateLimiterHandle {
         rateLimiterHandle.setReplenishRate(1.0);
         rateLimiterHandle.setBurstCapacity(100.0);
         rateLimiterHandle.setRequestCount(1.0);
-        rateLimiterHandle.setLoged(false);
+        rateLimiterHandle.setLogged(false);
+        rateLimiterHandle.setBackendFailurePolicy(BACKEND_FAILURE_POLICY_ALLOW);
         return rateLimiterHandle;
     }
     
@@ -142,21 +161,21 @@ public class RateLimiterHandle {
     }
     
     /**
-     * get loged.
+     * get logged.
      *
-     * @return loged boolean
+     * @return logged boolean
      */
-    public boolean isLoged() {
-        return loged;
+    public boolean isLogged() {
+        return logged;
     }
     
     /**
-     * set loged.
+     * set logged.
      *
-     * @param loged loged
+     * @param logged logged
      */
-    public void setLoged(final boolean loged) {
-        this.loged = loged;
+    public void setLogged(final boolean logged) {
+        this.logged = logged;
     }
     
     /**
@@ -177,6 +196,33 @@ public class RateLimiterHandle {
         this.keyResolverName = keyResolverName;
     }
 
+    /**
+     * get backendFailurePolicy.
+     *
+     * @return backendFailurePolicy backend failure policy
+     */
+    public String getBackendFailurePolicy() {
+        return backendFailurePolicy;
+    }
+
+    /**
+     * set backendFailurePolicy.
+     *
+     * @param backendFailurePolicy backend failure policy
+     */
+    public void setBackendFailurePolicy(final String backendFailurePolicy) {
+        this.backendFailurePolicy = backendFailurePolicy;
+    }
+
+    /**
+     * whether a request must be rejected when the Redis backend fails.
+     *
+     * @return true when the configured policy is REJECT; missing or unknown values keep the legacy ALLOW behavior
+     */
+    public boolean isRejectOnBackendFailure() {
+        return BACKEND_FAILURE_POLICY_REJECT.equalsIgnoreCase(backendFailurePolicy);
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -187,13 +233,14 @@ public class RateLimiterHandle {
         }
         RateLimiterHandle that = (RateLimiterHandle) o;
         return Double.compare(that.replenishRate, replenishRate) == 0 && Double.compare(that.burstCapacity, burstCapacity) == 0
-                && Double.compare(that.requestCount, requestCount) == 0 && loged == that.loged
-                && Objects.equals(algorithmName, that.algorithmName) && Objects.equals(keyResolverName, that.keyResolverName);
+                && Double.compare(that.requestCount, requestCount) == 0 && logged == that.logged
+                && Objects.equals(algorithmName, that.algorithmName) && Objects.equals(keyResolverName, that.keyResolverName)
+                && Objects.equals(backendFailurePolicy, that.backendFailurePolicy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, loged, keyResolverName);
+        return Objects.hash(algorithmName, replenishRate, burstCapacity, requestCount, logged, keyResolverName, backendFailurePolicy);
     }
 
     @Override
@@ -208,10 +255,13 @@ public class RateLimiterHandle {
                 + burstCapacity
                 + ", requestCount="
                 + requestCount
-                + ", loged="
-                + loged
+                + ", logged="
+                + logged
                 + ", keyResolverName='"
                 + keyResolverName
+                + '\''
+                + ", backendFailurePolicy='"
+                + backendFailurePolicy
                 + '\''
                 + '}';
     }

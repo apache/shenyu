@@ -25,19 +25,24 @@ import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 /**
  * Test case for {@link InstanceInfoServiceImpl}.
@@ -45,6 +50,8 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class InstanceInfoServiceImplTest {
+
+    private static final long FIXED_HEART_BEAT_TIME = 1700000000000L;
 
     @InjectMocks
     private InstanceInfoServiceImpl instanceInfoService;
@@ -72,6 +79,62 @@ public final class InstanceInfoServiceImplTest {
         assertEquals("instance-1", first.getId());
         assertEquals("instance-2", second.getId());
         assertNotEquals(first.getId(), second.getId());
+    }
+
+    @Test
+    public void testCreatePersistsReportedHeartBeatTime() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(null);
+        instanceInfoService.createOrUpdate(buildReport());
+        ArgumentCaptor<InstanceInfoDO> captor = ArgumentCaptor.forClass(InstanceInfoDO.class);
+        verify(instanceInfoMapper).insert(captor.capture());
+        assertEquals(FIXED_HEART_BEAT_TIME, captor.getValue().getLastHeartBeatTime());
+    }
+
+    @Test
+    public void testUpdatePersistsReportedHeartBeatTime() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(buildDO("instance-1"));
+        instanceInfoService.createOrUpdate(buildReport());
+        ArgumentCaptor<InstanceInfoDO> captor = ArgumentCaptor.forClass(InstanceInfoDO.class);
+        verify(instanceInfoMapper).updateById(captor.capture());
+        assertEquals(FIXED_HEART_BEAT_TIME, captor.getValue().getLastHeartBeatTime());
+    }
+
+    @Test
+    public void testDuplicateRegistrationUpdatesTheCanonicalRow() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(null, buildDO("winner"));
+        given(instanceInfoMapper.insert(any(InstanceInfoDO.class))).willThrow(new DuplicateKeyException("identity conflict"));
+        instanceInfoService.createOrUpdate(buildReport());
+        ArgumentCaptor<InstanceInfoDO> captor = ArgumentCaptor.forClass(InstanceInfoDO.class);
+        verify(instanceInfoMapper).updateById(captor.capture());
+        assertEquals("winner", captor.getValue().getId());
+        assertEquals(FIXED_HEART_BEAT_TIME, captor.getValue().getLastHeartBeatTime());
+    }
+
+    @Test
+    public void testUnrelatedPrimaryKeyConflictIsNotTreatedAsAnIdentityConflict() {
+        given(instanceInfoMapper.selectOneByQuery(any(InstanceQuery.class))).willReturn(null);
+        given(instanceInfoMapper.insert(any(InstanceInfoDO.class))).willThrow(new DuplicateKeyException("primary key conflict"));
+        assertThrows(DuplicateKeyException.class, () -> instanceInfoService.createOrUpdate(buildReport()));
+        verify(instanceInfoMapper, never()).updateById(any());
+    }
+
+    @Test
+    public void testDeleteExpiredDelegatesCutoffToMapper() {
+        given(instanceInfoMapper.deleteExpired(FIXED_HEART_BEAT_TIME)).willReturn(3);
+        assertEquals(3, instanceInfoService.deleteExpired(FIXED_HEART_BEAT_TIME));
+        verify(instanceInfoMapper).deleteExpired(FIXED_HEART_BEAT_TIME);
+    }
+
+    private InstanceInfoVO buildReport() {
+        InstanceInfoVO report = new InstanceInfoVO();
+        report.setInstanceIp("127.0.0.1");
+        report.setInstancePort("8080");
+        report.setInstanceType("grpc");
+        report.setInstanceInfo("info");
+        report.setInstanceState(1);
+        report.setNamespaceId("ns");
+        report.setLastHeartBeatTime(FIXED_HEART_BEAT_TIME);
+        return report;
     }
 
     private InstanceInfoDO buildDO(final String id) {

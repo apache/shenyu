@@ -65,8 +65,8 @@ import java.util.regex.Pattern;
  * Parses an HTTPRoute into ShenYu divide selectors/rules; pure, no cache or data-plane
  * side effects. Match precedence follows the spec (hostname, path, method presence, header
  * count, query count, first rule) and is encoded in the selector sort; because the data
- * plane groups matches by condition count BEFORE comparing sort
- * ({@code AbstractShenyuPlugin#manyMatchSelector}), every selector's condition list is
+ * plane prefers the matching selector with the most conditions before comparing sort
+ * ({@code AbstractShenyuPlugin#matchSelector}), every selector's condition list is
  * padded to a fixed length with always-true duplicates so the sort alone decides. The
  * traffic share of invalid weighted backendRefs goes to a loopback fail-target upstream:
  * the connection is refused instantly, so the request fails with a 500 instead of
@@ -226,7 +226,7 @@ public class HttpRouteParser {
         String ruleId = deterministicRuleId(selectorId, matchIndex);
         String hostComponent = Objects.isNull(hostname) ? "" : "-" + hostname;
         String selectorName = routeName + "-rule-" + ruleIndex + hostComponent + "-m" + matchIndex;
-        // Only the selector is padded; the rule's trie cache would just bloat with duplicates.
+        // Only the selector is padded: rules compete only within their own selector, so padding them would add nothing.
         SelectorData selectorData = buildSelectorData(selectorId, selectorName, sort,
                 padToConditionFloor(conditions), upstreamList);
         RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
@@ -324,7 +324,7 @@ public class HttpRouteParser {
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(conditions)
                 .handle(GsonUtils.getInstance().toJson(divideRuleHandle))
-                .loged(false)
+                .logged(false)
                 .enabled(true)
                 .build();
     }

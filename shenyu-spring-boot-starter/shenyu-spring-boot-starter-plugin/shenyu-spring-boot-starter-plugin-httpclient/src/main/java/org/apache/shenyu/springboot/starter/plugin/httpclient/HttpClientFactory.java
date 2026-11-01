@@ -143,8 +143,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-        // set to false, fix java.io.IOException: Connection reset by peer
-        // see https://github.com/reactor/reactor-netty/issues/388
+        // Reuse connections by default. Tune the fixed pool's maxIdleTime below the upstream idle limit;
+        // keepAlive=false remains an escape hatch for stale-connection resets (reactor-netty#388).
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 
@@ -161,7 +161,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 // please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
                 // reactor remove elastic pool by elastic method from 0.9.4
                 // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
-                this.buildElasticConnectionPool(builder);
+                this.buildElasticConnectionPool(pool, builder);
             }
             Optional.ofNullable(pool.getMaxIdleTime()).map(Duration::ofMillis).ifPresent(builder::maxIdleTime);
             Optional.ofNullable(pool.getMaxLifeTime()).map(Duration::ofMillis).ifPresent(builder::maxLifeTime);
@@ -187,6 +187,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         }
         builder.maxConnections(pool.getMaxConnections())
                 .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
+        // when maxPendingAcquires is not configured, Reactor Netty defaults to 2 * maxConnections
+        validateAndApplyMaxPendingAcquires(pool, builder);
     }
 
     /**
@@ -201,4 +203,26 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 .pendingAcquireMaxCount(-1);
     }
 
+    /**
+     * build elastic connection provider pool.
+     *
+     * @param pool    connection pool params
+     * @param builder connection provider builder
+     */
+    public void buildElasticConnectionPool(final Pool pool,
+                                           final Builder builder) {
+        // default to unbounded (-1), but allow explicit acquisition bounds if configured
+        this.buildElasticConnectionPool(builder);
+        validateAndApplyMaxPendingAcquires(pool, builder);
+    }
+
+    private void validateAndApplyMaxPendingAcquires(final Pool pool,
+                                                    final Builder builder) {
+        if (Objects.nonNull(pool.getMaxPendingAcquires())) {
+            if (pool.getMaxPendingAcquires() <= 0 && pool.getMaxPendingAcquires() != -1) {
+                throw new IllegalArgumentException("Max Pending Acquires value must be strictly positive or -1");
+            }
+            builder.pendingAcquireMaxCount(pool.getMaxPendingAcquires());
+        }
+    }
 }

@@ -34,7 +34,10 @@ import org.mockito.quality.Strictness;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -68,7 +71,7 @@ public final class KubernetesScalerTest {
      */
     @Test
     public void testScaleByNumSetsSpecBeforeReplace() throws Exception {
-        kubernetesScaler.scaleByNum(3);
+        assertTrue(kubernetesScaler.scaleByNum(3));
 
         final ArgumentCaptor<V1Scale> captor = ArgumentCaptor.forClass(V1Scale.class);
         verify(appsV1Api).replaceNamespacedDeploymentScale(
@@ -104,5 +107,31 @@ public final class KubernetesScalerTest {
                 isNull(),
                 isNull());
         assertEquals(3, captor.getValue().getSpec().getReplicas());
+    }
+
+    /**
+     * Scaling stays enabled but the client bean is absent (disabled property
+     * or a failed client creation left a null behind): the scaler must degrade
+     * to a logged no-op instead of throwing on the hot path (#7912).
+     */
+    @Test
+    public void testScaleByNumWithoutClientIsSafeNoOp() {
+        final KubernetesScaler clientlessScaler = new KubernetesScaler(Optional.empty(), props());
+
+        assertFalse(clientlessScaler.scaleByNum(3));
+    }
+
+    @Test
+    public void testScaleByActionWithoutClientIsSafeNoOp() throws Exception {
+        final KubernetesScaler clientlessScaler = new KubernetesScaler(Optional.empty(), props());
+
+        assertDoesNotThrow(() -> clientlessScaler.scaleByAction(new ScaleAction(ScaleAction.ActionType.SCALE_UP)));
+    }
+
+    private DeploymentProperties props() {
+        final DeploymentProperties deploymentProperties = new DeploymentProperties();
+        deploymentProperties.setName(DEPLOY_NAME);
+        deploymentProperties.setNamespace(DEPLOY_NAMESPACE);
+        return deploymentProperties;
     }
 }

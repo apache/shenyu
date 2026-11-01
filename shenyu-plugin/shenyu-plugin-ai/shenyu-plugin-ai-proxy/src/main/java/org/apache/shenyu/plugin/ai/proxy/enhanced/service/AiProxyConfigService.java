@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +38,17 @@ public class AiProxyConfigService {
 
     private static final String FALLBACK_CONFIG = "fallbackConfig";
 
+    private final AiProxyPluginHandler pluginHandler;
+
+    /**
+     * Create a resolver using the same handler that receives plugin configuration updates.
+     *
+     * @param pluginHandler plugin configuration handler
+     */
+    public AiProxyConfigService(final AiProxyPluginHandler pluginHandler) {
+        this.pluginHandler = pluginHandler;
+    }
+
     /**
      * Resolves the primary configuration for the AI call by merging global and
      * selector-level settings.
@@ -46,7 +57,7 @@ public class AiProxyConfigService {
      * @return the primary AiCommonConfig
      */
     public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle) {
-        final AiCommonConfig globalConfig = Singleton.INST.get(AiCommonConfig.class);
+        final AiCommonConfig globalConfig = pluginHandler.getGlobalConfig();
         final AiCommonConfig primaryConfig = new AiCommonConfig();
 
         if (Objects.nonNull(globalConfig)) {
@@ -62,6 +73,8 @@ public class AiProxyConfigService {
             handleConfig.setMaxTokens(handle.getMaxTokens());
             handleConfig.setStream(handle.getStream());
             handleConfig.setProtocol(handle.getProtocol());
+            handleConfig.setRequestBodyOverrides(handle.getRequestBodyOverrides());
+            handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
             primaryConfig.mergeWith(handleConfig);
         }
         return primaryConfig;

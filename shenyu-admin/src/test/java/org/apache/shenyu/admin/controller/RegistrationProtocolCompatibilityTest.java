@@ -21,9 +21,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.admin.config.RegistrationProtocolInterceptor;
+import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
+import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -38,7 +40,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -74,9 +76,10 @@ class RegistrationProtocolCompatibilityTest {
     @Mock
     private InstanceInfoService instanceInfoService;
 
-    @Spy
-    @InjectMocks
     private InstanceCheckService instanceCheckService;
+
+    @Mock
+    private InstanceDiagnosticsService instanceDiagnosticsService;
 
     @InjectMocks
     private ShenyuClientHttpRegistryController controller;
@@ -85,7 +88,8 @@ class RegistrationProtocolCompatibilityTest {
 
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(controller, new InstanceController(instanceInfoService, instanceCheckService))
+        instanceCheckService = spy(new InstanceCheckService(instanceInfoService, new InstanceRetentionProperties()));
+        mvc = MockMvcBuilders.standaloneSetup(controller, new InstanceController(instanceInfoService, instanceCheckService, instanceDiagnosticsService))
                 .addInterceptors(new RegistrationProtocolInterceptor()).build();
     }
 

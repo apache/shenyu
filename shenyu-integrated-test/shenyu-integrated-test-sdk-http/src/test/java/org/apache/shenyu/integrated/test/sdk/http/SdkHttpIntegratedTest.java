@@ -21,15 +21,34 @@ import java.util.stream.Stream;
 import org.apache.shenyu.integrated.test.sdk.http.dto.SdkTestDto;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.awaitility.Awaitility.await;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class SdkHttpIntegratedTest extends AbstractPluginDataInit {
+
+    @BeforeAll
+    public static void awaitRegisteredRoutes() {
+        contextPortKeys().forEach(arguments -> {
+            Object[] values = arguments.get();
+            await().alias("SDK route registration for " + values[0]).atMost(Duration.ofSeconds(60))
+                    .ignoreExceptionsMatching(error -> error instanceof IOException)
+                    .pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
+                        SdkTestDto response = HttpHelper.INSTANCE.getHttpService("http://localhost:" + values[1]
+                                + "/sdk/" + values[0] + "/findById?id=10", null, SdkTestDto.class);
+                        assertNotNull(response);
+                        assertEquals("sdk-currentToken", response.getName());
+                    });
+        });
+    }
 
     @ParameterizedTest(name = "{index} => test {0}")
     @MethodSource("contextPortKeys")

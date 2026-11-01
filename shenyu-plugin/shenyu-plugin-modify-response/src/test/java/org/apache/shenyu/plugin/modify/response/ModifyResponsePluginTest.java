@@ -39,6 +39,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -110,7 +111,7 @@ public final class ModifyResponsePluginTest {
                 .selectorId("1")
                 .matchMode(1)
                 .sort(1)
-                .loged(true)
+                .logged(true)
                 .selectorId("test")
                 .build();
         final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
@@ -143,6 +144,20 @@ public final class ModifyResponsePluginTest {
         StepVerifier.create(response.getBodyAsString())
                 .expectNext("data: hello\n\n")
                 .verifyComplete();
+    }
+
+    @Test
+    public void testWriteWithNonStandardStatusCode() {
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setStatusCode(499);
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final DataBuffer dataBuffer = response.bufferFactory().wrap("ok".getBytes(StandardCharsets.UTF_8));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(dataBuffer))).verifyComplete();
+
+        assertEquals(HttpStatusCode.valueOf(499), response.getStatusCode());
     }
 
     @Test

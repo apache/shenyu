@@ -136,6 +136,10 @@ public interface ShenyuPlugin {
     /**
      * Plugin before operation.
      *
+     * <p>The gateway invokes this immediately before calling {@link #execute}, during chain
+     * subscription. Together with {@link #after}, it brackets construction of the plugin's
+     * publisher, not its asynchronous completion.</p>
+     *
      * @param exchange context
      */
     default void before(ServerWebExchange exchange) {
@@ -144,6 +148,11 @@ public interface ShenyuPlugin {
 
     /**
      * Plugin after operation.
+     *
+     * <p>The gateway invokes this when {@link #execute} returns or throws, before subscribing
+     * to the returned publisher. These construction-time semantics are retained for compatibility
+     * with plugin overrides, including WASM callbacks. The gateway chain timing separately measures
+     * the entire subscription through its terminal signal.</p>
      *
      * @param exchange context
      */

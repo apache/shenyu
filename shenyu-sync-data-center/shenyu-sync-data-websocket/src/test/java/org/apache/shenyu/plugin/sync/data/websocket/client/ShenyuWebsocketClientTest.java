@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.sync.data.websocket.client;
 
 import org.apache.shenyu.common.constant.RunningModeConstants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -28,6 +30,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
+import org.apache.shenyu.plugin.sync.data.websocket.LegacyPluginDataSubscriber;
 import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -45,7 +48,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +148,33 @@ public class ShenyuWebsocketClientTest {
         String json = GsonUtils.getInstance().toJson(websocketData);
         shenyuWebsocketClient.onMessage(json);
         verify(pluginDataSubscriber).onPluginRefresh(any());
+    }
+
+    @Test
+    void testOrdinaryNamespaceSnapshotKeepsLegacySubscriberCompatible() {
+        ShenyuWebsocketClient client = createSyncTestClient();
+        LegacyPluginDataSubscriber subscriber = new LegacyPluginDataSubscriber();
+        setField(client, "namespaceId", "namespace-a");
+        setField(client, "websocketDataHandler", new WebsocketDataHandler(subscriber,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList()));
+
+        // Ordinary namespace sync and config import both publish this namespace REFRESH frame.
+        sendNamespaceSnapshot(client, ConfigGroupEnum.PLUGIN,
+                PluginData.builder().name("legacy-plugin").namespaceId("namespace-a").build());
+        sendNamespaceSnapshot(client, ConfigGroupEnum.SELECTOR,
+                SelectorData.builder().id("legacy-selector").pluginName("divide")
+                        .namespaceId("namespace-a").sort(1).build());
+        sendNamespaceSnapshot(client, ConfigGroupEnum.RULE,
+                RuleData.builder().id("legacy-rule").selectorId("legacy-selector").pluginName("divide")
+                        .namespaceId("namespace-a").sort(1).build());
+
+        assertEquals(0, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
+        assertEquals(List.of(
+                "PLUGIN:all", "PLUGIN:self:legacy-plugin", "PLUGIN:subscribe:legacy-plugin",
+                "SELECTOR:all", "SELECTOR:self:legacy-selector", "SELECTOR:subscribe:legacy-selector",
+                "RULE:all", "RULE:self:legacy-rule", "RULE:subscribe:legacy-rule"), subscriber.getCalls());
+        verify(client, never()).close();
     }
 
     @Test
@@ -549,6 +581,14 @@ public class ShenyuWebsocketClientTest {
 
     // ---------- sync failure recovery tests ----------
 
+    private void sendNamespaceSnapshot(final ShenyuWebsocketClient client, final ConfigGroupEnum group, final Object row) {
+        WebsocketData<Object> snapshot =
+                new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), List.of(row));
+        snapshot.setNamespaceId("namespace-a");
+        snapshot.setFullSnapshot(true);
+        client.onMessage(GsonUtils.getInstance().toJson(snapshot));
+    }
+
     private WebsocketDataHandler getHandler(final ShenyuWebsocketClient client) {
         return (WebsocketDataHandler) getField(client, "websocketDataHandler");
     }
@@ -805,5 +845,31 @@ public class ShenyuWebsocketClientTest {
         assertEquals(2, ((AtomicInteger) getField(client, "consecutiveSyncFailures")).get());
         verify(client, times(2)).close();
         verify(client, never()).nowClose();
+    }
+
+    @Test
+    void testUtf8ByteLengthMatchesGetBytes() {
+        final String cjk = new String(Character.toChars(0x4E2D));
+        final String emoji = new String(Character.toChars(0x1F600));
+        final String accent = new String(Character.toChars(0x00E9));
+        final String loneHigh = String.valueOf((char) 0xD83D);
+        final String loneLow = String.valueOf((char) 0xDE00);
+        final String[] samples = {
+                "",
+                "abc",
+                "{\"groupType\":\"PLUGIN\",\"eventType\":\"REFRESH\",\"data\":[]}",
+                cjk + cjk + cjk,
+                "emoji " + emoji + " tail",
+                "mixed " + cjk + " " + emoji + " ascii " + accent,
+                loneHigh,
+                loneLow,
+                loneHigh + "abc",
+        };
+        for (String sample : samples) {
+            final int expected = sample.getBytes(StandardCharsets.UTF_8).length;
+            assertEquals(expected, ShenyuWebsocketClient.utf8ByteLength(sample),
+                    () -> "utf8ByteLength mismatch for sample of " + expected + " bytes");
+        }
+        assertEquals(0, ShenyuWebsocketClient.utf8ByteLength(null));
     }
 }

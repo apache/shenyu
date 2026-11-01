@@ -29,7 +29,10 @@ import org.apache.shenyu.admin.utils.InstanceInfoUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -51,6 +54,7 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void createOrUpdate(final InstanceInfoVO instanceInfoVO) {
         InstanceQuery instanceQuery = new InstanceQuery();
         instanceQuery.setInstanceIp(instanceInfoVO.getInstanceIp());
@@ -63,10 +67,19 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
             InstanceInfoDO instanceInfoDO = InstanceInfoDO.buildInstanceInfoDO(instanceInfoVO);
             try {
                 instanceInfoMapper.insert(instanceInfoDO);
+                return;
+            } catch (DuplicateKeyException e) {
+                // Another Admin may have registered this identity after our lookup.
+                // Each mapper call runs outside a transaction so PostgreSQL can recover
+                // from the failed insert without leaving an aborted transaction.
+                infoDO = instanceInfoMapper.selectOneByQuery(instanceQuery);
+                if (Objects.isNull(infoDO)) {
+                    throw e;
+                }
             } catch (Exception e) {
                 LOG.error("Failed to register instance info", e);
+                return;
             }
-            return;
         }
         LOG.debug("Update instance info: {}", GsonUtils.getInstance().toJson(instanceInfoVO));
         infoDO.setInstanceIp(instanceInfoVO.getInstanceIp());
@@ -95,6 +108,14 @@ public class InstanceInfoServiceImpl implements InstanceInfoService {
     public InstanceInfoVO findById(final String id) {
         InstanceInfoDO instanceInfoDO = instanceInfoMapper.selectById(id);
         return Objects.isNull(instanceInfoDO) ? null : this.buildInstanceInfoVO(instanceInfoDO);
+    }
+
+    @Override
+    // Scheduled bulk delete: deliberately outside any transaction so it does not pin a long-lived
+    // transaction/undo for the whole maintenance cycle. Do not switch it to REQUIRES_NEW.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public int deleteExpired(final long cutoff) {
+        return instanceInfoMapper.deleteExpired(cutoff);
     }
 
     private List<InstanceInfoVO> buildInstanceInfoVO(final List<InstanceInfoDO> instanceInfoDOList) {

@@ -26,10 +26,12 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.InstanceDiagnosticsVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
+import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.util.CollectionUtils;
@@ -38,6 +40,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Objects;
 
 /**
  * this is instance controller.
@@ -49,9 +53,14 @@ public class InstanceController implements PagedController<InstanceQueryConditio
 
     private final InstanceCheckService instanceCheckService;
 
-    public InstanceController(final InstanceInfoService instanceInfoService, final InstanceCheckService instanceCheckService) {
+    private final InstanceDiagnosticsService instanceDiagnosticsService;
+
+    public InstanceController(final InstanceInfoService instanceInfoService,
+                              final InstanceCheckService instanceCheckService,
+                              final InstanceDiagnosticsService instanceDiagnosticsService) {
         this.instanceInfoService = instanceInfoService;
         this.instanceCheckService = instanceCheckService;
+        this.instanceDiagnosticsService = instanceDiagnosticsService;
     }
 
     /**
@@ -85,9 +94,15 @@ public class InstanceController implements PagedController<InstanceQueryConditio
             commonPager.getDataList().forEach(instanceInfoVO -> {
                 String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
                 InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
-                instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
-                instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
-                instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+                if (Objects.isNull(instanceHealthBeatInfo)) {
+                    if (instanceInfoVO.getLastHeartBeatTime() <= 0 && Objects.nonNull(instanceInfoVO.getDateUpdated())) {
+                        instanceInfoVO.setLastHeartBeatTime(instanceInfoVO.getDateUpdated().getTime());
+                    }
+                } else {
+                    instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+                    instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+                    instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+                }
             });
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
@@ -107,6 +122,27 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     }
 
     /**
+     * instance diagnostics: correlation metadata and navigation links to the
+     * operator-configured metrics, logs and trace backends.
+     *
+     * @param id        instance id.
+     * @param startTime optional time window start, epoch millis.
+     * @param endTime   optional time window end, epoch millis.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @GetMapping("/{id}/diagnostics")
+    @RequiresPermissions("system:instance:edit")
+    public ShenyuAdminResult instanceDiagnostics(@PathVariable("id") final String id,
+                                                 @RequestParam(name = "startTime", required = false) final Long startTime,
+                                                 @RequestParam(name = "endTime", required = false) final Long endTime) {
+        InstanceDiagnosticsVO diagnosticsVO = instanceDiagnosticsService.getInstanceDiagnostics(id, startTime, endTime);
+        if (Objects.isNull(diagnosticsVO)) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        }
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, diagnosticsVO);
+    }
+
+    /**
      * receive beat.
      *
      * @param instanceBeatInfoDTO instanceBeatInfoDTO.
@@ -114,8 +150,8 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      */
     @PostMapping("/beat")
     public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
-        instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
-        return ShenyuResultMessage.SUCCESS;
+        boolean accepted = instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
+        return accepted ? ShenyuResultMessage.SUCCESS : ShenyuResultMessage.PARAMETER_ERROR;
     }
 
     /**

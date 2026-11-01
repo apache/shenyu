@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UpstreamLabelsUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +40,10 @@ public final class UpstreamProps {
 
     private static final String HEALTH_CHECK_ENABLED = "healthCheckEnabled";
 
+    private static final String DRAINING = "draining";
+
+    private static final String NOT_READY = "notReady";
+
     private static final String DEFAULT_WARMUP = "10";
 
     private static final String DEFAULT_GRAY = "false";
@@ -45,8 +52,11 @@ public final class UpstreamProps {
 
     private final Map<String, String> props;
 
-    private UpstreamProps(final Map<String, String> props) {
+    private final Map<String, String> labels;
+
+    private UpstreamProps(final Map<String, String> props, final Map<String, String> labels) {
         this.props = props;
+        this.labels = labels;
     }
 
     /**
@@ -56,9 +66,25 @@ public final class UpstreamProps {
      * @return the parsed props
      */
     public static UpstreamProps parse(final String props) {
-        return new UpstreamProps(Optional.ofNullable(props)
-                .map(ps -> GsonUtils.getInstance().toObjectMap(ps, String.class))
-                .orElseGet(HashMap::new));
+        JsonObject properties = Optional.ofNullable(props)
+                .map(ps -> GsonUtils.getInstance().fromJson(ps, JsonElement.class))
+                .filter(value -> !value.isJsonNull())
+                .map(JsonElement::getAsJsonObject)
+                .orElseGet(JsonObject::new);
+        Map<String, String> labels = UpstreamLabelsUtils.parse(properties.get("labels"));
+        Map<String, String> metadata = new HashMap<>();
+        properties.entrySet().stream().filter(entry -> entry.getValue().isJsonPrimitive() || entry.getValue().isJsonNull())
+                .forEach(entry -> metadata.put(entry.getKey(), entry.getValue().isJsonNull() ? null : entry.getValue().getAsString()));
+        return new UpstreamProps(metadata, labels);
+    }
+
+    /**
+     * Get labels separately from scalar upstream metadata.
+     *
+     * @return immutable upstream labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
     /**
@@ -89,7 +115,27 @@ public final class UpstreamProps {
     }
 
     /**
-     * Get all parsed props as a mutable map.
+     * Whether the upstream is draining, {@code false} by default. A draining upstream
+     * stays registered but must not be selected for new requests (#8042).
+     *
+     * @return true if the upstream is draining
+     */
+    public boolean isDraining() {
+        return Boolean.parseBoolean(getProperty(DRAINING, "false"));
+    }
+
+    /**
+     * Whether the upstream is ready to receive new work, {@code true} by default.
+     * A not-ready upstream stays registered but must not be selected (#8042).
+     *
+     * @return true if the upstream is ready
+     */
+    public boolean isReady() {
+        return !Boolean.parseBoolean(getProperty(NOT_READY, "false"));
+    }
+
+    /**
+     * Get scalar properties as a mutable map, excluding nested objects such as labels.
      *
      * @return a copy of the parsed props
      */

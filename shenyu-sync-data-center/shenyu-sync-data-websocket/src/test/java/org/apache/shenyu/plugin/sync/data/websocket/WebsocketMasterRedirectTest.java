@@ -36,7 +36,9 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
+import org.springframework.boot.web.server.WebServer;
 
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
@@ -109,7 +111,7 @@ class WebsocketMasterRedirectTest {
             other.masterUrl = master.url();
             seeds.add(other.url());
         }
-        createService(seeds);
+        createService(seeds, "127.0.0.1:" + master.getPort());
         awaitModes();
 
         check();
@@ -172,6 +174,7 @@ class WebsocketMasterRedirectTest {
         when(follower.isOpen()).thenReturn(true);
         when(follower.getRunningMode()).thenReturn("CLUSTER");
         when(follower.getMasterUrl()).thenReturn("ws://master:9095/websocket");
+        when(follower.getURI()).thenReturn(URI.create("ws://follower:9095/websocket"));
         ShenyuWebsocketClient master = mock(ShenyuWebsocketClient.class);
         when(master.isOpen()).thenReturn(true);
         when(master.getRunningMode()).thenReturn("CLUSTER");
@@ -201,22 +204,26 @@ class WebsocketMasterRedirectTest {
         }
     }
 
-    private void createService(final List<String> seeds) {
+    private void createService(final List<String> seeds, final String... trustedMasterHosts) {
         WebsocketConfig config = new WebsocketConfig();
         config.setUrls(seeds);
         config.setToken("test-token");
         config.setAllowOrigin("https://gateway.example");
+        config.setTrustedMasterHosts(List.of(trustedMasterHosts));
         ShenyuConfig shenyu = new ShenyuConfig();
         shenyu.setNamespace("cluster-test");
-        ServerProperties properties = new ServerProperties();
-        properties.setPort(9195);
         PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
         doAnswer(invocation -> {
             applied.countDown();
             return null;
         }).when(subscriber).onSubscribe(any());
         service = new WebsocketSyncDataService(config, shenyu, subscriber, Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), properties);
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        WebServer webServer = mock(WebServer.class);
+        when(webServer.getPort()).thenReturn(9195);
+        ServletWebServerApplicationContext applicationContext = mock(ServletWebServerApplicationContext.class);
+        when(applicationContext.getServerNamespace()).thenReturn(null);
+        service.onWebServerInitialized(new ServletWebServerInitializedEvent(webServer, applicationContext));
     }
 
     private TestServer startServer(final boolean master) throws InterruptedException {

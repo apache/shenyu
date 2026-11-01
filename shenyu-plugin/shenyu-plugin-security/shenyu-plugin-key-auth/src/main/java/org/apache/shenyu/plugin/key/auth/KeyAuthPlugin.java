@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.KeyAuthRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -37,6 +38,11 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 public class KeyAuthPlugin extends AbstractShenyuPlugin {
+
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return Mono.defer(() -> super.execute(exchange, chain)).contextWrite(KeyAuthAuthentication::clear);
+    }
 
     @Override
     public int getOrder() {
@@ -56,14 +62,23 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(keyAuthRuleHandle) || StringUtils.isBlank(keyAuthRuleHandle.getKeyName())
                 || StringUtils.isBlank(keyAuthRuleHandle.getKey())) {
+            recordRejection(exchange, AgentRuntimeMetrics.AuthenticationReason.INVALID_CONFIGURATION);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.KEY_NAME_AND_KEY_MUST_BE_CONFIGURED);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (checkKey(exchange, keyAuthRuleHandle.getKeyName(), keyAuthRuleHandle.getKey())) {
-            return chain.execute(exchange);
+            return KeyAuthAuthentication.execute(exchange, chain, rule);
         }
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_KEY);
+        recordRejection(exchange, AgentRuntimeMetrics.AuthenticationReason.CREDENTIAL_REJECTED);
         return WebFluxResultUtils.result(exchange, error);
+    }
+
+    private void recordRejection(final ServerWebExchange exchange, final AgentRuntimeMetrics.AuthenticationReason reason) {
+        Object callback = exchange.getAttribute(AgentRuntimeMetrics.KEY);
+        if (callback instanceof AgentRuntimeMetrics metrics) {
+            AgentRuntimeMetrics.safely(() -> metrics.authenticationRejected(AgentRuntimeMetrics.AuthenticationSource.KEY_AUTH, reason));
+        }
     }
 
     /**
