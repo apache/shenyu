@@ -190,12 +190,14 @@ class GatewayFailureMappingTest {
         WebFluxResultUtils.noRuleResult("divide", direct).block();
         assertNull(direct.getResponse().getStatusCode());
         assertNull(direct.getResponse().getHeaders().getContentType());
-        assertEquals("", direct.getResponse().getBodyAsString().block());
+        assertTrue(!direct.getResponse().isCommitted());
+        assertEquals(-1, direct.getResponse().getHeaders().getContentLength());
         MockServerWebExchange global = exchange();
         new GlobalErrorHandler().handle(global, new IllegalArgumentException("legacy")).block();
         assertEquals(HttpStatus.BAD_REQUEST, global.getResponse().getStatusCode());
         assertNull(global.getResponse().getHeaders().getContentType());
-        assertEquals("", global.getResponse().getBodyAsString().block());
+        assertTrue(!global.getResponse().isCommitted());
+        assertEquals(-1, global.getResponse().getHeaders().getContentLength());
     }
 
     @ParameterizedTest
