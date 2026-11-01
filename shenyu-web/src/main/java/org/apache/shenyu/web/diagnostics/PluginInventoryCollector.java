@@ -73,6 +73,7 @@ public final class PluginInventoryCollector implements SectionCollector {
         root.put("collected", 0);
         root.put("scope", "observed LEGACY chain; not a complete installation catalog");
         root.put("requestSelection", "UNKNOWN");
+        root.put("pluginObservation", webHandler.observationStats());
         root.put("plugins", inventory);
         int bytes = encode(root).length;
         if (bytes > budget.maxBytes()) {

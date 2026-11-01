@@ -33,7 +33,7 @@ import java.util.Optional;
  */
 public final class MetricsReporter {
 
-    private static MetricsRegister metricsRegister;
+    private static volatile MetricsRegister metricsRegister;
 
     private static volatile AgentRuntimeMetrics agentRuntimeMetrics = AgentRuntimeMetrics.NOOP;
 
@@ -81,6 +81,9 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL, new String[]{"state"}, "Remote catalog availability observed at request lease acquisition");
         MetricsReporter.registerCounter(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL, new String[]{"source", "reason"}, "Authentication plugin rejections before Agent routing is known");
         agentRuntimeMetrics = new AgentRuntimeMetricsReporter(metricsRegister);
+        registerCounter(PluginLifecycleMetricsSink.EVENTS, new String[]{"plugin", "boundary", "outcome"}, "Sampled plugin boundaries; drops are separate observer diagnostics");
+        registerHistogram(PluginLifecycleMetricsSink.INCLUSIVE, new String[]{"plugin", "outcome"}, "Sampled inclusive plugin publisher lifetime milliseconds");
+        registerCounter(PluginLifecycleMetricsSink.MATCHES, new String[]{"plugin", "decision", "selectorCache", "ruleCache"}, "Actual sampled matching decisions; no identifiers as labels");
     }
 
     /**
