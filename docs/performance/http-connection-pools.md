@@ -41,6 +41,11 @@ upstream's measured capacity and the gateway's memory and socket budget.
 an unbounded pending queue and a zero acquisition timeout, ignoring configured
 limits. ELASTIC now logs a startup warning with the effective connection count,
 queue bound and acquisition timeout, including defaults when no limits were supplied.
+In particular, configuring only `type: ELASTIC` now inherits the existing
+`maxConnections` default, the derived two-times queue bound and the 3000 ms
+acquisition timeout. Limits do not have to be explicitly present in YAML for
+this saturation behavior to change. The warning reports the actual effective
+values; use `FIXED` for new configurations.
 It now honors `maxConnections`, `maxPendingAcquires` and
 `acquireTimeout`. Overloaded ELASTIC deployments can therefore reject or time out
 acquisitions where they previously opened additional connections. Choose explicit
