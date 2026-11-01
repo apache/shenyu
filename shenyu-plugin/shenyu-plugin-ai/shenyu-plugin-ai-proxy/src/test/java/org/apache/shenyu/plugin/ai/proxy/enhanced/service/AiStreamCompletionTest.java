@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -132,15 +134,16 @@ class AiStreamCompletionTest {
     }
 
     @Test
-    void cancellationHasNoMarkerAndRepeatedConcurrentSubscriptionsOwnSeparateState() {
+    void cancellationHasNoMarkerAndRepeatedConcurrentSubscriptionsOwnSeparateState() throws InterruptedException {
         Probe never = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.never());
         StepVerifier.create(never.execute(new ArrayList<>())).thenCancel().verify();
         assertEquals(AiCallOutcome.CANCELLED, never.terminals.get(0).outcome());
         assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED, never.attempts.get(0).completion().evidence());
         assertEquals(AiStreamCompletion.Framing.NONE, never.attempts.get(0).completion().framing());
-        Probe probe = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.defer(() -> Flux.just(bytes("data: {}\n\n"))));
+        Probe probe = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.defer(() -> Flux.just(bytes("data: {}\n\n"))), 2);
         Mono<Void> cold = probe.execute(new CopyOnWriteArrayList<>());
         Mono.when(cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel()), cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel())).block();
+        assertTrue(probe.terminalLatch.await(5, TimeUnit.SECONDS), "doFinally observation runs after downstream completion");
         assertEquals(2, probe.calls.get());
         assertEquals(2, probe.attempts.size());
         assertNotEquals(probe.terminals.get(0).context().getRequestId(), probe.terminals.get(1).context().getRequestId());
@@ -199,9 +202,16 @@ class AiStreamCompletionTest {
 
         private final AtomicInteger calls = new AtomicInteger();
 
+        private final CountDownLatch terminalLatch;
+
         private final AiProxyEngine engine;
 
         private Probe(final AiStreamCompletionProperties.Mode mode, final Flux<byte[]> body) {
+            this(mode, body, 1);
+        }
+
+        private Probe(final AiStreamCompletionProperties.Mode mode, final Flux<byte[]> body, final int expectedTerminals) {
+            terminalLatch = new CountDownLatch(expectedTerminals);
             engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(mode), new OpenAiResponses())),
                     new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("fixture-chat"))), protocolRouteResolver(), request -> {
                         calls.incrementAndGet();
@@ -217,6 +227,7 @@ class AiStreamCompletionTest {
         @Override
         public void record(final AiTerminalEvent event) {
             terminals.add(event);
+            terminalLatch.countDown();
         }
 
         @Override
