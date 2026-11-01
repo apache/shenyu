@@ -189,7 +189,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private void cacheRuleData(final String path, final RuleData ruleData) {
+    private void cacheRuleData(final String selectorId, final String path, final RuleData ruleData) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
         if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)
                 || Boolean.TRUE.equals(ruleData.getMatchRestful())) {
@@ -199,14 +199,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         long maximumSize = ruleMatchConfig.getCache().getMaximumSize();
         long ttl = ruleMatchConfig.getCache().getTtl();
         if (StringUtils.isBlank(ruleData.getId())) {
-            MatchDataCache.getInstance().cacheRuleData(ruleData.getSelectorId(), path, ruleData, initialCapacity, maximumSize, ttl);
+            MatchDataCache.getInstance().cacheRuleData(selectorId, path, ruleData, initialCapacity, maximumSize, ttl);
             return;
         }
         List<ConditionData> conditionList = ruleData.getConditionDataList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheRuleData(ruleData.getSelectorId(), path, ruleData, initialCapacity, maximumSize, ttl);
+                MatchDataCache.getInstance().cacheRuleData(selectorId, path, ruleData, initialCapacity, maximumSize, ttl);
             }
         }
     }
@@ -331,14 +331,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // cache rule data
             if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
                     .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
-                cacheRuleData(path, ruleData);
+                cacheRuleData(selectorId, path, ruleData);
             }
             return ruleData;
         } else {
             // Selector identity is in the key; all rule candidates must still be path-only.
             if (matchRulePair.getLeft() && pathOnlyRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).selectorId(selectorId).build();
-                cacheRuleData(path, emptyRuleData);
+                cacheRuleData(selectorId, path, emptyRuleData);
             }
             return null;
         }
