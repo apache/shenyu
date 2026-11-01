@@ -41,8 +41,10 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The sensitive word plugin, it rejects the request when its body contains a word of the dictionary
@@ -52,6 +54,14 @@ import java.util.Objects;
  * rule points at, so a small list can be kept next to the rule and a large one outside of shenyu.
  * A loaded dictionary is reused for the refresh interval of the rule handle, see
  * {@link SensitiveWordHandle}.
+ *
+ * <p>A JSON body is scanned both as the raw text and as its decoded string values, so a word
+ * written with JSON escapes is rejected like its literal spelling while the body is forwarded
+ * unchanged. The decoded scan covers the model visible text of the OpenAI chat and responses
+ * protocols, including multimodal text parts, tool definitions and function arguments, because all
+ * of it is carried by string members; object member names and non string values are not inspected,
+ * see {@link JsonTextValues}. A body that is not a JSON object or array, and a malformed JSON body,
+ * keep the plain text scan of the raw bytes only.
  */
 public class SensitiveWordPlugin extends AbstractShenyuPlugin {
 
@@ -127,7 +137,7 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
             return Mono.just(body);
         }
         return dictionary(exchange, redisTemplate, handle)
-                .map(automaton -> automaton.search(body))
+                .map(automaton -> search(automaton, body))
                 .flatMap(matches -> {
                     if (matches.isEmpty()) {
                         return Mono.just(body);
@@ -138,6 +148,31 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
                     LOG.warn("sensitive word plugin: the request was rejected, matched words: {}", matches);
                     return Mono.error(new ResponsiveException(SENSITIVE_WORD_CODE, REJECT_MESSAGE, exchange));
                 });
+    }
+
+    /**
+     * Find the dictionary words in the body. The raw body keeps being scanned, so the plain text
+     * behavior and the words carried by a non JSON body are unchanged. A JSON body is scanned a
+     * second time through the decoded value of every string member, so a word written with JSON
+     * escapes is found like its literal spelling; the walk stops at the first matching value.
+     *
+     * @param automaton the dictionary automaton
+     * @param body the request body
+     * @return the matched words, empty when the body is clean
+     */
+    private Set<String> search(final AhoCorasick automaton, final String body) {
+        Set<String> matches = new LinkedHashSet<>(automaton.search(body));
+        if (matches.isEmpty()) {
+            JsonTextValues.anyMatch(body, value -> {
+                Set<String> decoded = automaton.search(value);
+                if (decoded.isEmpty()) {
+                    return false;
+                }
+                matches.addAll(decoded);
+                return true;
+            });
+        }
+        return matches;
     }
 
     /**
