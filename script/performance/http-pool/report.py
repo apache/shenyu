@@ -41,6 +41,39 @@ def resource(run, key):
     return run["resources"][key]
 
 
+def validate_comparison(before, after):
+    """Reject incomplete or incomparable arms before publishing a report."""
+    from run import CASES
+
+    expected_cases = {case[0] for case in CASES}
+    for label, arm in (("before", before), ("after", after)):
+        repetitions = arm["repetitions"]
+        if type(repetitions) is not int or repetitions <= 0:
+            raise ValueError(f"{label}: repetitions must be a positive integer")
+        for field in ("warmupSeconds", "measurementSeconds"):
+            if type(arm[field]) is not int or arm[field] <= 0:
+                raise ValueError(f"{label}: {field} must be a positive integer")
+        expected = {(case, repeat) for case in expected_cases
+                    for repeat in range(1, repetitions + 1)}
+        observed = [(run["case"], run["repeat"]) for run in arm["runs"]]
+        if any(type(run["repeat"]) is not int for run in arm["runs"]):
+            raise ValueError(f"{label}: repeat must be an integer")
+        if len(observed) != len(expected) or set(observed) != expected:
+            raise ValueError(f"{label}: incomplete or duplicate case/repetition samples")
+    for field in ("repetitions", "warmupSeconds", "measurementSeconds"):
+        if before[field] != after[field]:
+            raise ValueError(f"Mismatched benchmark setting: {field}")
+    # Queue capacity is the intended experimental variable; workload identity is not.
+    workload = ("rate", "poolType", "keepAlive", "aiClientControl", "directUpstream")
+    reference = {}
+    for arm in (before, after):
+        for run in arm["runs"]:
+            identity = tuple(run[field] for field in workload)
+            previous = reference.setdefault(run["case"], identity)
+            if previous != identity:
+                raise ValueError(f"Mismatched workload for {run['case']}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--before", type=Path, required=True)
@@ -49,9 +82,11 @@ def main():
     args = parser.parse_args()
     before = json.loads(args.before.read_text(encoding="utf-8"))
     after = json.loads(args.after.read_text(encoding="utf-8"))
+    try:
+        validate_comparison(before, after)
+    except (KeyError, TypeError, ValueError) as error:
+        raise SystemExit(f"Invalid benchmark comparison: {error}") from error
     for arm in (before, after):
-        if len(arm["runs"]) != 8 * arm["repetitions"]:
-            raise SystemExit("Incomplete benchmark arm")
         if "productionDiffSha256" in arm["build"]:
             arm["build"]["trackedProductionDiffSha256"] = arm["build"].pop("productionDiffSha256")
     cases = list(dict.fromkeys(run["case"] for run in before["runs"]))
@@ -71,7 +106,7 @@ def main():
         "- Baseline uses the original factory bytecode. The fixture/property accessor and optional Micrometer dependency were added before snapshotting, without changing that factory's policy.",
         "- Candidate uses the changed factory. Baseline: implicit FIXED queue `2 * 8 = 16`, legacy unlimited ELASTIC. Candidate: 8 connections and an explicitly selected queue of 4 for both types, 250 ms acquisition timeout.",
         "- Keep-alive is an explicit test variable; its production default is unchanged. Both arms have metrics enabled. The AI client control uses the unchanged `HttpClient.create()` construction path, not the HTTP factory's provider or a complete AI engine.",
-        "- Each case has a fresh JVM, " + str(before["warmupSeconds"]) + " s warmup and " + str(before["measurementSeconds"]) + " s fixed-arrival measurement, repeated three times. All figures below are medians; individual samples and variability are retained.",
+        "- Each case has a fresh JVM, " + str(before["warmupSeconds"]) + " s warmup and " + str(before["measurementSeconds"]) + " s fixed-arrival measurement, repeated " + str(before["repetitions"]) + " times. All figures below are medians; individual samples and variability are retained.",
         "- Benchmark runtime: `" + before["javaVersion"].splitlines()[0] + "`" + verified_runtime + ". Build/test JDK: `" + str(before["build"]["java"]) + "`; OS: `" + before["build"]["os"] + "`; host logical CPUs: " + str(before["build"]["hostLogicalCpus"]) + ".",
         "- JVM flags: `" + " ".join(before["build"]["jvmFlags"]) + "`. Two worker threads each for upstream, forwarder and client. The processor hint is not an OS CPU quota.",
         "- Generator, forwarder and upstream share one desktop. Background desktop activity is not controlled. No builds or other benchmark arms ran concurrently with either retained arm.",
