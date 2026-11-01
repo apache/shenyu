@@ -314,18 +314,53 @@ plugin "also works" for native calls is out of scope.
 (`configuration.hasSameRuntimeSettings(runningConfiguration) && server.isRunning()`), or
 shutdown → `init()` → `start()` → record configuration, all inside a `synchronized` method.
 `MqttBootstrapServer.shutdown()` closes the bound channel and calls `shutdownGracefully()` on both
-event loop groups; `TcpBootstrapFactory.createBootstrapServer` follows the same
+event loop groups at once; `TcpBootstrapFactory.createBootstrapServer` follows the same
 create-then-start-then-cleanup-on-failure shape.
 
 That pattern is correct for listener ownership but insufficient for native gRPC in one respect:
-`shutdown()` is immediate, so a configuration change would sever long-lived streams. #8184 requires
-graceful drain and policy-driven retirement. The native handler therefore splits configuration into
-two classes and treats them differently.
+`MqttBootstrapServer.shutdown()` tears down the channel **and** its event loop groups immediately,
+so a configuration change would sever long-lived streams. This immediacy is a property of the MQTT
+handler's own resource teardown, **not** of grpc-java's `Server.shutdown()`. At the pinned grpc-java
+1.65.1, `Server.shutdown()` is an *orderly* shutdown: preexisting calls continue, new calls are
+rejected, and — per its contract — "after this call returns, this server has released the listening
+socket(s) and may be reused by another server". `Server.shutdown()` therefore neither waits for calls
+to finish (that is `awaitTermination`) nor terminates their streams; only `shutdownNow()`
+force-cancels preexisting calls. #8184 requires graceful drain and policy-driven retirement, so the
+native handler uses orderly `shutdown()` as the routine primitive, splits configuration into two
+classes, and treats them differently.
 
 | Configuration class | Examples | On change |
 | --- | --- | --- |
-| **restart-class** | port, TLS/ALPN material, cleartext policy, executor/thread sizing, transport-level message size limits | Start a new listener, stop accepting on the old one, drain established calls to a deadline, then release old resources. Never a bare `shutdown()`. |
+| **restart-class** | port, TLS/ALPN material, cleartext policy, executor/thread sizing, transport-level message size limits | Release the old listening socket through an orderly `Server.shutdown()`, bind and start the replacement, drain the old server's established calls to a deadline while retaining their executors and channel leases, then release the old resources. Never `shutdownNow()` as the routine path. Same-port and new-port replacements order these steps differently (see below). |
 | **snapshot-class** | selectors, rules, method registry, upstream candidates, governance policies, rate/concurrency limits | Compile a new immutable snapshot and publish it atomically. The listener is untouched and no active call is disturbed (section 8). |
+
+**Same-port restart vs new-port replacement.** Most restart-class changes — TLS/ALPN material,
+cleartext policy, executor/thread sizing, transport-level message-size limits — do **not** change the
+address or port. Two ordinary grpc-java listeners cannot bind the same socket concurrently: a loopback
+probe at the pinned grpc-java 1.65.1 that starts a second `NettyServerBuilder` on the first server's
+port fails with `BindException: Address already in use`. Starting the replacement *before* releasing
+the old socket is therefore wrong for the common case, so the two cases are ordered differently:
+
+- **Same-port restart** (port unchanged): call orderly `Server.shutdown()` on the old server *first*.
+  This stops accepting new calls and releases the listening socket on return, while preexisting calls
+  keep running. Only then build and `start()` the replacement on the now-free port. The old server's
+  in-flight calls continue against their bound snapshot and upstream, and the executors and channel
+  leases they depend on are **retained** until drain finishes — releasing the listening socket early
+  is not the same as releasing call resources. Drain by awaiting the old server's
+  `awaitTermination(deadline)` off the configuration thread; on termination, or when the deadline
+  elapses, release the old executors and leases. Escalate to `shutdownNow()` only on deadline expiry
+  or for immediate security revocation (drain policy below), never as the routine path.
+- **New-port replacement** (port actually changes): there is no bind conflict, so start the
+  replacement on the new port *first*, then orderly-`shutdown()` and drain the old one. Both listeners
+  are briefly live on different ports and there is no acceptance gap.
+
+**Bounded acceptance gap.** A same-port restart has an unavoidable, bounded window between the old
+socket being released and the replacement binding it, during which new connection attempts on that
+port are refused. The gap is short — socket release plus one server construction and bind — and it
+affects only *new* calls; already-admitted calls drain unaffected. This is the deliberate trade for
+the fact that one port cannot be held by two listeners at once, and it must be documented for
+operators alongside the client-visible behavior (connection refused during the gap, then reconnect to
+the replacement).
 
 A no-op guard equivalent to `hasSameRuntimeSettings` is required for restart-class settings so that
 an unrelated selector edit cannot restart the listener. This directly serves acceptance criterion 8
@@ -341,8 +376,18 @@ disable events must reach listener, catalog and channel cleanup even when their 
 payload is null — `PluginDataHandler.removePlugin`/`removeSelector`/`removeRule` are the delivery
 points, and the implementation must not early-return on a null config.
 
-Failure cleanup follows the MQTT/TCP precedent: if `start()` fails after resources are allocated,
-release them in a `finally` block so a later retry can bind again.
+**Bind failure and rollback.** Failure cleanup follows the MQTT/TCP precedent: if `start()` fails
+after resources are allocated, release them in a `finally` block so a later retry can bind again. For
+a same-port restart this matters more, because the old socket has already been released when the
+replacement bind is attempted. If the replacement `start()` throws — a `BindException` from another
+process that grabbed the port during the acceptance gap, or a TLS/executor misconfiguration — the
+handler must roll back to the previous restart-class configuration. A grpc-java `Server` that has been
+shut down cannot be restarted (`start()` throws `IllegalStateException` if already started or shut
+down), so rollback builds a **fresh** `Server` from the retained old configuration and starts it,
+while the old server's in-flight calls keep draining throughout. If rollback also fails, the listener
+stays down, the failure is surfaced (log/alarm) and the bind is retried on a bounded schedule; the
+snapshot, permit accounting and channel leases owned by the lifecycle object (section 8.3) survive the
+outage, so no already-admitted call is silently dropped.
 
 ### 6.4 Transport, TLS and coexistence
 
@@ -620,7 +665,7 @@ acceptance criteria 1 to 5 and 7 require real-transport suites.
 
 | Suite | Covers |
 | --- | --- |
-| Module unit tests in `shenyu-protocol-grpc-native` | Listener start/stop/drain, bind-failure cleanup, configuration class discrimination, no-op guard |
+| Module unit tests in `shenyu-protocol-grpc-native` | Listener start/stop/drain, same-port restart socket-release-before-rebind ordering and rollback to a fresh `Server`, new-port replacement, bounded acceptance gap, bind-failure cleanup, configuration class discrimination, no-op guard |
 | Module unit tests in `shenyu-plugin-grpc-proxy` | Snapshot compilation and atomic publication, per-call context binding, terminal exactly-once accounting, permit conservation across reloads, status mapping, method-registry fail-closed behavior |
 | `shenyu-integrated-test` (Docker) | Four RPC types end to end against a real gRPC server, incremental delivery, trailers/status/details preservation, cancellation and deadline propagation, multi-call routing independence on one connection |
 | `shenyu-e2e` | Admin-configured selectors/rules driving native routing; plugin enable/disable lifecycle; coexistence with the bridge |
@@ -697,6 +742,7 @@ being automatically public.
 | Two parallel channel-lifecycle implementations (this feature and #8207) | Section 9.2: sequence M2 after #8207's API shape, or accept a private implementation with a recorded migration task |
 | Cancellation defect reproduced in new code via a future bridge | Section 2.4 and 7.4: forbid `CompletableFuture` dependent-stage cancellation as a release mechanism; single atomic terminal flag |
 | Listener restart on unrelated configuration edit severs long-lived streams | Section 6.3: restart-class vs snapshot-class discrimination plus a `hasSameRuntimeSettings`-equivalent no-op guard |
+| Same-port restart binds a replacement listener before the old socket is released, so the new `start()` fails with `BindException` | Section 6.3: orderly `Server.shutdown()` releases the socket before rebind; new-port replacement starts first; bounded acceptance gap, rollback to a fresh `Server`, and drain-time resource retention documented |
 | Permit leak across reloads exhausts admission permanently | Section 8.3: counters live in a lifecycle object that outlives snapshots; explicit reload regression test (criterion 8) |
 | Native traffic accidentally processed by JSON conversion or body rewriting | Section 6.2: native path never enters the exchange chain; structural, not conventional |
 | `db/upgrade` script damages existing `grpc` rows, or a dialect is missed | Section 5.1 and 5.4: insert-only, idempotent, all six dialects plus h2's separate location; the `native-sql-matrix` gate runs upgrade **and** fresh-install on five native engines and fails on skipped applicable jobs |
@@ -738,3 +784,8 @@ persistent artifact and are reversible by deleting the new plugin row.
    tree, only `db/upgrade` scripts exist for them. Confirm that fresh installs for those engines are
    expected to reuse the mysql and pg init schemas respectively, so the new plugin row does not need
    a separate `ob`/`og` init file.
+10. **Same-port restart acceptance gap** (section 6.3): is the brief connection-refused window
+    between releasing the old socket and binding the replacement acceptable operationally, or should
+    zero-gap restarts be required by always moving to a distinct port (new-port replacement) and
+    retiring the old listener? The answer decides whether a same-port restart may ever be the default
+    path or is only a fallback when the port cannot change.
