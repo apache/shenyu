@@ -181,6 +181,23 @@ class GatewayFailureMappingTest {
         assertEquals("", exchange.getResponse().getBodyAsString().block());
     }
 
+    @Test
+    void deploymentResultCanIntentionallySuppressErrorBodies() {
+        context.removeBeanDefinition("deploymentResult");
+        context.registerBean("deploymentResult", ShenyuResult.class, () -> new ShenyuResult<Object>() { });
+        start(List.of());
+        MockServerWebExchange direct = exchange();
+        WebFluxResultUtils.noRuleResult("divide", direct).block();
+        assertNull(direct.getResponse().getStatusCode());
+        assertNull(direct.getResponse().getHeaders().getContentType());
+        assertEquals("", direct.getResponse().getBodyAsString().block());
+        MockServerWebExchange global = exchange();
+        new GlobalErrorHandler().handle(global, new IllegalArgumentException("legacy")).block();
+        assertEquals(HttpStatus.BAD_REQUEST, global.getResponse().getStatusCode());
+        assertNull(global.getResponse().getHeaders().getContentType());
+        assertEquals("", global.getResponse().getBodyAsString().block());
+    }
+
     @ParameterizedTest
     @MethodSource("classifiedFailures")
     void boundedReasonsDoNotDependOnRequestInput(final Throwable error, final GatewayFailure.Reason reason) {

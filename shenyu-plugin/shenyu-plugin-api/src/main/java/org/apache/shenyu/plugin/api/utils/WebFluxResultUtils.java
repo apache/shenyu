@@ -78,6 +78,9 @@ public final class WebFluxResultUtils {
     }
 
     private static Mono<Void> writeResult(final ServerWebExchange exchange, final Object result) {
+        if (Objects.isNull(result)) {
+            return Mono.empty();
+        }
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         if (Objects.isNull(exchange.getResponse().getHeaders().getContentType())) {
