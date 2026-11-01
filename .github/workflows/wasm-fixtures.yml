@@ -24,6 +24,10 @@ on:
       - '.github/scripts/test-wasm-fixtures.py'
       - '.github/workflows/wasm-fixtures.yml'
       - 'pom.xml'
+      - '!*.md'
+      - '!**/README*.md'
+      - '!docs/**'
+      - '!**/docs/**'
   push:
     branches: [master]
     paths:
@@ -33,6 +37,10 @@ on:
       - '.github/scripts/test-wasm-fixtures.py'
       - '.github/workflows/wasm-fixtures.yml'
       - 'pom.xml'
+      - '!*.md'
+      - '!**/README*.md'
+      - '!docs/**'
+      - '!**/docs/**'
 
 permissions:
   contents: read

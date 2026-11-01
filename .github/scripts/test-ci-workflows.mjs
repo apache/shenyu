@@ -158,3 +158,40 @@ test('cluster health polling retains its previous startup grace and returns as s
     return error.status === 1;
   });
 });
+
+
+for (const name of ['minimal-http.yml', 'wasm-fixtures.yml', 'docker-image-smoke.yml']) {
+  test(`${name}: optional workflows also exclude documentation inside source directories`, () => {
+    const patterns = workflows.get(name).on.pull_request.paths;
+    const positive = patterns.filter(pattern => !pattern.startsWith('!'));
+    const negative = patterns.filter(pattern => pattern.startsWith('!'));
+    const filter = new Filter(yaml.dump({ paths: [`{${positive.join(',')}}`, ...negative] }), { predicateQuantifier: 'every' });
+    for (const filename of ['shenyu-admin/README.md', 'shenyu-plugin/shenyu-plugin-wasm-api/README.md', 'docs/container-runtime.md', 'script/performance/minimal-http/README.md']) {
+      assert.equal(filter.match([{ filename, status: 'modified' }]).paths.length, 0, filename);
+    }
+    assert.equal(filter.match([{ filename: `.github/workflows/${name}`, status: 'modified' }]).paths.length, 1);
+  });
+}
+
+test('SQL scope excludes Admin and database documentation, keeping mixed code changes', () => {
+  const run = workflows.get('native-sql-matrix.yml').jobs.scope.steps.find(step => step.id === 'scope').run;
+  const code = run.split("python3 - <<'PY'\n")[1].replace(/\nPY\s*$/, '');
+  const bootstrap = 'import os, subprocess, sys; subprocess.run = lambda *a, **k: None; subprocess.check_output = lambda *a, **k: os.environ["CHANGED_PATHS"]; exec(sys.argv[1])';
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.matrix-test-'));
+  try {
+    const fixtures = [
+      ['shenyu-admin/README.md', false], ['db/init/docs/guide.md', false],
+      ['db/init/mysql/schema.sql', true], ['shenyu-admin/src/main/java/Plugin.java', true],
+      ['shenyu-admin/README.md\ndb/upgrade/mysql/schema.sql', true],
+    ];
+    for (const [index, [paths, expected]] of fixtures.entries()) {
+      const output = resolve(temporary, `output-${index}`);
+      execFileSync('python3', ['-c', bootstrap, code], { cwd: root, env: {
+        ...process.env, EVENT_NAME: 'pull_request', BASE_SHA: '1'.repeat(40), GITHUB_OUTPUT: output, CHANGED_PATHS: paths,
+      } });
+      assert.equal(readFileSync(output, 'utf8').trim(), `required=${expected}`, paths);
+    }
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+});

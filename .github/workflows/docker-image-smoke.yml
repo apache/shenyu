@@ -29,6 +29,10 @@ on:
       - 'script/docker-image-smoke.sh'
       - 'docs/container-runtime.md'
       - '.github/workflows/docker-image-smoke.yml'
+      - '!*.md'
+      - '!**/README*.md'
+      - '!docs/**'
+      - '!**/docs/**'
   push:
     branches:
       - master
@@ -39,6 +43,10 @@ on:
       - 'script/docker-image-smoke.sh'
       - 'docs/container-runtime.md'
       - '.github/workflows/docker-image-smoke.yml'
+      - '!*.md'
+      - '!**/README*.md'
+      - '!docs/**'
+      - '!**/docs/**'
 
 permissions:
   contents: read

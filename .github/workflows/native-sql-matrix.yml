@@ -50,6 +50,9 @@ jobs:
           if os.environ['EVENT_NAME'] != 'workflow_dispatch' and re.fullmatch(r'[0-9a-f]{40}', base) and set(base) != {'0'}:
               subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', base], check=True)
               paths = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()
+              paths = [path for path in paths if not (
+                  'docs' in Path(path).parts or
+                  (path.endswith('.md') and ('/' not in path or Path(path).name.startswith('README'))))]
               required = any(path.startswith(('db/init/', 'db/upgrade/', 'shenyu-admin/'))
                              or path in ('.github/workflows/native-sql-matrix.yml', '.github/scripts/native-sql-matrix.py',
                                          '.github/scripts/test-native-sql-matrix.py') for path in paths)
@@ -58,6 +61,8 @@ jobs:
           PY
 
   runner-tests:
+    needs: scope
+    if: needs.scope.outputs.required == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -129,12 +134,13 @@ jobs:
           python3 - <<'PY'
           import os
           assert os.environ['SCOPE_RESULT'] == 'success', 'Scope detection failed'
-          assert os.environ['RUNNER_RESULT'] == 'success', 'SQL harness tests failed'
           if os.environ['REQUIRED'] == 'true':
+              assert os.environ['RUNNER_RESULT'] == 'success', 'SQL harness tests failed'
               assert os.environ['LIST_RESULT'] == 'success', 'List contract failed or was canceled/skipped'
               assert os.environ['SQL_RESULT'] == 'success', 'Native SQL matrix failed or was canceled/skipped'
           else:
               assert os.environ['REQUIRED'] == 'false', 'Missing scope output'
+              assert os.environ['RUNNER_RESULT'] == 'skipped', 'Unexpected harness result'
               assert os.environ['LIST_RESULT'] == os.environ['SQL_RESULT'] == 'skipped', 'Unexpected SQL result'
               print('No SQL/Admin changes; native matrix is not applicable.')
           PY
