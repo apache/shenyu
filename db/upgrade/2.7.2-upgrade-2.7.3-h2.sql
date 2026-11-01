@@ -51,6 +51,8 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers.
 ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
 
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0;
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');

@@ -52,6 +52,9 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
 
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE public.dashboard_user ADD COLUMN token_version int4 NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.dashboard_user.token_version IS 'token version used to revoke issued JWTs';
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO "public"."plugin_handle" ("id", "plugin_id", "field", "label", "data_type", "type", "sort", "ext_obj", "date_created", "date_updated")
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');
