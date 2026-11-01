@@ -16,6 +16,15 @@
 name: it
 
 on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: 'Integration case (all preserves the complete matrix).'
+        type: choice
+        default: all
+        options:
+          - all
+          - shenyu-integrated-test-http
   pull_request:
     paths-ignore:
       - '**.md'
@@ -69,7 +78,7 @@ concurrency:
 
 jobs:
   changes:
-    if: github.repository == 'apache/shenyu'
+    if: (github.repository == 'apache/shenyu' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     outputs:
       integration: ${{ steps.filter.outputs.integration }}
@@ -102,18 +111,23 @@ jobs:
               - '!.github/PULL_REQUEST_TEMPLATE'
       - name: Resolve integrated test cases
         id: cases
-        if: steps.filter.outputs.integration == 'true'
+        if: steps.filter.outputs.integration == 'true' || github.event_name == 'workflow_dispatch'
         env:
-          CHANGED_FILES_JSON: ${{ steps.filter.outputs.integration_files }}
+          CHANGED_FILES_JSON: ${{ github.event_name == 'workflow_dispatch' && '["pom.xml"]' || steps.filter.outputs.integration_files }}
           CI_CASE_MODE: integration
-        run: bash .github/scripts/resolve-test-case-matrix.sh
+          REQUESTED_CASE: ${{ inputs.case }}
+        run: |
+          bash .github/scripts/resolve-test-case-matrix.sh
+          if [[ "$REQUESTED_CASE" != "all" && -n "$REQUESTED_CASE" ]]; then
+            echo "integration_matrix=$(jq -cn --arg case "$REQUESTED_CASE" '{include: [{case: $case}]}')" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     needs: changes
     strategy:
       matrix: ${{ fromJSON(needs.changes.outputs.integration_matrix || '{"include":[]}') }}
     runs-on: ubuntu-latest
-    if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_integration == 'true'
+    if: (github.repository == 'apache/shenyu' || github.event_name == 'workflow_dispatch') && needs.changes.outputs.run_integration == 'true'
     steps:
       - uses: actions/checkout@v3
         with:
