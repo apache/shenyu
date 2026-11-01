@@ -46,6 +46,11 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.api.failure.GatewayFailureMapping;
+import org.apache.shenyu.plugin.api.failure.GatewayFailurePresentation;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +72,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeoutException;
@@ -127,6 +133,33 @@ class AiProxyPluginTest {
         assertEquals("primary-model", forwarded.get("model").asText());
         assertEquals(42, forwarded.get("unknown").asInt());
         assertEquals("Hello", forwarded.get("messages").get(0).get("content").asText());
+    }
+
+    @Test
+    void optionalGatewayPolicyDoesNotAdoptAiAuthenticationOrLocalErrorResponses() {
+        final ApplicationContext previous = SpringBeanUtils.getInstance().getApplicationContext();
+        AtomicInteger mappings = new AtomicInteger();
+        try (GenericApplicationContext context = new GenericApplicationContext()) {
+            context.registerBean(GatewayFailureMapping.class, () -> new GatewayFailureMapping(List.of(failure -> {
+                mappings.incrementAndGet();
+                return Optional.of(new GatewayFailurePresentation(422, 422, "Unadopted", false));
+            })));
+            context.refresh();
+            SpringBeanUtils.getInstance().setApplicationContext(context);
+            handle.setProxyEnabled("true");
+            StepVerifier.create(execute(plugin(request -> Mono.error(new IllegalStateException("must not execute"))))).verifyComplete();
+            assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+            assertEquals("", exchange.getResponse().getBodyAsString().block());
+            handle.setProxyEnabled("false");
+            exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").body(REQUEST_BODY));
+            StepVerifier.create(execute(plugin(request -> Mono.error(new AiTransportException(
+                    AiTransportException.Kind.TLS_FAILURE, "local fixture failure", null))))).verifyComplete();
+            assertEquals(HttpStatus.BAD_GATEWAY, exchange.getResponse().getStatusCode());
+            assertEquals("", exchange.getResponse().getBodyAsString().block());
+            assertEquals(0, mappings.get());
+        } finally {
+            SpringBeanUtils.getInstance().setApplicationContext(previous);
+        }
     }
 
     @ParameterizedTest
