@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -110,9 +110,17 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
     { script: 'e2e-logging-rocketmq-compose', case: 'logging', example_projects: ':http' },
     { script: 'e2e-cluster-jdbc-compose', case: 'cluster', example_projects: ':http' },
   ] };
-  const output = execFileSync('bash', ['-c', step.run], {
-    cwd: root, env: { ...process.env, E2E_MATRIX: JSON.stringify(original), GITHUB_OUTPUT: '/dev/stdout' }, encoding: 'utf8',
-  }).trim();
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.matrix-test-'));
+  let output;
+  try {
+    const outputFile = resolve(temporary, 'output');
+    execFileSync('bash', ['-c', step.run], {
+      cwd: root, env: { ...process.env, E2E_MATRIX: JSON.stringify(original), GITHUB_OUTPUT: outputFile },
+    });
+    output = readFileSync(outputFile, 'utf8').trim();
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
   const shards = JSON.parse(output.slice('matrix='.length)).include;
   assert.equal(shards.length, 10);
   for (const entry of original.include) {
@@ -136,4 +144,17 @@ test('manual E2E runs keep all sync channels and invalid selections fail', () =>
   assert.throws(() => execFileSync('bash', ['-c', command], {
     cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: 'unsupported' }, stdio: 'pipe',
   }));
+});
+
+
+test('cluster health polling retains its previous startup grace and returns as soon as ready', () => {
+  const command = 'curl() { echo "$STATUS"; }; sleep() { :; }; source shenyu-e2e/shenyu-e2e-case/k8s/script/healthcheck.sh http://fixture 45';
+  const ready = execFileSync('bash', ['-c', command], { cwd: root, env: { ...process.env, STATUS: '200' }, encoding: 'utf8' });
+  assert.ok(ready.includes('Success'));
+  assert.ok(!ready.includes('2 curl'));
+  assert.throws(() => execFileSync('bash', ['-c', command], { cwd: root, env: { ...process.env, STATUS: '503' }, stdio: 'pipe' }), error => {
+    assert.ok(error.stdout.toString().includes('45 curl'));
+    assert.ok(error.stdout.toString().includes('Failed'));
+    return error.status === 1;
+  });
 });
