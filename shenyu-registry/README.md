@@ -40,7 +40,7 @@ runtime classpath, using the same ShenYu version as the application:
 | `zookeeper` | `shenyu-registry-zookeeper` |
 | `etcd` | `shenyu-registry-etcd` |
 | `nacos` | `shenyu-registry-nacos` |
-| `apollo` | `shenyu-registry-apollo`; in-tree deprecation and planned external ownership: [migration guide](../docs/plugin-store-apollo.md) |
+| `apollo` | External `shenyu-registry-apollo` from plugin-store: [migration guide](../docs/plugin-store-apollo.md) |
 | `eureka` | `shenyu-registry-eureka` |
 | `kubernetes` | `shenyu-registry-kubernetes` |
 
@@ -62,7 +62,7 @@ example selects Eureka, and the gRPC example selects no registry implementation.
 For the 2.7.2 transition, `shenyu-spring-boot-starter-registry` retains the five providers
 previously supplied by core: ZooKeeper, etcd, Nacos, Eureka and Kubernetes. Existing users
 of that starter keep the same classpath and configuration keys. Apollo was not part of
-the previous aggregate and remains an explicit choice. Removing the compatibility
+the previous aggregate and now requires an explicit external provider dependency. Removing the compatibility
 aggregate is deferred to a separately announced change.
 
 Applications depending directly on core, SDK libraries, or SDK starters should add
@@ -79,7 +79,7 @@ key migration is required. The factory's cache and reinitialization behavior is 
 
 ## External implementations
 
-External providers, including Consul and Polaris extensions, implement
+External providers, including Apollo, Consul and Polaris extensions, implement
 `org.apache.shenyu.registry.api.ShenyuInstanceRegisterRepository`, carry `@Join`, and
 publish this resource in their JAR:
 
@@ -117,7 +117,7 @@ alone does not remove those libraries. Keep the existing license and notice entr
 for libraries still shipped. Custom distributions must inventory the actual packaged
 `lib/` JARs and include their notices when selecting or removing providers.
 
-CI checks resolved runtime trees for the API/core, both SDK libraries/starters, all six
+CI checks resolved runtime trees for the API/core, both SDK libraries/starters, all five
 in-repository implementations and the compatibility starter. The checks reject registry
 implementations and client libraries in lean consumers, reverse implementation-to-core
 dependencies, and loss of a compatibility provider. Run locally:
