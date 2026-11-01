@@ -98,7 +98,9 @@ public final class GlobalErrorHandlerTest {
         NullPointerException nullPointerException = new NullPointerException("nullPointerException");
         Mono<Void> response = globalErrorHandler.handle(webExchange, nullPointerException);
         assertNotNull(response);
-        assertNotNull(globalErrorHandler.handle(webExchange, new ResponseStatusException(HttpStatus.BAD_REQUEST)));
+        response.block();
+        ServerWebExchange another = MockServerWebExchange.from(MockServerHttpRequest.get("/another"));
+        globalErrorHandler.handle(another, new ResponseStatusException(HttpStatus.BAD_REQUEST)).block();
     }
 
     @Test
