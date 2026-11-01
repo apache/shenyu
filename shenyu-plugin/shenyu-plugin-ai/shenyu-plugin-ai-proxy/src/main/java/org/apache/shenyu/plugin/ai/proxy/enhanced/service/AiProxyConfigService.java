@@ -58,16 +58,6 @@ public class AiProxyConfigService {
      * @return the primary AiCommonConfig
      */
     public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle) {
-        return resolvePrimaryConfig(handle, AiProxyRuleOverrides.NONE);
-    }
-
-    /**
-     * Resolve request-owned Plugin/Selector defaults, then the Rule's allowlisted generation defaults.
-     * @param handle Selector defaults
-     * @param rule published Rule defaults with explicit null clearing
-     * @return request-owned effective config, never a mutation of cached configuration
-     */
-    public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle, final AiProxyRuleOverrides rule) {
         final AiCommonConfig globalConfig = pluginHandler.getGlobalConfig();
         final AiCommonConfig primaryConfig = new AiCommonConfig();
 
@@ -88,6 +78,30 @@ public class AiProxyConfigService {
             handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
             primaryConfig.mergeWith(handleConfig);
         }
+        return primaryConfig;
+    }
+
+    /**
+     * Preserve custom resolution of Plugin/Selector defaults before applying Rule fields.
+     * @param handle Selector defaults
+     * @param rule published Rule generation values
+     * @return effective configuration
+     */
+    public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle, final AiProxyRuleOverrides rule) {
+        return applyRuleOverrides(resolvePrimaryConfig(handle), rule);
+    }
+
+    /**
+     * Apply opt-in fields to a request-owned copy; legacy/custom resolvers keep their original entry point.
+     * @param resolved effective Plugin/Selector configuration
+     * @param rule immutable Rule values, or null from a legacy embedding
+     * @return unchanged legacy value when inactive, otherwise a request-owned copy
+     */
+    public static AiCommonConfig applyRuleOverrides(final AiCommonConfig resolved, final AiProxyRuleOverrides rule) {
+        if (Objects.isNull(rule) || rule.specified().isEmpty()) {
+            return resolved;
+        }
+        final AiCommonConfig primaryConfig = new AiCommonConfig(resolved);
         for (AiProxyRuleOverrides.Setting setting : rule.specified()) {
             switch (setting) {
                 case MODEL -> primaryConfig.setModel(rule.model());

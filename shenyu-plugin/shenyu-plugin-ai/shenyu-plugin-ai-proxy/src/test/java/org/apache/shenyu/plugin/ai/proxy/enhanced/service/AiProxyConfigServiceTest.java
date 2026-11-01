@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -109,6 +110,24 @@ public class AiProxyConfigServiceTest {
             assertEquals(override.temperature(), resolved.getTemperature());
         });
         assertEquals("selector", selector.getModel());
+    }
+
+    @Test
+    void existingCustomResolverEntryPointRemainsEffectiveWithRuleOverrides() {
+        AiCommonConfig customValue = new AiCommonConfig();
+        customValue.setModel("custom-model");
+        customValue.setProvider("custom-provider");
+        AiProxyConfigService custom = new AiProxyConfigService(pluginHandler) {
+            @Override
+            public AiCommonConfig resolvePrimaryConfig(final AiProxyHandle handle) {
+                return customValue;
+            }
+        };
+        assertSame(customValue, custom.resolvePrimaryConfig(null, AiProxyRuleOverrides.NONE));
+        AiCommonConfig effective = custom.resolvePrimaryConfig(null, AiProxyRuleOverrides.parse("{\"generationOverrides\":{\"model\":\"rule-model\"}}"));
+        assertEquals("rule-model", effective.getModel());
+        assertEquals("custom-provider", effective.getProvider());
+        assertEquals("custom-model", customValue.getModel());
     }
 
     @Test
