@@ -38,21 +38,24 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   rebuild-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test fixture verification failures and resource restoration
         run: python3 .github/scripts/test-wasm-fixtures.py
       - uses: ./actions/setup-java-with-retry
         with:
           java-version: "17"
           distribution: "temurin"
+          cache: maven
+
       - name: Install pinned WABT
         shell: bash
         run: |

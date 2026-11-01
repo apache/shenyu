@@ -25,8 +25,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: native-sql-matrix-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   scope:
@@ -81,7 +82,7 @@ jobs:
           -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
 
   native-sql:
-    needs: [scope, runner-tests]
+    needs: scope
     if: needs.scope.outputs.required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40

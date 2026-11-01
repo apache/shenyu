@@ -44,8 +44,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   smoke:
@@ -58,5 +59,7 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+          cache: maven
+
       - name: Run container runtime smoke checks
         run: bash script/docker-image-smoke.sh

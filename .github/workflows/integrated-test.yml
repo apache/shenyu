@@ -44,7 +44,7 @@ concurrency:
 
 jobs:
   changes:
-    if: (github.repository == 'apache/shenyu' || github.event_name == 'workflow_dispatch')
+    if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
     outputs:
       integration: ${{ steps.filter.outputs.integration }}
@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.changes.outputs.integration_matrix || '{"include":[]}') }}
     runs-on: ubuntu-latest
-    if: (github.repository == 'apache/shenyu' || github.event_name == 'workflow_dispatch') && needs.changes.outputs.run_integration == 'true'
+    if: github.repository == 'apache/shenyu' && needs.changes.outputs.run_integration == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
