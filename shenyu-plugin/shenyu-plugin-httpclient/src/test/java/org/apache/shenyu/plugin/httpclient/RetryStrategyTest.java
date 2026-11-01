@@ -86,7 +86,7 @@ public class RetryStrategyTest {
     @Test
     void testDefaultRetryBackoffExecute() {
         // Create a simulated AbstractHttpClientPlugin
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(httpClientPlugin);
 
         // Create a simulated ServerWebExchange
@@ -113,7 +113,7 @@ public class RetryStrategyTest {
     @ParameterizedTest
     @ValueSource(strings = {"GET", "POST", "PUT"})
     void testExponentialStrategyDoesNotRetryUnsafeRequestsOrPermanentFailures(final String method) {
-        ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(mock(AbstractHttpClientPlugin.class));
+        ExponentialRetryBackoffStrategy<String> strategy = new ExponentialRetryBackoffStrategy<>(mockWithAttemptPassthrough());
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.valueOf(method), "/").build());
         Throwable failure = "GET".equals(method)
                 ? WebClientResponseException.create(400, "Bad Request", HttpHeaders.EMPTY, new byte[0], null)
@@ -131,7 +131,7 @@ public class RetryStrategyTest {
     @Test
     void testDefaultRetryStrategyExecute() {
         //Create a simulated AbstractHttpClientPlugin
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(httpClientPlugin);
 
         // Create a simulated ServerWebExchange
@@ -159,7 +159,7 @@ public class RetryStrategyTest {
         "http://localhost:8080/other?ignored=true, http://, localhost:8080"
     })
     void testFailoverExcludesSameUpstream(final String currentUri, final String protocol, final String url) {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange(currentUri);
         Upstream upstream = Upstream.builder().protocol(protocol).url(url).build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
@@ -182,7 +182,7 @@ public class RetryStrategyTest {
         "https://, localhost:8080"
     })
     void testFailoverSelectsDifferentUpstream(final String protocol, final String url) {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol(protocol).url(url).build();
@@ -221,7 +221,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReleasesP2cInflightOnMultiCandidateRetry() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "p2c");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7975-multi");
@@ -255,7 +255,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReleasesP2cInflightOnSingletonRetry() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "p2c");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7975-single");
@@ -286,7 +286,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReservesAndReleasesLeastActiveAccounting() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
@@ -586,7 +586,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverWithMissingUpstreamList() {
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(httpClientPlugin);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, RetryEnum.FAILOVER.getName());
@@ -607,7 +607,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverSkipsBlockedUpstream() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
@@ -632,7 +632,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverResendRecordsFailureOutcome() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
@@ -659,7 +659,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverResendRecordsSuccessOutcome() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
@@ -687,7 +687,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFixedRetryStrategyRetriesTransientGetFailures() {
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
         AtomicInteger attempts = new AtomicInteger();
@@ -706,7 +706,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFixedRetryStrategyDoesNotRetryPermanentFailures() {
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
         AtomicInteger attempts = new AtomicInteger();
@@ -724,7 +724,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFixedRetryStrategyDoesNotRetryPostRequests() {
-        AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> httpClientPlugin = mockWithAttemptPassthrough();
         FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/").build());
         AtomicInteger attempts = new AtomicInteger();
@@ -942,7 +942,7 @@ public class RetryStrategyTest {
     @Test
     void testExponentialFailoverResetsStateForEachSubscription() {
         ServerWebExchange exchange = createBackoffFailoverExchange("exponential", HttpMethod.GET, 1);
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
         AtomicInteger primaryAttempts = new AtomicInteger();
@@ -982,6 +982,11 @@ public class RetryStrategyTest {
     private AbstractHttpClientPlugin<String> recordingPlugin(final List<URI> attempts, final Function<URI, Mono<String>> response) {
         return new AbstractHttpClientPlugin<String>(1024) {
             @Override
+            protected Integer extractStatusCode(final String response) {
+                return 200;
+            }
+
+            @Override
             protected Mono<String> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri, final Flux<DataBuffer> body) {
                 return Mono.defer(() -> {
                     attempts.add(uri);
@@ -1011,4 +1016,15 @@ public class RetryStrategyTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, statusException.getStatusCode());
         assertEquals("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", statusException.getReason());
     }
+
+    /**
+     * A plugin mock whose attempt-observation wrapper passes the attempt through
+     * unmodified, so strategy-level tests exercise their own accounting logic.
+     */
+    private static <T> AbstractHttpClientPlugin<T> mockWithAttemptPassthrough() {
+        AbstractHttpClientPlugin<T> plugin = mock(AbstractHttpClientPlugin.class);
+        when(plugin.observeAttempt(any(), any(), any(), any())).thenAnswer(inv -> inv.getArgument(3));
+        return plugin;
+    }
+
 }

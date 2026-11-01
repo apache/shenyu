@@ -200,12 +200,10 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
         final List<Upstream> upstreamList = retryCandidates(exchange, selectorId, exclude);
         if (upstreamList.isEmpty()) {
-            // no need to retry anymore
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
         final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
         if (Objects.isNull(upstream)) {
-            // no need to retry anymore
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
         final boolean ownerPresent = Objects.nonNull(owner);
@@ -232,7 +230,13 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
             final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-            Mono<R> retryResponse = AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
+            // a resend is its own observed transport attempt: the observation is created at
+            // subscription time with a fresh identity and finishes on error/cancel here, while
+            // a succeeded resend is finished by the terminal callback with the body (#8209)
+            Mono<R> retryResponse = httpClientPlugin.observeAttempt(exchange, newUri, exchange.getRequest().getMethod().name(),
+                    AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
+                            () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
+                            .doOnError(e -> LOG.error(e.getMessage(), e));
                     () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
             if (ownerPresent) {
