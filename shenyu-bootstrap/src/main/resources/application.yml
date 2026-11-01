@@ -301,6 +301,14 @@ shenyu:
     threads: 1
     scheduleTime: 300
     scheduleDelay: 30
+    # Applies to filesystem and Admin-synchronized JARs, even when scanning is disabled.
+    # Increase finite limits before deploying larger existing extensions; zero is invalid.
+    # Expanded bytes exclude parser/map overhead and temporary copies, not a heap bound.
+    archiveLimits:
+      maxArchiveBytes: 16777216
+      maxEntries: 10000
+      maxEntryBytes: 16777216
+      maxExpandedBytes: 67108864
   scheduler:
     enabled: false
     type: fixed
