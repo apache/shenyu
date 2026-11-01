@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.api;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -42,8 +43,9 @@ public interface HandleCache<K, V> {
      * @param supplier the supplier
      * @return the v
      */
-    default V obtainHandle(K key, Supplier<V> supplier) {
-        return supplier.get();
+    default V obtainHandle(final K key, final Supplier<V> supplier) {
+        final V value = obtainHandle(key);
+        return Objects.nonNull(value) ? value : supplier.get();
     }
     
     /**

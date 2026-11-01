@@ -1,0 +1,109 @@
+
+The following files have been resolved:
+   ch.qos.logback:logback-classic:jar:1.5.6:compile -- module ch.qos.logback.classic
+   org.springframework.boot:spring-boot-actuator:jar:3.3.1:compile -- module spring.boot.actuator [auto]
+   org.java-websocket:Java-WebSocket:jar:1.5.0:compile -- module Java.WebSocket (auto)
+   org.apache.shenyu:shenyu-sync-data-websocket:jar:2.7.2-SNAPSHOT:compile -- module shenyu.sync.data.websocket (auto)
+   com.fasterxml.jackson.core:jackson-databind:jar:2.17.1:compile -- module com.fasterxml.jackson.databind
+   io.netty:netty-codec:jar:4.1.139.Final:compile -- module io.netty.codec [auto]
+   org.apache.shenyu:shenyu-spring-boot-starter-plugin-divide:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.plugin.divide (auto)
+   net.java.dev.jna:jna-platform:jar:5.18.1:compile -- module com.sun.jna.platform [auto]
+   org.springframework.boot:spring-boot-starter-logging:jar:3.3.1:compile -- module spring.boot.starter.logging [auto]
+   io.netty:netty-resolver:jar:4.1.139.Final:compile -- module io.netty.resolver [auto]
+   org.apache.shenyu:shenyu-spring-boot-starter-plugin-httpclient:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.plugin.httpclient (auto)
+   org.apache.logging.log4j:log4j-to-slf4j:jar:2.23.1:compile -- module org.apache.logging.log4j.to.slf4j
+   io.projectreactor.addons:reactor-extra:jar:3.5.1:compile -- module reactor.extra [auto]
+   io.micrometer:micrometer-core:jar:1.13.1:compile -- module micrometer.core [auto]
+   org.apache.shenyu:shenyu-sync-data-api:jar:2.7.2-SNAPSHOT:compile -- module shenyu.sync.data.api (auto)
+   org.apache.shenyu:shenyu-common:jar:2.7.2-SNAPSHOT:compile -- module shenyu.common (auto)
+   org.apache.shenyu:shenyu-plugin-divide:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.divide (auto)
+   io.netty:netty-resolver-dns-native-macos:jar:osx-x86_64:4.1.139.Final:compile -- module io.netty.resolver.dns.macos.osx.x86_64 [auto]
+   org.apache.shenyu:shenyu-plugin-base:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.base (auto)
+   org.springframework.boot:spring-boot-starter-actuator:jar:3.3.1:compile -- module spring.boot.starter.actuator [auto]
+   org.apache.shenyu:shenyu-spring-boot-starter-plugin-uri:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.plugin.uri (auto)
+   org.springframework.boot:spring-boot-starter-json:jar:3.3.1:compile -- module spring.boot.starter.json [auto]
+   org.apache.shenyu:shenyu-spring-boot-starter-plugin-response:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.plugin.response (auto)
+   org.springframework.boot:spring-boot:jar:3.3.1:compile -- module spring.boot [auto]
+   org.springframework:spring-web:jar:6.1.10:compile -- module spring.web [auto]
+   org.yaml:snakeyaml:jar:2.2:compile -- module org.yaml.snakeyaml
+   ch.qos.logback:logback-core:jar:1.5.6:compile -- module ch.qos.logback.core
+   io.micrometer:micrometer-observation:jar:1.13.1:compile -- module micrometer.observation [auto]
+   org.apache.shenyu:shenyu-web:jar:2.7.2-SNAPSHOT:compile -- module shenyu.web (auto)
+   io.projectreactor.netty.incubator:reactor-netty-incubator-quic:jar:0.1.20:runtime -- module reactor.netty.incubator.quic [auto]
+   io.netty.incubator:netty-incubator-codec-native-quic:jar:linux-x86_64:0.0.63.Final:runtime -- module io.netty.incubator.codec.quic.linux.x86_64 [auto]
+   commons-codec:commons-codec:jar:1.16.1:compile -- module org.apache.commons.codec
+   org.apache.shenyu:shenyu-plugin-uri:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.uri (auto)
+   com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.17.1:compile -- module com.fasterxml.jackson.module.paramnames
+   org.hdrhistogram:HdrHistogram:jar:2.2.2:runtime -- module HdrHistogram (auto)
+   io.netty:netty-codec-http:jar:4.1.139.Final:compile -- module io.netty.codec.http [auto]
+   org.apache.commons:commons-lang3:jar:3.18.0:compile -- module org.apache.commons.lang3
+   org.springframework.boot:spring-boot-starter-webflux:jar:3.3.1:compile -- module spring.boot.starter.webflux [auto]
+   com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.17.1:compile -- module com.fasterxml.jackson.datatype.jdk8
+   org.apache.shenyu:shenyu-spring-boot-starter-gateway:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.gateway (auto)
+   org.checkerframework:checker-qual:jar:3.33.0:compile -- module org.checkerframework.checker.qual [auto]
+   io.netty:netty-resolver-dns:jar:4.1.139.Final:compile -- module io.netty.resolver.dns [auto]
+   com.google.errorprone:error_prone_annotations:jar:2.18.0:compile -- module com.google.errorprone.annotations [auto]
+   io.projectreactor.netty:reactor-netty:jar:1.1.20:compile -- module reactor.netty [auto]
+   com.github.oshi:oshi-core:jar:6.10.0:compile -- module com.github.oshi [auto]
+   org.springframework:spring-webflux:jar:6.1.10:compile -- module spring.webflux [auto]
+   org.apache.shenyu:shenyu-register-protocol:jar:2.7.2-SNAPSHOT:compile -- module shenyu.register.protocol (auto)
+   io.projectreactor.netty:reactor-netty-http:jar:1.1.20:compile -- module reactor.netty.http [auto]
+   io.projectreactor:reactor-core:jar:3.6.7:compile -- module reactor.core [auto]
+   com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile -- module listenablefuture (auto)
+   io.netty:netty-transport-classes-epoll:jar:4.1.139.Final:compile -- module io.netty.transport.classes.epoll [auto]
+   com.google.re2j:re2j:jar:1.8:compile -- module re2j (auto)
+   io.netty:netty-handler:jar:4.1.139.Final:compile -- module io.netty.handler [auto]
+   org.ow2.asm:asm-tree:jar:9.2:compile -- module org.objectweb.asm.tree
+   org.apache.shenyu:shenyu-plugin-api:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.api (auto)
+   com.google.guava:guava:jar:32.0.0-jre:compile -- module com.google.common [auto]
+   org.springframework:spring-expression:jar:6.1.10:compile -- module spring.expression [auto]
+   org.apache.logging.log4j:log4j-api:jar:2.23.1:compile -- module org.apache.logging.log4j
+   org.springframework.boot:spring-boot-actuator-autoconfigure:jar:3.3.1:compile -- module spring.boot.actuator.autoconfigure [auto]
+   com.google.guava:failureaccess:jar:1.0.1:compile -- module failureaccess (auto)
+   io.netty:netty-transport-native-unix-common:jar:4.1.139.Final:compile -- module io.netty.transport.unix.common [auto]
+   org.springframework:spring-context:jar:6.1.10:compile -- module spring.context [auto]
+   org.bouncycastle:bcprov-jdk18on:jar:1.85:compile -- module org.bouncycastle.provider
+   org.apache.shenyu:shenyu-spi:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spi (auto)
+   org.ow2.asm:asm:jar:9.2:compile -- module org.objectweb.asm
+   org.slf4j:jul-to-slf4j:jar:2.0.13:compile -- module jul.to.slf4j
+   io.netty:netty-common:jar:4.1.139.Final:compile -- module io.netty.common [auto]
+   org.springframework.boot:spring-boot-starter:jar:3.3.1:compile -- module spring.boot.starter [auto]
+   com.fasterxml.jackson.core:jackson-annotations:jar:2.17.1:compile -- module com.fasterxml.jackson.annotation
+   com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.17.1:compile -- module com.fasterxml.jackson.datatype.jsr310
+   io.netty:netty-transport:jar:4.1.139.Final:compile -- module io.netty.transport [auto]
+   org.apache.shenyu:shenyu-plugin-response:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.response (auto)
+   org.slf4j:slf4j-api:jar:2.0.13:compile -- module org.slf4j
+   com.google.code.findbugs:jsr305:jar:3.0.2:compile -- module jsr305 (auto)
+   io.netty:netty-codec-dns:jar:4.1.139.Final:compile -- module io.netty.codec.dns [auto]
+   io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.139.Final:compile -- module io.netty.transport.epoll.linux.x86_64 [auto]
+   org.springframework:spring-jcl:jar:6.1.10:compile -- module spring.jcl [auto]
+   org.apache.shenyu:shenyu-plugin-httpclient:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.httpclient (auto)
+   org.apache.shenyu:shenyu-spring-boot-starter-plugin-global:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.plugin.global (auto)
+   jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile -- module jakarta.annotation
+   org.springframework.boot:spring-boot-starter-reactor-netty:jar:3.3.1:compile -- module spring.boot.starter.reactor.netty [auto]
+   org.springframework:spring-core:jar:6.1.10:compile -- module spring.core [auto]
+   io.netty.incubator:netty-incubator-codec-classes-quic:jar:0.0.63.Final:runtime -- module io.netty.incubator.codec.classes.quic [auto]
+   org.apache.shenyu:shenyu-loadbalancer:jar:2.7.2-SNAPSHOT:compile -- module shenyu.loadbalancer (auto)
+   org.slf4j:jcl-over-slf4j:jar:2.0.13:compile -- module org.apache.commons.logging
+   org.springframework:spring-aop:jar:6.1.10:compile -- module spring.aop [auto]
+   io.netty:netty-handler-proxy:jar:4.1.139.Final:compile -- module io.netty.handler.proxy [auto]
+   io.projectreactor.netty:reactor-netty-core:jar:1.1.20:compile -- module reactor.netty.core [auto]
+   net.bytebuddy:byte-buddy-agent:jar:1.14.17:compile -- module net.bytebuddy.agent
+   io.netty:netty-codec-http2:jar:4.1.139.Final:compile -- module io.netty.codec.http2 [auto]
+   io.netty:netty-codec-socks:jar:4.1.139.Final:compile -- module io.netty.codec.socks [auto]
+   org.apache.shenyu:shenyu-plugin-global:jar:2.7.2-SNAPSHOT:compile -- module shenyu.plugin.global (auto)
+   org.apache.shenyu:shenyu-spring-boot-starter-sync-data-websocket:jar:2.7.2-SNAPSHOT:compile -- module shenyu.spring.boot.starter.sync.data.websocket (auto)
+   io.netty:netty-buffer:jar:4.1.139.Final:compile -- module io.netty.buffer [auto]
+   com.google.j2objc:j2objc-annotations:jar:2.8:compile -- module j2objc.annotations (auto)
+   org.apache.commons:commons-collections4:jar:4.4:compile -- module org.apache.commons.collections4 [auto]
+   io.netty:netty-resolver-dns-classes-macos:jar:4.1.139.Final:compile -- module io.netty.resolver.dns.classes.macos [auto]
+   org.springframework.boot:spring-boot-autoconfigure:jar:3.3.1:compile -- module spring.boot.autoconfigure [auto]
+   org.springframework:spring-beans:jar:6.1.10:compile -- module spring.beans [auto]
+   org.latencyutils:LatencyUtils:jar:2.0.3:runtime -- module LatencyUtils (auto)
+   com.fasterxml.jackson.core:jackson-core:jar:2.17.1:compile -- module com.fasterxml.jackson.core
+   io.micrometer:micrometer-commons:jar:1.13.1:compile -- module micrometer.commons [auto]
+   net.java.dev.jna:jna:jar:5.18.1:compile -- module com.sun.jna [auto]
+   com.google.code.gson:gson:jar:2.13.2:compile -- module com.google.gson
+   io.micrometer:micrometer-jakarta9:jar:1.13.1:compile -- module micrometer.jakarta9 [auto]
+   org.reactivestreams:reactive-streams:jar:1.0.4:compile -- module org.reactivestreams [auto]
+   com.github.ben-manes.caffeine:caffeine:jar:2.9.3:compile -- module com.github.benmanes.caffeine [auto]

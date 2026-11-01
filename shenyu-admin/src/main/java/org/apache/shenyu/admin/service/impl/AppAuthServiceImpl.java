@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
@@ -25,6 +27,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -33,12 +36,14 @@ import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthParamVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -85,20 +90,24 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private final AuthPathMapper authPathMapper;
 
+    private final AppAuthRequestMapper appAuthRequestMapper;
+
     public AppAuthServiceImpl(final AppAuthMapper appAuthMapper,
                               final ApplicationEventPublisher eventPublisher,
                               final AuthParamMapper authParamMapper,
-                              final AuthPathMapper authPathMapper) {
+                              final AuthPathMapper authPathMapper,
+                              final AppAuthRequestMapper appAuthRequestMapper) {
         this.appAuthMapper = appAuthMapper;
         this.eventPublisher = eventPublisher;
         this.authParamMapper = authParamMapper;
         this.authPathMapper = authPathMapper;
+        this.appAuthRequestMapper = appAuthRequestMapper;
     }
 
     @Override
-    public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
+    public List<AppAuthListVO> searchByCondition(final AppAuthQuery condition) {
         final List<AppAuthDO> appAuthDOS = appAuthMapper.selectByCondition(condition);
-        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToVO).toList();
+        return appAuthDOS.stream().map(AppAuthTransfer.INSTANCE::mapToListVO).toList();
     }
 
     @Override
@@ -201,15 +210,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDTO> authPathDTOList = appAuthDTO.getAuthPathList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
-            List<AuthPathDO> oldAuthPathDOList = authPathMapper.findByAuthId(appAuthDTO.getId());
-            String appName = oldAuthPathDOList.stream().findFirst()
-                    .map(AuthPathDO::getAppName).orElse(StringUtils.EMPTY);
-
             authPathMapper.deleteByAuthId(appAuthDTO.getId());
 
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
                     .filter(Objects::nonNull)
-                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName))
+                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), dto.getAppName()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(authPathDOList);
         }
@@ -454,6 +459,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
+        // Lifecycle linkage: lock all associated idempotency keys first in a stable order (selectKeysByAuthIds
+        // is ordered by caller/namespace/request to avoid reverse locking); mark REVOKED in the same transaction
+        List<AppAuthRequestDO> lifecycleRecords = appAuthRequestMapper.selectKeysByAuthIds(ids);
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            appAuthRequestMapper.selectByKeyForUpdate(record.getCallerKey(), record.getNamespaceId(), record.getRequestId());
+        }
+        // Auth missing while associations exist still gets marked REVOKED (never skipped below); no fabricated records
+        for (AppAuthRequestDO record : lifecycleRecords) {
+            if (!"REVOKED".equals(record.getState())) {
+                appAuthRequestMapper.markRevoked(record.getId(), "legacy-delete", "REVOKED");
+            }
+        }
         List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(appAuthList)) {
             return 0;
@@ -582,12 +599,12 @@ public class AppAuthServiceImpl implements AppAuthService {
      * @return {@linkplain CommonPager}
      */
     @Override
-    public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
+    @Pageable
+    public CommonPager<AppAuthListVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
-                () -> appAuthMapper.countByQuery(appAuthQuery),
                 () -> appAuthMapper.selectByQuery(appAuthQuery)
                         .stream()
-                        .map(AppAuthTransfer.INSTANCE::mapToVO)
+                        .map(AppAuthTransfer.INSTANCE::mapToListVO)
                         .collect(Collectors.toList()));
     }
 

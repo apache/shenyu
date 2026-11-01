@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
@@ -30,21 +31,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -56,9 +63,16 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,12 +86,30 @@ public final class InstanceCheckServiceTest {
     @Mock
     private InstanceInfoService instanceInfoService;
 
+    @Mock
+    private InstanceRetentionProperties instanceRetentionProperties;
+
     private InstanceInfoVO vo;
 
     @BeforeEach
     void setUp() {
-        instanceCheckService = new InstanceCheckService(instanceInfoService);
+        instanceCheckService = new InstanceCheckService(instanceInfoService, instanceRetentionProperties);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
+    }
+
+    @Test
+    void testSpringCreatesServiceWithProductionClock() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(InstanceInfoService.class, () -> instanceInfoService);
+            context.registerBean(InstanceRetentionProperties.class, InstanceRetentionProperties::new);
+            context.register(InstanceCheckService.class);
+            context.refresh();
+
+            InstanceCheckService service = context.getBean(InstanceCheckService.class);
+            InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+            service.handleBeatInfo(dto);
+            assertNotNull(service.getInstanceHealthBeatInfo(dto));
+        }
     }
 
     @Test
@@ -173,6 +205,42 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testHandleBeatInfoIgnoresIncompleteIdentity() {
+        InstanceBeatInfoDTO blankIp = buildDTO("", "8080", "grpc", "ns");
+        InstanceBeatInfoDTO blankPort = buildDTO("127.0.0.1", "", "grpc", "ns");
+        InstanceBeatInfoDTO blankType = buildDTO("127.0.0.1", "8080", "", "ns");
+        InstanceBeatInfoDTO whitespaceIp = buildDTO(" ", "8080", "grpc", "ns");
+
+        for (InstanceBeatInfoDTO dto : Arrays.asList(blankIp, blankPort, blankType, whitespaceIp)) {
+            assertFalse(instanceCheckService.handleBeatInfo(dto));
+            assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto),
+                    "an incomplete identity must not create a live entry");
+        }
+
+        instanceCheckService.syncDB();
+        verify(instanceInfoService, times(0)).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testHandleBeatInfoDefaultsBlankNamespace() {
+        final InstanceBeatInfoDTO blankNs = buildDTO("127.0.0.1", "8080", "grpc", "");
+        final InstanceBeatInfoDTO whitespaceNs = buildDTO("10.0.0.1", "9090", "http", "  ");
+
+        assertTrue(instanceCheckService.handleBeatInfo(blankNs));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(blankNs));
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, instanceCheckService.getInstanceHealthBeatInfo(blankNs).getNamespaceId());
+
+        assertTrue(instanceCheckService.handleBeatInfo(whitespaceNs));
+        assertEquals(SYS_DEFAULT_NAMESPACE_ID, instanceCheckService.getInstanceHealthBeatInfo(whitespaceNs).getNamespaceId());
+    }
+
+    @Test
+    void testHandleBeatInfoAcceptsCompleteIdentity() {
+        assertTrue(instanceCheckService.handleBeatInfo(buildDTO("127.0.0.1", "8080", "grpc", "ns")));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo("127.0.0.1:8080@grpc#ns"));
+    }
+
+    @Test
     void testGetInstanceKeyForVOAndDTO() {
         String keyVo = instanceCheckService.getInstanceKey(vo);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
@@ -191,25 +259,27 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
-    void testHandleBeatInfoNewAndExisting() throws InterruptedException {
+    void testHandleBeatInfoNewAndExisting() {
+        Clock clock = mock(Clock.class);
+        when(clock.millis()).thenReturn(1000L, 2000L);
+        InstanceCheckService controlledService = new InstanceCheckService(instanceInfoService, instanceRetentionProperties, clock);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO first = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO first = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(first);
         long firstBeat = first.getLastHeartBeatTime();
-        assertThat(firstBeat, greaterThan(0L));
-
-        // Add a small delay to ensure different timestamps
-        Thread.sleep(1);
+        assertEquals(1000L, firstBeat);
         
-        instanceCheckService.handleBeatInfo(dto);
-        InstanceInfoVO second = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        controlledService.handleBeatInfo(dto);
+        InstanceInfoVO second = controlledService.getInstanceHealthBeatInfo(dto);
         assertNotNull(second);
-        assertThat(second.getLastHeartBeatTime(), greaterThan(firstBeat));
+        assertEquals(2000L, second.getLastHeartBeatTime());
+        verify(clock, times(2)).millis();
     }
 
     @Test
     void testHandleBeatInfoRefreshesInstanceInfoOnExistingIdentity() {
+
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
@@ -221,18 +291,23 @@ public final class InstanceCheckServiceTest {
         InstanceBeatInfoDTO second = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         second.setInstanceInfo("{\"version\":\"2.0\"}");
         instanceCheckService.handleBeatInfo(second);
+
         assertEquals("{\"version\":\"2.0\"}", cached.getInstanceInfo());
     }
 
     @Test
     void testHandleBeatInfoKeepsInstanceInfoWhenBeatCarriesBlank() {
         InstanceBeatInfoDTO first = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+
         first.setInstanceInfo("{\"version\":\"1.0\"}");
         instanceCheckService.handleBeatInfo(first);
-        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(first);
+
+        InstanceInfoVO cached =
+                instanceCheckService.getInstanceHealthBeatInfo(first);
         assertNotNull(cached);
 
-        InstanceBeatInfoDTO blank = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        InstanceBeatInfoDTO blank =
+                buildDTO("127.0.0.1", "8080", "grpc", "ns");
         blank.setInstanceInfo("");
         instanceCheckService.handleBeatInfo(blank);
         assertEquals("{\"version\":\"1.0\"}", cached.getInstanceInfo());
@@ -247,8 +322,47 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testScheduledSyncContinuesAfterPersistenceFailure() {
+        final InstanceBeatInfoDTO failedInstance = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        final InstanceBeatInfoDTO healthyInstance = buildDTO("127.0.0.2", "8080", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(failedInstance);
+        instanceCheckService.handleBeatInfo(healthyInstance);
+        final AtomicInteger failedInstanceAttempts = new AtomicInteger();
+        final AtomicInteger healthyInstanceAttempts = new AtomicInteger();
+        doAnswer(invocation -> {
+            final InstanceInfoVO instanceInfo = invocation.getArgument(0);
+            if ("127.0.0.1".equals(instanceInfo.getInstanceIp()) && failedInstanceAttempts.getAndIncrement() == 0) {
+                throw new IllegalStateException("database unavailable");
+            }
+            if ("127.0.0.2".equals(instanceInfo.getInstanceIp())) {
+                healthyInstanceAttempts.incrementAndGet();
+            }
+            return null;
+        }).when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
+        assertDoesNotThrow(() -> instanceCheckService.syncDB());
+
+        verify(instanceInfoService, times(4)).createOrUpdate(any(InstanceInfoVO.class));
+        assertEquals(2, failedInstanceAttempts.get());
+        assertEquals(2, healthyInstanceAttempts.get());
+    }
+
+    @Test
     void testCloseWithoutSetup() {
         assertDoesNotThrow(instanceCheckService::close);
+    }
+
+    @Test
+    void testCloseContinuesAfterPersistenceFailure() {
+        final InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
+        instanceCheckService.handleBeatInfo(dto);
+        doThrow(new IllegalStateException("database unavailable"))
+                .when(instanceInfoService).createOrUpdate(any(InstanceInfoVO.class));
+
+        assertDoesNotThrow(instanceCheckService::close);
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
     }
 
     @Test
@@ -499,6 +613,271 @@ public final class InstanceCheckServiceTest {
         assertEquals(original.getDateCreated(), copy.getDateCreated());
         assertEquals(original.getDateUpdated(), copy.getDateUpdated());
         assertEquals(original.getLastHeartBeatTime(), copy.getLastHeartBeatTime());
+    }
+
+    @Test
+    void testHistoryIsScopedByNamespace() {
+        // Namespace A has two online instances.
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.1", "8080", "http", "nsA"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.2", "8080", "http", "nsA"));
+
+        // Namespace B has three online instances.
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.3", "8080", "http", "nsB"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.4", "8080", "http", "nsB"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.0.0.5", "8080", "http", "nsB"));
+
+        // Collect one history sample without waiting for the scheduler.
+        ReflectionTestUtils.invokeMethod(instanceCheckService, "collectStateData");
+
+        assertEquals(2L, lastOnlineCount("nsA"));
+        assertEquals(3L, lastOnlineCount("nsB"));
+        assertEquals(5L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistoryRetainsLatestTwentySamples() {
+        for (int index = 1; index <= 25; index++) {
+            instanceCheckService.handleBeatInfo(
+                    buildDTO("10.1.0." + index, "8080", "http", "nsA"));
+
+            ReflectionTestUtils.invokeMethod(
+                    instanceCheckService, "collectStateData");
+        }
+
+        final List<Long> history = instanceCheckService
+                .getInstanceDataVisual("nsA")
+                .getLineData()
+                .stream()
+                .filter(line -> InstanceStatusEnum.getNameByCode(
+                        InstanceStatusEnum.ONLINE.getCode()).equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+
+        assertEquals(20, history.size());
+        assertEquals(6L, history.get(0).longValue());
+        assertEquals(25L, history.get(19).longValue());
+        assertEquals(25L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistoryIsRemovedWhenNamespaceHasNoTrackedInstances() {
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.2.0.1", "8080", "http", "nsA"));
+        instanceCheckService.handleBeatInfo(
+                buildDTO("10.2.0.2", "8080", "http", "nsB"));
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertEquals(1L, lastOnlineCount("nsA"));
+        assertEquals(1L, lastOnlineCount("nsB"));
+
+        final Map<?, ?> instances = (Map<?, ?>) ReflectionTestUtils.getField(
+                instanceCheckService, "instanceHealthBeatInfo");
+
+        assertNotNull(instances);
+
+        // Simulate namespace A having no tracked instances.
+        instances.entrySet().removeIf(entry ->
+                "nsA".equals(((InstanceInfoVO) entry.getValue()).getNamespaceId()));
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        final Map<?, ?> histories = (Map<?, ?>) ReflectionTestUtils.getField(
+                instanceCheckService, "namespaceStateHistoryMap");
+
+        assertNotNull(histories);
+        assertFalse(histories.containsKey("nsA"));
+        assertEquals(1L, lastOnlineCount("nsB"));
+        assertEquals(1L, lastOnlineCount(""));
+
+        // Missing namespaces return zero-filled curves without creating histories.
+        for (String namespaceId : Arrays.asList("nsA", "missing")) {
+            final InstanceDataVisualVO visual =
+                    instanceCheckService.getInstanceDataVisual(namespaceId);
+
+            assertTrue(visual.getPieData().isEmpty());
+            assertEquals(3, visual.getLineData().size());
+            visual.getLineData().forEach(line -> {
+                assertEquals(20, line.getData().size());
+                assertTrue(line.getData().stream().allMatch(value -> value == 0L));
+            });
+
+            assertFalse(histories.containsKey(namespaceId));
+        }
+
+        // No instances remain anywhere.
+        instances.clear();
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertTrue(histories.isEmpty());
+        assertEquals(0L, lastOnlineCount(""));
+    }
+
+    @Test
+    void testHistorySeparatesStatesAcrossNamespaces() {
+        final InstanceInfoVO onlineA =
+                buildVO("10.3.0.1", "8080", "http", "nsA");
+        final InstanceInfoVO offlineA =
+                buildVO("10.3.0.2", "8080", "http", "nsA");
+        final InstanceInfoVO deletedB =
+                buildVO("10.3.0.3", "8080", "http", "nsB");
+
+        onlineA.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+        offlineA.setInstanceState(InstanceStatusEnum.OFFLINE.getCode());
+        deletedB.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+
+        when(instanceInfoService.list()).thenReturn(
+                Arrays.asList(onlineA, offlineA, deletedB));
+        instanceCheckService.fetchInstanceData();
+
+        ReflectionTestUtils.invokeMethod(
+                instanceCheckService, "collectStateData");
+
+        assertStateCount("nsA", InstanceStatusEnum.ONLINE, 1L);
+        assertStateCount("nsA", InstanceStatusEnum.OFFLINE, 1L);
+        assertStateCount("nsA", InstanceStatusEnum.DELETED, 0L);
+
+        assertStateCount("nsB", InstanceStatusEnum.ONLINE, 0L);
+        assertStateCount("nsB", InstanceStatusEnum.OFFLINE, 0L);
+        assertStateCount("nsB", InstanceStatusEnum.DELETED, 1L);
+
+        assertStateCount("", InstanceStatusEnum.ONLINE, 1L);
+        assertStateCount("", InstanceStatusEnum.OFFLINE, 1L);
+        assertStateCount("", InstanceStatusEnum.DELETED, 1L);
+    }
+
+    private void assertStateCount(final String namespaceId,
+                                  final InstanceStatusEnum status,
+                                  final long expected) {
+        final InstanceDataVisualVO visual =
+                instanceCheckService.getInstanceDataVisual(namespaceId);
+        final String stateName =
+                InstanceStatusEnum.getNameByCode(status.getCode());
+
+        final List<Long> history = visual.getLineData().stream()
+                .filter(line -> stateName.equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+
+        assertEquals(expected, history.get(history.size() - 1).longValue());
+
+        final long pieCount = visual.getPieData().stream()
+                .filter(entry -> stateName.equals(entry.getName()))
+                .mapToLong(InstanceDataVisualVO.Entry::getValue)
+                .sum();
+
+        assertEquals(expected, pieCount);
+    }
+
+    private long lastOnlineCount(final String namespaceId) {
+        final List<Long> history = instanceCheckService
+                .getInstanceDataVisual(namespaceId)
+                .getLineData()
+                .stream()
+                .filter(line -> InstanceStatusEnum.getNameByCode(
+                        InstanceStatusEnum.ONLINE.getCode()).equals(line.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getData();
+        return history.get(history.size() - 1);
+    }
+
+    @Test
+    void testRetentionCleanupDisabledByDefault() {
+        InstanceBeatInfoDTO dto = buildDTO("5.5.5.5", "8085", "http", "nsE");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        cached.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofDays(30).toMillis());
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
+        verify(instanceInfoService, never()).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testRetentionCleanupRemovesOnlyExpiredDeletedInstances() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        InstanceBeatInfoDTO expiredDTO = buildDTO("6.6.6.6", "8086", "http", "nsF");
+        InstanceBeatInfoDTO freshDeletedDTO = buildDTO("7.7.7.7", "8087", "http", "nsF");
+        InstanceBeatInfoDTO onlineDTO = buildDTO("8.8.8.8", "8088", "http", "nsF");
+        instanceCheckService.handleBeatInfo(expiredDTO);
+        instanceCheckService.handleBeatInfo(freshDeletedDTO);
+        instanceCheckService.handleBeatInfo(onlineDTO);
+        InstanceInfoVO expired = instanceCheckService.getInstanceHealthBeatInfo(expiredDTO);
+        expired.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        expired.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+        InstanceInfoVO freshDeleted = instanceCheckService.getInstanceHealthBeatInfo(freshDeletedDTO);
+        freshDeleted.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo(expiredDTO));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(freshDeletedDTO));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(onlineDTO));
+        verify(instanceInfoService).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testRetentionCleanupKeepsRenewedIdentity() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        InstanceBeatInfoDTO dto = buildDTO("9.9.9.9", "8089", "http", "nsG");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO cached = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        cached.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        cached.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+
+        // the instance heartbeats again before the cleanup cycle runs, so its cached record is kept
+        instanceCheckService.handleBeatInfo(dto);
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
+    }
+
+    @Test
+    void testRetentionCleanupRemovesLegacyRowsWithoutHeartbeat() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofDays(7));
+        InstanceInfoVO legacy = buildVO("11.0.0.1", "8090", "http", "nsH");
+        legacy.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        legacy.setLastHeartBeatTime(0L);
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(legacy));
+        instanceCheckService.fetchInstanceData();
+
+        instanceCheckService.purgeExpiredInstances();
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo("11.0.0.1:8090@http#nsH"));
+        verify(instanceInfoService).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testDatabaseSweepIsThrottledToConfiguredInterval() {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofDays(7));
+
+        instanceCheckService.purgeExpiredInstances();
+        instanceCheckService.purgeExpiredInstances();
+        verify(instanceInfoService, times(1)).deleteExpired(anyLong());
+
+        // the database sweep runs again only after the cleanup interval has elapsed
+        ReflectionTestUtils.setField(instanceCheckService, "lastDbCleanupTime",
+                System.currentTimeMillis() - Duration.ofHours(2).toMillis());
+        instanceCheckService.purgeExpiredInstances();
+        verify(instanceInfoService, times(2)).deleteExpired(anyLong());
     }
 
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
