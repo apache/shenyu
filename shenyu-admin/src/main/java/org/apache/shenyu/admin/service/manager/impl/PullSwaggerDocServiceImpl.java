@@ -192,7 +192,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
-        uriComponentsBuilder.scheme("http");
+        uriComponentsBuilder.scheme(instance.getScheme());
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
         uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
