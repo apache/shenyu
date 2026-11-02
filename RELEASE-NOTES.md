@@ -1,5 +1,20 @@
 ## Unreleased
 
+### AI Bug Fixes
+
+- Request Transformer reads each inbound body once and replays the original bytes on
+  model failure. Generated JSON and form bodies do not consume the inbound stream
+  again. Downstream errors propagate without invoking the plugin chain twice.
+  (#8258, #8259; backported from #8265 and #8264)
+- Sensitive-word inspection honors `failClosed` before Redis initialization and
+  scans decoded JSON string values, including Unicode escapes split across request
+  buffers. Plain-text scanning and forwarded request bytes remain unchanged.
+  (#8260, #8261; backported from #8263 and #8267)
+- Token Limiter reads provider usage only from protocol usage objects. Business
+  metadata, generated content and tool arguments cannot supply token counts; absent
+  usage remains unknown while explicitly reported zero remains valid.
+  (#8262; backported from #8268)
+
 ### API Changes
 
 - WASM loaders support opt-in startup execution deadlines and per-instance linear-memory

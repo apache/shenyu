@@ -140,6 +140,26 @@ class AiTokenLimiterPluginTest {
         assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}garbage", List.of());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"[]", "null", "{\"usage\":12}", "{\"usage\":[]}", "{\"usage\":"})
+    void testInvalidUsageEnvelopeDoesNotRecordTokens(final String body) {
+        assertJsonUsage(body, List.of());
+    }
+
+    @Test
+    void testOversizedUsagePayloadsRemainUnknownAndAreForwardedIntact() {
+        String padding = " ".repeat(64 * 1024);
+        assertJsonUsage(padding + "{\"usage\":{\"completion_tokens\":12}}", List.of());
+        String stream = "data: {\"padding\":\"" + padding + "\",\"usage\":{\"completion_tokens\":12}}\n\n";
+        assertEventStreamUsage(stream, splitIntoThreeChunks(stream.getBytes(StandardCharsets.UTF_8)), false, false, List.of());
+    }
+
+    @Test
+    void testLongStreamRetainsUsageFromBoundedEvents() {
+        String stream = "data: {}\n\n".repeat(10_000) + USAGE_EVENT;
+        assertEventStreamUsage(stream, splitIntoThreeChunks(stream.getBytes(StandardCharsets.UTF_8)), false, false, List.of(12L));
+    }
+
     @Test
     void testLastCompleteStreamUsageIsRecordedOnce() {
         String stream = "data: {\"usage\":{\"completion_tokens\":2}}\n\n"
