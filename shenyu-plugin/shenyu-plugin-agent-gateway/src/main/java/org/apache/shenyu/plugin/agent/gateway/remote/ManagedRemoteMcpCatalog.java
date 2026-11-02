@@ -23,6 +23,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AgentCatalogMetrics;
@@ -163,6 +166,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private Mono<Long> reload(final String source, final BooleanSupplier stillCurrent) {
         return Mono.defer(() -> {
+            ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate("agentGateway", ConfigurationScope.PLUGIN, "1", source);
+            if (validation.status() == ConfigurationValidation.Status.INVALID) {
+                return Mono.error(new IllegalArgumentException("Invalid Agent Gateway aggregation configuration"));
+            }
             AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
             for (AgentGatewayAggregationConfig.Server server : config.servers()) {
