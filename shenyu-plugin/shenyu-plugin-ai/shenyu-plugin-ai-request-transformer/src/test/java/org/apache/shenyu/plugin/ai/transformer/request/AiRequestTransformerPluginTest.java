@@ -51,7 +51,9 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -140,6 +142,61 @@ class AiRequestTransformerPluginTest {
         } finally {
             AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
         }
+    }
+
+    @Test
+    void testDownstreamFailurePropagatesWithoutReenteringChain() {
+        AtomicInteger cursor = new AtomicInteger();
+        IllegalStateException downstreamFailure = new IllegalStateException("downstream failure");
+        ShenyuPluginChain advancingChain = ignored -> Mono.defer(() -> cursor.getAndIncrement() == 0
+                ? Mono.error(downstreamFailure) : Mono.empty());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("downstream-failure-rule-id");
+        rule.setSelectorId("test-selector-id");
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{}"), advancingChain, rule,
+            result -> StepVerifier.create(result)
+                    .expectErrorMatches(error -> error == downstreamFailure)
+                    .verify());
+
+        assertEquals(1, cursor.get());
+    }
+
+    @Test
+    void testDownstreamPublisherSubscribedOnce() {
+        AtomicInteger subscriptions = new AtomicInteger();
+        IllegalStateException downstreamFailure = new IllegalStateException("downstream failure");
+        ShenyuPluginChain failingChain = ignored -> Mono.<Void>error(downstreamFailure)
+                .doOnSubscribe(subscription -> subscriptions.incrementAndGet());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("downstream-subscription-rule-id");
+        rule.setSelectorId("test-selector-id");
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{}"), failingChain, rule,
+            result -> StepVerifier.create(result)
+                    .expectErrorMatches(error -> error == downstreamFailure)
+                    .verify());
+
+        assertEquals(1, subscriptions.get());
+    }
+
+    @Test
+    void testModelFailureProceedsWithoutTransformation() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("model-failure-rule-id");
+        rule.setSelectorId("test-selector-id");
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+
+        invokeWithModel(exchange, Flux.error(new IllegalStateException("model failure")), chain, rule,
+            result -> StepVerifier.create(result).verifyComplete());
+
+        verify(chain).execute(exchange);
     }
 
     @Test
@@ -285,5 +342,37 @@ class AiRequestTransformerPluginTest {
         }
 
         return downstreamUri.get();
+    }
+
+    /**
+     * Runs the plugin with a mocked model answer and lets the caller subscribe to the result.
+     *
+     * @param exchange        the incoming request exchange
+     * @param model           the mocked model output stream
+     * @param downstreamChain the plugin chain invoked after the transformation
+     * @param rule            the rule that selects the cached AI handle
+     * @param assertion       subscribes to and asserts on the plugin result
+     */
+    private void invokeWithModel(final MockServerWebExchange exchange, final Flux<String> model,
+                                 final ShenyuPluginChain downstreamChain, final RuleData rule,
+                                 final Consumer<Mono<Void>> assertion) {
+        AiRequestTransformerHandle handle = new AiRequestTransformerHandle();
+        handle.setProvider("TEST_PROVIDER");
+        handle.setBaseUrl("http://test.invalid");
+        handle.setApiKey("synthetic-audit-key");
+        handle.setModel("audit-model");
+
+        ChatClient mockClient = mock(ChatClient.class, RETURNS_DEEP_STUBS);
+        when(mockClient.prompt().user(anyString()).stream().content()).thenReturn(model);
+        when(chatClientCache.getClient(rule.getId())).thenReturn(mockClient);
+
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        AiRequestTransformerPluginHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        try (MockedStatic<ChatClientCache> mockedCache = mockStatic(ChatClientCache.class)) {
+            mockedCache.when(ChatClientCache::getInstance).thenReturn(chatClientCache);
+            assertion.accept(plugin.doExecute(exchange, downstreamChain, new SelectorData(), rule));
+        } finally {
+            AiRequestTransformerPluginHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
     }
 }

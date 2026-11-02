@@ -134,6 +134,9 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
         AiRequestTransformerTemplate aiRequestTransformerTemplate = new AiRequestTransformerTemplate(aiRequestTransformerConfig.getContent(), exchange.getRequest());
         ChatClient finalClient = client;
 
+        // Recover model, preparation and transformation failures before entering the downstream chain:
+        // re-entering the chain after it has started would resume a partially advanced cursor instead
+        // of replaying the original request.
         return aiRequestTransformerTemplate.assembleMessage()
                 .flatMap(message -> finalClient.prompt().user(message).stream().content()
                         .filter(Objects::nonNull)
@@ -143,15 +146,14 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
                             LOG.debug("Request rewritten to: {}", aiResponse);
                             return convertHeader(exchange, aiResponse)
                                     .flatMap(serverWebExchange -> convertBody(serverWebExchange, messageReaders, aiResponse))
-                                    .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse))
-                                    .flatMap(chain::execute);
-                                }
-                        )
+                                    .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse));
+                        })
                 )
                 .onErrorResume(throwable -> {
                     LOG.error("AI request transformation failed, proceeding without AI transformation", throwable);
-                    return chain.execute(exchange);
-                });
+                    return Mono.just(exchange);
+                })
+                .flatMap(chain::execute);
     }
 
     private static Mono<ServerWebExchange> convertBody(final ServerWebExchange exchange,
