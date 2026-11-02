@@ -35,6 +35,7 @@ import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.ListenerSupport;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -216,12 +217,14 @@ public class GatewayReconciler implements Reconciler {
             }
             deleteRouteConfig(routeNamespace, routeName, cache);
             LOG.info("Deleted ShenYu config for route {}/{} due to Gateway removal", routeNamespace, routeName);
+            httpRouteWorkQueue.add(new Request(routeNamespace, routeName));
         }
     }
 
     private void deleteRouteConfig(final String routeNamespace, final String routeName,
                                    final GatewayRouteCache cache) {
         List<String> selectorIds = cache.removeRouteSelectors(routeNamespace, routeName, PluginEnum.DIVIDE.getName());
+        K8sResourceCorrelationCache.getInstance().recordDeleted("HTTPRoute", routeNamespace, routeName);
         if (CollectionUtils.isEmpty(selectorIds)) {
             return;
         }
