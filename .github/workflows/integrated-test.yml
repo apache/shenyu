@@ -179,14 +179,9 @@ jobs:
           fi
       - name: Build examples
         shell: bash
+        # mvnd can report success while building only the parent of this subreactor.
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build examples"
-            exec bash .github/scripts/maven-with-retry.sh mvnd -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-          else
-            echo "Falling back to maven wrapper for examples"
-            exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
-          fi
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -am -f ./shenyu-examples/pom.xml
       - name: Build integrated tests
         shell: bash
         # mvnd can report success while skipping this entire subreactor.
