@@ -51,6 +51,14 @@ public interface RuleMapper extends ExistProvider {
     RuleDO selectById(String id);
 
     /**
+     * select rule by id and lock the row for the enclosing transaction.
+     *
+     * @param id primary key.
+     * @return {@linkplain RuleDO}
+     */
+    RuleDO selectByIdForUpdate(String id);
+
+    /**
      * select rule by query.
      *
      * @param ruleQuery {@linkplain RuleQuery}

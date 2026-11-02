@@ -317,7 +317,7 @@ DROP TABLE IF EXISTS `operation_record_log`;
 CREATE TABLE `operation_record_log`  (
   `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log color',
-  `context` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log context',
+  `context` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log context',
   `operator` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'operator [user or app]]',
   `operation_time` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'operation time',
   `operation_type` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'update' COMMENT 'operation type：create/update/delete/register...',
@@ -1746,7 +1746,7 @@ CREATE TABLE `rule`  (
   `match_restful` tinyint(0) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(0) NOT NULL COMMENT 'sort',
-  `handle` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
+  `handle` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
@@ -2531,6 +2531,21 @@ CREATE TABLE `app_auth_request`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic COMMENT 'app auth lifecycle idempotency records';
 CREATE UNIQUE INDEX uk_app_auth_request ON `app_auth_request` (caller_key, namespace_id, request_id);
 CREATE INDEX idx_app_auth_request_auth ON `app_auth_request` (auth_id);
+
+-- ----------------------------
+-- Table structure for agent_gateway_import
+-- ----------------------------
+DROP TABLE IF EXISTS `agent_gateway_import`;
+CREATE TABLE `agent_gateway_import`  (
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `rule_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'target agent gateway rule id',
+  `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
+  `manifest` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'per-source import ownership manifest',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic COMMENT 'agent gateway openapi import ownership';
+CREATE UNIQUE INDEX uk_agent_gateway_import_rule ON `agent_gateway_import` (`rule_id`);
 
 -- app auth lifecycle button resources
 INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');

@@ -204,7 +204,7 @@ public final class InstanceInfoUpsertTest {
     void migrationRetainsLatestCompleteRowsAndRejectsDuplicates() {
         jdbc.execute("ALTER TABLE instance_info DROP CONSTRAINT uk_instance_info_identity");
         jdbc.execute("CREATE TABLE selector (loged INT)");
-        jdbc.execute("CREATE TABLE rule (loged INT)");
+        jdbc.execute("CREATE TABLE rule (loged INT, handle VARCHAR(1024))");
         jdbc.execute("CREATE TABLE mock_request_record (header VARCHAR(1024))");
         insertLegacy("old-heartbeat", "ns", 100, "2026-01-03 00:00:00");
         insertLegacy("latest-heartbeat", "ns", 200, "2026-01-01 00:00:00");

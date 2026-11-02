@@ -48,11 +48,31 @@
         namespace_id
     </sql>
 
+    <!-- Oracle binds handle as CLOB so large mcp.httpTools handles are not truncated as VARCHAR. -->
+    <sql id="Handle_Value">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                #{handle, jdbcType=CLOB, typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}
+            </when>
+            <otherwise>
+                #{handle, jdbcType=VARCHAR}
+            </otherwise>
+        </choose>
+    </sql>
+
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM rule
          WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIdForUpdate" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM rule
+         WHERE id = #{id, jdbcType=VARCHAR}
+           FOR UPDATE
     </select>
 
     <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -250,7 +270,7 @@
                           #{enabled, jdbcType=TINYINT},
                           #{logged, jdbcType=TINYINT},
                           #{matchRestful, jdbcType=TINYINT},
-                          #{handle, jdbcType=VARCHAR},
+                          <include refid="Handle_Value"/>,
                           #{namespaceId, jdbcType=VARCHAR})
     </insert>
 
@@ -322,7 +342,7 @@
                 #{matchRestful, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
-                #{handle, jdbcType=VARCHAR},
+                <include refid="Handle_Value"/>,
             </if>
             <if test="namespaceId != null">
                 #{namespaceId, jdbcType=VARCHAR},
@@ -341,7 +361,7 @@
                enabled       = #{enabled, jdbcType=TINYINT},
                logged         = #{logged, jdbcType=TINYINT},
                match_restful = #{matchRestful, jdbcType=TINYINT},
-               handle        = #{handle, jdbcType=VARCHAR}
+               handle        = <include refid="Handle_Value"/>
          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
@@ -376,7 +396,7 @@
                 match_restful = #{matchRestful, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
-                handle = #{handle, jdbcType=VARCHAR},
+                handle = <include refid="Handle_Value"/>,
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}

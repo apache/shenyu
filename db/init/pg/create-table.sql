@@ -2995,6 +2995,20 @@ CREATE TABLE "public"."app_auth_request" (
 CREATE UNIQUE INDEX "uk_app_auth_request" ON "public"."app_auth_request" USING btree ("caller_key", "namespace_id", "request_id");
 CREATE INDEX "idx_app_auth_request_auth" ON "public"."app_auth_request" USING btree ("auth_id");
 
+-- Admin-only import ownership; no runtime synchronization or backend credentials.
+DROP TABLE IF EXISTS "public"."agent_gateway_import";
+CREATE TABLE "public"."agent_gateway_import" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "manifest" text COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+)
+;
+CREATE UNIQUE INDEX "uk_agent_gateway_import_rule" ON "public"."agent_gateway_import" USING btree ("rule_id");
+
 -- app auth lifecycle button resources
 INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
