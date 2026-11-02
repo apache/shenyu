@@ -84,12 +84,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         initCacheConfig();
         final String pluginName = named();
+        final long version = BaseDataCache.getInstance().getVersion();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         // early exit
         if (Objects.isNull(pluginData) || !pluginData.getEnabled()) {
             return chain.execute(exchange);
         }
-        final String path = getRawPath(exchange);
+        final String path = version + ":" + getRawPath(exchange);
         List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
         if (CollectionUtils.isEmpty(selectors)) {
             return handleSelectorIfNull(pluginName, exchange, chain);
@@ -122,14 +123,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
-        // consult the bounded per-path match cache first when it is enabled.
-        // on a cache miss, match the current rule list with the default strategy.
-        RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
+        // Include the selected scope and configuration generation in the match key.
+        // An in-flight request may finish on an old snapshot, but cannot populate a newer generation.
+        final String ruleCacheKey = selectorData.getId().length() + ":" + selectorData.getId() + path;
+        RuleData ruleData = obtainRuleDataCacheIfEnabled(ruleCacheKey);
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, selectors, rules, path);
+            ruleData = defaultMatchRule(exchange, rules, ruleCacheKey);
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
@@ -303,6 +305,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
     
+    private boolean onlyUriConditions(final List<ConditionData> conditions) {
+        return CollectionUtils.isNotEmpty(conditions) && conditions.stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+    }
+
     private SelectorData defaultMatchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors, final String path) {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
         SelectorData selectorData = matchSelectorPair.getRight();
@@ -324,8 +330,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
-                                      final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
@@ -336,9 +341,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return ruleData;
         } else {
-            // The rule cache key carries no selector id, so a negative entry additionally
-            // requires the whole selector set to be decided by the path.
-            if (matchRulePair.getLeft() && pathOnlySelectorSet(selectors) && pathOnlyRuleSet(rules)) {
+            // The key includes the selector id, so this negative match is scoped to this selector.
+            if (matchRulePair.getLeft() && pathOnlyRuleSet(rules)) {
                 RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
                 cacheRuleData(path, emptyRuleData);
             }
