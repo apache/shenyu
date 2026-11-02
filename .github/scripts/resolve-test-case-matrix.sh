@@ -181,6 +181,7 @@ resolve_k8s_change() {
     return 0
   fi
 
+
   if [[ "${mode}" == "k8s-examples-http" ]]; then
     case "${file}" in
       pom.xml|mvnw|mvnw.cmd|.mvn/*|\
@@ -312,6 +313,8 @@ map_direct_case_path() {
         ;;
     esac
   fi
+
+
 }
 
 map_domain_path() {
@@ -426,6 +429,11 @@ while IFS= read -r file; do
 
   if [[ "${mode}" == "e2e" ]]; then
     case "${file}" in
+      .github/scripts/select-e2e-sync.sh)
+        add_admin_register_e2e_cases
+        add_unique e2e_cases "e2e-logging-rocketmq-compose"
+        continue
+        ;;
       .github/workflows/e2e-k8s.yml|.github/scripts/*e2e-maven-repository*|.github/scripts/resolve-test-case-matrix.sh|.github/scripts/resolve-test-case-matrix-test.sh)
         full_required=true
         continue
@@ -435,8 +443,27 @@ while IFS= read -r file; do
 
   if [[ "${mode}" == "k8s-ingress" ]]; then
     case "${file}" in
-      .github/workflows/integrated-test-k8s-ingress.yml)
+      .github/workflows/integrated-test-k8s-ingress.yml|.github/scripts/resolve-example-projects.py|actions/*)
         add_k8s_ingress_all
+        continue
+        ;;
+    esac
+  fi
+
+  # Changes to the workflow or shared preparation code must exercise the matrix.
+  if [[ "${mode}" == "integration" ]]; then
+    case "${file}" in
+      .github/workflows/integrated-test.yml|.github/scripts/resolve-example-projects.py|.github/scripts/resolve-test-case-matrix*|actions/*)
+        full_required=true
+        continue
+        ;;
+    esac
+  fi
+
+  if [[ "${mode}" == "k8s-examples-http" ]]; then
+    case "${file}" in
+      .github/workflows/k8s-examples-http.yml|.github/scripts/install-k3s*|.github/scripts/free-disk-space*|actions/*)
+        run_k8s_examples=true
         continue
         ;;
     esac

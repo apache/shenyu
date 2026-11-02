@@ -18,7 +18,11 @@
 set -euo pipefail
 
 artifact_dir="${1:-/tmp/shenyu-m2}"
-target_dir="${HOME}/.m2/repository/org/apache"
+target_dir="${2:-${HOME}/.m2/repository}/org/apache"
+
+if [[ -f "${artifact_dir}/repository.tar.gz" ]]; then
+  tar -xzf "${artifact_dir}/repository.tar.gz" -C "${artifact_dir}"
+fi
 
 if [[ ! -d "${artifact_dir}/org/apache/shenyu" ]]; then
   echo "ShenYu local repository artifact is missing: ${artifact_dir}/org/apache/shenyu" >&2
@@ -27,7 +31,9 @@ fi
 
 mkdir -p "${target_dir}"
 if [[ -d "${target_dir}/shenyu" ]]; then
-  mv "${target_dir}/shenyu" "${target_dir}/shenyu.backup.${GITHUB_RUN_ID:-$$}"
+  # Backups under ~/.m2/repository grow every saved dependency cache indefinitely.
+  backup_dir="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/shenyu-m2-previous.XXXXXX")"
+  mv "${target_dir}/shenyu" "${backup_dir}/shenyu"
 fi
 cp -R "${artifact_dir}/org/apache/shenyu" "${target_dir}/shenyu"
 
