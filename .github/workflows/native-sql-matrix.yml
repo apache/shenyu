@@ -25,8 +25,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: native-sql-matrix-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   scope:
@@ -49,6 +50,9 @@ jobs:
           if os.environ['EVENT_NAME'] != 'workflow_dispatch' and re.fullmatch(r'[0-9a-f]{40}', base) and set(base) != {'0'}:
               subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', base], check=True)
               paths = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()
+              paths = [path for path in paths if not (
+                  'docs' in Path(path).parts or
+                  (path.endswith('.md') and ('/' not in path or Path(path).name.startswith('README'))))]
               required = any(path.startswith(('db/init/', 'db/upgrade/', 'shenyu-admin/'))
                              or path in ('.github/workflows/native-sql-matrix.yml', '.github/scripts/native-sql-matrix.py',
                                          '.github/scripts/test-native-sql-matrix.py') for path in paths)
@@ -57,6 +61,8 @@ jobs:
           PY
 
   runner-tests:
+    needs: scope
+    if: needs.scope.outputs.required == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +87,7 @@ jobs:
           -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
 
   native-sql:
-    needs: [scope, runner-tests]
+    needs: scope
     if: needs.scope.outputs.required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -99,21 +105,21 @@ jobs:
           RESULTS: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
         run: python3 .github/scripts/native-sql-matrix.py --dialect "$DIALECT" --output "$RESULTS"
       - name: Upload results and database startup logs
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: sql-matrix-${{ matrix.dialect }}
           path: ${{ runner.temp }}/sql-matrix/${{ matrix.dialect }}
           if-no-files-found: warn
       - name: Remove this job's test containers
-        if: always()
+        if: ${{ !cancelled() }}
         env:
           DIALECT: ${{ matrix.dialect }}
         run: docker ps -aq --filter "name=^/shenyu-sql-${DIALECT}-" | xargs -r docker rm -f
 
   sql-matrix:
     name: sql-matrix
-    if: always()
+    if: ${{ !cancelled() }}
     needs: [scope, runner-tests, list-contract, native-sql]
     runs-on: ubuntu-latest
     env:
@@ -128,12 +134,13 @@ jobs:
           python3 - <<'PY'
           import os
           assert os.environ['SCOPE_RESULT'] == 'success', 'Scope detection failed'
-          assert os.environ['RUNNER_RESULT'] == 'success', 'SQL harness tests failed'
           if os.environ['REQUIRED'] == 'true':
+              assert os.environ['RUNNER_RESULT'] == 'success', 'SQL harness tests failed'
               assert os.environ['LIST_RESULT'] == 'success', 'List contract failed or was canceled/skipped'
               assert os.environ['SQL_RESULT'] == 'success', 'Native SQL matrix failed or was canceled/skipped'
           else:
               assert os.environ['REQUIRED'] == 'false', 'Missing scope output'
+              assert os.environ['RUNNER_RESULT'] == 'skipped', 'Unexpected harness result'
               assert os.environ['LIST_RESULT'] == os.environ['SQL_RESULT'] == 'skipped', 'Unexpected SQL result'
               print('No SQL/Admin changes; native matrix is not applicable.')
           PY
