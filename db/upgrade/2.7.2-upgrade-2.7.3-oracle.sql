@@ -85,6 +85,7 @@ CREATE TABLE registration_fencing_target (
     CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
 );
 CREATE INDEX idx_registration_fencing_target_address ON registration_fencing_target (namespace_id, host, port);
+CREATE INDEX idx_fencing_domain_session ON registration_fencing_target (domain_id, session_id);
 
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD token_version NUMBER(10) DEFAULT 0 NOT NULL;

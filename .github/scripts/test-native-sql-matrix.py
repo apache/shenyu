@@ -39,6 +39,8 @@ permission|idx_permission_resource_id|resource_id|1
 resource|idx_resource_parent|parent_id|1
 user_role|idx_user_role_user_role|user_id|1
 user_role|idx_user_role_user_role|role_id|2
+registration_fencing_target|idx_fencing_domain_session|domain_id|1
+registration_fencing_target|idx_fencing_domain_session|session_id|2
 """
 
 
@@ -343,6 +345,8 @@ class NativeSqlMatrixTest(unittest.TestCase):
     def test_composite_nonleading_column_is_not_an_equivalent_index(self):
         with self.assertRaisesRegex(AssertionError, "permission.resource_id"):
             matrix.verify_index_rows(ROWS.replace("permission|idx_permission_resource_id|resource_id|1\n", ""))
+        with self.assertRaisesRegex(AssertionError, "idx_fencing_domain_session"):
+            matrix.verify_index_rows(ROWS.replace("registration_fencing_target|idx_fencing_domain_session|session_id|2\n", ""))
 
     def test_wrong_index_column_fails(self):
         with self.assertRaises(AssertionError):
@@ -355,6 +359,8 @@ class NativeSqlMatrixTest(unittest.TestCase):
             "permission|permission_object|CREATE INDEX permission_object ON public.permission USING btree (object_id, resource_id)",
             "resource|resource_parent|CREATE INDEX resource_parent ON public.resource USING btree (parent_id)",
             "user_role|user_role_user|CREATE INDEX user_role_user ON public.user_role USING btree (user_id, role_id)",
+            "registration_fencing_target|idx_fencing_domain_session|CREATE INDEX idx_fencing_domain_session "
+            "ON public.registration_fencing_target USING btree (domain_id, session_id)",
         ])
         self.assertEqual(matrix.verify_index_rows(rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
         decorated = rows.replace("(plugin_id)", '(plugin_id COLLATE pg_catalog."default" pg_catalog.text_ops ASC NULLS LAST)')

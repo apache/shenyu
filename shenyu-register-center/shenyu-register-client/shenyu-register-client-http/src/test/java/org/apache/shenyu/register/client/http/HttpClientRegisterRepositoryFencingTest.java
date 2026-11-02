@@ -38,8 +38,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +77,35 @@ public final class HttpClientRegisterRepositoryFencingTest {
     private static final String SESSION_B = "c8d1a2e3-4f5a-4b6c-9d0e-1f2a3b4c5d6e";
 
     private static final String TOKEN = "test-token";
+
+    @Test
+    public void defaultStartupIdIsUniqueForEachRepositoryInstance() throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        setupLogin(http);
+        when(http.post(anyString(), anyString(), any(Headers.class))).thenAnswer(invocation -> {
+            String url = invocation.getArgument(0);
+            return url.endsWith(RegistrationFencingProtocol.ACQUIRE_PATH) ? acquireJson() : okJson();
+        });
+
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+             MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+             MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            final String domain = DOMAIN_A + "|target-a|" + SERVER_A + "|||127.0.0.1|18080|http|ns-1|demo";
+            new HttpClientRegisterRepository(config(domain)).doPersistURI(uri());
+            new HttpClientRegisterRepository(config(domain)).doPersistURI(uri());
+
+            ArgumentCaptor<String> acquisitions = ArgumentCaptor.forClass(String.class);
+            verify(http, times(2)).post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH),
+                    acquisitions.capture(), any(Headers.class));
+            Map<String, Object> first = GsonUtils.getInstance().convertToMap(acquisitions.getAllValues().get(0));
+            Map<String, Object> second = GsonUtils.getInstance().convertToMap(acquisitions.getAllValues().get(1));
+            assertNotEquals(first.get("startupId"), second.get("startupId"));
+        }
+    }
 
     @Test
     public void registrationHeartbeatReadinessAndOfflineUseOneSessionAndOrderedSequences() throws IOException {
@@ -324,6 +359,61 @@ public final class HttpClientRegisterRepositoryFencingTest {
     }
 
     @Test
+    public void slowAdminRequestForOneDomainDoesNotBlockAnotherDomain() throws Exception {
+        final OkHttpTools http = mock(OkHttpTools.class);
+        setupLogin(http);
+        CountDownLatch firstDomainStarted = new CountDownLatch(1);
+        CountDownLatch releaseFirstDomain = new CountDownLatch(1);
+        CountDownLatch secondDomainCompleted = new CountDownLatch(1);
+        when(http.post(anyString(), anyString(), any(Headers.class))).thenAnswer(invocation -> {
+            String url = invocation.getArgument(0);
+            String body = invocation.getArgument(1);
+            if (url.endsWith(RegistrationFencingProtocol.ACQUIRE_PATH)) {
+                Map<String, Object> request = GsonUtils.getInstance().convertToMap(body);
+                return "target-a".equals(request.get("targetId"))
+                        ? acquireJson(SESSION, "127.0.0.1", 18080, "http")
+                        : acquireJson(SESSION_B, "127.0.0.2", 18081, "http");
+            }
+            Map<String, Object> request = GsonUtils.getInstance().convertToMap(body);
+            if (DOMAIN_A.equals(request.get("domainId"))) {
+                firstDomainStarted.countDown();
+                assertTrue(releaseFirstDomain.await(5, TimeUnit.SECONDS));
+            } else {
+                secondDomainCompleted.countDown();
+            }
+            return okJson();
+        });
+        final HttpClientRegisterRepository repository = new HttpClientRegisterRepository(config(
+                DOMAIN_A + "|target-a|" + SERVER_A + "|||127.0.0.1|18080|http|ns-1|demo;"
+                        + DOMAIN_B + "|target-b|" + SERVER_B + "|||127.0.0.2|18081|http|ns-1|demo"));
+        ExecutorService workers = Executors.newFixedThreadPool(2);
+        Future<?> first = null;
+        Future<?> second = null;
+        try {
+            first = workers.submit(() -> persistWithThreadLocalMocks(repository, http, uri()));
+            assertTrue(firstDomainStarted.await(5, TimeUnit.SECONDS));
+            second = workers.submit(() -> persistWithThreadLocalMocks(repository, http, uri("127.0.0.2", 18081)));
+            assertTrue(secondDomainCompleted.await(2, TimeUnit.SECONDS), "another domain should progress independently");
+            second.get(2, TimeUnit.SECONDS);
+        } finally {
+            releaseFirstDomain.countDown();
+            workers.shutdown();
+            assertTrue(workers.awaitTermination(5, TimeUnit.SECONDS));
+        }
+        first.get(5, TimeUnit.SECONDS);
+    }
+
+    private void persistWithThreadLocalMocks(final HttpClientRegisterRepository repository, final OkHttpTools http,
+                                             final URIRegisterDTO dto) {
+        try (MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+             MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            repository.doPersistURI(dto);
+        }
+    }
+
+    @Test
     public void pendingOperationKeepsAnImmutablePayloadAcrossRetry() throws IOException {
         final Timer timer = mock(Timer.class);
         final OkHttpTools http = mock(OkHttpTools.class);
@@ -449,12 +539,16 @@ public final class HttpClientRegisterRepositoryFencingTest {
     }
 
     private URIRegisterDTO uri() {
+        return uri("127.0.0.1", 18080);
+    }
+
+    private URIRegisterDTO uri(final String host, final int port) {
         return URIRegisterDTO.builder()
                 .appName("demo")
                 .rpcType("http")
                 .protocol("http")
-                .host("127.0.0.1")
-                .port(18080)
+                .host(host)
+                .port(port)
                 .namespaceId("ns-1")
                 .build();
     }

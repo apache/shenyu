@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS "public"."registration_fencing_target" (
 );
 CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
     ON "public"."registration_fencing_target" ("namespace_id", "host", "port");
+CREATE INDEX IF NOT EXISTS idx_fencing_domain_session
+    ON "public"."registration_fencing_target" ("domain_id", "session_id");
 
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE public.dashboard_user ADD COLUMN token_version int4 NOT NULL DEFAULT 0;

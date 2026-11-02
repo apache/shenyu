@@ -42,7 +42,6 @@ HTTP client (`shenyu.register` properties):
 
 ```properties
 registrationFencingDomains=domainA|targetA|http://admin-a:9095,http://admin-a2:9095|||10.0.0.10|8080|http|ns-a|orders;domainB|targetB|http://admin-b:9095|||10.0.0.11|8081|http|ns-b|payments
-registrationFencingStartupId=00000000-0000-4000-8000-000000000001
 registrationFencingExpectedGeneration=0
 ```
 
@@ -54,7 +53,14 @@ matches the selector named `/orders`. Servers inside one entry are aliases of
 the same shared database; omitting the server field uses the global `serverList`.
 A client keeps an independent session and sequence per target. Startup UUID and
 expected generation fields must match the values used by an operator
-replacement; an omitted startup UUID is generated for the current process.
+replacement. The startup UUID identifies one process incarnation: use a new UUID
+for every new process and never reuse it while another process may still have a
+request in flight. Leave `registrationFencingStartupId` unset to have the client
+generate one for the current process. If an operator must replace an active
+owner, generate a new UUID for that process, pass it to the replacement request,
+and configure the same value for that process only. Do not put a fixed startup
+UUID in configuration shared by rolling or replicated processes. A per-domain
+startup UUID in `registrationFencingDomains` follows the same rule.
 
 ## Operator flow
 

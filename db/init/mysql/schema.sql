@@ -2572,5 +2572,6 @@ CREATE TABLE IF NOT EXISTS `registration_fencing_target` (
     `retired_startups` text,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_registration_fencing_target_address` (`selector_id`, `host`, `port`),
-    KEY `idx_registration_fencing_target_address` (`namespace_id`, `host`, `port`)
+    KEY `idx_registration_fencing_target_address` (`namespace_id`, `host`, `port`),
+    KEY `idx_fencing_domain_session` (`domain_id`, `session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -93,8 +93,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     private final Map<String, String> completedFencedRegistrations = new ConcurrentHashMap<>();
 
-    private final Object fencedLock = new Object();
-
     private String startupId = UUID.randomUUID().toString();
 
     private String username;
@@ -390,15 +388,15 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      * @param operation fencing operation
      */
     private void fencedMutate(final URIRegisterDTO dto, final String operation) {
-        synchronized (fencedLock) {
-            boolean matched = false;
-            RuntimeException failure = null;
-            String payload = GsonUtils.getInstance().toJson(dto);
-            for (FencedDomain domain : fencedDomains.values()) {
-                if (!domain.matches(dto)) {
-                    continue;
-                }
-                matched = true;
+        boolean matched = false;
+        RuntimeException failure = null;
+        String payload = GsonUtils.getInstance().toJson(dto);
+        for (FencedDomain domain : fencedDomains.values()) {
+            if (!domain.matches(dto)) {
+                continue;
+            }
+            matched = true;
+            synchronized (domain.operationLock) {
                 String key = uriIdentity(dto) + "|" + domain.key();
                 if (RegistrationFencingProtocol.REGISTER.equals(operation)
                         && Objects.equals(completedFencedRegistrations.get(key), payload)) {
@@ -421,13 +419,13 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                     }
                 }
             }
-            if (!matched) {
-                throw new FencedRegistrationException(RegistrationFencingProtocol.SOURCE_CONFLICT,
-                        "no configured fencing target matches the URI address");
-            }
-            if (Objects.nonNull(failure)) {
-                throw failure;
-            }
+        }
+        if (!matched) {
+            throw new FencedRegistrationException(RegistrationFencingProtocol.SOURCE_CONFLICT,
+                    "no configured fencing target matches the URI address");
+        }
+        if (Objects.nonNull(failure)) {
+            throw failure;
         }
     }
 
@@ -721,6 +719,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      * One explicitly configured registration authority domain.
      */
     private static final class FencedDomain {
+
+        private final Object operationLock = new Object();
 
         private final String domainId;
 
