@@ -56,6 +56,11 @@ def extended(path):
     return Path("\\\\?\\" + str(path.resolve())) if os.name == "nt" else path
 
 
+def production_diff_sha256():
+    """Hash tracked production changes relative to the recorded HEAD."""
+    return hashlib.sha256(subprocess.check_output(["git", "diff", "--binary", "HEAD", "--", "**/src/main/**"], cwd=ROOT)).hexdigest()
+
+
 def snapshot(destination):
     destination.mkdir(parents=True, exist_ok=True)
     report = next(extended(MODULE / "target/surefire-reports").glob("TEST-*.xml"))
@@ -72,7 +77,7 @@ def snapshot(destination):
     (destination / "classpath.txt").write_text(os.pathsep.join(classpath), encoding="utf-8")
     write_json(destination / "build.json", {
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-        "trackedProductionDiffSha256": hashlib.sha256(subprocess.check_output(["git", "diff", "--", "**/src/main/**"], cwd=ROOT)).hexdigest(),
+        "trackedProductionDiffSha256": production_diff_sha256(),
         "fixtureSha256": hashlib.sha256((destination / "fixture.jar").read_bytes()).hexdigest(),
         "java": properties.get("java.runtime.version"), "os": platform.platform(),
         "hostLogicalCpus": os.cpu_count(), "jvmFlags": FLAGS,

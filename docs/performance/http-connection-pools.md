@@ -158,7 +158,11 @@ Snapshot the baseline's compiled classes **before** modifying the production
 factory, and run the same fixture without `--pending`. The fixture needs the new
 property accessor only to request the comparison policy; the old factory ignores
 it. A snapshot copies the compiled factory, properties and test fixture into an
-immutable JAR, records its SHA-256 and retains the dependency classpath. Compare
+immutable JAR, records its SHA-256 and retains the dependency classpath. The
+tracked production-source diff hash compares the final worktree with the recorded
+HEAD, including both staged and unstaged changes (but not untracked files).
+Staging alone does not change this source identity; the compiled JAR hash remains
+the artifact identity. Compare
 snapshots made from separate checkouts or retain the baseline snapshot before
 recompiling. Do not accidentally run both arms against the same overwritten
 `target/classes` directory. Keep all other code, flags and upstream behavior fixed.
