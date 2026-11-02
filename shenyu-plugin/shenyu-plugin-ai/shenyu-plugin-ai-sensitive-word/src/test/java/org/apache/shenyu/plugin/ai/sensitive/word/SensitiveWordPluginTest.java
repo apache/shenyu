@@ -30,9 +30,11 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveSetOperations;
@@ -147,6 +149,94 @@ public final class SensitiveWordPluginTest {
         StepVerifier.create(exchange.getResponse().getBodyAsString())
                 .expectNextMatches(body -> body.contains("sensitive content detected") && !body.contains("banned"))
                 .verifyComplete();
+    }
+
+    @Test
+    public void testRejectTheEscapedContentOfAChatRequest() {
+        mockRedisDictionary("secret");
+        MockServerWebExchange literal = jsonExchange(chatBody("secret"));
+        StepVerifier.create(plugin.doExecute(literal, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+        clearInvocations(chain);
+
+        // the same message written with a Unicode escape must be rejected as well
+        MockServerWebExchange escaped = jsonExchange(chatBody("s\\u0065cret"));
+        StepVerifier.create(plugin.doExecute(escaped, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheEscapedContentSplitAcrossBuffers() {
+        mockRedisDictionary("secret");
+        String body = chatBody("s\\u0065cret");
+        // split the body inside the escape sequence, so no single buffer holds the decoded word
+        int split = body.indexOf("\\u0065") + 3;
+        DefaultDataBufferFactory bufferFactory = new DefaultDataBufferFactory();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/ai/chat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Flux.just(
+                        bufferFactory.wrap(body.substring(0, split).getBytes(StandardCharsets.UTF_8)),
+                        bufferFactory.wrap(body.substring(split).getBytes(StandardCharsets.UTF_8)))));
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheEscapedTextPartOfMultimodalContent() {
+        mockRedisDictionary("secret");
+        MockServerWebExchange exchange = jsonExchange("{\"messages\":[{\"role\":\"user\",\"content\":["
+                + "{\"type\":\"text\",\"text\":\"s\\u0065cret\"},"
+                + "{\"type\":\"image_url\",\"image_url\":{\"url\":\"https://example.com/a.png\"}}]}]}");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheEscapedToolDefinition() {
+        mockRedisDictionary("secret");
+        MockServerWebExchange exchange = jsonExchange("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"lookup\","
+                + "\"description\":\"s\\u0065cret\"}}]}");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testRejectTheEscapedInputOfAResponsesRequest() {
+        mockRedisDictionary("secret");
+        MockServerWebExchange exchange = jsonExchange("{\"input\":\"s\\u0065cret\"}");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
+    }
+
+    @Test
+    public void testForwardTheOriginalBodyWhenTheEscapedContentIsClean() {
+        mockRedisDictionary("forbidden");
+        String body = chatBody("s\\u0065cret");
+        MockServerWebExchange exchange = jsonExchange(body);
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+
+        // the decoded scan must not reserialize the body: the downstream receives the original bytes
+        ArgumentCaptor<ServerWebExchange> forwarded = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(chain).execute(forwarded.capture());
+        StepVerifier.create(DataBufferUtils.join(forwarded.getValue().getRequest().getBody()))
+                .assertNext(buffer -> {
+                    try {
+                        assertEquals(body, buffer.toString(StandardCharsets.UTF_8));
+                    } finally {
+                        DataBufferUtils.release(buffer);
+                    }
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    public void testMalformedJsonKeepsThePlainTextScan() {
+        mockRedisDictionary("secret");
+        // the document cannot be decoded, so the literal word is still found by the raw text scan
+        MockServerWebExchange exchange = jsonExchange("{\"messages\":[{\"role\":\"user\",\"content\":\"secret\"}");
+        StepVerifier.create(plugin.doExecute(exchange, chain, null, ruleData)).verifyComplete();
+        verify(chain, never()).execute(any(ServerWebExchange.class));
     }
 
     @Test
@@ -398,5 +488,15 @@ public final class SensitiveWordPluginTest {
         return MockServerWebExchange.from(MockServerHttpRequest.post("/ai/chat")
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(body));
+    }
+
+    private MockServerWebExchange jsonExchange(final String body) {
+        return MockServerWebExchange.from(MockServerHttpRequest.post("/ai/chat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body));
+    }
+
+    private String chatBody(final String content) {
+        return "{\"messages\":[{\"role\":\"user\",\"content\":\"" + content + "\"}]}";
     }
 }
