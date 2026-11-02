@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.config.RegistrationProtocolInterceptor;
 import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.common.constant.Constants;
@@ -40,6 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -88,7 +90,7 @@ class RegistrationProtocolCompatibilityTest {
 
     @BeforeEach
     void setUp() {
-        instanceCheckService = spy(new InstanceCheckService(instanceInfoService, new InstanceRetentionProperties()));
+        instanceCheckService = spy(new InstanceCheckService(instanceInfoService, Mockito.mock(RegistrationFencingGuard.class), new InstanceRetentionProperties()));
         mvc = MockMvcBuilders.standaloneSetup(controller, new InstanceController(instanceInfoService, instanceCheckService, instanceDiagnosticsService))
                 .addInterceptors(new RegistrationProtocolInterceptor()).build();
     }

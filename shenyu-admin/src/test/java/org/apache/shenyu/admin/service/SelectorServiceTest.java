@@ -48,6 +48,7 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
@@ -156,6 +157,9 @@ public final class SelectorServiceTest {
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
     @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
+    @Mock
     private DataPermissionChecker dataPermissionChecker;
 
     @BeforeEach
@@ -172,7 +176,7 @@ public final class SelectorServiceTest {
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
-                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, dataPermissionChecker);
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, dataPermissionChecker, registrationFencingGuard);
     }
 
     @Test
@@ -187,6 +191,18 @@ public final class SelectorServiceTest {
         publishEvent();
         testUpdate();
         testCreate();
+    }
+
+    @Test
+    public void testRegistrationMemberUpdateUsesAddressGuardInsteadOfSelectorWideGuard() {
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        when(selectorMapper.selectByIdForUpdate("selector-1")).thenReturn(selector);
+        when(selectorMapper.updateSelective(selector)).thenReturn(1);
+
+        assertEquals(1, selectorService.updateSelectiveForRegistration(selector));
+
+        verify(registrationFencingGuard, never()).assertSelectorWriteAllowed("selector-1");
     }
 
     @Test

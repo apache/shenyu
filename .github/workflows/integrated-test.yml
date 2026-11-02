@@ -104,6 +104,30 @@ jobs:
           cache: "maven"
           cache-dependency-path: |
             **/pom.xml
+      - name: Ensure Maven wrapper JAR
+        shell: bash
+        run: |
+          wrapper_jar=.mvn/wrapper/maven-wrapper.jar
+          wrapper_main=org/apache/maven/wrapper/MavenWrapperMain.class
+          if [[ -r "$wrapper_jar" ]] && jar tf "$wrapper_jar" | grep -Fx "$wrapper_main" > /dev/null; then
+            exit 0
+          fi
+
+          wrapper_url="$(awk -F= '$1 == "wrapperUrl" { print substr($0, index($0, "=") + 1); exit }' .mvn/wrapper/maven-wrapper.properties)"
+          if [[ -z "$wrapper_url" ]]; then
+            echo "Could not find wrapperUrl in .mvn/wrapper/maven-wrapper.properties."
+            exit 1
+          fi
+
+          wrapper_tmp="$(mktemp .mvn/wrapper/maven-wrapper.jar.XXXXXX)"
+          trap 'rm -f "$wrapper_tmp"' EXIT
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            --output "$wrapper_tmp" "$wrapper_url"
+          if ! jar tf "$wrapper_tmp" | grep -Fx "$wrapper_main" > /dev/null; then
+            echo "Downloaded Maven wrapper JAR does not contain $wrapper_main."
+            exit 1
+          fi
+          mv "$wrapper_tmp" "$wrapper_jar"
       - name: Build with Maven
         shell: bash
         run: |
@@ -144,10 +168,35 @@ jobs:
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
             -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
+      - name: Retry combination tests after a transient gRPC bind conflict
+        id: retry-combination
+        if: steps.test.outcome == 'failure' && matrix.case == 'shenyu-integrated-test-combination'
+        shell: bash
+        run: |
+          compose_file="./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml"
+          if ! docker compose -f "$compose_file" logs shenyu-examples-grpc 2>&1 | grep -Fq 'bind(..) failed: Address already in use'; then
+            echo "No transient gRPC bind conflict was recorded; keeping the original test failure."
+            exit 1
+          fi
+
+          docker compose -f "$compose_file" restart shenyu-examples-grpc
+          for attempt in $(seq 1 30); do
+            if docker compose -f "$compose_file" logs shenyu-examples-grpc 2>&1 | grep -Fq 'Grpc server started successfully'; then
+              break
+            fi
+            sleep 2
+          done
+          if ! docker compose -f "$compose_file" logs shenyu-examples-grpc 2>&1 | grep -Fq 'Grpc server started successfully'; then
+            echo "The gRPC example did not start after restarting its container."
+            exit 1
+          fi
+
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -T 1C test -Pit -DfailIfNoTests=true \
+            -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
       - name: Check test result
         run: |
           docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
-          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+          if [[ ${{steps.test.outcome}} == "failure" && ${{steps.retry-combination.outcome}} != "success" ]]; then
             echo "Test Failed"
             exit 1
           else

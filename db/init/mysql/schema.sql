@@ -2547,3 +2547,30 @@ INSERT INTO `permission` VALUES ('1953048313980117951', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO `permission` VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO `permission` VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+CREATE TABLE IF NOT EXISTS `registration_fencing_target` (
+    `id` varchar(128) NOT NULL,
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    `domain_id` varchar(128) NOT NULL,
+    `namespace_id` varchar(64) NOT NULL,
+    `selector_id` varchar(128) NOT NULL,
+    `plugin_id` varchar(128) NOT NULL,
+    `protocol` varchar(32) NOT NULL,
+    `host` varchar(255) NOT NULL,
+    `port` int NOT NULL,
+    `principal_id` varchar(128) NOT NULL,
+    `enabled` tinyint NOT NULL,
+    `state` varchar(16) NOT NULL,
+    `generation` bigint NOT NULL,
+    `owner_startup_id` varchar(64) DEFAULT NULL,
+    `session_id` varchar(128) DEFAULT NULL,
+    `last_sequence` bigint NOT NULL,
+    `last_payload` text,
+    `last_result` text,
+    `last_request_id` varchar(64) DEFAULT NULL,
+    `last_request_payload` text,
+    `retired_startups` text,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_registration_fencing_target_address` (`selector_id`, `host`, `port`),
+    KEY `idx_registration_fencing_target_address` (`namespace_id`, `host`, `port`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

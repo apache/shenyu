@@ -48,6 +48,12 @@ def workflow_python_blocks():
 
 
 class NativeSqlMatrixTest(unittest.TestCase):
+    def test_workflow_uses_pr_scoped_cancellation_and_run_specific_groups(self):
+        workflow = (ROOT / ".github/workflows/native-sql-matrix.yml").read_text(encoding="utf-8")
+        self.assertIn("github.event.pull_request.number || github.run_id", workflow)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", workflow)
+        self.assertIn("if: ${{ !cancelled() }}", workflow)
+
     def test_aggregate_gate_rejects_any_failed_canceled_or_missing_sql_result(self):
         block = workflow_python_blocks()[-1]
         base = {"SCOPE_RESULT": "success", "RUNNER_RESULT": "success", "REQUIRED": "true",

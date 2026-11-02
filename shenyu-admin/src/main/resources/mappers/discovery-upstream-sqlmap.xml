@@ -94,6 +94,20 @@
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateForHandler">
+        UPDATE discovery_upstream
+        SET
+        discovery_handler_id=#{upstream.discoveryHandlerId, jdbcType=VARCHAR},
+        protocol=#{upstream.protocol, jdbcType=VARCHAR},
+        upstream_url=#{upstream.upstreamUrl, jdbcType=VARCHAR},
+        upstream_status=#{upstream.upstreamStatus, jdbcType=INTEGER},
+        weight=#{upstream.weight, jdbcType=INTEGER},
+        props=#{upstream.props, jdbcType=VARCHAR},
+        date_updated=#{upstream.dateUpdated, jdbcType=TIMESTAMP}
+        WHERE id=#{upstream.id, jdbcType=VARCHAR}
+        AND discovery_handler_id=#{expectedHandlerId, jdbcType=VARCHAR}
+    </update>
+
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
         UPDATE discovery_upstream
         SET
@@ -121,6 +135,34 @@
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
 
+    <update id="updateSelectiveForHandler">
+        UPDATE discovery_upstream
+        SET
+        <if test="upstream.discoveryHandlerId != null">
+            discovery_handler_id=#{upstream.discoveryHandlerId, jdbcType=VARCHAR},
+        </if>
+        <if test="upstream.protocol != null">
+            protocol=#{upstream.protocol, jdbcType=VARCHAR},
+        </if>
+        <if test="upstream.upstreamUrl != null">
+            upstream_url=#{upstream.upstreamUrl, jdbcType=VARCHAR},
+        </if>
+        <if test="upstream.upstreamStatus != null">
+            upstream_status=#{upstream.upstreamStatus, jdbcType=INTEGER},
+        </if>
+        <if test="upstream.weight != null">
+            weight=#{upstream.weight, jdbcType=INTEGER},
+        </if>
+        <if test="upstream.props != null">
+            props=#{upstream.props, jdbcType=VARCHAR},
+        </if>
+        <if test="upstream.dateUpdated != null">
+            date_updated=#{upstream.dateUpdated, jdbcType=TIMESTAMP}
+        </if>
+        WHERE id=#{upstream.id, jdbcType=VARCHAR}
+        AND discovery_handler_id=#{expectedHandlerId, jdbcType=VARCHAR}
+    </update>
+
     <update id="updateDiscoveryHandlerIdAndUrl">
         UPDATE discovery_upstream
         SET
@@ -146,6 +188,18 @@
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
+    </select>
+
+    <select id="selectByIdsForUpdate" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+        ORDER BY id
+        FOR UPDATE
     </select>
 
     <select id="selectByDiscoveryHandlerId" resultMap="BaseResultMap">
@@ -182,6 +236,7 @@
         du.date_created,
         du.date_updated,
         du.discovery_handler_id,
+        du.namespace_id,
         du.protocol,
         du.upstream_url,
         du.upstream_status,

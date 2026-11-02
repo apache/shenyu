@@ -27,6 +27,7 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -86,6 +87,12 @@ public class ShenyuClientRegisterMcpServiceImpl extends AbstractShenyuClientRegi
         String namespaceId = StringUtils.defaultIfEmpty(mcpToolsRegisterDTO.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID);
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         this.checkNamespacePluginRel(namespaceId, pluginName);
+        // MCP config is shared, not per-instance: it may not rewrite a protected selector.
+        if (StringUtils.isNotBlank(metaDataRegisterDTO.getContextPath()) || StringUtils.isNotBlank(metaDataRegisterDTO.getAppName())) {
+            getRegistrationFencingGuard().assertMetadataWriteAllowed(
+                    ContextPathUtils.buildContextPath(metaDataRegisterDTO.getContextPath(), metaDataRegisterDTO.getAppName()),
+                    pluginName, namespaceId);
+        }
         mcpToolsRegisterDTO.setNamespaceId(namespaceId);
         //handler plugin selector
         String selectorHandler = "";
