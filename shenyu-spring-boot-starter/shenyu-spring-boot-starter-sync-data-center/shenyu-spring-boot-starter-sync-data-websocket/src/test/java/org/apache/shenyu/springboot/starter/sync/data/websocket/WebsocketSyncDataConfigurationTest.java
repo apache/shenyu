@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.sync.data.websocket;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -25,9 +26,11 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.ApplicationContext;
@@ -77,6 +80,9 @@ public final class WebsocketSyncDataConfigurationTest {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private HealthIndicator websocketSyncHealthIndicator;
+
     @Test
     void testSyncCompletionDoesNotOverrideApplicationReadiness() {
         AtomicBoolean ready = (AtomicBoolean) ReflectionTestUtils.getField(websocketSyncDataService, "initialSyncReady");
@@ -98,6 +104,30 @@ public final class WebsocketSyncDataConfigurationTest {
         assertEquals(Status.UP, healthEndpoint.healthForPath("liveness").getStatus());
         assertEquals(Status.UP, healthEndpoint.health().getStatus());
         assertFalse(new WebsocketConfig().isInitialSyncReadiness());
+    }
+
+    @Test
+    void testReadinessIndicatorEmitsFailureWithReasonCode() {
+        assertNotNull(websocketSyncHealthIndicator);
+        Health health = websocketSyncHealthIndicator.health();
+        assertEquals(Status.OUT_OF_SERVICE, health.getStatus());
+        assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), health.getDetails().get("status"));
+        assertEquals("WEBSOCKET_DISCONNECTED", health.getDetails().get("reasonCode"));
+        assertEquals("WEBSOCKET_DISCONNECTED", health.getDetails().get("reason"));
+    }
+
+    @Test
+    void testReadinessIndicatorEmitsReadyStatus() {
+        assertNotNull(websocketSyncHealthIndicator);
+        AtomicBoolean ready = (AtomicBoolean) ReflectionTestUtils.getField(websocketSyncDataService, "initialSyncReady");
+        try {
+            ready.set(true);
+            Health health = websocketSyncHealthIndicator.health();
+            assertEquals(Status.UP, health.getStatus());
+            assertEquals(InstanceStatusEnum.READY.getName(), health.getDetails().get("status"));
+        } finally {
+            ready.set(false);
+        }
     }
     
     @Test

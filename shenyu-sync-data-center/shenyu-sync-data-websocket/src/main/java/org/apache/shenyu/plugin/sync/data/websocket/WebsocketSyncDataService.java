@@ -24,7 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.BoundServerPort;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.common.enums.RunningModeEnum;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryHolder;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryProvider;
 import org.apache.shenyu.common.timer.AbstractRoundTask;
 import org.apache.shenyu.common.timer.TaskEntity;
 import org.apache.shenyu.common.timer.Timer;
@@ -53,11 +56,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Websocket sync data service. */
-public class WebsocketSyncDataService implements SyncDataService {
+public class WebsocketSyncDataService implements SyncDataService, ReadinessTelemetryProvider {
     
     /** logger. */
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSyncDataService.class);
@@ -141,6 +145,7 @@ public class WebsocketSyncDataService implements SyncDataService {
                 masterCheck();
             }
         });
+        ReadinessTelemetryHolder.setProvider(this);
     }
 
     private synchronized void masterCheck() {
@@ -325,6 +330,9 @@ public class WebsocketSyncDataService implements SyncDataService {
                 }
             }
         } finally {
+            if (ReadinessTelemetryHolder.getProvider() == this) {
+                ReadinessTelemetryHolder.reset();
+            }
             timer.shutdown();
         }
     }
@@ -370,6 +378,89 @@ public class WebsocketSyncDataService implements SyncDataService {
      */
     public boolean isInitialSyncReady() {
         return initialSyncReady.get();
+    }
+
+    /**
+     * Real-time readiness status for heartbeat and telemetry reporting.
+     *
+     * @return readiness status name
+     */
+    @Override
+    public synchronized String getReadinessStatus() {
+        if (isInitialSyncReady()) {
+            return InstanceStatusEnum.READY.getName();
+        }
+        if (isReadinessFailed()) {
+            return InstanceStatusEnum.READINESS_FAILED.getName();
+        }
+        return InstanceStatusEnum.INITIALIZING.getName();
+    }
+
+    /**
+     * Whether initial synchronization encountered a failure or connection timeout.
+     *
+     * @return true if readiness failed
+     */
+    public synchronized boolean isReadinessFailed() {
+        if (initialSyncReady.get()) {
+            return false;
+        }
+        return isInitialSyncTimedOut() || isWebSocketDisconnected() || isInitialSyncFailed();
+    }
+
+    private boolean isInitialSyncTimedOut() {
+        return CollectionUtils.isNotEmpty(clients) && clients.stream().anyMatch(ShenyuWebsocketClient::isInitialSyncTimedOut);
+    }
+
+    private boolean isInitialSyncFailed() {
+        return CollectionUtils.isNotEmpty(clients) && clients.stream().anyMatch(ShenyuWebsocketClient::isInitialSyncFailed);
+    }
+
+    private boolean isWebSocketDisconnected() {
+        if (CollectionUtils.isNotEmpty(clients)) {
+            return clients.stream().noneMatch(ShenyuWebsocketClient::isOpen);
+        }
+        return boundPort > 0 && CollectionUtils.isNotEmpty(websocketConfig.getUrls());
+    }
+
+    /**
+     * Get optional failure reason code.
+     *
+     * @return reason code or null
+     */
+    @Override
+    public synchronized String getReasonCode() {
+        if (initialSyncReady.get()) {
+            return null;
+        }
+        if (isInitialSyncTimedOut()) {
+            return boundReasonCode("INITIAL_SYNC_TIMED_OUT");
+        }
+        if (isWebSocketDisconnected()) {
+            return boundReasonCode("WEBSOCKET_DISCONNECTED");
+        }
+        if (isInitialSyncFailed()) {
+            return boundReasonCode("INITIAL_SYNC_FAILED");
+        }
+        return null;
+    }
+
+    private String boundReasonCode(final String reasonCode) {
+        if (Objects.isNull(reasonCode)) {
+            return null;
+        }
+        return reasonCode.length() > ReadinessTelemetryProvider.MAX_REASON_CODE_LENGTH
+                ? reasonCode.substring(0, ReadinessTelemetryProvider.MAX_REASON_CODE_LENGTH)
+                : reasonCode;
+    }
+
+    /**
+     * Obtain a readiness status supplier.
+     *
+     * @return readiness supplier
+     */
+    public Supplier<String> getReadinessSupplier() {
+        return this::getReadinessStatus;
     }
     
     /**

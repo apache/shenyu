@@ -922,6 +922,92 @@ public final class InstanceCheckServiceTest {
         verify(instanceInfoService, times(2)).deleteExpired(anyLong());
     }
 
+    @Test
+    void testBootIdValidationStaleFilterAndProcessRestart() {
+        InstanceBeatInfoDTO initial = buildDTO("127.0.0.1", "8080", "http", "ns");
+        initial.setBootId("boot-1");
+        initial.setObservationTime(1000L);
+        initial.setReadinessStatus(InstanceStatusEnum.READY.getName());
+        initial.setReasonCode("HEALTHY");
+
+        assertTrue(instanceCheckService.handleBeatInfo(initial));
+        InstanceInfoVO actual = instanceCheckService.getInstanceHealthBeatInfo(initial);
+        assertNotNull(actual);
+        assertEquals("boot-1", actual.getBootId());
+        assertEquals(1000L, actual.getObservationTime());
+        assertEquals(InstanceStatusEnum.READY.getName(), actual.getReadinessStatus());
+        assertEquals("HEALTHY", actual.getReasonCode());
+
+        // Stale heartbeat from old process with older observationTime must be ignored
+        InstanceBeatInfoDTO stale = buildDTO("127.0.0.1", "8080", "http", "ns");
+        stale.setBootId("boot-0");
+        stale.setObservationTime(500L);
+        stale.setReadinessStatus(InstanceStatusEnum.READINESS_FAILED.getName());
+        assertFalse(instanceCheckService.handleBeatInfo(stale));
+
+        // State remains unaffected
+        actual = instanceCheckService.getInstanceHealthBeatInfo(initial);
+        assertEquals("boot-1", actual.getBootId());
+        assertEquals(1000L, actual.getObservationTime());
+        assertEquals(InstanceStatusEnum.READY.getName(), actual.getReadinessStatus());
+
+        // Out-of-order heartbeat for the same bootId with older observationTime must be ignored
+        InstanceBeatInfoDTO outOfOrder = buildDTO("127.0.0.1", "8080", "http", "ns");
+        outOfOrder.setBootId("boot-1");
+        outOfOrder.setObservationTime(800L);
+        assertFalse(instanceCheckService.handleBeatInfo(outOfOrder));
+        assertEquals(1000L, actual.getObservationTime());
+
+        // Process restart with new bootId and newer observationTime must be accepted
+        InstanceBeatInfoDTO restart = buildDTO("127.0.0.1", "8080", "http", "ns");
+        restart.setBootId("boot-2");
+        restart.setObservationTime(2000L);
+        restart.setReadinessStatus(InstanceStatusEnum.INITIALIZING.getName());
+        restart.setReasonCode("RESTART_INIT");
+        assertTrue(instanceCheckService.handleBeatInfo(restart));
+
+        actual = instanceCheckService.getInstanceHealthBeatInfo(initial);
+        assertEquals("boot-2", actual.getBootId());
+        assertEquals(2000L, actual.getObservationTime());
+        assertEquals(InstanceStatusEnum.INITIALIZING.getName(), actual.getReadinessStatus());
+        assertEquals("RESTART_INIT", actual.getReasonCode());
+    }
+
+    @Test
+    void testReadinessSeparatedFromLiveness() {
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "http", "ns");
+        dto.setBootId("boot-readiness-test");
+        dto.setObservationTime(1000L);
+        dto.setReadinessStatus(InstanceStatusEnum.READINESS_FAILED.getName());
+        dto.setReasonCode("DEPENDENCY_DOWN");
+
+        assertTrue(instanceCheckService.handleBeatInfo(dto));
+        InstanceInfoVO actual = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        assertNotNull(actual);
+        // Transport liveness must strictly reflect heartbeat presence (ONLINE)
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), actual.getInstanceState());
+        // Readiness must expose true readiness failure
+        assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), actual.getReadinessStatus());
+        assertEquals("DEPENDENCY_DOWN", actual.getReasonCode());
+        assertNotNull(actual.getLastObservationAge());
+    }
+
+    @Test
+    void testLegacyClientHeartbeatFallback() {
+        // Legacy client without bootId, readinessStatus, observationTime
+        InstanceBeatInfoDTO legacy = buildDTO("127.0.0.1", "8080", "http", "ns");
+        legacy.setBootId(null);
+        legacy.setReadinessStatus(null);
+        legacy.setObservationTime(null);
+
+        assertTrue(instanceCheckService.handleBeatInfo(legacy));
+        InstanceInfoVO actual = instanceCheckService.getInstanceHealthBeatInfo(legacy);
+        assertNotNull(actual);
+        assertEquals(InstanceStatusEnum.ONLINE.getCode(), actual.getInstanceState());
+        assertEquals(InstanceStatusEnum.ONLINE.getName(), actual.getReadinessStatus());
+        assertNotNull(actual.getObservationTime());
+    }
+
     private InstanceInfoVO buildVO(final String ip, final String port, final String type, final String ns) {
         InstanceInfoVO v = new InstanceInfoVO();
         v.setInstanceIp(ip);

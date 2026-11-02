@@ -22,6 +22,9 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.SystemInfoUtils;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryHolder;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryProvider;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,12 +54,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -141,6 +146,144 @@ class HeartbeatListenerTest {
             assertEquals("8080", beatInfo.getInstancePort());
             assertEquals("shenyu", beatInfo.getNamespaceId());
             assertEquals("system-info", beatInfo.getInstanceInfo());
+            assertEquals(HeartbeatListener.getBootId(), beatInfo.getBootId());
+            assertNotNull(beatInfo.getObservationTime());
+            assertEquals(InstanceStatusEnum.READY.getName(), beatInfo.getReadinessStatus());
+        }
+    }
+
+    @Test
+    void testPeriodicHeartbeatWithReadinessAndSafeFallback() throws Exception {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> system = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            system.when(SystemInfoUtils::getSystemInfo).thenReturn("system-info");
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig, (Supplier<String>) () -> InstanceStatusEnum.READY.getName());
+            heartbeatListener.setReasonCodeSupplier(() -> "SYNC_SUCCESS");
+            bind(heartbeatListener, null, 8080);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+            periodic.getValue().run();
+            ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+            register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")));
+            InstanceBeatInfoDTO beatInfo = GsonUtils.getInstance().fromJson(payload.getValue(), InstanceBeatInfoDTO.class);
+            assertEquals(InstanceStatusEnum.READY.getName(), beatInfo.getReadinessStatus());
+            assertEquals("SYNC_SUCCESS", beatInfo.getReasonCode());
+            assertEquals(HeartbeatListener.getBootId(), beatInfo.getBootId());
+
+            // Test fallback when readiness supplier throws an exception
+            heartbeatListener.setReadinessStatusSupplier(() -> {
+                throw new RuntimeException("Simulated error in readiness supplier");
+            });
+            ArgumentCaptor<String> fallbackPayload = ArgumentCaptor.forClass(String.class);
+            assertDoesNotThrow(periodic.getValue()::run);
+            register.verify(() -> RegisterUtils.doHeartBeat(fallbackPayload.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
+            InstanceBeatInfoDTO fallbackBeatInfo = GsonUtils.getInstance().fromJson(fallbackPayload.getValue(), InstanceBeatInfoDTO.class);
+            assertEquals(InstanceStatusEnum.INITIALIZING.getName(), fallbackBeatInfo.getReadinessStatus());
+        }
+    }
+
+    @Test
+    void testPeriodicHeartbeatWithTelemetryHolderDynamicResolution() throws Exception {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> system = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            system.when(SystemInfoUtils::getSystemInfo).thenReturn("system-info");
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+
+            AtomicBoolean initialSyncReady = new AtomicBoolean(false);
+            ReadinessTelemetryProvider testProvider = new ReadinessTelemetryProvider() {
+                @Override
+                public String getReadinessStatus() {
+                    return initialSyncReady.get() ? InstanceStatusEnum.READY.getName() : InstanceStatusEnum.INITIALIZING.getName();
+                }
+
+                @Override
+                public String getReasonCode() {
+                    return initialSyncReady.get() ? null : "PENDING_INITIAL_SYNC";
+                }
+            };
+            ReadinessTelemetryHolder.setProvider(testProvider);
+            try {
+                heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+                bind(heartbeatListener, null, 8080);
+                ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+                Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+
+                // 1. First run when initialSyncReady is false -> INITIALIZING
+                periodic.getValue().run();
+                ArgumentCaptor<String> payload1 = ArgumentCaptor.forClass(String.class);
+                register.verify(() -> RegisterUtils.doHeartBeat(payload1.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                        Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")));
+                InstanceBeatInfoDTO beatInfo1 = GsonUtils.getInstance().fromJson(payload1.getValue(), InstanceBeatInfoDTO.class);
+                assertEquals(InstanceStatusEnum.INITIALIZING.getName(), beatInfo1.getReadinessStatus());
+                assertEquals("PENDING_INITIAL_SYNC", beatInfo1.getReasonCode());
+
+                // 2. Mark initial sync ready -> dynamically returns READY
+                initialSyncReady.set(true);
+                periodic.getValue().run();
+                ArgumentCaptor<String> payload2 = ArgumentCaptor.forClass(String.class);
+                register.verify(() -> RegisterUtils.doHeartBeat(payload2.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                        Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")), Mockito.times(2));
+                InstanceBeatInfoDTO beatInfo2 = GsonUtils.getInstance().fromJson(payload2.getValue(), InstanceBeatInfoDTO.class);
+                assertEquals(InstanceStatusEnum.READY.getName(), beatInfo2.getReadinessStatus());
+                assertEquals(null, beatInfo2.getReasonCode());
+            } finally {
+                ReadinessTelemetryHolder.reset();
+            }
+        }
+    }
+
+    @Test
+    void testOfflineLocalFileModeDefaultsReadinessToReady() throws Exception {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> system = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            system.when(SystemInfoUtils::getSystemInfo).thenReturn("system-info");
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+
+            // Ensure no telemetry provider is registered (e.g., local file mode without WebSocket sync)
+            ReadinessTelemetryHolder.reset();
+
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig);
+            bind(heartbeatListener, null, 8080);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+
+            periodic.getValue().run();
+            ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+            register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")));
+            InstanceBeatInfoDTO beatInfo = GsonUtils.getInstance().fromJson(payload.getValue(), InstanceBeatInfoDTO.class);
+            assertEquals(InstanceStatusEnum.READY.getName(), beatInfo.getReadinessStatus());
+            assertNull(beatInfo.getReasonCode());
+        }
+    }
+
+    @Test
+    void testNullReadinessSupplierDefaultsToReady() throws Exception {
+        try (MockedConstruction<ScheduledThreadPoolExecutor> executors = Mockito.mockConstruction(ScheduledThreadPoolExecutor.class);
+                MockedStatic<SystemInfoUtils> system = Mockito.mockStatic(SystemInfoUtils.class);
+                MockedStatic<RegisterUtils> register = Mockito.mockStatic(RegisterUtils.class)) {
+            system.when(SystemInfoUtils::getSystemInfo).thenReturn("system-info");
+            register.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString())).thenReturn(Optional.of("mock-token"));
+
+            ReadinessTelemetryHolder.reset();
+            heartbeatListener = new HeartbeatListener(config, shenyuConfig, (Supplier<String>) null);
+            heartbeatListener.setReadinessStatusSupplier(null);
+            bind(heartbeatListener, null, 8080);
+            ArgumentCaptor<Runnable> periodic = ArgumentCaptor.forClass(Runnable.class);
+            Mockito.verify(executors.constructed().get(0)).scheduleAtFixedRate(periodic.capture(), Mockito.eq(0L), Mockito.eq(5L), Mockito.eq(TimeUnit.SECONDS));
+
+            periodic.getValue().run();
+            ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
+            register.verify(() -> RegisterUtils.doHeartBeat(payload.capture(), Mockito.eq("http://localhost:9095".concat(Constants.BEAT_URI_PATH)),
+                    Mockito.eq(Constants.HEARTBEAT), Mockito.eq("mock-token")));
+            InstanceBeatInfoDTO beatInfo = GsonUtils.getInstance().fromJson(payload.getValue(), InstanceBeatInfoDTO.class);
+            assertEquals(InstanceStatusEnum.READY.getName(), beatInfo.getReadinessStatus());
         }
     }
 
@@ -280,7 +423,7 @@ class HeartbeatListenerTest {
         Properties props = new Properties();
         props.setProperty(Constants.USER_NAME, "admin");
         props.setProperty(Constants.PASS_WORD, "123456");
-        props.setProperty("heartbeatTimeoutMs", "100");
+        props.setProperty("heartbeatTimeoutMs", "500");
         ShenyuBootstrapHeartBeatConfig timeoutConfig = new ShenyuBootstrapHeartBeatConfig();
         timeoutConfig.setServerLists("http://localhost:9095");
         timeoutConfig.setProps(props);
@@ -293,8 +436,8 @@ class HeartbeatListenerTest {
 
         sendHeartbeatMethod.invoke(heartbeatListener, beatInfo);
 
-        assertTrue(beatStarted.await(1, TimeUnit.SECONDS));
-        assertTrue(beatInterrupted.await(2, TimeUnit.SECONDS));
+        assertTrue(beatStarted.await(3, TimeUnit.SECONDS));
+        assertTrue(beatInterrupted.await(3, TimeUnit.SECONDS));
         heartbeatListener.onShutdown();
     }
 

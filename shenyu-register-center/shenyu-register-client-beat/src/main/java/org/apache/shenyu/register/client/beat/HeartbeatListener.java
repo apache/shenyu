@@ -28,6 +28,9 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryHolder;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryProvider;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.BoundServerPort;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -50,6 +53,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -60,10 +64,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 public class HeartbeatListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(HeartbeatListener.class);
+
+    private static final String BOOT_ID = UUID.randomUUID().toString();
 
     private static final int INITIAL_DELAY = 0;
 
@@ -95,6 +102,22 @@ public class HeartbeatListener {
 
     private final LongSupplier nanoTime;
 
+    private Supplier<String> readinessStatusSupplier = () -> {
+        ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+        if (Objects.nonNull(provider)) {
+            return provider.getReadinessStatus();
+        }
+        return InstanceStatusEnum.READY.getName();
+    };
+
+    private Supplier<String> reasonCodeSupplier = () -> {
+        ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+        if (Objects.nonNull(provider)) {
+            return provider.getReasonCode();
+        }
+        return null;
+    };
+
     // Heartbeat workers update retry state independently for each Admin.
     private final Map<String, LoginRetry> loginRetries = new ConcurrentHashMap<>();
 
@@ -120,6 +143,22 @@ public class HeartbeatListener {
 
     public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig) {
         this(config, shenyuConfig, null, null, System::nanoTime);
+    }
+
+    public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config,
+                             final ShenyuConfig shenyuConfig,
+                             final Supplier<String> readinessStatusSupplier) {
+        this(config, shenyuConfig, null, null, System::nanoTime);
+        if (Objects.nonNull(readinessStatusSupplier)) {
+            this.readinessStatusSupplier = readinessStatusSupplier;
+        }
+    }
+
+    public HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config,
+                             final ShenyuConfig shenyuConfig,
+                             final ReadinessTelemetryProvider telemetryProvider) {
+        this(config, shenyuConfig, null, null, System::nanoTime);
+        setReadinessTelemetryProvider(telemetryProvider);
     }
 
     HeartbeatListener(final ShenyuBootstrapHeartBeatConfig config, final ShenyuConfig shenyuConfig, final LongSupplier nanoTime) {
@@ -236,6 +275,98 @@ public class HeartbeatListener {
         LOG.info("Application server bound on port {}, heartbeat reporter will use it", observed);
     }
 
+    /**
+     * Get process boot id.
+     *
+     * @return boot id
+     */
+    public static String getBootId() {
+        return BOOT_ID;
+    }
+
+    /**
+     * Set readiness status supplier.
+     *
+     * @param readinessStatusSupplier readiness status supplier
+     */
+    public void setReadinessStatusSupplier(final Supplier<String> readinessStatusSupplier) {
+        if (Objects.nonNull(readinessStatusSupplier)) {
+            this.readinessStatusSupplier = readinessStatusSupplier;
+        } else {
+            this.readinessStatusSupplier = () -> {
+                ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+                if (Objects.nonNull(provider)) {
+                    return provider.getReadinessStatus();
+                }
+                return InstanceStatusEnum.READY.getName();
+            };
+        }
+    }
+
+    /**
+     * Set reason code supplier.
+     *
+     * @param reasonCodeSupplier reason code supplier
+     */
+    public void setReasonCodeSupplier(final Supplier<String> reasonCodeSupplier) {
+        if (Objects.nonNull(reasonCodeSupplier)) {
+            this.reasonCodeSupplier = reasonCodeSupplier;
+        } else {
+            this.reasonCodeSupplier = () -> {
+                ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+                if (Objects.nonNull(provider)) {
+                    return provider.getReasonCode();
+                }
+                return null;
+            };
+        }
+    }
+
+    /**
+     * Set readiness telemetry provider.
+     *
+     * @param telemetryProvider readiness telemetry provider
+     */
+    public void setReadinessTelemetryProvider(final ReadinessTelemetryProvider telemetryProvider) {
+        if (Objects.nonNull(telemetryProvider)) {
+            this.readinessStatusSupplier = telemetryProvider::getReadinessStatus;
+            this.reasonCodeSupplier = telemetryProvider::getReasonCode;
+        } else {
+            this.readinessStatusSupplier = () -> {
+                ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+                if (Objects.nonNull(provider)) {
+                    return provider.getReadinessStatus();
+                }
+                return InstanceStatusEnum.READY.getName();
+            };
+            this.reasonCodeSupplier = () -> {
+                ReadinessTelemetryProvider provider = ReadinessTelemetryHolder.getProvider();
+                if (Objects.nonNull(provider)) {
+                    return provider.getReasonCode();
+                }
+                return null;
+            };
+        }
+    }
+
+    /**
+     * Get readiness status supplier.
+     *
+     * @return readiness status supplier
+     */
+    public Supplier<String> getReadinessStatusSupplier() {
+        return readinessStatusSupplier;
+    }
+
+    /**
+     * Get reason code supplier.
+     *
+     * @return reason code supplier
+     */
+    public Supplier<String> getReasonCodeSupplier() {
+        return reasonCodeSupplier;
+    }
+
     private void reportHeartbeat() {
         if (closed) {
             return;
@@ -250,6 +381,21 @@ public class HeartbeatListener {
         instanceBeatInfoDTO.setNamespaceId(shenyuConfig.getNamespace());
         instanceBeatInfoDTO.setInstanceInfo(SystemInfoUtils.getSystemInfo());
         instanceBeatInfoDTO.setInstanceType(InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE);
+        instanceBeatInfoDTO.setBootId(BOOT_ID);
+        instanceBeatInfoDTO.setObservationTime(System.currentTimeMillis());
+        try {
+            String readiness = Optional.ofNullable(readinessStatusSupplier)
+                    .map(Supplier::get)
+                    .filter(StringUtils::isNotBlank)
+                    .orElse(InstanceStatusEnum.READY.getName());
+            instanceBeatInfoDTO.setReadinessStatus(readiness);
+            if (Objects.nonNull(reasonCodeSupplier)) {
+                instanceBeatInfoDTO.setReasonCode(reasonCodeSupplier.get());
+            }
+        } catch (Throwable t) {
+            LOG.warn("Failed to assemble readiness metadata for heartbeat, using fallback", t);
+            instanceBeatInfoDTO.setReadinessStatus(InstanceStatusEnum.INITIALIZING.getName());
+        }
         sendHeartbeat(instanceBeatInfoDTO);
     }
 

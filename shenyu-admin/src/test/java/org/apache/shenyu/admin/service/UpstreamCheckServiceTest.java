@@ -215,8 +215,12 @@ public final class UpstreamCheckServiceTest {
     }
 
     private void testSubmitDeleted(final DivideUpstream divideUpstream) {
+        if (Objects.nonNull(divideUpstream)) {
+            divideUpstream.setStatus(false);
+        }
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
+        List<DivideUpstream> divideUpstreams = upstreamMap.get(MOCK_SELECTOR_NAME_OTHER);
+        assertFalse(Objects.nonNull(divideUpstreams) && divideUpstreams.contains(divideUpstream));
     }
 
     @Test

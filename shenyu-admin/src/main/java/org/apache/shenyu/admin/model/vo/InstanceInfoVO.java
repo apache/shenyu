@@ -77,6 +77,31 @@ public class InstanceInfoVO implements Serializable {
      * lastBeat time.
      */
     private long lastHeartBeatTime;
+
+    /**
+     * process boot id.
+     */
+    private String bootId;
+
+    /**
+     * readiness status.
+     */
+    private String readinessStatus;
+
+    /**
+     * reason code.
+     */
+    private String reasonCode;
+
+    /**
+     * observation time.
+     */
+    private Long observationTime;
+
+    /**
+     * last observation age in milliseconds.
+     */
+    private Long lastObservationAge;
     
     /**
      * get id.
@@ -256,6 +281,96 @@ public class InstanceInfoVO implements Serializable {
      */
     public void setLastHeartBeatTime(final long lastHeartBeatTime) {
         this.lastHeartBeatTime = lastHeartBeatTime;
+    }
+
+    /**
+     * get bootId.
+     *
+     * @return bootId
+     */
+    public String getBootId() {
+        return bootId;
+    }
+
+    /**
+     * set bootId.
+     *
+     * @param bootId bootId
+     */
+    public void setBootId(final String bootId) {
+        this.bootId = bootId;
+    }
+
+    /**
+     * get readinessStatus.
+     *
+     * @return readinessStatus
+     */
+    public String getReadinessStatus() {
+        return readinessStatus;
+    }
+
+    /**
+     * set readinessStatus.
+     *
+     * @param readinessStatus readinessStatus
+     */
+    public void setReadinessStatus(final String readinessStatus) {
+        this.readinessStatus = readinessStatus;
+    }
+
+    /**
+     * get reasonCode.
+     *
+     * @return reasonCode
+     */
+    public String getReasonCode() {
+        return reasonCode;
+    }
+
+    /**
+     * set reasonCode.
+     *
+     * @param reasonCode reasonCode
+     */
+    public void setReasonCode(final String reasonCode) {
+        this.reasonCode = reasonCode;
+    }
+
+    /**
+     * get observationTime.
+     *
+     * @return observationTime
+     */
+    public Long getObservationTime() {
+        return observationTime;
+    }
+
+    /**
+     * set observationTime.
+     *
+     * @param observationTime observationTime
+     */
+    public void setObservationTime(final Long observationTime) {
+        this.observationTime = observationTime;
+    }
+
+    /**
+     * get lastObservationAge.
+     *
+     * @return lastObservationAge
+     */
+    public Long getLastObservationAge() {
+        return lastObservationAge;
+    }
+
+    /**
+     * set lastObservationAge.
+     *
+     * @param lastObservationAge lastObservationAge
+     */
+    public void setLastObservationAge(final Long lastObservationAge) {
+        this.lastObservationAge = lastObservationAge;
     }
 
     @Override

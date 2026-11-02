@@ -17,14 +17,16 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
-import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
 import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
+import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceDiagnosticsVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
@@ -32,9 +34,12 @@ import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
+import org.apache.shenyu.admin.utils.ResultUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,7 +79,7 @@ public class InstanceController implements PagedController<InstanceQueryConditio
      * @param pageSize     page size.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping
+    @GetMapping({"", "/list"})
     public ShenyuAdminResult queryPlugins(@RequestParam(name = "instanceType", required = false) final String instanceType,
                                           @RequestParam(name = "instanceIp", required = false) final String instanceIp,
                                           @RequestParam(name = "instancePort", required = false) final String instancePort,
@@ -91,19 +96,7 @@ public class InstanceController implements PagedController<InstanceQueryConditio
                 )
         );
         if (!CollectionUtils.isEmpty(commonPager.getDataList())) {
-            commonPager.getDataList().forEach(instanceInfoVO -> {
-                String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
-                InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
-                if (Objects.isNull(instanceHealthBeatInfo)) {
-                    if (instanceInfoVO.getLastHeartBeatTime() <= 0 && Objects.nonNull(instanceInfoVO.getDateUpdated())) {
-                        instanceInfoVO.setLastHeartBeatTime(instanceInfoVO.getDateUpdated().getTime());
-                    }
-                } else {
-                    instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
-                    instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
-                    instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
-                }
-            });
+            commonPager.getDataList().forEach(this::enrichInstanceTelemetry);
         }
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
@@ -118,6 +111,7 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     @RequiresPermissions("system:instance:edit")
     public ShenyuAdminResult detailInstanceInfo(@PathVariable("id") final String id) {
         InstanceInfoVO instanceInfoVO = instanceInfoService.findById(id);
+        enrichInstanceTelemetry(instanceInfoVO);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, instanceInfoVO);
     }
 
@@ -165,6 +159,57 @@ public class InstanceController implements PagedController<InstanceQueryConditio
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, instanceCheckService.getInstanceDataVisual(namespaceId));
     }
 
+
+    @Override
+    @PostMapping("list/search")
+    public AdminResult<PageInfo<InstanceInfoVO>> search(@RequestBody @Validated final PageCondition<InstanceQueryCondition> pageCondition) {
+        PageInfo<InstanceInfoVO> pageInfo = pageService().searchByPage(pageCondition);
+        if (Objects.nonNull(pageInfo) && !CollectionUtils.isEmpty(pageInfo.getList())) {
+            pageInfo.getList().forEach(this::enrichInstanceTelemetry);
+        }
+        return ResultUtil.ok(pageInfo, ShenyuResultMessage.QUERY_SUCCESS);
+    }
+
+    @Override
+    @PostMapping("list/search/adaptor")
+    public AdminResult<CommonPager<InstanceInfoVO>> searchAdaptor(
+            @RequestBody @Validated final PageCondition<InstanceQueryCondition> pageCondition) {
+        CommonPager<InstanceInfoVO> pager = pageService().searchByPageToPager(pageCondition);
+        if (Objects.nonNull(pager) && !CollectionUtils.isEmpty(pager.getDataList())) {
+            pager.getDataList().forEach(this::enrichInstanceTelemetry);
+        }
+        return ResultUtil.ok(pager, ShenyuResultMessage.QUERY_SUCCESS);
+    }
+
+    private void enrichInstanceTelemetry(final InstanceInfoVO instanceInfoVO) {
+        if (Objects.isNull(instanceInfoVO)) {
+            return;
+        }
+        String instanceKey = instanceCheckService.getInstanceKey(instanceInfoVO);
+        InstanceInfoVO instanceHealthBeatInfo = instanceCheckService.getInstanceHealthBeatInfo(instanceKey);
+        if (Objects.isNull(instanceHealthBeatInfo)) {
+            if (instanceInfoVO.getLastHeartBeatTime() <= 0 && Objects.nonNull(instanceInfoVO.getDateUpdated())) {
+                instanceInfoVO.setLastHeartBeatTime(instanceInfoVO.getDateUpdated().getTime());
+            }
+            if (Objects.nonNull(instanceInfoVO.getObservationTime())) {
+                instanceInfoVO.setLastObservationAge(Math.max(0L, System.currentTimeMillis() - instanceInfoVO.getObservationTime()));
+            }
+        } else {
+            instanceInfoVO.setLastHeartBeatTime(instanceHealthBeatInfo.getLastHeartBeatTime());
+            instanceInfoVO.setInstanceState(instanceHealthBeatInfo.getInstanceState());
+            instanceInfoVO.setDateUpdated(instanceHealthBeatInfo.getDateUpdated());
+            instanceInfoVO.setBootId(instanceHealthBeatInfo.getBootId());
+            instanceInfoVO.setReadinessStatus(instanceHealthBeatInfo.getReadinessStatus());
+            instanceInfoVO.setReasonCode(instanceHealthBeatInfo.getReasonCode());
+            instanceInfoVO.setObservationTime(instanceHealthBeatInfo.getObservationTime());
+            Long obsTime = instanceHealthBeatInfo.getObservationTime();
+            if (Objects.nonNull(obsTime)) {
+                instanceInfoVO.setLastObservationAge(Math.max(0L, System.currentTimeMillis() - obsTime));
+            } else {
+                instanceInfoVO.setLastObservationAge(instanceHealthBeatInfo.getLastObservationAge());
+            }
+        }
+    }
 
     @Override
     public PageService<InstanceQueryCondition, InstanceInfoVO> pageService() {

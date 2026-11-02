@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.sync.data.websocket;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryHolder;
+import org.apache.shenyu.common.telemetry.ReadinessTelemetryProvider;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
@@ -342,6 +345,86 @@ public final class WebsocketSyncDataServiceTest {
             createClient.invoke(service, "ws://first-admin/websocket");
             createClient.invoke(service, "ws://replacement-admin/websocket");
             assertEquals(2, clients.constructed().size());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    void testReadinessTelemetryReporting() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        try {
+            assertEquals(service, ReadinessTelemetryHolder.getProvider());
+            assertEquals(InstanceStatusEnum.INITIALIZING.getName(), service.getReadinessStatus());
+            assertEquals(InstanceStatusEnum.INITIALIZING.getName(), service.getReadinessSupplier().get());
+
+            Field readyField = WebsocketSyncDataService.class.getDeclaredField("initialSyncReady");
+            readyField.setAccessible(true);
+            AtomicBoolean ready = (AtomicBoolean) readyField.get(service);
+            ready.set(true);
+
+            assertTrue(service.isInitialSyncReady());
+            assertEquals(InstanceStatusEnum.READY.getName(), service.getReadinessStatus());
+            assertEquals(InstanceStatusEnum.READY.getName(), service.getReadinessSupplier().get());
+        } finally {
+            service.close();
+        }
+        assertEquals(null, ReadinessTelemetryHolder.getProvider());
+    }
+
+    @Test
+    void testReadinessFailedOnWebSocketDisconnect() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        try {
+            ShenyuWebsocketClient client = mock(ShenyuWebsocketClient.class);
+            when(client.isOpen()).thenReturn(false);
+            Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
+            clientsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<ShenyuWebsocketClient> clients = (List<ShenyuWebsocketClient>) clientsField.get(service);
+            clients.add(client);
+
+            assertTrue(service.isReadinessFailed());
+            assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), service.getReadinessStatus());
+            assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), service.getReadinessSupplier().get());
+            assertEquals("WEBSOCKET_DISCONNECTED", service.getReasonCode());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    void testReadinessFailedOnInitialSyncTimeout() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        try {
+            ShenyuWebsocketClient client = mock(ShenyuWebsocketClient.class);
+            when(client.isOpen()).thenReturn(true);
+            when(client.isInitialSyncTimedOut()).thenReturn(true);
+            Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
+            clientsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<ShenyuWebsocketClient> clients = (List<ShenyuWebsocketClient>) clientsField.get(service);
+            clients.add(client);
+
+            assertTrue(service.isReadinessFailed());
+            assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), service.getReadinessStatus());
+            assertEquals(InstanceStatusEnum.READINESS_FAILED.getName(), service.getReadinessSupplier().get());
+            assertEquals("INITIAL_SYNC_TIMED_OUT", service.getReasonCode());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    void testReasonCodeBoundedToDiagnosticPayloadSize() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        try {
+            Method boundReasonCode = WebsocketSyncDataService.class.getDeclaredMethod("boundReasonCode", String.class);
+            boundReasonCode.setAccessible(true);
+            String longReason = "A".repeat(100);
+            String bounded = (String) boundReasonCode.invoke(service, longReason);
+            assertEquals(ReadinessTelemetryProvider.MAX_REASON_CODE_LENGTH, bounded.length());
+            assertEquals("A".repeat(ReadinessTelemetryProvider.MAX_REASON_CODE_LENGTH), bounded);
         } finally {
             service.close();
         }

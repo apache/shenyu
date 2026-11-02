@@ -21,6 +21,8 @@ import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -226,6 +229,15 @@ public final class ShenyuClusterServiceTest {
 
     @Test
     public void testSelectMasterErrorCountTracking() throws Exception {
+        InstanceBeatInfoDTO beatInfo = new InstanceBeatInfoDTO();
+        beatInfo.setInstanceIp("127.0.0.1");
+        beatInfo.setInstancePort("9195");
+        beatInfo.setInstanceType("admin");
+        beatInfo.setNamespaceId("/shenyu");
+        beatInfo.setBootId(UUID.randomUUID().toString());
+        beatInfo.setObservationTime(System.currentTimeMillis());
+        beatInfo.setReadinessStatus(InstanceStatusEnum.ONLINE.getName());
+
         CountDownLatch errorsOccurred = new CountDownLatch(2);
         when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
             errorsOccurred.countDown();
@@ -234,6 +246,11 @@ public final class ShenyuClusterServiceTest {
 
         clusterService.start("127.0.0.1", 9195, "/shenyu");
         assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
+
+        final long deadline = System.currentTimeMillis() + AWAIT_MILLIS;
+        while (clusterService.getSelectMasterErrorCount() < 2 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50L);
+        }
         assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
 
         clusterService.shutdown();

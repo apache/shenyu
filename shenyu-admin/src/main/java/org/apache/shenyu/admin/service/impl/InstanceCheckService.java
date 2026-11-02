@@ -213,24 +213,82 @@ public class InstanceCheckService {
         }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         long currentTime = clock.millis();
+
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
+            if (isStaleOrOutOfOrder(instanceInfoVO, instanceBeatInfoDTO, instanceKey)) {
+                return false;
+            }
             instanceInfoVO.setLastHeartBeatTime(currentTime);
+            if (Objects.equals(InstanceStatusEnum.OFFLINE.getCode(), instanceInfoVO.getInstanceState())
+                    || Objects.equals(InstanceStatusEnum.DELETED.getCode(), instanceInfoVO.getInstanceState())) {
+                instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+            }
+            updateInstanceReadinessTelemetry(instanceInfoVO, instanceBeatInfoDTO, currentTime);
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
                 instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             }
         } else {
-            InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
-            instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
-            instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
-            instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
-            instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
-            instanceInfoVO.setLastHeartBeatTime(currentTime);
-            instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
-            instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
-            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
+            instanceHealthBeatInfo.put(instanceKey, createNewInstanceInfoVO(instanceBeatInfoDTO, currentTime));
         }
         return true;
+    }
+
+    private boolean isStaleOrOutOfOrder(final InstanceInfoVO current, final InstanceBeatInfoDTO incoming, final String instanceKey) {
+        String currentBootId = current.getBootId();
+        String incomingBootId = incoming.getBootId();
+        Long currentObsTime = current.getObservationTime();
+        Long incomingObsTime = incoming.getObservationTime();
+
+        if (StringUtils.isBlank(currentBootId) || StringUtils.isBlank(incomingBootId)) {
+            if (StringUtils.isNotBlank(incomingBootId)) {
+                current.setBootId(incomingBootId);
+            }
+            return false;
+        }
+
+        if (!Objects.equals(incomingBootId, currentBootId)) {
+            if (Objects.nonNull(currentObsTime) && Objects.nonNull(incomingObsTime) && incomingObsTime < currentObsTime) {
+                LOG.warn("ignored stale heartbeat from old bootId: {}, observationTime: {}, latest recorded observationTime: {}",
+                        incomingBootId, incomingObsTime, currentObsTime);
+                return true;
+            }
+            LOG.info("detected process restart for instance: {}, old bootId: {}, new bootId: {}",
+                    instanceKey, currentBootId, incomingBootId);
+            current.setBootId(incomingBootId);
+            current.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+            return false;
+        }
+
+        if (Objects.nonNull(currentObsTime) && Objects.nonNull(incomingObsTime) && incomingObsTime < currentObsTime) {
+            LOG.warn("ignored out-of-order heartbeat for bootId: {}, observationTime: {}, latest recorded observationTime: {}",
+                    incomingBootId, incomingObsTime, currentObsTime);
+            return true;
+        }
+        return false;
+    }
+
+    private void updateInstanceReadinessTelemetry(final InstanceInfoVO vo, final InstanceBeatInfoDTO beatInfo, final long currentTime) {
+        Long incomingObsTime = beatInfo.getObservationTime();
+        Long effectiveObsTime = Objects.nonNull(incomingObsTime) ? incomingObsTime : currentTime;
+        vo.setObservationTime(effectiveObsTime);
+        vo.setLastObservationAge(Math.max(0L, currentTime - effectiveObsTime));
+        vo.setReadinessStatus(StringUtils.defaultIfBlank(beatInfo.getReadinessStatus(), InstanceStatusEnum.ONLINE.getName()));
+        vo.setReasonCode(beatInfo.getReasonCode());
+    }
+
+    private InstanceInfoVO createNewInstanceInfoVO(final InstanceBeatInfoDTO beatInfo, final long currentTime) {
+        InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
+        instanceInfoVO.setInstanceIp(beatInfo.getInstanceIp());
+        instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+        instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(beatInfo.getInstanceInfo()));
+        instanceInfoVO.setInstanceType(beatInfo.getInstanceType());
+        instanceInfoVO.setLastHeartBeatTime(currentTime);
+        instanceInfoVO.setInstancePort(beatInfo.getInstancePort());
+        instanceInfoVO.setNamespaceId(beatInfo.getNamespaceId());
+        instanceInfoVO.setBootId(beatInfo.getBootId());
+        updateInstanceReadinessTelemetry(instanceInfoVO, beatInfo, currentTime);
+        return instanceInfoVO;
     }
 
     private boolean isBlankIdentity(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
@@ -272,6 +330,9 @@ public class InstanceCheckService {
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                     instance.setInstanceState(InstanceStatusEnum.DELETED.getCode());
                 }
+            }
+            if (Objects.nonNull(instance.getObservationTime())) {
+                instance.setLastObservationAge(Math.max(0L, currentTime - instance.getObservationTime()));
             }
         });
         // sample the aggregated state once per scheduled cycle, after all instances are updated
@@ -393,6 +454,11 @@ public class InstanceCheckService {
         copy.setDateCreated(vo.getDateCreated());
         copy.setDateUpdated(vo.getDateUpdated());
         copy.setLastHeartBeatTime(vo.getLastHeartBeatTime());
+        copy.setBootId(vo.getBootId());
+        copy.setReadinessStatus(vo.getReadinessStatus());
+        copy.setReasonCode(vo.getReasonCode());
+        copy.setObservationTime(vo.getObservationTime());
+        copy.setLastObservationAge(vo.getLastObservationAge());
         return copy;
     }
 

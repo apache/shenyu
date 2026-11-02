@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Optional synchronization health contributor. Include websocketSync in the readiness group only.
@@ -62,7 +63,22 @@ public class WebsocketSyncHealthConfiguration {
      */
     @Bean
     public HealthIndicator websocketSyncHealthIndicator(final WebsocketSyncDataService service) {
-        return () -> service.isInitialSyncReady() ? Health.up().build()
-                : Health.outOfService().withDetail("reason", "Initial WebSocket synchronization has not completed; a compatible Admin is required").build();
+        return () -> {
+            if (service.isInitialSyncReady()) {
+                return Health.up()
+                        .withDetail("status", service.getReadinessStatus())
+                        .build();
+            }
+            String status = service.getReadinessStatus();
+            String reason = service.getReasonCode();
+            Health.Builder builder = Health.outOfService().withDetail("status", status);
+            if (Objects.nonNull(reason)) {
+                builder.withDetail("reasonCode", reason);
+                builder.withDetail("reason", reason);
+            } else {
+                builder.withDetail("reason", "Initial WebSocket synchronization has not completed; a compatible Admin is required");
+            }
+            return builder.build();
+        };
     }
 }

@@ -171,4 +171,22 @@ public final class InitialSyncState {
         requestId = null;
         failed = true;
     }
+
+    /**
+     * Whether the initial attempt has timed out before completing.
+     *
+     * @return true if timed out
+     */
+    public synchronized boolean isTimedOut() {
+        return !ready.get() && startedAt > 0 && (System.nanoTime() - startedAt >= TimeUnit.SECONDS.toNanos(60));
+    }
+
+    /**
+     * Whether the initial attempt has failed or timed out.
+     *
+     * @return true if failed or timed out
+     */
+    public synchronized boolean isFailed() {
+        return !ready.get() && (failed || isTimedOut());
+    }
 }

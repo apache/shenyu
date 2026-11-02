@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.github.pagehelper.PageInfo;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
+import org.apache.shenyu.admin.model.query.InstanceQueryCondition;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceDiagnosticsVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
@@ -27,6 +30,7 @@ import org.apache.shenyu.admin.service.InstanceInfoService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.InstanceDiagnosticsService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,6 +103,11 @@ public final class InstanceControllerTest {
         health.setLastHeartBeatTime(123L);
         Timestamp healthDateUpdated = new Timestamp(456L);
         health.setDateUpdated(healthDateUpdated);
+        health.setBootId("boot-uuid-1");
+        health.setReadinessStatus("ready");
+        health.setReasonCode("SYNC_OK");
+        health.setObservationTime(1000L);
+        health.setLastObservationAge(50L);
         given(this.instanceCheckService.getInstanceHealthBeatInfo(anyString())).willReturn(health);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance")
@@ -112,10 +121,29 @@ public final class InstanceControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].instanceIp", is(vo.getInstanceIp())))
                 .andExpect(jsonPath("$.data.dataList[0].id", is("instance-1")))
+                .andExpect(jsonPath("$.data.dataList[0].instanceState", is(2)))
+                .andExpect(jsonPath("$.data.dataList[0].bootId", is("boot-uuid-1")))
+                .andExpect(jsonPath("$.data.dataList[0].readinessStatus", is("ready")))
+                .andExpect(jsonPath("$.data.dataList[0].reasonCode", is("SYNC_OK")))
+                .andExpect(jsonPath("$.data.dataList[0].observationTime", is(1000)))
+                .andExpect(jsonPath("$.data.dataList[0].lastObservationAge").isNumber())
                 .andExpect(jsonPath("$.data.dataList[1].id", is("instance-2")));
         assertEquals(health.getLastHeartBeatTime(), vo.getLastHeartBeatTime());
         assertEquals(health.getInstanceState(), vo.getInstanceState());
         assertEquals(healthDateUpdated, vo.getDateUpdated());
+        assertEquals("boot-uuid-1", vo.getBootId());
+        assertEquals("ready", vo.getReadinessStatus());
+        assertEquals("SYNC_OK", vo.getReasonCode());
+        assertEquals(Long.valueOf(1000L), vo.getObservationTime());
+
+        // Verify GET /instance/list also queries instances
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/list")
+                        .param("namespaceId", vo.getNamespaceId())
+                        .param("currentPage", "1")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList[0].bootId", is("boot-uuid-1")));
     }
 
     @Test
@@ -152,12 +180,80 @@ public final class InstanceControllerTest {
 
     @Test
     public void testDetailInstanceInfo() throws Exception {
+        InstanceInfoVO health = buildVO();
+        health.setInstanceState(2);
+        health.setBootId("boot-uuid-detail");
+        health.setReadinessStatus("ready");
+        health.setReasonCode("HEALTHY");
+        health.setObservationTime(2000L);
+        health.setLastObservationAge(100L);
         given(this.instanceInfoService.findById("123")).willReturn(vo);
+        given(this.instanceCheckService.getInstanceKey(vo)).willReturn("key");
+        given(this.instanceCheckService.getInstanceHealthBeatInfo("key")).willReturn(health);
+
         this.mockMvc.perform(MockMvcRequestBuilders.get("/instance/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.instanceIp", is(vo.getInstanceIp())))
-                .andExpect(jsonPath("$.data.id", is("instance-1")));
+                .andExpect(jsonPath("$.data.id", is("instance-1")))
+                .andExpect(jsonPath("$.data.instanceState", is(2)))
+                .andExpect(jsonPath("$.data.bootId", is("boot-uuid-detail")))
+                .andExpect(jsonPath("$.data.readinessStatus", is("ready")))
+                .andExpect(jsonPath("$.data.reasonCode", is("HEALTHY")))
+                .andExpect(jsonPath("$.data.observationTime", is(2000)))
+                .andExpect(jsonPath("$.data.lastObservationAge").isNumber());
+    }
+
+    @Test
+    public void testSearchEnrichedWithTelemetry() throws Exception {
+        InstanceInfoVO health = buildVO();
+        health.setInstanceState(1);
+        health.setBootId("boot-uuid-search");
+        health.setReadinessStatus("ready");
+        health.setReasonCode("SYNC_OK");
+        health.setObservationTime(3000L);
+        PageInfo<InstanceInfoVO> pageInfo = new PageInfo<>(List.of(vo));
+        given(this.instanceInfoService.searchByPage(any())).willReturn(pageInfo);
+        given(this.instanceCheckService.getInstanceKey(vo)).willReturn("key");
+        given(this.instanceCheckService.getInstanceHealthBeatInfo("key")).willReturn(health);
+
+        final PageCondition<InstanceQueryCondition> pageCondition = buildPageCondition();
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/instance/list/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(pageCondition)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.list[0].bootId", is("boot-uuid-search")))
+                .andExpect(jsonPath("$.data.list[0].readinessStatus", is("ready")))
+                .andExpect(jsonPath("$.data.list[0].reasonCode", is("SYNC_OK")))
+                .andExpect(jsonPath("$.data.list[0].instanceState", is(1)))
+                .andExpect(jsonPath("$.data.list[0].lastObservationAge").isNumber());
+    }
+
+    @Test
+    public void testSearchAdaptorEnrichedWithTelemetry() throws Exception {
+        InstanceInfoVO health = buildVO();
+        health.setInstanceState(1);
+        health.setBootId("boot-uuid-adaptor");
+        health.setReadinessStatus("ready");
+        health.setReasonCode("SYNC_OK");
+        health.setObservationTime(4000L);
+        CommonPager<InstanceInfoVO> pager = new CommonPager<>(new PageParameter(1, 10), List.of(vo));
+        given(this.instanceInfoService.searchByPageToPager(any())).willReturn(pager);
+        given(this.instanceCheckService.getInstanceKey(vo)).willReturn("key");
+        given(this.instanceCheckService.getInstanceHealthBeatInfo("key")).willReturn(health);
+
+        final PageCondition<InstanceQueryCondition> pageCondition = buildPageCondition();
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/instance/list/search/adaptor")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(pageCondition)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList[0].bootId", is("boot-uuid-adaptor")))
+                .andExpect(jsonPath("$.data.dataList[0].readinessStatus", is("ready")))
+                .andExpect(jsonPath("$.data.dataList[0].reasonCode", is("SYNC_OK")))
+                .andExpect(jsonPath("$.data.dataList[0].instanceState", is(1)))
+                .andExpect(jsonPath("$.data.dataList[0].lastObservationAge").isNumber());
     }
 
     @Test
@@ -244,5 +340,15 @@ public final class InstanceControllerTest {
         v.setDateCreated(new Timestamp(System.currentTimeMillis()));
         v.setDateUpdated(new Timestamp(System.currentTimeMillis()));
         return v;
+    }
+
+    private PageCondition<InstanceQueryCondition> buildPageCondition() {
+        final PageCondition<InstanceQueryCondition> pageCondition = new PageCondition<>();
+        pageCondition.setPageNum(1);
+        pageCondition.setPageSize(10);
+        final InstanceQueryCondition condition = new InstanceQueryCondition();
+        condition.setNamespaceId("ns");
+        pageCondition.setCondition(condition);
+        return pageCondition;
     }
 }
