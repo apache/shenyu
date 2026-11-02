@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingException;
 import org.apache.shenyu.common.timer.AbstractRetryTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
@@ -66,6 +67,9 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
             result = this.doRegisterURI(selectorName, uriList, namespaceId);
             LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
+            if (ex instanceof RegistrationFencingException) {
+                throw (RegistrationFencingException) ex;
+            }
             LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
             this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
@@ -113,8 +117,14 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         if (Objects.nonNull(fallbackHolder)) {
             List<URIRegisterDTO> uriList = fallbackHolder.uriList();
             String selectorName = fallbackHolder.selectorName();
-            this.doRegisterURI(selectorName, uriList, fallbackHolder.namespaceId());
-            LOG.info("Register success: {},{}", selectorName, uriList);
+            try {
+                this.doRegisterURI(selectorName, uriList, fallbackHolder.namespaceId());
+                LOG.info("Register success: {},{}", selectorName, uriList);
+            } catch (RegistrationFencingException ex) {
+                // A protected target never accepts a queued legacy registration; drop it instead of retrying.
+                LOG.warn("Discard fenced fallback registration {}:{}: {}", fallbackHolder.namespaceId(),
+                        selectorName, ex.getMessage());
+            }
         }
     }
 

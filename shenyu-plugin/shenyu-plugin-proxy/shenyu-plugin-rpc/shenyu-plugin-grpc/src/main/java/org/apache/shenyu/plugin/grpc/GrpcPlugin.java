@@ -116,7 +116,8 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(ShenyuException::new).then(chain.execute(exchange));
+        })).doOnCancel(() -> result.cancel(true))
+                .onErrorMap(ShenyuException::new).then(chain.execute(exchange));
     }
 
     /**

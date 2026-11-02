@@ -20,9 +20,12 @@ package org.apache.shenyu.plugin.base.cache;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * BaseHandleCache test.
@@ -52,6 +55,29 @@ public final class CommonHandleCacheTest {
         assert Objects.isNull(commonHandleCache.obtainHandle(MOCK_KEY));
         cachedMockMap.put(MOCK_KEY, MOCK_VALUE);
         assert MOCK_VALUE.equals(commonHandleCache.obtainHandle(MOCK_KEY));
+    }
+
+    @Test
+    public void obtainHandleWithSupplierShouldNotInvokeSupplierOnCacheHit() {
+        cachedMockMap.put(MOCK_KEY, MOCK_VALUE);
+        final AtomicInteger calls = new AtomicInteger();
+        final String result = commonHandleCache.obtainHandle(MOCK_KEY, () -> {
+            calls.incrementAndGet();
+            return "default";
+        });
+        assertEquals(MOCK_VALUE, result);
+        assertEquals(0, calls.get());
+    }
+
+    @Test
+    public void obtainHandleWithSupplierShouldUseSupplierOnCacheMiss() {
+        final AtomicInteger calls = new AtomicInteger();
+        final String result = commonHandleCache.obtainHandle(MOCK_KEY, () -> {
+            calls.incrementAndGet();
+            return "default";
+        });
+        assertEquals("default", result);
+        assertEquals(1, calls.get());
     }
 
     @Test

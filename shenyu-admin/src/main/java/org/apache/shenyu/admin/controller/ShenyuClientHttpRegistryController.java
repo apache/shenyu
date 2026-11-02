@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.validation.validator.ShenyuClientRegistryValidator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -59,6 +60,9 @@ public class ShenyuClientHttpRegistryController {
 
     @Resource
     private NamespaceService namespaceService;
+
+    @Resource
+    private RegistrationFencingGuard registrationFencingGuard;
 
     /**
      * Registers HTTP request validation without adding framework dependencies to protocol DTOs.
@@ -113,6 +117,9 @@ public class ShenyuClientHttpRegistryController {
     public String registerURI(@RequestBody @Valid final URIRegisterDTO uriRegisterDTO) {
         if (Objects.isNull(uriRegisterDTO.getNamespaceId())) {
             uriRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        }
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertLegacyUriWriteByAddress(uriRegisterDTO.getNamespaceId(), uriRegisterDTO.getHost(), uriRegisterDTO.getPort());
         }
         publisher.publish(uriRegisterDTO);
         return RegistrationProtocol.SUCCESS;
@@ -175,6 +182,9 @@ public class ShenyuClientHttpRegistryController {
     public String offline(@RequestBody @Valid final URIRegisterDTO offlineDTO) {
         if (Objects.isNull(offlineDTO.getNamespaceId())) {
             offlineDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        }
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertLegacyUriWriteByAddress(offlineDTO.getNamespaceId(), offlineDTO.getHost(), offlineDTO.getPort());
         }
         publisher.publish(offlineDTO);
         return RegistrationProtocol.SUCCESS;

@@ -63,6 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +102,31 @@ public class GrpcPluginTest {
     public void testDoExecute() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange(new InetSocketAddress("127.0.0.1", 8090));
         executeRequest(exchange, "127.0.0.1", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
+    }
+
+    @Test
+    public void testCancellationPropagatesToOriginalClientResult()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{message:1}");
+        MetaData metaData = getMetaData();
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        CompletableFuture<ShenyuGrpcResponse> result = new CompletableFuture<>();
+        ShenyuGrpcClient mockClient = mock(ShenyuGrpcClient.class);
+        when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(result);
+        Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
+        Field grpcClientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
+        grpcClientCacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, ShenyuGrpcClient> clientCacheMap = (Map<String, ShenyuGrpcClient>) grpcClientCacheField.get(grpcClientCacheClass);
+        clientCacheMap.put("grpcId", mockClient);
+        when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
+        RuleData data = mock(RuleData.class);
+
+        reactor.core.Disposable subscription = grpcPlugin.doExecute(exchange, chain, selector, data).subscribe();
+        subscription.dispose();
+
+        assertTrue(result.isCancelled());
     }
 
     @Test
