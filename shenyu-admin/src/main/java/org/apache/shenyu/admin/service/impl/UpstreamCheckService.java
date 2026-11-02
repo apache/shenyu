@@ -516,7 +516,10 @@ public class UpstreamCheckService {
         List<DiscoveryUpstreamData> discoveryUpstreamDataList = discoveryUpstreamService.findBySelectorId(selectorId);
         if (CollectionUtils.isEmpty(discoveryUpstreamDataList) && !discoveryUpstreamService.hasDiscoveryHandler(selectorId)) {
             // Legacy registrations without discovery records still use their checked upstreams.
-            discoveryUpstreamDataList = aliveList.stream().map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData).collect(Collectors.toList());
+            discoveryUpstreamDataList = aliveList.stream()
+                    .map(DiscoveryTransfer.INSTANCE::mapToDiscoveryUpstreamData)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
         Set<String> aliveUrls = aliveList.stream().map(CommonUpstream::getUpstreamUrl).collect(Collectors.toSet());
         discoveryUpstreamDataList.stream().filter(upstream -> aliveUrls.contains(upstream.getUrl())).forEach(upstream -> {
@@ -530,9 +533,11 @@ public class UpstreamCheckService {
         List<CommonUpstream> currentAlive = discoveryUpstreamDataList.stream().map(upstream -> {
             CommonUpstream common = aliveList.stream().filter(alive -> alive.getUpstreamUrl().equals(upstream.getUrl())).findFirst()
                     .orElseGet(() -> DiscoveryTransfer.INSTANCE.mapToCommonUpstream(upstream));
-            common.setStatus(true);
+            if (Objects.nonNull(common)) {
+                common.setStatus(true);
+            }
             return common;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
         String pluginName = pluginDO.getName();
         String handler = converterFactor.newInstance(pluginName).handler(selectorDO.getHandle(), currentAlive);
         selectorDO.setHandle(handler);
@@ -577,6 +582,7 @@ public class UpstreamCheckService {
                     List<CommonUpstream> commonUpstreams = new CopyOnWriteArrayList<>();
                     discoveryUpstreamService.findBySelectorId(selectorDO.getId()).stream()
                             .map(DiscoveryTransfer.INSTANCE::mapToCommonUpstream)
+                            .filter(Objects::nonNull)
                             .forEach(commonUpstreams::add);
                     String handle = selectorDO.getHandle();
                     if (StringUtils.isNotEmpty(handle)) {
@@ -604,9 +610,11 @@ public class UpstreamCheckService {
             List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
             List<CommonUpstream> collect = upstreamDataList.stream().map(upstream -> {
                 CommonUpstream common = DiscoveryTransfer.INSTANCE.mapToCommonUpstream(upstream);
-                common.setStatus(upstream.getStatus() == 0);
+                if (Objects.nonNull(common)) {
+                    common.setStatus(upstream.getStatus() == 0);
+                }
                 return common;
-            }).collect(Collectors.toList());
+            }).filter(Objects::nonNull).collect(Collectors.toList());
             List<CommonUpstream> commonUpstreams = CommonUpstreamUtils.convertCommonUpstreamList(collect);
             LOG.info("UpstreamCacheManager replace selectorId={}|json={}", discoverySyncData.getSelectorId(), GsonUtils.getGson().toJson(commonUpstreams));
             replace(discoverySyncData.getSelectorId(), commonUpstreams);

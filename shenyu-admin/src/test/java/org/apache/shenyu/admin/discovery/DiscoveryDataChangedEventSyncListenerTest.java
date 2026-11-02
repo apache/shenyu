@@ -62,7 +62,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -70,6 +72,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -372,5 +375,101 @@ public class DiscoveryDataChangedEventSyncListenerTest {
             executor.shutdownNow();
         }
         verify(discoveryUpstreamMapper).insert(any(DiscoveryUpstreamDO.class));
+    }
+
+    private void setUpCommonMocks() {
+        doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+        when(contextInfo.getNamespaceId()).thenReturn(SYS_DEFAULT_NAMESPACE_ID);
+        when(contextInfo.getDiscoveryHandlerId()).thenReturn("discoveryHandlerId");
+        when(contextInfo.getPluginName()).thenReturn("divide");
+    }
+
+    private List<DiscoveryUpstreamData> buildUpstreamDataList(final String url) {
+        DiscoveryUpstreamData data = new DiscoveryUpstreamData();
+        data.setProtocol("http");
+        data.setUrl(url);
+        data.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        data.setDiscoveryHandlerId("discoveryHandlerId");
+        List<DiscoveryUpstreamData> list = new ArrayList<>();
+        list.add(data);
+        return list;
+    }
+
+    @Test
+    public void testAddedFallbackMatchMigratesOldUrl() {
+        setUpCommonMocks();
+        String normalizedUrl = "192.168.1.1:80";
+        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("192.168.1.1"));
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl("discoveryHandlerId", normalizedUrl)).thenReturn(null);
+
+        DiscoveryUpstreamDO oldRecord = new DiscoveryUpstreamDO();
+        oldRecord.setId("old-id");
+        oldRecord.setUpstreamUrl("192.168.1.1");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("discoveryHandlerId"))
+                .thenReturn(Collections.singletonList(oldRecord));
+
+        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.ADDED);
+        discoveryDataChangedEventSyncListener.onChange(event);
+
+        verify(discoveryUpstreamMapper, never()).insert(any(DiscoveryUpstreamDO.class));
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals(normalizedUrl, captor.getValue().getUpstreamUrl());
+    }
+
+    @Test
+    public void testUpdatedFallbackMatchMigratesOldUrl() {
+        setUpCommonMocks();
+        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("192.168.1.1"));
+        when(discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(any(DiscoveryUpstreamDO.class))).thenReturn(0);
+
+        DiscoveryUpstreamDO oldRecord = new DiscoveryUpstreamDO();
+        oldRecord.setId("old-id");
+        oldRecord.setUpstreamUrl("192.168.1.1");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("discoveryHandlerId"))
+                .thenReturn(Collections.singletonList(oldRecord));
+
+        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.UPDATED);
+        discoveryDataChangedEventSyncListener.onChange(event);
+
+        ArgumentCaptor<DiscoveryUpstreamDO> captor = ArgumentCaptor.forClass(DiscoveryUpstreamDO.class);
+        verify(discoveryUpstreamMapper).updateSelective(captor.capture());
+        assertEquals("192.168.1.1:80", captor.getValue().getUpstreamUrl());
+    }
+
+    @Test
+    public void testDeletedFallbackMatchDeletesById() {
+        setUpCommonMocks();
+        String normalizedUrl = "[2001:db8::1]:80";
+        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("[2001:db8::1]"));
+        when(discoveryUpstreamMapper.deleteByUrl("discoveryHandlerId", normalizedUrl)).thenReturn(0);
+
+        DiscoveryUpstreamDO oldRecord = new DiscoveryUpstreamDO();
+        oldRecord.setId("old-id");
+        oldRecord.setUpstreamUrl("[2001:db8::1]");
+        when(discoveryUpstreamMapper.selectByDiscoveryHandlerId("discoveryHandlerId"))
+                .thenReturn(Collections.singletonList(oldRecord));
+
+        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED);
+        discoveryDataChangedEventSyncListener.onChange(event);
+
+        verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("old-id"));
+    }
+
+    @Test
+    public void testDeletedExactMatchSucceeds() {
+        setUpCommonMocks();
+        String normalizedUrl = "192.168.1.1:8080";
+        when(keyValueParser.parseValue(anyString())).thenReturn(buildUpstreamDataList("192.168.1.1:8080"));
+        when(discoveryUpstreamMapper.deleteByUrl("discoveryHandlerId", normalizedUrl)).thenReturn(1);
+
+        DiscoveryDataChangedEvent event = new DiscoveryDataChangedEvent("key", "value", DiscoveryDataChangedEvent.Event.DELETED);
+        discoveryDataChangedEventSyncListener.onChange(event);
+
+        verify(discoveryUpstreamMapper).deleteByUrl("discoveryHandlerId", normalizedUrl);
+        // only the post-update reload of the sync payload may read the upstream list;
+        // the host/port fallback lookup must not run
+        verify(discoveryUpstreamMapper, times(1)).selectByDiscoveryHandlerId(anyString());
+        verify(discoveryUpstreamMapper, never()).deleteByIds(anyList());
     }
 }

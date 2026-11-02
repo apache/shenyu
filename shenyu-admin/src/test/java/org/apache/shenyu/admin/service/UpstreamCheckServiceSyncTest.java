@@ -297,6 +297,35 @@ class UpstreamCheckServiceSyncTest {
     }
 
     @Test
+    void testMalformedLegacyUpstreamIsSkipped() {
+        DivideUpstream malformed = DivideUpstream.builder()
+                .upstreamUrl("not:valid::url%%%")
+                .protocol("http://")
+                .status(true)
+                .build();
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID,
+                Collections.singletonList(malformed), Collections.emptySet());
+
+        assertTrue(publishedSnapshot().getUpstreamDataList().isEmpty());
+    }
+
+    @Test
+    void testMalformedDiscoveryUpstreamIsSkippedWhenBuildingAliveList() {
+        DiscoveryUpstreamData malformed = DiscoveryUpstreamData.builder()
+                .url("not:valid::url%%%")
+                .status(0)
+                .build();
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID))
+                .thenReturn(new ArrayList<>(Collections.singletonList(malformed)));
+
+        ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID,
+                Collections.emptyList(), Collections.emptySet());
+
+        assertEquals(1, publishedSnapshot().getUpstreamDataList().size());
+    }
+
+    @Test
     void testUpstreamWithoutDiscoveryRecordPublishesHealthyStatus() {
         DivideUpstream alive = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
 
