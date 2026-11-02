@@ -57,6 +57,9 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObservation;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObserver;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObserverHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -117,21 +120,99 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
                 .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
+        // every transport subscription is one observed attempt: the observation is created
+        // lazily at subscription time, so CURRENT resubscriptions and failover attempts each
+        // get their own identity, and the serving attempt's terminal outcome is recorded when
+        // the downstream chain (response body included) terminates (#8209)
         final Mono<R> retriedResponse = retryTimes <= 0
-                ? response
-                : executeWithRetry(response, exchange, duration, retryTimes);
+                ? observeAttempt(exchange, uri, httpMethod, response)
+                : executeWithRetry(observeAttempt(exchange, uri, httpMethod, response), exchange, duration, retryTimes);
         final Mono<Void> result = retriedResponse
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(AbstractHttpClientPlugin::mapUpstreamTimeout)
                 .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
                         "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
-                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange))
+                .doFinally(signalType -> finishObservedAttempt(exchange, signalType));
         // The aggregation subscription intentionally outlives individual retry attempts: a timed out
         // attempt must not discard the body that a later retry still needs. It is disposed when the
         // logical request terminates, which also releases the buffers accumulated so far.
         return cacheRequestBody ? result.doFinally(signalType -> disposeCachedRequestBody(exchange)) : result;
     }
+
+    protected Mono<R> observeAttempt(final ServerWebExchange exchange, final URI uri,
+                                   final String httpMethod, final Mono<R> attempt) {
+        final UpstreamAttemptObserver observer = UpstreamAttemptObserverHolder.get();
+        if (!UpstreamAttemptObserverHolder.isInstrumented()) {
+            return attempt;
+        }
+        return Mono.defer(() -> {
+            final UpstreamAttemptObservation observation = UpstreamAttemptObservation.started(
+                    exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID),
+                    uri.getScheme() + "://",
+                    uri.getHost() + (uri.getPort() > 0 ? ":" + uri.getPort() : ""),
+                    httpMethod);
+            exchange.getAttributes().put(UpstreamAttemptObservation.CURRENT_ATTRIBUTE, observation);
+            try {
+                observer.onAttemptStarted(observation);
+            } catch (RuntimeException e) {
+                LOG.warn("upstream attempt observer failed on start", e);
+            }
+            return attempt
+                    .doOnNext(r -> {
+                        try {
+                            observation.markHeadersReady(extractStatusCode(r));
+                            observer.onHeadersReady(observation);
+                        } catch (RuntimeException e) {
+                            LOG.warn("upstream attempt observer failed on headers ready", e);
+                        }
+                    })
+                    .doFinally(signalType -> {
+                        // a failed or cancelled attempt finishes here; a succeeded attempt is
+                        // finished by the terminal callback when its body is done (#8209)
+                        if (signalType != reactor.core.publisher.SignalType.ON_COMPLETE) {
+                            finishObservedAttempt(exchange, signalType);
+                        }
+                    });
+        });
+    }
+
+    private void finishObservedAttempt(final ServerWebExchange exchange, final reactor.core.publisher.SignalType signalType) {
+        final UpstreamAttemptObservation observation = exchange.getAttribute(UpstreamAttemptObservation.CURRENT_ATTRIBUTE);
+        if (Objects.isNull(observation)) {
+            return;
+        }
+        final UpstreamAttemptObservation.Outcome outcome;
+        if (signalType == reactor.core.publisher.SignalType.ON_ERROR) {
+            outcome = UpstreamAttemptObservation.Outcome.ERROR;
+        } else if (signalType == reactor.core.publisher.SignalType.CANCEL) {
+            outcome = UpstreamAttemptObservation.Outcome.CANCELLED;
+        } else {
+            // a rejected status reaching the terminal callback (e.g. drained after a 5xx
+            // with no retries) is a failed attempt, not a successful one (#8209)
+            final Integer status = observation.getHeadersStatus();
+            outcome = Objects.nonNull(status) && (status < 200 || status >= 300)
+                    ? UpstreamAttemptObservation.Outcome.ERROR
+                    : UpstreamAttemptObservation.Outcome.COMPLETED;
+        }
+        if (observation.finish(outcome)) {
+            try {
+                UpstreamAttemptObserverHolder.get().onAttemptFinished(observation);
+            } catch (RuntimeException e) {
+                LOG.warn("upstream attempt observer failed on finish", e);
+            }
+        }
+    }
+
+    /**
+     * The response status observed in the attempt's headers, or null when this client
+     * does not expose one. Subclasses surface their own response shape.
+     *
+     * @param response the attempt's response object
+     * @return the status code, or null
+     */
+    protected abstract Integer extractStatusCode(R response);
 
     private static Throwable mapUpstreamTimeout(final Throwable throwable) {
         for (Throwable cause : ExceptionUtils.getThrowableList(throwable)) {
