@@ -89,7 +89,7 @@ class NegativeMatchCacheEligibilityTest {
         BaseDataCache.getInstance().cacheSelectData(dynamic);
 
         execute(false);
-        assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, selectorCacheKey()));
         assertNull(plugin.selector);
 
         execute(true);
@@ -105,7 +105,7 @@ class NegativeMatchCacheEligibilityTest {
         BaseDataCache.getInstance().cacheRuleData(dynamic);
 
         execute(false);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey("selector")));
         assertNull(plugin.rule);
 
         execute(true);
@@ -126,7 +126,9 @@ class NegativeMatchCacheEligibilityTest {
         BaseDataCache.getInstance().cacheRuleData(secondRule);
 
         execute(true);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        RuleData firstRuleMiss = MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey("first"));
+        assertNotNull(firstRuleMiss);
+        assertNull(firstRuleMiss.getId());
 
         execute(false);
         assertSame(secondRule, plugin.rule);
@@ -145,7 +147,7 @@ class NegativeMatchCacheEligibilityTest {
 
             clock.set(predicateFalse(operator, boundary));
             execute(false);
-            assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
+            assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, selectorCacheKey()));
             assertNull(plugin.selector);
 
             clock.set(predicateTrue(operator, boundary));
@@ -169,7 +171,7 @@ class NegativeMatchCacheEligibilityTest {
 
             clock.set(predicateFalse(operator, boundary));
             execute(false);
-            assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+            assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey("selector")));
             assertNull(plugin.rule);
 
             clock.set(predicateTrue(operator, boundary));
@@ -184,7 +186,7 @@ class NegativeMatchCacheEligibilityTest {
 
         execute(false);
 
-        SelectorData cached = MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x");
+        SelectorData cached = MatchDataCache.getInstance().obtainSelectorData(PLUGIN, selectorCacheKey());
         assertNotNull(cached);
         assertNull(cached.getId());
     }
@@ -196,7 +198,7 @@ class NegativeMatchCacheEligibilityTest {
 
         execute(false);
 
-        RuleData cached = MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x");
+        RuleData cached = MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey("selector"));
         assertNotNull(cached);
         assertNull(cached.getId());
     }
@@ -207,6 +209,14 @@ class NegativeMatchCacheEligibilityTest {
 
     private LocalDateTime predicateTrue(final String operator, final LocalDateTime boundary) {
         return "TimeAfter".equals(operator) ? boundary.plusSeconds(1) : boundary.minusSeconds(1);
+    }
+
+    private String selectorCacheKey() {
+        return BaseDataCache.getInstance().getVersion() + ":/x";
+    }
+
+    private String ruleCacheKey(final String selectorId) {
+        return selectorId.length() + ":" + selectorId + selectorCacheKey();
     }
 
     private void execute(final boolean dynamicPresent) {

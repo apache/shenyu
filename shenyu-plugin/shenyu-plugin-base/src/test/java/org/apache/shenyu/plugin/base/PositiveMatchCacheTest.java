@@ -93,7 +93,7 @@ class PositiveMatchCacheTest {
         assertSame(generic, plugin.selector);
         execute(true);
         assertSame(special, plugin.selector);
-        assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainSelectorData(PLUGIN, selectorCacheKey()));
         MatchDataCache.getInstance().cleanSelectorData();
         execute(true);
         assertSame(special, plugin.selector);
@@ -115,7 +115,7 @@ class PositiveMatchCacheTest {
         assertSame(generic, plugin.rule);
         execute(true);
         assertSame(special, plugin.rule);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey("selector")));
         MatchDataCache.getInstance().cleanRuleDataData();
         execute(true);
         assertSame(special, plugin.rule);
@@ -145,8 +145,8 @@ class PositiveMatchCacheTest {
             BaseDataCache.getInstance().cacheRuleData(disabledRule);
         }
         execute(false);
-        assertSame(generic, MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
-        assertSame(genericRule, MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertSame(generic, MatchDataCache.getInstance().obtainSelectorData(PLUGIN, selectorCacheKey()));
+        assertSame(genericRule, MatchDataCache.getInstance().obtainRuleData(PLUGIN, ruleCacheKey(generic.getId())));
         execute(true);
         assertSame(generic, plugin.selector);
         assertSame(genericRule, plugin.rule);
@@ -222,6 +222,14 @@ class PositiveMatchCacheTest {
     private RuleData rule(final String id, final List<ConditionData> conditions) {
         return RuleData.builder().id(id).selectorId("selector").pluginName(PLUGIN).enabled(true).logged(false)
                 .matchRestful(false).matchMode(0).sort(0).conditionDataList(conditions).build();
+    }
+
+    private String selectorCacheKey() {
+        return BaseDataCache.getInstance().getVersion() + ":/x";
+    }
+
+    private String ruleCacheKey(final String selectorId) {
+        return selectorId.length() + ":" + selectorId + selectorCacheKey();
     }
 
     private ConditionData uriCondition() {
