@@ -35,6 +35,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToC
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiStreamCompletionProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
@@ -47,13 +50,16 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Auto-configuration for the migrated execution path, provider profiles and transport properties.
@@ -72,6 +78,19 @@ class AiProxyPluginConfigurationTest {
         contextRunner.withBean("firstSink", AiCallObserver.class, () -> first)
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class));
         contextRunner.withBean("firstSink", AiCallObserver.class, () -> first).withBean("secondSink", AiCallObserver.class, () -> second)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void bindsExplicitStreamCompletionModeAndRejectsUnknownModes() {
+        contextRunner.run(context -> assertEquals(AiStreamCompletionProperties.Mode.COMPATIBILITY,
+                context.getBean(AiStreamCompletionProperties.class).getMode()));
+        contextRunner.withPropertyValues("shenyu.ai.proxy.stream-completion.mode=STRICT").run(context -> {
+            assertEquals(AiStreamCompletionProperties.Mode.STRICT, context.getBean(AiStreamCompletionProperties.class).getMode());
+            AiUpstreamResponse response = context.getBean(OpenAiChat.class).encodeResponse(new AiUpstreamResponse(200, Map.of(), Flux.empty()), true);
+            assertThrows(AiProxyException.class, () -> response.getBody().blockLast(Duration.ofSeconds(5)));
+        });
+        contextRunner.withPropertyValues("shenyu.ai.proxy.stream-completion.mode=UNRECOGNIZED")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
 

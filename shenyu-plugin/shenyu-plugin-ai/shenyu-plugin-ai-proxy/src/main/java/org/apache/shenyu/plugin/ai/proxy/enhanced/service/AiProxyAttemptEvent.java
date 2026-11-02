@@ -82,6 +82,7 @@ public record AiProxyAttemptEvent(
      */
     public enum Reason {
         COMPLETED,
+        STREAM_COMPLETION_UNCONFIRMED,
         RETRY_STATUS,
         RETRY_TRANSPORT,
         FALLBACK_STATUS,
