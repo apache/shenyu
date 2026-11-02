@@ -193,6 +193,58 @@ public class WebSocketPluginTest {
     }
 
     /**
+     * Shortest response reserves inflight when the upstream is selected. A handshake that never starts a
+     * session, whether it completes or fails, has to give that reservation back.
+     */
+    @Test
+    public void shortestResponseShouldReleaseOnCompletedAndFailedHandshakes() {
+        initMockInfo(LoadBalanceEnum.SHORTEST_RESPONSE.getName());
+        final Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        final long baseline = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.error(new IllegalStateException("upgrade failed")));
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyError(IllegalStateException.class);
+        assertEquals(baseline, upstream.getInflight().get());
+    }
+
+    /**
+     * A session that outlives the upgrade keeps the selection reservation until the session itself ends,
+     * including when the session fails or is cancelled.
+     */
+    @Test
+    public void shortestResponseShouldReleaseOnSessionTermination() {
+        initMockInfo(LoadBalanceEnum.SHORTEST_RESPONSE.getName());
+        final Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        final long baseline = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            WebSocketHandler handler = call.getArgument(1);
+            return handler.handle(mock(WebSocketSession.class));
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+
+        Disposable session = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        assertEquals(baseline + 1, upstream.getInflight().get());
+        session.dispose();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.empty());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.error(new IllegalStateException("session failed")));
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyError(IllegalStateException.class);
+        assertEquals(baseline, upstream.getInflight().get());
+    }
+
+    /**
      * The other algorithms do not read the count, so they must not touch it.
      */
     @Test
