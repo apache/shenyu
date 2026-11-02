@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.ClusterZookeeperProperties;
 import org.apache.shenyu.admin.listener.ClusterDataChangedEventForwarder;
@@ -92,15 +93,18 @@ public class ClusterConfiguration {
      *
      * @param clusterProperties          cluster properties
      * @param clusterSelectMasterService the cluster select master service
+     * @param objectMapper               the mapper used to serialize the structured source
      * @return the Shenyu cluster data changed event forwarder
      */
     @Bean
     public ClusterDataChangedEventForwarder clusterDataChangedEventForwarder(final ClusterProperties clusterProperties,
-                                                                             final ClusterSelectMasterService clusterSelectMasterService) {
+                                                                             final ClusterSelectMasterService clusterSelectMasterService,
+                                                                             final ObjectMapper objectMapper) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(clusterProperties.getConnectionTimeout());
         factory.setReadTimeout(clusterProperties.getReadTimeout());
-        return new ClusterDataChangedEventForwarder(new RestTemplate(factory), clusterProperties, clusterSelectMasterService);
+        return new ClusterDataChangedEventForwarder(new RestTemplate(factory), clusterProperties,
+                clusterSelectMasterService, objectMapper);
     }
 
 }

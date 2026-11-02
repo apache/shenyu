@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.io.Serializable;
 
 /**
@@ -41,6 +43,18 @@ public class ClusterDataChangedEventPayload implements Serializable {
      * the JSON serialized source list of the event.
      */
     private String source;
+
+    /**
+     * the payload format version: 1 (or absent) for a serialized {@link #source},
+     * 2 for the structured {@link #structuredSource}.
+     */
+    private Integer payloadVersion;
+
+    /**
+     * the structured source list of the event, sent instead of {@link #source} when
+     * both nodes support the structured envelope.
+     */
+    private JsonNode structuredSource;
 
     /**
      * the namespace id of the event.
@@ -115,6 +129,42 @@ public class ClusterDataChangedEventPayload implements Serializable {
      */
     public void setSource(final String source) {
         this.source = source;
+    }
+
+    /**
+     * Gets the payload format version.
+     *
+     * @return the payload format version
+     */
+    public Integer getPayloadVersion() {
+        return payloadVersion;
+    }
+
+    /**
+     * Sets the payload format version.
+     *
+     * @param payloadVersion the payload format version
+     */
+    public void setPayloadVersion(final Integer payloadVersion) {
+        this.payloadVersion = payloadVersion;
+    }
+
+    /**
+     * Gets the structured source list.
+     *
+     * @return the structured source list
+     */
+    public JsonNode getStructuredSource() {
+        return structuredSource;
+    }
+
+    /**
+     * Sets the structured source list.
+     *
+     * @param structuredSource the structured source list
+     */
+    public void setStructuredSource(final JsonNode structuredSource) {
+        this.structuredSource = structuredSource;
     }
 
     /**

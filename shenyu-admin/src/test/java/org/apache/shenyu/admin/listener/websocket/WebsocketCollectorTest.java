@@ -34,7 +34,11 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ThreadLocalUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -58,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -242,6 +247,140 @@ public final class WebsocketCollectorTest {
                 () -> websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session));
         verify(async, never()).sendText(anyString(), any(SendHandler.class));
         assertNull(ThreadLocalUtils.get("sessionKey"));
+    }
+
+    @Test
+    void testStructuredInitialSyncEmbedsConfigurationAsJsonValue() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketData<PluginData> data = new WebsocketData<>("PLUGIN", "MYSELF",
+                            Collections.singletonList(new PluginData()));
+                    data.setFullSnapshot(true);
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID, data, DataEventTypeEnum.MYSELF);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        String dataWire = messages.getAllValues().get(0);
+        assertTrue(dataWire.contains("\"payload\":{\"groupType\":\"PLUGIN\""));
+        assertFalse(dataWire.contains("\\\"groupType\\\""));
+        WebsocketSyncFrameV2 data = GsonUtils.getInstance().fromJson(dataWire, WebsocketSyncFrameV2.class);
+        assertEquals(id, data.getRequestId());
+        assertEquals(0, data.getSequence());
+        assertEquals("PLUGIN", data.getPayload().getAsJsonObject().get("groupType").getAsString());
+        assertTrue(data.getPayload().getAsJsonObject().get("data").isJsonArray());
+
+        WebsocketSyncFrameV2 end = GsonUtils.getInstance().fromJson(messages.getAllValues().get(1), WebsocketSyncFrameV2.class);
+        assertEquals(id, end.getRequestId());
+        assertEquals(1, end.getSequence());
+        assertNull(end.getPayload());
+        websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testStructuredInitialSyncAlsoCoversRefreshSnapshots() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketData<MetaData> metaData = new WebsocketData<>("META_DATA", "REFRESH",
+                            Collections.singletonList(new MetaData()));
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID, metaData,
+                            DataEventTypeEnum.REFRESH);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        WebsocketSyncFrameV2 data = GsonUtils.getInstance().fromJson(messages.getAllValues().get(0), WebsocketSyncFrameV2.class);
+        assertEquals("META_DATA", data.getPayload().getAsJsonObject().get("groupType").getAsString());
+        WebsocketSyncFrameV2 end = GsonUtils.getInstance().fromJson(messages.getAllValues().get(1), WebsocketSyncFrameV2.class);
+        assertNull(end.getPayload());
+        websocketCollector.onClose(session);
+    }
+
+    @Test
+    void testRefreshOnAnotherSessionKeepsLegacyEnvelope() {
+        Session other = mock(Session.class);
+        when(other.isOpen()).thenReturn(true);
+        Map<String, Object> otherProperties = new HashMap<>();
+        otherProperties.put(Constants.SHENYU_NAMESPACE_ID, Constants.SYS_DEFAULT_NAMESPACE_ID);
+        when(other.getUserProperties()).thenReturn(otherProperties);
+        final RemoteEndpoint.Async otherAsync = mockSuccessfulAsyncRemote(other);
+        websocketCollector.onOpen(other);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, other);
+
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    // published by another connection's refresh while this session syncs
+                    ThreadLocalUtils.put("sessionKey", other);
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID,
+                            new WebsocketData<>("PLUGIN", "REFRESH", Collections.emptyList()), DataEventTypeEnum.REFRESH);
+                    ThreadLocalUtils.put("sessionKey", session);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + UUID.randomUUID(), session);
+
+        ArgumentCaptor<String> otherMessages = ArgumentCaptor.forClass(String.class);
+        verify(otherAsync).sendText(otherMessages.capture(), any(SendHandler.class));
+        assertTrue(otherMessages.getValue().contains("\"eventType\":\"REFRESH\""));
+        assertFalse(otherMessages.getValue().contains("INITIAL_SYNC_V2"));
+        websocketCollector.onClose(session);
+        websocketCollector.onClose(other);
+        ThreadLocalUtils.remove("sessionKey");
+    }
+
+    @Test
+    void testStructuredCapabilityIsDroppedWhenSessionCloses() {
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(WebsocketSyncFrame.STRUCTURED_SYNC_CAPABILITY, session);
+        Set<Session> structured = (Set<Session>) ReflectionTestUtils.getField(
+                WebsocketCollector.class, "STRUCTURED_SYNC_SESSIONS");
+        assertTrue(structured.contains(session));
+        websocketCollector.onClose(session);
+        assertFalse(structured.contains(session));
+    }
+
+    @Test
+    void testInitialSyncWithoutCapabilityKeepsStringPayload() {
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(new ClusterProperties());
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        final RemoteEndpoint.Async async = mockSuccessfulAsyncRemote(session);
+        websocketCollector.onOpen(session);
+        String id = UUID.randomUUID().toString();
+        when(syncDataService.syncAllByNamespaceId(DataEventTypeEnum.MYSELF, Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenAnswer(invocation -> {
+                    WebsocketCollector.sendConfiguration(Constants.SYS_DEFAULT_NAMESPACE_ID,
+                            new WebsocketData<>("PLUGIN", "MYSELF", Collections.emptyList()), DataEventTypeEnum.MYSELF);
+                    return true;
+                });
+        websocketCollector.onMessage(WebsocketSyncFrame.REQUEST_PREFIX + id, session);
+
+        ArgumentCaptor<String> messages = ArgumentCaptor.forClass(String.class);
+        verify(async, times(2)).sendText(messages.capture(), any(SendHandler.class));
+        assertTrue(messages.getAllValues().get(0).contains("\"eventType\":\"INITIAL_SYNC_V1\""));
+        WebsocketSyncFrame data = GsonUtils.getInstance().fromJson(messages.getAllValues().get(0), WebsocketSyncFrame.class);
+        assertEquals("{\"groupType\":\"PLUGIN\",\"eventType\":\"MYSELF\",\"data\":[],\"fullSnapshot\":false}",
+                data.getPayload());
+        websocketCollector.onClose(session);
     }
 
     @Test
