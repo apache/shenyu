@@ -65,7 +65,8 @@ public final class RegistrationFencingGuardTest {
     @Test
     public void enabledTargetRejectsLegacyAndManagementWrites() {
         RegistrationFencingTargetDO target = target(Boolean.TRUE);
-        when(targetMapper.selectBySelectorAddress("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorAddressForUpdate("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorIdForUpdate("selector-1")).thenReturn(List.of(target));
         when(targetMapper.selectBySelectorId("selector-1")).thenReturn(List.of(target));
         when(targetMapper.selectByNamespaceAddress("ns-1", "127.0.0.1", 18080)).thenReturn(List.of(target));
 
@@ -73,6 +74,8 @@ public final class RegistrationFencingGuardTest {
                 () -> guard.assertLegacyUriWrite("selector-1", "127.0.0.1", 18080));
         assertEquals(RegistrationFencingProtocol.FENCING_REQUIRED, exception.getCode());
         assertThrows(RegistrationFencingException.class, () -> guard.assertSelectorWriteAllowed("selector-1"));
+        assertThrows(RegistrationFencingException.class, () -> guard.assertSelectorAddressWriteAllowed("selector-1", "127.0.0.1:18080"));
+        assertTrue(guard.isSelectorAddressProtected("selector-1", "127.0.0.1:18080"));
         assertTrue(guard.isProtectedSelector("selector-1"));
         assertTrue(guard.isProtectedAddress("ns-1", "127.0.0.1", 18080));
     }
@@ -80,19 +83,23 @@ public final class RegistrationFencingGuardTest {
     @Test
     public void disabledTombstoneNoLongerProtectsItsSelector() {
         RegistrationFencingTargetDO target = target(Boolean.FALSE);
-        when(targetMapper.selectBySelectorAddress("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorAddressForUpdate("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorIdForUpdate("selector-1")).thenReturn(List.of(target));
         when(targetMapper.selectBySelectorId("selector-1")).thenReturn(List.of(target));
         when(targetMapper.selectByNamespaceAddress("ns-1", "127.0.0.1", 18080)).thenReturn(List.of(target));
 
         assertDoesNotThrow(() -> guard.assertLegacyUriWrite("selector-1", "127.0.0.1", 18080));
         assertDoesNotThrow(() -> guard.assertSelectorWriteAllowed("selector-1"));
+        assertDoesNotThrow(() -> guard.assertSelectorAddressWriteAllowed("selector-1", "127.0.0.1:18080"));
+        assertFalse(guard.isSelectorAddressProtected("selector-1", "127.0.0.1:18080"));
         assertFalse(guard.isProtectedSelector("selector-1"));
     }
 
     @Test
     public void fencedContextMayWriteItsOwnSelector() {
         RegistrationFencingTargetDO target = target(Boolean.TRUE);
-        when(targetMapper.selectBySelectorAddress("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorAddressForUpdate("selector-1", "127.0.0.1", 18080)).thenReturn(target);
+        when(targetMapper.selectBySelectorIdForUpdate("selector-1")).thenReturn(List.of(target));
         when(targetMapper.selectBySelectorId("selector-1")).thenReturn(List.of(target));
 
         try (RegistrationFencingContext ignored =
@@ -104,7 +111,7 @@ public final class RegistrationFencingGuardTest {
 
     @Test
     public void legacyMemberWriteIsNotBlockedByAnotherAddressInTheSameSelector() {
-        when(targetMapper.selectBySelectorAddress("selector-1", "127.0.0.2", 18081)).thenReturn(null);
+        when(targetMapper.selectBySelectorAddressForUpdate("selector-1", "127.0.0.2", 18081)).thenReturn(null);
 
         assertDoesNotThrow(() -> guard.assertLegacyUriWrite("selector-1", "127.0.0.2", 18081));
     }

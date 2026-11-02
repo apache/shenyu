@@ -23,7 +23,9 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.mapper.RegistrationFencingTargetMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -31,12 +33,19 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RegistrationFencingTargetDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.service.register.FencedRegisterService;
+import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDivideServiceImpl;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -50,9 +59,11 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -64,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol.HEARTBEAT;
 import static org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol.OFFLINE;
+import static org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol.REGISTER;
 import static org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -96,6 +108,66 @@ final class RegistrationFencingPersistenceTest {
     private static final String STARTUP_A = "6f9619ff-8b86-d011-b42d-00cf4fc964ff";
 
     private static final String STARTUP_B = "16fd2706-8baf-433b-82eb-8c7fada847da";
+
+    @Test
+    void readinessPersistsThroughFencedUpdatesAndRejectsTheReplacedSession() throws Exception {
+        TestDatabase database = new TestDatabase();
+        try {
+            database.seedTargetSource();
+            database.seedOwnership();
+            database.jdbc.update("UPDATE discovery_upstream SET props = ? WHERE id = 'fencing-upstream'", "{\"warmup\":\"20\"}");
+            RegistrationFencingService admin = database.service(database.readinessWriter());
+            RegistrationFencingProtocol.SessionData sessionA = admin.acquire(acquire(STARTUP_A, "0"), PRINCIPAL).data();
+            assertMutation(admin, sessionA, "1", REGISTER, EventType.REGISTER);
+            assertReadiness(database, false, false);
+
+            assertMutation(admin, sessionA, "2", UPDATE, EventType.NOT_READY);
+            assertReadiness(database, true, false);
+            assertMutation(admin, sessionA, "2", UPDATE, EventType.NOT_READY);
+            assertEquals(2L, database.targets().selectById(TARGET_ID).getLastSequence());
+            assertMutation(admin, sessionA, "3", HEARTBEAT, EventType.HEARTBEAT);
+            assertReadiness(database, true, false);
+            assertMutation(admin, sessionA, "4", UPDATE, EventType.DRAINING);
+            assertReadiness(database, true, true);
+            assertMutation(admin, sessionA, "5", UPDATE, EventType.READY);
+            assertReadiness(database, false, false);
+
+            RegistrationFencingProtocol.SessionData sessionB = admin.replace(TARGET_ID,
+                    new RegistrationFencingProtocol.ReplaceRequest(UUID.randomUUID().toString(), STARTUP_A,
+                            sessionA.generation(), STARTUP_B, PRINCIPAL), true).data();
+            assertNotNull(sessionB);
+            assertMutation(admin, sessionB, "1", UPDATE, EventType.NOT_READY);
+            assertReadiness(database, true, false);
+            for (EventType eventType : List.of(EventType.READY, EventType.NOT_READY)) {
+                URIRegisterDTO payload = uri();
+                payload.setEventType(eventType);
+                assertStale(admin, new RegistrationFencingProtocol.MutationRequest(DOMAIN, sessionA.sessionId(),
+                        SELECTOR_ID, sessionA.generation(), "6", UPDATE, payload));
+                assertReadiness(database, true, false);
+                assertEquals(1L, database.targets().selectById(TARGET_ID).getLastSequence());
+            }
+            assertMutation(admin, sessionB, "2", UPDATE, EventType.READY);
+            assertReadiness(database, false, false);
+        } finally {
+            database.close();
+        }
+    }
+
+    private void assertMutation(final RegistrationFencingService admin, final RegistrationFencingProtocol.SessionData session,
+                                final String sequence, final String operation, final EventType eventType) {
+        URIRegisterDTO payload = uri();
+        payload.setEventType(eventType);
+        assertEquals(RegistrationFencingProtocol.OK, admin.mutate(new RegistrationFencingProtocol.MutationRequest(
+                DOMAIN, session.sessionId(), SELECTOR_ID, session.generation(), sequence, operation, payload), PRINCIPAL).code());
+    }
+
+    private void assertReadiness(final TestDatabase database, final boolean notReady, final boolean draining) {
+        String serialized = database.jdbc.queryForObject("SELECT props FROM discovery_upstream WHERE id = 'fencing-upstream'", String.class);
+        Map<String, Object> props = GsonUtils.getInstance().convertToMap(serialized);
+        assertEquals(notReady, Boolean.TRUE.equals(props.get("notReady")));
+        assertEquals(draining, Boolean.TRUE.equals(props.get("draining")));
+        assertEquals("20", props.get("warmup"));
+    }
 
     @Test
     void staleSessionCannotMutateReplacementAndOwnershipSurvivesServiceRestart() throws Exception {
@@ -296,12 +368,18 @@ final class RegistrationFencingPersistenceTest {
             SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
             factory.setDataSource(dataSource);
             factory.setMapperLocations(new ClassPathResource("mappers/selector-sqlmap.xml"),
-                    new ClassPathResource("mappers/registration-fencing-target-sqlmap.xml"));
+                    new ClassPathResource("mappers/registration-fencing-target-sqlmap.xml"),
+                    new ClassPathResource("mappers/discovery-upstream-sqlmap.xml"),
+                    new ClassPathResource("mappers/discovery-handler-sqlmap.xml"),
+                    new ClassPathResource("mappers/discovery-rel-sqlmap.xml"));
             sessions = new SqlSessionTemplate(factory.getObject());
             targets = sessions.getMapper(RegistrationFencingTargetMapper.class);
             selectors = sessions.getMapper(SelectorMapper.class);
             plugins = mock(PluginMapper.class);
-            when(plugins.selectById("fencing-plugin")).thenReturn(PluginDO.builder().id("fencing-plugin").name("divide").build());
+            PluginDO plugin = PluginDO.builder().id("fencing-plugin").name("divide").build();
+            when(plugins.selectById("fencing-plugin")).thenReturn(plugin);
+            when(plugins.selectByName("divide")).thenReturn(plugin);
+            when(plugins.selectByNameForUpdate("divide")).thenReturn(plugin);
         }
 
         private RegistrationFencingTargetMapper targets() {
@@ -341,6 +419,10 @@ final class RegistrationFencingPersistenceTest {
             jdbc.update("INSERT INTO selector (id, plugin_id, selector_name, match_mode, selector_type, sort_code, handle, enabled, logged, continued, match_restful, namespace_id)"
                     + " VALUES (?, ?, ?, 0, 0, 1, '[]', 1, 0, 0, 0, ?)",
                     SELECTOR_ID, "fencing-plugin", "/fenced", SYS_DEFAULT_NAMESPACE_ID);
+            seedOwnership();
+        }
+
+        private void seedOwnership() {
             Timestamp now = new Timestamp(System.currentTimeMillis());
             RegistrationFencingTargetDO target = new RegistrationFencingTargetDO();
             target.setId(TARGET_ID);
@@ -359,6 +441,29 @@ final class RegistrationFencingPersistenceTest {
             target.setGeneration(0L);
             target.setLastSequence(0L);
             targets.insert(target);
+        }
+
+        private FencedRegisterService readinessWriter() {
+            RegistrationFencingGuard guard = new RegistrationFencingGuard(targets, selectors, plugins);
+            final DiscoveryUpstreamServiceImpl upstreamService = new DiscoveryUpstreamServiceImpl(
+                    sessions.getMapper(DiscoveryUpstreamMapper.class), sessions.getMapper(DiscoveryHandlerMapper.class),
+                    mock(ProxySelectorMapper.class), mock(DiscoveryMapper.class), sessions.getMapper(DiscoveryRelMapper.class),
+                    selectors, plugins, mock(DiscoveryProcessorHolder.class), guard);
+            DiscoveryService discoveryService = mock(DiscoveryService.class);
+            when(discoveryService.registerDefaultDiscovery(SELECTOR_ID, "divide", SYS_DEFAULT_NAMESPACE_ID)).thenReturn("fencing-handler");
+            NamespacePluginRelMapper namespacePlugins = mock(NamespacePluginRelMapper.class);
+            when(namespacePlugins.selectByPluginIdAndNamespaceId("fencing-plugin", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(new NamespacePluginVO());
+            ShenyuClientRegisterDivideServiceImpl writer = new ShenyuClientRegisterDivideServiceImpl();
+            ReflectionTestUtils.setField(writer, "selectorService", selectorService(guard));
+            ReflectionTestUtils.setField(writer, "discoveryUpstreamService", upstreamService);
+            ReflectionTestUtils.setField(writer, "discoveryService", discoveryService);
+            ReflectionTestUtils.setField(writer, "registrationFencingGuard", guard);
+            ReflectionTestUtils.setField(writer, "pluginMapper", plugins);
+            ReflectionTestUtils.setField(writer, "namespacePluginRelMapper", namespacePlugins);
+            ReflectionTestUtils.setField(writer, "upstreamCheckService", mock(UpstreamCheckService.class));
+            ReflectionTestUtils.setField(writer, "eventPublisher", mock(ApplicationEventPublisher.class));
+            ReflectionTestUtils.setField(writer, "transactionManager", new DataSourceTransactionManager(dataSource));
+            return writer;
         }
 
         private RegistrationFencingService service(final FencedRegisterService writer) {

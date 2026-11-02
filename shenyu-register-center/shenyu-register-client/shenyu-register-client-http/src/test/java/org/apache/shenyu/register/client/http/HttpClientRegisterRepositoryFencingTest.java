@@ -26,6 +26,7 @@ import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol;
 import org.apache.shenyu.register.common.utils.OkHttpTools;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -71,10 +73,11 @@ public final class HttpClientRegisterRepositoryFencingTest {
     private static final String TOKEN = "test-token";
 
     @Test
-    public void registrationHeartbeatAndOfflineUseOneSessionAndOrderedSequences() throws IOException {
+    public void registrationHeartbeatReadinessAndOfflineUseOneSessionAndOrderedSequences() throws IOException {
         final Timer timer = mock(Timer.class);
         final OkHttpTools http = mock(OkHttpTools.class);
         setupLogin(http);
+        when(http.post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
         when(http.post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH), anyString(), any(Headers.class)))
                 .thenReturn(acquireJson());
         when(http.post(eq(SERVER_A + mutatePath()), anyString(), any(Headers.class))).thenReturn(okJson());
@@ -90,16 +93,103 @@ public final class HttpClientRegisterRepositoryFencingTest {
 
             repository.doPersistURI(uri());
             repository.sendHeartbeat(uri());
+            repository.notReady(uri());
+            repository.ready(uri());
             repository.offline(uri());
 
             ArgumentCaptor<String> bodies = ArgumentCaptor.forClass(String.class);
-            verify(http, times(3)).post(eq(SERVER_A + mutatePath()), bodies.capture(), any(Headers.class));
+            verify(http, times(5)).post(eq(SERVER_A + mutatePath()), bodies.capture(), any(Headers.class));
             List<String> values = bodies.getAllValues();
             assertMutation(values.get(0), RegistrationFencingProtocol.REGISTER, "1");
             assertMutation(values.get(1), RegistrationFencingProtocol.HEARTBEAT, "2");
-            assertMutation(values.get(2), RegistrationFencingProtocol.OFFLINE, "3");
+            assertReadinessMutation(values.get(2), EventType.NOT_READY, "3");
+            assertReadinessMutation(values.get(3), EventType.READY, "4");
+            assertMutation(values.get(4), RegistrationFencingProtocol.OFFLINE, "5");
             verify(http, times(1)).post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH),
                     anyString(), any(Headers.class));
+            verify(http, never()).post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class));
+        }
+    }
+
+    @Test
+    public void readinessRetryKeepsThePendingPayloadAndSequenceBeforeTheNextState() throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        setupLogin(http);
+        when(http.post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+        when(http.post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH), anyString(), any(Headers.class)))
+                .thenReturn(acquireJson());
+        when(http.post(eq(SERVER_A + mutatePath()), anyString(), any(Headers.class)))
+                .thenReturn(okJson())
+                .thenThrow(new IOException("down"))
+                .thenReturn(okJson());
+
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+             MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+             MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            final HttpClientRegisterRepository repository = new HttpClientRegisterRepository(config(
+                    DOMAIN_A + "|target-a|" + SERVER_A + "|||127.0.0.1|18080|http|ns-1|demo"));
+            URIRegisterDTO dto = uri();
+
+            repository.doPersistURI(dto);
+            assertThrows(RuntimeException.class, () -> repository.notReady(dto));
+            repository.ready(dto);
+
+            ArgumentCaptor<String> bodies = ArgumentCaptor.forClass(String.class);
+            verify(http, times(4)).post(eq(SERVER_A + mutatePath()), bodies.capture(), any(Headers.class));
+            List<String> values = bodies.getAllValues();
+            assertMutation(values.get(0), RegistrationFencingProtocol.REGISTER, "1");
+            assertReadinessMutation(values.get(1), EventType.NOT_READY, "2");
+            assertEquals(values.get(1), values.get(2));
+            assertReadinessMutation(values.get(3), EventType.READY, "3");
+            verify(http, times(1)).post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH),
+                    anyString(), any(Headers.class));
+            verify(http, never()).post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class));
+        }
+    }
+
+    @Test
+    public void staleReadinessSessionNeverFallsBackToLegacyRegistration() throws IOException {
+        final Timer timer = mock(Timer.class);
+        final OkHttpTools http = mock(OkHttpTools.class);
+        setupLogin(http);
+        when(http.post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class))).thenReturn(Constants.SUCCESS);
+        String stale = GsonUtils.getInstance().toJson(Map.of("code", RegistrationFencingProtocol.STALE_SESSION,
+                "message", RegistrationFencingProtocol.STALE_SESSION));
+        when(http.post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH), anyString(), any(Headers.class)))
+                .thenReturn(acquireJson()).thenReturn(stale);
+        when(http.post(eq(SERVER_A + mutatePath()), anyString(), any(Headers.class)))
+                .thenReturn(okJson()).thenReturn(stale);
+
+        try (MockedStatic<WheelTimerFactory> timers = mockStatic(WheelTimerFactory.class);
+             MockedStatic<OkHttpTools> clients = mockStatic(OkHttpTools.class);
+             MockedStatic<RuntimeUtils> runtime = mockStatic(RuntimeUtils.class)) {
+            timers.when(WheelTimerFactory::getSharedTimer).thenReturn(timer);
+            clients.when(OkHttpTools::getInstance).thenReturn(http);
+            runtime.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            final HttpClientRegisterRepository repository = new HttpClientRegisterRepository(config(
+                    DOMAIN_A + "|target-a|" + SERVER_A + "|||127.0.0.1|18080|http|ns-1|demo"));
+
+            repository.doPersistURI(uri());
+            RuntimeException notReadyFailure = assertThrows(RuntimeException.class, () -> repository.notReady(uri()));
+            assertTrue(notReadyFailure.getMessage().contains(RegistrationFencingProtocol.STALE_SESSION));
+            RuntimeException readyFailure = assertThrows(RuntimeException.class, () -> repository.ready(uri()));
+            assertTrue(readyFailure.getMessage().contains(RegistrationFencingProtocol.STALE_SESSION));
+
+            ArgumentCaptor<String> mutations = ArgumentCaptor.forClass(String.class);
+            verify(http, times(2)).post(eq(SERVER_A + mutatePath()), mutations.capture(), any(Headers.class));
+            assertReadinessMutation(mutations.getAllValues().get(1), EventType.NOT_READY, "2");
+            ArgumentCaptor<String> acquisitions = ArgumentCaptor.forClass(String.class);
+            verify(http, times(2)).post(eq(SERVER_A + RegistrationFencingProtocol.ACQUIRE_PATH),
+                    acquisitions.capture(), any(Headers.class));
+            Map<String, Object> initial = GsonUtils.getInstance().convertToMap(acquisitions.getAllValues().get(0));
+            Map<String, Object> retry = GsonUtils.getInstance().convertToMap(acquisitions.getAllValues().get(1));
+            assertEquals(initial.get("startupId"), retry.get("startupId"));
+            assertEquals("1", retry.get("expectedGeneration"));
+            verify(http, never()).post(eq(SERVER_A + Constants.URI_PATH), anyString(), any(Headers.class));
         }
     }
 
@@ -341,6 +431,13 @@ public final class HttpClientRegisterRepositoryFencingTest {
         assertEquals(operation, request.get("operation"));
         assertEquals(sequence, request.get("clientSequence"));
         assertEquals(SESSION, request.get("sessionId"));
+    }
+
+    private void assertReadinessMutation(final String body, final EventType eventType, final String sequence) {
+        assertMutation(body, RegistrationFencingProtocol.UPDATE, sequence);
+        Map<String, Object> request = GsonUtils.getInstance().convertToMap(body);
+        Map<?, ?> payload = (Map<?, ?>) request.get("payload");
+        assertEquals(eventType.name(), payload.get("eventType"));
     }
 
     private ShenyuRegisterCenterConfig config(final String domains) {

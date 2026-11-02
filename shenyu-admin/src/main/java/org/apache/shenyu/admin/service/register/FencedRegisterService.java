@@ -67,6 +67,26 @@ public interface FencedRegisterService {
     String drainingWithoutFallback(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
+     * Withdraw admission without the legacy fallback queue.
+     *
+     * @param selectorName selector name
+     * @param uriList URI payload
+     * @param namespaceId namespace id
+     * @return result
+     */
+    String notReadyWithoutFallback(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Restore admission without the legacy fallback queue.
+     *
+     * @param selectorName selector name
+     * @param uriList URI payload
+     * @param namespaceId namespace id
+     * @return result
+     */
+    String readyWithoutFallback(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
      * Apply an offline operation without the legacy fallback queue.
      *
      * @param selectorName selector name

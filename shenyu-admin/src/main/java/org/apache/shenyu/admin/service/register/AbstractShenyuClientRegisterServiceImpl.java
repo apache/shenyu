@@ -495,6 +495,18 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     }
 
     @Override
+    public String notReadyWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                          final String namespaceId) {
+        return doNotReady(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String readyWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
+                                       final String namespaceId) {
+        return doReady(selectorName, uriList, namespaceId);
+    }
+
+    @Override
     public String offlineWithoutFallback(final String selectorName, final List<URIRegisterDTO> uriList,
                                          final String namespaceId) {
         return offline(selectorName, uriList, namespaceId);

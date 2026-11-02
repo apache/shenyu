@@ -363,9 +363,8 @@ public class RegistrationFencingServiceImpl implements RegistrationFencingServic
             return switch (request.operation()) {
                 case RegistrationFencingProtocol.REGISTER -> service.registerURIWithoutFallback(
                         selectorName, payload, target.getNamespaceId());
-                case RegistrationFencingProtocol.UPDATE -> EventType.DRAINING.equals(request.payload().getEventType())
-                        ? service.drainingWithoutFallback(selectorName, payload, target.getNamespaceId())
-                        : service.registerURIWithoutFallback(selectorName, payload, target.getNamespaceId());
+                case RegistrationFencingProtocol.UPDATE -> applyFencedUpdate(service, selectorName, payload,
+                        target.getNamespaceId(), request.payload().getEventType());
                 case RegistrationFencingProtocol.HEARTBEAT -> service.heartbeatWithoutFallback(
                         selectorName, payload, target.getNamespaceId());
                 case RegistrationFencingProtocol.OFFLINE -> service.offlineWithoutFallback(
@@ -373,6 +372,20 @@ public class RegistrationFencingServiceImpl implements RegistrationFencingServic
                 default -> throw new IllegalArgumentException("unsupported operation");
             };
         }
+    }
+
+    private String applyFencedUpdate(final FencedRegisterService service, final String selectorName,
+                                     final List<URIRegisterDTO> payload, final String namespaceId, final EventType eventType) {
+        if (EventType.DRAINING.equals(eventType)) {
+            return service.drainingWithoutFallback(selectorName, payload, namespaceId);
+        }
+        if (EventType.NOT_READY.equals(eventType)) {
+            return service.notReadyWithoutFallback(selectorName, payload, namespaceId);
+        }
+        if (EventType.READY.equals(eventType)) {
+            return service.readyWithoutFallback(selectorName, payload, namespaceId);
+        }
+        return service.registerURIWithoutFallback(selectorName, payload, namespaceId);
     }
 
     private RegistrationFencingTargetDO lockTargetWithSelector(final String targetId) {

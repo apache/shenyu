@@ -203,6 +203,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             return;
         }
         notReadyDTO.setEventType(EventType.NOT_READY);
+        if (fencingEnabled()) {
+            fencedMutate(notReadyDTO, RegistrationFencingProtocol.UPDATE);
+            return;
+        }
         doRegister(notReadyDTO, Constants.URI_PATH, Constants.URI);
     }
 
@@ -212,6 +216,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             return;
         }
         readyDTO.setEventType(EventType.READY);
+        if (fencingEnabled()) {
+            fencedMutate(readyDTO, RegistrationFencingProtocol.UPDATE);
+            return;
+        }
         doRegister(readyDTO, Constants.URI_PATH, Constants.URI);
     }
     

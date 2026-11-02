@@ -61,7 +61,7 @@ public class RegistrationFencingGuard {
         selectorMapper.selectByIdForUpdate(selectorId);
         RegistrationFencingTargetDO target;
         try {
-            target = targetMapper.selectBySelectorAddress(selectorId, RegistrationFencingAddress.canonicalHost(host), port);
+            target = targetMapper.selectBySelectorAddressForUpdate(selectorId, RegistrationFencingAddress.canonicalHost(host), port);
         } catch (IllegalArgumentException exception) {
             return;
         }
@@ -115,7 +115,9 @@ public class RegistrationFencingGuard {
             return;
         }
         selectorMapper.selectByIdForUpdate(selectorId);
-        List<RegistrationFencingTargetDO> targets = targetMapper.selectBySelectorId(selectorId);
+        // The caller may already have a repeatable-read snapshot from before target creation.
+        // Locking the selector serializes writers but does not refresh ordinary target reads.
+        List<RegistrationFencingTargetDO> targets = targetMapper.selectBySelectorIdForUpdate(selectorId);
         if (hasProtectingTarget(targets)) {
             throw conflict(RegistrationFencingProtocol.FENCING_REQUIRED, "selector is protected by a boot session");
         }
@@ -163,7 +165,7 @@ public class RegistrationFencingGuard {
         int separator = endpoint.lastIndexOf(':');
         String host = endpoint.substring(0, separator);
         Integer port = Integer.valueOf(endpoint.substring(separator + 1));
-        RegistrationFencingTargetDO target = targetMapper.selectBySelectorAddress(selectorId, host, port);
+        RegistrationFencingTargetDO target = targetMapper.selectBySelectorAddressForUpdate(selectorId, host, port);
         return Objects.nonNull(target) && isProtecting(target);
     }
 

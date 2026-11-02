@@ -73,6 +73,18 @@ jobs:
     if: needs.scope.outputs.required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    services:
+      mysql:
+        image: mysql:8.0@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: shenyu_fencing_test_snapshot
+        ports:
+          - 3306/tcp
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root"
+          --health-interval=5s --health-timeout=5s --health-retries=30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -80,10 +92,12 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Verify list/detail/export and index contracts
+      - name: Verify list/detail/export, index and fencing snapshot contracts
         run: >-
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin -am test
-          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest,DataPermissionMapperTest,PermissionListenerIntegrationTest,InstanceInfoUpsertTest,MockRequestHeaderPersistenceTest,MockRequestHeaderMigrationTest,OracleSQLPrepareInterceptorTest
+          -Dtest=PluginMapperTest,PluginServiceTest,PluginControllerTest,AdminQueryIndexTest,PluginIndexUpgradeContractTest,DataPermissionMapperTest,PermissionListenerIntegrationTest,InstanceInfoUpsertTest,MockRequestHeaderPersistenceTest,MockRequestHeaderMigrationTest,OracleSQLPrepareInterceptorTest,RegistrationFencingSnapshotTest
+          -Dshenyu.fencing.test.jdbcUrl=jdbc:mysql://127.0.0.1:${{ job.services.mysql.ports[3306] }}/shenyu_fencing_test_snapshot
+          -Dshenyu.fencing.test.username=root
           -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.javadoc.skip=true
 
   native-sql:

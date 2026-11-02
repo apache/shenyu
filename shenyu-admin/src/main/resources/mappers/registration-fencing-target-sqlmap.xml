@@ -66,8 +66,17 @@
         WHERE selector_id = #{selectorId} AND host = #{host} AND port = #{port}
     </select>
 
+    <select id="selectBySelectorAddressForUpdate" resultMap="BaseResultMap" useCache="false" flushCache="true">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target
+        WHERE selector_id = #{selectorId} AND host = #{host} AND port = #{port} FOR UPDATE
+    </select>
+
     <select id="selectBySelectorId" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target WHERE selector_id = #{selectorId}
+    </select>
+
+    <select id="selectBySelectorIdForUpdate" resultMap="BaseResultMap" useCache="false" flushCache="true">
+        SELECT <include refid="Base_Column_List"/> FROM registration_fencing_target WHERE selector_id = #{selectorId} FOR UPDATE
     </select>
 
     <select id="selectByNamespaceAddress" resultMap="BaseResultMap">

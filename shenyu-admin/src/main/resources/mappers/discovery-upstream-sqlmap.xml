@@ -236,6 +236,7 @@
         du.date_created,
         du.date_updated,
         du.discovery_handler_id,
+        du.namespace_id,
         du.protocol,
         du.upstream_url,
         du.upstream_status,

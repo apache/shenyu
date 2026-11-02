@@ -68,12 +68,34 @@ public interface RegistrationFencingTargetMapper {
                                                         @Param("port") Integer port);
 
     /**
+     * Read the current selector/address target while holding its row lock.
+     * Callers must acquire the selector lock first.
+     *
+     * @param selectorId selector id
+     * @param host host
+     * @param port port
+     * @return current target
+     */
+    RegistrationFencingTargetDO selectBySelectorAddressForUpdate(@Param("selectorId") String selectorId,
+                                                                 @Param("host") String host,
+                                                                 @Param("port") Integer port);
+
+    /**
      * Select targets bound to a selector.
      *
      * @param selectorId selector id
      * @return targets
      */
     List<RegistrationFencingTargetDO> selectBySelectorId(String selectorId);
+
+    /**
+     * Read current selector targets while holding their row locks.
+     * Callers must acquire the selector lock first.
+     *
+     * @param selectorId selector id
+     * @return current targets
+     */
+    List<RegistrationFencingTargetDO> selectBySelectorIdForUpdate(String selectorId);
 
     /**
      * Select all targets matching an instance observation.
