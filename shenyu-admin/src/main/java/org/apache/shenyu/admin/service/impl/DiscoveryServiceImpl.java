@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -91,6 +92,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
     private final TransactionTemplate discoveryActivation;
 
     public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper,
@@ -100,6 +103,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                                 final SelectorService selectorService,
                                 final SelectorMapper selectorMapper,
                                 final DiscoveryProcessorHolder discoveryProcessorHolder,
+                                final RegistrationFencingGuard registrationFencingGuard,
                                 final PlatformTransactionManager transactionManager) {
         this.discoveryMapper = discoveryMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
@@ -108,6 +112,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
+        this.registrationFencingGuard = registrationFencingGuard;
         this.discoveryActivation = new TransactionTemplate(transactionManager);
         this.discoveryActivation.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
@@ -133,6 +138,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Transactional(rollbackFor = Exception.class)
     public void registerDiscoveryConfig(final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         SelectorDO selectorDO = findAndLockOnDB(discoveryConfigRegisterDTO.getSelectorName(), discoveryConfigRegisterDTO.getPluginName(), discoveryConfigRegisterDTO.getNamespaceId());
+        registrationFencingGuard.assertSelectorWriteAllowed(selectorDO.getId());
         bindingDiscovery(discoveryConfigRegisterDTO, selectorDO);
     }
 

@@ -122,7 +122,7 @@ jobs:
         run: |
           python3 .github/scripts/test-client-boundary.py
           python3 .github/scripts/check-client-boundary.py
-          ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
+          bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
             -Dtest=RegistrationProtocolCompatibilityTest,ZookeeperClientDiscoveryIntegrationTest,HeartbeatListenerConfigurationTest \
             -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
             -Dscope=test -DoutputType=tgf -DoutputFile=target/client-boundary.tgf
@@ -131,7 +131,7 @@ jobs:
         run: |
           python3 .github/scripts/test-registry-dependencies.py
           REGISTRY_MODULES="$(python3 .github/scripts/check-registry-dependencies.py --modules)"
-          ./mvnw -B -ntp -pl "$REGISTRY_MODULES" -am package dependency:tree \
+          bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl "$REGISTRY_MODULES" -am package dependency:tree \
             -DskipTests -DskipRemoteResources=true -Djacoco.skip=true -Dmaven.javadoc.skip=true \
             -Dscope=runtime -DoutputType=tgf -DoutputFile=target/registry-dependencies.tgf
           python3 .github/scripts/check-registry-dependencies.py
