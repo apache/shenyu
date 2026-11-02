@@ -98,6 +98,23 @@
   configuration. Existing tools-only deployments retain their discovery behavior;
   resource reads reuse the owned cancellation/deadline and directory-generation
   lifecycle. No generic file/URL fetching, prompts or subscriptions are added.
+
+- Admin now validates all six HTTP client registration endpoints before
+  publishing registration events and returns HTTP 400 for invalid required
+  fields. Metadata registration requires non-blank `appName`, `rpcType`, and
+  `path`; URI registration and offline requests require non-blank `appName`
+  and `rpcType`. For compatibility with existing clients, metadata accepts
+  missing, null or empty `contextPath`, `ruleName`, and `host`; URI registration
+  and offline requests accept missing, null or empty `contextPath` and `host`.
+  Whitespace-only values for these compatibility fields return HTTP 400.
+  Admin defaults a missing, null or empty metadata `ruleName` to `path`,
+  including metadata nested in MCP registrations. Before upgrading Admin,
+  ensure clients supply the required fields listed in
+  [the registration field contract](shenyu-register-center/shenyu-register-protocol/README.md#field-contract).
+  Validation is implemented in Admin; protocol DTOs remain JDK-only.
+  Successful responses still acknowledge enqueueing, not completion of
+  registration. (#6713)
+
 - Agent Gateway accepts opt-in `mcp.httpTools` plans for fixed existing gateway
   HTTP routes. GET/query and POST/query or flat scalar JSON-body mappings use
   request-local plugin cursors, attributes and captured responses; upstream

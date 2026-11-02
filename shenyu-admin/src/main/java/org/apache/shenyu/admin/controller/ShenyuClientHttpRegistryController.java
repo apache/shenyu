@@ -18,10 +18,13 @@
 package org.apache.shenyu.admin.controller;
 
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.validation.validator.ShenyuClientRegistryValidator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
@@ -29,13 +32,20 @@ import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type shenyu client controller.
@@ -51,6 +61,31 @@ public class ShenyuClientHttpRegistryController {
     private NamespaceService namespaceService;
 
     /**
+     * Registers HTTP request validation without adding framework dependencies to protocol DTOs.
+     *
+     * @param binder the request binder
+     */
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) {
+        binder.addValidators(new ShenyuClientRegistryValidator());
+    }
+
+    /**
+     * Returns HTTP 400 for invalid registrations before any event is published.
+     *
+     * @param exception the validation failure
+     * @return the registration error
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ShenyuAdminResult handleInvalidRegistration(final MethodArgumentNotValidException exception) {
+        String message = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("| "));
+        return ShenyuAdminResult.error(String.format("Request error! invalid argument [%s]", message));
+    }
+
+    /**
      * Register metadata string.
      *
      * @param metaDataRegisterDTO the meta data register dto
@@ -58,7 +93,8 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.META_PATH)
     @ResponseBody
-    public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
+    public String registerMetadata(@RequestBody @Valid final MetaDataRegisterDTO metaDataRegisterDTO) {
+        normalizeMetadata(metaDataRegisterDTO);
         if (Objects.isNull(metaDataRegisterDTO.getNamespaceId())) {
             metaDataRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -74,7 +110,7 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.URI_PATH)
     @ResponseBody
-    public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
+    public String registerURI(@RequestBody @Valid final URIRegisterDTO uriRegisterDTO) {
         if (Objects.isNull(uriRegisterDTO.getNamespaceId())) {
             uriRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -90,7 +126,7 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.API_DOC_PATH)
     @ResponseBody
-    public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
+    public String registerApiDoc(@RequestBody @Valid final ApiDocRegisterDTO apiDocRegisterDTO) {
         publisher.publish(apiDocRegisterDTO);
         return RegistrationProtocol.SUCCESS;
     }
@@ -103,7 +139,7 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.DISCOVERY_CONFIG_PATH)
     @ResponseBody
-    public String registerDiscoveryConfig(@RequestBody final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
+    public String registerDiscoveryConfig(@RequestBody @Valid final DiscoveryConfigRegisterDTO discoveryConfigRegisterDTO) {
         if (Objects.isNull(discoveryConfigRegisterDTO.getNamespaceId())) {
             discoveryConfigRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -119,7 +155,8 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.MCP_TOOLS_PATH)
     @ResponseBody
-    public String registerMcpTools(@RequestBody final McpToolsRegisterDTO mcpToolsRegisterDTO) {
+    public String registerMcpTools(@RequestBody @Valid final McpToolsRegisterDTO mcpToolsRegisterDTO) {
+        normalizeMetadata(mcpToolsRegisterDTO.getMetaDataRegisterDTO());
         if (Objects.isNull(mcpToolsRegisterDTO.getNamespaceId())) {
             mcpToolsRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -135,7 +172,7 @@ public class ShenyuClientHttpRegistryController {
      */
     @PostMapping(RegistrationProtocol.OFFLINE_PATH)
     @ResponseBody
-    public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
+    public String offline(@RequestBody @Valid final URIRegisterDTO offlineDTO) {
         if (Objects.isNull(offlineDTO.getNamespaceId())) {
             offlineDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         }
@@ -147,6 +184,12 @@ public class ShenyuClientHttpRegistryController {
         NamespaceVO namespaceVO = namespaceService.findByNamespaceId(namespaceId);
         if (Objects.isNull(namespaceVO)) {
             throw new IllegalArgumentException("namespaceId is not exist");
+        }
+    }
+
+    private void normalizeMetadata(final MetaDataRegisterDTO metadata) {
+        if (Objects.isNull(metadata.getRuleName()) || metadata.getRuleName().isEmpty()) {
+            metadata.setRuleName(metadata.getPath());
         }
     }
 }
