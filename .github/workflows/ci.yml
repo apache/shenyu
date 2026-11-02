@@ -66,6 +66,10 @@ jobs:
           python3 -B .github/scripts/test-restore-shenyu-local-repo.py
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test HTTP pool snapshot source provenance
+        run: python3 script/performance/http-pool/test_snapshot.py
+      - name: Test HTTP pool benchmark report integrity
+        run: python3 script/performance/http-pool/test_report.py
       - name: Test Maven transfer retries
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
