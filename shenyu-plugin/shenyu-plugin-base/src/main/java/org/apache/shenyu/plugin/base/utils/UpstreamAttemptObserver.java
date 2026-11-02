@@ -25,7 +25,9 @@ package org.apache.shenyu.plugin.base.utils;
  * are expected to hand facts to their own bounded facilities.
  *
  * <p>Registration is opt-in through {@link UpstreamAttemptObserverHolder}; with no
- * observer registered the transport path allocates nothing.
+ * observer registered the transport path allocates nothing. The facts reuse the trace
+ * id the gateway span already published: registering an observer never creates a span
+ * or another trace context, and a slow or throwing sink must not affect the request.
  */
 public interface UpstreamAttemptObserver {
 

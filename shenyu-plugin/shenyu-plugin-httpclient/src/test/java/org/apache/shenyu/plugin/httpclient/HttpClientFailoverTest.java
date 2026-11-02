@@ -22,7 +22,11 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObservation;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObserver;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptObserverHolder;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -58,6 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Exercises retry routing through the public client plugin entry point and real HTTP responses.
@@ -67,6 +72,8 @@ class HttpClientFailoverTest {
     private static final Duration TEST_TIMEOUT = Duration.ofSeconds(10);
 
     private static final String REQUEST_PATH = "/test?mode=retry";
+
+    private static final String TRACE_ID = "4bf92f3577b34da6a3ce929d0e0e4736";
 
     @ParameterizedTest
     @CsvSource({
@@ -132,6 +139,84 @@ class HttpClientFailoverTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"netty", "webclient"})
+    void currentRetrySubscriptionsAreObservedAsSeparateAttempts(final String client) {
+        final RecordingObserver observer = new RecordingObserver();
+        UpstreamAttemptObserverHolder.register(observer);
+        try (UpstreamFixture fixture = new UpstreamFixture(client, PrimaryBehavior.RECOVER_AFTER_DISCONNECT).withTraceId(TRACE_ID).start()) {
+            fixture.execute(RetryEnum.CURRENT, "exponential", 1).block(TEST_TIMEOUT);
+            awaitFinishedAttempts(observer, 2);
+
+            assertEquals("primary-success", fixture.payload.get());
+            assertTwoAttemptsAreDistinct(observer);
+            assertEquals(UpstreamAttemptObservation.Outcome.ERROR, observer.observations.get(0).getOutcome(),
+                    "the disconnected subscription is a failed attempt");
+            assertEquals(UpstreamAttemptObservation.Outcome.COMPLETED, observer.observations.get(1).getOutcome(),
+                    "the retried subscription on the same publisher is its own successful attempt");
+            observer.observations.forEach(observation -> assertEquals(TRACE_ID, observation.getTraceId(),
+                    "the attempt reuses the trace id of the logical request instead of creating a span"));
+        } finally {
+            UpstreamAttemptObserverHolder.unregister();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"netty", "webclient"})
+    void failoverAttemptsAreObservedAsSeparateAttemptsWithTheDefaultBackoff(final String client) {
+        final RecordingObserver observer = new RecordingObserver();
+        UpstreamAttemptObserverHolder.register(observer);
+        try (UpstreamFixture fixture = new UpstreamFixture(client, PrimaryBehavior.SERVER_ERROR).start()) {
+            // "default" selects the inline resend path: the standby subscription is created while the
+            // initial attempt is failing, so a shared exchange attribute would finish the wrong attempt.
+            fixture.execute(RetryEnum.FAILOVER, "default", 1).block(TEST_TIMEOUT);
+            awaitFinishedAttempts(observer, 2);
+
+            assertEquals("standby-success", fixture.payload.get());
+            assertTwoAttemptsAreDistinct(observer);
+            assertEquals(UpstreamAttemptObservation.Outcome.ERROR, observer.observations.get(0).getOutcome(),
+                    "the initial upstream attempt failed and must keep its own record");
+            assertEquals(UpstreamAttemptObservation.Outcome.COMPLETED, observer.observations.get(1).getOutcome(),
+                    "the failover attempt succeeded and must not overwrite the initial attempt");
+        } finally {
+            UpstreamAttemptObserverHolder.unregister();
+        }
+    }
+
+    private static void awaitFinishedAttempts(final RecordingObserver observer, final int expected) {
+        Awaitility.await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
+            assertEquals(expected, observer.observations.size());
+            assertTrue(observer.observations.stream().allMatch(UpstreamAttemptObservation::isFinished),
+                    "every attempt must reach exactly one terminal record");
+        });
+    }
+
+    private static void assertTwoAttemptsAreDistinct(final RecordingObserver observer) {
+        assertEquals(2, observer.observations.stream()
+                .map(UpstreamAttemptObservation::getAttemptId).distinct().count(),
+                "each transport subscription is one attempt with its own identity");
+        assertEquals(2, observer.observations.stream()
+                .filter(UpstreamAttemptObservation::isFinished).count());
+    }
+
+    private static final class RecordingObserver implements UpstreamAttemptObserver {
+
+        private final List<UpstreamAttemptObservation> observations = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void onAttemptStarted(final UpstreamAttemptObservation observation) {
+            observations.add(observation);
+        }
+
+        @Override
+        public void onHeadersReady(final UpstreamAttemptObservation observation) {
+        }
+
+        @Override
+        public void onAttemptFinished(final UpstreamAttemptObservation observation) {
+        }
+    }
+
     private enum PrimaryBehavior {
 
         SERVER_ERROR,
@@ -170,6 +255,8 @@ class HttpClientFailoverTest {
         private String selectorId;
 
         private MockServerWebExchange exchange;
+
+        private String traceId;
 
         private UpstreamFixture(final String client, final PrimaryBehavior primaryBehavior) {
             this.primaryBehavior = primaryBehavior;
@@ -216,9 +303,17 @@ class HttpClientFailoverTest {
             return response.sendString(Flux.just("primary-", "success"));
         }
 
+        private UpstreamFixture withTraceId(final String id) {
+            this.traceId = id;
+            return this;
+        }
+
         private Mono<Void> execute(final RetryEnum retryStrategy, final String backoff, final int retries) {
             exchange = MockServerWebExchange.from(MockServerHttpRequest.get(REQUEST_PATH).build());
             exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+            if (Objects.nonNull(traceId)) {
+                exchange.getAttributes().put(Constants.SHENYU_AGENT_TRACE_ID, traceId);
+            }
             exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://127.0.0.1:" + primary.port() + REQUEST_PATH));
             exchange.getAttributes().put(Constants.REWRITE_URI, "/test");
             exchange.getAttributes().put(Constants.RETRY_STRATEGY, retryStrategy.getName());

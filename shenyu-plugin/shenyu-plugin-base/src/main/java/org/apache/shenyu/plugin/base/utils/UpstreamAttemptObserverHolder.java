@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
-import org.apache.shenyu.spi.Join;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -29,7 +27,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * observer registered the HTTP transport path allocates no observation objects at all,
  * preserving the uninstrumented behavior and overhead (#8209).
  */
-@Join
 public final class UpstreamAttemptObserverHolder {
 
     private static final UpstreamAttemptObserver NOOP = new UpstreamAttemptObserver() {
